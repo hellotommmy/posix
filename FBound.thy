@@ -19,7 +19,7 @@ where
 | "rerase (ASEQ _ r1 r2) = RSEQ (rerase r1) (rerase r2)"
 | "rerase (ASTAR _ r) = RSTAR (rerase r)"
 | "rerase (ANTIMES _ r n) = RNTIMES (rerase r) n"
-| "rerase (AFROM _ r n) = RFROM (rerase r) n"
+
 
 
 lemma eq1_rerase:
@@ -178,6 +178,6 @@ theorem annotated_size_bound:
   by (simp add: rders_simp_bounded)
 
 
-unused_thms
+
 
 end

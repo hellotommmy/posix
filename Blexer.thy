@@ -98,9 +98,8 @@ using assms
   using decode'_code_Stars apply blast
   apply(rule decode'_code_NTIMES)
   apply(simp)
-    apply(auto)
-  apply (metis Un_iff decode'.simps(11) decode'_code_NTIMES set_append)
-  using decode'_code_Stars by blast
+  apply(auto)
+  done
 
 lemma decode_code:
   assumes "\<Turnstile> v : r"
@@ -380,13 +379,10 @@ lemma retrieve_code:
   apply(induct v r )
         apply(simp_all add: retrieve_fuse retrieve_encode_STARS)
   apply(subst retrieve_encode_NTIMES)
-      apply(auto)
-   apply(case_tac vs1)
-    apply(simp_all)
-   apply(case_tac vs2)
-    apply(simp_all)
-  using retrieve_encode_STARS apply blast
-  by (metis Un_iff retrieve_encode_STARS set_append)
+   apply(auto)
+  done
+
+
 
 lemma retrieve_AALTs_bnullable1:
   assumes "bnullable r"
@@ -444,8 +440,9 @@ lemma bmkeps_retrieve:
   using retrieve_AALTs_bnullable1 apply force
     apply(metis retrieve_AALTs_bnullable2)
   apply (metis Cons_eq_appendI One_nat_def Suc_diff_1 append_Nil replicate_Suc retrieve.simps(8))
-  by (metis Cons_eq_appendI One_nat_def Suc_diff_1 append_Nil replicate_Suc retrieve.simps(8))
-  
+  done
+
+ 
 
 lemma bder_retrieve:
   assumes "\<Turnstile> v : der c (erase r)"

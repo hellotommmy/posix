@@ -19,7 +19,6 @@ fun eq1 ("_ ~1 _" [80, 80] 80) where
 | "(AALTs bs1 (r1 # rs1)) ~1 (AALTs bs2 (r2 # rs2)) = (r1 ~1 r2 \<and> (AALTs bs1 rs1) ~1 (AALTs bs2 rs2))"
 | "(ASTAR bs1 r1) ~1 (ASTAR bs2 r2) = r1 ~1 r2"
 | "(ANTIMES bs1 r1 n1) ~1 (ANTIMES bs2 r2 n2) = (r1 ~1 r2 \<and> n1 = n2)"
-| "(AFROM bs1 r1 n1) ~1 (AFROM bs2 r2 n2) = (r1 ~1 r2 \<and> n1 = n2)"
 | "_ ~1 _ = False"
 
 
@@ -370,8 +369,9 @@ lemma fltsfrewrites: "rs s\<leadsto>* flts rs"
   apply (simp add: srewrites7)
    apply(simp add: srewrites7)
   apply(simp add: srewrites7)
-  apply(simp add: srewrites7)
   done
+
+
 
 lemma bnullable0:
 shows "r1 \<leadsto> r2 \<Longrightarrow> bnullable r1 = bnullable r2" 
