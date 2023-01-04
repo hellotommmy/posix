@@ -513,6 +513,7 @@ r' = RZERO \<or> (\<exists>s' m. r' = RSEQ (rders_simp r s') (RNTIMES r m) \<and
   apply (metis rders_simp_one_char)
   by (metis case_prod_conv nupdates.simps(2) nupdates_n_leq_n option.simps(4) option.simps(5))
 
+thm nupdates_n_leq_n
 
 lemma ntimes_trivial1:
   shows "rsize RZERO \<le> N + rsize (RNTIMES r n)"
@@ -722,7 +723,7 @@ lemma rders_simp_bounded:
   apply (metis alts_closed_form_bounded size_list_estimation')
   using star_closed_form_bounded apply blast
   using ntimes_closed_form_boundedA apply blast
-  sledgehammer
+  
 
   sorry
   

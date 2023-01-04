@@ -13,7 +13,6 @@ where
 | "mkeps(ALT r1 r2) = (if nullable(r1) then Left (mkeps r1) else Right (mkeps r2))"
 | "mkeps(STAR r) = Stars []"
 | "mkeps(NTIMES r n) = Stars (replicate n (mkeps r))" 
-| "mkeps(FROM r n) = Stars (replicate n (mkeps r))"
 
 fun injval :: "rexp \<Rightarrow> char \<Rightarrow> val \<Rightarrow> val"
 where
@@ -25,7 +24,6 @@ where
 | "injval (SEQ r1 r2) c (Right v2) = Seq (mkeps r1) (injval r2 c v2)"
 | "injval (STAR r) c (Seq v (Stars vs)) = Stars ((injval r c v) # vs)" 
 | "injval (NTIMES r n) c (Seq v (Stars vs)) = Stars ((injval r c v) # vs)" 
-| "injval (FROM r n) c (Seq v (Stars vs)) = Stars ((injval r c v) # vs)"
 
 fun 
   lexer :: "rexp \<Rightarrow> string \<Rightarrow> val option"
@@ -62,9 +60,8 @@ using assms
   apply (metis Prf.intros(7) append_is_Nil_conv empty_iff list.set(1) list.size(3))
   apply(rule Prf_NTimes_empty)
   apply(auto simp add: mkeps_flat)
-  apply (metis Posix1a Posix_From2 empty_iff list.set(1) list.size(3))
-  by (metis Prf.intros(8) append_Nil empty_iff in_set_replicate length_replicate list.set(1) mkeps_flat)
-
+  done
+ 
 lemma Prf_injval_flat:
   assumes "\<Turnstile> v : der c r" 
   shows "flat (injval r c v) = c # (flat v)"
@@ -84,24 +81,10 @@ apply(case_tac x2)
 apply(simp)
 apply(simp)
 apply(subst append.simps(2)[symmetric])
-apply(rule Prf.intros)
-apply(auto simp add: Prf_injval_flat)[4]
-(* From *)
-apply(case_tac x2)
-apply(simp)
-apply(erule Prf_elims)
-apply(simp)
-apply(erule Prf_elims(6))
-apply(simp)
-apply (simp add: Prf.intros(9) Prf_injval_flat)
-apply(simp)
-apply(erule Prf_elims)
-apply(simp)
-apply(erule Prf_elims(8))
-apply(simp)
-apply (smt (verit, best) Cons_eq_appendI Prf.intros(8) Prf_injval_flat length_Cons length_append list.discI set_ConsD)
-by (simp add: Prf.intros(9) Prf_injval_flat)
-
+  apply(rule Prf.intros)
+  apply (metis Prf_injval_flat list.distinct(1) set_ConsD)
+  apply blast
+  by simp
 
 text \<open>Mkeps and injval produce, or preserve, Posix values.\<close>
 
@@ -115,8 +98,9 @@ apply(auto intro: Posix.intros simp add: nullable_correctness Sequ_def)
 apply(subst append.simps(1)[symmetric])
 apply(rule Posix.intros)
 apply(auto)
-apply(simp add: Posix_NTIMES2 pow_empty_iff)
-  using Posix_From2 pow_empty_iff by force
+  apply(simp add: Posix_NTIMES2 pow_empty_iff)
+  done
+
 
 
 lemma Posix_injval:
@@ -307,68 +291,6 @@ next
           by (metis One_nat_def Posix_NTIMES1 Suc_eq_plus1 Suc_pred cons(5))
         then show "(c # s) \<in> NTIMES r n \<rightarrow> injval (NTIMES r n) c v" using cons by(simp)
       qed  
-next
-  case (FROM r n)
-  have IH: "\<And>s v. s \<in> der c r \<rightarrow> v \<Longrightarrow> (c # s) \<in> r \<rightarrow> injval r c v" by fact
-  have "s \<in> der c (FROM r n) \<rightarrow> v" by fact
-  then consider
-      (cons) v1 vs s1 s2 where 
-        "v = Seq v1 (Stars vs)" "s = s1 @ s2" 
-        "s1 \<in> der c r \<rightarrow> v1" "s2 \<in> (FROM r (n - 1)) \<rightarrow> (Stars vs)" "0 < n"
-        "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L (der c r) \<and> s\<^sub>4 \<in> L (FROM r (n - 1)))"
-     | (null) v1 vs s1 s2 where 
-        "v = Seq v1 (Stars vs)" "s = s1 @ s2"  "s2 \<in> (STAR r) \<rightarrow> (Stars vs)" 
-        "s1 \<in> der c r \<rightarrow> v1" "n = 0"
-         "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L (der c r) \<and> s\<^sub>4 \<in> L (STAR r))"  
-    apply(auto elim: Posix_elims simp add: der_correctness Der_def intro: Posix.intros split: if_splits)
-    apply(erule Posix_elims)
-    apply(auto)
-    apply(auto elim: Posix_elims simp add: der_correctness Der_def intro: Posix.intros split: if_splits)
-    apply(metis Posix1a Prf_elims(6))     
-    apply(erule Posix_elims)
-    apply(auto)
-    apply(erule Posix_elims(8))
-    apply (metis (no_types, lifting) Nil_is_append_conv Posix_From2)
-     apply (simp add: Posix_From1 that(1))
-    by (simp add: Posix_From3 that(1))
-    then show "(c # s) \<in> (FROM r n) \<rightarrow> injval (FROM r n) c v" 
-    proof (cases)
-      case cons
-          have "s1 \<in> der c r \<rightarrow> v1" by fact
-          then have "(c # s1) \<in> r \<rightarrow> injval r c v1" using IH by simp
-        moreover
-          have "s2 \<in> (FROM r (n - 1)) \<rightarrow> Stars vs" by fact
-        moreover 
-          have "(c # s1) \<in> r \<rightarrow> injval r c v1" by fact 
-          then have "flat (injval r c v1) = (c # s1)" by (rule Posix1)
-          then have "flat (injval r c v1) \<noteq> []" by simp
-        moreover 
-          have "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L (der c r) \<and> s\<^sub>4 \<in> L (FROM r (n - 1)))" by fact
-          then have "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> L r \<and> s\<^sub>4 \<in> L (FROM r (n - 1)))" 
-            by (simp add: der_correctness Der_def)
-        ultimately 
-        have "((c # s1) @ s2) \<in> FROM r n \<rightarrow> Stars (injval r c v1 # vs)"
-          by (meson Posix_From1 cons(5))
-        then show "(c # s) \<in> FROM r n \<rightarrow> injval (FROM r n) c v" using cons by(simp)
-      next 
-       case null
-          have "s1 \<in> der c r \<rightarrow> v1" by fact
-          then have "(c # s1) \<in> r \<rightarrow> injval r c v1" using IH by simp
-          moreover 
-            have "s2 \<in> STAR r \<rightarrow> Stars vs" by fact
-          moreover 
-          have "(c # s1) \<in> r \<rightarrow> injval r c v1" by fact 
-          then have "flat (injval r c v1) = (c # s1)" by (rule Posix1)
-          then have "flat (injval r c v1) \<noteq> []" by simp
-          moreover
-          have "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L (der c r) \<and> s\<^sub>4 \<in> L (STAR r))" by fact
-          then have "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> L r \<and> s\<^sub>4 \<in> L (STAR r))" 
-            by (simp add: der_correctness Der_def)
-        ultimately 
-        have "((c # s1) @ s2) \<in> FROM r 0 \<rightarrow> Stars (injval r c v1 # vs)"
-          by (metis Posix_From3) 
-        then show "(c # s) \<in> FROM r n \<rightarrow> injval (FROM r n) c v" using null by (simp)
-      qed  
 qed
 
 
@@ -496,11 +418,8 @@ lemma injval_inj:
    apply (smt Prf_elims(6) injval.simps(7) list.inject val.inject(5))
   apply (smt Prf_elims(6) injval.simps(7) list.inject val.inject(5))
   apply(smt (verit, best) Prf_elims(1) Prf_elims(2) Prf_elims(7) injval.simps(8) list.inject val.simps(5))
-  apply(case_tac x2)
-  apply(auto)
-  apply (smt (verit, best) Prf_elims(2) Prf_elims(6) injval.simps(9) list.inject val.inject(5))
-  by (smt (verit, best) Prf_elims(2) Prf_elims(8) injval.simps(9) list.inject val.inject(5))
-    
+  done
+
 
 lemma uu:
   assumes "(c # s) \<in> r \<rightarrow> injval r c v" "\<Turnstile> v : (der c r)"

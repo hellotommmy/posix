@@ -21,8 +21,6 @@ definition RALTs_set where
 definition RNTIMES_set where
   "RNTIMES_set A n \<equiv> {RNTIMES r m | m r. r \<in> A \<and> rsize r + m \<le> n}"
 
-definition RFROM_set where
-  "RFROM_set A n \<equiv> {RFROM r m | m r. r \<in> A \<and> rsize r + m \<le> n}"
 
 
 definition
@@ -34,7 +32,7 @@ lemma sizenregex_induct1:
                          \<union> (RSTAR ` sizeNregex n) 
                          \<union> (RSEQ_set (sizeNregex n) n)
                          \<union> (RALTs_set (sizeNregex n) n))
-                         \<union> (RNTIMES_set (sizeNregex n) n) \<union> (RFROM_set (sizeNregex n) n)"
+                         \<union> (RNTIMES_set (sizeNregex n) n)"
   apply(auto)
         apply(case_tac x)
              apply(auto simp add: RSEQ_set_def)
@@ -47,24 +45,19 @@ lemma sizenregex_induct1:
   apply (simp add: sizeNregex_def)
         apply (simp add: sizeNregex_def)
   apply (simp add: RNTIMES_set_def)
-          apply (simp add: sizeNregex_def)
-  apply (metis (mono_tags, lifting) RFROM_set_def add_leD1 mem_Collect_eq)
+         apply (simp add: sizeNregex_def)
+
+
   using sizeNregex_def apply force
   apply (simp add: sizeNregex_def)
   apply (simp add: sizeNregex_def)
       apply (simp add: sizeNregex_def)
   apply (simp add: sizeNregex_def)
     apply (simp add: RALTs_set_def)
-  apply(simp add: sizeNregex_def)
-  apply(auto)
-  using ex_in_conv apply fastforce
-  apply (simp add: RNTIMES_set_def)
-   apply(simp add: sizeNregex_def)
-   apply(force)
-  apply(simp add: sizeNregex_def)
-  apply (simp add: RFROM_set_def)
-  apply(auto)
-  done  
+  
+  using linorder_le_less_linear apply fastforce
+  using RNTIMES_set_def sizeNregex_def by force
+    
 
 lemma s4:
   "RSEQ_set A n \<subseteq> RSEQ_set_cartesian A"
@@ -191,21 +184,6 @@ lemma s9_aux:
   apply (metis finite_subset s9_aux0)
   by blast
 
-lemma s10_aux0:
-  shows "RFROM_set (insert r A) n \<subseteq> RFROM_set A n \<union> (\<Union> i \<in> {..n}. {RFROM r i})"
-apply(auto simp add: RFROM_set_def)
-  done
-
-lemma s10_aux:
-  assumes "finite A"
-  shows "finite (RFROM_set A n)"
-  using assms
-  apply(induct A arbitrary: n)
-   apply(auto simp add: RFROM_set_def)[1]
-  apply(subgoal_tac "finite (RFROM_set F n \<union> (\<Union> i \<in> {..n}. {RFROM x i}))")
-  apply (metis finite_subset s10_aux0)
-  by blast
-
 lemma finite_size_n:
   shows "finite (sizeNregex n)"
   apply(induct n)
@@ -227,8 +205,8 @@ lemma finite_size_n:
   apply(rule s8_aux)
     apply(simp)
   apply(simp add: s9_aux)
-  by (simp add: s10_aux)
-  
+  done
+
 
 lemma three_easy_cases0: 
   shows "rsize (rders_simp RZERO s) \<le> Suc 0"

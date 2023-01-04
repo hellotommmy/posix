@@ -25,7 +25,6 @@ fun sz where
 | "sz (ALT r1 r2) = 1 + sz r1 + sz r2"
 | "sz (STAR r) = 1 + sz r"
 | "sz (NTIMES r n) = 1 + (n + 1) + sz r"
-| "sz (FROM r n) = 1 + (n + 1) + sz r"
 
 fun 
   Stars_add :: "val \<Rightarrow> val \<Rightarrow> val"
@@ -49,7 +48,6 @@ where
                                     let (vs, bs'') = decode' bs' (STAR r) 
                                     in (Stars_add v vs, bs''))"
 | "decode' bs (NTIMES r n) = decode' bs (STAR r)"
-| "decode' bs (FROM r n) = decode' bs (STAR r)"
 by pat_completeness auto
 
 lemma decode'_smaller:
@@ -121,7 +119,6 @@ datatype arexp =
 | AALTs "bit list" "arexp list"
 | ASTAR "bit list" arexp
 | ANTIMES "bit list" arexp nat
-| AFROM "bit list" arexp nat
 
 abbreviation
   "AALT bs r1 r2 \<equiv> AALTs bs [r1, r2]"
@@ -134,7 +131,6 @@ fun asize :: "arexp \<Rightarrow> nat" where
 | "asize (ASEQ cs r1 r2) = Suc (asize r1 + asize r2)"
 | "asize (ASTAR cs r) = Suc (asize r)"
 | "asize (ANTIMES cs r n) = Suc (asize r) + n"
-| "asize (AFROM cs r n) = Suc (asize r) + n"
 
 fun az2 :: "arexp \<Rightarrow> nat" where
   "az2 AZERO = 1"
@@ -144,7 +140,6 @@ fun az2 :: "arexp \<Rightarrow> nat" where
 | "az2 (ASEQ cs r1 r2) = Suc (az2 r1 + az2 r2)"
 | "az2 (ASTAR cs r) = Suc (az2 r)"
 | "az2 (ANTIMES cs r n) = Suc (az2 r) + n + 1"
-| "az2 (AFROM cs r n) = Suc (az2 r) + n + 1"
 
 fun 
   erase :: "arexp \<Rightarrow> rexp"
@@ -158,7 +153,6 @@ where
 | "erase (ASEQ _ r1 r2) = SEQ (erase r1) (erase r2)"
 | "erase (ASTAR _ r) = STAR (erase r)"
 | "erase (ANTIMES _ r n) = NTIMES (erase r) n"
-| "erase (AFROM _ r n) = FROM (erase r) n"
 
 
 fun fuse :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp" where
@@ -169,7 +163,6 @@ fun fuse :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp" where
 | "fuse bs (ASEQ cs r1 r2) = ASEQ (bs @ cs) r1 r2"
 | "fuse bs (ASTAR cs r) = ASTAR (bs @ cs) r"
 | "fuse bs (ANTIMES cs r n) = ANTIMES (bs @ cs) r n"
-| "fuse bs (AFROM cs r n) = AFROM (bs @ cs) r n"
 
 lemma fuse_append:
   shows "fuse (bs1 @ bs2) r = fuse bs1 (fuse bs2 r)"
@@ -187,7 +180,6 @@ fun intern :: "rexp \<Rightarrow> arexp" where
 | "intern (SEQ r1 r2) = ASEQ [] (intern r1) (intern r2)"
 | "intern (STAR r) = ASTAR [] (intern r)"
 | "intern (NTIMES r n) = ANTIMES [] (intern r) n"
-| "intern (FROM r n) = AFROM [] (intern r) n"
 
 function (sequential) retrieve  :: "arexp \<Rightarrow> val \<Rightarrow> bit list" where
   "retrieve (AONE bs) Void = bs"
@@ -201,7 +193,6 @@ function (sequential) retrieve  :: "arexp \<Rightarrow> val \<Rightarrow> bit li
 | "retrieve (ASTAR bs r) (Stars (v#vs)) = bs @ [Z] @ retrieve r v @ retrieve (ASTAR [] r) (Stars vs)"
 
 | "retrieve (ANTIMES bs r n) (Stars vs) = retrieve (ASTAR bs r) (Stars vs)"
-| "retrieve (AFROM bs r n) (Stars vs) = retrieve (ASTAR bs r) (Stars vs)"
 | "retrieve _ _ = undefined"
      apply(pat_completeness)
 apply(auto)
@@ -222,7 +213,6 @@ where
 | "bnullable (ASEQ bs r1 r2) = (bnullable r1 \<and> bnullable r2)"
 | "bnullable (ASTAR bs r) = True"
 | "bnullable (ANTIMES bs r n) = (if n  = 0 then True else bnullable r)"
-| "bnullable (AFROM bs r n) = (if n = 0 then True else bnullable r)" 
 
 abbreviation
   bnullables :: "arexp list \<Rightarrow> bool"
@@ -239,8 +229,6 @@ where
 | "bmkeps(ASTAR bs r) = bs @ [S]"
 | "bmkeps(ANTIMES bs r n) = 
     (if n = 0 then bs @ [S] else bs @ [Z] @ (bmkeps r) @ bmkeps(ANTIMES [] r (n - 1)))"
-| "bmkeps(AFROM bs r n) = 
-    (if n = 0 then bs @ [S] else bs @ [Z] @ (bmkeps r) @ bmkeps(AFROM [] r (n - 1)))"
 apply(pat_completeness)
 apply(auto)
 done
@@ -283,8 +271,6 @@ where
       else ASEQ bs (bder c r1) r2)"
 | "bder c (ASTAR bs r) = ASEQ (bs @ [Z]) (bder c r) (ASTAR [] r)"
 | "bder c (ANTIMES bs r n) = (if n = 0 then AZERO else ASEQ (bs @ [Z]) (bder c r) (ANTIMES [] r (n - 1)))"
-| "bder c (AFROM bs r n) = (if n = 0 then ASEQ (bs @ [Z]) (bder c r) (ASTAR [] r) 
-                            else ASEQ (bs @ [Z]) (bder c r) (AFROM [] r (n - 1)))"
 
 fun 
   bders :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
@@ -348,12 +334,7 @@ lemma retrieve_encode_NTIMES:
   using assms
   using retrieve.simps(9) retrieve_encode_STARS by presburger
 
-lemma retrieve_encode_FROM:
-  assumes "\<forall>v\<in>set vs. \<Turnstile> v : r \<and> code v = retrieve (intern r) v" 
-  shows "code (Stars vs) = retrieve (AFROM [] (intern r) n) (Stars vs)"
-  using assms
-  using retrieve.simps(10) retrieve_encode_STARS by presburger
-  
+ 
 
 lemma retrieve_fuse2:
   assumes "\<Turnstile> v : (erase r)"
@@ -382,18 +363,6 @@ lemma retrieve_fuse2:
   apply(case_tac vs1)
    apply(simp_all)
   apply(case_tac vs2)
-    apply(simp_all)
-  (* FROM *)
-  apply(auto elim!: Prf_elims)[1]
-  apply(case_tac vs1)
-   apply(simp_all)
-  apply(case_tac vs2)
-    apply(simp_all)
-    apply(case_tac x3)
-   apply(simp_all)
-   apply(case_tac vs)
-    apply(simp_all)
-  apply(case_tac vs)
     apply(simp_all)
   done
 
@@ -519,15 +488,7 @@ lemma bder_retrieve:
   apply(erule Prf_elims)
   apply(clarify)
   apply simp
-  (* AFROM case *)
-  apply(erule Prf_elims)
-  apply(erule Prf_elims)
-   apply(clarify)
-  apply(simp)
-  apply(erule Prf_elims)
-  apply(erule Prf_elims)
-   apply(simp)
-   apply(simp)
+
   (* AALTS *)
   apply(rename_tac "r\<^sub>1" "r\<^sub>2" rs v) 
    apply(erule Prf_elims)

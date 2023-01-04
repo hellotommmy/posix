@@ -10,7 +10,6 @@ datatype rrexp =
 | RALTS "rrexp list"
 | RSTAR rrexp
 | RNTIMES rrexp nat
-| RFROM rrexp nat
 
 abbreviation
   "RALT r1 r2 \<equiv> RALTS [r1, r2]"
@@ -26,7 +25,6 @@ where
 | "rnullable (RSEQ r1 r2) = (rnullable r1 \<and> rnullable r2)"
 | "rnullable (RSTAR r) = True"
 | "rnullable (RNTIMES r n) = (if n = 0 then True else rnullable r)"
-| "rnullable (RFROM r n) = (if n = 0 then True else rnullable r)" 
 
 fun
  rder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp"
@@ -41,9 +39,6 @@ where
       else RSEQ   (rder c r1) r2)"
 | "rder c (RSTAR r) = RSEQ  (rder c r) (RSTAR r)"   
 | "rder c (RNTIMES r n) = (if n = 0 then RZERO else RSEQ (rder c r) (RNTIMES r (n - 1)))"
-| "rder c (RFROM r n) = (if n = 0 then RSEQ (rder c r) (RSTAR r) 
-                         else RSEQ (rder c r) (RFROM r (n - 1)))"
-
 
 fun 
   rders :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -198,7 +193,6 @@ fun rsize :: "rrexp \<Rightarrow> nat" where
 | "rsize (RSEQ  r1 r2) = Suc (rsize r1 + rsize r2)"
 | "rsize (RSTAR  r) = Suc (rsize r)"
 | "rsize (RNTIMES r n) = Suc (rsize r) + n"
-| "rsize (RFROM  r n) = Suc (rsize r) + n"
 
 abbreviation rsizes where
   "rsizes rs \<equiv> sum_list (map rsize rs)"
@@ -365,7 +359,6 @@ fun good :: "rrexp \<Rightarrow> bool" where
 | "good (RSEQ r1 r2) = (good r1 \<and> good r2)"
 | "good (RSTAR r) = True"
 | "good (RNTIMES r n) = True"
-| "good (RFROM r n) = True"
 
 lemma  k0a:
   shows "rflts [RALTS rs] =   rs"
@@ -405,9 +398,35 @@ lemma flts2:
   shows "\<forall>r' \<in> set (rflts [r]). good r' \<and> nonalt r'"
   using  assms
   apply(induct r rule: good.induct)
-                      apply(auto)[31]
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+  apply simp
   apply (metis empty_set equals0D nonalt.simps(5) rflts.simps(1) rflts.simps(6) set_ConsD)
-  apply (metis empty_set equals0D nonalt.simps(5) rflts.simps(1) rflts.simps(6) set_ConsD)
+                      apply (metis empty_set equals0D nonalt.simps(5) rflts.simps(1) rflts.simps(6) set_ConsD)
+  apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                      apply simp
+                     apply simp
+                    apply simp
+                   apply simp
+  apply fastforce
   apply(auto)  
   done
 
@@ -442,10 +461,9 @@ lemma good_SEQ:
   apply(case_tac r2)
          apply(simp_all)
 apply(case_tac r2)
-          apply(simp_all)
-  apply(case_tac r2)
-          apply(simp_all)
+        apply(simp_all)
   done
+
 
 lemma rsize0:
   shows "0 < rsize r"
@@ -619,7 +637,7 @@ lemma good1:
   using less_add_Suc2 apply blast  
   using less_iff_Suc_add apply blast
   apply simp
-  using good.simps(59) rsimp.simps(8) by presburger
+  done
 
 
 fun
@@ -632,7 +650,6 @@ where
 | "RL (RALTS rs) = (\<Union> (set (map RL rs)))"
 | "RL (RSTAR r) = (RL r)\<star>"
 | "RL (RNTIMES r n) = (RL r) ^^ n"
-| "RL (RFROM r n) = (\<Union>i\<in>{n..}. (RL r) ^^ i)"
 
 lemma pow_rempty_iff:
   shows "[] \<in> (RL r) ^^ n \<longleftrightarrow> (if n = 0 then True else [] \<in> (RL r))"
@@ -676,12 +693,9 @@ lemma RL_rder:
   apply (metis append_Cons)
     apply (metis RL_rnullable append_eq_Cons_conv)
   apply simp
-   apply(simp)
-  apply(auto simp add: Sequ_def)
-  apply (metis One_nat_def Star_pow1 diff_Suc_1 less_nat_zero_code not_less_eq)
-  apply (metis Star_pow2)
-  apply (metis IntI Suc_diff_Suc Suc_le_mono atLeast_iff diff_Suc_Suc diff_zero mem_Collect_eq zero_less_Suc)
-  by (metis One_nat_def Suc_diff_1 Suc_le_eq atLeast_iff le_trans linorder_not_less)
+  apply(simp)
+  done
+
 
 lemma RL_rsimp_RSEQ:
   shows "RL (rsimp_SEQ r1 r2) = (RL r1 ;; RL r2)"
@@ -859,9 +873,10 @@ lemma idem_after_simp1:
   apply simp+
   apply (metis no_alt_short_list_after_simp no_further_dB_after_simp)
    apply(simp)
-   apply(simp)
   apply(simp)
   done
+
+
 
 lemma identity_wwo0:
   shows "rsimp (rsimp_ALTs (RZERO # rs)) = rsimp (rsimp_ALTs rs)"
@@ -1150,7 +1165,7 @@ lemma spilled_alts_contained:
   apply fastforce
     apply fastforce
   apply(simp)
-  by simp
+  done
   
 
 lemma distinct_removes_duplicate_flts:
@@ -1173,14 +1188,15 @@ lemma distinct_removes_duplicate_flts:
                             rdistinct ((rflts (map rsimp rsa)) @ [RCHAR x]) {}")
       apply (simp only:)
        prefer 2
-        apply (metis flts_append rflts.simps(1) rflts.simps(5))
-  apply (metis distinct_removes_last(1) rflts_def_idiot2 rrexp.distinct(29) rrexp.simps(10))
-  apply (metis distinct_removes_last(1) flts_keeps_others rflts_def_idiot2 rrexp.distinct(37) rrexp.distinct(5))
+       apply (metis flts_append rflts.simps(1) rflts.simps(5))
+  apply (metis distinct_removes_last(1) rflts_def_idiot2 rrexp.distinct(25) rrexp.distinct(3))
+
+     apply (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(6) rflts_def_idiot2 rrexp.distinct(31) rrexp.distinct(5))
+
   apply (metis distinct_removes_list rflts_spills_last spilled_alts_contained)
-  apply (metis distinct_removes_last(1) flts_keeps_others rflts_def_idiot2 rrexp.distinct(45) rrexp.distinct(9))
-  apply (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(8) rflts_def_idiot2 rrexp.distinct(11) rrexp.distinct(47))
-  by (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(9) rflts_def_idiot2 rrexp.distinct(13) rrexp.distinct(49))
-      
+  apply (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(7) rflts_def_idiot2 rrexp.distinct(37) rrexp.distinct(9))
+  by (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(8) rflts_def_idiot2 rrexp.distinct(11) rrexp.distinct(39))
+  
 
 (*some basic facts about rsimp*)
 

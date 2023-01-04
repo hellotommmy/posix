@@ -646,7 +646,8 @@ lemma r_finite1:
    apply (metis list.set_intros(1))
     apply blast
   apply(simp)
-  by simp
+  done
+
   
 
 
@@ -1257,12 +1258,10 @@ lemma created_by_seq_der:
   using created_by_seq.simps apply blast
   apply (meson created_by_seq.simps)
   using created_by_seq.simps apply blast
-  apply (metis (no_types, lifting) created_by_seq.cases created_by_seq.intros(2) k0a list.set_intros(1) list.simps(8) list.simps(9) rrexp.distinct(37))
-  using created_by_seq.intros(1) apply blast
-  using created_by_seq.simps apply blast
-  using created_by_seq.intros(1) apply force
-  using created_by_seq.intros(1) apply blast
-  using created_by_seq.intros(1) by auto
+  using   created_by_seq.intros
+  apply auto
+  apply (metis (no_types, lifting) created_by_seq.cases list.set_intros(1) list.simps(8) list.simps(9) rrexp.distinct(31) rrexp.inject(3))
+  using created_by_seq.simps by blast
 
 lemma createdbyseq_left_creatable:
   shows "created_by_seq (RALT r1 r2) \<Longrightarrow> created_by_seq r1"
@@ -1608,7 +1607,8 @@ lemma hfau_rsimpeq2:
   apply simp
   using cbs_hfau_rsimpeq1 apply(fastforce)
   apply(simp)
-  by simp
+  done
+
   
 
 lemma star_closed_form1:
@@ -2022,7 +2022,8 @@ lemma hfau_rsimpeq2_ntimes:
   apply simp
   using cbs_hfau_rsimpeq1 apply(fastforce)
   apply(simp)
-  by simp
+  done
+
   
 
 lemma ntimes_closed_form1:

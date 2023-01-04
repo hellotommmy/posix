@@ -277,37 +277,6 @@ lemma flts_vs_nflts1:
   apply force
    apply(auto)[1]
    apply (metis Un_insert_left insertE nonalt.simps(1) nonalt.simps(7))
-
-
-     apply(case_tac "a \<in> noalts_set")
-      apply simp
-  apply(subgoal_tac "a \<notin> alts_set")
-      prefer 2
-      apply blast
-  apply(case_tac "a \<in> corr_set")
-      apply(subgoal_tac "noalts_set \<union> corr_set = insert a ( noalts_set  \<union> corr_set)")
-  prefer 2
-  apply fastforce
-      apply(simp only:)
-      apply(subgoal_tac "rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set))) \<le>
-               rsizes (rdistinct (a # rs) (insert RZERO (noalts_set \<union> alts_set)))")
-
-       apply(subgoal_tac "rsizes (rdistinct (rflts (a # rs)) ((insert a noalts_set) \<union> corr_set)) \<le>
-          rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set)))")
-  apply fastforce
-       apply simp
-  apply(subgoal_tac "(insert a (noalts_set \<union> alts_set)) = (insert a noalts_set) \<union> alts_set")
-        apply(simp only:)
-        apply(subgoal_tac "noalts_set \<union> corr_set = (insert a noalts_set) \<union> corr_set")
-       apply(simp only:)
-  apply (metis insertE rrexp.distinct)
-
-        apply blast
-  
-  apply fastforce
-  apply force
-     apply simp
-    apply (metis Un_insert_left insert_iff rrexp.distinct)
   done
 
 
@@ -724,8 +693,8 @@ lemma rders_simp_bounded:
   using star_closed_form_bounded apply blast
   using ntimes_closed_form_boundedA apply blast
   
+  done
 
-  sorry
   
 unused_thms
 

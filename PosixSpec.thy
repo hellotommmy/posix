@@ -49,10 +49,7 @@ where
 | "\<lbrakk>\<forall>v \<in> set vs1. \<Turnstile> v : r \<and> flat v \<noteq> []; 
     \<forall>v \<in> set vs2. \<Turnstile> v : r \<and> flat v = []; 
     length (vs1 @ vs2) = n\<rbrakk> \<Longrightarrow> \<Turnstile> Stars (vs1 @ vs2) : NTIMES r n" 
-| "\<lbrakk>\<forall>v \<in> set vs1. \<Turnstile> v : r  \<and> flat v \<noteq> []; 
-    \<forall>v \<in> set vs2. \<Turnstile> v : r \<and> flat v = []; 
-    length (vs1 @ vs2) = n\<rbrakk> \<Longrightarrow> \<Turnstile> Stars (vs1 @ vs2) : FROM r n"
-| "\<lbrakk>\<forall>v \<in> set vs. \<Turnstile> v : r  \<and> flat v \<noteq> []; length vs > n\<rbrakk> \<Longrightarrow> \<Turnstile> Stars vs : FROM r n"
+
 
 
 inductive_cases Prf_elims:
@@ -63,7 +60,6 @@ inductive_cases Prf_elims:
   "\<Turnstile> v : CH c"
   "\<Turnstile> vs : STAR r"
   "\<Turnstile> vs : NTIMES r n"
-  "\<Turnstile> vs : FROM r n"
 
 lemma Prf_Stars_appendE:
   assumes "\<Turnstile> Stars (vs1 @ vs2) : STAR r"
@@ -148,11 +144,8 @@ lemma L_flat_Prf1:
   apply (induct v r rule: Prf.induct) 
   apply(auto simp add: Sequ_def Star_concat lang_pow_add)
   apply (metis pow_Prf)
-  apply(subgoal_tac "flats vs1 @ flats vs2 \<in> L r ^^ length vs1")
-  apply (metis add_diff_cancel_left' atLeast_iff diff_is_0_eq empty_pow_add last_in_set length_0_conv order_refl)
-  apply (metis (no_types, opaque_lifting) Aux imageE list.set_map pow_Prf self_append_conv)
-  apply (meson atLeast_iff less_imp_le_nat pow_Prf)
   done
+
 
   
 lemma L_flat_Prf2:
@@ -200,40 +193,6 @@ next
   done
   then show "\<exists>v. \<Turnstile> v : NTIMES r n \<and> flat v = s"
     using Prf.intros(7) flat_Stars by blast
-next
-case (FROM r n)
-  have IH: "\<And>s. s \<in> L r \<Longrightarrow> \<exists>v. \<Turnstile> v : r \<and> flat v = s" by fact
-  have "s \<in> L (FROM r n)" by fact
-  then obtain ss1 ss2 k where "concat (ss1 @ ss2) = s" "length (ss1 @ ss2) = k"  "n \<le> k"
-    "\<forall>s \<in> set ss1. s \<in> L r \<and> s \<noteq> []" "\<forall>s \<in> set ss2. s \<in> L r \<and> s = []"
-    using Pow_cstring by force 
-  then obtain vs1 vs2 where "flats (vs1 @ vs2) = s" "length (vs1 @ vs2) = k" "n \<le> k"
-      "\<forall>v\<in>set vs1. \<Turnstile> v : r \<and> flat v \<noteq> []" "\<forall>v\<in>set vs2.  \<Turnstile> v : r \<and> flat v = []"
-    using IH flats_cval  
-  apply -
-  apply(drule_tac x="ss1 @ ss2" in meta_spec)
-  apply(drule_tac x="r" in meta_spec)
-  apply(drule meta_mp)
-  apply(simp)
-  apply (metis Un_iff)
-  apply(clarify)
-  apply(drule_tac x="vs1" in meta_spec)
-  apply(drule_tac x="vs2" in meta_spec)
-  apply(simp)
-  done
-  then show "\<exists>v. \<Turnstile> v : FROM r n \<and> flat v = s"
-    apply(case_tac "length vs1 \<le> n")
-    apply(rule_tac x="Stars (vs1 @ take (n - length vs1) vs2)" in exI)
-     apply(simp)
-     apply(subgoal_tac "flats (take (n - length vs1) vs2) = []")
-      apply(auto)
-       apply(rule Prf.intros(8))
-       apply(auto)
-    apply (meson in_set_takeD)
-        apply (simp add: Aux)    
-    apply (meson in_set_takeD)
-    apply(rule_tac x="Stars vs1" in exI)
-    by (simp add: Prf.intros(9))
 qed (auto intro: Prf.intros)
 
 
@@ -452,80 +411,7 @@ by (induct n) (simp_all add: finite_Stars_Cons assms)
 
 
 
-lemma LV_FROMNTIMES_3:
-  shows "LV (FROM r (Suc n)) [] = 
-    (\<lambda>(v,vs). Stars (v#vs)) ` (LV r [] \<times> (Stars -` (LV (FROM r n) [])))"
-unfolding LV_def
-apply(auto elim!: Prf_elims simp add: image_def)
-apply(case_tac vs1)
-apply(auto)
-apply(case_tac vs2)
-apply(auto)
-apply(subst append.simps(1)[symmetric])
-apply(rule Prf.intros)
-     apply(auto)
-  apply (metis le_imp_less_Suc length_greater_0_conv less_antisym list.exhaust list.set_intros(1) not_less_eq zero_le)
-  prefer 2
-  using nth_mem apply blast
-  apply(case_tac vs1)
-  apply (smt Groups.add_ac(2) Prf.intros(8) add.right_neutral add_Suc_right append.simps(1) insert_iff length_append list.set(2) list.size(3) list.size(4))
-    apply(auto)
-done  
 
-lemma LV_From_5:
-  shows "LV (FROM r n) s \<subseteq> Stars_Append (LV (STAR r) s) (\<Union>i\<le>n. LV (FROM r i) [])"
-apply(auto simp add: LV_def)
-apply(auto elim!: Prf_elims)
-apply(auto simp add: Stars_Append_def)
-apply(rule_tac x="vs1" in exI)
-apply(rule_tac x="vs2" in exI)  
-apply(auto)
-    using Prf.intros(6) apply(auto)
-      apply(rule_tac x="length vs2" in bexI)
-    thm Prf.intros
-      apply(subst append.simps(1)[symmetric])
-    apply(rule Prf.intros)
-      apply(auto)[1]
-      apply(auto)[1]
-     apply(simp)
-     apply(simp)
-      apply(rule_tac x="vs" in exI)
-    apply(rule_tac x="[]" in exI) 
-    apply(auto)
-    by (metis Prf.intros(8) append_Nil atMost_iff empty_iff le_imp_less_Suc less_antisym list.set(1) nth_mem zero_le)
-
-
-lemma LV_From_empty:
- "LV (FROM r n) [] = Stars_Pow (LV r []) n" 
-  apply(induct n)
-   apply(simp add: LV_def)    
-   apply(auto elim: Prf_elims simp add: image_def)[1]
-   prefer 2
-    apply(subst append.simps[symmetric])
-    apply(rule Prf.intros)
-      apply(simp_all)
-   apply(erule Prf_elims) 
-    apply(case_tac vs1)
-     apply(simp)
-    apply(simp)
-   apply(case_tac x)
-    apply(simp_all)
-    apply(simp add: LV_FROMNTIMES_3 image_def Stars_Cons_def)
-  apply blast
- done   
-
-lemma finite_From_empty:
-  assumes "\<forall>s. finite (LV r s)"
-  shows "finite (LV (FROM r n) s)"
-  apply(rule finite_subset)
-   apply(rule LV_From_5)
-  apply(rule finite_Stars_Append)
-    apply(rule LV_STAR_finite)
-   apply(rule assms)
-  apply(rule finite_UN_I)
-   apply(auto)
-  by (simp add: assms finite_Stars_Pow LV_From_empty)
-    
 
 
 lemma LV_finite:
@@ -571,10 +457,6 @@ next
     using finite_NTimes_empty by blast
   then show "finite (LV (NTIMES r n) s)"
     by (metis LV_NTIMES_subset finite_subset)
-next 
-  case (FROM r n)
-  then show "finite (LV (FROM r n) s)"
-    by (simp add: finite_From_empty)
 qed
 
 
@@ -600,14 +482,7 @@ where
     \<Longrightarrow> (s1 @ s2) \<in> NTIMES r n \<rightarrow> Stars (v # vs)"
 | Posix_NTIMES2: "\<lbrakk>\<forall>v \<in> set vs. [] \<in> r \<rightarrow> v; length vs = n\<rbrakk>
     \<Longrightarrow> [] \<in> NTIMES r n \<rightarrow> Stars vs"  
-| Posix_From2: "\<lbrakk>\<forall>v \<in> set vs. [] \<in> r \<rightarrow> v; length vs = n\<rbrakk>
-    \<Longrightarrow> [] \<in> FROM r n \<rightarrow> Stars vs"
-| Posix_From1: "\<lbrakk>s1 \<in> r \<rightarrow> v; s2 \<in> FROM r (n - 1) \<rightarrow> Stars vs; flat v \<noteq> []; 0 < n;
-    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (s1 @ s\<^sub>3) \<in> L r \<and> s\<^sub>4 \<in> L (FROM r (n - 1)))\<rbrakk>
-    \<Longrightarrow> (s1 @ s2) \<in> FROM r n \<rightarrow> Stars (v # vs)"  
-| Posix_From3: "\<lbrakk>s1 \<in> r \<rightarrow> v; s2 \<in> STAR r \<rightarrow> Stars vs; flat v \<noteq> [];
-    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (s1 @ s\<^sub>3) \<in> L r \<and> s\<^sub>4 \<in> L (STAR r))\<rbrakk>
-    \<Longrightarrow> (s1 @ s2) \<in> FROM r 0 \<rightarrow> Stars (v # vs)"  
+
 
 
 inductive_cases Posix_elims:
@@ -618,7 +493,6 @@ inductive_cases Posix_elims:
   "s \<in> SEQ r1 r2 \<rightarrow> v"
   "s \<in> STAR r \<rightarrow> v"
   "s \<in> NTIMES r n \<rightarrow> v"
-  "s \<in> FROM r n \<rightarrow> v"
 
 lemma Posix1:
   assumes "s \<in> r \<rightarrow> v"
@@ -628,10 +502,9 @@ using assms
   apply(auto simp add: pow_empty_iff)
   apply (metis Suc_pred concI lang_pow.simps(2))
   apply (meson ex_in_conv set_empty)
-  apply (metis antisym_conv1 atLeast_iff last_in_set less_irrefl_nat list.size(3))
-  apply (metis One_nat_def Suc_diff_1 atLeast_iff concI lang_pow.simps(2) not_less_eq_eq)
-  using Star.step Star_pow1 by force
-  
+  done
+
+
 
 lemma Posix1a:
   assumes "s \<in> r \<rightarrow> v"
@@ -647,12 +520,8 @@ using assms
   apply(subst append.simps(2)[symmetric])
   apply(rule Prf.intros)
   apply(auto)
-  apply (metis Posix1(2) Prf.intros(8) append_Nil empty_iff list.set(1))
-  apply(erule Prf_elims)
-  apply(auto)
-  apply(smt (verit, best) Cons_eq_appendI Prf.intros(8) Suc_pred length_Cons length_append set_ConsD)
-  apply (simp add: Prf.intros(9))
-  by (metis Prf.intros(9) Prf_elims(6) insert_iff length_pos_if_in_set list.set(2) val.inject(5))
+  done
+
 
 text \<open>
   For a give value and string, our Posix definition 
@@ -771,48 +640,7 @@ next
   moreover
   have IHs: "\<And>v2. s1 \<in> r \<rightarrow> v2 \<Longrightarrow> v = v2"
             "\<And>v2. s2 \<in> NTIMES r (n - 1) \<rightarrow> v2 \<Longrightarrow> Stars vs = v2" by fact+
-  ultimately show "Stars (v # vs) = v2" by auto
-next
-  case (Posix_From2 vs r n v2)
-  then show "Stars vs = v2"
-    apply(erule_tac Posix_elims)
-      apply(auto)
-      apply(rule List_eq_zipI)
-       apply(auto)
-    apply (meson in_set_zipE)
-      apply (meson Posix1(2))
-    using Posix1(2) by blast  
-next
-  case (Posix_From1 s1 r v s2 n vs)
-  have "(s1 @ s2) \<in> FROM r n \<rightarrow> v2" 
-       "s1 \<in> r \<rightarrow> v" "s2 \<in> FROM r (n - 1) \<rightarrow> Stars vs" "flat v \<noteq> []" "0 < n"
-       "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L r \<and> s\<^sub>4 \<in> L (FROM r (n - 1 )))" by fact+
-  then obtain v' vs' where "v2 = Stars (v' # vs')" "s1 \<in> r \<rightarrow> v'" "s2 \<in> (FROM r (n - 1)) \<rightarrow> (Stars vs')"
-  apply(cases) apply (auto simp add: append_eq_append_conv2)
-    using Posix1(1) Posix1(2) apply blast 
-     apply(case_tac n)
-      apply(simp)
-     apply(simp)
-    apply (smt (verit, ccfv_threshold) Posix1(1) UN_E append_eq_append_conv2 L.simps)
-    by (metis One_nat_def Posix1(1) Posix_From1.hyps(7) append_Nil2 append_self_conv2)
-  moreover
-  have IHs: "\<And>v2. s1 \<in> r \<rightarrow> v2 \<Longrightarrow> v = v2"
-            "\<And>v2. s2 \<in> FROM r (n - 1) \<rightarrow> v2 \<Longrightarrow> Stars vs = v2" by fact+
-  ultimately show "Stars (v # vs) = v2" by auto
-next
-  case (Posix_From3 s1 r v s2 vs)
-  have "(s1 @ s2) \<in> FROM r 0 \<rightarrow> v2" 
-       "s1 \<in> r \<rightarrow> v" "s2 \<in> STAR r \<rightarrow> Stars vs" "flat v \<noteq> []"
-       "\<not> (\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> L r \<and> s\<^sub>4 \<in> L (STAR r))" by fact+
-  then obtain v' vs' where "v2 = Stars (v' # vs')" "s1 \<in> r \<rightarrow> v'" "s2 \<in> (STAR r) \<rightarrow> (Stars vs')"
-  apply(cases) apply (auto simp add: append_eq_append_conv2)
-    using Posix1(2) apply fastforce
-    using Posix1(1) apply fastforce
-    by (metis Posix1(1) Posix_From3.hyps(6) append.right_neutral append_Nil)
-  moreover
-  have IHs: "\<And>v2. s1 \<in> r \<rightarrow> v2 \<Longrightarrow> v = v2"
-            "\<And>v2. s2 \<in> STAR r \<rightarrow> v2 \<Longrightarrow> Stars vs = v2" by fact+
-  ultimately show "Stars (v # vs) = v2" by auto  
+  ultimately show "Stars (v # vs) = v2" by auto 
 qed
 
 
@@ -834,8 +662,6 @@ lemma Posix_LV:
   apply (simp add: Prf.intros(6))
   apply (smt (verit, best) Posix1(2) Posix1a Posix_NTIMES1 mem_Collect_eq)
   using Posix1a Posix_NTIMES2 apply fastforce
-  using Posix1a Posix_From2 apply fastforce
-  apply (smt (verit, best) Posix1(2) Posix1a Posix_From1 mem_Collect_eq)
-  by (smt (verit, best) Posix1a Posix_From3 flat.simps(7) mem_Collect_eq)
+  done
 
 end

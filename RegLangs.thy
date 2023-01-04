@@ -208,7 +208,6 @@ datatype rexp =
 | ALT rexp rexp
 | STAR rexp
 | NTIMES rexp nat
-| FROM rexp nat
 
 section \<open>Semantics of Regular Expressions\<close>
  
@@ -222,7 +221,6 @@ where
 | "L (ALT r1 r2) = (L r1) \<union> (L r2)"
 | "L (STAR r) = (L r)\<star>"
 | "L (NTIMES r n) = (L r) ^^ n"
-| "L (FROM r n) = (\<Union>i\<in>{n..}. (L r) ^^ i)"
 
 section \<open>Nullable, Derivatives\<close>
 
@@ -236,7 +234,6 @@ where
 | "nullable (SEQ r1 r2) = (nullable r1 \<and> nullable r2)"
 | "nullable (STAR r) = True"
 | "nullable (NTIMES r n) = (if n = 0 then True else nullable r)"
-| "nullable (FROM r n) = (if n = 0 then True else nullable r)" 
 
 fun
  der :: "char \<Rightarrow> rexp \<Rightarrow> rexp"
@@ -251,7 +248,6 @@ where
       else SEQ (der c r1) r2)"
 | "der c (STAR r) = SEQ (der c r) (STAR r)"
 | "der c (NTIMES r n) = (if n = 0 then ZERO else SEQ (der c r) (NTIMES r (n - 1)))"
-| "der c (FROM r n) = (if n = 0 then SEQ (der c r) (STAR r) else SEQ (der c r) (FROM r (n - 1)))"
 
 fun 
  ders :: "string \<Rightarrow> rexp \<Rightarrow> rexp"
@@ -277,11 +273,8 @@ lemma der_correctness:
   apply (smt (verit, ccfv_SIG) Der_def append_eq_Cons_conv mem_Collect_eq)
   using Der_def apply force
   using Der_Sequ Sequ_def apply auto[1]
-  apply (metis One_nat_def Star_pow1 diff_Suc_1 zero_less_Suc)
-  apply (metis Star_pow2)
-  apply (metis IntI Suc_pred atLeast_iff diff_Suc_1 mem_Collect_eq not_less_eq_eq zero_less_Suc)
-  by fastforce
-  
+  done
+
 
 lemma ders_correctness:
   shows "L (ders s r) = Ders s (L r)"

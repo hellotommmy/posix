@@ -1523,7 +1523,8 @@ lemma stupdate_induct1:
 
 
 lemma stupdates_join_general:
-  shows  "concat (map hElem (map (rder x) (map (\<lambda>s1. RSEQ (rders r0 s1) (RSTAR r0)) (star_updates xs r0 Ss)))) =
+  shows  "concat (map hElem (map (rder x) (map (\<lambda>s1. RSEQ (rders r0 s1) (RSTAR r0)) 
+            (star_updates xs r0 Ss))) ) =
            map (\<lambda>s1. RSEQ (rders r0 s1) (RSTAR r0)) (star_updates (xs @ [x]) r0 Ss)"
   apply(induct xs arbitrary: Ss)
    apply (simp)
@@ -1706,8 +1707,8 @@ fun nupdate :: "char \<Rightarrow> rrexp \<Rightarrow>  (string * nat) option  l
 datatype option1  = Some1 string nat | 
                     Some2 string
 
-
-fun fromUpdate ::  "char \<Rightarrow> rrexp \<Rightarrow>  (string * nat) option  list \<Rightarrow> (string * nat) option  list" where
+(*
+fun fromUpdate ::  "char \<Rightarrow> rrexp \<Rightarrow>  option1  list \<Rightarrow> option1  list" where
   "nupdate c r [] = []"
 | "nupdate c r (Some (s, Suc n) # Ss) = (if (rnullable (rders r s)) 
                                           then Some (s@[c], Suc n) # Some ([c], n) # (nupdate c r Ss) 
@@ -1718,7 +1719,7 @@ fun fromUpdate ::  "char \<Rightarrow> rrexp \<Rightarrow>  (string * nat) optio
                                         else Some ((s@[c]), 0)  # (nupdate c r Ss) 
                                       ) "
 | "nupdate c r (None # Ss) = (None # nupdate c r Ss)"
-
+*)
 
 
 fun nupdates :: "char list \<Rightarrow> rrexp \<Rightarrow> (string * nat) option list \<Rightarrow> (string * nat) option list"
@@ -2061,25 +2062,6 @@ lemma ntimes_closed_form5:
 
 
 
-lemma ntimes_closed_form6_hrewrites:
-  shows "  
-(map (\<lambda>s1. (RSEQ (rsimp (rders r0 s1)) (RNTIMES r0 n)) ) Ss )
- scf\<leadsto>*
-(map (\<lambda>s1. rsimp (RSEQ (rders r0 s1) (RNTIMES r0 n)) ) Ss )"
-  apply(induct Ss)
-  apply simp
-  apply (simp add: ss1)
-  by (metis (no_types, lifting) list.simps(9) rsimp.simps(1) rsimp_idem simp_hrewrites ss2)
-
-
-
-lemma ntimes_closed_form6:
-  shows " rsimp ( ( RALTS ( (map (\<lambda>s1. rsimp (RSEQ (rders r0 s1) (RNTIMES r0 n)) ) Ss )))) = 
-          rsimp ( ( RALTS ( (map (\<lambda>s1.  (RSEQ (rsimp (rders r0 s1)) (RNTIMES r0 n)) ) Ss ))))"
-  apply(subgoal_tac " map (\<lambda>s1.  (RSEQ (rsimp (rders r0 s1)) (RNTIMES r0 n)) ) Ss  scf\<leadsto>*
-                      map (\<lambda>s1.  rsimp (RSEQ  (rders r0 s1) (RNTIMES r0 n)) ) Ss ")
-  using hrewrites_simpeq srewritescf_alt1 apply fastforce
-  using ntimes_closed_form6_hrewrites by blast
 
 abbreviation
   "optermsimp r SN \<equiv>     case SN of
