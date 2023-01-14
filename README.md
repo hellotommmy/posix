@@ -7,19 +7,19 @@ Run the code with
 Tested with Isabelle2021-1.
 
 
-* RegLangs.thy (contains basic definitions for Regular Languages)
+* RegLangs.thy (contains basic definitions for Regular Languages, chapter 2)
 
-* PosixSpec.thy (contains values and POSIX definitions)
+* PosixSpec.thy (contains values and POSIX definitions, chapter 2)
 
-* Lexer.thy (first algorithm by Sulzmann & Lu without simplification)
+* Lexer.thy (first algorithm by Sulzmann & Lu without simplification, chapter 2)
 
-* LexerSimp.thy (correctness for simple-minded simplification rules)
+* LexerSimp.thy (correctness for simple-minded simplification rules, chapter 2)
 
-* Blexer.thy (second algorithm by Sulzmann & Lu without simplification)
+* Blexer.thy (second algorithm by Sulzmann & Lu without simplification, chapter 3)
 
-* BlexerSimp.thy (correctness for simplification rules with effective de-duplication)
+* BlexerSimp.thy (correctness for simplification rules with effective de-duplication, chapter 4)
 
-* Finite Bound Result:
+* Finite Bound Result: (chapter 5)
   	 BasicIdentidies.thy
 	 ClosedForms.thy
 	 GeneralRegexBound
