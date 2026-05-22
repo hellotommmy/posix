@@ -1,0 +1,7 @@
+session BackRefPilot = "HOL-Library" +
+directories
+     ".."
+theories[document = false]
+     "HOL-Library.Sublist"
+     "RegLangs"
+     "BackRefLang"
