@@ -171,7 +171,7 @@ function Start-OpusAgent([string]$Reason) {
 Set-Location -LiteralPath $(Quote-Arg $script:Repo)
 `$prompt = Get-Content -LiteralPath $(Quote-Arg $runPrompt) -Raw
 Add-Content -LiteralPath $(Quote-Arg $agentLog) -Value "[`$(Get-Date -Format o)] Starting cursor-agent model=$Model" -Encoding UTF8
-& cursor-agent --print --trust --force --model $(Quote-Arg $Model) --workspace $(Quote-Arg $script:Repo) `$prompt *> $(Quote-Arg $agentLog)
+& cursor-agent --print --trust --force --model $(Quote-Arg $Model) --workspace $(Quote-Arg $script:Repo) -- `$prompt *> $(Quote-Arg $agentLog)
 `$code = `$LASTEXITCODE
 Add-Content -LiteralPath $(Quote-Arg $agentLog) -Value "[`$(Get-Date -Format o)] cursor-agent exit code: `$code" -Encoding UTF8
 exit `$code
@@ -206,6 +206,7 @@ if ($Background) {
     )
     if ($Once) { $argsList += "-Once" }
     if ($DryRun) { $argsList += "-DryRun" }
+    if ($ResetState) { $argsList += "-ResetState" }
     Start-Process -FilePath "powershell" -ArgumentList $argsList -WindowStyle Hidden | Out-Null
     Write-Host "Started Opus watchdog in background for $RepoPath"
     return
