@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-25 (governance upgrade)
+Last updated: 2026-05-26 (binjval correctness proofs BR-005/BR-011/BR-012)
 
 ## Current Branch
 
@@ -18,7 +18,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
-- PASS on 2026-05-25 with no-cheat guard, bounty guard, admin role guard,
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
+  and Isabelle `BackRefPilot` (3:03 elapsed).
+- Previous PASS on 2026-05-25 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, and Isabelle `BackRefPilot`.
 - Local CI certificate is generated only after both sessions pass:
   `agent_hunt_pipeline/certificates/local_ci_certificate.json` (ignored by git).
@@ -41,6 +43,10 @@ Latest result:
   - `BL_flat_BPrf`
   - `bmkeps_flat`
   - `bmkeps_BPrf`
+  - `BPrf_xder_residue`
+  - `binjval_flat` (BR-011)
+  - `BPrf_BNTIMES_prepend`
+  - `binjval_BPrf` (BR-012)
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -64,11 +70,12 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 ## Next Small Tasks
 
-1. Draft `binjval` for one-character derivative reconstruction.
-2. Prove `bflat (binjval r c v) = c # bflat v` when `BPrf v (xder c r)`.
-3. Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)`.
-4. Only then consider lexer-style recursion.
-5. In parallel, draft derivative/value story for generalized `backref_lang4`
+1. ~~Draft `binjval` for one-character derivative reconstruction.~~ DONE (BR-005)
+2. ~~Prove `bflat (binjval r c v) = c # bflat v` when `BPrf v (xder c r)`.~~ DONE (BR-011)
+3. ~~Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)`.~~ DONE (BR-012)
+4. Define and prove `blexer` for pilot `brexp` (BR-013).
+5. Prove `blexer` correctness for pilot `brexp` (BR-014).
+6. In parallel, draft derivative/value story for generalized `backref_lang4`
    before migrating the datatype.
 
 ## Do Not Start Yet
@@ -77,6 +84,22 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Do not touch `BlexerSimp.thy`.
 - Do not touch bounds or closed-form theories.
 - Do not claim a finite derivative bound for backreferences.
+
+## binjval Correctness Proofs (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent: Opus (Cursor headless recovery)
+- Files changed: `BackRefValues.thy` (+17 lines), `PROGRESS_BACKREF.md`
+- New checked lemmas:
+  - `BPrf_xder_residue`: eliminates `BPrf v (xder_residue c cs rep)`
+  - `binjval_flat`: `bflat (binjval r c v) = c # bflat v` (BR-011)
+  - `BPrf_BNTIMES_prepend`: helper for BNTIMES value prepend
+  - `binjval_BPrf`: `BPrf (binjval r c v) r` when `BPrf v (xder c r)` (BR-012)
+- Build: Isabelle `BackRefPilot` PASS (3:03 elapsed)
+- Guards: no-cheat, bounty, worker role all pass
+- Blocker resolved: BNTIMES case in `binjval_BPrf` needed explicit helper
+  because `BPrf.intros(7)` pattern `BStars (vs1 @ vs2)` does not unify with
+  `BStars (v # ws1 @ ws2)` (Cons vs append).
 
 ## Governance Upgrade (2026-05-25)
 

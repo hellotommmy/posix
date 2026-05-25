@@ -317,4 +317,48 @@ where
 | "binjval (BRESIDUE cs rep) c v = BResidue cs rep"
 | "binjval _ _ _ = BVoid"
 
+section \<open>Injection Value Correctness\<close>
+
+lemma BPrf_xder_residue:
+  assumes "\<Turnstile>b v : xder_residue c cs rep"
+  shows "\<exists>ds. cs = c # ds \<and> v = BResidue ds rep"
+  using assms
+  by (cases cs) (auto elim: BPrf_elims split: if_splits)
+
+lemma binjval_flat:
+  assumes "\<Turnstile>b v : xder c r"
+  shows "bflat (binjval r c v) = c # bflat v"
+  using assms
+  apply (induct r arbitrary: c v)
+           apply (auto elim!: BPrf_elims dest: BPrf_xder_residue
+                  simp add: bmkeps_flat split: if_splits)
+  done
+
+lemma BPrf_BNTIMES_prepend:
+  assumes "\<Turnstile>b v : r" "bflat v \<noteq> []"
+          "\<forall>w \<in> set ws1. \<Turnstile>b w : r \<and> bflat w \<noteq> []"
+          "\<forall>w \<in> set ws2. \<Turnstile>b w : r \<and> bflat w = []"
+          "n > 0"
+          "length ws1 + length ws2 = n - Suc 0"
+  shows "\<Turnstile>b BStars (v # ws1 @ ws2) : BNTIMES r n"
+proof -
+  have p1: "\<forall>w \<in> set (v # ws1). \<Turnstile>b w : r \<and> bflat w \<noteq> []"
+    using assms(1-3) by auto
+  have p2: "length ((v # ws1) @ ws2) = n"
+    using assms(5,6) by auto
+  have "\<Turnstile>b BStars ((v # ws1) @ ws2) : BNTIMES r n"
+    using p1 assms(4) p2 by (rule BPrf.intros(7))
+  then show ?thesis by simp
+qed
+
+lemma binjval_BPrf:
+  assumes "\<Turnstile>b v : xder c r"
+  shows "\<Turnstile>b binjval r c v : r"
+  using assms
+  apply (induct r arbitrary: c v)
+           apply (auto intro!: BPrf.intros BPrf_BNTIMES_prepend bmkeps_BPrf
+                  elim!: BPrf_elims dest: BPrf_xder_residue
+                  simp add: binjval_flat bmkeps_flat split: if_splits)
+  done
+
 end
