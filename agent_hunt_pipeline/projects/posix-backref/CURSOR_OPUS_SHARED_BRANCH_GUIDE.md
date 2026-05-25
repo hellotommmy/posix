@@ -60,7 +60,34 @@ Open this folder in Cursor:
 C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus
 ```
 
-## Step 2: Give Opus This Prompt
+## Step 2: Enable The Cursor Loop
+
+The repository includes Cursor Hooks files:
+
+```text
+.cursor/hooks.json
+.cursor/hooks/posix_loop.ps1
+.cursor/hooks/posix_loop.sh
+```
+
+Enable the local loop in the Cursor clone by copying the template config:
+
+```powershell
+Copy-Item agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json loop-config.json
+```
+
+`loop-config.json` is ignored by git. Delete or rename it to stop the loop.
+If Cursor asks whether to allow workspace hooks, approve this workspace hook.
+
+Confirm the hook is armed:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/posix_loop.ps1
+```
+
+Expected output is JSON with `"decision":"continue"`.
+
+## Step 3: Give Opus This Prompt
 
 Paste this into Cursor/Opus:
 
@@ -119,7 +146,7 @@ Report back:
 - any admin questions.
 ```
 
-## Step 3: Confirm Opus Can Commit And Pass The Local Gate
+## Step 4: Confirm Opus Can Commit And Pass The Local Gate
 
 In Cursor's terminal:
 
@@ -141,7 +168,7 @@ git add <files changed by Opus>
 git commit -m "Work on <task id>"
 ```
 
-## Step 4: Shared-Branch Sync / Auto-Integration
+## Step 5: Shared-Branch Sync / Auto-Integration
 
 There is no PR auto-merge in this shared-branch mode. The shared-branch
 equivalent is:
@@ -175,14 +202,20 @@ Resolve only mechanical conflicts. Stop for admin on semantic or statement confl
 Run the local CI gate before pushing.
 ```
 
-## Step 5: Remote CI Status
+## Step 6: Remote CI Status
 
-As of this setup, this repository has no `.github/workflows` CI file. So
-"CI pass" currently means the local CI gate:
+This repository now has GitHub Actions Isabelle CI:
+
+```text
+.github/workflows/isabelle.yml
+```
+
+Local worker gate:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/backref_check.ps1 -SkipFetch -Role worker
 ```
 
-Adding true GitHub Actions CI for Isabelle is a separate task.
-
+Remote CI builds both `Posix` and `BackRefPilot` using
+`makarius/isabelle:Isabelle2025-2`. Trust pushed commits only after the GitHub
+Actions run for `codex/backref-values` is green.

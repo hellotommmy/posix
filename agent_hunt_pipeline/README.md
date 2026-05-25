@@ -20,6 +20,7 @@ CLI coding agent
 
 - `scripts/`: reusable watcher, idle re-prompt, bounty, role, check, and tmux
   recurrence test scripts.
+- `.cursor/hooks/`: Cursor hook loop for Opus/Cursor runs.
 - `templates/`: generic files to copy into a new project.
 - `references/`: notes about public Agent Hunt and 130k source material.
 - `projects/`: project-specific profiles. The current profile is
@@ -49,6 +50,27 @@ bash agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh
 
 This verifies the 130k-paper pattern: the same recurring instruction is sent
 again whenever the tmux pane becomes idle.
+
+## Cursor Hook Loop
+
+For Cursor/Opus, this repo also includes a Cursor Hooks loop modeled on
+`hellotommmy/cursor-loop` but configured for the POSIX backreference workflow:
+
+```text
+.cursor/hooks.json
+.cursor/hooks/posix_loop.ps1
+.cursor/hooks/posix_loop.sh
+agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json
+```
+
+To enable it in a Cursor clone:
+
+```powershell
+Copy-Item agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json loop-config.json
+```
+
+`loop-config.json` is intentionally ignored by git, so each local clone can
+turn the loop on or off independently.
 
 ## Notes
 

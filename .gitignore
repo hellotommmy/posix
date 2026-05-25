@@ -3,3 +3,5 @@ agent_hunt_pipeline/.agent-hunt/
 agent_hunt_pipeline/logs/
 agent_hunt_pipeline/run/
 __pycache__/
+loop-config.json
+.cursor/loop-state/

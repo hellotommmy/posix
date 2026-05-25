@@ -47,6 +47,10 @@ Latest result:
   - full inherited `Posix` session;
   - pilot `BackRefPilot` session;
   - GitHub Actions artifact certificate after successful proof checking.
+- Agent loop scaffolding now includes:
+  - WSL/tmux repeated-prompt testing;
+  - Cursor Hooks for Opus worker loops;
+  - `SLEEP_RUNBOOK.md` for parallel Codex Desktop + Cursor/Opus starts.
 
 ## Current Headline Theorem
 
