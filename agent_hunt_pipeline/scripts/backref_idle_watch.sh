@@ -43,7 +43,8 @@ while true; do
 
   if [[ -n "$last_capture" ]] && cmp -s "$current" "$last_capture"; then
     prompt="$(tr '\n' ' ' < "$PROMPT_FILE" | sed 's/[[:space:]]*$//')"
-    tmux send-keys -t "$TARGET" "$prompt"
+    tmux set-buffer -- "$prompt"
+    tmux paste-buffer -t "$TARGET"
     sleep "$SEND_DELAY"
     tmux send-keys -t "$TARGET" Enter
   fi

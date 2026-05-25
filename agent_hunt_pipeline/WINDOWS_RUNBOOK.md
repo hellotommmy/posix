@@ -26,14 +26,15 @@ cd C:\Users\Chengsong\Documents\AIPV2026Notes\posix
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1
 ```
 
-This runs guards, syncs git, starts Codex CLI in WSL tmux with idle watching,
-accepts the first workspace trust prompt, and injects the Codex resume prompt.
+This runs guards, syncs git, and starts a WSL tmux session that repeatedly
+runs `codex exec` with the Codex resume prompt. This avoids fragile TUI key
+injection across the Windows/WSL boundary.
 
 ### What It Starts
 
 | Agent | Where | Automation | Prompt File |
 | --- | --- | --- | --- |
-| Codex CLI / GPT-5.5 | WSL tmux session `codex-backref` | Fully automatic (idle watch re-prompts) | `codex_cli_resume_prompt.txt` |
+| Codex CLI / GPT-5.5 | WSL tmux session `codex-backref` | Fully automatic recurring `codex exec` loop | `codex_cli_resume_prompt.txt` |
 | Opus | Cursor IDE (manual initial prompt) | Semi-automatic (idle detector prints reminder) | `opus_resume_prompt.txt` |
 
 ### Why Opus Is Semi-Automatic
@@ -80,7 +81,7 @@ Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are
 # Watch Codex tmux session
 wsl -d Ubuntu -- tmux attach -t codex-backref
 
-# Check Codex idle watcher log
+# Check Codex exec loop log
 type agent_hunt_pipeline\logs\codex_idle_watch.log
 
 # Check recent git activity from both agents
@@ -108,10 +109,10 @@ minimized because they edit different files.
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -IntervalSeconds 60
 ```
 
-### Change GPT agent command (default "codex")
+### Change Codex exec command
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -AgentCommand "claude --dangerously-skip-permissions"
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -CodexExecCommand "npx -y @openai/codex@0.133.0 exec --dangerously-bypass-approvals-and-sandbox -C ."
 ```
 
 ### Dry run (see what would happen without starting anything)
@@ -162,4 +163,4 @@ bash agent_hunt_pipeline/scripts/backref_idle_watch.sh backref-agent:0.0 60
 
 - Single-agent tmux loop: tested 2026-05-25, PASS (5 injections).
 - Cross-platform idle detection: tested 2026-05-24, PASS.
-- Codex CLI tmux launcher: tested 2026-05-25 with `npx -y @openai/codex@0.133.0`.
+- Codex CLI tmux exec loop: tested 2026-05-25 with `npx -y @openai/codex@0.133.0 exec`.

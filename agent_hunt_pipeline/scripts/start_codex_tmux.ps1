@@ -4,11 +4,9 @@
 
 .DESCRIPTION
   This is the robust launcher for the current Codex clone. It runs pre-flight
-  git/guard checks, starts Codex CLI in a WSL tmux session, accepts the initial
-  workspace trust prompt, injects the project resume prompt, and starts the
-  tmux idle watcher so the same prompt is re-issued whenever the pane stalls.
-  If Codex asks for workspace trust, the launcher accepts it; otherwise it
-  leaves the prompt line untouched before injecting the project prompt.
+  git/guard checks, starts a WSL tmux session, and runs Codex CLI in recurring
+  non-interactive `codex exec` iterations. This avoids fragile TUI key
+  injection while preserving the paper-style repeated prompt loop.
 
   The default agent command deliberately uses npx instead of the WindowsApps
   codex.exe path, because WSL can see that path but cannot execute it.
@@ -22,8 +20,8 @@ param(
     [string]$WslDistro = "Ubuntu",
     [string]$Session = "codex-backref",
     [int]$IntervalSeconds = 120,
-    [int]$StartupDelaySeconds = 10,
-    [string]$AgentCommand = "npx -y @openai/codex@0.133.0 -s danger-full-access -a never --no-alt-screen",
+    [int]$RunTimeoutSeconds = 7200,
+    [string]$CodexExecCommand = "npx -y @openai/codex@0.133.0 exec --dangerously-bypass-approvals-and-sandbox -C .",
     [string]$PromptFile = "agent_hunt_pipeline/scripts/codex_cli_resume_prompt.txt",
     [switch]$SkipGitSync,
     [switch]$SkipPilotBuild,
@@ -89,6 +87,7 @@ try {
     Write-Host ""
 
     New-Item -ItemType Directory -Path "agent_hunt_pipeline/logs" -Force | Out-Null
+    New-Item -ItemType Directory -Path "agent_hunt_pipeline/run" -Force | Out-Null
 
     if ($repoRoot -match '^([A-Za-z]):\\(.*)$') {
         $drive = $Matches[1].ToLowerInvariant()
@@ -98,24 +97,44 @@ try {
         $wslRepo = (wsl.exe -d $WslDistro -- bash -lc "wslpath -a '$repoRoot'").Trim()
     }
     $promptWsl = "$wslRepo/$($PromptFile -replace '\\', '/')"
-    $watcherWsl = "$wslRepo/agent_hunt_pipeline/scripts/backref_idle_watch.sh"
     $logWsl = "$wslRepo/agent_hunt_pipeline/logs/codex_idle_watch.log"
-    $captureDirWsl = "$wslRepo/agent_hunt_pipeline/.agent-hunt/tmux-codex"
-    $target = "${Session}:0.0"
+    $runnerWsl = "$wslRepo/agent_hunt_pipeline/run/codex_exec_loop.generated.sh"
     $killFlag = if ($KillExisting) { "1" } else { "0" }
 
     $repoQ = Quote-Bash $wslRepo
     $promptQ = Quote-Bash $promptWsl
-    $watcherQ = Quote-Bash $watcherWsl
     $logQ = Quote-Bash $logWsl
-    $captureDirQ = Quote-Bash $captureDirWsl
+    $runnerQ = Quote-Bash $runnerWsl
     $sessionQ = Quote-Bash $Session
-    $targetQ = Quote-Bash $target
+
+    $loopScript = @"
+#!/usr/bin/env bash
+set -u
+cd $repoQ
+mkdir -p agent_hunt_pipeline/logs
+echo "[`$(date -Is)] Codex exec loop booted for $Session" | tee -a $logQ
+while true; do
+  ts=`$(date -Is)
+  echo "" | tee -a $logQ
+  echo "[`$ts] Starting Codex exec iteration" | tee -a $logQ
+  if [[ ! -f $promptQ ]]; then
+    echo "[`$ts] Prompt file missing: $promptWsl" | tee -a $logQ
+    sleep $IntervalSeconds
+    continue
+  fi
+  prompt=`$(cat $promptQ)
+  timeout $RunTimeoutSeconds $CodexExecCommand "`$prompt" < /dev/null 2>&1 | tee -a $logQ
+  rc=`${PIPESTATUS[0]}
+  done_ts=`$(date -Is)
+  echo "[`$done_ts] Codex exec exit code: `$rc" | tee -a $logQ
+  sleep $IntervalSeconds
+done
+"@
 
     $wslScript = @"
 set -euo pipefail
 cd $repoQ
-mkdir -p agent_hunt_pipeline/logs agent_hunt_pipeline/.agent-hunt/tmux-codex
+mkdir -p agent_hunt_pipeline/logs agent_hunt_pipeline/run
 if tmux has-session -t $sessionQ 2>/dev/null; then
   if [[ '$killFlag' == '1' ]]; then
     tmux kill-session -t $sessionQ
@@ -125,22 +144,8 @@ if tmux has-session -t $sessionQ 2>/dev/null; then
     exit 4
   fi
 fi
-tmux new-session -d -s $sessionQ -x 160 -y 50
-sleep 1
-tmux send-keys -t $sessionQ 'cd $wslRepo && $AgentCommand' Enter
-sleep $StartupDelaySeconds
-capture=`$(tmux capture-pane -t $sessionQ -p -S -80 || true)
-if printf '%s\n' "`$capture" | grep -q 'Do you trust'; then
-  tmux send-keys -t $sessionQ Enter
-  sleep 3
-fi
-prompt=`$(tr '\n' ' ' < $promptQ | sed 's/[[:space:]]*`$//')
-tmux send-keys -t $sessionQ "`$prompt" Enter
-BACKREF_PROMPT_FILE=$promptQ \
-BACKREF_TMUX_LOG_DIR=$captureDirQ \
-nohup bash $watcherQ $targetQ $IntervalSeconds > $logQ 2>&1 &
-echo "Codex tmux session: $Session"
-echo "Idle watcher PID: `$!"
+tmux new-session -d -s $sessionQ -x 160 -y 50 "bash $runnerQ"
+echo "Codex exec tmux session: $Session"
 echo "Attach: wsl -d $WslDistro -- tmux attach -t $Session"
 echo "Log: $logWsl"
 "@
@@ -151,7 +156,12 @@ echo "Log: $logWsl"
         Write-Host ""
         Write-Host "Dry run complete. Nothing was started." -ForegroundColor Cyan
     } else {
-        wsl.exe -d $WslDistro -- bash -lc $wslScript
+        $generatedScript = Join-Path $repoRoot "agent_hunt_pipeline/run/start_codex_tmux.generated.sh"
+        $generatedLoop = Join-Path $repoRoot "agent_hunt_pipeline/run/codex_exec_loop.generated.sh"
+        [System.IO.File]::WriteAllText($generatedScript, ($wslScript -replace "`r`n", "`n"), [System.Text.Encoding]::ASCII)
+        [System.IO.File]::WriteAllText($generatedLoop, ($loopScript -replace "`r`n", "`n"), [System.Text.Encoding]::ASCII)
+        $generatedScriptWsl = "$wslRepo/agent_hunt_pipeline/run/start_codex_tmux.generated.sh"
+        wsl.exe -d $WslDistro -- bash $generatedScriptWsl
         Write-Host ""
         Write-Host "Started. Attach with:" -ForegroundColor Green
         Write-Host "  wsl -d $WslDistro -- tmux attach -t $Session" -ForegroundColor White

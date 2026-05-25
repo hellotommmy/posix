@@ -43,7 +43,7 @@ Watch it with:
 wsl -d Ubuntu -- tmux attach -t codex-backref
 ```
 
-The prompt injected into Codex CLI is:
+The prompt passed to each Codex CLI `exec` iteration is:
 
 ```text
 agent_hunt_pipeline/scripts/codex_cli_resume_prompt.txt
