@@ -170,8 +170,17 @@ function Start-OpusAgent([string]$Reason) {
 `$ErrorActionPreference = "Continue"
 Set-Location -LiteralPath $(Quote-Arg $script:Repo)
 `$prompt = Get-Content -LiteralPath $(Quote-Arg $runPrompt) -Raw
+`$agentArgs = @(
+  "--print",
+  "--trust",
+  "--force",
+  "--model", $(Quote-Arg $Model),
+  "--workspace", $(Quote-Arg $script:Repo),
+  "--",
+  `$prompt
+)
 Add-Content -LiteralPath $(Quote-Arg $agentLog) -Value "[`$(Get-Date -Format o)] Starting cursor-agent model=$Model" -Encoding UTF8
-& cursor-agent --print --trust --force --model $(Quote-Arg $Model) --workspace $(Quote-Arg $script:Repo) -- `$prompt *> $(Quote-Arg $agentLog)
+& cursor-agent @agentArgs *> $(Quote-Arg $agentLog)
 `$code = `$LASTEXITCODE
 Add-Content -LiteralPath $(Quote-Arg $agentLog) -Value "[`$(Get-Date -Format o)] cursor-agent exit code: `$code" -Encoding UTF8
 exit `$code
