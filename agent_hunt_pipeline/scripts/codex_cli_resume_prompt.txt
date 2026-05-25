@@ -1,0 +1,23 @@
+Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md.
+
+You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix. Opus may be running in Cursor in a separate clone on the same branch.
+
+At the start of each iteration:
+1. Run git fetch origin codex/backref-values.
+2. Run git pull --rebase --autostash origin codex/backref-values.
+3. Run git status --short --branch and inspect recent commits.
+
+Work with remote changes; do not revert or overwrite another agent's work. If Opus has pushed new proof work, inspect it before choosing your next step.
+
+Primary assignment: follow the Codex/GPT-5.5 path in agent_hunt_pipeline/projects/posix-backref/CLAUDE.md and SESSION_BRIEF.md, choosing a small checked task that avoids Opus's active BackRefValues.thy edits. Prefer disjoint files such as a new pilot-only theory or integration/CI scaffolding when Opus is actively proving in BackRefValues.thy. If a semantic conflict, merge conflict, or statement-change question appears, stop and report instead of improvising.
+
+Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, or frozen statements unless CLAUDE.md explicitly authorizes the new pilot-only path and the files are disjoint.
+
+Before committing, run:
+python agent_hunt_pipeline/scripts/backref_bounty_guard.py
+python agent_hunt_pipeline/scripts/backref_no_cheat_guard.py
+python agent_hunt_pipeline/scripts/backref_statement_guard.py
+python agent_hunt_pipeline/scripts/backref_role_guard.py --role admin
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin -NoCertificate
+
+Commit small checked steps. Then pull --rebase --autostash, rerun the relevant guards, and push to origin codex/backref-values.

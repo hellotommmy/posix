@@ -27,15 +27,33 @@ Expected:
 - local CI passes;
 - branch is up to date with `origin/codex/backref-values`.
 
-## Start Codex Desktop
+## Start Codex CLI Loop
 
-Open a fresh Codex Desktop conversation in:
+For the unattended Codex side, start the WSL tmux launcher from the Codex
+folder:
 
-```text
-C:\Users\Chengsong\Documents\AIPV2026Notes\posix
+```powershell
+cd C:\Users\Chengsong\Documents\AIPV2026Notes\posix
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1
 ```
 
-Paste:
+Watch it with:
+
+```powershell
+wsl -d Ubuntu -- tmux attach -t codex-backref
+```
+
+The prompt injected into Codex CLI is:
+
+```text
+agent_hunt_pipeline/scripts/codex_cli_resume_prompt.txt
+```
+
+## Start Codex Desktop
+
+If you are using Codex Desktop instead of the CLI loop, open a fresh Codex
+Desktop conversation in `C:\Users\Chengsong\Documents\AIPV2026Notes\posix` and
+paste:
 
 ```text
 We are continuing the POSIX backreference Agent Hunt workflow on branch codex/backref-values.
@@ -51,9 +69,8 @@ Role: Codex is admin/worker. Opus may be running in Cursor in a separate clone o
 Continue the next smallest useful checked step.
 ```
 
-Codex Desktop does not currently receive tmux or Cursor hook injections. If you
-need a fully unattended Codex loop, run Codex CLI inside WSL/tmux and use
-`agent_hunt_pipeline/scripts/backref_idle_watch.sh`.
+Codex Desktop does not currently receive tmux or Cursor hook injections. Use
+the Codex CLI loop above for fully unattended overnight work.
 
 ## Start Cursor/Opus Folder
 
@@ -148,7 +165,7 @@ In each clone:
 ```powershell
 git status --short --branch
 git log --oneline --decorate -n 10
-git pull --ff-only
+git pull --rebase --autostash origin codex/backref-values
 ```
 
 Then check GitHub Actions for the latest `codex/backref-values` run. Trust only

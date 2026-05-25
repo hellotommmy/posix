@@ -17,22 +17,23 @@ From the 130k Lines paper (arxiv:2604.07455):
 
 The key mechanism: **idle detection + automatic re-prompting**.
 
-## One-Click Start
+## Start Codex CLI
 
-From the `posix-opus` repository root:
+From the Codex repository root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1
+cd C:\Users\Chengsong\Documents\AIPV2026Notes\posix
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1
 ```
 
-This does everything: runs guards, syncs git, starts GPT-5.5 in WSL tmux
-with idle watching, and starts the Opus idle detector.
+This runs guards, syncs git, starts Codex CLI in WSL tmux with idle watching,
+accepts the first workspace trust prompt, and injects the Codex resume prompt.
 
 ### What It Starts
 
 | Agent | Where | Automation | Prompt File |
 | --- | --- | --- | --- |
-| GPT-5.5 | WSL tmux session `gpt55-backref` | Fully automatic (idle watch re-prompts) | `gpt55_resume_prompt.txt` |
+| Codex CLI / GPT-5.5 | WSL tmux session `codex-backref` | Fully automatic (idle watch re-prompts) | `codex_cli_resume_prompt.txt` |
 | Opus | Cursor IDE (manual initial prompt) | Semi-automatic (idle detector prints reminder) | `opus_resume_prompt.txt` |
 
 ### Why Opus Is Semi-Automatic
@@ -48,30 +49,17 @@ tmux `send-keys` injections. The workaround:
 
 ## Manual Setup (If One-Click Fails)
 
-### Step A: Start GPT-5.5 in WSL tmux
+### Step A: Start Codex CLI in WSL tmux
 
 ```powershell
-wsl -d Ubuntu
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -DryRun
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1
 ```
 
-Inside Ubuntu:
+The launcher uses:
 
 ```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus
-git config core.autocrlf true
-tmux new-session -d -s gpt55-backref -x 160 -y 50
-tmux send-keys -t gpt55-backref 'cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus && codex' Enter
-
-# Wait for agent CLI to start
-sleep 10
-
-# Start idle watcher
-BACKREF_PROMPT_FILE=agent_hunt_pipeline/scripts/gpt55_resume_prompt.txt \
-  nohup bash agent_hunt_pipeline/scripts/backref_idle_watch.sh \
-    gpt55-backref:0.0 120 \
-    > agent_hunt_pipeline/logs/gpt55_idle_watch.log 2>&1 &
-
-echo "GPT-5.5 loop started. PID: $!"
+npx -y @openai/codex@0.133.0 -s danger-full-access -a never --no-alt-screen
 ```
 
 ### Step B: Start Opus in Cursor
@@ -89,11 +77,11 @@ Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are
 ### Step C: Monitor
 
 ```powershell
-# Watch GPT-5.5 tmux session
-wsl -d Ubuntu -- tmux attach -t gpt55-backref
+# Watch Codex tmux session
+wsl -d Ubuntu -- tmux attach -t codex-backref
 
-# Check GPT-5.5 idle watcher log
-type agent_hunt_pipeline\logs\gpt55_idle_watch.log
+# Check Codex idle watcher log
+type agent_hunt_pipeline\logs\codex_idle_watch.log
 
 # Check recent git activity from both agents
 git log --oneline --all -20
@@ -107,7 +95,7 @@ type BACKREF_BOUNTIES.md
 | Agent | Primary Task | Files | Bounties |
 | --- | --- | --- | --- |
 | Opus | binjval definition + correctness | BackRefValues.thy | BR-005, BR-011, BR-012 |
-| GPT-5.5 | Bitcoded backref lexer | BackRefBlexer.thy (new) | BR-013, BR-017 |
+| Codex CLI / GPT-5.5 | Bitcoded backref lexer or disjoint integration work | BackRefBlexer.thy (new) / pipeline files | BR-013, BR-017 |
 
 Both agents work on the shared branch `codex/backref-values`. Conflicts are
 minimized because they edit different files.
@@ -117,19 +105,19 @@ minimized because they edit different files.
 ### Change interval (default 120 seconds)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -IntervalSeconds 60
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -IntervalSeconds 60
 ```
 
 ### Change GPT agent command (default "codex")
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -GptAgent "claude"
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -AgentCommand "claude --dangerously-skip-permissions"
 ```
 
 ### Dry run (see what would happen without starting anything)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -DryRun
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_codex_tmux.ps1 -DryRun
 ```
 
 ## Stopping
@@ -137,8 +125,8 @@ powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overn
 ```powershell
 # Stop Opus idle detector: Ctrl+C in the PowerShell window
 
-# Stop GPT-5.5 tmux session
-wsl -d Ubuntu -- tmux kill-session -t gpt55-backref
+# Stop Codex tmux session
+wsl -d Ubuntu -- tmux kill-session -t codex-backref
 ```
 
 ## Previous Single-Agent Setup
@@ -163,7 +151,7 @@ python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file 
 ### Level 3: True tmux Injection (WSL)
 
 ```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus
+cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
 tmux new -s backref-agent
 # ... start agent in the tmux pane ...
 # In another terminal:
@@ -174,4 +162,4 @@ bash agent_hunt_pipeline/scripts/backref_idle_watch.sh backref-agent:0.0 60
 
 - Single-agent tmux loop: tested 2026-05-25, PASS (5 injections).
 - Cross-platform idle detection: tested 2026-05-24, PASS.
-- Dual-agent script: created 2026-05-25.
+- Codex CLI tmux launcher: tested 2026-05-25 with `npx -y @openai/codex@0.133.0`.
