@@ -38,17 +38,15 @@ jobs:
         run: |
           docker run --rm \
             -v "$PWD:/workspace" \
-            -w /workspace \
             makarius/isabelle:Isabelle2025-2 \
-            build -v -d . Posix
+            build -v -d /workspace Posix
 
       - name: Build BackRefPilot session
         run: |
           docker run --rm \
             -v "$PWD:/workspace" \
-            -w /workspace \
             makarius/isabelle:Isabelle2025-2 \
-            build -v -d pilot BackRefPilot
+            build -v -d /workspace/pilot BackRefPilot
 
       - name: Write CI certificate
         run: |
