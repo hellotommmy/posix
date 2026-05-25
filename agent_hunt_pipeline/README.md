@@ -18,7 +18,8 @@ CLI coding agent
 
 ## Layout
 
-- `scripts/`: reusable watcher, idle re-prompt, bounty, role, and check scripts.
+- `scripts/`: reusable watcher, idle re-prompt, bounty, role, check, and tmux
+  recurrence test scripts.
 - `templates/`: generic files to copy into a new project.
 - `references/`: notes about public Agent Hunt and 130k source material.
 - `projects/`: project-specific profiles. The current profile is
@@ -36,6 +37,18 @@ For another project:
 5. Add project progress and bounty files.
 6. Add a local CI wrapper and a remote workflow that run the proof checker.
 7. Make every agent read the profile, fetch, build, and update progress.
+
+## Tmux Recurrence Test
+
+After WSL Ubuntu and tmux are installed, run:
+
+```bash
+cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
+bash agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh
+```
+
+This verifies the 130k-paper pattern: the same recurring instruction is sent
+again whenever the tmux pane becomes idle.
 
 ## Notes
 

@@ -23,8 +23,9 @@ if ! command -v tmux >/dev/null 2>&1; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROMPT_FILE="$SCRIPT_DIR/backref_resume_prompt.txt"
+PROMPT_FILE="${BACKREF_PROMPT_FILE:-$SCRIPT_DIR/backref_resume_prompt.txt}"
 OUTDIR="${BACKREF_TMUX_LOG_DIR:-$SCRIPT_DIR/../.agent-hunt/tmux}"
+SEND_DELAY="${BACKREF_SEND_DELAY:-2}"
 
 mkdir -p "$OUTDIR"
 
@@ -36,14 +37,14 @@ fi
 last_capture=""
 
 while true; do
-  ts="$(date +"%Y%m%d_%H%M%S")"
+  ts="$(date +"%Y%m%d_%H%M%S_%N")"
   current="$OUTDIR/capture_$ts.txt"
   tmux capture-pane -t "$TARGET" -p -S -200 > "$current"
 
   if [[ -n "$last_capture" ]] && cmp -s "$current" "$last_capture"; then
-    prompt="$(tr '\n' ' ' < "$PROMPT_FILE")"
+    prompt="$(tr '\n' ' ' < "$PROMPT_FILE" | sed 's/[[:space:]]*$//')"
     tmux send-keys -t "$TARGET" "$prompt"
-    sleep 2
+    sleep "$SEND_DELAY"
     tmux send-keys -t "$TARGET" Enter
   fi
 

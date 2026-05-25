@@ -10,7 +10,7 @@ Amounts are simulated tokens. They are meant to help agents choose useful work.
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 1040 | Completed BR-001 through BR-009 |
+| Codex | Admin/Worker | 1130 | Completed BR-001 through BR-010 |
 | Opus | Worker | 0 | Available for Cursor collaboration |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -34,6 +34,7 @@ Amounts are simulated tokens. They are meant to help agents choose useful work.
 | BR-006 | Add guard scripts for bounty/role checks | 60 | DONE | Codex | agent_hunt_pipeline/scripts/backref_bounty_guard.py;agent_hunt_pipeline/scripts/backref_role_guard.py | LocalGuards | `backref_bounty_guard.py`, `backref_role_guard.py` |
 | BR-007 | Generalized four-language backreference blueprint | 160 | DONE | Codex | BackRefLang.thy:backref_lang4,backref_lang_as_backref_lang4 | Isabelle:BackRefPilot | `backref_lang4`, `backref_lang_as_backref_lang4` |
 | BR-009 | Local and GitHub Isabelle CI with anti-cheat gate | 260 | DONE | Codex | agent_hunt_pipeline/scripts/isabelle_ci.ps1;agent_hunt_pipeline/scripts/backref_no_cheat_guard.py;agent_hunt_pipeline/scripts/write_ci_certificate.py;.github/workflows/isabelle.yml | Isabelle:Posix+BackRefPilot | CI certificate only after both sessions pass |
+| BR-010 | Reproduce recurring tmux prompt loop | 90 | DONE | Codex | agent_hunt_pipeline/scripts/backref_idle_watch.sh;agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh;agent_hunt_pipeline/WINDOWS_RUNBOOK.md | WSL:tmux-recurring-test | Same paper prompt injected repeatedly |
 
 ## Locks
 
@@ -52,6 +53,7 @@ Amounts are simulated tokens. They are meant to help agents choose useful work.
 | 2026-05-24T02:58:00Z | Codex | COLLECT | BR-006 | 60 | 620 | Bounty and role guard scripts |
 | 2026-05-24T02:58:00Z | Codex | COLLECT | BR-007 | 160 | 780 | Generalized `backref_lang4` blueprint |
 | 2026-05-25T03:40:00Z | Codex | COLLECT | BR-009 | 260 | 1040 | Local and remote Isabelle CI gates |
+| 2026-05-25T04:22:00Z | Codex | COLLECT | BR-010 | 90 | 1130 | Recurring tmux prompt reproduction |
 
 ## Lock Rules
 

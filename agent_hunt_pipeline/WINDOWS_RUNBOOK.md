@@ -118,6 +118,29 @@ the test is confirming that tmux injection happened.
 Use `BACKREF_TMUX_LOG_DIR=agent_hunt_pipeline/logs/...` for tests so captures
 stay in an ignored log directory.
 
+## Tested Recurring Paper Prompt
+
+The paper-style repeated prompt loop is covered by:
+
+```bash
+cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
+bash agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh
+```
+
+This starts a fake tmux agent, points `backref_idle_watch.sh` at the original
+recurring prompt from the 130k Lines Formal Topology paper, waits for repeated
+idle cycles, and asserts that the exact same prompt was injected at least twice.
+
+Latest observed result on 2026-05-25:
+
+```text
+PASS: recurring tmux prompt injected 5 times
+Prompt: Read the file CLAUDE.md . Treat it as authoritative work instructions. Follow those instructions exactly for all subsequent actions and responses. That means work as long as possible (as specified) without stopping.
+```
+
+The watcher strips trailing whitespace before sending, so agents do not receive
+an accidental extra space from a prompt file's final newline.
+
 ## Important Limit
 
 The cross-platform script can detect idle state and produce the next prompt.
