@@ -95,7 +95,8 @@ def contains_named_artifact(path: Path, name: str) -> bool:
     text = path.read_text(encoding="utf-8")
     name_re = re.escape(name)
     pattern = re.compile(
-        rf"\b(?:lemma|theorem|corollary|proposition|definition|fun|primrec|inductive|datatype)\s+{name_re}\b"
+        rf"\b(?:lemma|theorem|corollary|proposition|definition|fun|primrec|inductive|datatype)"
+        rf"\s+(?:\([^)]*\)\s+)?{name_re}\b"
     )
     return bool(pattern.search(text))
 

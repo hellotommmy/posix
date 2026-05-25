@@ -21,17 +21,13 @@ BackRefValues.thy
 pilot/ROOT
 
 Important recovery rule:
-The worktree may already contain interrupted Opus edits. Start with git status --short --branch and git diff. If the worktree is dirty, inspect and preserve those edits before pulling. Do not run git reset, git checkout --, or any command that discards work. Do not overwrite another agent's work.
+The worktree may already contain interrupted Opus edits. Start with git status --short --branch and git diff. If the worktree is dirty, inspect and preserve those edits before pulling. If it is clean, fetch and fast-forward to origin/codex/backref-values before choosing work. Do not run git reset, git checkout --, or any command that discards work. Do not overwrite another agent's work.
 
-Morning recovery note, 2026-05-26:
-The previous overnight run produced local Opus work in the posix-opus clone:
-- local commit `ddeccc6 Define binjval for brexp pilot (BR-005)`;
-- additional uncommitted edits in BackRefValues.thy adding `BPrf_xder_residue`, `binjval_flat`, and `binjval_BPrf`.
-
-The last checked BackRefPilot build failed at `BackRefValues.thy`, command `done`, around the proof of `binjval_BPrf`, with a remaining `BNTIMES` goal. Continue from that proof attempt first. Treat any Cursor hook message that says "Run git pull --ff-only first" as lower priority than this recovery rule: do not pull or rebase while the worktree is dirty unless you have first committed or safely stashed the interrupted work.
+Current progress note, 2026-05-26:
+BR-005, BR-011, BR-012, and BR-013 are already completed on the shared branch. Treat PROGRESS_BACKREF.md as the first source of truth for the next task; use BACKREF_BOUNTIES.md for bounty status, but if they disagree, stop and report or repair the board before doing proof work. The expected next small task is BR-014 unless the files say otherwise.
 
 Role:
-You are a worker, not admin. Stay on the shared branch. Work on exactly one small worker-scope proof step at a time, preferably the current BackRefValues.thy binjval/value path (BR-005, BR-011, BR-012) unless the bounty board clearly says otherwise. Do not touch Blexer, BlexerSimp, bounds, closed-form theories, frozen statements, or governance files.
+You are a worker, not admin. Stay on the shared branch. Work on exactly one small worker-scope proof step at a time. Do not touch production Blexer/BlexerSimp, bounds, closed-form theories, frozen statements, or governance files. Pilot BackRefValues.thy `blexer` work is allowed only when it is the current checked bounty task.
 
 Proof discipline:
 Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Prefer small checked Isabelle lemmas. Before committing, run the worker guard and BackRefPilot build. Commit small, then pull --rebase --autostash only after local work is committed or safely stashed. Rerun the guard after rebasing, then push to origin codex/backref-values.

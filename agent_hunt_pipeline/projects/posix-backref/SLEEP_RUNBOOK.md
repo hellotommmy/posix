@@ -135,7 +135,7 @@ BackRefLang.thy
 BackRefValues.thy
 pilot/ROOT
 
-You are a worker, not admin. Stay on the shared branch. Run git pull --rebase --autostash origin codex/backref-values before edits. Work on one small worker-scope task at a time, preferably BR-008 unless the bounty board says otherwise. Do not touch Blexer, BlexerSimp, bounds, closed-form theories, frozen statements, or governance files. Run the worker guard and BackRefPilot build before commit. Commit small, pull --rebase --autostash, rerun the guard, and push. Stop for merge conflicts or semantic uncertainty.
+You are a worker, not admin. Stay on the shared branch. Start with git status --short --branch and git diff; if clean, fetch and fast-forward to origin/codex/backref-values before edits. Work on one small worker-scope task at a time, using PROGRESS_BACKREF.md as the first source of truth and BACKREF_BOUNTIES.md for bounty status. Do not touch production Blexer/BlexerSimp, bounds, closed-form theories, frozen statements, or governance files. Pilot BackRefValues.thy `blexer` work is allowed only when it is the current checked bounty task. Run the worker guard and BackRefPilot build before commit. Commit small, pull --rebase --autostash, rerun the guard, and push. Stop for merge conflicts or semantic uncertainty.
 ```
 
 After Opus stops once, Cursor Hooks should call `.cursor/hooks/posix_loop.ps1`,

@@ -17,15 +17,15 @@ immutability.
 | --- | ---: |
 | Total pool | 50,000 |
 | Allocated (active + completed) | 23,770 |
-| Collected (paid out) | 1,270 |
+| Collected (paid out) | 5,470 |
 | Reserved (unallocated) | 26,230 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 1,270 | Completed BR-001 through BR-010 and BR-021 |
-| Opus | Worker | 0 | Available for Cursor collaboration |
+| Codex | Admin/Worker | 1,270 | Completed BR-001 through BR-004, BR-006, BR-007, BR-009, BR-010, and BR-021 |
+| Opus | Worker | 4,200 | Completed BR-005, BR-011, BR-012, and BR-013 in Cursor/headless collaboration |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
 | Bob | Worker | 0 | Optional future worker |
@@ -34,11 +34,7 @@ immutability.
 
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
-| BR-005 | Draft `binjval` statement blueprint | 500 | 30 | 5 | 500 | OPEN | - | - | Isabelle:BackRefPilot | No lexer integration yet |
 | BR-008 | Draft derivative story for generalized `backref_lang4` | 800 | 60 | 6 | 800 | OPEN | - | - | Isabelle:BackRefPilot | Do not migrate datatype yet |
-| BR-011 | Prove `bflat (binjval r c v) = c # bflat v` | 1,000 | 40 | 6 | 1,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-005 |
-| BR-012 | Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)` | 1,200 | 50 | 7 | 1,200 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-005 |
-| BR-013 | Define and prove `blexer` for pilot `brexp` | 1,500 | 80 | 7 | 1,500 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-011, BR-012 |
 | BR-014 | Prove `blexer` correctness for pilot `brexp` | 2,000 | 100 | 8 | 2,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-013 |
 | BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem |
 | BR-016 | Generalized `backref_lang4` value pilot | 1,500 | 70 | 7 | 1,500 | OPEN | - | - | Isabelle:BackRefPilot | Blueprint before migration |
@@ -55,10 +51,14 @@ immutability.
 | BR-002 | Value/Prf/flat correspondence pilot | 160 | 60 | 6 | 160 | DONE | Codex | BackRefValues.thy:BL_flat_BPrf | Isabelle:BackRefPilot | `BackRefValues.thy`, build passes |
 | BR-003 | Add `bmkeps` for pilot nullable values | 80 | 20 | 4 | 80 | DONE | Codex | BackRefValues.thy:bmkeps | Isabelle:BackRefPilot | `bmkeps` in `BackRefValues.thy` |
 | BR-004 | Prove `bmkeps` flat/prf correctness | 120 | 30 | 5 | 120 | DONE | Codex | BackRefValues.thy:bmkeps_flat,bmkeps_BPrf | Isabelle:BackRefPilot | `bmkeps_flat`, `bmkeps_BPrf` |
+| BR-005 | Draft `binjval` statement blueprint | 500 | 30 | 5 | 500 | DONE | Opus | BackRefValues.thy:binjval | Isabelle:BackRefPilot | Commit `b9da0e1` |
 | BR-006 | Add guard scripts for bounty/role checks | 60 | 10 | 3 | 60 | DONE | Codex | agent_hunt_pipeline/scripts/backref_bounty_guard.py;agent_hunt_pipeline/scripts/backref_role_guard.py | LocalGuards | `backref_bounty_guard.py`, `backref_role_guard.py` |
 | BR-007 | Generalized four-language backreference blueprint | 160 | 20 | 5 | 160 | DONE | Codex | BackRefLang.thy:backref_lang4,backref_lang_as_backref_lang4 | Isabelle:BackRefPilot | `backref_lang4`, `backref_lang_as_backref_lang4` |
 | BR-009 | Local and GitHub Isabelle CI with anti-cheat gate | 260 | 15 | 4 | 260 | DONE | Codex | agent_hunt_pipeline/scripts/isabelle_ci.ps1;agent_hunt_pipeline/scripts/backref_no_cheat_guard.py;agent_hunt_pipeline/scripts/write_ci_certificate.py;.github/workflows/isabelle.yml | Isabelle:Posix+BackRefPilot | CI certificate only after both sessions pass |
 | BR-010 | Reproduce recurring tmux prompt loop | 90 | 10 | 3 | 90 | DONE | Codex | agent_hunt_pipeline/scripts/backref_idle_watch.sh;agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh;agent_hunt_pipeline/WINDOWS_RUNBOOK.md | WSL:tmux-recurring-test | Same paper prompt injected repeatedly |
+| BR-011 | Prove `bflat (binjval r c v) = c # bflat v` | 1,000 | 40 | 6 | 1,000 | DONE | Opus | BackRefValues.thy:binjval_flat | Isabelle:BackRefPilot | Commit `6dc8e03` |
+| BR-012 | Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)` | 1,200 | 50 | 7 | 1,200 | DONE | Opus | BackRefValues.thy:binjval_BPrf | Isabelle:BackRefPilot | Commit `6dc8e03` |
+| BR-013 | Define and prove `blexer` for pilot `brexp` | 1,500 | 80 | 7 | 1,500 | DONE | Opus | BackRefValues.thy:blexer,blexer_BPrf,blexer_flat,blexer_correct_None,blexer_correct_Some | Isabelle:BackRefPilot | Commit `2e8c45a` |
 | BR-021 | Cursor/Opus loop startup kit | 140 | 15 | 4 | 140 | DONE | Codex | .cursor/hooks/posix_loop.ps1;.cursor/hooks/posix_loop.sh;agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json;agent_hunt_pipeline/projects/posix-backref/SLEEP_RUNBOOK.md | CursorHook:posix-loop | Supplemental robust hook and sleep runbook |
 
 ## Effort Estimate Key
@@ -96,11 +96,15 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-22T14:20:00Z | Codex | COLLECT | BR-002 | 160 | 360 | Value/Prf/flat correspondence |
 | 2026-05-22T14:28:00Z | Codex | COLLECT | BR-003 | 80 | 440 | `bmkeps` definition |
 | 2026-05-22T14:28:00Z | Codex | COLLECT | BR-004 | 120 | 560 | `bmkeps` flat and Prf correctness |
+| 2026-05-25T16:24:31Z | Opus | COLLECT | BR-005 | 500 | 500 | `binjval` definition |
 | 2026-05-24T02:58:00Z | Codex | COLLECT | BR-006 | 60 | 620 | Bounty and role guard scripts |
 | 2026-05-24T02:58:00Z | Codex | COLLECT | BR-007 | 160 | 780 | Generalized `backref_lang4` blueprint |
 | 2026-05-25T03:40:00Z | Codex | COLLECT | BR-009 | 260 | 1,040 | Local and remote Isabelle CI gates |
 | 2026-05-25T04:22:00Z | Codex | COLLECT | BR-010 | 90 | 1,130 | Recurring tmux prompt reproduction |
 | 2026-05-25T15:24:00Z | Codex | COLLECT | BR-021 | 140 | 1,270 | Cursor/Opus loop startup kit |
+| 2026-05-25T23:24:27Z | Opus | COLLECT | BR-011 | 1,000 | 1,500 | `binjval_flat` |
+| 2026-05-25T23:24:27Z | Opus | COLLECT | BR-012 | 1,200 | 2,700 | `binjval_BPrf` |
+| 2026-05-25T23:37:17Z | Opus | COLLECT | BR-013 | 1,500 | 4,200 | pilot `blexer` definition and language correctness |
 
 ## Sub-Bounty Rules
 
