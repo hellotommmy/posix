@@ -142,6 +142,36 @@ After Opus stops once, Cursor Hooks should call `.cursor/hooks/posix_loop.ps1`,
 run the validation command in `loop-config.json`, and re-prompt automatically
 until the hook limit is reached.
 
+## Start Opus Fallback Watchdog
+
+If Cursor/Opus may freeze because of a network hiccup, run this from the Codex
+clone:
+
+```powershell
+cd C:\Users\Chengsong\Documents\AIPV2026Notes\posix
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Background
+```
+
+It watches `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus`. If the
+workspace has been idle for 15 minutes and no headless `cursor-agent` is already
+running for that folder, it starts a new headless Opus 4.6 Cursor Agent chat in
+that folder.
+
+Watch it with:
+
+```powershell
+Get-Content C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus\agent_hunt_pipeline\logs\opus_watchdog.log -Tail 80
+Get-ChildItem C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus\agent_hunt_pipeline\logs\opus_cursor_agent_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+```
+
+Stop it with:
+
+```powershell
+Get-CimInstance Win32_Process |
+  Where-Object { $_.CommandLine -match 'opus_cursor_agent_watchdog.ps1' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId }
+```
+
 ## Confirm The Loop Is Armed
 
 In Cursor's terminal:
