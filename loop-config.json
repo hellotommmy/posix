@@ -1,0 +1,9 @@
+{
+  "task": "Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are Opus, a worker on shared branch codex/backref-values. Run git pull --ff-only first. Your task: work on binjval definition and correctness proofs (BR-005, BR-011, BR-012) in BackRefValues.thy. Study xder in BackRefLang.thy to understand derivative shapes. Define binjval case-by-case. Run Isabelle BackRefPilot build after changes. Update PROGRESS_BACKREF.md. Commit small checked steps. Do not touch Blexer, bounds, or frozen statements. Do not revert useful work. Stop only when blocked or after a useful checked checkpoint.",
+  "validation_command": "python agent_hunt_pipeline/scripts/backref_bounty_guard.py; python agent_hunt_pipeline/scripts/backref_no_cheat_guard.py; python agent_hunt_pipeline/scripts/backref_statement_guard.py",
+  "validation_shell": "powershell",
+  "on_validation_fail": "Guard check FAILED. Fix ALL errors below before continuing:\n{errors}",
+  "on_validation_pass": "All guards pass. Good. Continue with the task.",
+  "loop_limit": 50,
+  "timeout": 900
+}
