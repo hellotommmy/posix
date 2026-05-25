@@ -2,6 +2,9 @@ Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, t
 
 You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix. Opus may be running in Cursor in a separate clone on the same branch.
 
+Morning recovery note, 2026-05-26:
+The previous overnight run was interrupted by network disconnects. The Opus clone at C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus has local proof work that may not yet be pushed: commit `ddeccc6 Define binjval for brexp pilot (BR-005)` plus dirty BackRefValues.thy edits attempting `binjval_flat` and `binjval_BPrf`, last seen failing in the `BNTIMES` case. Until that work is pushed and checked, do not edit BackRefValues.thy in this clone. Prefer monitoring, integration, pipeline tasks, or disjoint pilot-only work that cannot conflict.
+
 At the start of each iteration:
 1. Run git fetch origin codex/backref-values.
 2. Run git pull --rebase --autostash origin codex/backref-values.

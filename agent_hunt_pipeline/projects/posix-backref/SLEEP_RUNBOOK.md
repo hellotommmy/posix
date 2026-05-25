@@ -157,6 +157,13 @@ workspace has been idle for 15 minutes and no headless `cursor-agent` is already
 running for that folder, it starts a new headless Opus 4.6 Cursor Agent chat in
 that folder.
 
+If a previous night exhausted the restart counter, reset the counter and start
+with a higher budget:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Background -ResetState -MaxRestarts 50
+```
+
 Watch it with:
 
 ```powershell

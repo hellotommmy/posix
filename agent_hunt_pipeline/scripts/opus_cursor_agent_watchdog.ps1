@@ -27,8 +27,9 @@ param(
     [int]$IdleMinutes = 15,
     [int]$PollSeconds = 60,
     [int]$CooldownMinutes = 20,
-    [int]$MaxRestarts = 5,
+    [int]$MaxRestarts = 50,
     [string]$UseCursorHookPrompt = "true",
+    [switch]$ResetState,
     [switch]$Once,
     [switch]$DryRun,
     [switch]$Background
@@ -227,10 +228,15 @@ $state = [pscustomobject]@{
     LastStart = $null
 }
 if (Test-Path -LiteralPath $statePath) {
-    try {
-        $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
-    } catch {
-        Write-WatchLog "Ignoring unreadable state file: $($_.Exception.Message)"
+    if ($ResetState) {
+        Remove-Item -LiteralPath $statePath -Force
+        Write-WatchLog "Reset watchdog state file: $statePath"
+    } else {
+        try {
+            $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
+        } catch {
+            Write-WatchLog "Ignoring unreadable state file: $($_.Exception.Message)"
+        }
     }
 }
 
@@ -254,7 +260,7 @@ while ($true) {
         Write-WatchLog "SKIP: target branch is $($activity.Branch), expected $Branch"
     } elseif ($agents.Count -gt 0) {
         Write-WatchLog "SKIP: cursor-agent already running for target workspace"
-    } elseif ($state.Restarts -ge $MaxRestarts) {
+    } elseif ($MaxRestarts -gt 0 -and $state.Restarts -ge $MaxRestarts) {
         Write-WatchLog "SKIP: MaxRestarts reached"
     } elseif ($idle.TotalMinutes -lt $IdleMinutes) {
         Write-WatchLog "SKIP: workspace is not idle long enough"
