@@ -23,7 +23,7 @@
 
 param(
     [int]$IntervalSeconds = 120,
-    [string]$GptAgent = "codex",
+    [string]$Agent2Cmd = "",
     [switch]$DryRun
 )
 
@@ -47,12 +47,31 @@ if (-not $pythonOk) {
 
 $wslOk = Get-Command wsl -ErrorAction SilentlyContinue
 if (-not $wslOk) {
-    Write-Host "WARNING: WSL not found. GPT-5.5 tmux loop will be skipped." -ForegroundColor Yellow
+    Write-Host "WARNING: WSL not found. Agent 2 tmux loop will be skipped." -ForegroundColor Yellow
     Write-Host "         Only the Cursor/Opus idle detector will start." -ForegroundColor Yellow
 }
 
-Write-Host "  Python: OK" -ForegroundColor Green
-Write-Host "  WSL:    $(if ($wslOk) { 'OK' } else { 'MISSING' })" -ForegroundColor $(if ($wslOk) { "Green" } else { "Yellow" })
+# Auto-detect agent CLI in WSL if not specified
+if ($wslOk -and -not $Agent2Cmd) {
+    $cliCheck = wsl -d Ubuntu -- bash -c "which codex 2>/dev/null || which claude 2>/dev/null || echo NONE"
+    $cliCheck = $cliCheck.Trim()
+    if ($cliCheck -eq "NONE" -or $cliCheck -eq "") {
+        Write-Host "WARNING: No agent CLI (codex/claude) found in WSL." -ForegroundColor Yellow
+        Write-Host "  Install one:" -ForegroundColor Yellow
+        Write-Host "    npm install -g @openai/codex    (for GPT-5.5/Codex)" -ForegroundColor Gray
+        Write-Host "    npm install -g @anthropic-ai/claude-code  (for Claude)" -ForegroundColor Gray
+        Write-Host "  Or specify manually: -Agent2Cmd 'codex'" -ForegroundColor Gray
+        Write-Host ""
+        $wslOk = $null
+    } else {
+        $Agent2Cmd = Split-Path -Leaf $cliCheck
+        Write-Host "  Auto-detected agent CLI in WSL: $Agent2Cmd" -ForegroundColor Green
+    }
+}
+
+Write-Host "  Python:    OK" -ForegroundColor Green
+Write-Host "  WSL:       $(if ($wslOk) { 'OK' } else { 'MISSING or no CLI' })" -ForegroundColor $(if ($wslOk) { "Green" } else { "Yellow" })
+if ($Agent2Cmd) { Write-Host "  Agent CLI: $Agent2Cmd" -ForegroundColor Green }
 Write-Host ""
 
 # --- Step 1: Run guards before starting ---
@@ -82,8 +101,12 @@ if ($wslOk) {
     Write-Host "[3] Starting GPT-5.5 tmux loop in WSL..." -ForegroundColor Yellow
 
     $wslRepoPath = "/mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus"
-    $tmuxSession = "gpt55-backref"
+    $tmuxSession = "agent2-backref"
     $promptFile = "agent_hunt_pipeline/scripts/gpt55_resume_prompt.txt"
+
+    Write-Host "  Agent CLI: $Agent2Cmd" -ForegroundColor Green
+    Write-Host "  tmux session: $tmuxSession" -ForegroundColor Green
+    Write-Host "  Re-prompt interval: ${IntervalSeconds}s" -ForegroundColor Green
 
     $wslScript = @"
 cd $wslRepoPath
@@ -93,16 +116,16 @@ tmux new-session -d -s $tmuxSession -x 160 -y 50
 sleep 1
 tmux send-keys -t $tmuxSession 'cd $wslRepoPath' Enter
 sleep 1
-tmux send-keys -t $tmuxSession '$GptAgent' Enter
+tmux send-keys -t $tmuxSession '$Agent2Cmd' Enter
 echo 'Waiting 10s for agent CLI startup...'
 sleep 10
 echo 'Starting idle watcher (interval: ${IntervalSeconds}s)...'
 BACKREF_PROMPT_FILE=$wslRepoPath/$promptFile \
   nohup bash $wslRepoPath/agent_hunt_pipeline/scripts/backref_idle_watch.sh \
     ${tmuxSession}:0.0 $IntervalSeconds \
-    > $wslRepoPath/agent_hunt_pipeline/logs/gpt55_idle_watch.log 2>&1 &
+    > $wslRepoPath/agent_hunt_pipeline/logs/agent2_idle_watch.log 2>&1 &
 echo "Idle watcher PID: \$!"
-echo 'GPT-5.5 loop started. Monitor with: wsl -d Ubuntu -- tmux attach -t $tmuxSession'
+echo 'Agent 2 loop started. Monitor with: wsl -d Ubuntu -- tmux attach -t $tmuxSession'
 "@
 
     if ($DryRun) {
@@ -150,8 +173,8 @@ if ($DryRun) {
     Write-Host " MONITORING                            " -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  GPT-5.5 tmux: wsl -d Ubuntu -- tmux attach -t gpt55-backref" -ForegroundColor Gray
-    Write-Host "  GPT-5.5 log:  type agent_hunt_pipeline\logs\gpt55_idle_watch.log" -ForegroundColor Gray
+    Write-Host "  Agent 2 tmux: wsl -d Ubuntu -- tmux attach -t agent2-backref" -ForegroundColor Gray
+    Write-Host "  Agent 2 log:  type agent_hunt_pipeline\logs\agent2_idle_watch.log" -ForegroundColor Gray
     Write-Host "  Git status:   git log --oneline -5" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Starting Opus idle detector (prints prompt when repo unchanged)..." -ForegroundColor Yellow

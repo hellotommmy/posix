@@ -71,6 +71,36 @@ stable.
 - Do not leave `sorry` in Isabelle files.
 - Do not revert other agents' work.
 - Do not use destructive git commands such as `git reset --hard`.
+- Do not introduce axioms that duplicate theorems you want to prove.
+- Do not add definitions or lemmas that already exist -- always search first.
+
+## ABSOLUTE RULE: Never Throw Away Useful Work
+
+This rule exists because in the 130k Lines paper, an agent accidentally
+discarded 9,000 lines (more than a day of work) in a single backup step.
+This must never happen in this project.
+
+1. **Never revert to a previous state without salvaging all useful work**
+   done in between. If there is a major reason for reverting, you must
+   ensure that all compiling theorems and definitions added since are kept.
+2. **Simple check after every commit**: compare the line count of changed
+   theory files against the previous commit. If a file got shorter, you must
+   explicitly justify the decrease in the commit message and confirm that no
+   useful checked work was lost.
+
+   ```powershell
+   git diff --stat HEAD~1
+   ```
+
+3. **If you discover a screwup** (lost work), immediately start salvaging
+   the lost definitions and theorems. Do not proceed with new work until
+   salvage is complete.
+4. **Gradual approach**: when a proof is hard, use temporary `sorry` in
+   specific branches and keep gradually eliminating them (recording each
+   `sorry` in `PROGRESS_BACKREF.md`). Do NOT delete a partially-complete
+   proof. This is preferable to giving up and reverting.
+5. **Never overwrite another agent's work**. If a merge conflict arises
+   with another agent's checked proof, escalate to the merge steward.
 
 ## Allowed Edit Areas
 
@@ -190,16 +220,51 @@ change.
 
 ## Work Strategy
 
+These rules absorb lessons from the 130k Lines paper where recurring agent
+failures were turned into rules.
+
+### Core Discipline
+
 - Make one small checked step at a time.
 - Prefer short helper lemmas over large brittle proof scripts.
 - Use existing local proof style from `PosixSpec.thy` and `Lexer.thy`.
-- Search before adding new concepts.
 - Keep helper names descriptive.
 - Keep proof statements general enough to be reusable.
 - Avoid speculative abstractions.
+
+### Search Before Creating
+
+- **Always search** all current definitions and theorems before creating a
+  new one. Avoid duplicates. Run:
+
+  ```powershell
+  rg "lemma|definition|fun|datatype" BackRefValues.thy BackRefLang.thy
+  ```
+
+- **Completely trust** all checked theorems in the pre-backreference theories
+  (`RegLangs.thy`, `PosixSpec.thy`, `Lexer.thy`). Build on them; never
+  attempt to re-prove them.
+
+### Balancing Easy and Hard Work
+
+- Doing easy things is initially OK. However, do not endlessly jump around
+  looking for easy things -- that wastes time.
+- Balance simple infrastructure lemmas with more challenging results.
+- **Strong focus on major theorems** (the bounty targets): prioritize them
+  even if they are hard, over doing many small helper lemmas that are not
+  on the critical path.
+- Use gradual/partial approaches for difficult proofs when needed: structure
+  bigger proofs into useful top-level/helper lemmas, use temporary `sorry`
+  in specific branches, and keep gradually eliminating them.
+
+### When Stuck
+
 - When a proof becomes tangled, record the blocker and reduce the target.
 - If a statement seems false, stop and write a notice instead of forcing a
   bogus proof.
+- If a tactic explodes (large proof terms, slow automation), simplify the
+  proof structure. Do not let `auto`/`simp` run for more than 30 seconds.
+- If `sledgehammer` does not solve a goal quickly, break it down manually.
 
 ## Bounty Discipline
 
@@ -306,15 +371,17 @@ The steward must stop for admin on:
 - theorem statement conflicts;
 - conflicts involving old lexer or bounds files.
 
-## Progress Files
+## Progress Monitoring
 
-Update `PROGRESS_BACKREF.md` after every meaningful checked step.
+Following the 130k Lines paper, maintain structured progress tracking.
 
-Include:
+### After Every Meaningful Step
+
+Update `PROGRESS_BACKREF.md` with:
 
 - branch;
 - commit if available;
-- files changed;
+- files changed (with line count deltas);
 - build command;
 - build result;
 - theorem status;
@@ -323,6 +390,37 @@ Include:
 
 If context is getting full, update the progress file before doing anything
 else.
+
+### Line Count Check
+
+After each commit, verify no useful work was lost:
+
+```powershell
+git diff --stat HEAD~1
+```
+
+If any theory file got shorter, the commit message must justify the decrease.
+
+### Per-Bounty Progress
+
+For each active bounty, `PROGRESS_BACKREF.md` should track:
+
+- Status: not started / definition drafted / statement proved / fully checked
+- Remaining `sorry` count (if using gradual approach)
+- Dependencies: which other bounties must complete first
+- Blockers: what prevents progress
+
+Use this to find imbalances and refocus on neglected tasks.
+
+### Build Frequently
+
+Run the Isabelle build after every meaningful change. Do not accumulate
+many edits before checking. Silent build output = success. Any error must
+be fixed before proceeding.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin
+```
 
 ## Technical Roadmap
 
@@ -556,15 +654,19 @@ build, or statement rules.
 
 On resume from compacted context or a fresh chat:
 
-1. Read this file.
+1. **READ THIS FILE FIRST** before making any edits.
 2. Read `agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md`.
 3. Read `PROGRESS_BACKREF.md`.
-4. Run git status and fetch.
-5. Verify which branch you are on.
-6. Build before making proof edits.
-7. Continue the smallest safe task.
+4. Run `git fetch --all --prune` and `git status --short --branch`.
+5. Verify which branch you are on (`codex/backref-values`).
+6. Verify you understand which files you are allowed to edit.
+7. Build before making proof edits.
+8. Check line counts of theory files against latest commit.
+9. Continue the smallest safe task from `PROGRESS_BACKREF.md`.
 
-Do not trust memory alone.
+**Do not trust memory alone.** The 130k Lines paper found that 83% of
+prompts were automatic re-prompts of "Read CLAUDE.md". This file is the
+single source of truth for all work rules.
 
 ## Quality Bar
 
