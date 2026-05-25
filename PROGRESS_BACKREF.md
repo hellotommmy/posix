@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-25
+Last updated: 2026-05-25 (governance upgrade)
 
 ## Current Branch
 
@@ -73,6 +73,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Do not touch `BlexerSimp.thy`.
 - Do not touch bounds or closed-form theories.
 - Do not claim a finite derivative bound for backreferences.
+
+## Governance Upgrade (2026-05-25)
+
+- Branch: `codex/backref-values`
+- Agent: Opus (Cursor)
+- Authorized by: admin (Chengsong)
+- Changes:
+  - `BOUNTY_PROTOCOL.md`: rewritten to replicate Agent Hunt paper mechanics
+    (competitive-collaborative system, 50k pool, 10% deposit locks, max 10 locks,
+    lock-or-lose, sub-bounties, early-finish bonus, effort estimates, statement
+    immutability).
+  - `BACKREF_BOUNTIES.md`: added pool tracking, effort estimate columns,
+    new bounties BR-011 through BR-020, updated lock rules to max 10.
+  - `CLAUDE.md` (project profile): expanded bounty discipline section with
+    full Agent Hunt mechanics, added statement immutability section, added
+    guard scripts table.
+  - `backref_bounty_guard.py`: upgraded to enforce max 10 locks, pool cap,
+    effort estimate validation, sub-bounty ledger actions, lock deposit
+    verification (10% of bounty).
+  - `backref_statement_guard.py`: new guard enforcing frozen statement
+    immutability by comparing against snapshots.
+  - `agent_hunt_pipeline/snapshots/`: frozen snapshots of BackRefLang.thy
+    and BackRefValues.thy.
+- Guard results: all four guards pass.
+- Build: no theory file changes; Isabelle build not required.
 
 ## Open Design Questions
 

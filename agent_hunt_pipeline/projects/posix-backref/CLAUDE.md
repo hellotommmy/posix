@@ -203,19 +203,67 @@ change.
 
 ## Bounty Discipline
 
-This repository uses lightweight simulated bounties only as coordination.
+This repository uses a competitive-collaborative bounty system adapted from the
+Agent Hunt paper (130k Lines Formal Topology). The full protocol is in
+`agent_hunt_pipeline/projects/posix-backref/BOUNTY_PROTOCOL.md`.
+
+### Total Pool
+
+The total bounty pool is **50,000 simulated USD**. All bounty amounts are
+denominated in simulated USD. The pool cap is enforced by the guard script.
+
+### Competitive-Collaborative Rules
+
+- Multiple agents may attempt the same open bounty; the first to complete it
+  (per completion rules) collects the bounty.
+- Agents may issue sub-bounties from their own balance to request help on
+  sub-lemmas.
+- If the entire bounty board is completed before the admin-set deadline, a 10%
+  bonus of the remaining pool is distributed among agents who completed at
+  least one bounty.
+
+### Locking and Earning Mechanics
+
+- **Lock deposit**: 10% of bounty, rounded up. Deducted from agent balance.
+- **Maximum locks**: at most **10** active locks per agent.
+- **Lock duration**: 24 hours. Expired locks are forfeited (deposit not refunded).
+- **Lock-or-lose**: if another agent proves a locked theorem, bounty goes to
+  the locker, not the prover.
+- **Lock release**: voluntary release before expiry refunds the deposit.
+- **Balances cannot go negative**.
+- **Push immediately**: locks must be committed and pushed within 5 minutes
+  when multiple agents are active.
+
+### Effort Estimates
+
+Every bounty task must include an effort estimate:
+
+1. **Est. Lines**: approximate lines of a textbook proof.
+2. **Difficulty**: formalization difficulty on a 1-10 scale.
+3. **Est. USD**: approximate cost assuming $100/hour of expert Isabelle work.
+
+These assume all previous results in the dependency chain are proved.
+
+### Task Board
 
 - Open tasks live in `BACKREF_BOUNTIES.md`.
-- Claiming a task means editing its status and recording branch/agent.
-- A worker may lock at most three tasks at once in this small pilot.
-- Locks expire after 24 hours.
-- A lock must be pushed immediately if multiple agents are active.
+- Claiming a task means locking it (paying the deposit) and recording
+  branch/agent.
 - Completed tasks must name the theorem or file that checks.
-- Bounties have no authority over correctness.
+- Bounties have no authority over correctness; only Isabelle checking does.
 
-## Statement Governance
+## Statement Governance and Immutability
 
-Definitions and theorem statements in the checked blueprint should be stable.
+Following the Agent Hunt paper, definitions and theorem statements in checked
+Isabelle theory files are **frozen** once the admin marks them as such. Agents
+cannot change frozen statements to game the system and collect bounties easily.
+
+The statement guard (`backref_statement_guard.py`) enforces immutability:
+
+- Frozen statements are compared against a known snapshot.
+- Proof bodies may be modified freely.
+- Adding new definitions or lemmas after existing frozen content is allowed.
+- Modifying or deleting frozen statements is rejected by the guard.
 
 Statement changes require a note in `PROGRESS_BACKREF.md` with:
 
@@ -345,10 +393,26 @@ A completed proof step must satisfy:
 - GitHub Actions or local CI emits a passing CI certificate.
 - No `sorry`, `oops`, `axiomatization`, `quick_and_dirty`, `oracle`, or admit
   marker in Isabelle theory files.
+- No frozen statement modifications (statement guard passes).
 - No unrelated file churn.
 - No hidden statement weakening.
 - Progress file updated.
 - Next task is clear.
+
+## Guard Scripts
+
+All guards must be run locally before every commit:
+
+| Guard | File | Checks |
+| --- | --- | --- |
+| Bounty guard | `backref_bounty_guard.py` | Non-negative balances, positive bounties, max 10 locks, lock expiry, ledger consistency, pool cap, effort estimates |
+| No-cheat guard | `backref_no_cheat_guard.py` | No sorry/oops/axiomatization/quick_and_dirty/oracle/admit outside comments |
+| Role guard | `backref_role_guard.py` | Changed files within agent's role scope |
+| Statement guard | `backref_statement_guard.py` | Frozen definition/theorem statements unchanged |
+
+Guards are run locally rather than as blocking git hooks, permitting coordinated
+structural changes when the admin needs them. After resolving any
+inconsistencies, the guards must pass before pushing.
 
 ## Stop Conditions
 

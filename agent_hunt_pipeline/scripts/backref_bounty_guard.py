@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
-"""Validate the lightweight POSIX backref bounty board."""
+"""Validate the POSIX backref bounty board against Agent Hunt rules.
+
+Enforces:
+- Non-negative balances
+- Positive bounties
+- Max 10 active locks per agent
+- Lock expiry within 24 hours
+- Lock deposit = ceil(10% of bounty)
+- Ledger balance consistency (running totals)
+- Total allocated bounties <= pool cap
+- Effort estimates present on all tasks
+- Valid task/lock/ledger statuses
+- Artifact and verifier present on DONE tasks
+"""
 
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
 from collections import Counter
@@ -13,16 +27,22 @@ from pathlib import Path
 
 VALID_TASK_STATUS = {"OPEN", "LOCKED", "DONE", "BLOCKED", "DROPPED"}
 VALID_LOCK_STATUS = {"ACTIVE", "EXPIRED", "RELEASED", "COLLECTED"}
-VALID_LEDGER_ACTIONS = {"COLLECT", "LOCK", "RELEASE", "SLASH", "RESET"}
+VALID_LEDGER_ACTIONS = {
+    "COLLECT", "LOCK", "RELEASE", "SLASH", "RESET",
+    "SUB_OFFER", "SUB_CANCEL",
+}
+
+DEFAULT_POOL = 50_000
+MAX_ACTIVE_LOCKS = 10
 
 
 def table_rows(text: str, heading: str) -> list[dict[str, str]]:
     lines = text.splitlines()
     start = None
     for i, line in enumerate(lines):
-      if line.strip() == f"## {heading}":
-          start = i + 1
-          break
+        if line.strip() == f"## {heading}":
+            start = i + 1
+            break
     if start is None:
         return []
 
@@ -45,8 +65,9 @@ def table_rows(text: str, heading: str) -> list[dict[str, str]]:
 
 
 def parse_int(value: str, where: str, errors: list[str]) -> int:
+    cleaned = value.replace(",", "").strip()
     try:
-        return int(value)
+        return int(cleaned)
     except ValueError:
         errors.append(f"{where}: expected integer, got {value!r}")
         return 0
@@ -103,10 +124,34 @@ def validate_artifact_spec(spec: str, root: Path, where: str, errors: list[str])
                 errors.append(f"{where}: artifact path does not exist: {part}")
 
 
+def validate_effort_estimate(row: dict[str, str], task_id: str, errors: list[str]) -> None:
+    for field in ("Est. Lines", "Difficulty", "Est. USD"):
+        val = row.get(field, "").replace(",", "").strip()
+        if not val or val == "-":
+            errors.append(f"task {task_id}: missing effort estimate field {field!r}")
+            continue
+        try:
+            n = int(val)
+            if n <= 0:
+                errors.append(f"task {task_id}: {field} must be positive, got {n}")
+        except ValueError:
+            errors.append(f"task {task_id}: {field} must be integer, got {val!r}")
+
+    difficulty = row.get("Difficulty", "").replace(",", "").strip()
+    if difficulty and difficulty != "-":
+        try:
+            d = int(difficulty)
+            if not (1 <= d <= 10):
+                errors.append(f"task {task_id}: Difficulty must be 1-10, got {d}")
+        except ValueError:
+            pass
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", default="BACKREF_BOUNTIES.md")
-    parser.add_argument("--max-active-locks", type=int, default=3)
+    parser.add_argument("--max-active-locks", type=int, default=MAX_ACTIVE_LOCKS)
+    parser.add_argument("--pool", type=int, default=DEFAULT_POOL)
     args = parser.parse_args()
 
     path = Path(args.file)
@@ -114,16 +159,15 @@ def main() -> int:
     text = path.read_text(encoding="utf-8")
     errors: list[str] = []
 
+    pool_rows = table_rows(text, "Pool")
     active = table_rows(text, "Active")
     completed = table_rows(text, "Completed")
     locks = table_rows(text, "Locks")
     balances = table_rows(text, "Agent Balances")
     ledger = table_rows(text, "Ledger")
 
-    if not active:
-        errors.append("missing or empty ## Active table")
-    if not completed:
-        errors.append("missing or empty ## Completed table")
+    if not active and not completed:
+        errors.append("missing both ## Active and ## Completed tables")
     if not locks:
         errors.append("missing or empty ## Locks table")
     if not balances:
@@ -140,6 +184,8 @@ def main() -> int:
     task_status: dict[str, str] = {}
     task_bounty: dict[str, int] = {}
     task_owner: dict[str, str] = {}
+    total_allocated = 0
+
     for row in tasks:
         task_id = row.get("ID", "")
         status = row.get("Status", "")
@@ -147,6 +193,7 @@ def main() -> int:
         bounty = parse_int(row.get("Bounty", "0"), f"task {task_id} bounty", errors)
         if bounty <= 0:
             errors.append(f"task {task_id}: bounty must be positive")
+        total_allocated += bounty
         if status not in VALID_TASK_STATUS:
             errors.append(f"task {task_id}: invalid status {status!r}")
         if status == "DONE":
@@ -155,9 +202,24 @@ def main() -> int:
             validate_artifact_spec(row.get("Artifact", ""), root, f"task {task_id}", errors)
             if row.get("Verifier", "") in {"", "-"}:
                 errors.append(f"task {task_id}: DONE task needs verifier")
+
+        validate_effort_estimate(row, task_id, errors)
+
         task_status[task_id] = status
         task_bounty[task_id] = bounty
         task_owner[task_id] = owner
+
+    if total_allocated > args.pool:
+        errors.append(
+            f"total allocated bounties ({total_allocated}) exceed pool cap ({args.pool})"
+        )
+
+    if pool_rows:
+        for row in pool_rows:
+            cat = row.get("Category", "")
+            amt = parse_int(row.get("Amount", "0"), f"pool {cat}", errors)
+            if cat == "Total pool" and amt != args.pool:
+                errors.append(f"pool table says {amt}, expected {args.pool}")
 
     active_locks: Counter[str] = Counter()
     now = datetime.now(timezone.utc)
@@ -178,6 +240,11 @@ def main() -> int:
             active_locks[agent] += 1
             if deposit <= 0:
                 errors.append(f"lock {lock_id}: active lock deposit must be positive")
+            expected_deposit = math.ceil(task_bounty.get(task_id, 0) * 0.10)
+            if expected_deposit > 0 and deposit < expected_deposit:
+                errors.append(
+                    f"lock {lock_id}: deposit {deposit} < required 10% of bounty ({expected_deposit})"
+                )
             if expiry is None:
                 errors.append(f"lock {lock_id}: active lock needs expiry")
             elif expiry <= now:
@@ -185,7 +252,7 @@ def main() -> int:
 
     for agent, count in active_locks.items():
         if count > args.max_active_locks:
-            errors.append(f"{agent}: {count} active locks exceeds {args.max_active_locks}")
+            errors.append(f"{agent}: {count} active locks exceeds max {args.max_active_locks}")
 
     for row in balances:
         agent = row.get("Agent", "")
@@ -219,12 +286,10 @@ def main() -> int:
             if task_bounty.get(task_id) != amount:
                 errors.append(f"ledger {timestamp}: amount does not match bounty for {task_id}")
             running[agent] += amount
-        elif action == "LOCK":
+        elif action in ("LOCK", "SLASH", "SUB_OFFER"):
             running[agent] -= amount
-        elif action == "RELEASE":
+        elif action in ("RELEASE", "SUB_CANCEL"):
             running[agent] += amount
-        elif action == "SLASH":
-            running[agent] -= amount
         elif action == "RESET":
             running[agent] = amount
 
@@ -232,14 +297,20 @@ def main() -> int:
             errors.append(
                 f"ledger {timestamp}: balance after is {balance_after}, expected {running[agent]}"
             )
+        if running[agent] < 0:
+            errors.append(
+                f"ledger {timestamp}: balance for {agent} went negative ({running[agent]})"
+            )
 
     table_balances = {
-        row.get("Agent", ""): parse_int(row.get("Balance", "0"), f"balance {row.get('Agent', '')}", errors)
+        row.get("Agent", ""): parse_int(
+            row.get("Balance", "0"), f"balance {row.get('Agent', '')}", errors
+        )
         for row in balances
     }
     for agent, balance in table_balances.items():
-        if balance != running[agent]:
-            errors.append(f"balance {agent}: table says {balance}, ledger says {running[agent]}")
+        if balance != running.get(agent, 0):
+            errors.append(f"balance {agent}: table says {balance}, ledger says {running.get(agent, 0)}")
 
     if errors:
         for error in errors:
@@ -248,7 +319,8 @@ def main() -> int:
 
     print(
         f"OK: {len(tasks)} tasks, {len(locks)} locks, "
-        f"{sum(active_locks.values())} active locks"
+        f"{sum(active_locks.values())} active locks, "
+        f"pool {total_allocated}/{args.pool} allocated"
     )
     return 0
 
