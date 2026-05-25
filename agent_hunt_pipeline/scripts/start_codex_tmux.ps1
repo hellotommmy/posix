@@ -7,6 +7,8 @@
   git/guard checks, starts Codex CLI in a WSL tmux session, accepts the initial
   workspace trust prompt, injects the project resume prompt, and starts the
   tmux idle watcher so the same prompt is re-issued whenever the pane stalls.
+  If Codex asks for workspace trust, the launcher accepts it; otherwise it
+  leaves the prompt line untouched before injecting the project prompt.
 
   The default agent command deliberately uses npx instead of the WindowsApps
   codex.exe path, because WSL can see that path but cannot execute it.
@@ -127,9 +129,11 @@ tmux new-session -d -s $sessionQ -x 160 -y 50
 sleep 1
 tmux send-keys -t $sessionQ 'cd $wslRepo && $AgentCommand' Enter
 sleep $StartupDelaySeconds
-# First run often asks whether to trust the workspace. Enter selects Yes.
-tmux send-keys -t $sessionQ Enter
-sleep 3
+capture=`$(tmux capture-pane -t $sessionQ -p -S -80 || true)
+if printf '%s\n' "`$capture" | grep -q 'Do you trust'; then
+  tmux send-keys -t $sessionQ Enter
+  sleep 3
+fi
 prompt=`$(tr '\n' ' ' < $promptQ | sed 's/[[:space:]]*`$//')
 tmux send-keys -t $sessionQ "`$prompt" Enter
 BACKREF_PROMPT_FILE=$promptQ \
