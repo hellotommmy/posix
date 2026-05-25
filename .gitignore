@@ -1,4 +1,5 @@
 agent_hunt_pipeline/certificates/
+agent_hunt_pipeline/.agent-hunt/
 agent_hunt_pipeline/logs/
 agent_hunt_pipeline/run/
 __pycache__/
