@@ -11,6 +11,7 @@ from pathlib import Path
 
 WORKER_ALLOWED = {
     "BackRefValues.thy",
+    "BackRefBlexer.thy",
     "PROGRESS_BACKREF.md",
     "BACKREF_BOUNTIES.md",
 }

@@ -1,75 +1,54 @@
-# Windows Runbook For Idle Re-Prompting
+# Windows Runbook: Dual-Agent Overnight Loop
 
-This machine currently has:
+This is the foolproof guide for running Opus (Cursor) and GPT-5.5 (Codex CLI)
+concurrently on the POSIX backreference pilot, replicating the Agent Hunt /
+130k Lines paper automation.
 
-- Python 3.12 available.
-- WSL2 Ubuntu available.
-- `tmux 3.6` available inside Ubuntu.
-- no `tmux` on Windows PATH.
+## How The Paper Did It
 
-Therefore three levels are available.
+From the 130k Lines paper (arxiv:2604.07455):
 
-## Level 1: Cross-Platform Dry Run, Works Now
+> Both agents ran in an automated tmux-based loop: a script monitors the
+> session and re-issues the prompt ("Read CLAUDE.md and follow instructions")
+> whenever the agent finishes or stalls.
 
-This checks whether the repo state is unchanged across two runs. If unchanged,
-it emits the next prompt. It does not inject text into a terminal.
+> Of 764 non-system user messages, 635 (83.1%) were automatically issued
+> prompts "Read CLAUDE.md".
 
-From:
+The key mechanism: **idle detection + automatic re-prompting**.
 
-```powershell
-C:\Users\Chengsong\Documents\AIPV2026Notes\posix
-```
+## One-Click Start
 
-Run:
-
-```powershell
-$tmp = Join-Path $env:TEMP 'backref_idle_test'
-if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
-python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --state-dir $tmp --once --dry-run
-python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --state-dir $tmp --once --dry-run
-```
-
-Expected:
-
-- first run: `baseline/changed: no prompt ...`
-- second run: `DRY-RUN would reprompt ...`
-
-This was tested successfully on 2026-05-24.
-
-## Level 2: Continuous Prompt Emitter, Works Now
-
-This prints a prompt whenever the watched repo state is unchanged. Another
-program or a human can paste it into the agent.
+From the `posix-opus` repository root:
 
 ```powershell
-python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --interval 60
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1
 ```
 
-Stop with `Ctrl+C`.
+This does everything: runs guards, syncs git, starts GPT-5.5 in WSL tmux
+with idle watching, and starts the Opus idle detector.
 
-## One-Time WSL Git Setup
+### What It Starts
 
-When using the Windows worktree through `/mnt/c/...`, configure this repo so
-WSL Git agrees with Windows Git about CRLF line endings:
+| Agent | Where | Automation | Prompt File |
+| --- | --- | --- | --- |
+| GPT-5.5 | WSL tmux session `gpt55-backref` | Fully automatic (idle watch re-prompts) | `gpt55_resume_prompt.txt` |
+| Opus | Cursor IDE (manual initial prompt) | Semi-automatic (idle detector prints reminder) | `opus_resume_prompt.txt` |
 
-```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
-git config core.autocrlf true
-git status --short --branch
-```
+### Why Opus Is Semi-Automatic
 
-Expected:
+Cursor is a GUI IDE. Unlike Claude Code or Codex CLI, it cannot receive
+tmux `send-keys` injections. The workaround:
 
-```text
-## codex/backref-values...origin/codex/backref-values
-```
+1. The script starts an idle detector that prints the resume prompt when
+   the repo state is unchanged (meaning the agent has stopped working).
+2. You paste the initial prompt into Cursor, then go to sleep.
+3. When you wake up, check if Opus stopped and paste the prompt again.
+4. GPT-5.5 in tmux runs fully autonomously all night.
 
-Without this local config, WSL Git may show many false modifications that are
-only CRLF/LF differences.
+## Manual Setup (If One-Click Fails)
 
-## Level 3: True tmux-Style Injection
-
-To reproduce the paper-style loop, use WSL Ubuntu and tmux:
+### Step A: Start GPT-5.5 in WSL tmux
 
 ```powershell
 wsl -d Ubuntu
@@ -78,71 +57,121 @@ wsl -d Ubuntu
 Inside Ubuntu:
 
 ```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
-tmux new -s backref-agent
+cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus
+git config core.autocrlf true
+tmux new-session -d -s gpt55-backref -x 160 -y 50
+tmux send-keys -t gpt55-backref 'cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus && codex' Enter
+
+# Wait for agent CLI to start
+sleep 10
+
+# Start idle watcher
+BACKREF_PROMPT_FILE=agent_hunt_pipeline/scripts/gpt55_resume_prompt.txt \
+  nohup bash agent_hunt_pipeline/scripts/backref_idle_watch.sh \
+    gpt55-backref:0.0 120 \
+    > agent_hunt_pipeline/logs/gpt55_idle_watch.log 2>&1 &
+
+echo "GPT-5.5 loop started. PID: $!"
 ```
 
-In the tmux pane, start the CLI agent manually, for example Codex or Claude
-Code if installed there.
+### Step B: Start Opus in Cursor
 
-In another WSL terminal:
+1. Open Cursor on `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus`
+2. Start a new Agent chat
+3. Paste this prompt:
+
+```text
+Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are Opus, a worker on shared branch codex/backref-values in the posix-opus clone. Fetch first, check branch. Your assigned task: work on binjval definition and correctness proofs (BR-005, BR-011, BR-012) in BackRefValues.thy. Study xder in BackRefLang.thy to understand derivative shapes. Define binjval case-by-case. Run Isabelle BackRefPilot build. Update PROGRESS_BACKREF.md. Commit small checked steps. Do not touch Blexer, bounds, or frozen statements. Stop only when blocked or after a useful checked checkpoint.
+```
+
+4. Let it run.
+
+### Step C: Monitor
+
+```powershell
+# Watch GPT-5.5 tmux session
+wsl -d Ubuntu -- tmux attach -t gpt55-backref
+
+# Check GPT-5.5 idle watcher log
+type agent_hunt_pipeline\logs\gpt55_idle_watch.log
+
+# Check recent git activity from both agents
+git log --oneline --all -20
+
+# Check bounty board
+type BACKREF_BOUNTIES.md
+```
+
+## Task Division
+
+| Agent | Primary Task | Files | Bounties |
+| --- | --- | --- | --- |
+| Opus | binjval definition + correctness | BackRefValues.thy | BR-005, BR-011, BR-012 |
+| GPT-5.5 | Bitcoded backref lexer | BackRefBlexer.thy (new) | BR-013, BR-017 |
+
+Both agents work on the shared branch `codex/backref-values`. Conflicts are
+minimized because they edit different files.
+
+## Customization
+
+### Change interval (default 120 seconds)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -IntervalSeconds 60
+```
+
+### Change GPT agent command (default "codex")
+
+```powershell
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -GptAgent "claude"
+```
+
+### Dry run (see what would happen without starting anything)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/start_overnight.ps1 -DryRun
+```
+
+## Stopping
+
+```powershell
+# Stop Opus idle detector: Ctrl+C in the PowerShell window
+
+# Stop GPT-5.5 tmux session
+wsl -d Ubuntu -- tmux kill-session -t gpt55-backref
+```
+
+## Previous Single-Agent Setup
+
+The older single-agent setup (Level 1-3) is still available:
+
+### Level 1: Cross-Platform Dry Run
+
+```powershell
+$tmp = Join-Path $env:TEMP 'backref_idle_test'
+if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
+python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --state-dir $tmp --once --dry-run
+python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --state-dir $tmp --once --dry-run
+```
+
+### Level 2: Continuous Prompt Emitter
+
+```powershell
+python agent_hunt_pipeline/scripts/idle_reprompt.py --watch-cwd . --prompt-file agent_hunt_pipeline/scripts/backref_resume_prompt.txt --interval 60
+```
+
+### Level 3: True tmux Injection (WSL)
 
 ```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
+cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus
+tmux new -s backref-agent
+# ... start agent in the tmux pane ...
+# In another terminal:
 bash agent_hunt_pipeline/scripts/backref_idle_watch.sh backref-agent:0.0 60
 ```
 
-This watches the tmux pane. If it is unchanged across checks, it sends the
-resume prompt and Enter.
+## Tested
 
-## Tested tmux Loop
-
-The injection loop was tested on 2026-05-25 with a dummy tmux session:
-
-```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
-tmux kill-session -t backref-loop-test 2>/dev/null || true
-tmux new-session -d -s backref-loop-test bash
-sleep 1
-BACKREF_TMUX_LOG_DIR=agent_hunt_pipeline/logs/tmux-test \
-  timeout 8s bash agent_hunt_pipeline/scripts/backref_idle_watch.sh backref-loop-test:0.0 2
-tmux capture-pane -t backref-loop-test:0.0 -p -S -80
-tmux kill-session -t backref-loop-test
-```
-
-Expected capture includes the resume prompt from
-`agent_hunt_pipeline/scripts/backref_resume_prompt.txt`. In the dummy bash
-session it appears as `Command 'Read' not found`, which is fine: the point of
-the test is confirming that tmux injection happened.
-
-Use `BACKREF_TMUX_LOG_DIR=agent_hunt_pipeline/logs/...` for tests so captures
-stay in an ignored log directory.
-
-## Tested Recurring Paper Prompt
-
-The paper-style repeated prompt loop is covered by:
-
-```bash
-cd /mnt/c/Users/Chengsong/Documents/AIPV2026Notes/posix
-bash agent_hunt_pipeline/scripts/test_tmux_recurring_prompt.sh
-```
-
-This starts a fake tmux agent, points `backref_idle_watch.sh` at the original
-recurring prompt from the 130k Lines Formal Topology paper, waits for repeated
-idle cycles, and asserts that the exact same prompt was injected at least twice.
-
-Latest observed result on 2026-05-25:
-
-```text
-PASS: recurring tmux prompt injected 5 times
-Prompt: Read the file CLAUDE.md . Treat it as authoritative work instructions. Follow those instructions exactly for all subsequent actions and responses. That means work as long as possible (as specified) without stopping.
-```
-
-The watcher strips trailing whitespace before sending, so agents do not receive
-an accidental extra space from a prompt file's final newline.
-
-## Important Limit
-
-The cross-platform script can detect idle state and produce the next prompt.
-It cannot type into Cursor or Codex Desktop by itself. Actual injection needs a
-terminal target such as tmux, or a separate IDE automation bridge.
+- Single-agent tmux loop: tested 2026-05-25, PASS (5 injections).
+- Cross-platform idle detection: tested 2026-05-24, PASS.
+- Dual-agent script: created 2026-05-25.

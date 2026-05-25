@@ -64,9 +64,19 @@ the admin explicitly approves the migration.
 
 ## Current Next Tasks
 
-1. Draft `binjval` for the current checked pilot.
-2. Draft derivative/value story for the generalized `backref_lang4`.
-3. Only then consider replacing or extending `brexp`.
+### Opus (Cursor) -- value-theoretic path
+1. Draft `binjval` for the current checked pilot (BR-005).
+2. Prove `bflat (binjval r c v) = c # bflat v` (BR-011).
+3. Prove `BPrf (binjval r c v) r` (BR-012).
+
+### GPT-5.5 (Codex CLI) -- implementation path
+1. Create `BackRefBlexer.thy` with bitcoded backref lexer definitions.
+2. Extend `arexp` with `ABACKREF`/`AHALF`/`ARESIDUE`, reference `backRef.sc`.
+3. Define `fuse`/`intern`/`erase`/`bnullable`/`bmkeps`/`bder` for new constructors.
+
+### After both paths converge
+1. Draft derivative/value story for generalized `backref_lang4`.
+2. Define `BBACKREF4` etc. and repeat the above for the generalized case.
 
 ## Latest Check
 
