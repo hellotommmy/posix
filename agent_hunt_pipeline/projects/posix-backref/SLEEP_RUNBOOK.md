@@ -155,9 +155,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 It watches `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus`. If the
 workspace has been idle for 15 minutes and no headless `cursor-agent` is already
 running for that folder, it starts a new headless Opus Cursor Agent chat in
-that folder. The default model is `claude-opus-4-7-thinking-high`, because
-`claude-4.6-opus-high-thinking` has been observed to fail after reconnects with
-the invalid internal alias `claude-opus-4-6`.
+that folder. The default model is `claude-opus-4-7-thinking-low`, because it
+has been smoke-tested with the local `cursor-agent` account. The 4.6 thinking
+model has been observed to fail after reconnects with the invalid internal alias
+`claude-opus-4-6`, and higher 4.7/4.6 variants may require Cursor Max Mode.
 
 If a previous night exhausted the restart counter, reset the counter and start
 with a higher budget:

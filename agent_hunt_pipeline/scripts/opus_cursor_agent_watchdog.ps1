@@ -22,7 +22,7 @@
 param(
     [string]$RepoPath = "C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus",
     [string]$Branch = "codex/backref-values",
-    [string]$Model = "claude-opus-4-7-thinking-high",
+    [string]$Model = "claude-opus-4-7-thinking-low",
     [string]$PromptFile = "",
     [int]$IdleMinutes = 15,
     [int]$PollSeconds = 60,
