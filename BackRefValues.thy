@@ -286,4 +286,35 @@ lemma bmkeps_BPrf:
                   simp add: bmkeps_flat split: if_splits)
   done
 
+section \<open>Injection Value\<close>
+
+fun (sequential) binjval :: "brexp \<Rightarrow> char \<Rightarrow> bval \<Rightarrow> bval"
+where
+  "binjval (BCH d) c BVoid = BChar d"
+| "binjval (BALT r1 r2) c (BLeft v) = BLeft (binjval r1 c v)"
+| "binjval (BALT r1 r2) c (BRight v) = BRight (binjval r2 c v)"
+| "binjval (BSEQ r1 r2) c (BLeft (BSeq v1 v2)) = BSeq (binjval r1 c v1) v2"
+| "binjval (BSEQ r1 r2) c (BRight v) = BSeq (bmkeps r1) (binjval r2 c v)"
+| "binjval (BSEQ r1 r2) c (BSeq v1 v2) = BSeq (binjval r1 c v1) v2"
+| "binjval (BSTAR r) c (BSeq v (BStars vs)) = BStars (binjval r c v # vs)"
+| "binjval (BNTIMES r n) c (BSeq v (BStars vs)) = BStars (binjval r c v # vs)"
+| "binjval (BBACKREF r mid cs) c (BLeft (BBackref v1 v2 cs')) =
+     BBackref (binjval r c v1) v2 cs"
+| "binjval (BBACKREF r mid cs) c (BRight (BLeft (BHalf v cs' rep))) =
+     BBackref (bmkeps r) (binjval mid c v) cs"
+| "binjval (BBACKREF r mid cs) c (BRight (BRight v)) =
+     BBackref (bmkeps r) (bmkeps mid) cs"
+| "binjval (BBACKREF r mid cs) c (BRight (BHalf v cs' rep)) =
+     BBackref (bmkeps r) (binjval mid c v) cs"
+| "binjval (BBACKREF r mid cs) c (BBackref v1 v2 cs') =
+     BBackref (binjval r c v1) v2 cs"
+| "binjval (BHALF mid cs rep) c (BLeft (BHalf v cs' rep')) =
+     BHalf (binjval mid c v) cs rep"
+| "binjval (BHALF mid cs rep) c (BRight v) =
+     BHalf (bmkeps mid) cs rep"
+| "binjval (BHALF mid cs rep) c (BHalf v cs' rep') =
+     BHalf (binjval mid c v) cs rep"
+| "binjval (BRESIDUE cs rep) c v = BResidue cs rep"
+| "binjval _ _ _ = BVoid"
+
 end
