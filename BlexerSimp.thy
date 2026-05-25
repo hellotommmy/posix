@@ -629,7 +629,4 @@ theorem blexersimp_correctness:
   shows "lexer r s = blexer_simp r s"
   using blexer_correctness main_blexer_simp by simp
 
-
-unused_thms
-
 end

@@ -4,7 +4,17 @@ Run the code with
 
 ```isabelle build -c -v -d . Posix```
 
-Tested with Isabelle2021-1.
+Originally tested with Isabelle2021-1. The backreference pilot and current CI
+use Isabelle2025-2.
+
+Local CI for all tracked proof sessions:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -Role admin
+```
+
+GitHub Actions runs the same guard policy and builds `Posix` plus
+`BackRefPilot` with `makarius/isabelle:Isabelle2025-2`.
 
 
 * RegLangs.thy (contains basic definitions for Regular Languages, chapter 2)

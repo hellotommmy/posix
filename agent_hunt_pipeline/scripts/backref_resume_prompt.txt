@@ -1,0 +1,2 @@
+Read CLAUDE.md and PROGRESS_BACKREF.md. Treat them as authoritative. Fetch first, check the branch, continue the smallest safe checked step for the POSIX backreference pilot, run the BackRefPilot Isabelle build, update progress, and stop only when blocked or after a useful checked checkpoint.
+

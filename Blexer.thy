@@ -108,7 +108,7 @@ lemma decode_code:
   by (smt append_Nil2 decode'_code old.prod.case)
 
 
-section {* Annotated Regular Expressions *}
+section \<open>Annotated Regular Expressions\<close>
 
 datatype arexp = 
   AZERO
@@ -553,8 +553,5 @@ proof -
     unfolding blexer_def lexer_flex
     by (auto simp add: bnullable_correctness[symmetric])
 qed
-
-
-unused_thms
 
 end

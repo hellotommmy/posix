@@ -2,7 +2,7 @@ theory LexerSimp
   imports "Lexer" 
 begin
 
-section {* Lexer including some simplifications *}
+section \<open>Lexer including some simplifications\<close>
 
 
 fun F_RIGHT where
@@ -238,9 +238,6 @@ next
          by (simp del: slexer.simps add: slexer_better_simp)
    qed
  qed  
-
-
-unused_thms
 
 
 end

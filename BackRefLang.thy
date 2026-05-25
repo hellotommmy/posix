@@ -20,6 +20,17 @@ definition backref_lang :: "string set \<Rightarrow> string set \<Rightarrow> st
 where
   "backref_lang A B cs = {x @ y @ rev cs @ x | x y. x \<in> A \<and> y \<in> B}"
 
+definition backref_lang4 ::
+  "string set \<Rightarrow> string set \<Rightarrow> string set \<Rightarrow> string set \<Rightarrow> string \<Rightarrow> string set"
+where
+  "backref_lang4 L1 L2 L3 L4 cs =
+    {s1 @ s2 @ s3 @ rev cs @ s2 @ s4 | s1 s2 s3 s4.
+      s1 \<in> L1 \<and> s2 \<in> L2 \<and> s3 \<in> L3 \<and> s4 \<in> L4}"
+
+lemma backref_lang_as_backref_lang4:
+  "backref_lang A B cs = backref_lang4 {[]} A B {[]} cs"
+  by (auto simp add: backref_lang_def backref_lang4_def)
+
 fun BL :: "brexp \<Rightarrow> string set"
 where
   "BL BZERO = {}"

@@ -1,0 +1,67 @@
+name: Isabelle CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: isabelle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proofs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run local guards
+        run: |
+          python3 agent_hunt_pipeline/scripts/backref_no_cheat_guard.py --root .
+          python3 agent_hunt_pipeline/scripts/backref_bounty_guard.py --file BACKREF_BOUNTIES.md
+
+      - name: Pull Isabelle Docker image
+        run: docker pull makarius/isabelle:Isabelle2025-2
+
+      - name: Record Isabelle version
+        run: |
+          mkdir -p agent_hunt_pipeline/certificates
+          docker run --rm makarius/isabelle:Isabelle2025-2 version \
+            | tee agent_hunt_pipeline/certificates/isabelle-version.txt
+
+      - name: Build Posix session
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            makarius/isabelle:Isabelle2025-2 \
+            build -v -d . Posix
+
+      - name: Build BackRefPilot session
+        run: |
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            makarius/isabelle:Isabelle2025-2 \
+            build -v -d pilot BackRefPilot
+
+      - name: Write CI certificate
+        run: |
+          python3 agent_hunt_pipeline/scripts/write_ci_certificate.py \
+            --root . \
+            --out agent_hunt_pipeline/certificates/github_ci_certificate.json \
+            --ci-name github-actions \
+            --isabelle-version-file agent_hunt_pipeline/certificates/isabelle-version.txt \
+            --session Posix \
+            --session BackRefPilot
+
+      - name: Upload CI certificate
+        uses: actions/upload-artifact@v4
+        with:
+          name: isabelle-ci-certificate
+          path: agent_hunt_pipeline/certificates/github_ci_certificate.json

@@ -5,3 +5,4 @@ theories[document = false]
      "HOL-Library.Sublist"
      "RegLangs"
      "BackRefLang"
+     "BackRefValues"

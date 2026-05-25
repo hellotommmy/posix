@@ -26,6 +26,16 @@ definition RNTIMES_set where
 definition
   "sizeNregex N \<equiv> {r. rsize r \<le> N}"
 
+lemma elem_size_le_rsizes:
+  assumes "r \<in> set rs"
+  shows "rsize r \<le> rsizes rs"
+  using assms by (induct rs) auto
+
+lemma elem_size_le_bound:
+  assumes "r \<in> set rs" "rsizes rs \<le> n"
+  shows "rsize r \<le> n"
+  using assms elem_size_le_rsizes by fastforce
+
 
 lemma sizenregex_induct1:
   "sizeNregex (Suc n) = (({RZERO, RONE} \<union> {RCHAR c| c. True}) 
@@ -41,7 +51,7 @@ lemma sizenregex_induct1:
   apply (simp add: sizeNregex_def)
          apply (simp add: sizeNregex_def)
          apply (simp add: RALTs_set_def)
-  apply (metis imageI list.set_map member_le_sum_list order_trans)
+  apply (simp add: elem_size_le_bound sizeNregex_def)
   apply (simp add: sizeNregex_def)
         apply (simp add: sizeNregex_def)
   apply (simp add: RNTIMES_set_def)
@@ -234,9 +244,5 @@ lemma three_easy_casesC:
   apply simp
   using three_easy_cases0 by force
   
-
-unused_thms
-
-
 end
 

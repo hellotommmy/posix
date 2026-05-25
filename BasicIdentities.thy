@@ -585,9 +585,7 @@ lemma bsimp_ASEQ2:
 
 lemma elem_smaller_than_set:
   shows "xa \<in> set  list \<Longrightarrow> rsize xa < Suc (rsizes list)"
-  apply(induct list)
-   apply simp
-  by (metis image_eqI le_imp_less_Suc list.set_map member_le_sum_list)
+  by (induct list) auto
 
 lemma rsimp_list_mono:
   shows "rsizes (map rsimp rs) \<le> rsizes rs"
@@ -1199,8 +1197,5 @@ lemma distinct_removes_duplicate_flts:
   
 
 (*some basic facts about rsimp*)
-
-unused_thms
-
 
 end
