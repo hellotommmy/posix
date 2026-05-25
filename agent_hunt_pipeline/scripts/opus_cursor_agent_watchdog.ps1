@@ -28,7 +28,7 @@ param(
     [int]$PollSeconds = 60,
     [int]$CooldownMinutes = 20,
     [int]$MaxRestarts = 5,
-    [bool]$UseCursorHookPrompt = $true,
+    [string]$UseCursorHookPrompt = "true",
     [switch]$Once,
     [switch]$DryRun,
     [switch]$Background
@@ -40,6 +40,7 @@ $scriptRoot = Split-Path -Parent $PSCommandPath
 if (-not $PromptFile) {
     $PromptFile = Join-Path $scriptRoot "opus_cursor_agent_prompt.txt"
 }
+$script:UseCursorHookPromptEnabled = $UseCursorHookPrompt -notmatch '^(false|0|no)$'
 
 function Quote-Arg([string]$Value) {
     '"' + ($Value -replace '"', '\"') + '"'
@@ -110,7 +111,7 @@ function Get-RunningCursorAgents {
 }
 
 function Get-HookPrompt {
-    if (-not $UseCursorHookPrompt) {
+    if (-not $script:UseCursorHookPromptEnabled) {
         return ""
     }
 
@@ -237,7 +238,7 @@ Write-WatchLog "Watchdog boot: repo=$script:Repo; model=$Model; idle=${IdleMinut
 
 while ($true) {
     $activity = Get-RepoActivity
-    $agents = Get-RunningCursorAgents
+    $agents = @(Get-RunningCursorAgents)
     $now = Get-Date
     $idle = $now - $activity.LatestWrite
     $cooldownOk = $true
