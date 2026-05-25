@@ -3,7 +3,7 @@
 Use this when starting an overnight two-agent run:
 
 - Codex in Codex Desktop on `C:\Users\Chengsong\Documents\AIPV2026Notes\posix`.
-- Opus 4.6 in Cursor on a separate clone, usually
+- Opus in Cursor on a separate clone, usually
   `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus`.
 - Both use shared branch `codex/backref-values`.
 
@@ -116,7 +116,7 @@ workspace. To stop the loop, delete or rename `loop-config.json`.
 Paste into Cursor Agent:
 
 ```text
-You are Opus 4.6, a worker colleague on the POSIX backreference Agent Hunt pilot.
+You are an Opus thinking worker colleague on the POSIX backreference Agent Hunt pilot.
 
 Repository:
 C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus
@@ -154,14 +154,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 It watches `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus`. If the
 workspace has been idle for 15 minutes and no headless `cursor-agent` is already
-running for that folder, it starts a new headless Opus 4.6 Cursor Agent chat in
-that folder.
+running for that folder, it starts a new headless Opus Cursor Agent chat in
+that folder. The default model is `claude-opus-4-7-thinking-high`, because
+`claude-4.6-opus-high-thinking` has been observed to fail after reconnects with
+the invalid internal alias `claude-opus-4-6`.
 
 If a previous night exhausted the restart counter, reset the counter and start
 with a higher budget:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Background -ResetState -MaxRestarts 50
+```
+
+To force Opus 4.6 anyway:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Background -ResetState -MaxRestarts 50 -Model claude-4.6-opus-high-thinking
 ```
 
 Watch it with:

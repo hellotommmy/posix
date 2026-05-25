@@ -7,7 +7,7 @@
   reliably recover from a frozen GUI or a network disconnect. This watchdog is
   an external fallback: when the Opus clone has been idle for long enough and no
   headless Cursor Agent is already running for that workspace, it starts a new
-  headless Opus 4.6 Cursor Agent chat in that folder.
+  headless Opus Cursor Agent chat in that folder.
 
   It never resets, checks out, or pulls the target repository. The prompt tells
   the new agent to preserve any interrupted worktree edits first.
@@ -22,7 +22,7 @@
 param(
     [string]$RepoPath = "C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus",
     [string]$Branch = "codex/backref-values",
-    [string]$Model = "claude-4.6-opus-high-thinking",
+    [string]$Model = "claude-opus-4-7-thinking-high",
     [string]$PromptFile = "",
     [int]$IdleMinutes = 15,
     [int]$PollSeconds = 60,
