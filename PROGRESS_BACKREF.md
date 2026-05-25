@@ -19,6 +19,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 Latest result:
 
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
+  and Isabelle `BackRefPilot` (0:04 elapsed) -- blexer definition and correctness.
+- Previous PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
   and Isabelle `BackRefPilot` (3:03 elapsed).
 - Previous PASS on 2026-05-25 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, and Isabelle `BackRefPilot`.
@@ -47,6 +49,10 @@ Latest result:
   - `binjval_flat` (BR-011)
   - `BPrf_BNTIMES_prepend`
   - `binjval_BPrf` (BR-012)
+  - `blexer_BPrf` (BR-013)
+  - `blexer_flat` (BR-013)
+  - `blexer_correct_None` (BR-013)
+  - `blexer_correct_Some` (BR-013)
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -73,7 +79,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 1. ~~Draft `binjval` for one-character derivative reconstruction.~~ DONE (BR-005)
 2. ~~Prove `bflat (binjval r c v) = c # bflat v` when `BPrf v (xder c r)`.~~ DONE (BR-011)
 3. ~~Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)`.~~ DONE (BR-012)
-4. Define and prove `blexer` for pilot `brexp` (BR-013).
+4. ~~Define and prove `blexer` for pilot `brexp` (BR-013).~~ DONE (BR-013)
 5. Prove `blexer` correctness for pilot `brexp` (BR-014).
 6. In parallel, draft derivative/value story for generalized `backref_lang4`
    before migrating the datatype.
@@ -84,6 +90,22 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Do not touch `BlexerSimp.thy`.
 - Do not touch bounds or closed-form theories.
 - Do not claim a finite derivative bound for backreferences.
+
+## blexer Definition and Correctness (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent: Opus (Cursor headless recovery)
+- Files changed: `BackRefValues.thy` (+53 lines), `PROGRESS_BACKREF.md`
+- New checked definitions and lemmas:
+  - `blexer`: lexer function for pilot `brexp` using `xder`/`binjval`/`bmkeps`
+  - `blexer_BPrf`: soundness (`blexer r s = Some v \<Longrightarrow> BPrf v r`)
+  - `blexer_flat`: flat correctness (`blexer r s = Some v \<Longrightarrow> bflat v = s`)
+  - `blexer_correct_None`: rejection correctness (`s \<notin> BL r \<longleftrightarrow> blexer r s = None`)
+  - `blexer_correct_Some`: full characterization
+    (`s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v \<and> BPrf v r \<and> bflat v = s)`)
+- Build: Isabelle `BackRefPilot` PASS (0:04 elapsed)
+- Guards: no-cheat, bounty, worker role all pass
+- This completes BR-013. Next: BR-014 (blexer correctness w.r.t. POSIX ordering).
 
 ## binjval Correctness Proofs (2026-05-26)
 

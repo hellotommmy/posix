@@ -361,4 +361,57 @@ lemma binjval_BPrf:
                   simp add: binjval_flat bmkeps_flat split: if_splits)
   done
 
+section \<open>Backreference Pilot Lexer\<close>
+
+fun blexer :: "brexp \<Rightarrow> string \<Rightarrow> bval option"
+where
+  "blexer r [] = (if xnullable r then Some (bmkeps r) else None)"
+| "blexer r (c # s) = (case blexer (xder c r) s of
+    None \<Rightarrow> None
+  | Some v \<Rightarrow> Some (binjval r c v))"
+
+lemma blexer_BPrf:
+  assumes "blexer r s = Some v"
+  shows "\<Turnstile>b v : r"
+  using assms
+  apply (induct s arbitrary: r v)
+   apply (auto intro: bmkeps_BPrf binjval_BPrf split: if_splits option.splits)
+  done
+
+lemma blexer_flat:
+  assumes "blexer r s = Some v"
+  shows "bflat v = s"
+  using assms
+proof (induct s arbitrary: r v)
+  case Nil
+  then show ?case by (simp add: bmkeps_flat split: if_splits)
+next
+  case (Cons c s)
+  then obtain v' where v': "blexer (xder c r) s = Some v'" "v = binjval r c v'"
+    by (auto split: option.splits)
+  from v'(1) have "bflat v' = s" by (rule Cons.hyps)
+  moreover from v'(1) have "\<Turnstile>b v' : xder c r" by (rule blexer_BPrf)
+  ultimately show ?case using v'(2) by (simp add: binjval_flat)
+qed
+
+lemma blexer_correct_None:
+  "s \<notin> BL r \<longleftrightarrow> blexer r s = None"
+  apply (induct s arbitrary: r)
+   apply (simp add: xnullable_correctness)
+  apply (auto simp add: xder_correctness Der_def split: option.splits)
+  done
+
+lemma blexer_correct_Some:
+  "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v \<and> \<Turnstile>b v : r \<and> bflat v = s)"
+proof
+  assume "s \<in> BL r"
+  then have "blexer r s \<noteq> None" using blexer_correct_None by auto
+  then obtain v where "blexer r s = Some v" by blast
+  then show "\<exists>v. blexer r s = Some v \<and> \<Turnstile>b v : r \<and> bflat v = s"
+    using blexer_BPrf blexer_flat by blast
+next
+  assume "\<exists>v. blexer r s = Some v \<and> \<Turnstile>b v : r \<and> bflat v = s"
+  then show "s \<in> BL r" using blexer_correct_None by auto
+qed
+
 end
