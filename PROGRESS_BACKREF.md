@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (derivative-residue quotient wrappers)
+Last updated: 2026-05-27 (constructor derivative-residue quotient wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,30 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding constructor-specific derivative-residue
+  left-quotient wrappers from successful `BL_bound`/`GBL_bound` calculations
+  for `BBACKREF` and `GBACKREF4` in `BackRefBoundedBlueprint.thy`. New
+  checked facts are
+  `BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings`,
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_card_bound`,
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_card_bound`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings_mono`,
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings_mono`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_card_bound_mono`,
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_card_bound_mono`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_finite`, and
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_finite`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+139). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 2.5 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix`, Isabelle `BackRefPilot`, and local CI certificate generation. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct derivative-residue
   left-quotient wrappers from successful `BL_bound`/`GBL_bound` calculations

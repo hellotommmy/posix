@@ -2313,4 +2313,143 @@ proof -
     using finite_subset[OF sub] finite_bounded_strings by simp
 qed
 
+theorem BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "{Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True} \<subseteq>
+    Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "{Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True} \<subseteq>
+    Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings)
+qed
+
+theorem BL_bound_BBACKREF_xders_left_quotient_family_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card {Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True} \<le>
+    2 ^ card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_left_quotient_family_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card {Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True} \<le>
+    2 ^ card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_left_quotient_family_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "{Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "{Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_BBACKREF_xders_left_quotient_family_card_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card {Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_xders_left_quotient_family_card_bound_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_card_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card {Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_gxders_left_quotient_family_card_bound_mono)
+qed
+
+theorem BL_bound_BBACKREF_xders_left_quotient_family_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite {Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True}"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_left_quotient_family_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite {Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True}"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_left_quotient_family_finite)
+qed
+
 end
