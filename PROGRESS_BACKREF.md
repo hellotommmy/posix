@@ -58,6 +58,7 @@ Latest result:
   - `blexer_flat` (BR-013)
   - `blexer_correct_None` (BR-013)
   - `blexer_correct_Some` (BR-013)
+  - `blexer_correctness` (BR-014 packaging)
   - `BPosix_binjval` (BR-014)
   - `blexer_POSIX` (BR-014)
   - `blexer_POSIX_iff` (BR-014)
@@ -101,6 +102,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - New checked lemmas:
   - `BPosix_BSTAR_value_shape`
   - `BPosix_BNTIMES_empty_replicate`
+  - `blexer_correctness`
   - `BPosix_binjval`
   - `blexer_POSIX`
   - `blexer_POSIX_iff`

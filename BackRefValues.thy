@@ -439,6 +439,35 @@ next
   then show "s \<in> BL r" using BL_flat_BPrf1 by fastforce
 qed
 
+theorem blexer_correctness:
+  shows blexer_correctness_None: "blexer r s = None \<longleftrightarrow> s \<notin> BL r"
+    and blexer_correctness_Some:
+      "blexer r s = Some v \<Longrightarrow> \<Turnstile>b v : r \<and> bflat v = s"
+    and blexer_correctness_defined:
+      "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v)"
+proof -
+  show "blexer r s = None \<longleftrightarrow> s \<notin> BL r"
+    using blexer_correct_None by blast
+  show "blexer r s = Some v \<Longrightarrow> \<Turnstile>b v : r \<and> bflat v = s"
+    using blexer_BPrf blexer_flat by blast
+  show "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v)"
+  proof
+    assume "s \<in> BL r"
+    then have "blexer r s \<noteq> None"
+      using blexer_correct_None by blast
+    then show "\<exists>v. blexer r s = Some v"
+      by (cases "blexer r s") auto
+  next
+    assume "\<exists>v. blexer r s = Some v"
+    then obtain v where v: "blexer r s = Some v"
+      by blast
+    then have "\<Turnstile>b v : r" "bflat v = s"
+      using blexer_BPrf blexer_flat by blast+
+    then show "s \<in> BL r"
+      using BL_flat_BPrf1 by blast
+  qed
+qed
+
 section \<open>POSIX Specification for Backreference Regex\<close>
 
 inductive 
