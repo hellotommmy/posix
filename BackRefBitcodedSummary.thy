@@ -116,6 +116,19 @@ theorem bblexer_frontends_BL_iff:
       bblexer_step_simp_None_iff bblexer_Some_iff bblexer_simp_Some_iff
       bblexer_step_simp_Some_iff)
 
+theorem bblexer_frontends_defined_BL_iff:
+  "(\<exists>bs. bblexer r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+  "(\<exists>bs. bblexer_simp r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+  "(\<exists>bs. bblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+  by (simp_all add: bblexer_defined_iff bblexer_simp_defined_iff
+      bblexer_step_simp_defined_iff)
+
+theorem bblexer_frontends_Some_BL:
+  "bblexer r s = Some bs \<Longrightarrow> s \<in> BL r"
+  "bblexer_simp r s = Some bs \<Longrightarrow> s \<in> BL r"
+  "bblexer_step_simp r s = Some bs \<Longrightarrow> s \<in> BL r"
+  by (auto simp add: bblexer_frontends_BL_iff)
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -204,5 +217,18 @@ theorem gbblexer_frontends_GBL_iff:
   by (simp_all add: gbblexer_None_iff gbblexer_simp_None_iff
       gbblexer_step_simp_None_iff gbblexer_Some_iff gbblexer_simp_Some_iff
       gbblexer_step_simp_Some_iff)
+
+theorem gbblexer_frontends_defined_GBL_iff:
+  "(\<exists>bs. gbblexer r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+  "(\<exists>bs. gbblexer_simp r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+  "(\<exists>bs. gbblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+  by (simp_all add: gbblexer_defined_iff gbblexer_simp_defined_iff
+      gbblexer_step_simp_defined_iff)
+
+theorem gbblexer_frontends_Some_GBL:
+  "gbblexer r s = Some bs \<Longrightarrow> s \<in> GBL r"
+  "gbblexer_simp r s = Some bs \<Longrightarrow> s \<in> GBL r"
+  "gbblexer_step_simp r s = Some bs \<Longrightarrow> s \<in> GBL r"
+  by (auto simp add: gbblexer_frontends_GBL_iff)
 
 end
