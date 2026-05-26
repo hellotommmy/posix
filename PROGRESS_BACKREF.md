@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded checked-evidence defined/None wrappers)
+Last updated: 2026-05-27 (semantic quotient member length wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,58 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after
+  preserving the synced derivative member-length wrappers and adding semantic
+  left-quotient member-length wrappers in `BackRefBoundedBlueprint.thy`. New
+  checked facts in this final tree are `BL_bound_xders_length_bound`,
+  `GBL_bound_gxders_length_bound`, `BL_bound_xders_length_bound_mono`,
+  `GBL_bound_gxders_length_bound_mono`,
+  `BL_bound_BBACKREF_xders_length_bound`,
+  `GBL_bound_GBACKREF4_gxders_length_bound`,
+  `BL_bound_BBACKREF_xders_length_bound_mono`,
+  `GBL_bound_GBACKREF4_gxders_length_bound_mono`,
+  `BL_bound_left_quotient_length_bound`,
+  `GBL_bound_left_quotient_length_bound`,
+  `BL_bound_left_quotient_length_bound_mono`,
+  `GBL_bound_left_quotient_length_bound_mono`,
+  `BL_bound_BBACKREF_left_quotient_length_bound`,
+  `GBL_bound_GBACKREF4_left_quotient_length_bound`,
+  `BL_bound_BBACKREF_left_quotient_length_bound_mono`, and
+  `GBL_bound_GBACKREF4_left_quotient_length_bound_mono`. Files changed before
+  this progress note: `BackRefBoundedBlueprint.thy` (+140) and
+  `PROGRESS_BACKREF.md`. After rebasing over remote commit `8002257`,
+  baseline pilot-only local CI passed with `BackRefPilot` (0:17 elapsed);
+  post-edit pilot-only local CI passed with `BackRefPilot` (0:16 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 2.7 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix` (0:30 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and local CI
+  certificate generation; explicit statement guard PASS. After rebasing over
+  concurrent commit `44e86e8`, final full local CI passed again with no-cheat
+  guard, bounty guard, admin role guard, Isabelle `Posix` (0:03 elapsed),
+  Isabelle `BackRefPilot` (0:17 elapsed), and local CI certificate generation;
+  explicit statement guard PASS. Next smallest safe step: stop until the admin
+  opens a new bounty/phase, or add only similarly direct downstream packaging
+  facts if explicitly requested. Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after adding
+  direct member-length wrappers for bounded derivative residual languages in
+  `BackRefBoundedBlueprint.thy`. New checked facts are
+  `BL_bound_xders_length_bound`, `GBL_bound_gxders_length_bound`,
+  `BL_bound_xders_length_bound_mono`, `GBL_bound_gxders_length_bound_mono`,
+  `BL_bound_BBACKREF_xders_length_bound`,
+  `GBL_bound_GBACKREF4_gxders_length_bound`,
+  `BL_bound_BBACKREF_xders_length_bound_mono`, and
+  `GBL_bound_GBACKREF4_gxders_length_bound_mono`. Files changed before this
+  progress note: `BackRefBoundedBlueprint.thy` (+68). Baseline pilot-only
+  local CI passed with `BackRefPilot` (0:16 elapsed). Post-edit pilot-only
+  local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 2.6 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix` (0:31 elapsed), Isabelle `BackRefPilot` (0:12 elapsed), and local CI
+  certificate generation; explicit statement guard PASS. Next smallest safe
+  step: stop until the admin opens a new bounty/phase, or add only similarly
+  direct downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct checked-evidence existence and
   rejection wrappers for the ordinary and generalized bitcoded lexer frontends.
