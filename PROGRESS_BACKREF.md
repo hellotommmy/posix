@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer value-lexer Some bridges)
+Last updated: 2026-05-27 (bitcoded lexer value-lexer None bridges)
 
 ## Current Branch
 
@@ -18,6 +18,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct `None` bridges from the ordinary
+  and generalized bitcoded lexer frontends back to the corresponding value
+  lexer output. New checked facts are `bblexer_None_blexer_iff`,
+  `bblexer_simp_None_blexer_iff`,
+  `bblexer_step_simp_None_blexer_iff`, `gbblexer_None_gblexer_iff`,
+  `gbblexer_simp_None_gblexer_iff`, and
+  `gbblexer_step_simp_None_gblexer_iff`. Files changed before this progress
+  note: `BackRefBlexer.thy` (+12) and `BackRefGBlexer.thy` (+12). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed);
+  `BackRefBlexer` replayed in about 4.6 seconds and `BackRefGBlexer` replayed
+  in about 2.5 seconds. Full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI
+  certificate generation; the final run after this progress note replayed
+  `Posix` in 0:04 elapsed and `BackRefPilot` in 0:16 elapsed. Next smallest
+  safe step: stop until the admin opens a new bounty/phase, or add only
+  explicitly requested downstream convenience wrappers. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct `Some` bridges from the ordinary
   and generalized bitcoded lexer frontends back to the corresponding value
