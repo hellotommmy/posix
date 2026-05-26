@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (simplified bitcoded transport wrappers)
+Last updated: 2026-05-27 (residual derivative-family subset helpers)
 
 ## Current Branch
 
@@ -32,6 +32,21 @@ Latest result:
   elapsed), and local CI certificate generation. After rebasing over
   `5f7ee75`, full local CI passed again with Isabelle `Posix` (0:04 elapsed),
   Isabelle `BackRefPilot` (0:11 elapsed), and local CI certificate generation.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding residual derivative-family
+  subset/cardinality helpers in `BackRefBoundedBlueprint.thy`. New checked
+  facts expose `BL_residual_derivative_family_subset`,
+  `GBL_residual_derivative_family_subset`,
+  `finite_BL_residual_derivative_family`,
+  `finite_GBL_residual_derivative_family`,
+  `BL_residual_derivative_family_card_le`, and
+  `GBL_residual_derivative_family_card_le`. Pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 2.5 seconds. Final full local CI passed with Isabelle `Posix` (0:37
+  elapsed), Isabelle `BackRefPilot` (0:16 elapsed), and local CI certificate
+  generation; explicit statement guard PASS. After rebasing over `9981ea5`,
+  full local CI passed again with Isabelle `Posix` (0:03 elapsed), Isabelle
+  `BackRefPilot` (0:16 elapsed), and local CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding residual finite-quotient closure
   helpers in `BackRefBoundedBlueprint.thy`. New checked facts expose
@@ -297,6 +312,41 @@ Latest result:
   Isabelle `Posix`, and Isabelle `BackRefPilot`.
 - Local CI certificate is generated only after both sessions pass:
   `agent_hunt_pipeline/certificates/local_ci_certificate.json` (ignored by git).
+
+## Residual Derivative-Family Subset Helpers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-blueprint proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+68 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked lemmas:
+  - `BL_residual_derivative_family_subset`
+  - `GBL_residual_derivative_family_subset`
+  - `finite_BL_residual_derivative_family`
+  - `finite_GBL_residual_derivative_family`
+  - `BL_residual_derivative_family_card_le`
+  - `GBL_residual_derivative_family_card_le`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:16 elapsed), and no certificate
+  generation; `BackRefBoundedBlueprint` replayed in about 2.5 seconds. Final
+  full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:37 elapsed), Isabelle `BackRefPilot` (0:16 elapsed),
+  local CI certificate generation, and explicit statement guard PASS. After
+  rebasing over `9981ea5`, full local CI passed again with Isabelle `Posix`
+  (0:03 elapsed), Isabelle `BackRefPilot` (0:16 elapsed), and local CI
+  certificate generation.
+- Notes:
+  - This is additive proof packaging in the bounded-fragment blueprint. It
+    does not touch `BackRefValues.thy`, frozen language/value statements,
+    production lexer files, or production bounds/closed-form theories.
+  - The new subset lemmas expose that a derivative family reachable after an
+    already-consumed prefix is included in the original derivative-language
+    family, giving direct finite/cardinality reuse without redoing append
+    reasoning at each bounded wrapper.
+- Next smallest safe step: if continuing Agent A work, keep packaging small
+  generic closure facts in `BackRefBoundedBlueprint.thy` or stop until the
+  admin opens a new bounty/statement target.
 
 ## Residual Finite-Quotient Closure Helpers (2026-05-27)
 

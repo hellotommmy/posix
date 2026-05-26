@@ -173,6 +173,74 @@ proof -
     by (simp add: finite_GBL_derivatives_iff_left_quotients)
 qed
 
+lemma BL_residual_derivative_family_subset:
+  "{BL (xders (xders r s) t) | t. True} \<subseteq> {BL (xders r u) | u. True}"
+proof
+  fix A
+  assume "A \<in> {BL (xders (xders r s) t) | t. True}"
+  then obtain t where "A = BL (xders (xders r s) t)"
+    by blast
+  then have "A = BL (xders r (s @ t))"
+    by (simp add: xders_append)
+  then show "A \<in> {BL (xders r u) | u. True}"
+    by blast
+qed
+
+lemma GBL_residual_derivative_family_subset:
+  "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> {GBL (gxders r u) | u. True}"
+proof
+  fix A
+  assume "A \<in> {GBL (gxders (gxders r s) t) | t. True}"
+  then obtain t where "A = GBL (gxders (gxders r s) t)"
+    by blast
+  then have "A = GBL (gxders r (s @ t))"
+    by (simp add: gxders_append)
+  then show "A \<in> {GBL (gxders r u) | u. True}"
+    by blast
+qed
+
+lemma finite_BL_residual_derivative_family:
+  assumes "finite_BL_derivatives r"
+  shows "finite {BL (xders (xders r s) t) | t. True}"
+proof -
+  have fin: "finite {BL (xders r u) | u. True}"
+    using assms by (simp add: finite_BL_derivatives_def)
+  show ?thesis
+    using finite_subset[OF BL_residual_derivative_family_subset fin] .
+qed
+
+lemma finite_GBL_residual_derivative_family:
+  assumes "finite_GBL_derivatives r"
+  shows "finite {GBL (gxders (gxders r s) t) | t. True}"
+proof -
+  have fin: "finite {GBL (gxders r u) | u. True}"
+    using assms by (simp add: finite_GBL_derivatives_def)
+  show ?thesis
+    using finite_subset[OF GBL_residual_derivative_family_subset fin] .
+qed
+
+lemma BL_residual_derivative_family_card_le:
+  assumes "finite_BL_derivatives r"
+  shows "card {BL (xders (xders r s) t) | t. True} \<le>
+    card {BL (xders r u) | u. True}"
+proof -
+  have fin: "finite {BL (xders r u) | u. True}"
+    using assms by (simp add: finite_BL_derivatives_def)
+  show ?thesis
+    by (rule card_mono[OF fin BL_residual_derivative_family_subset])
+qed
+
+lemma GBL_residual_derivative_family_card_le:
+  assumes "finite_GBL_derivatives r"
+  shows "card {GBL (gxders (gxders r s) t) | t. True} \<le>
+    card {GBL (gxders r u) | u. True}"
+proof -
+  have fin: "finite {GBL (gxders r u) | u. True}"
+    using assms by (simp add: finite_GBL_derivatives_def)
+  show ?thesis
+    by (rule card_mono[OF fin GBL_residual_derivative_family_subset])
+qed
+
 theorem bounded_BL_finite_derivative_languages:
   assumes "BL_bounded n r"
   shows "finite_BL_derivatives r"
