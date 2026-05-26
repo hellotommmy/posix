@@ -83,6 +83,39 @@ theorem bblexer_frontends_None_BPrf_iff:
   by (simp_all add: bblexer_None_BPrf_iff
       bblexer_simp_None_BPrf_iff bblexer_step_simp_None_BPrf_iff)
 
+theorem bblexer_frontends_final_membership:
+  "bblexer r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+  "bblexer_simp r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s)))
+     else None)"
+  "bblexer_step_simp r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+  by (simp_all add: bblexer_final_membership bblexer_simp_final_membership
+      bblexer_step_simp_final_membership)
+
+theorem bblexer_frontends_BL_iff:
+  "bblexer r s = None \<longleftrightarrow> s \<notin> BL r"
+  "bblexer_simp r s = None \<longleftrightarrow> s \<notin> BL r"
+  "bblexer_step_simp r s = None \<longleftrightarrow> s \<notin> BL r"
+  "bblexer r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
+  by (simp_all add: bblexer_None_iff bblexer_simp_None_iff
+      bblexer_step_simp_None_iff bblexer_Some_iff bblexer_simp_Some_iff
+      bblexer_step_simp_Some_iff)
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -138,5 +171,38 @@ theorem gbblexer_frontends_None_GPrf_iff:
     \<not> (\<exists>v. \<Turnstile>g v : r \<and> gflat v = s)"
   by (simp_all add: gbblexer_None_GPrf_iff
       gbblexer_simp_None_GPrf_iff gbblexer_step_simp_None_GPrf_iff)
+
+theorem gbblexer_frontends_final_membership:
+  "gbblexer r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+  "gbblexer_simp r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s)))
+     else None)"
+  "gbblexer_step_simp r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+  by (simp_all add: gbblexer_final_membership gbblexer_simp_final_membership
+      gbblexer_step_simp_final_membership)
+
+theorem gbblexer_frontends_GBL_iff:
+  "gbblexer r s = None \<longleftrightarrow> s \<notin> GBL r"
+  "gbblexer_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
+  "gbblexer_step_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
+  by (simp_all add: gbblexer_None_iff gbblexer_simp_None_iff
+      gbblexer_step_simp_None_iff gbblexer_Some_iff gbblexer_simp_Some_iff
+      gbblexer_step_simp_Some_iff)
 
 end
