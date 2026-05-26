@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-  Watch the Cursor/Opus clone and restart Opus with cursor-agent if it stalls.
+  Watch the Cursor/Opus clone and optionally restart Opus with cursor-agent.
 
 .DESCRIPTION
   Cursor GUI hooks can continue a chat after a normal stop, but they cannot
-  reliably recover from a frozen GUI or a network disconnect. This watchdog is
-  an external fallback: when the Opus clone has been idle for long enough and no
-  headless Cursor Agent is already running for that workspace, it starts a new
-  headless Opus Cursor Agent chat in that folder.
+  reliably recover from a frozen GUI or a network disconnect. This watchdog can
+  be used as an external fallback, but headless starts are disabled by default
+  because cursor-agent model routing and billing differ from the Cursor IDE's
+  Opus 4.6 Max controls.
 
   It never resets, checks out, or pulls the target repository. The prompt tells
   the new agent to preserve any interrupted worktree edits first.
@@ -16,13 +16,13 @@
   powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Background
 
 .EXAMPLE
-  powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Once -DryRun
+  powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/opus_cursor_agent_watchdog.ps1 -Once -DryRun -EnableHeadlessStart -Model auto
 #>
 
 param(
     [string]$RepoPath = "C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus",
     [string]$Branch = "codex/backref-values",
-    [string]$Model = "claude-opus-4-7-thinking-low",
+    [string]$Model = "",
     [string]$PromptFile = "",
     [int]$IdleMinutes = 15,
     [int]$PollSeconds = 60,
@@ -32,7 +32,8 @@ param(
     [switch]$ResetState,
     [switch]$Once,
     [switch]$DryRun,
-    [switch]$Background
+    [switch]$Background,
+    [switch]$EnableHeadlessStart
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +52,18 @@ function Write-WatchLog([string]$Message) {
     $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssK"
     $line = "[$timestamp] $Message"
     Write-Host $line
-    Add-Content -LiteralPath $script:WatchLog -Value $line -Encoding UTF8
+    for ($i = 0; $i -lt 5; $i++) {
+        try {
+            Add-Content -LiteralPath $script:WatchLog -Value $line -Encoding UTF8
+            return
+        } catch {
+            if ($i -eq 4) {
+                Write-Warning "Could not append watchdog log: $($_.Exception.Message)"
+            } else {
+                Start-Sleep -Milliseconds 200
+            }
+        }
+    }
 }
 
 function Invoke-GitLines {
@@ -216,6 +228,7 @@ if ($Background) {
     if ($Once) { $argsList += "-Once" }
     if ($DryRun) { $argsList += "-DryRun" }
     if ($ResetState) { $argsList += "-ResetState" }
+    if ($EnableHeadlessStart) { $argsList += "-EnableHeadlessStart" }
     Start-Process -FilePath "powershell" -ArgumentList $argsList -WindowStyle Hidden | Out-Null
     Write-Host "Started Opus watchdog in background for $RepoPath"
     return
@@ -250,7 +263,7 @@ if (Test-Path -LiteralPath $statePath) {
     }
 }
 
-Write-WatchLog "Watchdog boot: repo=$script:Repo; model=$Model; idle=${IdleMinutes}m; poll=${PollSeconds}s; maxRestarts=$MaxRestarts"
+Write-WatchLog "Watchdog boot: repo=$script:Repo; model=$Model; headlessStart=$EnableHeadlessStart; idle=${IdleMinutes}m; poll=${PollSeconds}s; maxRestarts=$MaxRestarts"
 
 while ($true) {
     $activity = Get-RepoActivity
@@ -276,6 +289,10 @@ while ($true) {
         Write-WatchLog "SKIP: workspace is not idle long enough"
     } elseif (-not $cooldownOk) {
         Write-WatchLog "SKIP: cooldown not elapsed"
+    } elseif (-not $EnableHeadlessStart) {
+        Write-WatchLog "SKIP: headless Opus start disabled; use Cursor IDE or pass -EnableHeadlessStart -Model <id>"
+    } elseif (-not $Model) {
+        Write-WatchLog "SKIP: no cursor-agent model configured"
     } else {
         $log = Start-OpusAgent ("idle {0:n1} minutes" -f $idle.TotalMinutes)
         if (-not $DryRun) {
