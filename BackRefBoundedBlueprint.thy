@@ -902,4 +902,58 @@ proof -
   finally show ?thesis .
 qed
 
+theorem BL_bound_BBACKREF_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "{BL (xders (BBACKREF r mid cs) s) | s. True} \<subseteq>
+    Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_derivative_family_subset_bounded_strings)
+qed
+
+theorem GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "{GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True} \<subseteq>
+    Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_derivative_family_subset_bounded_strings)
+qed
+
+theorem BL_bound_BBACKREF_derivative_family_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card {BL (xders (BBACKREF r mid cs) s) | s. True} \<le>
+    2 ^ card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_derivative_family_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_derivative_family_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card {GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True} \<le>
+    2 ^ card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_derivative_family_card_bound)
+qed
+
 end
