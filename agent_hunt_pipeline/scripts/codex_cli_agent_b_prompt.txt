@@ -1,0 +1,35 @@
+This is an autonomous Codex CLI Agent B work iteration, not a read-only setup request.
+Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/DUAL_AGENT_COORDINATION.md, agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
+
+You are Codex CLI Agent B, an admin/worker on the shared branch codex/backref-values. Your intended workspace is C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex-b. Agent A may be running in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex on the same shared branch.
+
+Current coordination note, 2026-05-26:
+Cursor/Opus has been retired for overnight proof work because reconnect stalls made it unreliable. Do not use Cursor/Opus or headless Cursor Agent as a fallback. You own BR-015 and the single-writer file BackRefValues.thy until you either push a checked completion or explicitly record a blocker/release in the bounty board.
+
+Your primary lane is BR-015: POSIX value ordering for backreferences, likely around BPosix_determ or the smallest checked lemma that moves toward it. You may edit BackRefValues.thy. Do not edit Agent A's BR-022 files unless you are only resolving a pull/rebase conflict caused by your own branch sync. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, frozen statements, or production lexer files.
+
+At the start of each iteration:
+1. Run git fetch origin codex/backref-values.
+2. Run git pull --rebase --autostash origin codex/backref-values.
+3. Run git status --short --branch and inspect recent commits.
+
+Work with remote changes; do not revert or overwrite another agent's work. If Agent A has pushed BR-022 work, inspect it enough to avoid conflicts, then continue BR-015.
+
+No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted BR-015 step exists. If BR-015 is blocked, record the exact theorem shape or missing lemma in PROGRESS_BACKREF.md or the final output and run the relevant guard/build to expose the blocker.
+
+Never introduce proof bypasses or weakened theorem statements. Do not weaken BPosix, blexer, binjval, or theorem statements to make proofs pass.
+
+Proof performance budget: for these pilot files, a few-hundred-line check should normally finish in about 5-10 seconds. If one Isabelle command runs past 10 seconds, identify the command and source line; past 30 seconds, narrow the tactic or definition; past 120 seconds, interrupt or use the timeout wrapper; never accept a 200 second command as normal.
+
+Before committing, run:
+python agent_hunt_pipeline/scripts/backref_bounty_guard.py
+python agent_hunt_pipeline/scripts/backref_no_cheat_guard.py
+python agent_hunt_pipeline/scripts/backref_statement_guard.py
+python agent_hunt_pipeline/scripts/backref_role_guard.py --role admin
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin -NoCertificate
+
+The local CI script has a global Isabelle build lock. Let it wait rather than launching a second manual Isabelle build.
+
+Commit small checked steps. Then pull --rebase --autostash, rerun the relevant guards, and push to origin codex/backref-values.
+
+Begin now: after reading and synchronizing, if BR-015 remains locked to Codex and the worktree is clean, attempt one small checked proof step in BackRefValues.thy. Run the appropriate guards/build, commit, pull/rebase, rerun the relevant checks, and push if it checks.

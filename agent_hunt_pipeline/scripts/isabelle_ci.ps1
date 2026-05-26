@@ -3,7 +3,8 @@ param(
   [switch]$PilotOnly,
   [switch]$NoCertificate,
   [ValidateSet("admin", "steward", "worker")]
-  [string]$Role = "admin"
+  [string]$Role = "admin",
+  [int]$BuildLockTimeoutSeconds = 7200
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,6 +29,9 @@ if (-not (Test-Path -LiteralPath $Bash)) {
 $RepoCyg = Convert-ToCygwinPath $Repo
 $IsabelleCyg = Convert-ToCygwinPath $IsabelleHome
 $Isabelle = "$IsabelleCyg/bin/isabelle"
+$BuildMutexName = "Global\AIPV2026Notes_POSIX_BackRef_Isabelle_Build"
+$BuildMutex = $null
+$BuildLockTaken = $false
 
 Set-Location -LiteralPath $Repo
 
@@ -47,11 +51,29 @@ if (-not $PilotOnly) {
 }
 $Sessions += @{ Name = "BackRefPilot"; Args = "-v -d pilot BackRefPilot" }
 
-foreach ($Session in $Sessions) {
-  Write-Host "== Isabelle build: $($Session.Name) =="
-  & $Bash -lc "cd '$RepoCyg' && '$Isabelle' build $($Session.Args)"
-  if ($LASTEXITCODE -ne 0) {
-    throw "Isabelle build failed for $($Session.Name) with exit code $LASTEXITCODE"
+try {
+  Write-Host "== Waiting for Isabelle build lock: $BuildMutexName =="
+  $BuildMutex = [System.Threading.Mutex]::new($false, $BuildMutexName)
+  $BuildLockTaken = $BuildMutex.WaitOne([TimeSpan]::FromSeconds($BuildLockTimeoutSeconds))
+  if (-not $BuildLockTaken) {
+    throw "Timed out waiting for Isabelle build lock after $BuildLockTimeoutSeconds seconds"
+  }
+  Write-Host "== Acquired Isabelle build lock =="
+
+  foreach ($Session in $Sessions) {
+    Write-Host "== Isabelle build: $($Session.Name) =="
+    & $Bash -lc "cd '$RepoCyg' && '$Isabelle' build $($Session.Args)"
+    if ($LASTEXITCODE -ne 0) {
+      throw "Isabelle build failed for $($Session.Name) with exit code $LASTEXITCODE"
+    }
+  }
+} finally {
+  if ($BuildLockTaken -and $null -ne $BuildMutex) {
+    $BuildMutex.ReleaseMutex()
+    Write-Host "== Released Isabelle build lock =="
+  }
+  if ($null -ne $BuildMutex) {
+    $BuildMutex.Dispose()
   }
 }
 

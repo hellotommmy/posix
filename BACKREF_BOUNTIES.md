@@ -16,16 +16,16 @@ immutability.
 | Category | Amount |
 | --- | ---: |
 | Total pool | 50,000 |
-| Allocated (active + completed) | 23,770 |
+| Allocated (active + completed) | 24,970 |
 | Collected (paid out) | 17,270 |
-| Reserved (unallocated) | 26,230 |
+| Reserved (unallocated) | 25,030 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 10,820 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-016 through BR-018, BR-020, and BR-021 |
-| Opus | Worker | 5,950 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; locked BR-015 |
+| Codex | Admin/Worker | 10,450 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-016 through BR-018, BR-020, and BR-021; locked BR-015 and BR-022 for dual Codex run |
+| Opus | Worker | 6,200 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; BR-015 lock released when Cursor was retired |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
 | Bob | Worker | 0 | Optional future worker |
@@ -34,8 +34,9 @@ immutability.
 
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
-| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Opus | - | Isabelle:BackRefPilot | Major theorem; lock L-OPUS-015 |
+| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Codex | - | Isabelle:BackRefPilot | Major theorem; Codex-B lane, lock L-CODEX-B-015 |
 | BR-019 | Bounded fragment theorem for backreferences | 4,000 | 200 | 9 | 4,000 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem; do not start before lexer |
+| BR-022 | Bounded-fragment statement blueprint | 1,200 | 60 | 7 | 1,200 | LOCKED | Codex | - | Isabelle:BackRefPilot | Codex-A lane; pilot-only statement/proof-prep for BR-019, no production bounds or closed forms |
 
 ## Completed
 
@@ -76,7 +77,9 @@ Estimates assume all previous results in the dependency chain are already proved
 | Lock ID | Task ID | Agent | Deposit | Branch | Expires UTC | Status |
 | --- | --- | --- | ---: | --- | --- | --- |
 | - | - | - | 0 | - | - | RELEASED |
-| L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | ACTIVE |
+| L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | RELEASED |
+| L-CODEX-B-015 | BR-015 | Codex | 250 | codex/backref-values | 2026-05-27T15:44:00Z | ACTIVE |
+| L-CODEX-A-022 | BR-022 | Codex | 120 | codex/backref-values | 2026-05-27T15:44:01Z | ACTIVE |
 | L-CODEX-017 | BR-017 | Codex | 250 | codex/backref-values | 2026-05-27T09:35:51Z | COLLECTED |
 
 ## Lock Rules
@@ -115,6 +118,9 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T10:57:17Z | Codex | COLLECT | BR-018 | 3,000 | 7,320 | `bbder_bretrieve`, `bblexer_blexer_retrieve`; BackRefPilot passed |
 | 2026-05-26T11:46:37Z | Codex | COLLECT | BR-020 | 2,000 | 9,320 | `bblexer_simp_correctness` and per-step `bblexer_step_simp_correctness`; BackRefPilot passed |
 | 2026-05-26T11:57:08Z | Codex | COLLECT | BR-016 | 1,500 | 10,820 | `backref_lang4_flat_BPrf4`; BackRefPilot passed |
+| 2026-05-26T15:43:53Z | Opus | RELEASE | BR-015 | 250 | 6,200 | Cursor/Opus retired because reconnect stalls made overnight work unreliable |
+| 2026-05-26T15:44:00Z | Codex | LOCK | BR-015 | 250 | 10,570 | Codex-B takes over POSIX value ordering |
+| 2026-05-26T15:44:01Z | Codex | LOCK | BR-022 | 120 | 10,450 | Codex-A takes non-conflicting bounded-fragment statement blueprint lane |
 
 ## Sub-Bounty Rules
 

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (generalized bitcoded simplifier)
+Last updated: 2026-05-26 (dual Codex overnight handoff)
 
 ## Current Branch
 
@@ -18,6 +18,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- Coordination update on 2026-05-26: Cursor/Opus retired for overnight work;
+  two Codex CLI workers are now the intended parallel setup. Codex Agent B owns
+  BR-015 and `BackRefValues.thy`; Codex Agent A owns BR-022 and must stay on
+  non-conflicting pilot-only statement/proof-prep. Local PowerShell CI now uses
+  a global Isabelle build mutex so the two clones do not collide in the shared
+  Isabelle cache.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard after adding the generalized `gabbsimp` and

@@ -1,18 +1,17 @@
 # Dual-Agent Coordination: POSIX Backreference Pilot
 
-This file is the short current-state operating plan for running Codex Desktop/CLI
-and Cursor/Opus together on the shared branch `codex/backref-values`.
+This file is the short current-state operating plan for running two Codex CLI
+workers together on the shared branch `codex/backref-values`.
 
 ## Current Network Assumption
 
-Cursor/Opus may reconnect inside a long-running command and fail to switch
-network nodes before the current chat stalls. Therefore Cursor should not be the
-primary owner of long Isabelle builds. Cursor is best used for local proof
-editing and short checks; Codex or a plain PowerShell terminal should own final
-`BackRefPilot` builds and commits when the network is unstable.
+Cursor/Opus is retired for overnight work on this project. It repeatedly stalled
+inside reconnects during long commands under the current network conditions, so
+the robust overnight mode is two Codex CLI workers in two separate clones.
 
 Do not start headless Cursor Agent/Opus 4.7 as a fallback unless Chengsong
 explicitly asks for it. The intended Opus route is Cursor IDE with Opus 4.6 Max.
+For the current run, do not use Opus at all.
 
 ## Resource Leases
 
@@ -20,28 +19,29 @@ Two agents may work in parallel, but they must not share the same live resource.
 
 | Resource | Rule |
 | --- | --- |
-| `BackRefValues.thy` | Single-writer. Whoever owns the current proof task owns this file until a checked commit is pushed. |
+| `BackRefValues.thy` | Single-writer. Agent B owns this file for BR-015 until a checked commit is pushed or the lock is released. |
 | `BackRefLang.thy` | Separate-writer only for language-blueprint tasks such as `backref_lang4`; do not change frozen statements without admin approval. |
-| New pilot files | Preferred parallel lane for Codex after BR-014, e.g. `BackRefBlexer.thy` or a blueprint-only theory. |
-| Isabelle build cache | Single-builder. Only one full `BackRefPilot` build should run at a time. |
+| New pilot files | Agent A's preferred lane for BR-022 statement/proof-prep, without touching Agent B's `BackRefValues.thy`. |
+| Isabelle build cache | Single-builder. The local CI script uses a global mutex; do not bypass it with manual concurrent builds. |
 | `loop-config.json` | Local coordination only. Do not include it in theorem/proof commits unless explicitly requested. |
 
 ## Current Assignment
 
-- Cursor/Opus lane: finish and preserve the current BR-014 `BackRefValues.thy`
-  proof work if it is already open in Cursor.
-- Codex lane: when Opus is editing `BackRefValues.thy`, work only on
-  non-overlapping planning/new-file tasks, or act as build/check/commit steward.
-- If Cursor is reconnecting or the build pane is stale, Codex may verify and
-  commit already-written checked proof work from the `posix-opus` clone, but
-  must not discard dirty Cursor edits.
+- Agent A lane (`posix-codex`): BR-022 bounded-fragment statement blueprint and
+  non-conflicting pilot-only proof-prep. Do not edit `BackRefValues.thy`.
+- Agent B lane (`posix-codex-b`): BR-015 POSIX value ordering in
+  `BackRefValues.thy`. Do not edit Agent A's new blueprint files except to
+  resolve sync conflicts.
+- `posix-opus` is inactive. It may contain local Cursor hook settings, but it is
+  not an active proof worker.
 
 ## Stable Build Command
 
-Use a timeout wrapper so a proof-method loop cannot run all night:
+Use the local CI wrapper so a proof-method loop cannot run all night and so
+only one Isabelle build touches the shared cache at a time:
 
 ```powershell
-& C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe -lc "cd '/cygdrive/c/Users/Chengsong/Documents/AIPV2026Notes/posix-opus' && timeout 240s '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -v -d pilot BackRefPilot"
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin -NoCertificate
 ```
 
 If this times out, inspect the reported `command "... " running for ...`
@@ -87,14 +87,15 @@ heavy function-package pattern analysis and termination machinery.
    `git status --short --branch`.
 3. If the worktree is dirty, inspect and preserve the dirty diff before pulling.
 4. Claim a file lane in the prompt before editing.
-5. Avoid full builds while the other agent is building.
+5. Use `isabelle_ci.ps1` for builds; it serializes local Isabelle builds.
 6. Commit only checked theorem/proof work. Keep local hook/config changes out of
    proof commits unless they are the actual task.
 7. Push small checked commits; the other agent fetches and continues.
 
 ## Good Current Split After BR-014
 
-- Opus: proof-worker lane in `BackRefValues.thy` for POSIX/value lemmas.
-- Codex: blueprint/new-file lane for `backref_lang4` migration notes or pilot
-  `BackRefBlexer.thy`, without touching production `Blexer.thy`, `BlexerSimp.thy`,
-  bounds, or closed-form theories.
+- Codex Agent B: proof-worker lane in `BackRefValues.thy` for BR-015
+  POSIX/value ordering.
+- Codex Agent A: blueprint/new-file lane for BR-022 and BR-019 statement prep,
+  without touching production `Blexer.thy`, `BlexerSimp.thy`, bounds, or
+  closed-form theories.
