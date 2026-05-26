@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer checked-value retrieve bridges)
+Last updated: 2026-05-27 (semantic left-quotient wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct semantic left-quotient wrappers
+  from successful `BL_bound`/`GBL_bound` calculations in
+  `BackRefBoundedBlueprint.thy`. New checked facts expose raw
+  `{Ders s (BL r) | s. True}` and `{Ders s (GBL r) | s. True}` subset,
+  cardinality, monotone, and finite wrappers over `bounded_strings`, plus
+  constructor-specific `BBACKREF` and `GBACKREF4` packages. Files changed before
+  this progress note: `BackRefBoundedBlueprint.thy` (+244). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 3.5 seconds. Final full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`,
+  Isabelle `BackRefPilot`, and local CI certificate generation. After rebasing
+  over concurrent commit `4c950f5`, the checked-value retrieve bridge progress
+  note was preserved; post-rebase full local CI passed with Isabelle `Posix`
+  (0:04 elapsed), Isabelle `BackRefPilot` (0:19 elapsed),
+  `BackRefBoundedBlueprint` replaying in about 2.6 seconds, local CI
+  certificate generation, and explicit statement guard PASS. Next smallest
+  safe step: stop until the admin opens a new bounty/phase, or add only
+  similarly direct downstream packaging facts if explicitly requested. Blockers:
+  none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct checked-value retrieve wrappers
   for the ordinary and generalized bitcoded lexer frontends. New checked facts
