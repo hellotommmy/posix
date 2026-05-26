@@ -652,6 +652,16 @@ next
     by (simp add: gbblexer_def Let_def)
 qed
 
+lemma gbblexer_None_gnullable_iff:
+  "gbblexer r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  by (simp add: gbblexer_final_retrieve)
+
+lemma gbblexer_Some_gnullable_iff:
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_final_retrieve split: if_splits)
+
 theorem gbblexer_final_membership:
   "gbblexer r s =
     (if s \<in> GBL r
@@ -953,6 +963,16 @@ next
     by (simp add: gbblexer_simp_def Let_def)
 qed
 
+lemma gbblexer_simp_None_gnullable_iff:
+  "gbblexer_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  by (simp add: gbblexer_simp_final_retrieve)
+
+lemma gbblexer_simp_Some_gnullable_iff:
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_simp_final_retrieve split: if_splits)
+
 theorem gbblexer_simp_final_membership:
   "gbblexer_simp r s =
     (if s \<in> GBL r
@@ -1083,6 +1103,16 @@ next
   then show ?thesis
     by (simp add: gbblexer_step_simp_def Let_def)
 qed
+
+lemma gbblexer_step_simp_None_gnullable_iff:
+  "gbblexer_step_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  by (simp add: gbblexer_step_simp_final_retrieve)
+
+lemma gbblexer_step_simp_Some_gnullable_iff:
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_step_simp_final_retrieve split: if_splits)
 
 theorem gbblexer_step_simp_final_membership:
   "gbblexer_step_simp r s =

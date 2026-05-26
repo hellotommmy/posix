@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (constructor derivative-residue quotient wrappers)
+Last updated: 2026-05-27 (bitcoded nullable result wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,28 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct nullable-result wrappers for the
+  ordinary and generalized bitcoded lexer frontends. New checked facts are
+  `bblexer_None_xnullable_iff`, `bblexer_Some_xnullable_iff`,
+  `bblexer_simp_None_xnullable_iff`,
+  `bblexer_simp_Some_xnullable_iff`,
+  `bblexer_step_simp_None_xnullable_iff`,
+  `bblexer_step_simp_Some_xnullable_iff`,
+  `gbblexer_None_gnullable_iff`, `gbblexer_Some_gnullable_iff`,
+  `gbblexer_simp_None_gnullable_iff`,
+  `gbblexer_simp_Some_gnullable_iff`,
+  `gbblexer_step_simp_None_gnullable_iff`, and
+  `gbblexer_step_simp_Some_gnullable_iff`. Files changed before this progress
+  note: `BackRefBlexer.thy` (+30) and `BackRefGBlexer.thy` (+30). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed);
+  `BackRefBlexer` replayed in about 4.6 seconds and `BackRefGBlexer` replayed
+  in about 1.9 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and
+  local CI certificate generation. Next smallest safe step: stop until the
+  admin opens a new bounty/phase, or add only similarly direct downstream
+  packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding constructor-specific derivative-residue
   left-quotient wrappers from successful `BL_bound`/`GBL_bound` calculations

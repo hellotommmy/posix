@@ -660,6 +660,16 @@ next
     by (simp add: bblexer_def Let_def)
 qed
 
+lemma bblexer_None_xnullable_iff:
+  "bblexer r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  by (simp add: bblexer_final_retrieve)
+
+lemma bblexer_Some_xnullable_iff:
+  "bblexer r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_final_retrieve split: if_splits)
+
 theorem bblexer_final_membership:
   "bblexer r s =
     (if s \<in> BL r
@@ -1031,6 +1041,16 @@ next
     by (simp add: bblexer_simp_def Let_def)
 qed
 
+lemma bblexer_simp_None_xnullable_iff:
+  "bblexer_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  by (simp add: bblexer_simp_final_retrieve)
+
+lemma bblexer_simp_Some_xnullable_iff:
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_simp_final_retrieve split: if_splits)
+
 theorem bblexer_simp_final_membership:
   "bblexer_simp r s =
     (if s \<in> BL r
@@ -1176,6 +1196,16 @@ next
   then show ?thesis
     by (simp add: bblexer_step_simp_def Let_def)
 qed
+
+lemma bblexer_step_simp_None_xnullable_iff:
+  "bblexer_step_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  by (simp add: bblexer_step_simp_final_retrieve)
+
+lemma bblexer_step_simp_Some_xnullable_iff:
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_step_simp_final_retrieve split: if_splits)
 
 theorem bblexer_step_simp_final_membership:
   "bblexer_step_simp r s =
