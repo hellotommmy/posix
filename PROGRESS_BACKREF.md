@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend retrieve/obtains wrappers after bounded-wrapper sync)
+Last updated: 2026-05-27 (bounded-family member length wrappers)
 
 ## Current Branch
 
@@ -20,6 +20,31 @@ Latest result:
 
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `BackRefPilot`, and final full local CI after rebasing over
+  `e6bed9d`, preserving the residual left-quotient length wrappers, and adding
+  direct bounded-family member-length wrappers in `BackRefBoundedBlueprint.thy`.
+  New checked facts on top of the preserved residual length wrappers are
+  `bounded_strings_family_member_length_bound`,
+  `BL_bound_derivative_family_member_length_bound`,
+  `GBL_bound_derivative_family_member_length_bound`,
+  `BL_bound_residual_derivative_family_member_length_bound`,
+  `GBL_bound_residual_derivative_family_member_length_bound`,
+  `BL_bound_left_quotient_family_member_length_bound`,
+  `GBL_bound_left_quotient_family_member_length_bound`,
+  `BL_bound_xders_left_quotient_family_member_length_bound`, and
+  `GBL_bound_gxders_left_quotient_family_member_length_bound`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+152 total since
+  `e6bed9d`, including +78 for the new family-member wrappers) and
+  `PROGRESS_BACKREF.md`. Post-sync pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), and post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 3.6 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, local CI
+  certificate generation, and explicit statement guard PASS. Next smallest
+  safe step: stop until the admin opens a new bounty/phase, or add only
+  similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `BackRefPilot`, and final full local CI after rebasing over
   `85e7ba5` and preserving the direct bounded-language wrapper work. New
   checked facts in `BackRefBitcodedSummary.thy` are
   `bblexer_frontends_blexer_Some_retrieve`,
@@ -35,6 +60,27 @@ Latest result:
   certificate generation, and `BackRefBitcodedSummary` replaying in about
   0.214 seconds. Next smallest safe step: stop until the admin opens a new
   bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct member-length wrappers for
+  residual left-quotient families in `BackRefBoundedBlueprint.thy`. New
+  checked facts are `BL_bound_xders_left_quotient_length_bound`,
+  `GBL_bound_gxders_left_quotient_length_bound`,
+  `BL_bound_xders_left_quotient_length_bound_mono`,
+  `GBL_bound_gxders_left_quotient_length_bound_mono`,
+  `BL_bound_BBACKREF_xders_left_quotient_length_bound`,
+  `GBL_bound_GBACKREF4_gxders_left_quotient_length_bound`,
+  `BL_bound_BBACKREF_xders_left_quotient_length_bound_mono`, and
+  `GBL_bound_GBACKREF4_gxders_left_quotient_length_bound_mono`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+74) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed). Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 3.5 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:35 elapsed), Isabelle
+  `BackRefPilot` (0:17 elapsed), and local CI certificate generation; explicit
+  statement guard PASS. Next smallest safe step: stop until the admin opens a
+  new bounty/phase, or add only similarly direct downstream packaging facts if
   explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct bounded-language wrappers in

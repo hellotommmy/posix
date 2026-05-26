@@ -3115,4 +3115,156 @@ theorem GBL_bound_GBACKREF4_left_quotient_length_bound_mono:
     assms(6)
   by (auto simp add: bounded_strings_def)
 
+theorem BL_bound_xders_left_quotient_length_bound:
+  assumes "BL_bound r = Some n"
+    and "w \<in> Ders t (BL (xders r s))"
+  shows "length w \<le> n"
+  using BL_bound_xders_left_quotient_family_subset_bounded_strings[OF assms(1), of s] assms(2)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_gxders_left_quotient_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "w \<in> Ders t (GBL (gxders r s))"
+  shows "length w \<le> n"
+  using GBL_bound_gxders_left_quotient_family_subset_bounded_strings[OF assms(1), of s] assms(2)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_xders_left_quotient_length_bound_mono:
+  assumes "BL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> Ders t (BL (xders r s))"
+  shows "length w \<le> m"
+  using BL_bound_xders_left_quotient_family_subset_bounded_strings_mono[OF assms(1,2), of s]
+    assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_gxders_left_quotient_length_bound_mono:
+  assumes "GBL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> Ders t (GBL (gxders r s))"
+  shows "length w \<le> m"
+  using GBL_bound_gxders_left_quotient_family_subset_bounded_strings_mono[OF assms(1,2), of s]
+    assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_BBACKREF_xders_left_quotient_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "w \<in> Ders t (BL (xders (BBACKREF r mid cs) s))"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings[OF assms(1,2), of cs s]
+    assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "w \<in> Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s))"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings[OF assms(1-4), of cs s]
+    assms(5)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_BBACKREF_xders_left_quotient_length_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+    and "w \<in> Ders t (BL (xders (BBACKREF r mid cs) s))"
+  shows "length w \<le> m"
+  using BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings_mono[OF assms(1-3), of s]
+    assms(4)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_length_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+    and "w \<in> Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s))"
+  shows "length w \<le> m"
+  using GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings_mono[OF assms(1-5), of s]
+    assms(6)
+  by (auto simp add: bounded_strings_def)
+
+theorem bounded_strings_family_member_length_bound:
+  assumes "A \<in> Pow (bounded_strings n)"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using assms by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_derivative_family_member_length_bound:
+  assumes "BL_bound r = Some n"
+    and "A \<in> {BL (xders r s) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using BL_bound_derivative_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_derivative_family_member_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "A \<in> {GBL (gxders r s) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using GBL_bound_derivative_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_residual_derivative_family_member_length_bound:
+  assumes "BL_bound r = Some n"
+    and "A \<in> {BL (xders (xders r s) t) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using BL_bound_residual_derivative_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_residual_derivative_family_member_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "A \<in> {GBL (gxders (gxders r s) t) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using GBL_bound_residual_derivative_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_left_quotient_family_member_length_bound:
+  assumes "BL_bound r = Some n"
+    and "A \<in> {Ders s (BL r) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using BL_bound_left_quotient_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_left_quotient_family_member_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "A \<in> {Ders s (GBL r) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using GBL_bound_left_quotient_family_subset_bounded_strings[OF assms(1)]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_xders_left_quotient_family_member_length_bound:
+  assumes "BL_bound r = Some n"
+    and "A \<in> {Ders t (BL (xders r s)) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using BL_bound_xders_left_quotient_family_subset_bounded_strings[OF assms(1), of s]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_gxders_left_quotient_family_member_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "A \<in> {Ders t (GBL (gxders r s)) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n"
+  using GBL_bound_gxders_left_quotient_family_subset_bounded_strings[OF assms(1), of s]
+    assms(2,3)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
 end
