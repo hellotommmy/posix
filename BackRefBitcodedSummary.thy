@@ -182,6 +182,33 @@ proof -
   show thesis by (rule that[OF bs simp step_simp])
 qed
 
+theorem bblexer_frontends_BL_cases:
+  obtains (reject) "s \<notin> BL r"
+    "bblexer r s = None"
+    "bblexer_simp r s = None"
+    "bblexer_step_simp r s = None"
+  | (accept) bs where "s \<in> BL r"
+    "bblexer r s = Some bs"
+    "bblexer_simp r s = Some bs"
+    "bblexer_step_simp r s = Some bs"
+proof (cases "s \<in> BL r")
+  case True
+  then obtain bs where bs: "bblexer r s = Some bs"
+    and simp: "bblexer_simp r s = Some bs"
+    and step_simp: "bblexer_step_simp r s = Some bs"
+    by (rule bblexer_frontends_BL_obtains_same)
+  show thesis by (rule accept[OF True bs simp step_simp])
+next
+  case False
+  have none: "bblexer r s = None"
+    using False by (simp add: bblexer_frontends_BL_iff(1))
+  have simp_none: "bblexer_simp r s = None"
+    using False by (simp add: bblexer_frontends_BL_iff(2))
+  have step_simp_none: "bblexer_step_simp r s = None"
+    using False by (simp add: bblexer_frontends_BL_iff(3))
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -327,6 +354,33 @@ proof -
   from bs have step_simp: "gbblexer_step_simp r s = Some bs"
     by (simp add: gbblexer_frontends_eq)
   show thesis by (rule that[OF bs simp step_simp])
+qed
+
+theorem gbblexer_frontends_GBL_cases:
+  obtains (reject) "s \<notin> GBL r"
+    "gbblexer r s = None"
+    "gbblexer_simp r s = None"
+    "gbblexer_step_simp r s = None"
+  | (accept) bs where "s \<in> GBL r"
+    "gbblexer r s = Some bs"
+    "gbblexer_simp r s = Some bs"
+    "gbblexer_step_simp r s = Some bs"
+proof (cases "s \<in> GBL r")
+  case True
+  then obtain bs where bs: "gbblexer r s = Some bs"
+    and simp: "gbblexer_simp r s = Some bs"
+    and step_simp: "gbblexer_step_simp r s = Some bs"
+    by (rule gbblexer_frontends_GBL_obtains_same)
+  show thesis by (rule accept[OF True bs simp step_simp])
+next
+  case False
+  have none: "gbblexer r s = None"
+    using False by (simp add: gbblexer_frontends_GBL_iff(1))
+  have simp_none: "gbblexer_simp r s = None"
+    using False by (simp add: gbblexer_frontends_GBL_iff(2))
+  have step_simp_none: "gbblexer_step_simp r s = None"
+    using False by (simp add: gbblexer_frontends_GBL_iff(3))
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
 end

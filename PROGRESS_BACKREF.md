@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (constructor family member length wrappers)
+Last updated: 2026-05-27 (bitcoded frontend accept/reject case wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,32 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+  generation after adding accept/reject case wrappers for the ordinary and
+  generalized bitcoded lexer frontend groups. New checked facts in
+  `BackRefBitcodedSummary.thy` are `bblexer_frontends_BL_cases` and
+  `gbblexer_frontends_GBL_cases`, packaging each frontend family into one
+  case split: either the input is outside `BL`/`GBL` and all three frontends
+  reject, or the input is accepted and all three frontends return the same
+  bitcode witness. Files changed before this progress note:
+  `BackRefBitcodedSummary.thy` (+54) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBitcodedSummary` replaying in about 0.208 seconds. Pre-progress
+  full local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:36 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and local CI certificate generation. Final after-progress full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), local CI
+  certificate generation, and explicit statement guard PASS. After rebasing
+  over concurrent commit `a202417`, final post-rebase full local CI passed
+  with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:03 elapsed), Isabelle `BackRefPilot` (0:16 elapsed), local CI
+  certificate generation, `BackRefBitcodedSummary` replaying in about 0.599
+  seconds, and explicit statement guard PASS. Next smallest safe step: stop
+  until the admin opens a new bounty/phase, or add only similarly direct
+  downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `BackRefPilot`, and final full local CI after rebasing over
   concurrent commit `f8a12a2` and adding direct constructor-specialized
