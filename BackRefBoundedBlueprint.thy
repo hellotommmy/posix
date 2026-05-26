@@ -261,4 +261,292 @@ proof -
     by (rule finite_GBL_derivatives_if_left_quotients)
 qed
 
+section \<open>Syntactic Bounded Fragment\<close>
+
+lemma bounded_language_empty [simp]:
+  "bounded_language n {}"
+  by (simp add: bounded_language_def)
+
+lemma bounded_language_singleton [simp]:
+  "bounded_language (length s) {s}"
+  by (simp add: bounded_language_def)
+
+lemma bounded_language_union:
+  assumes "bounded_language n A" "bounded_language m B"
+  shows "bounded_language (max n m) (A \<union> B)"
+  using assms by (auto simp add: bounded_language_def)
+
+lemma bounded_language_Sequ:
+  assumes "bounded_language n A" "bounded_language m B"
+  shows "bounded_language (n + m) (A ;; B)"
+  unfolding bounded_language_def
+proof
+  fix s
+  assume "s \<in> A ;; B"
+  then obtain s1 s2 where parts: "s1 \<in> A" "s2 \<in> B" "s = s1 @ s2"
+    by (auto simp add: Sequ_def)
+  have "length s1 \<le> n"
+    using assms(1) parts(1) by (simp add: bounded_language_def)
+  moreover have "length s2 \<le> m"
+    using assms(2) parts(2) by (simp add: bounded_language_def)
+  ultimately show "length s \<le> n + m"
+    using parts(3) by simp
+qed
+
+lemma bounded_language_pow:
+  assumes "bounded_language n A"
+  shows "bounded_language (k * n) (A ^^ k)"
+proof (induct k)
+  case 0
+  show ?case
+    by (simp add: bounded_language_def)
+next
+  case (Suc k)
+  have tail: "bounded_language (k * n) (A ^^ k)"
+    using Suc.hyps .
+  have "bounded_language (n + k * n) (A ;; (A ^^ k))"
+    by (rule bounded_language_Sequ[OF assms tail])
+  then show ?case
+    by simp
+qed
+
+lemma bounded_language_star_zero:
+  assumes "bounded_language 0 A"
+  shows "bounded_language 0 (A\<star>)"
+  unfolding bounded_language_def
+proof
+  fix s
+  assume s: "s \<in> A\<star>"
+  then obtain ss where ss:
+    "concat ss = s" "\<forall>t \<in> set ss. t \<in> A \<and> t \<noteq> []"
+    using Star_split by blast
+  have no_mem: False if "t \<in> set ss" for t
+  proof -
+    have "t \<in> A" "t \<noteq> []"
+      using ss that by auto
+    moreover have "length t \<le> 0"
+      using assms calculation(1) by (simp add: bounded_language_def)
+    ultimately show False
+      by (cases t) simp_all
+  qed
+  have no_set_mem: "t \<notin> set ss" for t
+    using no_mem[of t] by blast
+  have "ss = []"
+  proof (cases ss)
+    case Nil
+    then show ?thesis
+      by simp
+  next
+    case (Cons t ts)
+    then have "t \<in> set ss"
+      by simp
+    then have False
+      using no_set_mem[of t] by simp
+    then show ?thesis
+      by simp
+  qed
+  then show "length s \<le> 0"
+    using ss by simp
+qed
+
+lemma BL_bounded_BZERO [simp]:
+  "BL_bounded n BZERO"
+  by (simp add: BL_bounded_def bounded_language_def)
+
+lemma BL_bounded_BONE [simp]:
+  "BL_bounded 0 BONE"
+  by (simp add: BL_bounded_def bounded_language_def)
+
+lemma BL_bounded_BCH [simp]:
+  "BL_bounded 1 (BCH c)"
+  by (simp add: BL_bounded_def bounded_language_def)
+
+lemma BL_bounded_BALT:
+  assumes "BL_bounded n r1" "BL_bounded m r2"
+  shows "BL_bounded (max n m) (BALT r1 r2)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_union)
+
+lemma BL_bounded_BSEQ:
+  assumes "BL_bounded n r1" "BL_bounded m r2"
+  shows "BL_bounded (n + m) (BSEQ r1 r2)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_Sequ)
+
+lemma BL_bounded_BSTAR_zero:
+  assumes "BL_bounded 0 r"
+  shows "BL_bounded 0 (BSTAR r)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_star_zero)
+
+lemma BL_bounded_BNTIMES:
+  assumes "BL_bounded n r"
+  shows "BL_bounded (k * n) (BNTIMES r k)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_pow)
+
+lemma BL_bounded_BBACKREF:
+  assumes "BL_bounded n_capture r" "BL_bounded n_mid mid"
+  shows "BL_bounded (n_capture + n_mid + length cs + n_capture) (BBACKREF r mid cs)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_backref_lang)
+
+lemma BL_bounded_BHALF:
+  assumes "BL_bounded n mid"
+  shows "BL_bounded (n + length cs) (BHALF mid cs rep)"
+  using assms
+  by (auto simp add: BL_bounded_def intro: bounded_language_Sequ)
+
+lemma BL_bounded_BRESIDUE [simp]:
+  "BL_bounded (length cs) (BRESIDUE cs rep)"
+  by (simp add: BL_bounded_def)
+
+lemma GBL_bounded_GBASE:
+  assumes "BL_bounded n r"
+  shows "GBL_bounded n (GBASE r)"
+  using assms by (simp add: GBL_bounded_def BL_bounded_def)
+
+lemma GBL_bounded_GALT:
+  assumes "GBL_bounded n r1" "GBL_bounded m r2"
+  shows "GBL_bounded (max n m) (GALT r1 r2)"
+  using assms
+  by (auto simp add: GBL_bounded_def intro: bounded_language_union)
+
+lemma GBL_bounded_GBACKREF4:
+  assumes "BL_bounded n1 r1"
+    and "BL_bounded n2 r2"
+    and "BL_bounded n3 r3"
+    and "BL_bounded n4 r4"
+  shows "GBL_bounded (n1 + n2 + n3 + length cs + n2 + n4)
+    (GBACKREF4 r1 r2 r3 r4 cs)"
+  using assms
+  by (auto simp add: GBL_bounded_def BL_bounded_def
+      intro: bounded_language_backref_lang4)
+
+primrec BL_bound :: "brexp \<Rightarrow> nat option"
+where
+  "BL_bound BZERO = Some 0"
+| "BL_bound BONE = Some 0"
+| "BL_bound (BCH c) = Some 1"
+| "BL_bound (BSEQ r1 r2) =
+    (case BL_bound r1 of
+      Some n1 \<Rightarrow> (case BL_bound r2 of Some n2 \<Rightarrow> Some (n1 + n2) | None \<Rightarrow> None)
+    | None \<Rightarrow> None)"
+| "BL_bound (BALT r1 r2) =
+    (case BL_bound r1 of
+      Some n1 \<Rightarrow> (case BL_bound r2 of Some n2 \<Rightarrow> Some (max n1 n2) | None \<Rightarrow> None)
+    | None \<Rightarrow> None)"
+| "BL_bound (BSTAR r) =
+    (case BL_bound r of Some n \<Rightarrow> if n = 0 then Some 0 else None | None \<Rightarrow> None)"
+| "BL_bound (BNTIMES r k) =
+    (case BL_bound r of Some n \<Rightarrow> Some (k * n) | None \<Rightarrow> None)"
+| "BL_bound (BBACKREF r mid cs) =
+    (case BL_bound r of
+      Some n_capture \<Rightarrow>
+        (case BL_bound mid of
+          Some n_mid \<Rightarrow> Some (n_capture + n_mid + length cs + n_capture)
+        | None \<Rightarrow> None)
+    | None \<Rightarrow> None)"
+| "BL_bound (BHALF mid cs rep) =
+    (case BL_bound mid of Some n \<Rightarrow> Some (n + length cs) | None \<Rightarrow> None)"
+| "BL_bound (BRESIDUE cs rep) = Some (length cs)"
+
+primrec GBL_bound :: "gbrexp \<Rightarrow> nat option"
+where
+  "GBL_bound (GBASE r) = BL_bound r"
+| "GBL_bound (GALT r1 r2) =
+    (case GBL_bound r1 of
+      Some n1 \<Rightarrow> (case GBL_bound r2 of Some n2 \<Rightarrow> Some (max n1 n2) | None \<Rightarrow> None)
+    | None \<Rightarrow> None)"
+| "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    (case BL_bound r1 of
+      Some n1 \<Rightarrow>
+        (case BL_bound r2 of
+          Some n2 \<Rightarrow>
+            (case BL_bound r3 of
+              Some n3 \<Rightarrow>
+                (case BL_bound r4 of
+                  Some n4 \<Rightarrow> Some (n1 + n2 + n3 + length cs + n2 + n4)
+                | None \<Rightarrow> None)
+            | None \<Rightarrow> None)
+        | None \<Rightarrow> None)
+    | None \<Rightarrow> None)"
+
+lemma BL_bound_sound:
+  assumes "BL_bound r = Some n"
+  shows "BL_bounded n r"
+  using assms
+proof (induct r arbitrary: n)
+  case BZERO
+  then show ?case
+    by simp
+next
+  case BONE
+  then show ?case
+    by (auto simp add: BL_bounded_def bounded_language_def)
+next
+  case (BCH c)
+  then show ?case
+    by (auto simp add: BL_bounded_def bounded_language_def)
+next
+  case (BSEQ r1 r2)
+  then show ?case
+    by (auto split: option.splits intro: BL_bounded_BSEQ)
+next
+  case (BALT r1 r2)
+  then show ?case
+    by (auto split: option.splits intro: BL_bounded_BALT)
+next
+  case (BSTAR r)
+  then show ?case
+    by (auto split: option.splits if_splits intro: BL_bounded_BSTAR_zero)
+next
+  case (BNTIMES r k)
+  then show ?case
+    by (auto split: option.splits intro: BL_bounded_BNTIMES)
+next
+  case (BBACKREF r mid cs)
+  then show ?case
+    by (auto split: option.splits intro: BL_bounded_BBACKREF)
+next
+  case (BHALF mid cs rep)
+  then show ?case
+    by (auto split: option.splits intro: BL_bounded_BHALF)
+next
+  case (BRESIDUE cs rep)
+  then show ?case
+    by (auto simp add: BL_bounded_def bounded_language_def)
+qed
+
+lemma GBL_bound_sound:
+  assumes "GBL_bound r = Some n"
+  shows "GBL_bounded n r"
+  using assms
+proof (induct r arbitrary: n)
+  case (GBASE r)
+  then show ?case
+    using BL_bound_sound by (auto intro: GBL_bounded_GBASE)
+next
+  case (GALT r1 r2)
+  then show ?case
+    by (auto split: option.splits intro: GBL_bounded_GALT)
+next
+  case (GBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    using BL_bound_sound
+    by (auto split: option.splits intro: GBL_bounded_GBACKREF4)
+qed
+
+theorem BL_bound_finite_derivative_languages:
+  assumes "BL_bound r = Some n"
+  shows "finite_BL_derivatives r"
+  using BL_bound_sound[OF assms]
+  by (rule bounded_BL_finite_derivative_languages)
+
+theorem GBL_bound_finite_derivative_languages:
+  assumes "GBL_bound r = Some n"
+  shows "finite_GBL_derivatives r"
+  using GBL_bound_sound[OF assms]
+  by (rule bounded_GBL_finite_derivative_languages)
+
 end
