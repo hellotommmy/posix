@@ -2,8 +2,8 @@ Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, t
 
 You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix. Opus may be running in Cursor in a separate clone on the same branch.
 
-Morning recovery note, 2026-05-26:
-The previous overnight run was interrupted by network disconnects. The Opus clone at C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus has local proof work that may not yet be pushed: commit `ddeccc6 Define binjval for brexp pilot (BR-005)` plus dirty BackRefValues.thy edits attempting `binjval_flat` and `binjval_BPrf`, last seen failing in the `BNTIMES` case. Until that work is pushed and checked, do not edit BackRefValues.thy in this clone. Prefer monitoring, integration, pipeline tasks, or disjoint pilot-only work that cannot conflict.
+Current recovery note, 2026-05-26:
+BR-005, BR-011, BR-012, and BR-013 have been pushed and checked on the shared branch. The main open proof target is BR-014, proving/refining pilot `blexer` correctness in `BackRefValues.thy`. Opus may still be running in Cursor IDE on the same shared branch, but there is no standing ban on Codex editing `BackRefValues.thy`; coordinate by fetching first, keeping steps small, committing only checked work, and rebasing before push.
 
 At the start of each iteration:
 1. Run git fetch origin codex/backref-values.
@@ -12,7 +12,9 @@ At the start of each iteration:
 
 Work with remote changes; do not revert or overwrite another agent's work. If Opus has pushed new proof work, inspect it before choosing your next step.
 
-Primary assignment: follow the Codex/GPT-5.5 path in agent_hunt_pipeline/projects/posix-backref/CLAUDE.md and SESSION_BRIEF.md, choosing a small checked task that avoids Opus's active BackRefValues.thy edits. Prefer disjoint files such as a new pilot-only theory or integration/CI scaffolding when Opus is actively proving in BackRefValues.thy. If a semantic conflict, merge conflict, or statement-change question appears, stop and report instead of improvising.
+Primary assignment: follow the current state in PROGRESS_BACKREF.md and BACKREF_BOUNTIES.md. If the worktree is clean and BR-014 is still open, attempt the next smallest checked BR-014 step in `BackRefValues.thy`. It is acceptable to split or strengthen existing pilot lemmas, add helper lemmas, or repair `blexer` correctness statements, provided all statements remain honest and checked. Do not create production lexer files or touch `Blexer.thy`, `BlexerSimp.thy`, bounds, closed-form theories, or frozen statements.
+
+No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted task exists. If no code/proof edit is possible, run the relevant guard/build to expose the current blocker and record the precise blocker in the final output. A no-op iteration is allowed only for a dirty/conflicting worktree, a semantic question that must go to Chengsong, a remote change that must be inspected first, or no permitted open task.
 
 Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, or frozen statements unless CLAUDE.md explicitly authorizes the new pilot-only path and the files are disjoint.
 
