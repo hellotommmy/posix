@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-014 blexer POSIX correctness)
+Last updated: 2026-05-26 (BR-008 generalized derivative story)
 
 ## Current Branch
 
@@ -18,6 +18,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  and statement guard -- BR-008 generalized `backref_lang4` derivative story.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
   and Isabelle `BackRefPilot` (0:04 elapsed) -- blexer definition and correctness.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
@@ -40,6 +43,8 @@ Latest result:
   - `xder_correctness`
   - `xders_correctness`
   - `backref_lang_as_backref_lang4`
+  - `backref_lang4I`
+  - `Der_backref_lang4` (BR-008)
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -90,8 +95,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 3. ~~Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)`.~~ DONE (BR-012)
 4. ~~Define and prove `blexer` for pilot `brexp` (BR-013).~~ DONE (BR-013)
 5. ~~Prove `blexer` correctness for pilot `brexp` (BR-014).~~ DONE (BR-014)
-6. In parallel, draft derivative/value story for generalized `backref_lang4`
-   before migrating the datatype.
+6. ~~Draft derivative story for generalized `backref_lang4`.~~ DONE (BR-008)
+7. Next non-overlapping lanes: BR-016 generalized value pilot, or BR-017
+   bitcoded backreference lexer definitions in a new pilot file. BR-015 remains
+   locked by Opus.
+
+## BR-008 Generalized backref_lang4 Derivative Story (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent lane: Codex language-blueprint lane
+- Files changed: `BackRefLang.thy`, `PROGRESS_BACKREF.md`,
+  `BACKREF_BOUNTIES.md`
+- New checked lemmas:
+  - `backref_lang4I`
+  - `Der_backref_lang4`
+- Statement summary:
+  - derivative splits into prefix derivative;
+  - nullable-prefix capture derivative with accumulator update `c # cs`;
+  - nullable-prefix and nullable-capture tail derivative
+    `Der c (L3 ;; ({rev cs} ;; L4))`.
+- Build: full local CI PASS; Isabelle `Posix` (0:35 elapsed) and
+  Isabelle `BackRefPilot` (0:04 elapsed). Earlier pilot-only check passed in
+  0:06 elapsed inside Isabelle.
+- Guards: no-cheat, bounty, admin role guard, and statement guard pass
+- Next smallest safe step: draft BR-016 value evidence shape for the
+  generalized language without migrating the frozen datatype yet, or start
+  BR-017 in a new `BackRefBlexer.thy` lane.
 
 ## BR-014 blexer POSIX Correctness (2026-05-26)
 

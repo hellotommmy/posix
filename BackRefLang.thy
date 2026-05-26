@@ -224,4 +224,148 @@ lemma xders_correctness:
   apply (simp add: xder_correctness Ders_def Der_def)
   done
 
+section \<open>Generalized Backreference Blueprint\<close>
+
+lemma backref_lang4I:
+  assumes "s1 \<in> L1" "s2 \<in> L2" "s3 \<in> L3" "s4 \<in> L4"
+  shows "s1 @ s2 @ s3 @ rev cs @ s2 @ s4 \<in> backref_lang4 L1 L2 L3 L4 cs"
+  using assms by (auto simp add: backref_lang4_def)
+
+lemma Der_backref_lang4:
+  "Der c (backref_lang4 L1 L2 L3 L4 cs) =
+   backref_lang4 (Der c L1) L2 L3 L4 cs \<union>
+   (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {}) \<union>
+   (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})"
+proof (rule equalityI)
+  show "Der c (backref_lang4 L1 L2 L3 L4 cs) \<subseteq>
+    backref_lang4 (Der c L1) L2 L3 L4 cs \<union>
+    (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {}) \<union>
+    (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})"
+  proof
+    fix s
+    assume "s \<in> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+    then obtain s1 s2 s3 s4 where parts:
+      "s1 \<in> L1" "s2 \<in> L2" "s3 \<in> L3" "s4 \<in> L4"
+      "c # s = s1 @ s2 @ s3 @ rev cs @ s2 @ s4"
+      by (auto simp add: Der_def backref_lang4_def)
+    show "s \<in>
+      backref_lang4 (Der c L1) L2 L3 L4 cs \<union>
+      (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {}) \<union>
+      (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})"
+    proof (cases s1)
+      case Nil
+      then have nil1: "[] \<in> L1"
+        using parts by simp
+      from Nil parts have rest:
+        "c # s = s2 @ s3 @ rev cs @ s2 @ s4"
+        by simp
+      show ?thesis
+      proof (cases s2)
+        case Nil
+        then have "[] \<in> L2"
+          using parts by simp
+        moreover have "s \<in> Der c (L3 ;; ({rev cs} ;; L4))"
+          using Nil rest parts by (auto simp add: Der_def Sequ_def)
+        ultimately show ?thesis
+          using nil1 by simp
+      next
+        case (Cons d ds)
+        then have "ds \<in> Der c L2"
+          using parts rest by (auto simp add: Der_def)
+        moreover have "s = ds @ s3 @ rev (c # cs) @ ds @ s4"
+          using Cons rest by auto
+        ultimately have "s \<in> backref_lang4 {[]} (Der c L2) L3 L4 (c # cs)"
+          using parts by (auto simp add: backref_lang4_def)
+        then show ?thesis
+          using nil1 by simp
+      qed
+    next
+      case (Cons d ds)
+      then have "ds \<in> Der c L1"
+        using parts by (auto simp add: Der_def)
+      moreover have "s = ds @ s2 @ s3 @ rev cs @ s2 @ s4"
+        using Cons parts by auto
+      ultimately have "s \<in> backref_lang4 (Der c L1) L2 L3 L4 cs"
+        using parts by (auto simp add: backref_lang4_def)
+      then show ?thesis by simp
+    qed
+  qed
+next
+  show "backref_lang4 (Der c L1) L2 L3 L4 cs \<union>
+    (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {}) \<union>
+    (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})
+    \<subseteq> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+  proof
+    fix s
+    assume mem: "s \<in> backref_lang4 (Der c L1) L2 L3 L4 cs \<union>
+      (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {}) \<union>
+      (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})"
+    from mem consider
+      (prefix) "s \<in> backref_lang4 (Der c L1) L2 L3 L4 cs"
+    | (capture) "s \<in> (if [] \<in> L1 then backref_lang4 {[]} (Der c L2) L3 L4 (c # cs) else {})"
+    | (tail) "s \<in> (if [] \<in> L1 \<and> [] \<in> L2 then Der c (L3 ;; ({rev cs} ;; L4)) else {})"
+      by blast
+    then show "s \<in> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+    proof cases
+      case prefix
+      then obtain s1 s2 s3 s4 where parts:
+        "s1 \<in> Der c L1" "s2 \<in> L2" "s3 \<in> L3" "s4 \<in> L4"
+        "s = s1 @ s2 @ s3 @ rev cs @ s2 @ s4"
+        by (auto simp add: backref_lang4_def)
+      have s1_in: "c # s1 \<in> L1"
+        using parts
+        by (simp add: Der_def)
+      have "(c # s1) @ s2 @ s3 @ rev cs @ s2 @ s4 \<in> backref_lang4 L1 L2 L3 L4 cs"
+        using s1_in parts by (intro backref_lang4I)
+      moreover have "c # s = (c # s1) @ s2 @ s3 @ rev cs @ s2 @ s4"
+        using parts by simp
+      ultimately have "c # s \<in> backref_lang4 L1 L2 L3 L4 cs"
+        by simp
+      have "s \<in> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+        using \<open>c # s \<in> backref_lang4 L1 L2 L3 L4 cs\<close>
+        by (simp add: Der_def)
+      then show ?thesis .
+    next
+      case capture
+      then obtain s2 s3 s4 where parts:
+        "[] \<in> L1" "s2 \<in> Der c L2" "s3 \<in> L3" "s4 \<in> L4"
+        "s = s2 @ s3 @ rev cs @ c # s2 @ s4"
+        by (cases "[] \<in> L1") (auto simp add: backref_lang4_def)
+      have s2_in: "c # s2 \<in> L2"
+        using parts
+        by (simp add: Der_def)
+      have "[] @ (c # s2) @ s3 @ rev cs @ (c # s2) @ s4 \<in> backref_lang4 L1 L2 L3 L4 cs"
+        using parts s2_in by (intro backref_lang4I)
+      moreover have "c # s = [] @ (c # s2) @ s3 @ rev cs @ (c # s2) @ s4"
+        using parts by simp
+      ultimately have "c # s \<in> backref_lang4 L1 L2 L3 L4 cs"
+        by simp
+      have "s \<in> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+        using \<open>c # s \<in> backref_lang4 L1 L2 L3 L4 cs\<close>
+        by (simp add: Der_def)
+      then show ?thesis .
+    next
+      case tail
+      have both: "[] \<in> L1 \<and> [] \<in> L2"
+        using tail by (cases "[] \<in> L1 \<and> [] \<in> L2") auto
+      have nils: "[] \<in> L1" "[] \<in> L2"
+        using both by auto
+      have "s \<in> Der c (L3 ;; ({rev cs} ;; L4))"
+        using tail nils by simp
+      then obtain s3 s4 where parts:
+        "[] \<in> L1" "[] \<in> L2" "s3 \<in> L3" "s4 \<in> L4"
+        "c # s = s3 @ rev cs @ s4"
+        using nils by (auto simp add: Der_def Sequ_def)
+      have "[] @ [] @ s3 @ rev cs @ [] @ s4 \<in> backref_lang4 L1 L2 L3 L4 cs"
+        using parts by (intro backref_lang4I)
+      then have "c # s \<in> backref_lang4 L1 L2 L3 L4 cs"
+        using parts by simp
+      have "s \<in> Der c (backref_lang4 L1 L2 L3 L4 cs)"
+        using \<open>c # s \<in> backref_lang4 L1 L2 L3 L4 cs\<close>
+        by (simp add: Der_def)
+      then show ?thesis .
+    qed
+  qed
+qed
+
 end
