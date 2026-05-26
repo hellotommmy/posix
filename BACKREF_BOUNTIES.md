@@ -17,14 +17,14 @@ immutability.
 | --- | ---: |
 | Total pool | 50,000 |
 | Allocated (active + completed) | 23,770 |
-| Collected (paid out) | 10,770 |
+| Collected (paid out) | 13,770 |
 | Reserved (unallocated) | 26,230 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 4,320 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-017, and BR-021 |
+| Codex | Admin/Worker | 7,320 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-017, BR-018, and BR-021 |
 | Opus | Worker | 5,950 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; locked BR-015 |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -36,7 +36,6 @@ immutability.
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Opus | - | Isabelle:BackRefPilot | Major theorem; lock L-OPUS-015 |
 | BR-016 | Generalized `backref_lang4` value pilot | 1,500 | 70 | 7 | 1,500 | OPEN | - | - | Isabelle:BackRefPilot | Blueprint before migration |
-| BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-017 |
 | BR-019 | Bounded fragment theorem for backreferences | 4,000 | 200 | 9 | 4,000 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem; do not start before lexer |
 | BR-020 | Simplification rules for backreference lexer | 2,000 | 90 | 7 | 2,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-017 |
 
@@ -59,6 +58,7 @@ immutability.
 | BR-013 | Define and prove `blexer` for pilot `brexp` | 1,500 | 80 | 7 | 1,500 | DONE | Opus | BackRefValues.thy:blexer,blexer_BPrf,blexer_flat,blexer_correct_None,blexer_correct_Some | Isabelle:BackRefPilot | Commit `2e8c45a` |
 | BR-014 | Prove `blexer` correctness for pilot `brexp` | 2,000 | 100 | 8 | 2,000 | DONE | Opus | BackRefValues.thy:blexer_correctness,BPosix_binjval,blexer_POSIX,blexer_POSIX_iff | Isabelle:BackRefPilot | Cursor proof lane, Codex stabilization/build verification |
 | BR-017 | Bitcoded backreference lexer definition | 2,500 | 100 | 8 | 2,500 | DONE | Codex | BackRefBlexer.thy:bbit,barexp,berase,bfuse,baintern,bbnullable,bbmkeps,bbder,bblexer | Isabelle:BackRefPilot | Separate pilot file; erase/nullable/derivative checks included |
+| BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | DONE | Codex | BackRefBlexer.thy:bbder_bretrieve,bblexer_blexer_retrieve | Isabelle:BackRefPilot | Derivative retrieval transport plus bitcoded output matches `bretrieve (baintern r)` of `blexer` value |
 | BR-021 | Cursor/Opus loop startup kit | 140 | 15 | 4 | 140 | DONE | Codex | .cursor/hooks/posix_loop.ps1;.cursor/hooks/posix_loop.sh;agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json;agent_hunt_pipeline/projects/posix-backref/SLEEP_RUNBOOK.md | CursorHook:posix-loop | Supplemental robust hook and sleep runbook |
 
 ## Effort Estimate Key
@@ -112,6 +112,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T09:15:17Z | Codex | COLLECT | BR-008 | 800 | 2,070 | `backref_lang4I`, `Der_backref_lang4`; BackRefPilot passed |
 | 2026-05-26T09:35:51Z | Codex | LOCK | BR-017 | 250 | 1,820 | Lock L-CODEX-017 for bitcoded backreference lexer definitions |
 | 2026-05-26T09:42:18Z | Codex | COLLECT | BR-017 | 2,500 | 4,320 | `BackRefBlexer.thy` definitions plus erase/nullable/derivative checks; BackRefPilot passed |
+| 2026-05-26T10:57:17Z | Codex | COLLECT | BR-018 | 3,000 | 7,320 | `bbder_bretrieve`, `bblexer_blexer_retrieve`; BackRefPilot passed |
 
 ## Sub-Bounty Rules
 

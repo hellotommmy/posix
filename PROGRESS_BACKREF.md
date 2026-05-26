@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-018 retrieve layer partial)
+Last updated: 2026-05-26 (BR-018 bitcoded lexer correctness)
 
 ## Current Branch
 
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  and statement guard -- BR-018 bitcoded derivative retrieve transport and
+  `bblexer_blexer_retrieve`.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
   and statement guard -- BR-018 partial bitcoded retrieve layer for nullable
@@ -89,6 +93,11 @@ Latest result:
   - `berase_bbders`
   - `bblexer_defined_iff`
   - `bbmkeps_bretrieve`
+  - `bretrieve_bfuse`
+  - `bbder_bretrieve`
+  - `bbders_bretrieve_blexer`
+  - `bblexer_bretrieve_original`
+  - `bblexer_blexer_retrieve`
   - `bblexer_bretrieve`
   - `bblexer_retrieve_correctness`
 - Local/remote CI scaffolding now checks:
@@ -121,10 +130,45 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 5. ~~Prove `blexer` correctness for pilot `brexp` (BR-014).~~ DONE (BR-014)
 6. ~~Draft derivative story for generalized `backref_lang4`.~~ DONE (BR-008)
 7. ~~Start BR-017 bitcoded backreference lexer definitions in a new pilot file.~~ DONE (BR-017)
-8. BR-018 now has the nullable retrieve layer. Next non-overlapping lanes:
-   finish derivative-retrieve/decode-to-original-value correctness, BR-020
-   simplification rules for the new pilot, or BR-016 generalized value pilot.
-   BR-015 remains locked by Opus.
+8. ~~Finish derivative-retrieve/decode-to-original-value correctness for BR-018.~~ DONE (BR-018)
+9. Next non-overlapping lanes: BR-020 simplification rules for the new pilot,
+   or BR-016 generalized value pilot. BR-015 remains locked by Opus. BR-019
+   should still wait until the lexer/simplification story is stable.
+
+## BR-018 Bitcoded Backreference Lexer Correctness (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent lane: Codex new-file implementation lane
+- Files changed: `BackRefBlexer.thy`, `PROGRESS_BACKREF.md`,
+  `BACKREF_BOUNTIES.md`
+- Bitcode semantic fixes:
+  - `bretrieve` for `BABACKREF` now emits `Backbit (rev cs @ bflat v1)`,
+    so retrieval from non-null capture values records the full captured string.
+  - `bbder` now carries `bbmkeps r` into the transition from `BABACKREF` to
+    `BAHALF`, matching the Scala reference shape where nullable capture
+    evidence is preserved when replay begins.
+- New checked lemmas/theorem:
+  - `bretrieve_stars_append`
+  - `bretrieve_alts_append`
+  - `bretrieve_bfuse`
+  - `bbder_residue_bretrieve`
+  - `bbder_BAALTs_bretrieve`
+  - `bbder_bretrieve`
+  - `bbders_bbnullable_blexer`
+  - `bbders_bretrieve_blexer`
+  - `bblexer_bretrieve_original`
+  - `bblexer_blexer_retrieve`
+- Build: direct Isabelle `BackRefPilot` PASS with 90s timeout wrapper
+  (0:09 elapsed after the final proof edit); full local CI PASS with no-cheat
+  guard, bounty guard, admin role guard, Isabelle `Posix` (0:04 elapsed),
+  Isabelle `BackRefPilot` (0:04 elapsed), and statement guard.
+- Notes:
+  - `bblexer_blexer_retrieve` proves
+    `bblexer r s = map_option (bretrieve (baintern r)) (blexer r s)`.
+  - A broad proof attempt caused a timeout before this final structure; it was
+    replaced with explicit list/case lemmas per the proof-performance rule.
+- Next smallest safe step: BR-020 simplification rules in the new pilot file,
+  or BR-016 generalized value pilot if avoiding simplification work.
 
 ## BR-018 Retrieve Layer Partial (2026-05-26)
 

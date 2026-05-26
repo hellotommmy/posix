@@ -151,7 +151,7 @@ where
      (case v of BStars vs \<Rightarrow> bretrieve_stars bs (bretrieve r) vs | _ \<Rightarrow> [])"
 | "bretrieve (BABACKREF bs r mid cs) v =
      (case v of
-        BBackref v1 v2 cs' \<Rightarrow> bs @ [Backbit (rev cs)] @ bretrieve r v1 @ bretrieve mid v2
+        BBackref v1 v2 cs' \<Rightarrow> bs @ [Backbit (rev cs @ bflat v1)] @ bretrieve r v1 @ bretrieve mid v2
       | _ \<Rightarrow> [])"
 | "bretrieve (BAHALF bs mid cs rep) v =
      (case v of BHalf v' cs' rep' \<Rightarrow> bs @ bretrieve mid v' | _ \<Rightarrow> [])"
@@ -166,8 +166,16 @@ proof (induct rs arbitrary: bs)
   then show ?case by simp
 next
   case (Cons r rs)
-  then show ?case
-    by (cases rs) auto
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using Cons.prems by simp
+  next
+    case (Cons r' rs')
+    then show ?thesis
+      using Cons.prems Cons.hyps by simp
+  qed
 qed
 
 lemma bbnullable_correctness [simp]:
@@ -244,6 +252,12 @@ proof (induct r)
   then show ?case
     using bbmkeps_BAALTs_bretrieve[OF step nullable, of bs] by simp
 next
+  case (BABACKREF bs r mid cs)
+  have flat_r: "bflat (bmkeps (berase r)) = []"
+    using BABACKREF.prems by (auto intro: bmkeps_flat)
+  then show ?case
+    using BABACKREF by auto
+next
   case (BANTIMES bs r n)
   then show ?case
   proof (cases n)
@@ -260,6 +274,91 @@ next
       by simp
   qed
 qed (auto simp add: bretrieve_stars_replicate)
+
+lemma bretrieve_stars_append [simp]:
+  "bretrieve_stars (bs @ cs) f vs = bs @ bretrieve_stars cs f vs"
+  by (cases vs) simp_all
+
+lemma bretrieve_alts_append:
+  assumes "\<Turnstile>b v : berase (BAALTs cs rs)"
+  shows "bretrieve_alts (bs @ cs) (map bretrieve rs) v =
+    bs @ bretrieve_alts cs (map bretrieve rs) v"
+  using assms
+proof (induct rs arbitrary: bs cs v)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      by simp
+  next
+    case (Cons r' rs')
+    show ?thesis
+    proof (cases v)
+      case (BRight v2)
+      have prf_tail0: "\<Turnstile>b v2 : berase (BAALTs [] rs)"
+        using Cons.prems Cons BRight by (auto elim!: BPrf_elims)
+      have same: "berase (BAALTs cs rs) = berase (BAALTs [] rs)"
+        by (rule berase_BAALTs_ignore_bits)
+      have prf_tail: "\<Turnstile>b v2 : berase (BAALTs cs rs)"
+        using prf_tail0 by (simp only: same)
+      have "bretrieve_alts (bs @ cs) (map bretrieve rs) v2 =
+        bs @ bretrieve_alts cs (map bretrieve rs) v2"
+        using Cons.hyps[OF prf_tail] .
+      then show ?thesis
+        using Cons BRight by simp
+    qed (use Cons.prems Cons in \<open>auto elim!: BPrf_elims\<close>)
+  qed
+qed
+
+lemma bretrieve_bfuse:
+  assumes "\<Turnstile>b v : berase r"
+  shows "bretrieve (bfuse bs r) v = bs @ bretrieve r v"
+  using assms
+proof (cases r)
+  case BAZERO
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BAONE cs)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BACHAR cs c)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BAALTs cs rs)
+  then show ?thesis
+    using assms bretrieve_alts_append[of v cs rs bs] by simp
+next
+  case (BASEQ cs r1 r2)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BASTAR cs r)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BANTIMES cs r n)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BABACKREF cs r mid req)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BAHALF cs mid req rep)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+next
+  case (BARESIDUE cs req rep)
+  then show ?thesis
+    using assms by (auto elim: BPrf_elims)
+qed
 
 fun bbder_residue :: "char \<Rightarrow> bbit list \<Rightarrow> string \<Rightarrow> string \<Rightarrow> barexp"
 where
@@ -287,9 +386,10 @@ where
         (BABACKREF [] (bbder c r) mid (c # cs))
         (bfuse [Backbit (rev cs)]
           (if bbnullable mid
-           then BAALT [] (BAHALF [] (bbder c mid) (rev cs) (rev cs))
-                          (bbder_residue c [] (rev cs) (rev cs))
-           else BAHALF [] (bbder c mid) (rev cs) (rev cs)))
+           then BAALT (bbmkeps r)
+             (BAHALF [] (bbder c mid) (rev cs) (rev cs))
+             (bfuse (bbmkeps mid) (bbder_residue c [] (rev cs) (rev cs)))
+           else BAHALF (bbmkeps r) (bbder c mid) (rev cs) (rev cs)))
       else BABACKREF bs (bbder c r) mid (c # cs))"
 | "bbder c (BAHALF bs mid cs rep) =
      (if bbnullable mid
@@ -312,8 +412,16 @@ proof (induct rs arbitrary: bs)
   then show ?case by simp
 next
   case (Cons r rs)
-  then show ?case
-    by (cases rs) auto
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using Cons.prems by simp
+  next
+    case (Cons r' rs')
+    then show ?thesis
+      using Cons.prems Cons.hyps by simp
+  qed
 qed
 
 lemma berase_bbder [simp]:
@@ -323,6 +431,86 @@ proof (induct r arbitrary: c)
   then show ?case
     by (simp add: berase_BAALTs_map_bbder)
 qed simp_all
+
+lemma bbder_residue_bretrieve:
+  assumes "\<Turnstile>b v : xder_residue c cs rep"
+  shows "bretrieve (bbder_residue c bs cs rep) v =
+    bretrieve (BARESIDUE bs cs rep) (binjval (BRESIDUE cs rep) c v)"
+  using assms
+  by (cases cs) (auto elim: BPrf_elims split: if_splits)
+
+lemma bbder_BAALTs_bretrieve:
+  "(\<And>x w. \<lbrakk>x \<in> set rs; BPrf w (xder c (berase x))\<rbrakk> \<Longrightarrow>
+      bretrieve (bbder c x) w = bretrieve x (binjval (berase x) c w)) \<Longrightarrow>
+   BPrf v (xder c (berase (BAALTs bs rs))) \<Longrightarrow>
+   bretrieve (bbder c (BAALTs bs rs)) v =
+    bretrieve (BAALTs bs rs) (binjval (berase (BAALTs bs rs)) c v)"
+proof (induct rs arbitrary: bs v)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    have "bretrieve (bbder c r) v =
+      bretrieve r (binjval (berase r) c v)"
+      using Cons.prems Nil by simp
+    then show ?thesis
+      using Nil by simp
+  next
+    case (Cons r' rs')
+    show ?thesis
+    proof (cases v)
+      case (BLeft v1)
+      have prf_left: "BPrf v1 (xder c (berase r))"
+        using Cons.prems Cons BLeft by (auto elim!: BPrf_elims)
+      have "bretrieve (bbder c r) v1 =
+        bretrieve r (binjval (berase r) c v1)"
+        using Cons.prems(1)[OF _ prf_left] by simp
+      then show ?thesis
+        using Cons BLeft by simp
+    next
+      case (BRight v2)
+      have prf_tail0: "BPrf v2 (xder c (berase (BAALTs [] rs)))"
+        using Cons.prems Cons BRight by (auto elim!: BPrf_elims)
+      have same: "berase (BAALTs bs rs) = berase (BAALTs [] rs)"
+        by (rule berase_BAALTs_ignore_bits)
+      have prf_tail: "BPrf v2 (xder c (berase (BAALTs bs rs)))"
+        using prf_tail0 by (simp only: same)
+      have binj_same:
+        "binjval (berase (BAALTs bs rs)) c v2 =
+         binjval (berase (BAALTs [] rs)) c v2"
+        by (simp only: same)
+      have step_tail: "\<And>x w. x \<in> set rs \<Longrightarrow> BPrf w (xder c (berase x)) \<Longrightarrow>
+          bretrieve (bbder c x) w = bretrieve x (binjval (berase x) c w)"
+        using Cons.prems by auto
+      have "bretrieve (bbder c (BAALTs bs rs)) v2 =
+        bretrieve (BAALTs bs rs) (binjval (berase (BAALTs bs rs)) c v2)"
+        using Cons.hyps[OF step_tail prf_tail] .
+      then show ?thesis
+        using Cons BRight binj_same by simp
+    qed (use Cons.prems Cons in \<open>auto elim!: BPrf_elims\<close>)
+  qed
+qed
+
+lemma bbder_bretrieve:
+  assumes "BPrf v (xder c (berase r))"
+  shows "bretrieve (bbder c r) v = bretrieve r (binjval (berase r) c v)"
+  using assms
+proof (induct r arbitrary: c v)
+  case (BAALTs bs rs)
+  then show ?case
+    by (rule bbder_BAALTs_bretrieve)
+next
+  case (BARESIDUE bs cs rep)
+  then show ?case
+    using bbder_residue_bretrieve by simp
+qed (auto elim!: BPrf_elims
+    simp add: bretrieve_bfuse bbmkeps_bretrieve bbder_residue_bretrieve
+      binjval_flat bmkeps_flat
+    split: if_splits)
 
 fun bbders :: "barexp \<Rightarrow> string \<Rightarrow> barexp"
 where
@@ -342,6 +530,83 @@ lemma berase_bbders [simp]:
 lemma bblexer_defined_iff:
   "(\<exists>bs. bblexer r s = Some bs) \<longleftrightarrow> s \<in> BL r"
   by (simp add: bblexer_def xnullable_correctness xders_correctness Ders_def)
+
+lemma bbders_bbnullable_blexer:
+  assumes "blexer (berase a) s = Some v"
+  shows "bbnullable (bbders a s)"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then show ?case
+    by (auto split: if_splits)
+next
+  case (Cons c s)
+  then obtain w where "blexer (xder c (berase a)) s = Some w"
+    by (auto split: option.splits)
+  then have tail_der: "blexer (berase (bbder c a)) s = Some w"
+    by simp
+  then have "bbnullable (bbders (bbder c a) s)"
+    by (rule Cons.hyps)
+  then show ?case
+    by simp
+qed
+
+lemma bbders_bretrieve_blexer:
+  assumes "blexer (berase a) s = Some v"
+  shows "bbmkeps (bbders a s) = bretrieve a v"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then have nullable: "bbnullable a" and v_def: "v = bmkeps (berase a)"
+    by (auto split: if_splits)
+  show ?case
+    using nullable v_def bbmkeps_bretrieve by simp
+next
+  case (Cons c s)
+  then obtain w where tail: "blexer (xder c (berase a)) s = Some w"
+    and v_def: "v = binjval (berase a) c w"
+    by (auto split: option.splits)
+  have tail_der: "blexer (berase (bbder c a)) s = Some w"
+    using tail by simp
+  have mkeps_tail: "bbmkeps (bbders (bbder c a) s) =
+      bretrieve (bbder c a) w"
+    using Cons.hyps[OF tail_der] .
+  have transport: "bretrieve (bbder c a) w =
+      bretrieve a (binjval (berase a) c w)"
+    using tail by (intro bbder_bretrieve blexer_BPrf)
+  show ?case
+    using mkeps_tail transport v_def by simp
+qed
+
+lemma bblexer_bretrieve_original:
+  assumes "blexer r s = Some v"
+  shows "bblexer r s = Some (bretrieve (baintern r) v)"
+proof -
+  have nullable: "bbnullable (bbders (baintern r) s)"
+    using bbders_bbnullable_blexer[of "baintern r" s v] assms by simp
+  have bits: "bbmkeps (bbders (baintern r) s) = bretrieve (baintern r) v"
+    using bbders_bretrieve_blexer[of "baintern r" s v] assms by simp
+  show ?thesis
+    using nullable bits by (simp add: bblexer_def Let_def)
+qed
+
+theorem bblexer_blexer_retrieve:
+  "bblexer r s = map_option (bretrieve (baintern r)) (blexer r s)"
+proof (cases "blexer r s")
+  case None
+  then have "s \<notin> BL r"
+    using blexer_correct_None by blast
+  then have "\<not> (\<exists>bs. bblexer r s = Some bs)"
+    using bblexer_defined_iff by blast
+  then have "bblexer r s = None"
+    by (cases "bblexer r s") auto
+  then show ?thesis
+    using None by simp
+next
+  case (Some v)
+  then show ?thesis
+    using bblexer_bretrieve_original by simp
+qed
 
 lemma bblexer_bretrieve:
   assumes "bblexer r s = Some bs"
