@@ -787,6 +787,80 @@ theorem GBL_bound_derivative_family_bounded:
   using GBL_bound_gxders_bounded[OF assms]
   by (auto simp add: GBL_bounded_def)
 
+theorem BL_bound_finite_left_quotients:
+  assumes "BL_bound r = Some n"
+  shows "finite_left_quotients (BL r)"
+  using BL_bound_sound[OF assms]
+  by (auto simp add: BL_bounded_def intro: finite_left_quotients_if_bounded_language)
+
+theorem GBL_bound_finite_left_quotients:
+  assumes "GBL_bound r = Some n"
+  shows "finite_left_quotients (GBL r)"
+  using GBL_bound_sound[OF assms]
+  by (auto simp add: GBL_bounded_def intro: finite_left_quotients_if_bounded_language)
+
+theorem BL_bound_xders_finite_left_quotients:
+  assumes "BL_bound r = Some n"
+  shows "finite_left_quotients (BL (xders r s))"
+  using BL_bound_xders_bounded[OF assms]
+  by (auto simp add: BL_bounded_def intro: finite_left_quotients_if_bounded_language)
+
+theorem GBL_bound_gxders_finite_left_quotients:
+  assumes "GBL_bound r = Some n"
+  shows "finite_left_quotients (GBL (gxders r s))"
+  using GBL_bound_gxders_bounded[OF assms]
+  by (auto simp add: GBL_bounded_def intro: finite_left_quotients_if_bounded_language)
+
+theorem BL_bound_BBACKREF_finite_left_quotients:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite_left_quotients (BL (BBACKREF r mid cs))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_finite_left_quotients)
+qed
+
+theorem GBL_bound_GBACKREF4_finite_left_quotients:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite_left_quotients (GBL (GBACKREF4 r1 r2 r3 r4 cs))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_finite_left_quotients)
+qed
+
+theorem BL_bound_BBACKREF_xders_finite_left_quotients:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite_left_quotients (BL (xders (BBACKREF r mid cs) s))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_finite_left_quotients)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_finite_left_quotients:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite_left_quotients (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_finite_left_quotients)
+qed
+
 theorem BL_bound_BBACKREF_finite_derivative_languages:
   assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
   shows "finite_BL_derivatives (BBACKREF r mid cs)"
@@ -914,6 +988,12 @@ proof -
   finally show ?thesis .
 qed
 
+theorem bounded_language_left_quotient_family_finite:
+  assumes "bounded_language n A"
+  shows "finite {Ders s A | s. True}"
+  using finite_left_quotients_if_bounded_language[OF assms]
+  by (simp add: finite_left_quotients_def)
+
 theorem bounded_backref_lang_left_quotient_family_subset_bounded_strings:
   assumes "bounded_language n_capture A" "bounded_language n_mid B"
   shows "{Ders s (backref_lang A B cs) | s. True} \<subseteq>
@@ -986,6 +1066,21 @@ theorem bounded_backref_lang4_left_quotient_family_card_bound_mono:
     2 ^ card (bounded_strings m)"
   using bounded_language_backref_lang4[OF assms(1-4)] assms(5)
   by (rule bounded_language_left_quotient_family_card_bound_mono)
+
+theorem bounded_backref_lang_left_quotient_family_finite:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "finite {Ders s (backref_lang A B cs) | s. True}"
+  using bounded_backref_lang_finite_left_quotients[OF assms]
+  by (simp add: finite_left_quotients_def)
+
+theorem bounded_backref_lang4_left_quotient_family_finite:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "finite {Ders s (backref_lang4 L1 L2 L3 L4 cs) | s. True}"
+  using bounded_backref_lang4_finite_left_quotients[OF assms]
+  by (simp add: finite_left_quotients_def)
 
 theorem BL_bound_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n"
@@ -1075,6 +1170,18 @@ proof -
   finally show ?thesis .
 qed
 
+theorem BL_bound_derivative_family_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite {BL (xders r s) | s. True}"
+  using BL_bound_finite_derivative_languages[OF assms]
+  by (simp add: finite_BL_derivatives_def)
+
+theorem GBL_bound_derivative_family_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite {GBL (gxders r s) | s. True}"
+  using GBL_bound_finite_derivative_languages[OF assms]
+  by (simp add: finite_GBL_derivatives_def)
+
 theorem BL_bound_residual_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n"
   shows "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
@@ -1134,6 +1241,252 @@ proof -
     by (rule card_Pow_finite[OF finite_bounded_strings])
   finally show ?thesis .
 qed
+
+theorem BL_bound_residual_derivative_family_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite {BL (xders (xders r s) t) | t. True}"
+proof -
+  have sub: "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule BL_bound_residual_derivative_family_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem GBL_bound_residual_derivative_family_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite {GBL (gxders (gxders r s) t) | t. True}"
+proof -
+  have sub: "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule GBL_bound_residual_derivative_family_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem BL_bound_xders_finite_BL_derivatives:
+  assumes "BL_bound r = Some n"
+  shows "finite_BL_derivatives (xders r s)"
+  using BL_bound_residual_derivative_family_finite[OF assms]
+  by (simp add: finite_BL_derivatives_def)
+
+theorem GBL_bound_gxders_finite_GBL_derivatives:
+  assumes "GBL_bound r = Some n"
+  shows "finite_GBL_derivatives (gxders r s)"
+  using GBL_bound_residual_derivative_family_finite[OF assms]
+  by (simp add: finite_GBL_derivatives_def)
+
+theorem BL_bound_residual_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings m)"
+proof
+  fix A
+  assume "A \<in> {BL (xders (xders r s) t) | t. True}"
+  then obtain t where A: "A = BL (xders (xders r s) t)"
+    by blast
+  then have "A = BL (xders r (s @ t))"
+    by (simp add: xders_append)
+  then show "A \<in> Pow (bounded_strings m)"
+    using BL_bound_derivative_family_subset_bounded_strings_mono[OF assms] by blast
+qed
+
+theorem GBL_bound_residual_derivative_family_subset_bounded_strings_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> Pow (bounded_strings m)"
+proof
+  fix A
+  assume "A \<in> {GBL (gxders (gxders r s) t) | t. True}"
+  then obtain t where A: "A = GBL (gxders (gxders r s) t)"
+    by blast
+  then have "A = GBL (gxders r (s @ t))"
+    by (simp add: gxders_append)
+  then show "A \<in> Pow (bounded_strings m)"
+    using GBL_bound_derivative_family_subset_bounded_strings_mono[OF assms] by blast
+qed
+
+theorem BL_bound_residual_derivative_family_card_bound_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "card {BL (xders (xders r s) t) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule BL_bound_residual_derivative_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {BL (xders (xders r s) t) | t. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_residual_derivative_family_card_bound_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "card {GBL (gxders (gxders r s) t) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule GBL_bound_residual_derivative_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {GBL (gxders (gxders r s) t) | t. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "{BL (xders (xders (BBACKREF r mid cs) s) t) | t. True} \<subseteq>
+    Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_residual_derivative_family_subset_bounded_strings)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "{GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True} \<subseteq>
+    Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_residual_derivative_family_subset_bounded_strings)
+qed
+
+theorem BL_bound_BBACKREF_residual_derivative_family_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card {BL (xders (xders (BBACKREF r mid cs) s) t) | t. True} \<le>
+    2 ^ card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_residual_derivative_family_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card {GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True} \<le>
+    2 ^ card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_residual_derivative_family_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "{BL (xders (xders (BBACKREF r mid cs) s) t) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_residual_derivative_family_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "{GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_residual_derivative_family_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_BBACKREF_residual_derivative_family_card_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card {BL (xders (xders (BBACKREF r mid cs) s) t) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_residual_derivative_family_card_bound_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_card_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card {GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_residual_derivative_family_card_bound_mono)
+qed
+
+theorem BL_bound_BBACKREF_residual_derivative_family_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite {BL (xders (xders (BBACKREF r mid cs) s) t) | t. True}"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_residual_derivative_family_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite {GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True}"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_residual_derivative_family_finite)
+qed
+
+theorem BL_bound_BBACKREF_xders_finite_BL_derivatives:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite_BL_derivatives (xders (BBACKREF r mid cs) s)"
+  using BL_bound_BBACKREF_residual_derivative_family_finite[OF assms]
+  by (simp add: finite_BL_derivatives_def)
+
+theorem GBL_bound_GBACKREF4_gxders_finite_GBL_derivatives:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite_GBL_derivatives (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)"
+  using GBL_bound_GBACKREF4_residual_derivative_family_finite[OF assms]
+  by (simp add: finite_GBL_derivatives_def)
 
 theorem BL_bound_BBACKREF_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
@@ -1248,5 +1601,20 @@ proof -
   then show ?thesis
     using assms(5) by (rule GBL_bound_derivative_family_card_bound_mono)
 qed
+
+theorem BL_bound_BBACKREF_derivative_family_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite {BL (xders (BBACKREF r mid cs) s) | s. True}"
+  using BL_bound_BBACKREF_finite_derivative_languages[OF assms]
+  by (simp add: finite_BL_derivatives_def)
+
+theorem GBL_bound_GBACKREF4_derivative_family_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite {GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True}"
+  using GBL_bound_GBACKREF4_finite_derivative_languages[OF assms]
+  by (simp add: finite_GBL_derivatives_def)
 
 end

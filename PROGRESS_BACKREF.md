@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual derivative-family universe bounds)
+Last updated: 2026-05-27 (finite left-quotient predicate wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,57 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding direct finite-left-quotient
+  wrappers for successful `BL_bound`/`GBL_bound` calculations in
+  `BackRefBoundedBlueprint.thy`. New checked facts expose
+  `finite_left_quotients (BL r)`/`finite_left_quotients (GBL r)`, their
+  already-derived `xders`/`gxders` states, and constructor-specific
+  `BBACKREF`/`GBACKREF4` variants. Pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 2.6 seconds. Final full local CI passed with Isabelle `Posix` (0:04
+  elapsed), Isabelle `BackRefPilot` (0:04 elapsed), local CI certificate
+  generation, and explicit statement guard PASS.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding direct predicate wrappers for
+  derivative residues in `BackRefBoundedBlueprint.thy`. New checked facts
+  expose `finite_BL_derivatives (xders r s)` and
+  `finite_GBL_derivatives (gxders r s)` from successful `BL_bound`/`GBL_bound`
+  calculations, plus constructor-specific `BBACKREF` and `GBACKREF4`
+  variants. Pilot-only local CI passed with `BackRefPilot` (0:16 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 1.7 seconds. Final full local
+  CI passed with Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot`
+  (0:04 elapsed), and local CI certificate generation.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding raw finite-set wrappers for
+  semantic left-quotient families in `BackRefBoundedBlueprint.thy`. New
+  checked facts expose `finite {Ders s A | s. True}` for bounded languages
+  and specialize that wrapper to `backref_lang` and `backref_lang4`.
+  Pilot-only local CI passed with `BackRefPilot` (0:15 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 1.7 seconds. Full local CI
+  passed with Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot`
+  (0:03 elapsed), and local CI certificate generation.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding explicit finite-set wrappers for
+  bounded derivative and residual derivative language families in
+  `BackRefBoundedBlueprint.thy`. New checked facts expose raw
+  `finite {...}` theorems for `BL_bound`/`GBL_bound` families and the
+  constructor-specific `BBACKREF`/`GBACKREF4` packages, complementing the
+  existing bounded-string subset/cardinality statements. Pilot-only local CI
+  passed with `BackRefPilot` (0:16 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 2.1 seconds. Final full local
+  CI passed with Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI
+  certificate generation.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding constructor-specific residual
+  derivative-family finite-universe/cardinality wrappers in
+  `BackRefBoundedBlueprint.thy`. New checked facts specialize the residual
+  derivative-family subset/cardinality bounds to `BBACKREF` and `GBACKREF4`,
+  and add monotone residual variants for larger external bounded-string
+  universes. Pilot-only local CI passed with `BackRefPilot` (0:16 elapsed)
+  and `BackRefBoundedBlueprint` replaying in about 1.7 seconds. Final full
+  local CI passed with Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI
+  certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding residual derivative-family
   finite-universe/cardinality wrappers in `BackRefBoundedBlueprint.thy`. New
@@ -291,14 +342,37 @@ Latest result:
   - `GBL_bound_derivative_family_subset_bounded_strings`
   - `BL_bound_derivative_family_card_bound`
   - `GBL_bound_derivative_family_card_bound`
+  - `BL_bound_derivative_family_finite`
+  - `GBL_bound_derivative_family_finite`
   - `BL_bound_residual_derivative_family_subset_bounded_strings`
   - `GBL_bound_residual_derivative_family_subset_bounded_strings`
   - `BL_bound_residual_derivative_family_card_bound`
   - `GBL_bound_residual_derivative_family_card_bound`
+  - `BL_bound_residual_derivative_family_finite`
+  - `GBL_bound_residual_derivative_family_finite`
+  - `BL_bound_xders_finite_BL_derivatives`
+  - `GBL_bound_gxders_finite_GBL_derivatives`
+  - `BL_bound_residual_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_residual_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_residual_derivative_family_card_bound_mono`
+  - `GBL_bound_residual_derivative_family_card_bound_mono`
+  - `BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings`
+  - `BL_bound_BBACKREF_residual_derivative_family_card_bound`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_card_bound`
+  - `BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_BBACKREF_residual_derivative_family_card_bound_mono`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_card_bound_mono`
+  - `BL_bound_BBACKREF_residual_derivative_family_finite`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_finite`
+  - `BL_bound_BBACKREF_xders_finite_BL_derivatives`
+  - `GBL_bound_GBACKREF4_gxders_finite_GBL_derivatives`
   - `bounded_language_left_quotient_family_subset_bounded_strings`
   - `bounded_language_left_quotient_family_subset_bounded_strings_mono`
   - `bounded_language_left_quotient_family_card_bound`
   - `bounded_language_left_quotient_family_card_bound_mono`
+  - `bounded_language_left_quotient_family_finite`
   - `bounded_backref_lang_left_quotient_family_subset_bounded_strings`
   - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings`
   - `bounded_backref_lang_left_quotient_family_card_bound`
@@ -307,10 +381,14 @@ Latest result:
   - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings_mono`
   - `bounded_backref_lang_left_quotient_family_card_bound_mono`
   - `bounded_backref_lang4_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang_left_quotient_family_finite`
+  - `bounded_backref_lang4_left_quotient_family_finite`
   - `BL_bound_BBACKREF_derivative_family_subset_bounded_strings`
   - `GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings`
   - `BL_bound_BBACKREF_derivative_family_card_bound`
   - `GBL_bound_GBACKREF4_derivative_family_card_bound`
+  - `BL_bound_BBACKREF_derivative_family_finite`
+  - `GBL_bound_GBACKREF4_derivative_family_finite`
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -487,9 +565,191 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `GBACKREF4` constructors inside the finite universe
     `Pow (bounded_strings n)` with explicit cardinal bounds. The residual
     derivative-family package shows the same original universe/cardinality
-    bound after any already consumed prefix. No active bounty remains on
+    bound after any already consumed prefix, and the latest wrapper package
+    specializes those residual facts to `BBACKREF`/`GBACKREF4` with monotone
+    larger-universe variants. The current finite-wrapper packages also expose
+    raw `finite {...}` facts for semantic left quotients, derivative families,
+    and residual derivative families. The newest residue-predicate wrappers
+    expose direct `finite_BL_derivatives`/`finite_GBL_derivatives` facts for
+    arbitrary already-derived states, including constructor-specific
+    `BBACKREF`/`GBACKREF4` states. The latest predicate wrapper package also
+    exposes `finite_left_quotients` facts for successful syntactic bounds and
+    for already-derived bounded states, including constructor-specific
+    `BBACKREF`/`GBACKREF4` states. No active bounty remains on
     `BACKREF_BOUNTIES.md`; production bounds or closed-form work should still
     wait for a new admin task.
+
+## Finite Left-Quotient Predicate Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+368 current theory delta
+  before this progress note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `BL_bound_finite_left_quotients`
+  - `GBL_bound_finite_left_quotients`
+  - `BL_bound_xders_finite_left_quotients`
+  - `GBL_bound_gxders_finite_left_quotients`
+  - `BL_bound_BBACKREF_finite_left_quotients`
+  - `GBL_bound_GBACKREF4_finite_left_quotients`
+  - `BL_bound_BBACKREF_xders_finite_left_quotients`
+  - `GBL_bound_GBACKREF4_gxders_finite_left_quotients`
+- Build:
+  - Pre-edit dirty-state pilot-only local CI PASS with no-cheat guard, bounty
+    guard, admin role guard, and Isabelle `BackRefPilot` (0:04 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:16 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 2.6 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04
+    elapsed), local CI certificate generation, and explicit statement guard
+    PASS.
+- Notes:
+  - This is additive theorem packaging over the checked syntactic boundedness
+    calculator and already checked `xders`/`gxders` boundedness facts.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
+
+## Derivative Residue Predicate Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+294 current theory delta
+  before this progress note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `BL_bound_xders_finite_BL_derivatives`
+  - `GBL_bound_gxders_finite_GBL_derivatives`
+  - `BL_bound_BBACKREF_xders_finite_BL_derivatives`
+  - `GBL_bound_GBACKREF4_gxders_finite_GBL_derivatives`
+- Build:
+  - Pre-edit dirty-state pilot-only local CI PASS with no-cheat guard, bounty
+    guard, admin role guard, and Isabelle `BackRefPilot` (0:03 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:16 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 1.7 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04
+    elapsed), and local CI certificate generation.
+- Notes:
+  - This is additive theorem packaging over already checked residual
+    derivative-family finite-set facts.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
+
+## Semantic Left-Quotient Finite Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+267 current theory delta
+  before this progress note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `bounded_language_left_quotient_family_finite`
+  - `bounded_backref_lang_left_quotient_family_finite`
+  - `bounded_backref_lang4_left_quotient_family_finite`
+- Build:
+  - Pre-edit dirty-state pilot-only local CI PASS with no-cheat guard, bounty
+    guard, admin role guard, and Isabelle `BackRefPilot` (0:03 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:15 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 1.7 seconds.
+  - Full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+    and local CI certificate generation.
+- Notes:
+  - This is additive theorem packaging over the existing
+    `finite_left_quotients` bounded-language package.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
+
+## Finite Derivative-Family Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+246 total worktree delta
+  before this progress note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `BL_bound_derivative_family_finite`
+  - `GBL_bound_derivative_family_finite`
+  - `BL_bound_residual_derivative_family_finite`
+  - `GBL_bound_residual_derivative_family_finite`
+  - `BL_bound_BBACKREF_residual_derivative_family_finite`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_finite`
+  - `BL_bound_BBACKREF_derivative_family_finite`
+  - `GBL_bound_GBACKREF4_derivative_family_finite`
+- Build:
+  - Existing dirty state pilot-only local CI PASS with no-cheat guard, bounty
+    guard, admin role guard, and Isabelle `BackRefPilot` (0:03 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:16 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 2.1 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+    generation.
+- Notes:
+  - This is additive theorem packaging over already checked finite-derivative,
+    residual subset, and constructor-specific bounded-string universe facts.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
+
+## Constructor Residual Derivative-Family Bounds (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+174 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `BL_bound_residual_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_residual_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_residual_derivative_family_card_bound_mono`
+  - `GBL_bound_residual_derivative_family_card_bound_mono`
+  - `BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings`
+  - `BL_bound_BBACKREF_residual_derivative_family_card_bound`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_card_bound`
+  - `BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_BBACKREF_residual_derivative_family_card_bound_mono`
+  - `GBL_bound_GBACKREF4_residual_derivative_family_card_bound_mono`
+- Build:
+  - Pre-edit pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+    role guard, and Isabelle `BackRefPilot` (0:03 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:16 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 1.7 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+    generation.
+- Notes:
+  - This is additive theorem packaging over the checked residual
+    derivative-family universe bounds and the constructor-specific
+    `BL_bound`/`GBL_bound` arithmetic wrappers.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
 
 ## Residual Derivative-Family Universe Bounds (2026-05-27)
 
@@ -728,6 +988,14 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - `GBL_bound_gxders_bounded`
   - `BL_bound_derivative_family_bounded`
   - `GBL_bound_derivative_family_bounded`
+  - `BL_bound_finite_left_quotients`
+  - `GBL_bound_finite_left_quotients`
+  - `BL_bound_xders_finite_left_quotients`
+  - `GBL_bound_gxders_finite_left_quotients`
+  - `BL_bound_BBACKREF_finite_left_quotients`
+  - `GBL_bound_GBACKREF4_finite_left_quotients`
+  - `BL_bound_BBACKREF_xders_finite_left_quotients`
+  - `GBL_bound_GBACKREF4_gxders_finite_left_quotients`
   - `BL_bound_BBACKREF_finite_derivative_languages`
   - `GBL_bound_GBACKREF4_finite_derivative_languages`
 - Build:
