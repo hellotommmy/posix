@@ -18,6 +18,21 @@ theorem bblexer_frontends_blexer_retrieve:
   by (simp_all add: bblexer_blexer_retrieve bblexer_simp_blexer_retrieve
       bblexer_step_simp_blexer_retrieve)
 
+theorem bblexer_frontends_blexer_iff:
+  "bblexer r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  "bblexer r s = None \<longleftrightarrow> blexer r s = None"
+  "bblexer_simp r s = None \<longleftrightarrow> blexer r s = None"
+  "bblexer_step_simp r s = None \<longleftrightarrow> blexer r s = None"
+  by (simp_all add: bblexer_Some_blexer_iff
+      bblexer_simp_Some_blexer_iff bblexer_step_simp_Some_blexer_iff
+      bblexer_None_blexer_iff bblexer_simp_None_blexer_iff
+      bblexer_step_simp_None_blexer_iff)
+
 theorem bblexer_frontends_POSIX_retrieve:
   assumes "s \<in> r \<rightarrow> v"
   shows "bblexer r s = Some (bretrieve (baintern r) v)"
@@ -151,6 +166,21 @@ theorem gbblexer_frontends_gblexer_Some_retrieve:
     and "gbblexer_step_simp r s = Some (gretrieve (gaintern r) v)"
   using assms by (simp_all add: gbblexer_gblexer_retrieve
       gbblexer_simp_gblexer_retrieve gbblexer_step_simp_gblexer_retrieve)
+
+theorem gbblexer_frontends_gblexer_iff:
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  "gbblexer r s = None \<longleftrightarrow> gblexer r s = None"
+  "gbblexer_simp r s = None \<longleftrightarrow> gblexer r s = None"
+  "gbblexer_step_simp r s = None \<longleftrightarrow> gblexer r s = None"
+  by (simp_all add: gbblexer_Some_gblexer_iff
+      gbblexer_simp_Some_gblexer_iff gbblexer_step_simp_Some_gblexer_iff
+      gbblexer_None_gblexer_iff gbblexer_simp_None_gblexer_iff
+      gbblexer_step_simp_None_gblexer_iff)
 
 theorem gbblexer_frontends_GPrf_retrieve_iff:
   "gbblexer r s = Some bs \<longleftrightarrow>
