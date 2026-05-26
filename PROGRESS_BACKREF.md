@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (generalized bitcoded retrieve transport)
+Last updated: 2026-05-26 (generalized bitcoded simplifier)
 
 ## Current Branch
 
@@ -18,6 +18,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard after adding the generalized `gabbsimp` and
+  per-step `gbblexer_step_simp` layer in `BackRefGBlexer.thy`. A pilot-only
+  precheck passed first; `BackRefGBlexer` replayed in about 2.3 seconds.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
   local CI certificate generation, and explicit statement guard after adding
@@ -228,6 +233,16 @@ Latest result:
   - `gbblexer_gblexer_retrieve`
   - `gbblexer_gretrieve`
   - `gbblexer_retrieve_correctness`
+  - `gerase_gabbsimp`
+  - `gabnullable_gabbsimp`
+  - `gretrieve_gabbsimp`
+  - `gamkeps_gabbsimp`
+  - `gerase_gabders_simp`
+  - `gabnullable_gabders_simp`
+  - `gabders_simp_gretrieve_gblexer`
+  - `gbblexer_simp_correctness`
+  - `gbblexer_step_simp_defined_iff`
+  - `gbblexer_step_simp_correctness`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -270,11 +285,55 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     (`BackRefGBlexer.thy`)
 17. ~~Extend generalized bitcoded layer with derivative retrieve transport
     relating `gbblexer` to `gblexer`.~~ DONE
-18. Optional next generalized bitcoded layer: add a conservative
-    `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`, if useful.
+18. ~~Optional next generalized bitcoded layer: add a conservative
+    `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`.~~ DONE
 19. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Bitcoded Simplifier (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit on top of `32e5ff7`
+- Agent lane: Codex new-file generalized bitcoded pilot lane
+- Files changed: `BackRefGBlexer.thy` (+243 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `gabbsimp`
+  - `gabders_simp`
+  - `gbblexer_simp`
+  - `gbblexer_step_simp`
+- New checked lemmas/theorems:
+  - `gerase_gabbsimp`
+  - `gabnullable_gabbsimp`
+  - `gabbsimp_gfuse`
+  - `gretrieve_gabbsimp`
+  - `gamkeps_gabbsimp`
+  - `gerase_gabders_simp`
+  - `gabnullable_gabders_simp`
+  - `gabders_simp_gabnullable_gblexer`
+  - `gabders_simp_gretrieve_gblexer`
+  - `gbblexer_simp_correctness`
+  - `gbblexer_step_simp_defined_iff`
+  - `gbblexer_step_simp_correctness`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `BackRefPilot` (0:14 elapsed), and local CI certificate
+    generation; `BackRefGBlexer` replayed in about 2.3 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI
+    certificate generation.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no statement
+    modifications.
+- Notes:
+  - This mirrors the existing `BackRefBlexer.thy` simplifier story at the
+    generalized annotated layer and proves exact preservation of `gbblexer`.
+  - This remains additive in `BackRefGBlexer.thy`; it does not touch frozen
+    `brexp`, `BL`, `xnullable`, `xder`, `BPrf`, production `Blexer*`, bounds,
+    closed-form theories, or Opus's BR-015 lock.
+- Next smallest safe step: keep BR-019 blocked until an explicit
+  bounded-fragment statement is accepted, or wait for Opus/admin direction on
+  the remaining POSIX ordering lane.
 
 ## Generalized Bitcoded Retrieve Transport (2026-05-26)
 

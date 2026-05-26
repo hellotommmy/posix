@@ -632,4 +632,247 @@ proof -
     using gnullable by (rule gmkeps_flat)
 qed
 
+section \<open>Bitcoded Generalized Backreference Simplification\<close>
+
+fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
+where
+  "gabbsimp (GABASE bs r) = GABASE bs (bbsimp r)"
+| "gabbsimp (GAALTs bs []) = GABASE bs BAZERO"
+| "gabbsimp (GAALTs bs [r]) = gfuse bs (gabbsimp r)"
+| "gabbsimp (GAALTs bs (r1 # r2 # rs)) = GAALTs bs (r1 # r2 # rs)"
+| "gabbsimp (GABACKREF4 bs r1 r2 r3 r4 cs) =
+    GABACKREF4 bs (bbsimp r1) (bbsimp r2) (bbsimp r3) (bbsimp r4) cs"
+
+lemma gfuse_append [simp]:
+  "gfuse (bs1 @ bs2) r = gfuse bs1 (gfuse bs2 r)"
+  by (cases r) (simp_all add: append_assoc)
+
+lemma gerase_gabbsimp [simp]:
+  "gerase (gabbsimp r) = gerase r"
+proof (induct r)
+  case (GAALTs bs rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons r rs')
+    note outer = Cons
+    show ?thesis
+    proof (cases rs')
+      case Nil
+      then show ?thesis
+        using GAALTs.hyps outer by simp
+    next
+      case (Cons r' rs'')
+      then show ?thesis
+        using outer by simp
+    qed
+  qed
+qed simp_all
+
+lemma gabnullable_gabbsimp [simp]:
+  "gabnullable (gabbsimp r) = gabnullable r"
+  by (simp add: gabnullable_correctness)
+
+lemma gabbsimp_gfuse [simp]:
+  "gabbsimp (gfuse bs r) = gfuse bs (gabbsimp r)"
+proof (cases r)
+  case (GAALTs cs rs)
+  then show ?thesis
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using GAALTs by simp
+  next
+    case (Cons r rs')
+    then show ?thesis
+      using GAALTs by (cases rs') (simp_all add: append_assoc)
+  qed
+qed (simp_all add: append_assoc)
+
+lemma gretrieve_gabbsimp:
+  assumes "GPrf v (gerase r)"
+  shows "gretrieve (gabbsimp r) v = gretrieve r v"
+  using assms
+proof (induct r arbitrary: v)
+  case (GABASE bs r)
+  then show ?case
+    by (auto elim!: GPrf_elims simp add: bretrieve_bbsimp)
+next
+  case (GAALTs bs rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using GAALTs.prems by (auto elim!: GPrf_elims)
+  next
+    case (Cons r rs')
+    note outer = Cons
+    show ?thesis
+    proof (cases rs')
+      case Nil
+      have prf_r: "GPrf v (gerase r)"
+        using GAALTs.prems outer Nil by simp
+      have "gretrieve (gfuse bs (gabbsimp r)) v =
+        bs @ gretrieve (gabbsimp r) v"
+        using prf_r by (simp add: gretrieve_gfuse)
+      also have "... = bs @ gretrieve r v"
+        using GAALTs.hyps prf_r outer Nil by simp
+      finally have "gretrieve (gfuse bs (gabbsimp r)) v =
+        bs @ gretrieve r v" .
+      then show ?thesis
+        using outer Nil by simp
+    next
+      case (Cons r' rs'')
+      then show ?thesis
+        using outer by simp
+    qed
+  qed
+next
+  case (GABACKREF4 bs r1 r2 r3 r4 cs)
+  then show ?case
+    by (auto elim!: GPrf_elims BPrf4_elims simp add: bretrieve_bbsimp)
+qed
+
+lemma gamkeps_gabbsimp:
+  assumes "gabnullable r"
+  shows "gamkeps (gabbsimp r) = gamkeps r"
+proof -
+  have nullable_simp: "gabnullable (gabbsimp r)"
+    using assms by simp
+  have "gamkeps (gabbsimp r) =
+      gretrieve (gabbsimp r) (gmkeps (gerase (gabbsimp r)))"
+    using nullable_simp by (rule gamkeps_gretrieve)
+  also have "... = gretrieve (gabbsimp r) (gmkeps (gerase r))"
+    by simp
+  also have "... = gretrieve r (gmkeps (gerase r))"
+    using assms by (intro gretrieve_gabbsimp gmkeps_GPrf)
+      (simp add: gabnullable_correctness)
+  also have "... = gamkeps r"
+    using assms gamkeps_gretrieve by simp
+  finally show ?thesis .
+qed
+
+fun gabders_simp :: "gabexp \<Rightarrow> string \<Rightarrow> gabexp"
+where
+  "gabders_simp r [] = gabbsimp r"
+| "gabders_simp r (c # s) = gabders_simp (gabbsimp (gabder c r)) s"
+
+lemma gerase_gabders_simp [simp]:
+  "gerase (gabders_simp r s) = gxders (gerase r) s"
+  by (induct s arbitrary: r) simp_all
+
+lemma gabnullable_gabders_simp [simp]:
+  "gabnullable (gabders_simp r s) = gabnullable (gabders r s)"
+  by (simp add: gabnullable_correctness)
+
+lemma gabders_simp_gabnullable_gblexer:
+  assumes "gblexer (gerase a) s = Some v"
+  shows "gabnullable (gabders_simp a s)"
+  using assms gabders_gabnullable_gblexer[of a s v] by simp
+
+lemma gabders_simp_gretrieve_gblexer:
+  assumes "gblexer (gerase a) s = Some v"
+  shows "gamkeps (gabders_simp a s) = gretrieve a v"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then have nullable: "gabnullable a" and v_def: "v = gmkeps (gerase a)"
+    by (auto split: if_splits)
+  have "gamkeps (gabders_simp a []) = gamkeps (gabbsimp a)"
+    by simp
+  also have "... = gamkeps a"
+    using nullable by (rule gamkeps_gabbsimp)
+  also have "... = gretrieve a (gmkeps (gerase a))"
+    using nullable gamkeps_gretrieve by simp
+  finally show ?case
+    using v_def by simp
+next
+  case (Cons c s)
+  then obtain w where tail: "gblexer (gxder c (gerase a)) s = Some w"
+    and v_def: "v = ginjval (gerase a) c w"
+    by (auto split: option.splits)
+  have tail_simp: "gblexer (gerase (gabbsimp (gabder c a))) s = Some w"
+    using tail by simp
+  have mkeps_tail:
+    "gamkeps (gabders_simp (gabbsimp (gabder c a)) s) =
+      gretrieve (gabbsimp (gabder c a)) w"
+    using Cons.hyps[OF tail_simp] .
+  have prf_w: "GPrf w (gerase (gabder c a))"
+    using tail by (simp add: gblexer_GPrf)
+  have retrieve_simp:
+    "gretrieve (gabbsimp (gabder c a)) w = gretrieve (gabder c a) w"
+    using prf_w by (rule gretrieve_gabbsimp)
+  have transport:
+    "gretrieve (gabder c a) w = gretrieve a (ginjval (gerase a) c w)"
+    using tail by (intro gabder_gretrieve gblexer_GPrf)
+  show ?case
+    using mkeps_tail retrieve_simp transport v_def by simp
+qed
+
+definition gbblexer_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
+where
+  "gbblexer_simp r s =
+    (let r' = gabbsimp (gabders (gaintern r) s) in
+      if gabnullable r' then Some (gamkeps r') else None)"
+
+theorem gbblexer_simp_correctness:
+  "gbblexer_simp r s = gbblexer r s"
+proof -
+  show ?thesis
+  proof (cases "gabnullable (gabders (gaintern r) s)")
+    case True
+    then have "gamkeps (gabbsimp (gabders (gaintern r) s)) =
+        gamkeps (gabders (gaintern r) s)"
+      by (rule gamkeps_gabbsimp)
+    then show ?thesis
+      using True by (simp add: gbblexer_simp_def gbblexer_def Let_def)
+  next
+    case False
+    then show ?thesis
+      by (simp add: gbblexer_simp_def gbblexer_def Let_def)
+  qed
+qed
+
+definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
+where
+  "gbblexer_step_simp r s =
+    (let r' = gabders_simp (gaintern r) s in
+      if gabnullable r' then Some (gamkeps r') else None)"
+
+lemma gbblexer_step_simp_defined_iff:
+  "(\<exists>bs. gbblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+  by (simp add: gbblexer_step_simp_def gnullable_correctness
+      gxders_correctness Ders_def Let_def)
+
+theorem gbblexer_step_simp_correctness:
+  "gbblexer_step_simp r s = gbblexer r s"
+proof (cases "gblexer r s")
+  case None
+  then have "s \<notin> GBL r"
+    using gblexer_correct_None by blast
+  then have "\<not> (\<exists>bs. gbblexer_step_simp r s = Some bs)"
+    using gbblexer_step_simp_defined_iff by blast
+  then have step_none: "gbblexer_step_simp r s = None"
+    by (cases "gbblexer_step_simp r s") auto
+  moreover have "gbblexer r s = None"
+    using None gbblexer_gblexer_retrieve by simp
+  ultimately show ?thesis
+    by simp
+next
+  case (Some v)
+  have nullable: "gabnullable (gabders_simp (gaintern r) s)"
+    using Some gabders_simp_gabnullable_gblexer[of "gaintern r" s v] by simp
+  have bits:
+    "gamkeps (gabders_simp (gaintern r) s) = gretrieve (gaintern r) v"
+    using Some gabders_simp_gretrieve_gblexer[of "gaintern r" s v] by simp
+  have step: "gbblexer_step_simp r s = Some (gretrieve (gaintern r) v)"
+    using nullable bits by (simp add: gbblexer_step_simp_def Let_def)
+  have original: "gbblexer r s = Some (gretrieve (gaintern r) v)"
+    using Some gbblexer_gblexer_retrieve by simp
+  show ?thesis
+    using step original by simp
+qed
+
 end
