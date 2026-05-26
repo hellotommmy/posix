@@ -565,6 +565,172 @@ next
     by (auto split: option.splits intro: GBL_bounded_GBACKREF4)
 qed
 
+lemma BL_bound_xder_residue_defined:
+  "\<exists>n. BL_bound (xder_residue c cs rep) = Some n"
+  by (cases cs) simp_all
+
+lemma BL_bound_xder_defined:
+  assumes "BL_bound r = Some n"
+  shows "\<exists>m. BL_bound (xder c r) = Some m"
+  using assms
+proof (induct r arbitrary: n c)
+  case BZERO
+  then show ?case
+    by simp
+next
+  case BONE
+  then show ?case
+    by simp
+next
+  case (BCH d)
+  then show ?case
+    by simp
+next
+  case (BSEQ r1 r2)
+  then obtain n1 n2 where bounds:
+    "BL_bound r1 = Some n1" "BL_bound r2 = Some n2"
+    by (auto split: option.splits)
+  then obtain m1 where d1: "BL_bound (xder c r1) = Some m1"
+    using BSEQ.hyps(1) by blast
+  from bounds obtain m2 where d2: "BL_bound (xder c r2) = Some m2"
+    using BSEQ.hyps(2) by blast
+  show ?case
+    using bounds d1 d2 by (auto split: if_splits)
+next
+  case (BALT r1 r2)
+  then obtain n1 n2 where bounds:
+    "BL_bound r1 = Some n1" "BL_bound r2 = Some n2"
+    by (auto split: option.splits)
+  then obtain m1 where d1: "BL_bound (xder c r1) = Some m1"
+    using BALT.hyps(1) by blast
+  from bounds obtain m2 where d2: "BL_bound (xder c r2) = Some m2"
+    using BALT.hyps(2) by blast
+  show ?case
+    using d1 d2 by simp
+next
+  case (BSTAR r)
+  then obtain n0 where bound: "BL_bound r = Some n0" "n0 = 0"
+    by (auto split: option.splits if_splits)
+  then obtain m where d: "BL_bound (xder c r) = Some m"
+    using BSTAR.hyps by blast
+  show ?case
+    using bound d by simp
+next
+  case (BNTIMES r k)
+  show ?case
+  proof (cases k)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc k')
+    from BNTIMES.prems obtain n0 where bound: "BL_bound r = Some n0"
+      by (auto split: option.splits)
+    then obtain m where d: "BL_bound (xder c r) = Some m"
+      using BNTIMES.hyps by blast
+    show ?thesis
+      using Suc bound d by simp
+  qed
+next
+  case (BBACKREF r mid cs)
+  then obtain n_capture n_mid where bounds:
+    "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+    by (auto split: option.splits)
+  then obtain m_capture where d_capture: "BL_bound (xder c r) = Some m_capture"
+    using BBACKREF.hyps(1) by blast
+  from bounds obtain m_mid where d_mid: "BL_bound (xder c mid) = Some m_mid"
+    using BBACKREF.hyps(2) by blast
+  obtain m_res where d_res: "BL_bound (xder_residue c (rev cs) (rev cs)) = Some m_res"
+    using BL_bound_xder_residue_defined by blast
+  show ?case
+    using bounds d_capture d_mid d_res by (auto split: if_splits)
+next
+  case (BHALF mid cs rep)
+  then obtain n_mid where bound: "BL_bound mid = Some n_mid"
+    by (auto split: option.splits)
+  then obtain m_mid where d_mid: "BL_bound (xder c mid) = Some m_mid"
+    using BHALF.hyps by blast
+  obtain m_res where d_res: "BL_bound (xder_residue c cs rep) = Some m_res"
+    using BL_bound_xder_residue_defined by blast
+  show ?case
+    using bound d_mid d_res by (auto split: if_splits)
+next
+  case (BRESIDUE cs rep)
+  show ?case
+    by (cases cs) simp_all
+qed
+
+lemma GBL_bound_gxder_defined:
+  assumes "GBL_bound r = Some n"
+  shows "\<exists>m. GBL_bound (gxder c r) = Some m"
+  using assms
+proof (induct r arbitrary: n c)
+  case (GBASE r)
+  then show ?case
+    using BL_bound_xder_defined by simp
+next
+  case (GALT r1 r2)
+  then obtain n1 n2 where bounds:
+    "GBL_bound r1 = Some n1" "GBL_bound r2 = Some n2"
+    by (auto split: option.splits)
+  then obtain m1 where d1: "GBL_bound (gxder c r1) = Some m1"
+    using GALT.hyps(1) by blast
+  from bounds obtain m2 where d2: "GBL_bound (gxder c r2) = Some m2"
+    using GALT.hyps(2) by blast
+  show ?case
+    using d1 d2 by simp
+next
+  case (GBACKREF4 r1 r2 r3 r4 cs)
+  then obtain n1 n2 n3 n4 where bounds:
+    "BL_bound r1 = Some n1" "BL_bound r2 = Some n2"
+    "BL_bound r3 = Some n3" "BL_bound r4 = Some n4"
+    by (auto split: option.splits)
+  then obtain m1 where d1: "BL_bound (xder c r1) = Some m1"
+    using BL_bound_xder_defined by blast
+  from bounds obtain m2 where d2: "BL_bound (xder c r2) = Some m2"
+    using BL_bound_xder_defined by blast
+  from bounds obtain n_tail where tail_bound:
+    "BL_bound (gtail4 r3 (rev cs) r4) = Some n_tail"
+    by (auto simp add: gtail4_def)
+  then obtain m_tail where d_tail:
+    "BL_bound (xder c (gtail4 r3 (rev cs) r4)) = Some m_tail"
+    using BL_bound_xder_defined by blast
+  show ?case
+    using bounds d1 d2 d_tail by (auto simp add: Let_def split: if_splits)
+qed
+
+theorem BL_bound_xders_defined:
+  assumes "BL_bound r = Some n"
+  shows "\<exists>m. BL_bound (xders r s) = Some m"
+  using assms
+proof (induct s arbitrary: r n)
+  case Nil
+  then show ?case
+    by (intro exI[of _ n]) simp
+next
+  case (Cons c s)
+  then obtain m where d: "BL_bound (xder c r) = Some m"
+    using BL_bound_xder_defined by blast
+  show ?case
+    using Cons.hyps[OF d] by simp
+qed
+
+theorem GBL_bound_gxders_defined:
+  assumes "GBL_bound r = Some n"
+  shows "\<exists>m. GBL_bound (gxders r s) = Some m"
+  using assms
+proof (induct s arbitrary: r n)
+  case Nil
+  then show ?case
+    by (intro exI[of _ n]) simp
+next
+  case (Cons c s)
+  then obtain m where d: "GBL_bound (gxder c r) = Some m"
+    using GBL_bound_gxder_defined by blast
+  show ?case
+    using Cons.hyps[OF d] by simp
+qed
+
 theorem BL_bound_finite_derivative_languages:
   assumes "BL_bound r = Some n"
   shows "finite_BL_derivatives r"
@@ -576,6 +742,26 @@ theorem GBL_bound_finite_derivative_languages:
   shows "finite_GBL_derivatives r"
   using GBL_bound_sound[OF assms]
   by (rule bounded_GBL_finite_derivative_languages)
+
+theorem BL_bound_xders_finite_derivative_languages:
+  assumes "BL_bound r = Some n"
+  shows "\<exists>m. BL_bound (xders r s) = Some m \<and> finite_BL_derivatives (xders r s)"
+proof -
+  obtain m where "BL_bound (xders r s) = Some m"
+    using BL_bound_xders_defined[OF assms] by blast
+  then show ?thesis
+    using BL_bound_finite_derivative_languages by blast
+qed
+
+theorem GBL_bound_gxders_finite_derivative_languages:
+  assumes "GBL_bound r = Some n"
+  shows "\<exists>m. GBL_bound (gxders r s) = Some m \<and> finite_GBL_derivatives (gxders r s)"
+proof -
+  obtain m where "GBL_bound (gxders r s) = Some m"
+    using GBL_bound_gxders_defined[OF assms] by blast
+  then show ?thesis
+    using GBL_bound_finite_derivative_languages by blast
+qed
 
 theorem BL_bound_xders_bounded:
   assumes "BL_bound r = Some n"

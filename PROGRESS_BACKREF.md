@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-015 complete and BR-019 derivative-family bound package)
+Last updated: 2026-05-27 (BR-015 complete; BR-019 syntactic derivative-closure package)
 
 ## Current Branch
 
@@ -18,6 +18,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:29 elapsed), Isabelle `BackRefPilot`, and local CI
+  certificate generation after adding a BR-019 syntactic derivative-closure
+  package in `BackRefBoundedBlueprint.thy`. New checked facts show that
+  successful `BL_bound`/`GBL_bound` calculations remain defined after one
+  derivative and after any `xders`/`gxders` derivative sequence, and that each
+  syntactically bounded derivative expression again has a finite derivative
+  language family. A pilot-only precheck also passed with `BackRefPilot`
+  (0:11 elapsed) and `BackRefBoundedBlueprint` replaying in about 1.3 seconds.
+  Closing verification after the progress update passed with Isabelle `Posix`
+  (0:04 elapsed), Isabelle `BackRefPilot` (0:03 elapsed), certificate
+  generation, and explicit statement guard PASS. After rebasing over the
+  remote BR-015 completion commit, full local CI passed again with Isabelle
+  `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:10 elapsed),
+  certificate generation, and explicit statement guard PASS.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:11 elapsed),
   local CI certificate generation, and explicit statement guard after adding a
@@ -208,6 +223,13 @@ Latest result:
   - `GBL_bound_gxders_bounded`
   - `BL_bound_derivative_family_bounded`
   - `GBL_bound_derivative_family_bounded`
+  - `BL_bound_xder_residue_defined`
+  - `BL_bound_xder_defined`
+  - `GBL_bound_gxder_defined`
+  - `BL_bound_xders_defined`
+  - `GBL_bound_gxders_defined`
+  - `BL_bound_xders_finite_derivative_languages`
+  - `GBL_bound_gxders_finite_derivative_languages`
   - `BL_bound_BBACKREF_finite_derivative_languages`
   - `GBL_bound_GBACKREF4_finite_derivative_languages`
 - `BackRefValues.thy` now defines:
@@ -380,9 +402,54 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     checked syntactic bounded-fragment proof-prep through
     `BL_bound_finite_derivative_languages` and
     `GBL_bound_finite_derivative_languages`, plus derivative-family boundedness
-    and syntactic backreference constructor packages; production bounds or
-    closed-form work should still wait for admin acceptance of the precise
+    and syntactic derivative-closure/constructor packages; production bounds
+    or closed-form work should still wait for admin acceptance of the precise
     statement.
+
+## BR-019 Syntactic Derivative-Closure Package (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+186 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked lemmas/theorems:
+  - `BL_bound_xder_residue_defined`
+  - `BL_bound_xder_defined`
+  - `GBL_bound_gxder_defined`
+  - `BL_bound_xders_defined`
+  - `GBL_bound_gxders_defined`
+  - `BL_bound_xders_finite_derivative_languages`
+  - `GBL_bound_gxders_finite_derivative_languages`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:11 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 1.3 seconds.
+  - Full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (0:29 elapsed), Isabelle `BackRefPilot`, and local CI
+    certificate generation.
+  - Closing full local CI PASS after this progress update with no-cheat guard,
+    bounty guard, admin role guard, Isabelle `Posix` (0:04 elapsed), Isabelle
+    `BackRefPilot` (0:03 elapsed), and local CI certificate generation.
+  - Post-rebase full local CI PASS after replaying over the remote BR-015
+    completion commit with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:10 elapsed),
+    and local CI certificate generation.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no statement
+    modifications.
+- Performance note:
+  - The first draft failed fast because three existential witnesses were left
+    implicit. The checked proof uses explicit residue cases and explicit
+    witness choices; no slow proof command was accepted.
+- Notes:
+  - This proves syntactic closure of the conservative `BL_bound` and
+    `GBL_bound` calculators under `xder`/`gxder` and `xders`/`gxders`.
+  - This still does not touch `BackRefValues.thy`, production `Blexer*`,
+    bounds, or closed-form theories.
+- Next smallest safe step: run the statement guard and commit this checked
+  additive package; then keep BR-015 reserved for Codex Agent B and ask admin
+  whether the accumulated `BL_bound`/`GBL_bound` packages are sufficient for
+  BR-019's production target.
 
 ## BR-019 Derivative-Family Bound Package (2026-05-27)
 
