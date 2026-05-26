@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-020 per-step derivative simplifier)
+Last updated: 2026-05-26 (BR-016 generalized value pilot)
 
 ## Current Branch
 
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  and statement guard -- BR-016 generalized `backref_lang4`
+  value-evidence blueprint with `backref_lang4_flat_BPrf4`.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard -- BR-020
   complete per-step bitcoded derivative simplifier with
@@ -117,6 +121,15 @@ Latest result:
   - `bblexer_blexer_retrieve`
   - `bblexer_bretrieve`
   - `bblexer_retrieve_correctness`
+- `BackRefLang4Values.thy` now defines:
+  - `bval4` with `BBackref4`
+  - `bflat4`
+  - `BPrf4`
+- `BackRefLang4Values.thy` proves:
+  - `backref_lang4_flat_BPrf4_1`
+  - `backref_lang4_flat_BPrf4_2`
+  - `backref_lang4_flat_BPrf4`
+  - `backref_lang_flat_BPrf4_special`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -149,9 +162,39 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 7. ~~Start BR-017 bitcoded backreference lexer definitions in a new pilot file.~~ DONE (BR-017)
 8. ~~Finish derivative-retrieve/decode-to-original-value correctness for BR-018.~~ DONE (BR-018)
 9. ~~Finish BR-020 simplification rules for the bitcoded lexer.~~ DONE (BR-020)
-10. Next non-overlapping lane: BR-016 generalized value pilot. BR-015 remains
-    locked by Opus. BR-019 should still wait until the lexer/simplification
-    story is stable.
+10. ~~Finish BR-016 generalized value pilot.~~ DONE (BR-016)
+11. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+    wait until the lexer/simplification story is stable and an admin accepts
+    the bounded-fragment statement.
+
+## BR-016 Generalized backref_lang4 Value Pilot (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex generalized value blueprint lane
+- Files changed: `BackRefLang4Values.thy`, `pilot/ROOT`,
+  `PROGRESS_BACKREF.md`, `BACKREF_BOUNTIES.md`
+- New checked definitions:
+  - `bval4` with `BBackref4`
+  - `bflat4`, flattening to `s1 @ s2 @ s3 @ rev cs @ s2 @ s4`
+  - `BPrf4`, reusing existing `BPrf` evidence for the four component
+    `brexp` languages
+- New checked lemmas/theorems:
+  - `backref_lang4_flat_BPrf4_1`
+  - `backref_lang4_flat_BPrf4_2`
+  - `backref_lang4_flat_BPrf4`
+  - `backref_lang_flat_BPrf4_special`
+- Build: full local CI PASS with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:04
+  elapsed), and statement guard.
+- Notes:
+  - This is a blueprint theory only. It does not migrate the frozen `brexp`
+    datatype or change `backref_lang`, `BL`, `xder`, `BPrf`, or `bval`.
+  - The special-case corollary checks that the old two-language
+    `backref_lang` is represented by the four-language value story with
+    empty prefix and tail languages.
+- Next smallest safe step: leave BR-015 to Opus; defer BR-019 until the bounded
+  fragment statement is explicit.
 
 ## BR-020 Per-Step Derivative Simplifier (2026-05-26)
 
