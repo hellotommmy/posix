@@ -6,6 +6,7 @@ theories[document = false]
      "RegLangs"
      "BackRefLang"
      "BackRefLang4Pilot"
+     "BackRefBoundedBlueprint"
      "BackRefValues"
      "BackRefLang4Values"
      "BackRefBlexer"

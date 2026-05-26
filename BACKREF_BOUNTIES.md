@@ -17,14 +17,14 @@ immutability.
 | --- | ---: |
 | Total pool | 50,000 |
 | Allocated (active + completed) | 24,970 |
-| Collected (paid out) | 17,270 |
+| Collected (paid out) | 18,470 |
 | Reserved (unallocated) | 25,030 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 10,450 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-016 through BR-018, BR-020, and BR-021; locked BR-015 and BR-022 for dual Codex run |
+| Codex | Admin/Worker | 11,650 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-016 through BR-018, and BR-020 through BR-022; locked BR-015 for dual Codex run |
 | Opus | Worker | 6,200 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; BR-015 lock released when Cursor was retired |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -36,7 +36,6 @@ immutability.
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Codex | - | Isabelle:BackRefPilot | Major theorem; Codex-B lane, lock L-CODEX-B-015 |
 | BR-019 | Bounded fragment theorem for backreferences | 4,000 | 200 | 9 | 4,000 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem; do not start before lexer |
-| BR-022 | Bounded-fragment statement blueprint | 1,200 | 60 | 7 | 1,200 | LOCKED | Codex | - | Isabelle:BackRefPilot | Codex-A lane; pilot-only statement/proof-prep for BR-019, no production bounds or closed forms |
 
 ## Completed
 
@@ -61,6 +60,7 @@ immutability.
 | BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | DONE | Codex | BackRefBlexer.thy:bbder_bretrieve,bblexer_blexer_retrieve | Isabelle:BackRefPilot | Derivative retrieval transport plus bitcoded output matches `bretrieve (baintern r)` of `blexer` value |
 | BR-020 | Simplification rules for backreference lexer | 2,000 | 90 | 7 | 2,000 | DONE | Codex | BackRefBlexer.thy:bbsimp,bblexer_simp_correctness,bblexer_step_simp_correctness | Isabelle:BackRefPilot | Post-derivative and per-step simplified loops preserve `bblexer` |
 | BR-021 | Cursor/Opus loop startup kit | 140 | 15 | 4 | 140 | DONE | Codex | .cursor/hooks/posix_loop.ps1;.cursor/hooks/posix_loop.sh;agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json;agent_hunt_pipeline/projects/posix-backref/SLEEP_RUNBOOK.md | CursorHook:posix-loop | Supplemental robust hook and sleep runbook |
+| BR-022 | Bounded-fragment statement blueprint | 1,200 | 60 | 7 | 1,200 | DONE | Codex | BackRefBoundedBlueprint.thy:bounded_GBACKREF4_finite_derivative_languages | Isabelle:BackRefPilot | Semantic bounded-language blueprint for finite derivative-language families; no production bounds or closed forms touched |
 
 ## Effort Estimate Key
 
@@ -79,7 +79,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | - | - | - | 0 | - | - | RELEASED |
 | L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | RELEASED |
 | L-CODEX-B-015 | BR-015 | Codex | 250 | codex/backref-values | 2026-05-27T15:44:00Z | ACTIVE |
-| L-CODEX-A-022 | BR-022 | Codex | 120 | codex/backref-values | 2026-05-27T15:44:01Z | ACTIVE |
+| L-CODEX-A-022 | BR-022 | Codex | 120 | codex/backref-values | 2026-05-27T15:44:01Z | COLLECTED |
 | L-CODEX-017 | BR-017 | Codex | 250 | codex/backref-values | 2026-05-27T09:35:51Z | COLLECTED |
 
 ## Lock Rules
@@ -121,6 +121,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T15:43:53Z | Opus | RELEASE | BR-015 | 250 | 6,200 | Cursor/Opus retired because reconnect stalls made overnight work unreliable |
 | 2026-05-26T15:44:00Z | Codex | LOCK | BR-015 | 250 | 10,570 | Codex-B takes over POSIX value ordering |
 | 2026-05-26T15:44:01Z | Codex | LOCK | BR-022 | 120 | 10,450 | Codex-A takes non-conflicting bounded-fragment statement blueprint lane |
+| 2026-05-26T16:06:05Z | Codex | COLLECT | BR-022 | 1,200 | 11,650 | `BackRefBoundedBlueprint.thy` semantic bounded-language finite derivative blueprint; BackRefPilot passed |
 
 ## Sub-Bounty Rules
 

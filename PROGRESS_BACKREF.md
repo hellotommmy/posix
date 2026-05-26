@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (dual Codex overnight handoff)
+Last updated: 2026-05-27 (BR-022 bounded-fragment blueprint)
 
 ## Current Branch
 
@@ -18,6 +18,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 local time (2026-05-26 UTC) with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`,
+  and local CI certificate generation after adding `BackRefBoundedBlueprint.thy`.
+  The new theory defines a semantic bounded-language/finite-left-quotient
+  blueprint and proves `bounded_BBACKREF_finite_derivative_languages` and
+  `bounded_GBACKREF4_finite_derivative_languages`; `BackRefBoundedBlueprint`
+  replayed in about 0.27 seconds after replacing an expensive nested-image
+  proof route.
 - Coordination update on 2026-05-26: Cursor/Opus retired for overnight work;
   two Codex CLI workers are now the intended parallel setup. Codex Agent B owns
   BR-015 and `BackRefValues.thy`; Codex Agent A owns BR-022 and must stay on
@@ -132,6 +140,25 @@ Latest result:
   - `gxders_append`
   - `gxders_snoc`
   - `gxders_correctness`
+- `BackRefBoundedBlueprint.thy` now defines:
+  - `bounded_language`
+  - `finite_left_quotients`
+  - `suffix_closure`
+  - `finite_BL_derivatives`
+  - `finite_GBL_derivatives`
+  - `BL_bounded`
+  - `GBL_bounded`
+  - `bounded_backref4_components`
+- `BackRefBoundedBlueprint.thy` proves:
+  - `bounded_language_finite`
+  - `finite_left_quotients_if_finite_language`
+  - `finite_left_quotients_if_bounded_language`
+  - `bounded_BL_finite_derivative_languages`
+  - `bounded_GBL_finite_derivative_languages`
+  - `bounded_backref_lang_finite_left_quotients`
+  - `bounded_backref_lang4_finite_left_quotients`
+  - `bounded_BBACKREF_finite_derivative_languages`
+  - `bounded_GBACKREF4_finite_derivative_languages`
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -293,9 +320,62 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     relating `gbblexer` to `gblexer`.~~ DONE
 18. ~~Optional next generalized bitcoded layer: add a conservative
     `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`.~~ DONE
-19. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
-    wait until the lexer/simplification story is stable and an admin accepts
-    the bounded-fragment statement.
+19. ~~Add BR-022 bounded-fragment statement blueprint.~~ DONE
+20. Remaining open lanes: BR-015 remains locked by Codex Agent B. BR-019
+    now has a checked semantic finite-derivative-language blueprint, but
+    should still wait until an admin accepts the bounded-fragment statement
+    for any production bounds or closed-form work.
+
+## BR-022 Bounded-Fragment Statement Blueprint (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit on top of `19e32b8`
+- Agent lane: Codex Agent A new-file bounded-fragment blueprint lane
+- Files changed: `BackRefBoundedBlueprint.thy`, `pilot/ROOT`,
+  `PROGRESS_BACKREF.md`, `BACKREF_BOUNTIES.md`
+- New checked definitions:
+  - `bounded_language`
+  - `finite_left_quotients`
+  - `suffix_closure`
+  - `finite_BL_derivatives`
+  - `finite_GBL_derivatives`
+  - `BL_bounded`
+  - `GBL_bounded`
+  - `bounded_backref4_components`
+- New checked lemmas/theorems:
+  - `bounded_language_finite`
+  - `finite_left_quotients_if_finite_language`
+  - `finite_left_quotients_if_bounded_language`
+  - `bounded_BL_finite_derivative_languages`
+  - `bounded_GBL_finite_derivative_languages`
+  - `bounded_backref_lang_finite_left_quotients`
+  - `bounded_backref_lang4_finite_left_quotients`
+  - `bounded_BBACKREF_finite_derivative_languages`
+  - `bounded_GBACKREF4_finite_derivative_languages`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `BackRefPilot` (0:13 elapsed), and no certificate;
+    `BackRefBoundedBlueprint` replayed in about 0.25 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:13
+    elapsed), and local CI certificate generation; `BackRefBoundedBlueprint`
+    replayed in about 0.27 seconds.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no
+    statement modifications.
+- Performance note:
+  - An earlier nested-product image proof for `backref_lang4` caused an
+    abnormal long proof command and left a child build alive after the outer
+    timeout. The child build was stopped, and the proof route was replaced by
+    the simpler bounded-language path.
+- Notes:
+  - This is semantic statement/proof-prep for BR-019: bounded component
+    languages imply finitely many semantic derivative languages for current
+    `BBACKREF` and generalized `GBACKREF4`.
+  - This does not claim a finite syntactic derivative-state bound and does not
+    touch `BackRefValues.thy`, production `Blexer*`, bounds, or closed-form
+    theories.
+- Next smallest safe step: wait for Agent B's BR-015 result or admin approval
+  of the precise BR-019 bounded-fragment theorem statement.
 
 ## Generalized Bitcoded Simplifier (2026-05-26)
 
