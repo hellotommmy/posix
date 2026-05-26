@@ -25,7 +25,7 @@ immutability.
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
 | Codex | Admin/Worker | 1,270 | Completed BR-001 through BR-004, BR-006, BR-007, BR-009, BR-010, and BR-021 |
-| Opus | Worker | 6,200 | Completed BR-005, BR-011, BR-012, BR-013, and BR-014 in Cursor/Codex collaboration |
+| Opus | Worker | 5,950 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; locked BR-015 |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
 | Bob | Worker | 0 | Optional future worker |
@@ -35,7 +35,7 @@ immutability.
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | BR-008 | Draft derivative story for generalized `backref_lang4` | 800 | 60 | 6 | 800 | OPEN | - | - | Isabelle:BackRefPilot | Do not migrate datatype yet |
-| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem |
+| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Opus | - | Isabelle:BackRefPilot | Major theorem; lock L-OPUS-015 |
 | BR-016 | Generalized `backref_lang4` value pilot | 1,500 | 70 | 7 | 1,500 | OPEN | - | - | Isabelle:BackRefPilot | Blueprint before migration |
 | BR-017 | Bitcoded backreference lexer definition | 2,500 | 100 | 8 | 2,500 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-014 |
 | BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-017 |
@@ -76,6 +76,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | Lock ID | Task ID | Agent | Deposit | Branch | Expires UTC | Status |
 | --- | --- | --- | ---: | --- | --- | --- |
 | - | - | - | 0 | - | - | RELEASED |
+| L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | ACTIVE |
 
 ## Lock Rules
 
@@ -106,6 +107,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-25T23:24:27Z | Opus | COLLECT | BR-012 | 1,200 | 2,700 | `binjval_BPrf` |
 | 2026-05-25T23:37:17Z | Opus | COLLECT | BR-013 | 1,500 | 4,200 | pilot `blexer` definition and language correctness |
 | 2026-05-26T03:58:00Z | Opus | COLLECT | BR-014 | 2,000 | 6,200 | `blexer_correctness`, `BPosix_binjval`, `blexer_POSIX`, `blexer_POSIX_iff`; Codex stabilized build |
+| 2026-05-26T07:38:41Z | Opus | LOCK | BR-015 | 250 | 5,950 | Lock L-OPUS-015 for POSIX value ordering / `BPosix_determ` |
 
 ## Sub-Bounty Rules
 
