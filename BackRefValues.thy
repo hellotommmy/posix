@@ -647,6 +647,115 @@ next
   then show ?case by (cases cs) (auto intro: BPosix_BRESIDUE)
 qed
 
+lemma bval_list_eq_replicateI:
+  assumes "\<forall>x \<in> set xs. x = a"
+    and "length xs = n"
+  shows "xs = replicate n a"
+  using assms
+  by (induct xs arbitrary: n) (auto split: nat.splits)
+
+lemma BPosix_empty_bmkeps:
+  assumes "[] \<in> r \<rightarrow> v"
+  shows "v = bmkeps r"
+  using assms
+proof (induct r arbitrary: v)
+  case BZERO
+  then show ?case by (auto elim: BPosix_elims(1))
+next
+  case BONE
+  then show ?case by (auto elim: BPosix_elims(2))
+next
+  case (BCH c)
+  then show ?case by (auto elim: BPosix_elims(3))
+next
+  case (BSEQ r1 r2)
+  from BSEQ.prems obtain s1 s2 v1 v2 where decomp:
+    "v = BSeq v1 v2" "s1 \<in> r1 \<rightarrow> v1" "s2 \<in> r2 \<rightarrow> v2" "[] = s1 @ s2"
+    apply (cases rule: BPosix_elims(5))
+    apply auto
+    done
+  then have empty: "s1 = []" "s2 = []" by auto
+  have "v1 = bmkeps r1" using BSEQ.hyps(1) decomp(2) empty(1) by simp
+  moreover have "v2 = bmkeps r2" using BSEQ.hyps(2) decomp(3) empty(2) by simp
+  ultimately show ?case using decomp(1) by simp
+next
+  case (BALT r1 r2)
+  from BALT.prems consider
+    (left) v1 where "v = BLeft v1" "[] \<in> r1 \<rightarrow> v1"
+  | (right) v2 where "v = BRight v2" "[] \<in> r2 \<rightarrow> v2" "[] \<notin> BL r1"
+    apply (cases rule: BPosix_elims(4))
+    apply auto
+    done
+  then show ?case
+  proof cases
+    case left
+    have "[] \<in> BL r1"
+      using left(2) by (rule BPosix1(1))
+    then have "xnullable r1"
+      using xnullable_correctness by simp
+    moreover have "v1 = bmkeps r1"
+      using BALT.hyps(1) left(2) by simp
+    ultimately show ?thesis using left(1) by simp
+  next
+    case right
+    then have "\<not> xnullable r1"
+      using xnullable_correctness by simp
+    moreover have "v2 = bmkeps r2"
+      using BALT.hyps(2) right(2) by simp
+    ultimately show ?thesis using right(1) by simp
+  qed
+next
+  case (BSTAR r)
+  from BSTAR.prems show ?case
+    apply (cases rule: BPosix_elims(6))
+     apply (auto simp add: BPosix1(2))
+    done
+next
+  case (BNTIMES r n)
+  from BNTIMES.prems obtain vs where vs:
+    "v = BStars vs" "\<forall>w \<in> set vs. [] \<in> r \<rightarrow> w" "length vs = n"
+    apply (cases rule: BPosix_elims(7))
+     apply (auto simp add: BPosix1(2))
+    done
+  have each: "\<forall>w \<in> set vs. w = bmkeps r"
+  proof
+    fix w
+    assume "w \<in> set vs"
+    then have "[] \<in> r \<rightarrow> w" using vs(2) by simp
+    then show "w = bmkeps r" using BNTIMES.hyps by simp
+  qed
+  then have "vs = replicate n (bmkeps r)"
+    using bval_list_eq_replicateI[OF each vs(3)] by simp
+  then show ?case using vs(1) by simp
+next
+  case (BBACKREF r mid cs)
+  from BBACKREF.prems obtain s1 s2 v1 v2 where decomp:
+    "v = BBackref v1 v2 cs"
+    "s1 \<in> r \<rightarrow> v1"
+    "s2 \<in> mid \<rightarrow> v2"
+    "[] = s1 @ s2 @ rev cs @ s1"
+    apply (cases rule: BPosix_elims(8))
+    apply auto
+    done
+  then have empty: "s1 = []" "s2 = []" "cs = []" by auto
+  have "v1 = bmkeps r" using BBACKREF.hyps(1) decomp(2) empty(1) by simp
+  moreover have "v2 = bmkeps mid" using BBACKREF.hyps(2) decomp(3) empty(2) by simp
+  ultimately show ?case using decomp(1) empty(3) by simp
+next
+  case (BHALF mid cs rep)
+  from BHALF.prems obtain s v' where decomp:
+    "v = BHalf v' cs rep" "s \<in> mid \<rightarrow> v'" "[] = s @ cs"
+    apply (cases rule: BPosix_elims(9))
+    apply auto
+    done
+  then have empty: "s = []" "cs = []" by auto
+  have "v' = bmkeps mid" using BHALF.hyps decomp(2) empty(1) by simp
+  then show ?case using decomp(1) empty(2) by simp
+next
+  case (BRESIDUE cs rep)
+  then show ?case by (auto elim: BPosix_elims(10))
+qed
+
 lemma bval_list_eq_zipI:
   assumes "\<forall>(v1, v2) \<in> set (zip vs1 vs2). v1 = v2"
     and "length vs1 = length vs2"
@@ -737,6 +846,63 @@ proof -
     by (simp add: append_assoc)
 qed
 
+lemma BSEQ_split_unique:
+  assumes eq: "s1 @ s2 = t1 @ t2"
+    and greedy1: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and>
+      (s1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
+    and greedy2: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = t2 \<and>
+      (t1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
+    and r1: "s1 \<in> BL r1"
+    and r2: "s2 \<in> BL r2"
+    and t1: "t1 \<in> BL r1"
+    and t2: "t2 \<in> BL r2"
+  shows "s1 = t1" "s2 = t2"
+proof -
+  have split:
+    "\<exists>us. (s1 = t1 @ us \<and> us @ s2 = t2) \<or>
+      (s1 @ us = t1 \<and> s2 = us @ t2)"
+    using eq by (rule iffD1[OF append_eq_append_conv2])
+  have cap: "s1 = t1"
+  proof -
+    from split consider
+      (left) us where "s1 = t1 @ us" "us @ s2 = t2"
+    | (right) us where "s1 @ us = t1" "s2 = us @ t2"
+      by blast
+    then show ?thesis
+    proof cases
+      case (left us)
+      then show ?thesis
+      proof (cases "us = []")
+        case True
+        then show ?thesis using left by simp
+      next
+        case False
+        have "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = t2 \<and>
+          (t1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2"
+          using False left r1 r2 by auto
+        then have False using greedy2 by simp
+        then show ?thesis by simp
+      qed
+    next
+      case (right us)
+      then show ?thesis
+      proof (cases "us = []")
+        case True
+        then show ?thesis using right by simp
+      next
+        case False
+        have "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and>
+          (s1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2"
+          using False right t1 t2 by auto
+        then have False using greedy1 by simp
+        then show ?thesis by simp
+      qed
+    qed
+  qed
+  then show "s1 = t1" by simp
+  from eq cap show "s2 = t2" by simp
+qed
+
 lemma BPosix_BBACKREF_value_unique:
   assumes target: "(s1 @ s2 @ rev cs @ s1) \<in> BBACKREF r mid cs \<rightarrow> v"
     and left1: "s1 \<in> r \<rightarrow> v1"
@@ -767,6 +933,196 @@ proof -
   have "v1 = w1" using IH1 decomp(2) split(1) by simp
   moreover have "v2 = w2" using IH2 decomp(3) split(2) by simp
   ultimately show ?thesis using decomp(1) by simp
+qed
+
+lemma BPosix_determ:
+  assumes "s \<in> r \<rightarrow> v1" "s \<in> r \<rightarrow> v2"
+  shows "v1 = v2"
+  using assms
+proof (induct s r v1 arbitrary: v2 rule: BPosix.induct)
+  case (BPosix_BONE v2)
+  then show ?case by (auto elim: BPosix_elims(2))
+next
+  case (BPosix_BCH c v2)
+  then show ?case by (auto elim: BPosix_elims(3))
+next
+  case (BPosix_BALT1 s r1 v r2 v2)
+  have target: "s \<in> BALT r1 r2 \<rightarrow> v2" by fact
+  have left: "s \<in> r1 \<rightarrow> v" by fact
+  then have "s \<in> BL r1" by (rule BPosix1(1))
+  with target obtain v' where eq: "v2 = BLeft v'" "s \<in> r1 \<rightarrow> v'"
+    apply (cases rule: BPosix_elims(4))
+    apply (auto dest: BPosix1(1))
+    done
+  have IH: "\<And>w. s \<in> r1 \<rightarrow> w \<Longrightarrow> v = w" by fact
+  then have "v = v'" using eq(2) by simp
+  then show ?case using eq(1) by simp
+next
+  case (BPosix_BALT2 s r2 v r1 v2)
+  have target: "s \<in> BALT r1 r2 \<rightarrow> v2" by fact
+  have not_left: "s \<notin> BL r1" by fact
+  with target obtain v' where eq: "v2 = BRight v'" "s \<in> r2 \<rightarrow> v'"
+    apply (cases rule: BPosix_elims(4))
+    apply (auto dest: BPosix1(1))
+    done
+  have IH: "\<And>w. s \<in> r2 \<rightarrow> w \<Longrightarrow> v = w" by fact
+  then have "v = v'" using eq(2) by simp
+  then show ?case using eq(1) by simp
+next
+  case (BPosix_BSEQ s1 r1 v1 s2 r2 v2 v')
+  have target: "(s1 @ s2) \<in> BSEQ r1 r2 \<rightarrow> v'" by fact
+  have left: "s1 \<in> r1 \<rightarrow> v1" by fact
+  have right: "s2 \<in> r2 \<rightarrow> v2" by fact
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and>
+      (s1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)" by fact
+  from target obtain t1 t2 w1 w2 where decomp:
+    "v' = BSeq w1 w2"
+    "t1 \<in> r1 \<rightarrow> w1"
+    "t2 \<in> r2 \<rightarrow> w2"
+    "s1 @ s2 = t1 @ t2"
+    "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = t2 \<and>
+      (t1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
+    apply (cases rule: BPosix_elims(5))
+    apply auto
+    done
+  have split: "s1 = t1" "s2 = t2"
+    using BSEQ_split_unique[OF decomp(4) greedy decomp(5)
+        BPosix1(1)[OF left] BPosix1(1)[OF right]
+        BPosix1(1)[OF decomp(2)] BPosix1(1)[OF decomp(3)]]
+    by simp_all
+  have IH1: "\<And>w. s1 \<in> r1 \<rightarrow> w \<Longrightarrow> v1 = w" by fact
+  have IH2: "\<And>w. s2 \<in> r2 \<rightarrow> w \<Longrightarrow> v2 = w" by fact
+  have "v1 = w1" using IH1 decomp(2) split(1) by simp
+  moreover have "v2 = w2" using IH2 decomp(3) split(2) by simp
+  ultimately show ?case using decomp(1) by simp
+next
+  case (BPosix_BSTAR1 s1 r v s2 vs v2)
+  have target: "(s1 @ s2) \<in> BSTAR r \<rightarrow> v2" by fact
+  have first: "s1 \<in> r \<rightarrow> v" by fact
+  have rest: "s2 \<in> BSTAR r \<rightarrow> BStars vs" by fact
+  have nonempty: "bflat v \<noteq> []" by fact
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and>
+      (s1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r))" by fact
+  have whole_nonempty: "s1 @ s2 \<noteq> []"
+    using BPosix1(2)[OF first] nonempty by auto
+  from target whole_nonempty obtain t1 t2 w ws where decomp:
+    "v2 = BStars (w # ws)"
+    "t1 \<in> r \<rightarrow> w"
+    "t2 \<in> BSTAR r \<rightarrow> BStars ws"
+    "s1 @ s2 = t1 @ t2"
+    "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = t2 \<and>
+      (t1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r))"
+    apply (cases rule: BPosix_elims(6))
+    apply auto
+    done
+  have split: "s1 = t1" "s2 = t2"
+    using BSEQ_split_unique[OF decomp(4) greedy decomp(5)
+        BPosix1(1)[OF first] BPosix1(1)[OF rest]
+        BPosix1(1)[OF decomp(2)] BPosix1(1)[OF decomp(3)]]
+    by simp_all
+  have IH1: "\<And>w. s1 \<in> r \<rightarrow> w \<Longrightarrow> v = w" by fact
+  have IH2: "\<And>w. s2 \<in> BSTAR r \<rightarrow> w \<Longrightarrow> BStars vs = w" by fact
+  have "v = w" using IH1 decomp(2) split(1) by simp
+  moreover have "BStars vs = BStars ws" using IH2 decomp(3) split(2) by simp
+  ultimately show ?case using decomp(1) by simp
+next
+  case (BPosix_BSTAR2 r v2)
+  have target: "[] \<in> BSTAR r \<rightarrow> v2" by fact
+  from target show ?case
+    apply (cases rule: BPosix_elims(6))
+     apply (auto simp add: BPosix1)
+    done
+next
+  case (BPosix_BNTIMES1 s1 r v s2 n vs v2)
+  have target: "(s1 @ s2) \<in> BNTIMES r n \<rightarrow> v2" by fact
+  have first: "s1 \<in> r \<rightarrow> v" by fact
+  have rest: "s2 \<in> BNTIMES r (n - 1) \<rightarrow> BStars vs" by fact
+  have nonempty: "bflat v \<noteq> []" by fact
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and>
+      (s1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BNTIMES r (n - 1)))" by fact
+  have whole_nonempty: "s1 @ s2 \<noteq> []"
+    using BPosix1(2)[OF first] nonempty by auto
+  from target whole_nonempty obtain t1 t2 w ws where decomp:
+    "v2 = BStars (w # ws)"
+    "t1 \<in> r \<rightarrow> w"
+    "t2 \<in> BNTIMES r (n - 1) \<rightarrow> BStars ws"
+    "s1 @ s2 = t1 @ t2"
+    "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = t2 \<and>
+      (t1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BNTIMES r (n - 1)))"
+    apply (cases rule: BPosix_elims(7))
+    apply auto
+    done
+  have split: "s1 = t1" "s2 = t2"
+    using BSEQ_split_unique[OF decomp(4) greedy decomp(5)
+        BPosix1(1)[OF first] BPosix1(1)[OF rest]
+        BPosix1(1)[OF decomp(2)] BPosix1(1)[OF decomp(3)]]
+    by simp_all
+  have IH1: "\<And>w. s1 \<in> r \<rightarrow> w \<Longrightarrow> v = w" by fact
+  have IH2: "\<And>w. s2 \<in> BNTIMES r (n - 1) \<rightarrow> w \<Longrightarrow> BStars vs = w" by fact
+  have "v = w" using IH1 decomp(2) split(1) by simp
+  moreover have "BStars vs = BStars ws" using IH2 decomp(3) split(2) by simp
+  ultimately show ?case using decomp(1) by simp
+next
+  case (BPosix_BNTIMES2 vs r n v2)
+  have target: "[] \<in> BNTIMES r n \<rightarrow> v2" by fact
+  have all_vs: "\<And>v. v \<in> set vs \<Longrightarrow> [] \<in> r \<rightarrow> v"
+    using BPosix_BNTIMES2.hyps(1) by simp
+  have len_vs: "length vs = n"
+    using BPosix_BNTIMES2.hyps(2) by simp
+  from target obtain ws where ws:
+    "v2 = BStars ws" "\<forall>w \<in> set ws. [] \<in> r \<rightarrow> w" "length ws = n"
+    apply (cases rule: BPosix_elims(7))
+     apply (auto simp add: BPosix1(2))
+    done
+  have each_vs: "\<forall>v \<in> set vs. v = bmkeps r"
+  proof
+    fix v
+    assume "v \<in> set vs"
+    then have "[] \<in> r \<rightarrow> v" by (rule all_vs)
+    then show "v = bmkeps r" by (rule BPosix_empty_bmkeps)
+  qed
+  have each_ws: "\<forall>w \<in> set ws. w = bmkeps r"
+  proof
+    fix w
+    assume "w \<in> set ws"
+    then have "[] \<in> r \<rightarrow> w" using ws(2) by simp
+    then show "w = bmkeps r" by (rule BPosix_empty_bmkeps)
+  qed
+  have "vs = replicate n (bmkeps r)"
+    using bval_list_eq_replicateI[OF each_vs len_vs] by simp
+  moreover have "ws = replicate n (bmkeps r)"
+    using bval_list_eq_replicateI[OF each_ws ws(3)] by simp
+  ultimately have "vs = ws" by simp
+  then show ?case using ws(1) by simp
+next
+  case (BPosix_BBACKREF s1 r v1 s2 mid v2 cs v')
+  have target: "(s1 @ s2 @ rev cs @ s1) \<in> BBACKREF r mid cs \<rightarrow> v'" by fact
+  have left1: "s1 \<in> r \<rightarrow> v1" by fact
+  have left2: "s2 \<in> mid \<rightarrow> v2" by fact
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (s1 @ s\<^sub>3) \<in> BL r \<and>
+      s\<^sub>4 \<in> BL mid \<and> s2 @ rev cs @ s1 =
+        s\<^sub>3 @ s\<^sub>4 @ rev cs @ (s1 @ s\<^sub>3))" by fact
+  have IH1: "\<And>w. s1 \<in> r \<rightarrow> w \<Longrightarrow> v1 = w" by fact
+  have IH2: "\<And>w. s2 \<in> mid \<rightarrow> w \<Longrightarrow> v2 = w" by fact
+  show ?case
+    using BPosix_BBACKREF_value_unique[OF target left1 left2 greedy IH1 IH2]
+    by simp
+next
+  case (BPosix_BHALF s mid v cs rep v2)
+  have target: "(s @ cs) \<in> BHALF mid cs rep \<rightarrow> v2" by fact
+  have first: "s \<in> mid \<rightarrow> v" by fact
+  from target obtain t w where decomp:
+    "v2 = BHalf w cs rep" "t \<in> mid \<rightarrow> w" "s @ cs = t @ cs"
+    apply (cases rule: BPosix_elims(9))
+    apply auto
+    done
+  have "s = t" using decomp(3) by simp
+  moreover have IH: "\<And>w. s \<in> mid \<rightarrow> w \<Longrightarrow> v = w" by fact
+  ultimately have "v = w" using IH decomp(2) by simp
+  then show ?case using decomp(1) by simp
+next
+  case (BPosix_BRESIDUE cs rep v2)
+  then show ?case by (auto elim: BPosix_elims(10))
 qed
 
 section \<open>Injection Preserves POSIX\<close>

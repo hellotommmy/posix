@@ -17,14 +17,14 @@ immutability.
 | --- | ---: |
 | Total pool | 50,000 |
 | Allocated (active + completed) | 24,970 |
-| Collected (paid out) | 18,470 |
+| Collected (paid out) | 20,970 |
 | Reserved (unallocated) | 25,030 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 11,650 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-016 through BR-018, and BR-020 through BR-022; locked BR-015 for dual Codex run |
+| Codex | Admin/Worker | 14,150 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-015 through BR-018, and BR-020 through BR-022 |
 | Opus | Worker | 6,200 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; BR-015 lock released when Cursor was retired |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -34,7 +34,6 @@ immutability.
 
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
-| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Codex | - | Isabelle:BackRefPilot | Major theorem; Codex-B lane, lock L-CODEX-B-015 |
 | BR-019 | Bounded fragment theorem for backreferences | 4,000 | 200 | 9 | 4,000 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem; do not start before lexer |
 
 ## Completed
@@ -55,6 +54,7 @@ immutability.
 | BR-012 | Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)` | 1,200 | 50 | 7 | 1,200 | DONE | Opus | BackRefValues.thy:binjval_BPrf | Isabelle:BackRefPilot | Commit `6dc8e03` |
 | BR-013 | Define and prove `blexer` for pilot `brexp` | 1,500 | 80 | 7 | 1,500 | DONE | Opus | BackRefValues.thy:blexer,blexer_BPrf,blexer_flat,blexer_correct_None,blexer_correct_Some | Isabelle:BackRefPilot | Commit `2e8c45a` |
 | BR-014 | Prove `blexer` correctness for pilot `brexp` | 2,000 | 100 | 8 | 2,000 | DONE | Opus | BackRefValues.thy:blexer_correctness,BPosix_binjval,blexer_POSIX,blexer_POSIX_iff | Isabelle:BackRefPilot | Cursor proof lane, Codex stabilization/build verification |
+| BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | DONE | Codex | BackRefValues.thy:BPosix_determ | Isabelle:BackRefPilot | Codex-B lane; uses `BSEQ_split_unique`, nullable empty-value uniqueness, and `BPosix_BBACKREF_value_unique` |
 | BR-016 | Generalized `backref_lang4` value pilot | 1,500 | 70 | 7 | 1,500 | DONE | Codex | BackRefLang4Values.thy:bval4,bflat4,BPrf4,backref_lang4_flat_BPrf4,backref_lang_flat_BPrf4_special | Isabelle:BackRefPilot | Explicit value-evidence blueprint before datatype migration |
 | BR-017 | Bitcoded backreference lexer definition | 2,500 | 100 | 8 | 2,500 | DONE | Codex | BackRefBlexer.thy:bbit,barexp,berase,bfuse,baintern,bbnullable,bbmkeps,bbder,bblexer | Isabelle:BackRefPilot | Separate pilot file; erase/nullable/derivative checks included |
 | BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | DONE | Codex | BackRefBlexer.thy:bbder_bretrieve,bblexer_blexer_retrieve | Isabelle:BackRefPilot | Derivative retrieval transport plus bitcoded output matches `bretrieve (baintern r)` of `blexer` value |
@@ -78,7 +78,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | --- | --- | --- | ---: | --- | --- | --- |
 | - | - | - | 0 | - | - | RELEASED |
 | L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | RELEASED |
-| L-CODEX-B-015 | BR-015 | Codex | 250 | codex/backref-values | 2026-05-27T15:44:00Z | ACTIVE |
+| L-CODEX-B-015 | BR-015 | Codex | 250 | codex/backref-values | 2026-05-27T15:44:00Z | COLLECTED |
 | L-CODEX-A-022 | BR-022 | Codex | 120 | codex/backref-values | 2026-05-27T15:44:01Z | COLLECTED |
 | L-CODEX-017 | BR-017 | Codex | 250 | codex/backref-values | 2026-05-27T09:35:51Z | COLLECTED |
 
@@ -122,6 +122,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T15:44:00Z | Codex | LOCK | BR-015 | 250 | 10,570 | Codex-B takes over POSIX value ordering |
 | 2026-05-26T15:44:01Z | Codex | LOCK | BR-022 | 120 | 10,450 | Codex-A takes non-conflicting bounded-fragment statement blueprint lane |
 | 2026-05-26T16:06:05Z | Codex | COLLECT | BR-022 | 1,200 | 11,650 | `BackRefBoundedBlueprint.thy` semantic bounded-language finite derivative blueprint; BackRefPilot passed |
+| 2026-05-26T18:16:47Z | Codex | COLLECT | BR-015 | 2,500 | 14,150 | `BackRefValues.thy:BPosix_determ`; BackRefPilot passed |
 
 ## Sub-Bounty Rules
 

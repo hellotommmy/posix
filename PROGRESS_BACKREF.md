@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-019 derivative-family bound package)
+Last updated: 2026-05-27 (BR-015 complete and BR-019 derivative-family bound package)
 
 ## Current Branch
 
@@ -36,6 +36,14 @@ Latest result:
   Isabelle `Posix` (0:32 elapsed), Isabelle `BackRefPilot`, and local CI
   certificate generation; `BackRefBoundedBlueprint` replayed in about 1.1
   seconds in the pilot-only check.
+- PASS on 2026-05-27 local time (2026-05-26 UTC) with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`,
+  and local CI certificate generation after completing BR-015 in
+  `BackRefValues.thy`. New checked facts include
+  `BPosix_empty_bmkeps`, `BSEQ_split_unique`, and `BPosix_determ`;
+  `BackRefValues` replayed in about 9.3 seconds. Early broad eliminations over
+  `BPosix_elims` timed out because they destructed recursive POSIX assumptions;
+  the checked proof uses named-target cases and small split/empty helpers.
 - PASS on 2026-05-27 local time (2026-05-26 UTC) with no-cheat guard,
   bounty guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`,
   and local CI certificate generation after adding `BackRefBoundedBlueprint.thy`.
@@ -224,6 +232,9 @@ Latest result:
   - `BPosix_binjval` (BR-014)
   - `blexer_POSIX` (BR-014)
   - `blexer_POSIX_iff` (BR-014)
+  - `BPosix_empty_bmkeps`
+  - `BSEQ_split_unique`
+  - `BPosix_determ` (BR-015)
 - `BackRefBlexer.thy` now defines:
   - `bbit` with `BZ`, `BS`, and `Backbit`
   - annotated `barexp` constructors including `BABACKREF`, `BAHALF`,
@@ -364,9 +375,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 18. ~~Optional next generalized bitcoded layer: add a conservative
     `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`.~~ DONE
 19. ~~Add BR-022 bounded-fragment statement blueprint.~~ DONE
-20. BR-015 is locked by Codex Agent B and in progress: checked
-    `BBACKREF` split/value uniqueness helpers are in `BackRefValues.thy`;
-    next step is to assemble `BPosix_determ` using targeted eliminations.
+20. ~~Complete BR-015 POSIX value ordering with `BPosix_determ`.~~ DONE
 21. BR-019 now has a checked semantic finite-derivative-language blueprint and
     checked syntactic bounded-fragment proof-prep through
     `BL_bound_finite_derivative_languages` and
@@ -411,7 +420,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     finite syntactic derivative-state bound.
   - This does not touch `BackRefValues.thy`, production `Blexer*`, bounds, or
     closed-form theories.
-- Next smallest safe step: keep BR-015 reserved for Codex Agent B; ask admin
+- Next smallest safe step: BR-015 is complete; ask admin
   whether the `BL_bound`/`GBL_bound` and derivative-family boundedness
   statements are acceptable as the BR-019 production target.
 
@@ -453,9 +462,45 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     syntactic derivative-state bound.
   - This does not touch `BackRefValues.thy`, production `Blexer*`, bounds, or
     closed-form theories.
-- Next smallest safe step: keep BR-015 reserved for Codex Agent B; ask admin
+- Next smallest safe step: BR-015 is complete; ask admin
   whether the `BL_bound`/`GBL_bound` statements are acceptable as the BR-019
   bounded-fragment production target.
+
+## BR-015 POSIX Value Ordering Complete (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent B, BR-015 POSIX value ordering
+- Files changed: `BackRefValues.thy` (+356 before progress/bounty notes),
+  `PROGRESS_BACKREF.md`, `BACKREF_BOUNTIES.md`
+- New checked helper lemmas:
+  - `bval_list_eq_replicateI`
+  - `BPosix_empty_bmkeps`
+  - `BSEQ_split_unique`
+- New checked theorem:
+  - `BPosix_determ`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:16 elapsed); `BackRefValues`
+    replayed in about 8.9 seconds.
+  - Final post-rebase full local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, Isabelle `Posix` (0:03 elapsed/no rebuild), Isabelle
+    `BackRefPilot` (0:11 elapsed), and local CI certificate generation;
+    `BackRefValues` replayed in about 9.3 seconds.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no statement
+    modifications.
+- Performance note:
+  - Initial `BPosix_determ` attempts timed out when `auto elim!: BPosix_elims`
+    was used in contexts containing recursive POSIX premises. The checked proof
+    case-splits only the named target derivation and reuses
+    `BPosix_BBACKREF_value_unique` for the backreference constructor.
+- Notes:
+  - BR-015 is now marked collected in `BACKREF_BOUNTIES.md`.
+  - No production `Blexer*`, bounds, closed-form, or frozen language semantics
+    files were touched.
+- Next smallest safe step:
+  - Leave BR-019 blocked pending admin acceptance of the bounded-fragment
+    statement.
 
 ## BR-022 Bounded-Fragment Statement Blueprint (2026-05-27)
 
