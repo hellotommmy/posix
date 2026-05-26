@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (binjval correctness proofs BR-005/BR-011/BR-012)
+Last updated: 2026-05-26 (BR-014 blexer POSIX correctness)
 
 ## Current Branch
 
@@ -20,6 +20,11 @@ Latest result:
 
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
   and Isabelle `BackRefPilot` (0:04 elapsed) -- blexer definition and correctness.
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` (0:05 elapsed) -- BR-014 blexer POSIX correctness
+  plus `binjval` definition speedup.
+- Previous PASS on 2026-05-26 with direct Isabelle `BackRefPilot`
+  cold build (0:16 elapsed) after replacing slow `fun` processing.
 - Previous PASS on 2026-05-26 with no-cheat guard, bounty guard, worker role guard,
   and Isabelle `BackRefPilot` (3:03 elapsed).
 - Previous PASS on 2026-05-25 with no-cheat guard, bounty guard, admin role guard,
@@ -53,6 +58,9 @@ Latest result:
   - `blexer_flat` (BR-013)
   - `blexer_correct_None` (BR-013)
   - `blexer_correct_Some` (BR-013)
+  - `BPosix_binjval` (BR-014)
+  - `blexer_POSIX` (BR-014)
+  - `blexer_POSIX_iff` (BR-014)
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -80,9 +88,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 2. ~~Prove `bflat (binjval r c v) = c # bflat v` when `BPrf v (xder c r)`.~~ DONE (BR-011)
 3. ~~Prove `BPrf (binjval r c v) r` when `BPrf v (xder c r)`.~~ DONE (BR-012)
 4. ~~Define and prove `blexer` for pilot `brexp` (BR-013).~~ DONE (BR-013)
-5. Prove `blexer` correctness for pilot `brexp` (BR-014).
+5. ~~Prove `blexer` correctness for pilot `brexp` (BR-014).~~ DONE (BR-014)
 6. In parallel, draft derivative/value story for generalized `backref_lang4`
    before migrating the datatype.
+
+## BR-014 blexer POSIX Correctness (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent lane: Opus proof lane with Codex stabilization/build verification
+- Files changed: `BackRefValues.thy`, `PROGRESS_BACKREF.md`,
+  `BACKREF_BOUNTIES.md`, and short coordination docs
+- New checked lemmas:
+  - `BPosix_BSTAR_value_shape`
+  - `BPosix_BNTIMES_empty_replicate`
+  - `BPosix_binjval`
+  - `blexer_POSIX`
+  - `blexer_POSIX_iff`
+- Performance fix:
+  - replaced slow `fun (sequential) binjval` with `primrec binjval`
+    over `brexp` plus explicit `case v of ...` branches.
+  - cold `BackRefPilot` build no longer spends about 200 seconds processing
+    the `fun` command; checked cold build completed in about 16 seconds.
+- Build: Isabelle `BackRefPilot` PASS
+- Guards: no-cheat, bounty, role guard pass
 
 ## Do Not Start Yet
 

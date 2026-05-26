@@ -288,34 +288,48 @@ lemma bmkeps_BPrf:
 
 section \<open>Injection Value\<close>
 
-fun (sequential) binjval :: "brexp \<Rightarrow> char \<Rightarrow> bval \<Rightarrow> bval"
+primrec binjval :: "brexp \<Rightarrow> char \<Rightarrow> bval \<Rightarrow> bval"
 where
-  "binjval (BCH d) c BVoid = BChar d"
-| "binjval (BALT r1 r2) c (BLeft v) = BLeft (binjval r1 c v)"
-| "binjval (BALT r1 r2) c (BRight v) = BRight (binjval r2 c v)"
-| "binjval (BSEQ r1 r2) c (BLeft (BSeq v1 v2)) = BSeq (binjval r1 c v1) v2"
-| "binjval (BSEQ r1 r2) c (BRight v) = BSeq (bmkeps r1) (binjval r2 c v)"
-| "binjval (BSEQ r1 r2) c (BSeq v1 v2) = BSeq (binjval r1 c v1) v2"
-| "binjval (BSTAR r) c (BSeq v (BStars vs)) = BStars (binjval r c v # vs)"
-| "binjval (BNTIMES r n) c (BSeq v (BStars vs)) = BStars (binjval r c v # vs)"
-| "binjval (BBACKREF r mid cs) c (BLeft (BBackref v1 v2 cs')) =
-     BBackref (binjval r c v1) v2 cs"
-| "binjval (BBACKREF r mid cs) c (BRight (BLeft (BHalf v cs' rep))) =
-     BBackref (bmkeps r) (binjval mid c v) cs"
-| "binjval (BBACKREF r mid cs) c (BRight (BRight v)) =
-     BBackref (bmkeps r) (bmkeps mid) cs"
-| "binjval (BBACKREF r mid cs) c (BRight (BHalf v cs' rep)) =
-     BBackref (bmkeps r) (binjval mid c v) cs"
-| "binjval (BBACKREF r mid cs) c (BBackref v1 v2 cs') =
-     BBackref (binjval r c v1) v2 cs"
-| "binjval (BHALF mid cs rep) c (BLeft (BHalf v cs' rep')) =
-     BHalf (binjval mid c v) cs rep"
-| "binjval (BHALF mid cs rep) c (BRight v) =
-     BHalf (bmkeps mid) cs rep"
-| "binjval (BHALF mid cs rep) c (BHalf v cs' rep') =
-     BHalf (binjval mid c v) cs rep"
+  "binjval BZERO c v = BVoid"
+| "binjval BONE c v = BVoid"
+| "binjval (BCH d) c v =
+     (case v of BVoid \<Rightarrow> BChar d | _ \<Rightarrow> BVoid)"
+| "binjval (BSEQ r1 r2) c v =
+     (case v of
+        BLeft (BSeq v1 v2) \<Rightarrow> BSeq (binjval r1 c v1) v2
+      | BRight v' \<Rightarrow> BSeq (bmkeps r1) (binjval r2 c v')
+      | BSeq v1 v2 \<Rightarrow> BSeq (binjval r1 c v1) v2
+      | _ \<Rightarrow> BVoid)"
+| "binjval (BALT r1 r2) c v =
+     (case v of
+        BLeft v' \<Rightarrow> BLeft (binjval r1 c v')
+      | BRight v' \<Rightarrow> BRight (binjval r2 c v')
+      | _ \<Rightarrow> BVoid)"
+| "binjval (BSTAR r) c v =
+     (case v of
+        BSeq v' (BStars vs) \<Rightarrow> BStars (binjval r c v' # vs)
+      | _ \<Rightarrow> BVoid)"
+| "binjval (BNTIMES r n) c v =
+     (case v of
+        BSeq v' (BStars vs) \<Rightarrow> BStars (binjval r c v' # vs)
+      | _ \<Rightarrow> BVoid)"
+| "binjval (BBACKREF r mid cs) c v =
+     (case v of
+        BLeft (BBackref v1 v2 cs') \<Rightarrow> BBackref (binjval r c v1) v2 cs
+      | BRight (BLeft (BHalf v' cs' rep)) \<Rightarrow>
+          BBackref (bmkeps r) (binjval mid c v') cs
+      | BRight (BRight v') \<Rightarrow> BBackref (bmkeps r) (bmkeps mid) cs
+      | BRight (BHalf v' cs' rep) \<Rightarrow>
+          BBackref (bmkeps r) (binjval mid c v') cs
+      | BBackref v1 v2 cs' \<Rightarrow> BBackref (binjval r c v1) v2 cs
+      | _ \<Rightarrow> BVoid)"
+| "binjval (BHALF mid cs rep) c v =
+     (case v of
+        BLeft (BHalf v' cs' rep') \<Rightarrow> BHalf (binjval mid c v') cs rep
+      | BRight v' \<Rightarrow> BHalf (bmkeps mid) cs rep
+      | BHalf v' cs' rep' \<Rightarrow> BHalf (binjval mid c v') cs rep
+      | _ \<Rightarrow> BVoid)"
 | "binjval (BRESIDUE cs rep) c v = BResidue cs rep"
-| "binjval _ _ _ = BVoid"
 
 section \<open>Injection Value Correctness\<close>
 
@@ -384,7 +398,9 @@ lemma blexer_flat:
   using assms
 proof (induct s arbitrary: r v)
   case Nil
-  then show ?case by (simp add: bmkeps_flat split: if_splits)
+  then have "xnullable r" "v = bmkeps r"
+    by (auto split: if_splits)
+  then show ?case using bmkeps_flat by simp
 next
   case (Cons c s)
   then obtain v' where v': "blexer (xder c r) s = Some v'" "v = binjval r c v'"
@@ -396,10 +412,19 @@ qed
 
 lemma blexer_correct_None:
   "s \<notin> BL r \<longleftrightarrow> blexer r s = None"
-  apply (induct s arbitrary: r)
-   apply (simp add: xnullable_correctness)
-  apply (auto simp add: xder_correctness Der_def split: option.splits)
-  done
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by (simp add: xnullable_correctness)
+next
+  case (Cons c s)
+  have "c # s \<in> BL r \<longleftrightarrow> s \<in> BL (xder c r)"
+    by (simp add: xder_correctness Der_def)
+  also have "... \<longleftrightarrow> blexer (xder c r) s \<noteq> None"
+    using Cons.hyps[of "xder c r"] by auto
+  also have "... \<longleftrightarrow> blexer r (c # s) \<noteq> None"
+    by (cases "blexer (xder c r) s") simp_all
+  finally show ?case by blast
+qed
 
 lemma blexer_correct_Some:
   "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v \<and> \<Turnstile>b v : r \<and> bflat v = s)"
@@ -411,7 +436,7 @@ proof
     using blexer_BPrf blexer_flat by blast
 next
   assume "\<exists>v. blexer r s = Some v \<and> \<Turnstile>b v : r \<and> bflat v = s"
-  then show "s \<in> BL r" using blexer_correct_None by auto
+  then show "s \<in> BL r" using BL_flat_BPrf1 by fastforce
 qed
 
 section \<open>POSIX Specification for Backreference Regex\<close>
@@ -455,6 +480,23 @@ inductive_cases BPosix_elims:
   "s \<in> BHALF mid cs rep \<rightarrow> v"
   "s \<in> BRESIDUE cs rep \<rightarrow> v"
 
+lemma lang_pow_empty_from_all:
+  fixes A :: "string set"
+  assumes "\<forall>x \<in> set xs. [] \<in> A"
+  shows "[] \<in> A ^^ length xs"
+  using assms
+proof (induct xs)
+  case Nil
+  then show ?case by (simp add: lang_empty)
+next
+  case (Cons x xs)
+  then have "[] \<in> A" and "[] \<in> A ^^ length xs"
+    by auto
+  then have "[] @ [] \<in> A ;; (A ^^ length xs)"
+    by (rule concI)
+  then show ?case by (simp add: lang_pow.simps(2))
+qed
+
 lemma BPosix1:
   assumes "s \<in> r \<rightarrow> v"
   shows "s \<in> BL r" "bflat v = s"
@@ -462,7 +504,8 @@ lemma BPosix1:
   apply(induct s r v rule: BPosix.induct)
                 apply(auto simp add: pow_empty_iff backref_lang_def Sequ_def)
   apply (metis Suc_pred concI lang_pow.simps(2))
-  apply (meson ex_in_conv set_empty)
+  apply (rule lang_pow_empty_from_all)
+  apply blast
   done
 
 lemma BPosix1a:
@@ -481,24 +524,99 @@ lemma BPosix1a:
     apply(auto)
   done
 
+lemma BPosix_BSTAR_value_shape:
+  assumes "s \<in> BSTAR r \<rightarrow> v"
+  obtains vs where "v = BStars vs"
+  using assms
+  apply (cases rule: BPosix_elims(6))
+   apply (auto intro: that)
+  done
+
+lemma BPosix_BNTIMES_empty_replicate:
+  assumes "[] \<in> r \<rightarrow> v"
+  shows "[] \<in> BNTIMES r n \<rightarrow> BStars (replicate n v)"
+  apply (rule BPosix_BNTIMES2)
+   apply (use assms in auto)
+  done
+
 lemma BPosix_bmkeps:
   assumes "xnullable r"
   shows "[] \<in> r \<rightarrow> bmkeps r"
   using assms
-  apply(induct r)
-           apply(auto intro: BPosix.intros simp add: xnullable_correctness split: if_splits)
-  apply(subst append.simps(1)[symmetric])
-  apply(rule BPosix_BSEQ)
-    apply(auto)
-  apply(simp add: BPosix_BNTIMES2)
-  apply(subst append.simps(1)[symmetric])
-  apply(subst append.simps(1)[symmetric])
-  apply(rule BPosix_BBACKREF)
-    apply(auto)
-  apply(subst append.simps(1)[symmetric])
-  apply(rule BPosix_BHALF)
-  apply(auto)
-  done
+proof (induct r)
+  case BZERO
+  then show ?case by simp
+next
+  case BONE
+  then show ?case by (simp add: BPosix_BONE)
+next
+  case (BCH x)
+  then show ?case by simp
+next
+  case (BSEQ r1 r2)
+  then have r1: "[] \<in> r1 \<rightarrow> bmkeps r1"
+    and r2: "[] \<in> r2 \<rightarrow> bmkeps r2"
+    by simp_all
+  have "([] @ []) \<in> BSEQ r1 r2 \<rightarrow> BSeq (bmkeps r1) (bmkeps r2)"
+    using r1 r2 by (rule BPosix_BSEQ) auto
+  then show ?case by simp
+next
+  case (BALT r1 r2)
+  then show ?case
+  proof (cases "xnullable r1")
+    case True
+    with BALT have "[] \<in> r1 \<rightarrow> bmkeps r1"
+      by simp
+    then show ?thesis using True by (simp add: BPosix_BALT1)
+  next
+    case False
+    with BALT have r2: "[] \<in> r2 \<rightarrow> bmkeps r2"
+      by simp
+    from False have "[] \<notin> BL r1"
+      by (simp add: xnullable_correctness)
+    then show ?thesis using False r2 by (simp add: BPosix_BALT2)
+  qed
+next
+  case (BSTAR r)
+  then show ?case by (simp add: BPosix_BSTAR2)
+next
+  case (BNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by (simp add: BPosix_BNTIMES2)
+  next
+    case (Suc m)
+    with BNTIMES have "[] \<in> r \<rightarrow> bmkeps r"
+      by simp
+    then have "[] \<in> BNTIMES r (Suc m) \<rightarrow> BStars (replicate (Suc m) (bmkeps r))"
+      by (rule BPosix_BNTIMES_empty_replicate)
+    then show ?thesis using Suc by simp
+  qed
+next
+  case (BBACKREF r mid cs)
+  then have r: "[] \<in> r \<rightarrow> bmkeps r"
+    and mid: "[] \<in> mid \<rightarrow> bmkeps mid"
+    and cs: "cs = []"
+    by simp_all
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> ([] @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
+      [] @ rev ([] :: string) @ [] = s\<^sub>3 @ s\<^sub>4 @ rev ([] :: string) @ ([] @ s\<^sub>3))"
+    by auto
+  have "([] @ [] @ rev ([] :: string) @ []) \<in> BBACKREF r mid [] \<rightarrow> BBackref (bmkeps r) (bmkeps mid) []"
+    using r mid greedy by (rule BPosix_BBACKREF)
+  then show ?case using cs by simp
+next
+  case (BHALF mid cs rep)
+  then have mid: "[] \<in> mid \<rightarrow> bmkeps mid"
+    and cs: "cs = []"
+    by simp_all
+  have "([] @ []) \<in> BHALF mid [] rep \<rightarrow> BHalf (bmkeps mid) [] rep"
+    using mid by (rule BPosix_BHALF)
+  then show ?case using cs by simp
+next
+  case (BRESIDUE cs rep)
+  then show ?case by (cases cs) (auto intro: BPosix_BRESIDUE)
+qed
 
 section \<open>Injection Preserves POSIX\<close>
 
@@ -558,11 +676,19 @@ next
   then show "(c # s) \<in> BSEQ r1 r2 \<rightarrow> binjval (BSEQ r1 r2) c v"
   proof cases
     case left_nullable
-    have "(c # s1) \<in> r1 \<rightarrow> binjval r1 c v1" using IH1 left_nullable by simp
-    moreover have "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
-      using left_nullable by (simp add: xder_correctness Der_def)
-    ultimately have "((c # s1) @ s2) \<in> BSEQ r1 r2 \<rightarrow> BSeq (binjval r1 c v1) v2"
-      using left_nullable by (auto intro: BPosix.intros)
+    have r1: "(c # s1) \<in> r1 \<rightarrow> binjval r1 c v1" using IH1 left_nullable by simp
+    have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
+    proof
+      assume "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2"
+      then obtain s\<^sub>3 s\<^sub>4 where "s\<^sub>3 \<noteq> []" "s\<^sub>3 @ s\<^sub>4 = s2" "(c # s1) @ s\<^sub>3 \<in> BL r1" "s\<^sub>4 \<in> BL r2"
+        by blast
+      then have "s1 @ s\<^sub>3 \<in> BL (xder c r1)"
+        by (simp add: xder_correctness Der_def)
+      then show False using left_nullable \<open>s\<^sub>3 \<noteq> []\<close> \<open>s\<^sub>3 @ s\<^sub>4 = s2\<close> \<open>s\<^sub>4 \<in> BL r2\<close>
+        by blast
+    qed
+    have "((c # s1) @ s2) \<in> BSEQ r1 r2 \<rightarrow> BSeq (binjval r1 c v1) v2"
+      using r1 left_nullable(5) greedy by (rule BPosix_BSEQ)
     then show ?thesis using left_nullable by simp
   next
     case right_nullable
@@ -576,38 +702,53 @@ next
     then show ?thesis using right_nullable by simp
   next
     case not_nullable
-    have "(c # s1) \<in> r1 \<rightarrow> binjval r1 c v1" using IH1 not_nullable by simp
-    moreover have "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
-      using not_nullable by (simp add: xder_correctness Der_def)
-    ultimately have "((c # s1) @ s2) \<in> BSEQ r1 r2 \<rightarrow> BSeq (binjval r1 c v1) v2"
-      using not_nullable by (auto intro: BPosix.intros)
+    have r1: "(c # s1) \<in> r1 \<rightarrow> binjval r1 c v1" using IH1 not_nullable by simp
+    have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)"
+    proof
+      assume "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2"
+      then obtain s\<^sub>3 s\<^sub>4 where "s\<^sub>3 \<noteq> []" "s\<^sub>3 @ s\<^sub>4 = s2" "(c # s1) @ s\<^sub>3 \<in> BL r1" "s\<^sub>4 \<in> BL r2"
+        by blast
+      then have "s1 @ s\<^sub>3 \<in> BL (xder c r1)"
+        by (simp add: xder_correctness Der_def)
+      then show False using not_nullable \<open>s\<^sub>3 \<noteq> []\<close> \<open>s\<^sub>3 @ s\<^sub>4 = s2\<close> \<open>s\<^sub>4 \<in> BL r2\<close>
+        by blast
+    qed
+    have "((c # s1) @ s2) \<in> BSEQ r1 r2 \<rightarrow> BSeq (binjval r1 c v1) v2"
+      using r1 not_nullable(5) greedy by (rule BPosix_BSEQ)
     then show ?thesis using not_nullable by simp
   qed
 next
   case (BSTAR r)
   have IH: "\<And>s v c. s \<in> xder c r \<rightarrow> v \<Longrightarrow> (c # s) \<in> r \<rightarrow> binjval r c v" by fact
   have "s \<in> xder c (BSTAR r) \<rightarrow> v" by fact
-  then consider (cons) v1 vs s1 s2 where
-    "v = BSeq v1 (BStars vs)" "s = s1 @ s2"
-    "s1 \<in> xder c r \<rightarrow> v1" "s2 \<in> BSTAR r \<rightarrow> BStars vs"
+  then have seq_posix: "s \<in> BSEQ (xder c r) (BSTAR r) \<rightarrow> v"
+    by simp
+  then obtain v1 v2 s1 s2 where seq:
+    "v = BSeq v1 v2" "s = s1 @ s2"
+    "s1 \<in> xder c r \<rightarrow> v1" "s2 \<in> BSTAR r \<rightarrow> v2"
     "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> s1 @ s\<^sub>3 \<in> BL (xder c r) \<and> s\<^sub>4 \<in> BL (BSTAR r))"
-    apply (auto elim!: BPosix_elims(1-5) simp add: xder_correctness Der_def intro: BPosix.intros)
-    apply (rotate_tac 3)
-    apply (erule_tac BPosix_elims(6))
-    apply (simp add: BPosix.intros(7))
-    using BPosix.intros(7) by blast
-  then show "(c # s) \<in> BSTAR r \<rightarrow> binjval (BSTAR r) c v"
-  proof cases
-    case cons
-    have "(c # s1) \<in> r \<rightarrow> binjval r c v1" using IH cons by simp
-    moreover have "bflat (binjval r c v1) \<noteq> []"
-      using BPosix1(2) calculation by force
-    moreover have "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r))"
-      using cons by (simp add: xder_correctness Der_def)
-    ultimately have "((c # s1) @ s2) \<in> BSTAR r \<rightarrow> BStars (binjval r c v1 # vs)"
-      using cons by (auto intro: BPosix.intros)
-    then show ?thesis using cons by simp
+    by (auto elim!: BPosix_elims(5))
+  from seq(4) obtain vs where v2: "v2 = BStars vs"
+    by (rule BPosix_BSTAR_value_shape)
+  have r: "(c # s1) \<in> r \<rightarrow> binjval r c v1" using IH seq by simp
+  have nonempty: "bflat (binjval r c v1) \<noteq> []"
+    using BPosix1(2) r by force
+  have s2: "s2 \<in> BSTAR r \<rightarrow> BStars vs"
+    using seq(4) v2 by simp
+  have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r))"
+  proof
+    assume "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (c # s1) @ s\<^sub>3 \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r)"
+    then obtain s\<^sub>3 s\<^sub>4 where "s\<^sub>3 \<noteq> []" "s\<^sub>3 @ s\<^sub>4 = s2" "(c # s1) @ s\<^sub>3 \<in> BL r" "s\<^sub>4 \<in> BL (BSTAR r)"
+      by blast
+    then have "s1 @ s\<^sub>3 \<in> BL (xder c r)"
+      by (simp add: xder_correctness Der_def)
+    then show False using seq \<open>s\<^sub>3 \<noteq> []\<close> \<open>s\<^sub>3 @ s\<^sub>4 = s2\<close> \<open>s\<^sub>4 \<in> BL (BSTAR r)\<close>
+      by blast
   qed
+  have "((c # s1) @ s2) \<in> BSTAR r \<rightarrow> BStars (binjval r c v1 # vs)"
+    using r s2 nonempty greedy by (rule BPosix_BSTAR1)
+  then show "(c # s) \<in> BSTAR r \<rightarrow> binjval (BSTAR r) c v"
+    using seq v2 by simp
 next
   case (BNTIMES r n)
   have IH: "\<And>s v c. s \<in> xder c r \<rightarrow> v \<Longrightarrow> (c # s) \<in> r \<rightarrow> binjval r c v" by fact
@@ -676,9 +817,9 @@ next
       (left) v' where "v = BLeft v'" "s \<in> BBACKREF (xder c r) mid (c # cs) \<rightarrow> v'"
     | (right) v' where "v = BRight v'" "s \<notin> BL (BBACKREF (xder c r) mid (c # cs))"
         "s \<in> (if xnullable mid
-               then BALT (BHALF (xder c mid) (rev cs) (rev cs)) (xder_residue c (rev cs) (rev cs))
-               else BHALF (xder c mid) (rev cs) (rev cs)) \<rightarrow> v'"
-      by (auto elim!: BPosix_elims)
+                then BALT (BHALF (xder c mid) (rev cs) (rev cs)) (xder_residue c (rev cs) (rev cs))
+                else BHALF (xder c mid) (rev cs) (rev cs)) \<rightarrow> v'"
+      by (auto elim!: BPosix_elims(4))
     then show ?thesis
     proof cases
       case left
@@ -709,7 +850,7 @@ next
         | (residue) v'' where "v' = BRight v''"
             "s \<notin> BL (BHALF (xder c mid) (rev cs) (rev cs))"
             "s \<in> xder_residue c (rev cs) (rev cs) \<rightarrow> v''"
-          by (auto elim!: BPosix_elims)
+          by (auto elim!: BPosix_elims(4))
         then show ?thesis
         proof cases
           case bhalf
@@ -720,10 +861,12 @@ next
           have mkeps_r: "[] \<in> r \<rightarrow> bmkeps r" using \<open>xnullable r\<close> BPosix_bmkeps by simp
           have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> ([] @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
               (c # sm) @ rev cs @ [] = s\<^sub>3 @ s\<^sub>4 @ rev cs @ ([] @ s\<^sub>3))"
-          proof (rule notI, elim exE conjE)
-            fix s\<^sub>3 s\<^sub>4
-            assume a: "s\<^sub>3 \<noteq> []" "s\<^sub>3 \<in> BL r" "s\<^sub>4 \<in> BL mid"
+          proof
+            assume "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> ([] @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
+              (c # sm) @ rev cs @ [] = s\<^sub>3 @ s\<^sub>4 @ rev cs @ ([] @ s\<^sub>3)"
+            then obtain s\<^sub>3 s\<^sub>4 where a: "s\<^sub>3 \<noteq> []" "s\<^sub>3 \<in> BL r" "s\<^sub>4 \<in> BL mid"
               "(c # sm) @ rev cs = s\<^sub>3 @ s\<^sub>4 @ rev cs @ s\<^sub>3"
+              by auto
             from a(1,4) obtain x where x: "s\<^sub>3 = c # x"
               by (cases s\<^sub>3) auto
             then have "x \<in> Der c (BL r)" using a(2) by (simp add: Der_def)
@@ -762,15 +905,17 @@ next
         case False
         from right(3)[unfolded if_not_P[OF False]] obtain vm sm where hm:
           "v' = BHalf vm (rev cs) (rev cs)" "sm \<in> xder c mid \<rightarrow> vm" "s = sm @ rev cs"
-          by (auto elim!: BPosix_elims)
+          by (auto elim!: BPosix_elims(9))
         have inj_mid: "(c # sm) \<in> mid \<rightarrow> binjval mid c vm" using IH2 hm by simp
         have mkeps_r: "[] \<in> r \<rightarrow> bmkeps r" using \<open>xnullable r\<close> BPosix_bmkeps by simp
         have greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> ([] @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
             (c # sm) @ rev cs @ [] = s\<^sub>3 @ s\<^sub>4 @ rev cs @ ([] @ s\<^sub>3))"
-        proof (rule notI, elim exE conjE)
-          fix s\<^sub>3 s\<^sub>4
-          assume a: "s\<^sub>3 \<noteq> []" "s\<^sub>3 \<in> BL r" "s\<^sub>4 \<in> BL mid"
+        proof
+          assume "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> ([] @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
+            (c # sm) @ rev cs @ [] = s\<^sub>3 @ s\<^sub>4 @ rev cs @ ([] @ s\<^sub>3)"
+          then obtain s\<^sub>3 s\<^sub>4 where a: "s\<^sub>3 \<noteq> []" "s\<^sub>3 \<in> BL r" "s\<^sub>4 \<in> BL mid"
             "(c # sm) @ rev cs = s\<^sub>3 @ s\<^sub>4 @ rev cs @ s\<^sub>3"
+            by auto
           from a(1,4) obtain x where x: "s\<^sub>3 = c # x"
             by (cases s\<^sub>3) auto
           then have "x \<in> Der c (BL r)" using a(2) by (simp add: Der_def)
@@ -802,7 +947,7 @@ next
     then have der: "xder c (BHALF mid cs rep) = BHALF (xder c mid) cs rep" by simp
     from asm[unfolded der] obtain vm sm where hm:
       "v = BHalf vm cs rep" "sm \<in> xder c mid \<rightarrow> vm" "s = sm @ cs"
-      by (auto elim!: BPosix_elims)
+      by (auto elim!: BPosix_elims(9))
     have "(c # sm) \<in> mid \<rightarrow> binjval mid c vm" using IH hm by simp
     then have "((c # sm) @ cs) \<in> BHALF mid cs rep \<rightarrow> BHalf (binjval mid c vm) cs rep"
       by (rule BPosix_BHALF)
@@ -815,13 +960,13 @@ next
       (left) v' where "v = BLeft v'" "s \<in> BHALF (xder c mid) cs rep \<rightarrow> v'"
     | (right) v' where "v = BRight v'" "s \<notin> BL (BHALF (xder c mid) cs rep)"
         "s \<in> xder_residue c cs rep \<rightarrow> v'"
-      by (auto elim!: BPosix_elims)
+      by (auto elim!: BPosix_elims(4))
     then show ?thesis
     proof cases
       case left
       from left(2) obtain vm sm where hm:
         "v' = BHalf vm cs rep" "sm \<in> xder c mid \<rightarrow> vm" "s = sm @ cs"
-        by (auto elim!: BPosix_elims)
+        by (auto elim!: BPosix_elims(9))
       have "(c # sm) \<in> mid \<rightarrow> binjval mid c vm" using IH hm by simp
       then have "((c # sm) @ cs) \<in> BHALF mid cs rep \<rightarrow> BHalf (binjval mid c vm) cs rep"
         by (rule BPosix_BHALF)
@@ -849,6 +994,36 @@ next
     by (rule BPosix_BRESIDUE)
   then show "(c # s) \<in> BRESIDUE cs rep \<rightarrow> binjval (BRESIDUE cs rep) c v"
     using ds by simp
+qed
+
+lemma blexer_POSIX:
+  assumes "blexer r s = Some v"
+  shows "s \<in> r \<rightarrow> v"
+  using assms
+proof (induct s arbitrary: r v)
+  case Nil
+  then have "xnullable r" and "v = bmkeps r"
+    by (auto split: if_splits)
+  then show "[] \<in> r \<rightarrow> v" using BPosix_bmkeps by simp
+next
+  case (Cons c s)
+  then obtain v' where v': "blexer (xder c r) s = Some v'" "v = binjval r c v'"
+    by (auto split: option.splits)
+  from v'(1) have "s \<in> (xder c r) \<rightarrow> v'" by (rule Cons.hyps)
+  then have "(c # s) \<in> r \<rightarrow> binjval r c v'" by (rule BPosix_binjval)
+  then show "(c # s) \<in> r \<rightarrow> v" using v'(2) by simp
+qed
+
+lemma blexer_POSIX_iff:
+  "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v \<and> s \<in> r \<rightarrow> v)"
+proof
+  assume "s \<in> BL r"
+  then obtain v where "blexer r s = Some v" using blexer_correct_None by blast
+  then show "\<exists>v. blexer r s = Some v \<and> s \<in> r \<rightarrow> v"
+    using blexer_POSIX by blast
+next
+  assume "\<exists>v. blexer r s = Some v \<and> s \<in> r \<rightarrow> v"
+  then show "s \<in> BL r" using BPosix1(1) by blast
 qed
 
 end

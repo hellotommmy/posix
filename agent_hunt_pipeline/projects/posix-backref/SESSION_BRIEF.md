@@ -64,6 +64,10 @@ the admin explicitly approves the migration.
 
 ## Current Next Tasks
 
+For live Codex + Cursor/Opus runs, read
+`agent_hunt_pipeline/projects/posix-backref/DUAL_AGENT_COORDINATION.md` before
+assigning overlapping work.
+
 ### Opus (Cursor) -- value-theoretic path
 1. Draft `binjval` for the current checked pilot (BR-005).
 2. Prove `bflat (binjval r c v) = c # bflat v` (BR-011).
