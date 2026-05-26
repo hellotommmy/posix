@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer value-output equality wrappers)
+Last updated: 2026-05-27 (bitcoded lexer checked-value retrieve bridges)
 
 ## Current Branch
 
@@ -18,6 +18,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct checked-value retrieve wrappers
+  for the ordinary and generalized bitcoded lexer frontends. New checked facts
+  are `bblexer_BPrf_retrieve_iff`, `bblexer_simp_BPrf_retrieve_iff`,
+  `bblexer_step_simp_BPrf_retrieve_iff`, `gbblexer_GPrf_retrieve_iff`,
+  `gbblexer_simp_GPrf_retrieve_iff`, and
+  `gbblexer_step_simp_GPrf_retrieve_iff`. Files changed before this progress
+  note: `BackRefBlexer.thy` (+19) and `BackRefGBlexer.thy` (+20). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed);
+  `BackRefBlexer` replayed in about 4.2 seconds and `BackRefGBlexer` replayed
+  in about 2.7 seconds. Final full local CI passed with Isabelle `Posix`
+  (0:29 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and local CI
+  certificate generation. After rebasing over concurrent commit `ce0492f`,
+  full local CI passed again with Isabelle `Posix` (0:04 elapsed), Isabelle
+  `BackRefPilot` (0:16 elapsed), local CI certificate generation, and explicit
+  statement guard PASS. Next smallest safe step: stop until the admin opens a
+  new bounty/phase, or add only explicitly requested downstream convenience
+  wrappers. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct equality wrappers from bitcoded
   lexer outputs to known value-lexer outputs. New checked facts are
