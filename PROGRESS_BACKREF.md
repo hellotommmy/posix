@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend retrieve iff wrappers)
+Last updated: 2026-05-27 (value lexer evidence wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after adding
+  value-lexer packaging wrappers in `BackRefValues.thy`. New checked facts are
+  `blexer_Some_BL`, `blexer_BL_obtains`, `blexer_defined_BPrf_iff`,
+  `blexer_None_BPrf_iff`, `blexer_defined_POSIX_iff`, and
+  `blexer_None_POSIX_iff`. Files changed before this progress note:
+  `BackRefValues.thy` (+84). Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed). An initial post-edit pilot replay exposed two
+  overly terse `None` wrapper proofs; those were replaced with explicit option
+  cases. After rebasing over remote commit `4b17049`, pilot-only local CI
+  passed with `BackRefPilot` (0:17 elapsed), `BackRefValues` replaying in about
+  11.0 seconds, and the synced `BackRefBitcodedSummary` theory replaying in
+  about 0.099 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:03 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed), and local CI certificate generation; explicit
+  statement guard PASS. Next smallest safe step: stop until the admin opens a
+  new bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding direct retrieve-iff summary wrappers
   for all ordinary and generalized bitcoded lexer frontends in

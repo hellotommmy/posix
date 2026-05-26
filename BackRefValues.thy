@@ -1553,4 +1553,88 @@ next
   then show "s \<in> BL r" using BPosix1(1) by blast
 qed
 
+lemma blexer_Some_BL:
+  assumes "blexer r s = Some v"
+  shows "s \<in> BL r"
+  using assms blexer_BPrf blexer_flat BL_flat_BPrf1 by blast
+
+lemma blexer_BL_obtains:
+  assumes "s \<in> BL r"
+  obtains v where "blexer r s = Some v"
+  using assms blexer_correctness_defined by blast
+
+lemma blexer_defined_BPrf_iff:
+  "(\<exists>v. blexer r s = Some v) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>b v : r \<and> bflat v = s)"
+proof
+  assume "\<exists>v. blexer r s = Some v"
+  then show "\<exists>v. \<Turnstile>b v : r \<and> bflat v = s"
+    using blexer_BPrf blexer_flat by blast
+next
+  assume "\<exists>v. \<Turnstile>b v : r \<and> bflat v = s"
+  then have "s \<in> BL r"
+    using BL_flat_BPrf1 by blast
+  then show "\<exists>v. blexer r s = Some v"
+    using blexer_correctness_defined by blast
+qed
+
+lemma blexer_None_BPrf_iff:
+  "blexer r s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>b v : r \<and> bflat v = s)"
+proof
+  assume none: "blexer r s = None"
+  show "\<not> (\<exists>v. \<Turnstile>b v : r \<and> bflat v = s)"
+  proof
+    assume "\<exists>v. \<Turnstile>b v : r \<and> bflat v = s"
+    then have "\<exists>v. blexer r s = Some v"
+      using blexer_defined_BPrf_iff by blast
+    then show False
+      using none by auto
+  qed
+next
+  assume no_prf: "\<not> (\<exists>v. \<Turnstile>b v : r \<and> bflat v = s)"
+  show "blexer r s = None"
+  proof (cases "blexer r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some v)
+    then have "\<exists>v. \<Turnstile>b v : r \<and> bflat v = s"
+      using blexer_defined_BPrf_iff by blast
+    then show ?thesis
+      using no_prf by blast
+  qed
+qed
+
+lemma blexer_defined_POSIX_iff:
+  "(\<exists>v. blexer r s = Some v) \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+  by (auto simp add: blexer_POSIX_correctness)
+
+lemma blexer_None_POSIX_iff:
+  "blexer r s = None \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof
+  assume none: "blexer r s = None"
+  show "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  proof
+    assume "\<exists>v. s \<in> r \<rightarrow> v"
+    then have "\<exists>v. blexer r s = Some v"
+      using blexer_defined_POSIX_iff by blast
+    then show False
+      using none by auto
+  qed
+next
+  assume no_posix: "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  show "blexer r s = None"
+  proof (cases "blexer r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some v)
+    then have "\<exists>v. s \<in> r \<rightarrow> v"
+      using blexer_defined_POSIX_iff by blast
+    then show ?thesis
+      using no_posix by blast
+  qed
+qed
+
 end
