@@ -142,6 +142,31 @@ After Opus stops once, Cursor Hooks should call `.cursor/hooks/posix_loop.ps1`,
 run the validation command in `loop-config.json`, and re-prompt automatically
 until the hook limit is reached.
 
+## Protect Dirty Cursor Work
+
+Cursor/Opus may disconnect before it reaches a checked commit. To avoid losing
+half-finished proof search, run the dirty snapshot watcher from the Codex clone.
+It does not stage, commit, stash, reset, pull, push, or edit the Opus worktree;
+it only saves local ignored snapshots of dirty diffs and changed file copies:
+
+```powershell
+cd C:\Users\Chengsong\Documents\AIPV2026Notes\posix
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/dirty_worktree_snapshot.ps1 -Background -RepoPath C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus -PollSeconds 60 -MinIntervalSeconds 120
+```
+
+Snapshots are written under:
+
+```text
+C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus\agent_hunt_pipeline\run\dirty_snapshots
+```
+
+Inspect the latest snapshot with:
+
+```powershell
+Get-ChildItem C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus\agent_hunt_pipeline\run\dirty_snapshots -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+Get-Content C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus\agent_hunt_pipeline\run\dirty_snapshots\snapshot_watch.log -Tail 40
+```
+
 ## Opus Watchdog Warning
 
 Current recommended Opus route: use Cursor IDE manually in
