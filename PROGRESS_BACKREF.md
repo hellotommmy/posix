@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-015 complete; BR-019 syntactic derivative-closure package)
+Last updated: 2026-05-27 (BR-019 finite derivative-family universe package)
 
 ## Current Branch
 
@@ -18,6 +18,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  and local CI certificate generation after adding a finite derivative-family
+  universe package in `BackRefBoundedBlueprint.thy`. New checked facts define
+  `bounded_strings`, prove it finite, place every derivative language from a
+  successful `BL_bound`/`GBL_bound` calculation inside
+  `Pow (bounded_strings n)`, and give the explicit cardinal upper bound
+  `2 ^ card (bounded_strings n)`. A pilot-only precheck also passed with
+  `BackRefPilot` (0:11 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 2.2 seconds.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:29 elapsed), Isabelle `BackRefPilot`, and local CI
   certificate generation after adding a BR-019 syntactic derivative-closure
@@ -232,6 +242,12 @@ Latest result:
   - `GBL_bound_gxders_finite_derivative_languages`
   - `BL_bound_BBACKREF_finite_derivative_languages`
   - `GBL_bound_GBACKREF4_finite_derivative_languages`
+  - `bounded_strings`
+  - `finite_bounded_strings`
+  - `BL_bound_derivative_family_subset_bounded_strings`
+  - `GBL_bound_derivative_family_subset_bounded_strings`
+  - `BL_bound_derivative_family_card_bound`
+  - `GBL_bound_derivative_family_card_bound`
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -402,9 +418,49 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     checked syntactic bounded-fragment proof-prep through
     `BL_bound_finite_derivative_languages` and
     `GBL_bound_finite_derivative_languages`, plus derivative-family boundedness
-    and syntactic derivative-closure/constructor packages; production bounds
-    or closed-form work should still wait for admin acceptance of the precise
-    statement.
+    and syntactic derivative-closure/constructor packages. The latest package
+    also places the derivative-language family inside the finite universe
+    `Pow (bounded_strings n)` with an explicit cardinal bound. Production
+    bounds or closed-form work should still wait for admin acceptance of the
+    precise statement.
+
+## BR-019 Finite Derivative-Family Universe Package (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+90 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `bounded_strings`, the finite universe of strings with length at most a
+    successful syntactic bound
+- New checked lemmas/theorems:
+  - `finite_bounded_strings`
+  - `bounded_language_subset_bounded_strings`
+  - `card_Pow_finite`
+  - `BL_bound_derivative_family_subset_bounded_strings`
+  - `GBL_bound_derivative_family_subset_bounded_strings`
+  - `BL_bound_derivative_family_card_bound`
+  - `GBL_bound_derivative_family_card_bound`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:11 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 2.2 seconds.
+  - Full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+    and local CI certificate generation.
+- Performance note:
+  - The first draft failed fast on finite-list and powerset-cardinality proof
+    details; the checked version uses explicit `finite_lists_length_le`,
+    `card_image`, and `card_mono` steps. No slow proof command was accepted.
+- Notes:
+  - This does not touch `BackRefValues.thy`, production `Blexer*`, bounds, or
+    closed-form theories.
+  - This strengthens the BR-019 bounded-fragment blueprint from "finite" to an
+    explicit finite universe/cardinality bound for derivative languages.
+- Next smallest safe step: ask the admin whether the accumulated
+  `BL_bound`/`GBL_bound` finite-universe package is enough to mark BR-019 done,
+  or whether a production-facing theorem name/statement should be frozen first.
 
 ## BR-019 Syntactic Derivative-Closure Package (2026-05-27)
 

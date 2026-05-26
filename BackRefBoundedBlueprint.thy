@@ -812,4 +812,94 @@ proof -
     by (rule GBL_bound_finite_derivative_languages)
 qed
 
+section \<open>Finite Derivative Family Universe\<close>
+
+definition bounded_strings :: "nat \<Rightarrow> string set"
+where
+  "bounded_strings n = {s. length s \<le> n}"
+
+lemma finite_bounded_strings:
+  "finite (bounded_strings n)"
+proof -
+  have "bounded_strings n =
+    {s :: string. set s \<subseteq> (UNIV :: char set) \<and> length s \<le> n}"
+    by (auto simp add: bounded_strings_def)
+  then show ?thesis
+    by (simp only:) (rule finite_lists_length_le, simp)
+qed
+
+lemma bounded_language_subset_bounded_strings:
+  assumes "bounded_language n A"
+  shows "A \<subseteq> bounded_strings n"
+  using assms by (auto simp add: bounded_language_def bounded_strings_def)
+
+lemma card_Pow_finite:
+  assumes "finite A"
+  shows "card (Pow A) = 2 ^ card A"
+  using assms
+proof induct
+  case empty
+  then show ?case
+    by simp
+next
+  case (insert a A)
+  have split: "Pow (insert a A) = Pow A \<union> insert a ` Pow A"
+    by (simp add: Pow_insert)
+  have disjoint: "Pow A \<inter> insert a ` Pow A = {}"
+    using insert.hyps by auto
+  have finite_A: "finite (Pow A)"
+    using insert.hyps by simp
+  have finite_insert_A: "finite (insert a ` Pow A)"
+    using finite_A by simp
+  have card_insert_A: "card (insert a ` Pow A) = card (Pow A)"
+    by (rule card_image) (use insert.hyps in \<open>auto simp add: inj_on_def\<close>)
+  show ?case
+    using insert.hyps card_insert_A
+    by (simp add: split card_Un_disjoint[OF finite_A finite_insert_A disjoint])
+qed
+
+theorem BL_bound_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n"
+  shows "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings n)"
+  using BL_bound_derivative_family_bounded[OF assms]
+    bounded_language_subset_bounded_strings
+  by blast
+
+theorem GBL_bound_derivative_family_subset_bounded_strings:
+  assumes "GBL_bound r = Some n"
+  shows "{GBL (gxders r s) | s. True} \<subseteq> Pow (bounded_strings n)"
+  using GBL_bound_derivative_family_bounded[OF assms]
+    bounded_language_subset_bounded_strings
+  by blast
+
+theorem BL_bound_derivative_family_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card {BL (xders r s) | s. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule BL_bound_derivative_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {BL (xders r s) | s. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_derivative_family_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card {GBL (gxders r s) | s. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{GBL (gxders r s) | s. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule GBL_bound_derivative_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {GBL (gxders r s) | s. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
 end
