@@ -149,6 +149,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## BR-020 Post-Derivative Simplifier Partial (2026-05-26)
 
 - Branch: `codex/backref-values`
+- Commit: `968c32b`
 - Agent lane: Codex new-file implementation lane
 - Files changed: `BackRefBlexer.thy` (+174), `PROGRESS_BACKREF.md`
 - New checked definitions:
