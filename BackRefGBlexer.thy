@@ -257,6 +257,253 @@ next
     by (simp add: Let_def)
 qed simp_all
 
+lemma gretrieve_alts_append:
+  assumes "GPrf v (gerase (GAALTs cs rs))"
+  shows "gretrieve_alts (bs @ cs) (map gretrieve rs) v =
+    bs @ gretrieve_alts cs (map gretrieve rs) v"
+  using assms
+proof (induct rs arbitrary: bs cs v)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      by simp
+  next
+    case (Cons r' rs')
+    show ?thesis
+    proof (cases v)
+      case (GVRight v2)
+      have prf_tail0: "GPrf v2 (gerase (GAALTs [] rs))"
+        using Cons.prems Cons GVRight by (auto elim!: GPrf_elims)
+      have same: "gerase (GAALTs cs rs) = gerase (GAALTs [] rs)"
+        by (rule gerase_GAALTs_ignore_bits)
+      have prf_tail: "GPrf v2 (gerase (GAALTs cs rs))"
+        using prf_tail0 by (simp only: same)
+      have "gretrieve_alts (bs @ cs) (map gretrieve rs) v2 =
+        bs @ gretrieve_alts cs (map gretrieve rs) v2"
+        using Cons.hyps[OF prf_tail] .
+      then show ?thesis
+        using Cons GVRight by simp
+    qed (use Cons.prems Cons in \<open>auto elim!: GPrf_elims\<close>)
+  qed
+qed
+
+lemma gretrieve_gfuse:
+  assumes "GPrf v (gerase r)"
+  shows "gretrieve (gfuse bs r) v = bs @ gretrieve r v"
+  using assms
+proof (cases r)
+  case (GAALTs cs rs)
+  then show ?thesis
+    using assms gretrieve_alts_append[of v cs rs bs] by simp
+qed (auto elim!: GPrf_elims BPrf4_elims simp add: append_assoc)
+
+lemma gretrieve_gbackref4_from_tail:
+  assumes "\<Turnstile>b tail : gtail4 (berase r3) (rev cs) (berase r4)"
+    and "bflat v2 = []"
+  shows "gretrieve (GABACKREF4 bs r1 r2 r3 r4 cs)
+      (gbackref4_from_tail v1 v2 cs tail) =
+    bs @ bretrieve r1 v1 @ [Backbit (rev cs)] @ bretrieve r2 v2 @
+      bretrieve (gabbtail4 r3 (rev cs) r4) tail"
+  using assms
+  unfolding gbackref4_from_tail_def gabbtail4_def gtail4_def
+  by (auto elim!: BPrf_elims simp add: append_assoc)
+
+lemma gretrieve_gbackref4_from_xder_tail:
+  assumes "BPrf tail (xder c (gtail4 (berase r3) (rev cs) (berase r4)))"
+    and "bbnullable r2"
+  shows "gretrieve (GABACKREF4 bs r1 r2 r3 r4 cs)
+      (gbackref4_from_tail (bmkeps (berase r1)) (bmkeps (berase r2)) cs
+        (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)) =
+    bs @ bretrieve r1 (bmkeps (berase r1)) @ [Backbit (rev cs)] @
+      bretrieve r2 (bmkeps (berase r2)) @
+      bretrieve (gabbtail4 r3 (rev cs) r4)
+        (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)"
+proof -
+  have tail_prf:
+    "BPrf (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)
+      (gtail4 (berase r3) (rev cs) (berase r4))"
+    using assms(1) by (rule binjval_BPrf)
+  have empty2: "bflat (bmkeps (berase r2)) = []"
+    using assms(2) by (auto intro: bmkeps_flat)
+  show ?thesis
+    using gretrieve_gbackref4_from_tail[OF tail_prf empty2] .
+qed
+
+lemma gabder_GAALTs_gretrieve:
+  assumes step: "\<And>x w. x \<in> set rs \<Longrightarrow> GPrf w (gxder c (gerase x)) \<Longrightarrow> gretrieve (gabder c x) w = gretrieve x (ginjval (gerase x) c w)"
+    and main: "GPrf v (gxder c (gerase (GAALTs bs rs)))"
+  shows "gretrieve (gabder c (GAALTs bs rs)) v =
+    gretrieve (GAALTs bs rs) (ginjval (gerase (GAALTs bs rs)) c v)"
+  using step main
+proof (induct rs arbitrary: bs v)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    have "gretrieve (gabder c r) v =
+      gretrieve r (ginjval (gerase r) c v)"
+      using Cons.prems Nil by simp
+    then show ?thesis
+      using Nil by simp
+  next
+    case (Cons r' rs')
+    show ?thesis
+    proof (cases v)
+      case (GVLeft v1)
+      have prf_left: "GPrf v1 (gxder c (gerase r))"
+        using Cons.prems Cons GVLeft by (auto elim!: GPrf_elims)
+      have "gretrieve (gabder c r) v1 =
+        gretrieve r (ginjval (gerase r) c v1)"
+        using Cons.prems(1)[OF _ prf_left] by simp
+      then show ?thesis
+        using Cons GVLeft by simp
+    next
+      case (GVRight v2)
+      have prf_tail0: "GPrf v2 (gxder c (gerase (GAALTs [] rs)))"
+        using Cons.prems Cons GVRight by (auto elim!: GPrf_elims)
+      have same: "gerase (GAALTs bs rs) = gerase (GAALTs [] rs)"
+        by (rule gerase_GAALTs_ignore_bits)
+      have prf_tail: "GPrf v2 (gxder c (gerase (GAALTs bs rs)))"
+        using prf_tail0 by (simp only: same)
+      have ginj_same:
+        "ginjval (gerase (GAALTs bs rs)) c v2 =
+         ginjval (gerase (GAALTs [] rs)) c v2"
+        by (simp only: same)
+      have step_tail: "\<And>x w. x \<in> set rs \<Longrightarrow> GPrf w (gxder c (gerase x)) \<Longrightarrow> gretrieve (gabder c x) w = gretrieve x (ginjval (gerase x) c w)"
+        using Cons.prems by auto
+      have "gretrieve (gabder c (GAALTs bs rs)) v2 =
+        gretrieve (GAALTs bs rs) (ginjval (gerase (GAALTs bs rs)) c v2)"
+        using Cons.hyps[OF step_tail prf_tail] .
+      then show ?thesis
+        using Cons GVRight ginj_same by simp
+    qed (use Cons.prems Cons in \<open>auto elim!: GPrf_elims\<close>)
+  qed
+qed
+
+lemma gabder_gretrieve:
+  assumes "GPrf v (gxder c (gerase r))"
+  shows "gretrieve (gabder c r) v = gretrieve r (ginjval (gerase r) c v)"
+  using assms
+proof (induct r arbitrary: c v)
+  case (GABASE bs r)
+  then show ?case
+    by (auto elim!: GPrf_elims simp add: bbder_bretrieve)
+next
+  case (GAALTs bs rs)
+  then show ?case
+    by (rule gabder_GAALTs_gretrieve)
+next
+  case (GABACKREF4 bs r1 r2 r3 r4 cs)
+  show ?case
+  proof (cases "bbnullable r1")
+    case False
+    with GABACKREF4.prems show ?thesis
+      by (auto elim!: GPrf_elims BPrf4_elims
+          simp add: Let_def bbder_bretrieve)
+  next
+    case r1_null: True
+    show ?thesis
+    proof (cases "bbnullable r2")
+      case False
+      with r1_null GABACKREF4.prems show ?thesis
+        by (auto elim!: GPrf_elims BPrf4_elims BPrf_elims
+            simp add: Let_def gretrieve_gfuse bbmkeps_bretrieve
+              bbder_bretrieve binjval_flat bmkeps_flat append_assoc)
+    next
+      case r2_null: True
+      show ?thesis
+      proof (cases v)
+        case (GVLeft vp)
+        with r1_null r2_null GABACKREF4.prems show ?thesis
+          by (auto elim!: GPrf_elims BPrf4_elims BPrf_elims
+              simp add: Let_def gretrieve_gfuse bbmkeps_bretrieve
+                bbder_bretrieve binjval_flat bmkeps_flat append_assoc)
+      next
+        case (GVRight vR)
+        note v_outer = GVRight
+        show ?thesis
+        proof (cases vR)
+          case (GVLeft vc)
+          with v_outer r1_null r2_null GABACKREF4.prems show ?thesis
+            by (auto elim!: GPrf_elims BPrf4_elims BPrf_elims
+                simp add: Let_def gretrieve_gfuse bbmkeps_bretrieve
+                  bbder_bretrieve binjval_flat bmkeps_flat append_assoc)
+        next
+          case (GVRight vT)
+          note v_mid = GVRight
+          show ?thesis
+          proof (cases vT)
+            case (GVBase tail)
+            note v_tail = GVBase
+            have tail_prf:
+              "BPrf tail (xder c (gtail4 (berase r3) (rev cs) (berase r4)))"
+              using GABACKREF4.prems r1_null r2_null v_outer v_mid v_tail
+              by (auto elim!: GPrf_elims)
+            have lhs0:
+              "gretrieve (gabder c (GABACKREF4 bs r1 r2 r3 r4 cs)) v =
+                bs @ bbmkeps r1 @ [Backbit (rev cs)] @ bbmkeps r2 @
+                  bretrieve (bbder c (gabbtail4 r3 (rev cs) r4)) tail"
+              using r1_null r2_null v_outer v_mid v_tail
+              by (simp add: Let_def append_assoc)
+            have r1_bits:
+              "bbmkeps r1 = bretrieve r1 (bmkeps (berase r1))"
+              using r1_null by (rule bbmkeps_bretrieve)
+            have r2_bits:
+              "bbmkeps r2 = bretrieve r2 (bmkeps (berase r2))"
+              using r2_null by (rule bbmkeps_bretrieve)
+            have tail_bits:
+              "bretrieve (bbder c (gabbtail4 r3 (rev cs) r4)) tail =
+                bretrieve (gabbtail4 r3 (rev cs) r4)
+                  (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)"
+            proof -
+              have tail_prf':
+                "BPrf tail (xder c (berase (gabbtail4 r3 (rev cs) r4)))"
+                using tail_prf by simp
+              show ?thesis
+                using bbder_bretrieve[OF tail_prf'] by simp
+            qed
+            have lhs:
+              "gretrieve (gabder c (GABACKREF4 bs r1 r2 r3 r4 cs)) v =
+                bs @ bretrieve r1 (bmkeps (berase r1)) @ [Backbit (rev cs)] @
+                  bretrieve r2 (bmkeps (berase r2)) @
+                  bretrieve (gabbtail4 r3 (rev cs) r4)
+                    (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)"
+              using lhs0 r1_bits r2_bits tail_bits by (simp add: append_assoc)
+            have rhs0:
+              "ginjval (gerase (GABACKREF4 bs r1 r2 r3 r4 cs)) c v =
+                gbackref4_from_tail (bmkeps (berase r1)) (bmkeps (berase r2)) cs
+                  (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)"
+              using v_outer v_mid v_tail by simp
+            have rhs:
+              "gretrieve (GABACKREF4 bs r1 r2 r3 r4 cs)
+                  (ginjval (gerase (GABACKREF4 bs r1 r2 r3 r4 cs)) c v) =
+                bs @ bretrieve r1 (bmkeps (berase r1)) @ [Backbit (rev cs)] @
+                  bretrieve r2 (bmkeps (berase r2)) @
+                  bretrieve (gabbtail4 r3 (rev cs) r4)
+                    (binjval (gtail4 (berase r3) (rev cs) (berase r4)) c tail)"
+              using rhs0 gretrieve_gbackref4_from_xder_tail[OF tail_prf r2_null, of bs r1]
+              by simp
+            show ?thesis
+              using lhs rhs by simp
+          qed (use v_outer v_mid r1_null r2_null GABACKREF4.prems in
+            \<open>auto elim!: GPrf_elims\<close>)
+        qed (use v_outer r1_null r2_null GABACKREF4.prems in
+          \<open>auto elim!: GPrf_elims\<close>)
+      qed (use r1_null r2_null GABACKREF4.prems in
+        \<open>auto elim!: GPrf_elims\<close>)
+    qed
+  qed
+qed
+
 fun gabders :: "gabexp \<Rightarrow> string \<Rightarrow> gabexp"
 where
   "gabders r [] = r"
@@ -275,5 +522,114 @@ lemma gerase_gabders [simp]:
 lemma gbblexer_defined_iff:
   "(\<exists>bs. gbblexer r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
   by (simp add: gbblexer_def gnullable_correctness gxders_correctness Ders_def Let_def)
+
+lemma gabders_gabnullable_gblexer:
+  assumes "gblexer (gerase a) s = Some v"
+  shows "gabnullable (gabders a s)"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then show ?case
+    by (auto split: if_splits)
+next
+  case (Cons c s)
+  then obtain w where "gblexer (gxder c (gerase a)) s = Some w"
+    by (auto split: option.splits)
+  then have tail_der: "gblexer (gerase (gabder c a)) s = Some w"
+    by simp
+  then have "gabnullable (gabders (gabder c a) s)"
+    by (rule Cons.hyps)
+  then show ?case
+    by simp
+qed
+
+lemma gabders_gretrieve_gblexer:
+  assumes "gblexer (gerase a) s = Some v"
+  shows "gamkeps (gabders a s) = gretrieve a v"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then have nullable: "gabnullable a" and v_def: "v = gmkeps (gerase a)"
+    by (auto split: if_splits)
+  show ?case
+    using nullable v_def gamkeps_gretrieve by simp
+next
+  case (Cons c s)
+  then obtain w where tail: "gblexer (gxder c (gerase a)) s = Some w"
+    and v_def: "v = ginjval (gerase a) c w"
+    by (auto split: option.splits)
+  have tail_der: "gblexer (gerase (gabder c a)) s = Some w"
+    using tail by simp
+  have mkeps_tail: "gamkeps (gabders (gabder c a) s) =
+      gretrieve (gabder c a) w"
+    using Cons.hyps[OF tail_der] .
+  have transport: "gretrieve (gabder c a) w =
+      gretrieve a (ginjval (gerase a) c w)"
+    using tail by (intro gabder_gretrieve gblexer_GPrf)
+  show ?case
+    using mkeps_tail transport v_def by simp
+qed
+
+lemma gbblexer_gretrieve_original:
+  assumes "gblexer r s = Some v"
+  shows "gbblexer r s = Some (gretrieve (gaintern r) v)"
+proof -
+  have nullable: "gabnullable (gabders (gaintern r) s)"
+    using gabders_gabnullable_gblexer[of "gaintern r" s v] assms by simp
+  have bits: "gamkeps (gabders (gaintern r) s) = gretrieve (gaintern r) v"
+    using gabders_gretrieve_gblexer[of "gaintern r" s v] assms by simp
+  show ?thesis
+    using nullable bits by (simp add: gbblexer_def Let_def)
+qed
+
+theorem gbblexer_gblexer_retrieve:
+  "gbblexer r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
+proof (cases "gblexer r s")
+  case None
+  then have "s \<notin> GBL r"
+    using gblexer_correct_None by blast
+  then have "\<not> (\<exists>bs. gbblexer r s = Some bs)"
+    using gbblexer_defined_iff by blast
+  then have "gbblexer r s = None"
+    by (cases "gbblexer r s") auto
+  then show ?thesis
+    using None by simp
+next
+  case (Some v)
+  then show ?thesis
+    using gbblexer_gretrieve_original by simp
+qed
+
+lemma gbblexer_gretrieve:
+  assumes "gbblexer r s = Some bs"
+  shows "bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+proof -
+  let ?a = "gabders (gaintern r) s"
+  from assms have bs: "bs = gamkeps ?a" and nullable: "gabnullable ?a"
+    by (auto simp add: gbblexer_def Let_def split: if_splits)
+  from nullable have "gamkeps ?a = gretrieve ?a (gmkeps (gerase ?a))"
+    by (rule gamkeps_gretrieve)
+  then show ?thesis
+    using bs by simp
+qed
+
+theorem gbblexer_retrieve_correctness:
+  assumes "gbblexer r s = Some bs"
+  shows "bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+    and "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    and "gflat (gmkeps (gxders r s)) = []"
+proof -
+  let ?a = "gabders (gaintern r) s"
+  from assms have nullable: "gabnullable ?a"
+    by (auto simp add: gbblexer_def Let_def split: if_splits)
+  then have gnullable: "gnullable (gxders r s)"
+    by simp
+  show "bs = gretrieve ?a (gmkeps (gxders r s))"
+    using assms by (rule gbblexer_gretrieve)
+  show "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    using gnullable by (rule gmkeps_GPrf)
+  show "gflat (gmkeps (gxders r s)) = []"
+    using gnullable by (rule gmkeps_flat)
+qed
 
 end

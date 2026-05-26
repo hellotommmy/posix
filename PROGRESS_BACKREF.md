@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (generalized bitcoded lexer)
+Last updated: 2026-05-26 (generalized bitcoded retrieve transport)
 
 ## Current Branch
 
@@ -18,6 +18,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  local CI certificate generation, and explicit statement guard after adding
+  generalized bitcoded retrieve transport in `BackRefGBlexer.thy`. A
+  pilot-only precheck also passed; `BackRefGBlexer` replayed in about 1.9
+  seconds and the timed proof work avoided broad nullable-tail automation.
 - PASS on 2026-05-26 with direct Isabelle `BackRefPilot` build under a
   120-second timeout -- standalone generalized bitcoded lexer definitions
   in `BackRefGBlexer.thy` with `gbblexer_defined_iff`. The new theory replayed
@@ -216,6 +222,12 @@ Latest result:
   - `gerase_gabder`
   - `gerase_gabders`
   - `gbblexer_defined_iff`
+  - `gretrieve_gfuse`
+  - `gabder_gretrieve`
+  - `gabders_gretrieve_gblexer`
+  - `gbblexer_gblexer_retrieve`
+  - `gbblexer_gretrieve`
+  - `gbblexer_retrieve_correctness`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -256,11 +268,54 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 15. ~~Package a standalone generalized `gblexer` from `gnullable`/`gmkeps`/`gxder`/`ginjval`.~~ DONE
 16. ~~Draft standalone generalized bitcoded lexer layer in a new theory.~~ DONE
     (`BackRefGBlexer.thy`)
-17. Extend generalized bitcoded layer with derivative retrieve transport
-    relating `gbblexer` to `gblexer`.
-18. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+17. ~~Extend generalized bitcoded layer with derivative retrieve transport
+    relating `gbblexer` to `gblexer`.~~ DONE
+18. Optional next generalized bitcoded layer: add a conservative
+    `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`, if useful.
+19. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Bitcoded Retrieve Transport (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: uncommitted working-tree step on top of `cd72208`; `git fetch
+  --all --prune` succeeded and `git pull --rebase --autostash origin
+  codex/backref-values` reported already up to date before the edit.
+- Agent lane: Codex new-file generalized bitcoded pilot lane
+- Files changed: `BackRefGBlexer.thy` (+356 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked lemmas/theorems:
+  - `gretrieve_alts_append`
+  - `gretrieve_gfuse`
+  - `gretrieve_gbackref4_from_tail`
+  - `gretrieve_gbackref4_from_xder_tail`
+  - `gabder_GAALTs_gretrieve`
+  - `gabder_gretrieve`
+  - `gabders_gabnullable_gblexer`
+  - `gabders_gretrieve_gblexer`
+  - `gbblexer_gretrieve_original`
+  - `gbblexer_gblexer_retrieve`
+  - `gbblexer_gretrieve`
+  - `gbblexer_retrieve_correctness`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `BackRefPilot` (0:10 elapsed), and local CI certificate
+    generation; `BackRefGBlexer` replayed in about 1.9 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03
+    elapsed), and local CI certificate generation.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no statement
+    modifications.
+- Notes:
+  - This is additive generalized bitcoded infrastructure only. It does not
+    touch frozen `brexp`, `BL`, `xnullable`, `xder`, `BPrf`, production
+    `Blexer*`, bounds, closed-form theories, or Opus's BR-015 lock.
+  - The nested nullable `GBACKREF4` tail branch is proved explicitly through
+    `gabbtail4` and `gbackref4_from_tail`; no slow broad proof method was kept.
+- Next smallest safe step: optionally mirror the checked `bbsimp`/per-step
+  simplifier story for the generalized bitcoded layer, or wait for admin
+  direction on BR-019's bounded-fragment statement.
 
 ## Generalized Bitcoded Lexer (2026-05-26)
 
