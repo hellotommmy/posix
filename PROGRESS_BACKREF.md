@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-016 generalized value pilot)
+Last updated: 2026-05-26 (generalized constructor pilot)
 
 ## Current Branch
 
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and statement guard -- standalone generalized constructor pilot with
+  `gxder_correctness` and `gxders_correctness`.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
   and statement guard -- BR-016 generalized `backref_lang4`
@@ -68,6 +72,16 @@ Latest result:
   - `backref_lang_as_backref_lang4`
   - `backref_lang4I`
   - `Der_backref_lang4` (BR-008)
+- `BackRefLang4Pilot.thy` now defines:
+  - `gbrexp` with `GBASE`, `GALT`, and `GBACKREF4`
+  - `GBL`, `gnullable`, `gtail4`, `gxder`, and `gxders`
+- `BackRefLang4Pilot.thy` proves:
+  - `gnullable_correctness`
+  - `BL_gtail4`
+  - `gxder_correctness`
+  - `gxders_append`
+  - `gxders_snoc`
+  - `gxders_correctness`
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -163,9 +177,41 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 8. ~~Finish derivative-retrieve/decode-to-original-value correctness for BR-018.~~ DONE (BR-018)
 9. ~~Finish BR-020 simplification rules for the bitcoded lexer.~~ DONE (BR-020)
 10. ~~Finish BR-016 generalized value pilot.~~ DONE (BR-016)
-11. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+11. ~~Add standalone generalized constructor derivative pilot.~~ DONE
+12. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized backref_lang4 Constructor Pilot (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex generalized constructor blueprint lane
+- Files changed: `BackRefLang4Pilot.thy`, `pilot/ROOT`,
+  `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `gbrexp`, a standalone generalized expression layer wrapping existing
+    `brexp` with `GBASE`, `GALT`, and `GBACKREF4`
+  - `GBL`, `gnullable`, `gtail4`, `gxder`, and `gxders`
+- New checked lemmas/theorems:
+  - `gnullable_correctness`
+  - `BL_gtail4`
+  - `gxder_correctness`
+  - `gxders_append`
+  - `gxders_snoc`
+  - `gxders_correctness`
+- Build: full local CI PASS with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03
+  elapsed), and statement guard.
+- Notes:
+  - This does not modify frozen `brexp`, `BL`, `xnullable`, `xder`, or
+    `backref_lang`.
+  - `gxder` uses `Der_backref_lang4` and represents the post-capture tail via
+    the existing `BSEQ r3 (BSEQ (BRESIDUE (rev cs) (rev cs)) r4)` language.
+  - This is a checked statement blueprint for a later admin-approved migration
+    to real `BBACKREF4`-style constructors.
+- Next smallest safe step: leave BR-015 to Opus and keep BR-019 blocked until
+  the bounded-fragment statement is explicit.
 
 ## BR-016 Generalized backref_lang4 Value Pilot (2026-05-26)
 

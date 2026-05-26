@@ -5,6 +5,7 @@ theories[document = false]
      "HOL-Library.Sublist"
      "RegLangs"
      "BackRefLang"
+     "BackRefLang4Pilot"
      "BackRefValues"
      "BackRefLang4Values"
      "BackRefBlexer"
