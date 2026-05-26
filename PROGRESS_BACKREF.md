@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer Some wrappers)
+Last updated: 2026-05-27 (bitcoded lexer POSIX wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct POSIX-evidence retrieve wrappers
+  for the ordinary bitcoded lexer frontends in `BackRefBlexer.thy`. New checked
+  facts are `bblexer_POSIX_retrieve_iff`,
+  `bblexer_simp_POSIX_retrieve_iff`, and
+  `bblexer_step_simp_POSIX_retrieve_iff`. Files changed before this progress
+  note: `BackRefBlexer.thy` (+41). Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:11 elapsed). Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:11 elapsed) and `BackRefBlexer` replaying in about 4.1
+  seconds. Final full local CI passed with Isabelle `Posix` (0:31 elapsed),
+  Isabelle `BackRefPilot` (0:04 elapsed), and local CI certificate generation.
+  Next smallest safe step: stop until the admin opens a new bounty/phase, or
+  add only explicitly requested downstream convenience wrappers. Blockers:
+  none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct `Some` result-characterization
   wrappers for the ordinary and generalized bitcoded lexer frontends, on top
