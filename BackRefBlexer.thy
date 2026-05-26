@@ -672,6 +672,12 @@ lemma bblexer_None_iff:
   "bblexer r s = None \<longleftrightarrow> s \<notin> BL r"
   by (simp add: bblexer_final_membership)
 
+lemma bblexer_Some_iff:
+  "bblexer r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_final_membership split: if_splits)
+
 section \<open>Bitcoded Backreference Simplification\<close>
 
 fun bbsimp :: "barexp \<Rightarrow> barexp"
@@ -964,6 +970,12 @@ lemma bblexer_simp_None_iff:
   "bblexer_simp r s = None \<longleftrightarrow> s \<notin> BL r"
   by (simp add: bblexer_simp_final_membership)
 
+lemma bblexer_simp_Some_iff:
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_simp_final_membership split: if_splits)
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -1056,6 +1068,12 @@ theorem bblexer_step_simp_final_membership:
 lemma bblexer_step_simp_None_iff:
   "bblexer_step_simp r s = None \<longleftrightarrow> s \<notin> BL r"
   by (simp add: bblexer_step_simp_final_membership)
+
+lemma bblexer_step_simp_Some_iff:
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    s \<in> BL r \<and>
+    bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
+  by (auto simp add: bblexer_step_simp_final_membership split: if_splits)
 
 theorem bblexer_step_simp_blexer_retrieve:
   "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"

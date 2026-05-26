@@ -664,6 +664,12 @@ lemma gbblexer_None_iff:
   "gbblexer r s = None \<longleftrightarrow> s \<notin> GBL r"
   by (simp add: gbblexer_final_membership)
 
+lemma gbblexer_Some_iff:
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_final_membership split: if_splits)
+
 section \<open>Bitcoded Generalized Backreference Simplification\<close>
 
 fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
@@ -928,6 +934,12 @@ lemma gbblexer_simp_None_iff:
   "gbblexer_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
   by (simp add: gbblexer_simp_final_membership)
 
+lemma gbblexer_simp_Some_iff:
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_simp_final_membership split: if_splits)
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -1020,6 +1032,12 @@ theorem gbblexer_step_simp_final_membership:
 lemma gbblexer_step_simp_None_iff:
   "gbblexer_step_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
   by (simp add: gbblexer_step_simp_final_membership)
+
+lemma gbblexer_step_simp_Some_iff:
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    s \<in> GBL r \<and>
+    bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
+  by (auto simp add: gbblexer_step_simp_final_membership split: if_splits)
 
 theorem gbblexer_step_simp_gblexer_retrieve:
   "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
