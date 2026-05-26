@@ -1,9 +1,9 @@
-This is an autonomous Codex CLI work iteration, not a read-only setup request. Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
+This is an autonomous Codex CLI work iteration, not a read-only setup request. Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/DUAL_AGENT_COORDINATION.md, agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
 
-You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix. Opus may be running in Cursor in a separate clone on the same branch.
+You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex. Opus is running in Cursor in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus on the same shared branch.
 
 Current recovery note, 2026-05-26:
-BR-005, BR-011, BR-012, and BR-013 have been pushed and checked on the shared branch. The main open proof target is BR-014, proving/refining pilot `blexer` correctness in `BackRefValues.thy`. Opus may still be running in Cursor IDE on the same shared branch, but there is no standing ban on Codex editing `BackRefValues.thy`; coordinate by fetching first, keeping steps small, committing only checked work, and rebasing before push.
+BR-005, BR-011, BR-012, BR-013, and BR-014 have been pushed and checked on the shared branch. Remote HEAD includes the proof-performance budget and the Opus lock for BR-015. Opus owns BR-015 (POSIX value ordering / `BPosix_determ`) and may be editing `BackRefValues.thy`; do not compete for that file or that theorem line. Codex's primary lane is non-conflicting generalized-backreference blueprint work: BR-008 and then BR-016.
 
 At the start of each iteration:
 1. Run git fetch origin codex/backref-values.
@@ -12,11 +12,13 @@ At the start of each iteration:
 
 Work with remote changes; do not revert or overwrite another agent's work. If Opus has pushed new proof work, inspect it before choosing your next step.
 
-Primary assignment: follow the current state in PROGRESS_BACKREF.md and BACKREF_BOUNTIES.md. If the worktree is clean and BR-014 is still open, attempt the next smallest checked BR-014 step in `BackRefValues.thy`. It is acceptable to split or strengthen existing pilot lemmas, add helper lemmas, or repair `blexer` correctness statements, provided all statements remain honest and checked. Do not create production lexer files or touch `Blexer.thy`, `BlexerSimp.thy`, bounds, closed-form theories, or frozen statements.
+Primary assignment: follow the current state in PROGRESS_BACKREF.md and BACKREF_BOUNTIES.md. If the worktree is clean, work on the next smallest non-conflicting checked step for BR-008 or BR-016. Prefer a pilot-only blueprint theory/file or documentation that clarifies the generalized `backref_lang4` derivative/value story before datatype migration. Do not edit `BackRefValues.thy` while Opus owns BR-015 unless the remote branch already contains Opus's checked completion and the file is no longer actively owned. Do not create production lexer files or touch `Blexer.thy`, `BlexerSimp.thy`, bounds, closed-form theories, or frozen statements.
 
 No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted task exists. Do not claim that the user only asked you to read or set up; this prompt is the standing instruction to keep working. If no code/proof edit is possible, run the relevant guard/build to expose the current blocker and record the precise blocker in the final output. A no-op iteration is allowed only for a dirty/conflicting worktree, a semantic question that must go to Chengsong, a remote change that must be inspected first, or no permitted open task.
 
 Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, or frozen statements unless CLAUDE.md explicitly authorizes the new pilot-only path and the files are disjoint.
+
+Proof performance budget: for these pilot files, a few-hundred-line check should normally finish in about 5-10 seconds. If one Isabelle command runs past 10 seconds, identify the command and source line; past 30 seconds, narrow the tactic or definition; past 120 seconds, interrupt or use the timeout wrapper; never accept a 200 second command as normal.
 
 Before committing, run:
 python agent_hunt_pipeline/scripts/backref_bounty_guard.py
@@ -27,4 +29,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Commit small checked steps. Then pull --rebase --autostash, rerun the relevant guards, and push to origin codex/backref-values.
 
-Begin now: after reading and synchronizing, if BR-014 remains open and the worktree is clean, inspect `BackRefValues.thy`, attempt one small checked proof/lemma/build step toward BR-014, run the appropriate guard/build, and commit/push if it checks.
+Begin now: after reading and synchronizing, if BR-008 or BR-016 remains open and the worktree is clean, attempt one small checked non-conflicting blueprint step. Run the appropriate guards/build, commit, pull/rebase, rerun the relevant checks, and push if it checks.
