@@ -11,3 +11,4 @@ theories[document = false]
      "BackRefLang4Values"
      "BackRefBlexer"
      "BackRefGBlexer"
+     "BackRefBitcodedSummary"

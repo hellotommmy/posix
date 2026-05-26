@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (semantic quotient member length wrappers)
+Last updated: 2026-05-27 (bitcoded frontend summary wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,30 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after
+  rebasing over concurrent commit `8e5377e` and adding the new downstream
+  packaging theory `BackRefBitcodedSummary.thy` to `pilot/ROOT`. New checked
+  facts are `bblexer_frontends_eq`,
+  `bblexer_frontends_blexer_retrieve`,
+  `bblexer_frontends_POSIX_retrieve`,
+  `bblexer_frontends_defined_POSIX_iff`,
+  `bblexer_frontends_None_POSIX_iff`, `gbblexer_frontends_eq`,
+  `gbblexer_frontends_gblexer_retrieve`,
+  `gbblexer_frontends_gblexer_Some_retrieve`,
+  `gbblexer_frontends_defined_GPrf_iff`, and
+  `gbblexer_frontends_None_GPrf_iff`. Files changed before this progress
+  note: `BackRefBitcodedSummary.thy` (+86) and `pilot/ROOT` (+1), with
+  `PROGRESS_BACKREF.md` updated for the checked step and rebase note.
+  Baseline pilot-only local CI passed with `BackRefPilot` (0:16 elapsed).
+  Post-edit pilot-only local CI passed with `BackRefPilot` (0:17 elapsed),
+  with `BackRefBitcodedSummary` replaying in about 0.064 seconds. Final
+  post-rebase full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:16
+  elapsed), and local CI certificate generation; explicit statement guard
+  PASS. Next smallest safe step: stop until the admin opens a new bounty/phase,
+  or add only similarly direct downstream packaging facts if explicitly
+  requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after
   preserving the synced derivative member-length wrappers and adding semantic
