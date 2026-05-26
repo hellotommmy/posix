@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (standalone generalized constructor lexer)
+Last updated: 2026-05-26 (generalized bitcoded lexer)
 
 ## Current Branch
 
@@ -18,6 +18,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with direct Isabelle `BackRefPilot` build under a
+  120-second timeout -- standalone generalized bitcoded lexer definitions
+  in `BackRefGBlexer.thy` with `gbblexer_defined_iff`. The new theory replayed
+  in about 0.9 seconds. Final full local CI also passed with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix` (0:03 elapsed), Isabelle
+  `BackRefPilot` (0:03 elapsed), local CI certificate generation, and explicit
+  statement guard.
 - PASS on 2026-05-26 with direct Isabelle `BackRefPilot` build under a
   120-second timeout -- standalone generalized constructor lexer with
   `gblexer`, `gblexer_GPrf`, `gblexer_flat`, and `gblexer_correctness`.
@@ -196,6 +203,19 @@ Latest result:
   - `gblexer_correct_None`
   - `gblexer_correct_Some`
   - `gblexer_correctness`
+- `BackRefGBlexer.thy` now defines:
+  - `gabexp` with `GABASE`, `GAALTs`, and `GABACKREF4`
+  - `gerase`, `gfuse`, `gaintern`, `gabnullable`, `gamkeps`, `gretrieve`,
+    `gabbtail4`, `gabder`, `gabders`, and `gbblexer`
+- `BackRefGBlexer.thy` proves:
+  - `gerase_gfuse`
+  - `gerase_gaintern`
+  - `gabnullable_correctness`
+  - `gamkeps_gretrieve`
+  - `berase_gabbtail4`
+  - `gerase_gabder`
+  - `gerase_gabders`
+  - `gbblexer_defined_iff`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -234,9 +254,51 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 13. ~~Add generalized constructor value correspondence for all `gbrexp`.~~ DONE
 14. ~~Add generalized constructor one-step value injection.~~ DONE
 15. ~~Package a standalone generalized `gblexer` from `gnullable`/`gmkeps`/`gxder`/`ginjval`.~~ DONE
-16. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+16. ~~Draft standalone generalized bitcoded lexer layer in a new theory.~~ DONE
+    (`BackRefGBlexer.thy`)
+17. Extend generalized bitcoded layer with derivative retrieve transport
+    relating `gbblexer` to `gblexer`.
+18. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Bitcoded Lexer (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: uncommitted working-tree step on top of `ea9c7d0`; `git fetch
+  --all --prune` succeeded and `git pull --rebase --autostash origin
+  codex/backref-values` reported already up to date before the edit.
+- Agent lane: Codex new-file generalized bitcoded pilot lane
+- Files changed: `BackRefGBlexer.thy`, `pilot/ROOT`, `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `gabexp`, an annotated expression layer for `gbrexp`
+  - `gerase`, `gfuse`, `gaintern`, and `gabnullable`
+  - `gamkeps`, `gretrieve_alts`, and `gretrieve`
+  - `gabbtail4`, `gabder`, `gabders`, and `gbblexer`
+- New checked lemmas:
+  - `gerase_gfuse`
+  - `gerase_gaintern`
+  - `gabnullable_correctness`
+  - `gamkeps_gretrieve`
+  - `berase_gabbtail4`
+  - `gerase_gabder`
+  - `gerase_gabders`
+  - `gbblexer_defined_iff`
+- Build: direct `timeout 120s isabelle build -v -d pilot BackRefPilot` PASS
+  (0:13 elapsed, `BackRefGBlexer` 0.873s); final full local CI PASS with
+  no-cheat guard, bounty guard, admin role guard, Isabelle `Posix` (0:03
+  elapsed), Isabelle `BackRefPilot` (0:03 elapsed), and local CI certificate
+  generation. Explicit statement guard PASS.
+- Notes:
+  - This is an additive new-file checkpoint and does not touch frozen `brexp`, `BL`,
+    `xnullable`, `xder`, `BPrf`, production `Blexer*`, bounds, or closed-form
+    theories.
+  - The generalized `Backbit` retrieve order records prefix evidence first,
+    then the captured `r2` string, matching the `backref_lang4` capture role.
+  - A stale zero-CPU Isabelle build worker had been live for more than two
+    hours; it was stopped before starting the timed direct build.
+- Next smallest safe step: extend this layer with derivative retrieve transport
+  relating `gbblexer` to `gblexer`.
 
 ## Standalone Generalized Constructor Lexer (2026-05-26)
 

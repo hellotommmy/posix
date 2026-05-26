@@ -9,3 +9,4 @@ theories[document = false]
      "BackRefValues"
      "BackRefLang4Values"
      "BackRefBlexer"
+     "BackRefGBlexer"
