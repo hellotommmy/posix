@@ -678,6 +678,11 @@ lemma bblexer_Some_iff:
     bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
   by (auto simp add: bblexer_final_membership split: if_splits)
 
+lemma bblexer_Some_blexer_iff:
+  "bblexer r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  by (cases "blexer r s") (auto simp add: bblexer_blexer_retrieve)
+
 theorem bblexer_POSIX_retrieve_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
@@ -1018,6 +1023,11 @@ lemma bblexer_simp_Some_iff:
     bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
   by (auto simp add: bblexer_simp_final_membership split: if_splits)
 
+lemma bblexer_simp_Some_blexer_iff:
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  by (cases "blexer r s") (auto simp add: bblexer_simp_blexer_retrieve)
+
 theorem bblexer_simp_POSIX_retrieve_iff:
   "bblexer_simp r s = Some bs \<longleftrightarrow>
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
@@ -1132,6 +1142,12 @@ lemma bblexer_step_simp_Some_iff:
     s \<in> BL r \<and>
     bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
   by (auto simp add: bblexer_step_simp_final_membership split: if_splits)
+
+lemma bblexer_step_simp_Some_blexer_iff:
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
+  by (cases "blexer r s")
+    (auto simp add: bblexer_step_simp_correctness bblexer_blexer_retrieve)
 
 theorem bblexer_step_simp_POSIX_retrieve_iff:
   "bblexer_step_simp r s = Some bs \<longleftrightarrow>

@@ -670,6 +670,11 @@ lemma gbblexer_Some_iff:
     bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_final_membership split: if_splits)
 
+lemma gbblexer_Some_gblexer_iff:
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  by (cases "gblexer r s") (auto simp add: gbblexer_gblexer_retrieve)
+
 section \<open>Bitcoded Generalized Backreference Simplification\<close>
 
 fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
@@ -940,6 +945,11 @@ lemma gbblexer_simp_Some_iff:
     bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_simp_final_membership split: if_splits)
 
+lemma gbblexer_simp_Some_gblexer_iff:
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  by (cases "gblexer r s") (auto simp add: gbblexer_simp_gblexer_retrieve)
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -1038,6 +1048,12 @@ lemma gbblexer_step_simp_Some_iff:
     s \<in> GBL r \<and>
     bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_step_simp_final_membership split: if_splits)
+
+lemma gbblexer_step_simp_Some_gblexer_iff:
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
+  by (cases "gblexer r s")
+    (auto simp add: gbblexer_step_simp_correctness gbblexer_gblexer_retrieve)
 
 theorem gbblexer_step_simp_gblexer_retrieve:
   "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
