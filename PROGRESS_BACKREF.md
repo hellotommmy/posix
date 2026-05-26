@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (value lexer POSIX iff)
+Last updated: 2026-05-27 (residual language bounded-string wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,39 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct residual-language bounded-string
+  wrappers from successful `BL_bound`/`GBL_bound` calculations in
+  `BackRefBoundedBlueprint.thy`. New checked facts package subset, cardinality,
+  monotone subset/cardinality, and finiteness wrappers for `BL (xders r s)` and
+  `GBL (gxders r s)`, plus constructor-specific `BBACKREF` and `GBACKREF4`
+  versions:
+  `BL_bound_xders_subset_bounded_strings`,
+  `GBL_bound_gxders_subset_bounded_strings`,
+  `BL_bound_xders_card_bound`, `GBL_bound_gxders_card_bound`,
+  `BL_bound_xders_subset_bounded_strings_mono`,
+  `GBL_bound_gxders_subset_bounded_strings_mono`,
+  `BL_bound_xders_card_bound_mono`, `GBL_bound_gxders_card_bound_mono`,
+  `BL_bound_xders_finite`, `GBL_bound_gxders_finite`,
+  `BL_bound_BBACKREF_xders_subset_bounded_strings`,
+  `GBL_bound_GBACKREF4_gxders_subset_bounded_strings`,
+  `BL_bound_BBACKREF_xders_card_bound`,
+  `GBL_bound_GBACKREF4_gxders_card_bound`,
+  `BL_bound_BBACKREF_xders_subset_bounded_strings_mono`,
+  `GBL_bound_GBACKREF4_gxders_subset_bounded_strings_mono`,
+  `BL_bound_BBACKREF_xders_card_bound_mono`,
+  `GBL_bound_GBACKREF4_gxders_card_bound_mono`,
+  `BL_bound_BBACKREF_xders_finite`, and
+  `GBL_bound_GBACKREF4_gxders_finite`. Files changed before this progress
+  note: `BackRefBoundedBlueprint.thy` (+220). Baseline pilot-only local CI
+  passed with `BackRefPilot` (0:16 elapsed). Post-edit pilot-only local CI
+  passed with `BackRefPilot` (0:17 elapsed) after fixing direct wrapper proofs
+  to unfold `BL_bounded`/`GBL_bounded`; `BackRefBoundedBlueprint` replayed in
+  about 3.1 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local
+  CI certificate generation; explicit statement guard PASS. Next smallest safe
+  step: stop until the admin opens a new bounty/phase, or add only similarly
+  direct downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding the direct value-lexer POSIX
   characterization `blexer_POSIX_correctness`, proving

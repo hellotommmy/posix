@@ -2452,4 +2452,224 @@ proof -
     by (rule GBL_bound_gxders_left_quotient_family_finite)
 qed
 
+theorem BL_bound_xders_subset_bounded_strings:
+  assumes "BL_bound r = Some n"
+  shows "BL (xders r s) \<subseteq> bounded_strings n"
+  using BL_bound_xders_bounded[OF assms, of s]
+  by (auto simp add: BL_bounded_def bounded_language_def bounded_strings_def)
+
+theorem GBL_bound_gxders_subset_bounded_strings:
+  assumes "GBL_bound r = Some n"
+  shows "GBL (gxders r s) \<subseteq> bounded_strings n"
+  using GBL_bound_gxders_bounded[OF assms, of s]
+  by (auto simp add: GBL_bounded_def bounded_language_def bounded_strings_def)
+
+theorem BL_bound_xders_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card (BL (xders r s)) \<le> card (bounded_strings n)"
+proof -
+  have sub: "BL (xders r s) \<subseteq> bounded_strings n"
+    using assms by (rule BL_bound_xders_subset_bounded_strings)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem GBL_bound_gxders_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card (GBL (gxders r s)) \<le> card (bounded_strings n)"
+proof -
+  have sub: "GBL (gxders r s) \<subseteq> bounded_strings n"
+    using assms by (rule GBL_bound_gxders_subset_bounded_strings)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem BL_bound_xders_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "BL (xders r s) \<subseteq> bounded_strings m"
+  using BL_bound_xders_bounded[OF assms(1), of s] assms(2)
+  by (auto simp add: BL_bounded_def bounded_language_def bounded_strings_def)
+
+theorem GBL_bound_gxders_subset_bounded_strings_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "GBL (gxders r s) \<subseteq> bounded_strings m"
+  using GBL_bound_gxders_bounded[OF assms(1), of s] assms(2)
+  by (auto simp add: GBL_bounded_def bounded_language_def bounded_strings_def)
+
+theorem BL_bound_xders_card_bound_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "card (BL (xders r s)) \<le> card (bounded_strings m)"
+proof -
+  have sub: "BL (xders r s) \<subseteq> bounded_strings m"
+    using assms by (rule BL_bound_xders_subset_bounded_strings_mono)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem GBL_bound_gxders_card_bound_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "card (GBL (gxders r s)) \<le> card (bounded_strings m)"
+proof -
+  have sub: "GBL (gxders r s) \<subseteq> bounded_strings m"
+    using assms by (rule GBL_bound_gxders_subset_bounded_strings_mono)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem BL_bound_xders_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite (BL (xders r s))"
+proof -
+  have sub: "BL (xders r s) \<subseteq> bounded_strings n"
+    using assms by (rule BL_bound_xders_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem GBL_bound_gxders_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite (GBL (gxders r s))"
+proof -
+  have sub: "GBL (gxders r s) \<subseteq> bounded_strings n"
+    using assms by (rule GBL_bound_gxders_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem BL_bound_BBACKREF_xders_subset_bounded_strings:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "BL (xders (BBACKREF r mid cs) s) \<subseteq>
+    bounded_strings (n_capture + n_mid + length cs + n_capture)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_subset_bounded_strings)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_subset_bounded_strings:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) \<subseteq>
+    bounded_strings (n1 + n2 + n3 + length cs + n2 + n4)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_subset_bounded_strings)
+qed
+
+theorem BL_bound_BBACKREF_xders_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card (BL (xders (BBACKREF r mid cs) s)) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_xders_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "BL (xders (BBACKREF r mid cs) s) \<subseteq> bounded_strings m"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_xders_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_subset_bounded_strings_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) \<subseteq> bounded_strings m"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_gxders_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_BBACKREF_xders_card_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card (BL (xders (BBACKREF r mid cs) s)) \<le> card (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_xders_card_bound_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_card_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) \<le>
+    card (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_gxders_card_bound_mono)
+qed
+
+theorem BL_bound_BBACKREF_xders_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite (BL (xders (BBACKREF r mid cs) s))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_xders_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_gxders_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_gxders_finite)
+qed
+
 end
