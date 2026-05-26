@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (simplified lexer equality wrappers)
+Last updated: 2026-05-27 (residual left-quotient family helpers)
 
 ## Current Branch
 
@@ -18,6 +18,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding residual left-quotient family helpers in
+  `BackRefBoundedBlueprint.thy`. New checked facts expose
+  `left_quotient_family_Ders_subset`, `finite_left_quotient_family_Ders`,
+  `left_quotient_family_Ders_card_le`, and bounded-string universe/cardinality
+  wrappers for `{Ders t (Ders s A) | t. True}`. Pilot-only local CI passed with
+  `BackRefPilot` (0:11 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 2.2 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and local
+  CI certificate generation; explicit statement guard PASS.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct equality wrappers between the
   post-derivative and per-step simplified bitcoded lexers in
@@ -325,6 +335,39 @@ Latest result:
   Isabelle `Posix`, and Isabelle `BackRefPilot`.
 - Local CI certificate is generated only after both sessions pass:
   `agent_hunt_pipeline/certificates/local_ci_certificate.json` (ignored by git).
+
+## Residual Left-Quotient Family Helpers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-blueprint proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+91 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked lemmas/theorems:
+  - `left_quotient_family_Ders_subset`
+  - `finite_left_quotient_family_Ders`
+  - `left_quotient_family_Ders_card_le`
+  - `bounded_language_residual_left_quotient_family_subset_bounded_strings`
+  - `bounded_language_residual_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_language_residual_left_quotient_family_card_bound`
+  - `bounded_language_residual_left_quotient_family_card_bound_mono`
+  - `bounded_language_residual_left_quotient_family_finite`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:11 elapsed), and no certificate
+  generation; `BackRefBoundedBlueprint` replayed in about 2.2 seconds. Final
+  full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+  generation; explicit statement guard PASS.
+- Notes:
+  - This is additive proof packaging in the bounded-fragment blueprint. It
+    does not touch `BackRefValues.thy`, frozen language/value statements,
+    production lexer files, or production bounds/closed-form theories.
+  - The new lemmas expose the exact residual quotient-family subset behind
+    `finite_left_quotients_Ders` and package bounded-string universe and
+    cardinality bounds for quotient families after an already-consumed prefix.
+- Next smallest safe step: stop unless the admin opens a new bounty/statement
+  target, or continue only with similarly small non-conflicting blueprint
+  packaging.
 
 ## Residual Derivative-Family Subset Helpers (2026-05-27)
 

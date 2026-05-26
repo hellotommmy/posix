@@ -93,6 +93,30 @@ lemma Ders_append:
   "Ders t (Ders s A) = Ders (s @ t) A"
   by (auto simp add: Ders_def append_assoc)
 
+lemma left_quotient_family_Ders_subset:
+  "{Ders t (Ders s A) | t. True} \<subseteq> {Ders u A | u. True}"
+  by (auto simp add: Ders_append)
+
+lemma finite_left_quotient_family_Ders:
+  assumes "finite_left_quotients A"
+  shows "finite {Ders t (Ders s A) | t. True}"
+proof -
+  have quotient_fin: "finite {Ders u A | u. True}"
+    using assms by (simp add: finite_left_quotients_def)
+  show ?thesis
+    using finite_subset[OF left_quotient_family_Ders_subset quotient_fin] .
+qed
+
+lemma left_quotient_family_Ders_card_le:
+  assumes "finite_left_quotients A"
+  shows "card {Ders t (Ders s A) | t. True} \<le> card {Ders u A | u. True}"
+proof -
+  have quotient_fin: "finite {Ders u A | u. True}"
+    using assms by (simp add: finite_left_quotients_def)
+  show ?thesis
+    by (rule card_mono[OF quotient_fin left_quotient_family_Ders_subset])
+qed
+
 lemma finite_left_quotients_Ders:
   assumes "finite_left_quotients A"
   shows "finite_left_quotients (Ders s A)"
@@ -1125,6 +1149,73 @@ theorem bounded_language_left_quotient_family_finite:
   shows "finite {Ders s A | s. True}"
   using finite_left_quotients_if_bounded_language[OF assms]
   by (simp add: finite_left_quotients_def)
+
+theorem bounded_language_residual_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n A"
+  shows "{Ders t (Ders s A) | t. True} \<subseteq> Pow (bounded_strings n)"
+proof -
+  have sub: "{Ders t (Ders s A) | t. True} \<subseteq> {Ders u A | u. True}"
+    by (rule left_quotient_family_Ders_subset)
+  have universe: "{Ders u A | u. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule bounded_language_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using sub universe by blast
+qed
+
+theorem bounded_language_residual_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n A" "n \<le> m"
+  shows "{Ders t (Ders s A) | t. True} \<subseteq> Pow (bounded_strings m)"
+proof -
+  have sub: "{Ders t (Ders s A) | t. True} \<subseteq> {Ders u A | u. True}"
+    by (rule left_quotient_family_Ders_subset)
+  have universe: "{Ders u A | u. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule bounded_language_left_quotient_family_subset_bounded_strings_mono)
+  show ?thesis
+    using sub universe by blast
+qed
+
+theorem bounded_language_residual_left_quotient_family_card_bound:
+  assumes "bounded_language n A"
+  shows "card {Ders t (Ders s A) | t. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{Ders t (Ders s A) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (Ders s A) | t. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem bounded_language_residual_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n A" "n \<le> m"
+  shows "card {Ders t (Ders s A) | t. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{Ders t (Ders s A) | t. True} \<subseteq> Pow (bounded_strings m)"
+    using assms
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (Ders s A) | t. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem bounded_language_residual_left_quotient_family_finite:
+  assumes "bounded_language n A"
+  shows "finite {Ders t (Ders s A) | t. True}"
+proof -
+  have sub: "{Ders t (Ders s A) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
 
 theorem bounded_backref_lang_left_quotient_family_subset_bounded_strings:
   assumes "bounded_language n_capture A" "bounded_language n_mid B"
