@@ -835,6 +835,35 @@ proof -
   qed
 qed
 
+lemma gbblexer_simp_defined_iff:
+  "(\<exists>bs. gbblexer_simp r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+  by (simp add: gbblexer_simp_correctness gbblexer_defined_iff)
+
+theorem gbblexer_simp_gblexer_retrieve:
+  "gbblexer_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
+  by (simp add: gbblexer_simp_correctness gbblexer_gblexer_retrieve)
+
+theorem gbblexer_simp_retrieve_correctness:
+  assumes "gbblexer_simp r s = Some bs"
+  shows "bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
+    and "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    and "gflat (gmkeps (gxders r s)) = []"
+proof -
+  let ?a = "gabbsimp (gabders (gaintern r) s)"
+  from assms have bs: "bs = gamkeps ?a" and nullable: "gabnullable ?a"
+    by (auto simp add: gbblexer_simp_def Let_def split: if_splits)
+  then have gnullable: "gnullable (gxders r s)"
+    by simp
+  from nullable have "gamkeps ?a = gretrieve ?a (gmkeps (gerase ?a))"
+    by (rule gamkeps_gretrieve)
+  then show "bs = gretrieve ?a (gmkeps (gxders r s))"
+    using bs by simp
+  show "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    using gnullable by (rule gmkeps_GPrf)
+  show "gflat (gmkeps (gxders r s)) = []"
+    using gnullable by (rule gmkeps_flat)
+qed
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -874,5 +903,30 @@ next
   show ?thesis
     using step original by simp
 qed
+
+theorem gbblexer_step_simp_retrieve_correctness:
+  assumes "gbblexer_step_simp r s = Some bs"
+  shows "bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
+    and "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    and "gflat (gmkeps (gxders r s)) = []"
+proof -
+  let ?a = "gabders_simp (gaintern r) s"
+  from assms have bs: "bs = gamkeps ?a" and nullable: "gabnullable ?a"
+    by (auto simp add: gbblexer_step_simp_def Let_def split: if_splits)
+  then have gnullable: "gnullable (gxders r s)"
+    by simp
+  from nullable have "gamkeps ?a = gretrieve ?a (gmkeps (gerase ?a))"
+    by (rule gamkeps_gretrieve)
+  then show "bs = gretrieve ?a (gmkeps (gxders r s))"
+    using bs by simp
+  show "GPrf (gmkeps (gxders r s)) (gxders r s)"
+    using gnullable by (rule gmkeps_GPrf)
+  show "gflat (gmkeps (gxders r s)) = []"
+    using gnullable by (rule gmkeps_flat)
+qed
+
+theorem gbblexer_step_simp_gblexer_retrieve:
+  "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
+  by (simp add: gbblexer_step_simp_correctness gbblexer_gblexer_retrieve)
 
 end

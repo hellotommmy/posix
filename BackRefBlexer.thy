@@ -871,6 +871,35 @@ proof -
   qed
 qed
 
+lemma bblexer_simp_defined_iff:
+  "(\<exists>bs. bblexer_simp r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+  by (simp add: bblexer_simp_correctness bblexer_defined_iff)
+
+theorem bblexer_simp_blexer_retrieve:
+  "bblexer_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
+  by (simp add: bblexer_simp_correctness bblexer_blexer_retrieve)
+
+theorem bblexer_simp_retrieve_correctness:
+  assumes "bblexer_simp r s = Some bs"
+  shows "bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
+    and "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    and "bflat (bmkeps (xders r s)) = []"
+proof -
+  let ?a = "bbsimp (bbders (baintern r) s)"
+  from assms have bs: "bs = bbmkeps ?a" and nullable: "bbnullable ?a"
+    by (auto simp add: bblexer_simp_def Let_def split: if_splits)
+  then have xnullable: "xnullable (xders r s)"
+    by simp
+  from nullable have "bbmkeps ?a = bretrieve ?a (bmkeps (berase ?a))"
+    by (rule bbmkeps_bretrieve)
+  then show "bs = bretrieve ?a (bmkeps (xders r s))"
+    using bs by simp
+  show "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    using xnullable by (rule bmkeps_BPrf)
+  show "bflat (bmkeps (xders r s)) = []"
+    using xnullable by (rule bmkeps_flat)
+qed
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -910,5 +939,30 @@ next
   show ?thesis
     using step original by simp
 qed
+
+theorem bblexer_step_simp_retrieve_correctness:
+  assumes "bblexer_step_simp r s = Some bs"
+  shows "bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
+    and "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    and "bflat (bmkeps (xders r s)) = []"
+proof -
+  let ?a = "bbders_simp (baintern r) s"
+  from assms have bs: "bs = bbmkeps ?a" and nullable: "bbnullable ?a"
+    by (auto simp add: bblexer_step_simp_def Let_def split: if_splits)
+  then have xnullable: "xnullable (xders r s)"
+    by simp
+  from nullable have "bbmkeps ?a = bretrieve ?a (bmkeps (berase ?a))"
+    by (rule bbmkeps_bretrieve)
+  then show "bs = bretrieve ?a (bmkeps (xders r s))"
+    using bs by simp
+  show "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    using xnullable by (rule bmkeps_BPrf)
+  show "bflat (bmkeps (xders r s)) = []"
+    using xnullable by (rule bmkeps_flat)
+qed
+
+theorem bblexer_step_simp_blexer_retrieve:
+  "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
+  by (simp add: bblexer_step_simp_correctness bblexer_blexer_retrieve)
 
 end

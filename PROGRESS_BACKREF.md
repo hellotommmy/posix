@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual finite-quotient closure helpers)
+Last updated: 2026-05-27 (simplified bitcoded transport wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct retrieve/transport wrappers for
+  the ordinary and generalized simplified bitcoded lexers in
+  `BackRefBlexer.thy` and `BackRefGBlexer.thy`. New checked facts expose the
+  exact simplified derivative expression used by `bblexer_simp`,
+  `bblexer_step_simp`, `gbblexer_simp`, and `gbblexer_step_simp`, plus direct
+  `map_option` transport from `blexer`/`gblexer` outputs. Final pilot-only
+  local CI passed with `BackRefPilot` (0:10 elapsed); `BackRefBlexer` replayed
+  in about 4.1 seconds and `BackRefGBlexer` replayed in about 2.0 seconds.
+  Final full local CI passed with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:31 elapsed), Isabelle `BackRefPilot` (0:04
+  elapsed), and local CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding residual finite-quotient closure
   helpers in `BackRefBoundedBlueprint.thy`. New checked facts expose
@@ -480,10 +492,15 @@ Latest result:
   - `bretrieve_bbsimp`
   - `bbmkeps_bbsimp`
   - `bblexer_simp_correctness`
+  - `bblexer_simp_defined_iff`
+  - `bblexer_simp_blexer_retrieve`
+  - `bblexer_simp_retrieve_correctness`
   - `bbders_simp`
   - `bblexer_step_simp`
   - `bbders_simp_bretrieve_blexer`
   - `bblexer_step_simp_correctness`
+  - `bblexer_step_simp_retrieve_correctness`
+  - `bblexer_step_simp_blexer_retrieve`
   - `bbmkeps_bretrieve`
   - `bretrieve_bfuse`
   - `bbder_bretrieve`
@@ -554,8 +571,13 @@ Latest result:
   - `gabnullable_gabders_simp`
   - `gabders_simp_gretrieve_gblexer`
   - `gbblexer_simp_correctness`
+  - `gbblexer_simp_defined_iff`
+  - `gbblexer_simp_gblexer_retrieve`
+  - `gbblexer_simp_retrieve_correctness`
   - `gbblexer_step_simp_defined_iff`
   - `gbblexer_step_simp_correctness`
+  - `gbblexer_step_simp_retrieve_correctness`
+  - `gbblexer_step_simp_gblexer_retrieve`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -625,6 +647,52 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `BBACKREF`/`GBACKREF4` states. No active bounty remains on
     `BACKREF_BOUNTIES.md`; production bounds or closed-form work should still
     wait for a new admin task.
+23. ~~Add direct retrieve/transport wrappers for simplified bitcoded lexers.~~
+    DONE
+
+## Simplified Bitcoded Transport Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: not created in this iteration
+- Agent lane: Codex Agent B implementation packaging lane
+- Files changed: `BackRefBlexer.thy` (+54), `BackRefGBlexer.thy` (+54),
+  `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `bblexer_simp_defined_iff`
+  - `bblexer_simp_blexer_retrieve`
+  - `bblexer_simp_retrieve_correctness`
+  - `bblexer_step_simp_retrieve_correctness`
+  - `bblexer_step_simp_blexer_retrieve`
+  - `gbblexer_simp_defined_iff`
+  - `gbblexer_simp_gblexer_retrieve`
+  - `gbblexer_simp_retrieve_correctness`
+  - `gbblexer_step_simp_retrieve_correctness`
+  - `gbblexer_step_simp_gblexer_retrieve`
+- Build:
+  - Pre-edit baseline pilot-only local CI PASS with no-cheat guard, bounty
+    guard, admin role guard, and Isabelle `BackRefPilot` (0:11 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:11 elapsed);
+    `BackRefBlexer` replayed in about 4.7 seconds and `BackRefGBlexer` replayed
+    in about 1.9 seconds.
+  - Final pilot-only local CI PASS after the direct transport wrappers with
+    no-cheat guard, bounty guard, admin role guard, and Isabelle
+    `BackRefPilot` (0:10 elapsed); `BackRefBlexer` replayed in about 4.1
+    seconds and `BackRefGBlexer` replayed in about 2.0 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:31 elapsed), Isabelle `BackRefPilot` (0:04
+    elapsed), and local CI certificate generation.
+- Notes:
+  - This is additive theorem packaging only. It does not change lexer
+    definitions, semantics, frozen statements, `BackRefBoundedBlueprint.thy`,
+    production `Blexer*`, bounds files, or closed-form theories.
+  - The new wrappers characterize the actual simplified derivative expression
+    used by each simplified bitcoded lexer and expose the direct
+    `map_option` transport from `blexer`/`gblexer`, instead of requiring users
+    to rewrite through the base `bblexer`/`gbblexer` retrieve theorem.
+- Next smallest safe step: no active bounty remains; wait for an admin-created
+  production integration task or a new bounty before changing frozen semantics,
+  production lexers, bounds, or closed-form theories.
 
 ## Finite Left-Quotient Predicate Wrappers (2026-05-27)
 
