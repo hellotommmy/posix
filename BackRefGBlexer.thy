@@ -652,6 +652,18 @@ next
     by (simp add: gbblexer_def Let_def)
 qed
 
+theorem gbblexer_final_membership:
+  "gbblexer r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+  by (simp add: gbblexer_final_retrieve gnullable_correctness
+      gxders_correctness Ders_def)
+
+lemma gbblexer_None_iff:
+  "gbblexer r s = None \<longleftrightarrow> s \<notin> GBL r"
+  by (simp add: gbblexer_final_membership)
+
 section \<open>Bitcoded Generalized Backreference Simplification\<close>
 
 fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
@@ -904,6 +916,18 @@ next
     by (simp add: gbblexer_simp_def Let_def)
 qed
 
+theorem gbblexer_simp_final_membership:
+  "gbblexer_simp r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s)))
+     else None)"
+  by (simp add: gbblexer_simp_final_retrieve gnullable_correctness
+      gxders_correctness Ders_def)
+
+lemma gbblexer_simp_None_iff:
+  "gbblexer_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
+  by (simp add: gbblexer_simp_final_membership)
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -984,6 +1008,18 @@ next
   then show ?thesis
     by (simp add: gbblexer_step_simp_def Let_def)
 qed
+
+theorem gbblexer_step_simp_final_membership:
+  "gbblexer_step_simp r s =
+    (if s \<in> GBL r
+     then Some (gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+  by (simp add: gbblexer_step_simp_final_retrieve gnullable_correctness
+      gxders_correctness Ders_def)
+
+lemma gbblexer_step_simp_None_iff:
+  "gbblexer_step_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
+  by (simp add: gbblexer_step_simp_final_membership)
 
 theorem gbblexer_step_simp_gblexer_retrieve:
   "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"

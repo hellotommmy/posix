@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (semantic residual backref quotient wrappers)
+Last updated: 2026-05-27 (bitcoded lexer membership wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct language-membership and `None`
+  wrappers for the ordinary and generalized bitcoded lexer frontends in
+  `BackRefBlexer.thy` and `BackRefGBlexer.thy`. New checked facts are
+  `bblexer_final_membership`, `bblexer_None_iff`,
+  `bblexer_simp_final_membership`, `bblexer_simp_None_iff`,
+  `bblexer_step_simp_final_membership`, `bblexer_step_simp_None_iff`,
+  `gbblexer_final_membership`, `gbblexer_None_iff`,
+  `gbblexer_simp_final_membership`, `gbblexer_simp_None_iff`,
+  `gbblexer_step_simp_final_membership`, and
+  `gbblexer_step_simp_None_iff`. Files changed before this progress note:
+  `BackRefBlexer.thy` (+36) and `BackRefGBlexer.thy` (+36). Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:11 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:11 elapsed);
+  `BackRefBlexer` replayed in about 4.7 seconds and `BackRefGBlexer` replayed
+  in about 2.0 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:29 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed), and local CI certificate generation. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct packaging facts if explicitly requested. Blockers:
+  none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct semantic residual left-quotient
   wrappers for bounded `backref_lang` and `backref_lang4` in

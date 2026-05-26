@@ -660,6 +660,18 @@ next
     by (simp add: bblexer_def Let_def)
 qed
 
+theorem bblexer_final_membership:
+  "bblexer r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+  by (simp add: bblexer_final_retrieve xnullable_correctness
+      xders_correctness Ders_def)
+
+lemma bblexer_None_iff:
+  "bblexer r s = None \<longleftrightarrow> s \<notin> BL r"
+  by (simp add: bblexer_final_membership)
+
 section \<open>Bitcoded Backreference Simplification\<close>
 
 fun bbsimp :: "barexp \<Rightarrow> barexp"
@@ -940,6 +952,18 @@ next
     by (simp add: bblexer_simp_def Let_def)
 qed
 
+theorem bblexer_simp_final_membership:
+  "bblexer_simp r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s)))
+     else None)"
+  by (simp add: bblexer_simp_final_retrieve xnullable_correctness
+      xders_correctness Ders_def)
+
+lemma bblexer_simp_None_iff:
+  "bblexer_simp r s = None \<longleftrightarrow> s \<notin> BL r"
+  by (simp add: bblexer_simp_final_membership)
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -1020,6 +1044,18 @@ next
   then show ?thesis
     by (simp add: bblexer_step_simp_def Let_def)
 qed
+
+theorem bblexer_step_simp_final_membership:
+  "bblexer_step_simp r s =
+    (if s \<in> BL r
+     then Some (bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+  by (simp add: bblexer_step_simp_final_retrieve xnullable_correctness
+      xders_correctness Ders_def)
+
+lemma bblexer_step_simp_None_iff:
+  "bblexer_step_simp r s = None \<longleftrightarrow> s \<notin> BL r"
+  by (simp add: bblexer_step_simp_final_membership)
 
 theorem bblexer_step_simp_blexer_retrieve:
   "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
