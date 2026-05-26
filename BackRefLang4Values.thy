@@ -88,4 +88,94 @@ proof -
   finally show ?thesis .
 qed
 
+section \<open>Generalized Constructor Value Correspondence\<close>
+
+datatype gbval =
+  GVBase bval
+| GVLeft gbval
+| GVRight gbval
+| GVBackref4 bval4
+
+fun gflat :: "gbval \<Rightarrow> string"
+where
+  "gflat (GVBase v) = bflat v"
+| "gflat (GVLeft v) = gflat v"
+| "gflat (GVRight v) = gflat v"
+| "gflat (GVBackref4 v) = bflat4 v"
+
+inductive GPrf :: "gbval \<Rightarrow> gbrexp \<Rightarrow> bool" ("\<Turnstile>g _ : _" [100, 100] 100)
+where
+  GPrf_base:
+    "\<Turnstile>b v : r \<Longrightarrow> \<Turnstile>g (GVBase v) : (GBASE r)"
+| GPrf_left:
+    "\<Turnstile>g v : r1 \<Longrightarrow> \<Turnstile>g (GVLeft v) : (GALT r1 r2)"
+| GPrf_right:
+    "\<Turnstile>g v : r2 \<Longrightarrow> \<Turnstile>g (GVRight v) : (GALT r1 r2)"
+| GPrf_backref4:
+    "BPrf4 v r1 r2 r3 r4 cs \<Longrightarrow>
+      \<Turnstile>g (GVBackref4 v) : (GBACKREF4 r1 r2 r3 r4 cs)"
+
+inductive_cases GPrf_elims:
+  "\<Turnstile>g v : r"
+
+lemma GBL_flat_GPrf1:
+  assumes "\<Turnstile>g v : r"
+  shows "gflat v \<in> GBL r"
+  using assms
+  by (induct rule: GPrf.induct) (auto intro: BL_flat_BPrf1 backref_lang4_flat_BPrf4_1)
+
+lemma GBL_flat_GPrf2:
+  assumes "s \<in> GBL r"
+  shows "\<exists>v. \<Turnstile>g v : r \<and> gflat v = s"
+  using assms
+proof (induct r arbitrary: s)
+  case (GBASE r)
+  then have "s \<in> BL r"
+    by simp
+  then obtain v where "\<Turnstile>b v : r" "bflat v = s"
+    using BL_flat_BPrf2 by blast
+  then show ?case
+    by (intro exI[of _ "GVBase v"]) (auto intro: GPrf.intros)
+next
+  case (GALT r1 r2)
+  then show ?case
+  proof (cases "s \<in> GBL r1")
+    case True
+    then obtain v where "\<Turnstile>g v : r1" "gflat v = s"
+      using GALT(1) by blast
+    then show ?thesis
+      by (intro exI[of _ "GVLeft v"]) (auto intro: GPrf.intros)
+  next
+    case False
+    with GALT(3) have "s \<in> GBL r2"
+      by simp
+    then obtain v where "\<Turnstile>g v : r2" "gflat v = s"
+      using GALT(2) by blast
+    then show ?thesis
+      by (intro exI[of _ "GVRight v"]) (auto intro: GPrf.intros)
+  qed
+next
+  case (GBACKREF4 r1 r2 r3 r4 cs)
+  then have "s \<in> backref_lang4 (BL r1) (BL r2) (BL r3) (BL r4) cs"
+    by simp
+  then obtain v where "BPrf4 v r1 r2 r3 r4 cs" "bflat4 v = s"
+    using backref_lang4_flat_BPrf4_2 by blast
+  then show ?case
+    by (intro exI[of _ "GVBackref4 v"]) (auto intro: GPrf.intros)
+qed
+
+theorem GBL_flat_GPrf:
+  "GBL r = {gflat v | v. \<Turnstile>g v : r}"
+  using GBL_flat_GPrf1 GBL_flat_GPrf2 by blast
+
+theorem gxders_GBL_flat_GPrf:
+  "GBL (gxders r s) = Ders s {gflat v | v. \<Turnstile>g v : r}"
+proof -
+  have "GBL (gxders r s) = Ders s (GBL r)"
+    by (simp add: gxders_correctness)
+  also have "... = Ders s {gflat v | v. \<Turnstile>g v : r}"
+    by (simp add: Ders_def GBL_flat_GPrf)
+  finally show ?thesis .
+qed
+
 end
