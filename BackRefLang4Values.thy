@@ -377,4 +377,98 @@ proof -
   finally show ?thesis .
 qed
 
+section \<open>Generalized Constructor Lexer\<close>
+
+fun gblexer :: "gbrexp \<Rightarrow> string \<Rightarrow> gbval option"
+where
+  "gblexer r [] = (if gnullable r then Some (gmkeps r) else None)"
+| "gblexer r (c # s) = (case gblexer (gxder c r) s of
+    None \<Rightarrow> None
+  | Some v \<Rightarrow> Some (ginjval r c v))"
+
+lemma gblexer_GPrf:
+  assumes "gblexer r s = Some v"
+  shows "\<Turnstile>g v : r"
+  using assms
+  apply (induct s arbitrary: r v)
+   apply (auto intro: gmkeps_GPrf ginjval_GPrf split: if_splits option.splits)
+  done
+
+lemma gblexer_flat:
+  assumes "gblexer r s = Some v"
+  shows "gflat v = s"
+  using assms
+proof (induct s arbitrary: r v)
+  case Nil
+  then have "gnullable r" "v = gmkeps r"
+    by (auto split: if_splits)
+  then show ?case using gmkeps_flat by simp
+next
+  case (Cons c s)
+  then obtain v' where v': "gblexer (gxder c r) s = Some v'" "v = ginjval r c v'"
+    by (auto split: option.splits)
+  from v'(1) have "gflat v' = s" by (rule Cons.hyps)
+  moreover from v'(1) have "\<Turnstile>g v' : gxder c r" by (rule gblexer_GPrf)
+  ultimately show ?case using v'(2) by (simp add: ginjval_flat)
+qed
+
+lemma gblexer_correct_None:
+  "s \<notin> GBL r \<longleftrightarrow> gblexer r s = None"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by (simp add: gnullable_correctness)
+next
+  case (Cons c s)
+  have "c # s \<in> GBL r \<longleftrightarrow> s \<in> GBL (gxder c r)"
+    by (simp add: gxder_correctness Der_def)
+  also have "... \<longleftrightarrow> gblexer (gxder c r) s \<noteq> None"
+    using Cons.hyps[of "gxder c r"] by auto
+  also have "... \<longleftrightarrow> gblexer r (c # s) \<noteq> None"
+    by (cases "gblexer (gxder c r) s") simp_all
+  finally show ?case by blast
+qed
+
+lemma gblexer_correct_Some:
+  "s \<in> GBL r \<longleftrightarrow>
+    (\<exists>v. gblexer r s = Some v \<and> \<Turnstile>g v : r \<and> gflat v = s)"
+proof
+  assume "s \<in> GBL r"
+  then have "gblexer r s \<noteq> None" using gblexer_correct_None by auto
+  then obtain v where "gblexer r s = Some v" by blast
+  then show "\<exists>v. gblexer r s = Some v \<and> \<Turnstile>g v : r \<and> gflat v = s"
+    using gblexer_GPrf gblexer_flat by blast
+next
+  assume "\<exists>v. gblexer r s = Some v \<and> \<Turnstile>g v : r \<and> gflat v = s"
+  then show "s \<in> GBL r" using GBL_flat_GPrf1 by fastforce
+qed
+
+theorem gblexer_correctness:
+  shows gblexer_correctness_None: "gblexer r s = None \<longleftrightarrow> s \<notin> GBL r"
+    and gblexer_correctness_Some:
+      "gblexer r s = Some v \<Longrightarrow> \<Turnstile>g v : r \<and> gflat v = s"
+    and gblexer_correctness_defined:
+      "s \<in> GBL r \<longleftrightarrow> (\<exists>v. gblexer r s = Some v)"
+proof -
+  show "gblexer r s = None \<longleftrightarrow> s \<notin> GBL r"
+    using gblexer_correct_None by blast
+  show "gblexer r s = Some v \<Longrightarrow> \<Turnstile>g v : r \<and> gflat v = s"
+    using gblexer_GPrf gblexer_flat by blast
+  show "s \<in> GBL r \<longleftrightarrow> (\<exists>v. gblexer r s = Some v)"
+  proof
+    assume "s \<in> GBL r"
+    then have "gblexer r s \<noteq> None"
+      using gblexer_correct_None by blast
+    then show "\<exists>v. gblexer r s = Some v"
+      by (cases "gblexer r s") auto
+  next
+    assume "\<exists>v. gblexer r s = Some v"
+    then obtain v where v: "gblexer r s = Some v"
+      by blast
+    then have "\<Turnstile>g v : r" "gflat v = s"
+      using gblexer_GPrf gblexer_flat by blast+
+    then show "s \<in> GBL r"
+      using GBL_flat_GPrf1 by blast
+  qed
+qed
+
 end

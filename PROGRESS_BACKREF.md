@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (generalized constructor injection evidence)
+Last updated: 2026-05-26 (standalone generalized constructor lexer)
 
 ## Current Branch
 
@@ -18,6 +18,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with direct Isabelle `BackRefPilot` build under a
+  120-second timeout -- standalone generalized constructor lexer with
+  `gblexer`, `gblexer_GPrf`, `gblexer_flat`, and `gblexer_correctness`.
+  `BackRefLang4Values` replayed in about 1.4 seconds in the direct build.
+  Final full local CI also passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate
+  generation, and explicit statement guard.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, explicit statement guard, and
   local CI certificate generation -- generalized constructor injection
@@ -183,6 +190,12 @@ Latest result:
   - `gbackref4_from_xder_tail_GPrf`
   - `ginjval_flat`
   - `ginjval_GPrf`
+  - `gblexer`
+  - `gblexer_GPrf`
+  - `gblexer_flat`
+  - `gblexer_correct_None`
+  - `gblexer_correct_Some`
+  - `gblexer_correctness`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -220,9 +233,40 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 12. ~~Bridge generalized constructor derivatives to `BPrf4` value evidence.~~ DONE
 13. ~~Add generalized constructor value correspondence for all `gbrexp`.~~ DONE
 14. ~~Add generalized constructor one-step value injection.~~ DONE
-15. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+15. ~~Package a standalone generalized `gblexer` from `gnullable`/`gmkeps`/`gxder`/`ginjval`.~~ DONE
+16. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Standalone Generalized Constructor Lexer (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit; the branch was clean and synchronized with
+  `origin/codex/backref-values` before this edit.
+- Agent lane: Codex generalized constructor/value bridge lane
+- Files changed: `BackRefLang4Values.thy`, `PROGRESS_BACKREF.md`
+- New checked definition:
+  - `gblexer`, a standalone lexer for the `gbrexp` layer using
+    `gnullable`/`gmkeps`, `gxder`, and `ginjval`
+- New checked lemmas/theorem:
+  - `gblexer_GPrf`
+  - `gblexer_flat`
+  - `gblexer_correct_None`
+  - `gblexer_correct_Some`
+  - `gblexer_correctness`
+- Build: direct `timeout 120s isabelle build -v -d pilot BackRefPilot` PASS
+  (0:13 elapsed, `BackRefLang4Values` 1.441s); final full local CI PASS with
+  no-cheat guard, bounty guard, admin role guard, Isabelle `Posix` (0:03
+  elapsed), Isabelle `BackRefPilot` (0:04 elapsed), local CI certificate
+  generation, and explicit statement guard PASS.
+- Notes:
+  - This is additive generalized-constructor packaging and does not touch
+    frozen `brexp`, `BL`, `xnullable`, `xder`, `BPrf`, production lexer files,
+    bounds theories, or Opus's BR-015 lock.
+  - It mirrors the checked `blexer` proof shape at the standalone generalized
+    layer rather than adding POSIX ordering rules for `gbrexp`.
+- Next smallest safe step: either commit this additive checkpoint or wait for
+  BR-015/BR-019 direction from the admin.
 
 ## Generalized Constructor Injection Evidence (2026-05-26)
 
