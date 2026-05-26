@@ -1,4 +1,4 @@
-Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md.
+This is an autonomous Codex CLI work iteration, not a read-only setup request. Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
 
 You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix. Opus may be running in Cursor in a separate clone on the same branch.
 
@@ -14,7 +14,7 @@ Work with remote changes; do not revert or overwrite another agent's work. If Op
 
 Primary assignment: follow the current state in PROGRESS_BACKREF.md and BACKREF_BOUNTIES.md. If the worktree is clean and BR-014 is still open, attempt the next smallest checked BR-014 step in `BackRefValues.thy`. It is acceptable to split or strengthen existing pilot lemmas, add helper lemmas, or repair `blexer` correctness statements, provided all statements remain honest and checked. Do not create production lexer files or touch `Blexer.thy`, `BlexerSimp.thy`, bounds, closed-form theories, or frozen statements.
 
-No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted task exists. If no code/proof edit is possible, run the relevant guard/build to expose the current blocker and record the precise blocker in the final output. A no-op iteration is allowed only for a dirty/conflicting worktree, a semantic question that must go to Chengsong, a remote change that must be inspected first, or no permitted open task.
+No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted task exists. Do not claim that the user only asked you to read or set up; this prompt is the standing instruction to keep working. If no code/proof edit is possible, run the relevant guard/build to expose the current blocker and record the precise blocker in the final output. A no-op iteration is allowed only for a dirty/conflicting worktree, a semantic question that must go to Chengsong, a remote change that must be inspected first, or no permitted open task.
 
 Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, or frozen statements unless CLAUDE.md explicitly authorizes the new pilot-only path and the files are disjoint.
 
@@ -26,3 +26,5 @@ python agent_hunt_pipeline/scripts/backref_role_guard.py --role admin
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin -NoCertificate
 
 Commit small checked steps. Then pull --rebase --autostash, rerun the relevant guards, and push to origin codex/backref-values.
+
+Begin now: after reading and synchronizing, if BR-014 remains open and the worktree is clean, inspect `BackRefValues.thy`, attempt one small checked proof/lemma/build step toward BR-014, run the appropriate guard/build, and commit/push if it checks.
