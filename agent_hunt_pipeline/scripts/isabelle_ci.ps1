@@ -4,7 +4,8 @@ param(
   [switch]$NoCertificate,
   [ValidateSet("admin", "steward", "worker")]
   [string]$Role = "admin",
-  [int]$BuildLockTimeoutSeconds = 7200
+  [int]$BuildLockTimeoutSeconds = 7200,
+  [int]$SessionTimeoutSeconds = 120
 )
 
 $ErrorActionPreference = "Stop"
@@ -62,8 +63,11 @@ try {
 
   foreach ($Session in $Sessions) {
     Write-Host "== Isabelle build: $($Session.Name) =="
-    & $Bash -lc "cd '$RepoCyg' && '$Isabelle' build $($Session.Args)"
+    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s '$Isabelle' build $($Session.Args)"
     if ($LASTEXITCODE -ne 0) {
+      if ($LASTEXITCODE -eq 124) {
+        throw "Isabelle build timed out for $($Session.Name) after $SessionTimeoutSeconds seconds"
+      }
       throw "Isabelle build failed for $($Session.Name) with exit code $LASTEXITCODE"
     }
   }
