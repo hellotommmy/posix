@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual left-quotient family helpers)
+Last updated: 2026-05-27 (final retrieve equations)
 
 ## Current Branch
 
@@ -18,6 +18,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding unconditional final-derivative retrieve
+  equations for the ordinary and generalized bitcoded lexers in
+  `BackRefBlexer.thy` and `BackRefGBlexer.thy`. New checked facts are
+  `bblexer_final_retrieve`, `bblexer_simp_final_retrieve`,
+  `bblexer_step_simp_final_retrieve`, `gbblexer_final_retrieve`,
+  `gbblexer_simp_final_retrieve`, and
+  `gbblexer_step_simp_final_retrieve`. Files changed before this progress
+  note: `BackRefBlexer.thy` (+60) and `BackRefGBlexer.thy` (+60).
+  Baseline pilot-only local CI passed with `BackRefPilot` (0:11 elapsed).
+  Post-edit pilot-only local CI passed with `BackRefPilot` (0:11 elapsed);
+  `BackRefBlexer` replayed in about 4.8 seconds and `BackRefGBlexer` replayed
+  in about 1.8 seconds. Final full local CI passed with Isabelle `Posix`
+  (0:32 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and local CI
+  certificate generation. After rebasing over `8b8f1e0`, full local CI passed
+  again with Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:12
+  elapsed), and local CI certificate generation. Next smallest safe step:
+  either add similarly direct `None`/membership wrappers for the bitcoded lexer
+  frontends, or stop until the admin opens a new bounty/phase. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding residual left-quotient family helpers in
   `BackRefBoundedBlueprint.thy`. New checked facts expose

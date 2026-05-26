@@ -640,6 +640,26 @@ proof -
     using xnullable by (rule bmkeps_flat)
 qed
 
+theorem bblexer_final_retrieve:
+  "bblexer r s =
+    (if xnullable (xders r s)
+     then Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+proof (cases "xnullable (xders r s)")
+  case True
+  let ?a = "bbders (baintern r) s"
+  have nullable: "bbnullable ?a"
+    using True by simp
+  have bits: "bbmkeps ?a = bretrieve ?a (bmkeps (xders r s))"
+    using nullable bbmkeps_bretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: bblexer_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: bblexer_def Let_def)
+qed
+
 section \<open>Bitcoded Backreference Simplification\<close>
 
 fun bbsimp :: "barexp \<Rightarrow> barexp"
@@ -900,6 +920,26 @@ proof -
     using xnullable by (rule bmkeps_flat)
 qed
 
+theorem bblexer_simp_final_retrieve:
+  "bblexer_simp r s =
+    (if xnullable (xders r s)
+     then Some (bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s)))
+     else None)"
+proof (cases "xnullable (xders r s)")
+  case True
+  let ?a = "bbsimp (bbders (baintern r) s)"
+  have nullable: "bbnullable ?a"
+    using True by simp
+  have bits: "bbmkeps ?a = bretrieve ?a (bmkeps (xders r s))"
+    using nullable bbmkeps_bretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: bblexer_simp_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: bblexer_simp_def Let_def)
+qed
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -959,6 +999,26 @@ proof -
     using xnullable by (rule bmkeps_BPrf)
   show "bflat (bmkeps (xders r s)) = []"
     using xnullable by (rule bmkeps_flat)
+qed
+
+theorem bblexer_step_simp_final_retrieve:
+  "bblexer_step_simp r s =
+    (if xnullable (xders r s)
+     then Some (bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s)))
+     else None)"
+proof (cases "xnullable (xders r s)")
+  case True
+  let ?a = "bbders_simp (baintern r) s"
+  have nullable: "bbnullable ?a"
+    using True by simp
+  have bits: "bbmkeps ?a = bretrieve ?a (bmkeps (xders r s))"
+    using nullable bbmkeps_bretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: bblexer_step_simp_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: bblexer_step_simp_def Let_def)
 qed
 
 theorem bblexer_step_simp_blexer_retrieve:

@@ -632,6 +632,26 @@ proof -
     using gnullable by (rule gmkeps_flat)
 qed
 
+theorem gbblexer_final_retrieve:
+  "gbblexer r s =
+    (if gnullable (gxders r s)
+     then Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+proof (cases "gnullable (gxders r s)")
+  case True
+  let ?a = "gabders (gaintern r) s"
+  have nullable: "gabnullable ?a"
+    using True by simp
+  have bits: "gamkeps ?a = gretrieve ?a (gmkeps (gxders r s))"
+    using nullable gamkeps_gretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: gbblexer_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: gbblexer_def Let_def)
+qed
+
 section \<open>Bitcoded Generalized Backreference Simplification\<close>
 
 fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
@@ -864,6 +884,26 @@ proof -
     using gnullable by (rule gmkeps_flat)
 qed
 
+theorem gbblexer_simp_final_retrieve:
+  "gbblexer_simp r s =
+    (if gnullable (gxders r s)
+     then Some (gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s)))
+     else None)"
+proof (cases "gnullable (gxders r s)")
+  case True
+  let ?a = "gabbsimp (gabders (gaintern r) s)"
+  have nullable: "gabnullable ?a"
+    using True by simp
+  have bits: "gamkeps ?a = gretrieve ?a (gmkeps (gxders r s))"
+    using nullable gamkeps_gretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: gbblexer_simp_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: gbblexer_simp_def Let_def)
+qed
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -923,6 +963,26 @@ proof -
     using gnullable by (rule gmkeps_GPrf)
   show "gflat (gmkeps (gxders r s)) = []"
     using gnullable by (rule gmkeps_flat)
+qed
+
+theorem gbblexer_step_simp_final_retrieve:
+  "gbblexer_step_simp r s =
+    (if gnullable (gxders r s)
+     then Some (gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s)))
+     else None)"
+proof (cases "gnullable (gxders r s)")
+  case True
+  let ?a = "gabders_simp (gaintern r) s"
+  have nullable: "gabnullable ?a"
+    using True by simp
+  have bits: "gamkeps ?a = gretrieve ?a (gmkeps (gxders r s))"
+    using nullable gamkeps_gretrieve[of ?a] by simp
+  show ?thesis
+    using True bits by (simp add: gbblexer_step_simp_def Let_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: gbblexer_step_simp_def Let_def)
 qed
 
 theorem gbblexer_step_simp_gblexer_retrieve:
