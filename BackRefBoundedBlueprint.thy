@@ -89,6 +89,24 @@ lemma finite_left_quotients_if_bounded_language:
   using assms
   by (intro finite_left_quotients_if_finite_language bounded_language_finite)
 
+lemma Ders_append:
+  "Ders t (Ders s A) = Ders (s @ t) A"
+  by (auto simp add: Ders_def append_assoc)
+
+lemma finite_left_quotients_Ders:
+  assumes "finite_left_quotients A"
+  shows "finite_left_quotients (Ders s A)"
+proof -
+  have quotient_sub: "{Ders t (Ders s A) | t. True} \<subseteq> {Ders u A | u. True}"
+    by (auto simp add: Ders_append)
+  have quotient_fin: "finite {Ders u A | u. True}"
+    using assms by (simp add: finite_left_quotients_def)
+  have "finite {Ders t (Ders s A) | t. True}"
+    using finite_subset[OF quotient_sub quotient_fin] .
+  then show ?thesis
+    by (simp add: finite_left_quotients_def)
+qed
+
 lemma finite_BL_derivatives_if_left_quotients:
   assumes "finite_left_quotients (BL r)"
   shows "finite_BL_derivatives r"
@@ -107,6 +125,52 @@ proof -
     by (auto simp add: gxders_correctness)
   then show ?thesis
     using assms by (simp add: finite_GBL_derivatives_def finite_left_quotients_def)
+qed
+
+lemma finite_BL_derivatives_iff_left_quotients:
+  "finite_BL_derivatives r \<longleftrightarrow> finite_left_quotients (BL r)"
+proof -
+  have "{BL (xders r s) | s. True} = {Ders s (BL r) | s. True}"
+    by (auto simp add: xders_correctness)
+  then show ?thesis
+    by (simp add: finite_BL_derivatives_def finite_left_quotients_def)
+qed
+
+lemma finite_GBL_derivatives_iff_left_quotients:
+  "finite_GBL_derivatives r \<longleftrightarrow> finite_left_quotients (GBL r)"
+proof -
+  have "{GBL (gxders r s) | s. True} = {Ders s (GBL r) | s. True}"
+    by (auto simp add: gxders_correctness)
+  then show ?thesis
+    by (simp add: finite_GBL_derivatives_def finite_left_quotients_def)
+qed
+
+lemma finite_BL_derivatives_xders:
+  assumes "finite_BL_derivatives r"
+  shows "finite_BL_derivatives (xders r s)"
+proof -
+  have "finite_left_quotients (BL r)"
+    using assms by (simp add: finite_BL_derivatives_iff_left_quotients)
+  then have "finite_left_quotients (Ders s (BL r))"
+    by (rule finite_left_quotients_Ders)
+  then have "finite_left_quotients (BL (xders r s))"
+    by (simp add: xders_correctness)
+  then show ?thesis
+    by (simp add: finite_BL_derivatives_iff_left_quotients)
+qed
+
+lemma finite_GBL_derivatives_gxders:
+  assumes "finite_GBL_derivatives r"
+  shows "finite_GBL_derivatives (gxders r s)"
+proof -
+  have "finite_left_quotients (GBL r)"
+    using assms by (simp add: finite_GBL_derivatives_iff_left_quotients)
+  then have "finite_left_quotients (Ders s (GBL r))"
+    by (rule finite_left_quotients_Ders)
+  then have "finite_left_quotients (GBL (gxders r s))"
+    by (simp add: gxders_correctness)
+  then show ?thesis
+    by (simp add: finite_GBL_derivatives_iff_left_quotients)
 qed
 
 theorem bounded_BL_finite_derivative_languages:

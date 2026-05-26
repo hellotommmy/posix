@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (finite left-quotient predicate wrappers)
+Last updated: 2026-05-27 (residual finite-quotient closure helpers)
 
 ## Current Branch
 
@@ -18,6 +18,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding residual finite-quotient closure
+  helpers in `BackRefBoundedBlueprint.thy`. New checked facts expose
+  `Ders_append`, `finite_left_quotients_Ders`,
+  `finite_BL_derivatives_iff_left_quotients`,
+  `finite_GBL_derivatives_iff_left_quotients`,
+  `finite_BL_derivatives_xders`, and `finite_GBL_derivatives_gxders`.
+  Pilot-only local CI passed with `BackRefPilot` (0:16 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 2.6 seconds. Final full local
+  CI passed with Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot`
+  (0:04 elapsed), local CI certificate generation, and explicit statement
+  guard PASS.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding direct finite-left-quotient
   wrappers for successful `BL_bound`/`GBL_bound` calculations in
@@ -272,6 +284,35 @@ Latest result:
 - Local CI certificate is generated only after both sessions pass:
   `agent_hunt_pipeline/certificates/local_ci_certificate.json` (ignored by git).
 
+## Residual Finite-Quotient Closure Helpers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-blueprint proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy`, `PROGRESS_BACKREF.md`
+- New checked lemmas:
+  - `Ders_append`
+  - `finite_left_quotients_Ders`
+  - `finite_BL_derivatives_iff_left_quotients`
+  - `finite_GBL_derivatives_iff_left_quotients`
+  - `finite_BL_derivatives_xders`
+  - `finite_GBL_derivatives_gxders`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:16 elapsed), and no certificate
+  generation; `BackRefBoundedBlueprint` replayed in about 2.6 seconds. Final
+  full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  local CI certificate generation, and explicit statement guard PASS.
+- Notes:
+  - This is additive proof packaging in the bounded-fragment blueprint. It
+    does not touch `BackRefValues.thy`, frozen language/value statements,
+    production lexer files, or production bounds/closed-form theories.
+  - The new closure lemmas expose that finite derivative-language predicates
+    are stable under already-consumed prefixes without requiring a fresh
+    `BL_bound`/`GBL_bound` calculation.
+- Next smallest safe step: continue with small quotient/derivative packaging
+  only if it remains non-conflicting and admin-useful.
+
 ## Completed
 
 - `BackRefLang.thy` defines pilot `brexp`.
@@ -313,6 +354,12 @@ Latest result:
   - `bounded_backref_lang4_finite_left_quotients`
   - `bounded_BBACKREF_finite_derivative_languages`
   - `bounded_GBACKREF4_finite_derivative_languages`
+  - `Ders_append`
+  - `finite_left_quotients_Ders`
+  - `finite_BL_derivatives_iff_left_quotients`
+  - `finite_GBL_derivatives_iff_left_quotients`
+  - `finite_BL_derivatives_xders`
+  - `finite_GBL_derivatives_gxders`
   - bounded-language closure lemmas for union, sequencing, fixed powers, and
     zero-bounded stars
   - constructor-level `BL_bounded`/`GBL_bounded` closure lemmas
