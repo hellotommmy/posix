@@ -414,4 +414,90 @@ next
   then show "s \<in> BL r" using blexer_correct_None by auto
 qed
 
+section \<open>POSIX Specification for Backreference Regex\<close>
+
+inductive 
+  BPosix :: "string \<Rightarrow> brexp \<Rightarrow> bval \<Rightarrow> bool" ("_ \<in> _ \<rightarrow> _" [100, 100, 100] 100)
+where
+  BPosix_BONE: "[] \<in> BONE \<rightarrow> BVoid"
+| BPosix_BCH: "[c] \<in> (BCH c) \<rightarrow> (BChar c)"
+| BPosix_BALT1: "s \<in> r1 \<rightarrow> v \<Longrightarrow> s \<in> (BALT r1 r2) \<rightarrow> (BLeft v)"
+| BPosix_BALT2: "\<lbrakk>s \<in> r2 \<rightarrow> v; s \<notin> BL r1\<rbrakk> \<Longrightarrow> s \<in> (BALT r1 r2) \<rightarrow> (BRight v)"
+| BPosix_BSEQ: "\<lbrakk>s1 \<in> r1 \<rightarrow> v1; s2 \<in> r2 \<rightarrow> v2;
+    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (s1 @ s\<^sub>3) \<in> BL r1 \<and> s\<^sub>4 \<in> BL r2)\<rbrakk> \<Longrightarrow> 
+    (s1 @ s2) \<in> (BSEQ r1 r2) \<rightarrow> (BSeq v1 v2)"
+| BPosix_BSTAR1: "\<lbrakk>s1 \<in> r \<rightarrow> v; s2 \<in> BSTAR r \<rightarrow> BStars vs; bflat v \<noteq> [];
+    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (s1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BSTAR r))\<rbrakk>
+    \<Longrightarrow> (s1 @ s2) \<in> BSTAR r \<rightarrow> BStars (v # vs)"
+| BPosix_BSTAR2: "[] \<in> BSTAR r \<rightarrow> BStars []"
+| BPosix_BNTIMES1: "\<lbrakk>s1 \<in> r \<rightarrow> v; s2 \<in> BNTIMES r (n - 1) \<rightarrow> BStars vs; bflat v \<noteq> []; 0 < n;
+    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> s\<^sub>3 @ s\<^sub>4 = s2 \<and> (s1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL (BNTIMES r (n - 1)))\<rbrakk>
+    \<Longrightarrow> (s1 @ s2) \<in> BNTIMES r n \<rightarrow> BStars (v # vs)"
+| BPosix_BNTIMES2: "\<lbrakk>\<forall>v \<in> set vs. [] \<in> r \<rightarrow> v; length vs = n\<rbrakk>
+    \<Longrightarrow> [] \<in> BNTIMES r n \<rightarrow> BStars vs"
+| BPosix_BBACKREF: "\<lbrakk>s1 \<in> r \<rightarrow> v1; s2 \<in> mid \<rightarrow> v2;
+    \<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (s1 @ s\<^sub>3) \<in> BL r \<and> s\<^sub>4 \<in> BL mid \<and>
+      s2 @ rev cs @ s1 = s\<^sub>3 @ s\<^sub>4 @ rev cs @ (s1 @ s\<^sub>3))\<rbrakk>
+    \<Longrightarrow> (s1 @ s2 @ rev cs @ s1) \<in> BBACKREF r mid cs \<rightarrow> BBackref v1 v2 cs"
+| BPosix_BHALF: "s \<in> mid \<rightarrow> v
+    \<Longrightarrow> (s @ cs) \<in> BHALF mid cs rep \<rightarrow> BHalf v cs rep"
+| BPosix_BRESIDUE: "cs \<in> BRESIDUE cs rep \<rightarrow> BResidue cs rep"
+
+inductive_cases BPosix_elims:
+  "s \<in> BZERO \<rightarrow> v"
+  "s \<in> BONE \<rightarrow> v"
+  "s \<in> BCH c \<rightarrow> v"
+  "s \<in> BALT r1 r2 \<rightarrow> v"
+  "s \<in> BSEQ r1 r2 \<rightarrow> v"
+  "s \<in> BSTAR r \<rightarrow> v"
+  "s \<in> BNTIMES r n \<rightarrow> v"
+  "s \<in> BBACKREF r mid cs \<rightarrow> v"
+  "s \<in> BHALF mid cs rep \<rightarrow> v"
+  "s \<in> BRESIDUE cs rep \<rightarrow> v"
+
+lemma BPosix1:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "s \<in> BL r" "bflat v = s"
+  using assms
+  apply(induct s r v rule: BPosix.induct)
+                apply(auto simp add: pow_empty_iff backref_lang_def Sequ_def)
+  apply (metis Suc_pred concI lang_pow.simps(2))
+  apply (meson ex_in_conv set_empty)
+  done
+
+lemma BPosix1a:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "\<Turnstile>b v : r"
+  using assms
+  apply(induct s r v rule: BPosix.induct)
+             apply(auto intro: BPrf.intros)
+  apply (metis BPrf.intros(6) BPrf_elims(6) set_ConsD bval.inject(5))
+  prefer 2
+  apply (metis BPosix1(2) BPrf.intros(7) append_Nil empty_iff list.set(1))
+  apply(erule BPrf_elims)
+  apply(auto)
+  apply(subst append.simps(2)[symmetric])
+  apply(rule BPrf.intros)
+    apply(auto)
+  done
+
+lemma BPosix_bmkeps:
+  assumes "xnullable r"
+  shows "[] \<in> r \<rightarrow> bmkeps r"
+  using assms
+  apply(induct r)
+           apply(auto intro: BPosix.intros simp add: xnullable_correctness split: if_splits)
+  apply(subst append.simps(1)[symmetric])
+  apply(rule BPosix_BSEQ)
+    apply(auto)
+  apply(simp add: BPosix_BNTIMES2)
+  apply(subst append.simps(1)[symmetric])
+  apply(subst append.simps(1)[symmetric])
+  apply(rule BPosix_BBACKREF)
+    apply(auto)
+  apply(subst append.simps(1)[symmetric])
+  apply(rule BPosix_BHALF)
+  apply(auto)
+  done
+
 end
