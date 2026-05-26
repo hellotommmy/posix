@@ -647,6 +647,128 @@ next
   then show ?case by (cases cs) (auto intro: BPosix_BRESIDUE)
 qed
 
+lemma bval_list_eq_zipI:
+  assumes "\<forall>(v1, v2) \<in> set (zip vs1 vs2). v1 = v2"
+    and "length vs1 = length vs2"
+  shows "vs1 = vs2"
+  using assms
+  apply (induct vs1 arbitrary: vs2)
+   apply (case_tac vs2)
+    apply simp
+   apply simp
+  apply (case_tac vs2)
+   apply simp
+  apply simp
+  done
+
+lemma BBACKREF_split_cases:
+  assumes "s1 @ s2 @ rev cs @ s1 = t1 @ t2 @ rev cs @ t1"
+  obtains us where "s1 = t1 @ us" "us @ (s2 @ rev cs @ s1) = t2 @ rev cs @ t1"
+    | us where "s1 @ us = t1" "s2 @ rev cs @ s1 = us @ (t2 @ rev cs @ t1)"
+proof -
+  have "s1 @ (s2 @ rev cs @ s1) = t1 @ (t2 @ rev cs @ t1)"
+    using assms by (simp add: append_assoc)
+  then have split:
+    "\<exists>us. (s1 = t1 @ us \<and> us @ (s2 @ rev cs @ s1) = t2 @ rev cs @ t1) \<or>
+      (s1 @ us = t1 \<and> s2 @ rev cs @ s1 = us @ (t2 @ rev cs @ t1))"
+    by (rule iffD1[OF append_eq_append_conv2])
+  from split show ?thesis
+    using that by auto
+qed
+
+lemma BBACKREF_split_unique:
+  assumes eq: "s1 @ s2 @ rev cs @ s1 = t1 @ t2 @ rev cs @ t1"
+    and greedy1: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (s1 @ s\<^sub>3) \<in> BL r \<and>
+      s\<^sub>4 \<in> BL mid \<and> s2 @ rev cs @ s1 = s\<^sub>3 @ s\<^sub>4 @ rev cs @ (s1 @ s\<^sub>3))"
+    and greedy2: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (t1 @ s\<^sub>3) \<in> BL r \<and>
+      s\<^sub>4 \<in> BL mid \<and> t2 @ rev cs @ t1 = s\<^sub>3 @ s\<^sub>4 @ rev cs @ (t1 @ s\<^sub>3))"
+    and r1: "s1 \<in> BL r"
+    and m1: "s2 \<in> BL mid"
+    and r2: "t1 \<in> BL r"
+    and m2: "t2 \<in> BL mid"
+  shows "s1 = t1" "s2 = t2"
+proof -
+  have cap: "s1 = t1"
+  proof (cases rule: BBACKREF_split_cases[OF eq])
+    case (1 us)
+    then show ?thesis
+    proof (cases "us = []")
+      case True
+      then show ?thesis using 1 by simp
+    next
+      case False
+      have eq2: "t2 @ rev cs @ t1 = us @ s2 @ rev cs @ (t1 @ us)"
+        using 1 by (simp add: append_assoc)
+      have "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (t1 @ s\<^sub>3) \<in> BL r \<and>
+        s\<^sub>4 \<in> BL mid \<and> t2 @ rev cs @ t1 =
+          s\<^sub>3 @ s\<^sub>4 @ rev cs @ (t1 @ s\<^sub>3)"
+        using False r1 m1 1 eq2
+        apply (rule_tac x=us in exI)
+        apply (rule_tac x=s2 in exI)
+        apply (simp add: append_assoc)
+        done
+      then have False using greedy2 by simp
+      then show ?thesis by simp
+    qed
+  next
+    case (2 us)
+    then show ?thesis
+    proof (cases "us = []")
+      case True
+      then show ?thesis using 2 by simp
+    next
+      case False
+      have eq2: "s2 @ rev cs @ s1 = us @ t2 @ rev cs @ (s1 @ us)"
+        using 2 by (simp add: append_assoc)
+      have "\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (s1 @ s\<^sub>3) \<in> BL r \<and>
+        s\<^sub>4 \<in> BL mid \<and> s2 @ rev cs @ s1 =
+          s\<^sub>3 @ s\<^sub>4 @ rev cs @ (s1 @ s\<^sub>3)"
+        using False r2 m2 2 eq2
+        apply (rule_tac x=us in exI)
+        apply (rule_tac x=t2 in exI)
+        apply (simp add: append_assoc)
+        done
+      then have False using greedy1 by simp
+      then show ?thesis by simp
+    qed
+  qed
+  then show "s1 = t1" by simp
+  from eq cap show "s2 = t2"
+    by (simp add: append_assoc)
+qed
+
+lemma BPosix_BBACKREF_value_unique:
+  assumes target: "(s1 @ s2 @ rev cs @ s1) \<in> BBACKREF r mid cs \<rightarrow> v"
+    and left1: "s1 \<in> r \<rightarrow> v1"
+    and left2: "s2 \<in> mid \<rightarrow> v2"
+    and greedy: "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (s1 @ s\<^sub>3) \<in> BL r \<and>
+      s\<^sub>4 \<in> BL mid \<and> s2 @ rev cs @ s1 =
+        s\<^sub>3 @ s\<^sub>4 @ rev cs @ (s1 @ s\<^sub>3))"
+    and IH1: "\<And>w. s1 \<in> r \<rightarrow> w \<Longrightarrow> v1 = w"
+    and IH2: "\<And>w. s2 \<in> mid \<rightarrow> w \<Longrightarrow> v2 = w"
+  shows "BBackref v1 v2 cs = v"
+proof -
+  from target obtain t1 t2 w1 w2 where decomp:
+    "v = BBackref w1 w2 cs"
+    "t1 \<in> r \<rightarrow> w1"
+    "t2 \<in> mid \<rightarrow> w2"
+    "s1 @ s2 @ rev cs @ s1 = t1 @ t2 @ rev cs @ t1"
+    "\<not>(\<exists>s\<^sub>3 s\<^sub>4. s\<^sub>3 \<noteq> [] \<and> (t1 @ s\<^sub>3) \<in> BL r \<and>
+      s\<^sub>4 \<in> BL mid \<and> t2 @ rev cs @ t1 =
+        s\<^sub>3 @ s\<^sub>4 @ rev cs @ (t1 @ s\<^sub>3))"
+    by (auto elim!: BPosix_elims(8))
+  have bl1: "s1 \<in> BL r" using left1 by (rule BPosix1(1))
+  have bl2: "s2 \<in> BL mid" using left2 by (rule BPosix1(1))
+  have bl3: "t1 \<in> BL r" using decomp(2) by (rule BPosix1(1))
+  have bl4: "t2 \<in> BL mid" using decomp(3) by (rule BPosix1(1))
+  have split: "s1 = t1" "s2 = t2"
+    using BBACKREF_split_unique[OF decomp(4) greedy decomp(5) bl1 bl2 bl3 bl4]
+    by simp_all
+  have "v1 = w1" using IH1 decomp(2) split(1) by simp
+  moreover have "v2 = w2" using IH2 decomp(3) split(2) by simp
+  ultimately show ?thesis using decomp(1) by simp
+qed
+
 section \<open>Injection Preserves POSIX\<close>
 
 lemma BPosix_binjval:

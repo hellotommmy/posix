@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-022 bounded-fragment blueprint)
+Last updated: 2026-05-27 (BR-022 blueprint and BR-015 helper step)
 
 ## Current Branch
 
@@ -26,6 +26,13 @@ Latest result:
   `bounded_GBACKREF4_finite_derivative_languages`; `BackRefBoundedBlueprint`
   replayed in about 0.27 seconds after replacing an expensive nested-image
   proof route.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding BR-015 helper lemmas in
+  `BackRefValues.thy`: `bval_list_eq_zipI`, `BBACKREF_split_cases`,
+  `BBACKREF_split_unique`, and `BPosix_BBACKREF_value_unique`. The first
+  broad `BPosix_determ` attempt and an early split proof timed out because
+  `append_eq_append_conv2` was handed to recursive simplification; the checked
+  version uses a one-shot `iffD1` step and explicit witnesses.
 - Coordination update on 2026-05-26: Cursor/Opus retired for overnight work;
   two Codex CLI workers are now the intended parallel setup. Codex Agent B owns
   BR-015 and `BackRefValues.thy`; Codex Agent A owns BR-022 and must stay on
@@ -321,9 +328,11 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 18. ~~Optional next generalized bitcoded layer: add a conservative
     `gabbsimp`/step-simplifier story mirroring `BackRefBlexer.thy`.~~ DONE
 19. ~~Add BR-022 bounded-fragment statement blueprint.~~ DONE
-20. Remaining open lanes: BR-015 remains locked by Codex Agent B. BR-019
-    now has a checked semantic finite-derivative-language blueprint, but
-    should still wait until an admin accepts the bounded-fragment statement
+20. BR-015 is locked by Codex Agent B and in progress: checked
+    `BBACKREF` split/value uniqueness helpers are in `BackRefValues.thy`;
+    next step is to assemble `BPosix_determ` using targeted eliminations.
+21. BR-019 now has a checked semantic finite-derivative-language blueprint,
+    but should still wait until an admin accepts the bounded-fragment statement
     for any production bounds or closed-form work.
 
 ## BR-022 Bounded-Fragment Statement Blueprint (2026-05-27)
@@ -376,6 +385,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     theories.
 - Next smallest safe step: wait for Agent B's BR-015 result or admin approval
   of the precise BR-019 bounded-fragment theorem statement.
+
+## BR-015 Backreference POSIX Split Helpers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent B, BR-015 POSIX value ordering
+- Files changed: `BackRefValues.thy` (+122 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked lemmas:
+  - `bval_list_eq_zipI`
+  - `BBACKREF_split_cases`
+  - `BBACKREF_split_unique`
+  - `BPosix_BBACKREF_value_unique`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:08 elapsed); `BackRefValues` replayed
+    in about 5.6 seconds after the final helper proof.
+- Performance note:
+  - A broad `BPosix_determ` attempt and an early version of
+    `BBACKREF_split_unique` timed out. Root cause: using
+    `append_eq_append_conv2` as a simplification rule recursively rewrote newly
+    generated append equalities. The checked proof applies it once through
+    `iffD1` in `BBACKREF_split_cases` and then constructs greedy-condition
+    contradiction witnesses explicitly.
+- Next smallest safe step:
+  - Prove `BPosix_determ` by reusing `BPosix_BBACKREF_value_unique` and
+    replacing broad `cases`/`auto` blocks by constructor-specific eliminations.
 
 ## Generalized Bitcoded Simplifier (2026-05-26)
 
