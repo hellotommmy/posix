@@ -18,6 +18,14 @@ theorem bblexer_frontends_blexer_retrieve:
   by (simp_all add: bblexer_blexer_retrieve bblexer_simp_blexer_retrieve
       bblexer_step_simp_blexer_retrieve)
 
+theorem bblexer_frontends_blexer_Some_retrieve:
+  assumes "blexer r s = Some v"
+  shows "bblexer r s = Some (bretrieve (baintern r) v)"
+    and "bblexer_simp r s = Some (bretrieve (baintern r) v)"
+    and "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
+  using assms by (simp_all add: bblexer_blexer_retrieve
+      bblexer_simp_blexer_retrieve bblexer_step_simp_blexer_retrieve)
+
 theorem bblexer_frontends_blexer_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
     (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
@@ -144,6 +152,21 @@ theorem bblexer_frontends_Some_BL:
   "bblexer_step_simp r s = Some bs \<Longrightarrow> s \<in> BL r"
   by (auto simp add: bblexer_frontends_BL_iff)
 
+theorem bblexer_frontends_BL_obtains:
+  assumes "s \<in> BL r"
+  obtains bs1 bs2 bs3 where "bblexer r s = Some bs1"
+    and "bblexer_simp r s = Some bs2"
+    and "bblexer_step_simp r s = Some bs3"
+proof -
+  from assms obtain bs1 where bs1: "bblexer r s = Some bs1"
+    using bblexer_frontends_defined_BL_iff(1) by blast
+  from assms obtain bs2 where bs2: "bblexer_simp r s = Some bs2"
+    using bblexer_frontends_defined_BL_iff(2) by blast
+  from assms obtain bs3 where bs3: "bblexer_step_simp r s = Some bs3"
+    using bblexer_frontends_defined_BL_iff(3) by blast
+  show thesis by (rule that[OF bs1 bs2 bs3])
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -260,5 +283,20 @@ theorem gbblexer_frontends_Some_GBL:
   "gbblexer_simp r s = Some bs \<Longrightarrow> s \<in> GBL r"
   "gbblexer_step_simp r s = Some bs \<Longrightarrow> s \<in> GBL r"
   by (auto simp add: gbblexer_frontends_GBL_iff)
+
+theorem gbblexer_frontends_GBL_obtains:
+  assumes "s \<in> GBL r"
+  obtains bs1 bs2 bs3 where "gbblexer r s = Some bs1"
+    and "gbblexer_simp r s = Some bs2"
+    and "gbblexer_step_simp r s = Some bs3"
+proof -
+  from assms obtain bs1 where bs1: "gbblexer r s = Some bs1"
+    using gbblexer_frontends_defined_GBL_iff(1) by blast
+  from assms obtain bs2 where bs2: "gbblexer_simp r s = Some bs2"
+    using gbblexer_frontends_defined_GBL_iff(2) by blast
+  from assms obtain bs3 where bs3: "gbblexer_step_simp r s = Some bs3"
+    using gbblexer_frontends_defined_GBL_iff(3) by blast
+  show thesis by (rule that[OF bs1 bs2 bs3])
+qed
 
 end

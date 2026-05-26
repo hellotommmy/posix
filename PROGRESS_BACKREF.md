@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (direct bounded-language wrappers after rebase)
+Last updated: 2026-05-27 (bitcoded frontend retrieve/obtains wrappers after bounded-wrapper sync)
 
 ## Current Branch
 
@@ -18,6 +18,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `BackRefPilot`, and final full local CI after rebasing over
+  `85e7ba5` and preserving the direct bounded-language wrapper work. New
+  checked facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_blexer_Some_retrieve`,
+  `bblexer_frontends_BL_obtains`, and
+  `gbblexer_frontends_GBL_obtains`, packaging successful ordinary value-lexer
+  retrieval and accepted-input bitcode witnesses for all ordinary and
+  generalized bitcoded frontends. Files changed before this progress note:
+  `BackRefBitcodedSummary.thy` (+38) and `PROGRESS_BACKREF.md`. Post-sync
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBitcodedSummary` replaying in about 0.161 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix` (0:36 elapsed), Isabelle `BackRefPilot` (0:17 elapsed), local CI
+  certificate generation, and `BackRefBitcodedSummary` replaying in about
+  0.214 seconds. Next smallest safe step: stop until the admin opens a new
+  bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct bounded-language wrappers in
   `BackRefBoundedBlueprint.thy`. New checked facts package the original
