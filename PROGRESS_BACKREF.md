@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer membership wrappers)
+Last updated: 2026-05-27 (bitcoded lexer Some wrappers)
 
 ## Current Branch
 
