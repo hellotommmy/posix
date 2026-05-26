@@ -125,6 +125,34 @@ theorem bounded_GBL_finite_derivative_languages:
       intro: finite_GBL_derivatives_if_left_quotients
         finite_left_quotients_if_bounded_language)
 
+lemma bounded_language_Ders:
+  assumes "bounded_language n A"
+  shows "bounded_language n (Ders s A)"
+proof (unfold bounded_language_def, intro ballI)
+  fix t
+  assume t: "t \<in> Ders s A"
+  then have st: "s @ t \<in> A"
+    by (simp add: Ders_def)
+  have len_st: "length (s @ t) \<le> n"
+    using assms st unfolding bounded_language_def by blast
+  have "length t \<le> length (s @ t)"
+    by simp
+  also note len_st
+  finally show "length t \<le> n" .
+qed
+
+lemma BL_bounded_xders:
+  assumes "BL_bounded n r"
+  shows "BL_bounded n (xders r s)"
+  using assms bounded_language_Ders[of n "BL r" s]
+  by (simp add: BL_bounded_def xders_correctness)
+
+lemma GBL_bounded_gxders:
+  assumes "GBL_bounded n r"
+  shows "GBL_bounded n (gxders r s)"
+  using assms bounded_language_Ders[of n "GBL r" s]
+  by (simp add: GBL_bounded_def gxders_correctness)
+
 lemma finite_Sequ_language:
   assumes "finite A" "finite B"
   shows "finite (A ;; B)"
@@ -548,5 +576,54 @@ theorem GBL_bound_finite_derivative_languages:
   shows "finite_GBL_derivatives r"
   using GBL_bound_sound[OF assms]
   by (rule bounded_GBL_finite_derivative_languages)
+
+theorem BL_bound_xders_bounded:
+  assumes "BL_bound r = Some n"
+  shows "BL_bounded n (xders r s)"
+  using BL_bound_sound[OF assms]
+  by (rule BL_bounded_xders)
+
+theorem GBL_bound_gxders_bounded:
+  assumes "GBL_bound r = Some n"
+  shows "GBL_bounded n (gxders r s)"
+  using GBL_bound_sound[OF assms]
+  by (rule GBL_bounded_gxders)
+
+theorem BL_bound_derivative_family_bounded:
+  assumes "BL_bound r = Some n"
+  shows "\<forall>A \<in> {BL (xders r s) | s. True}. bounded_language n A"
+  using BL_bound_xders_bounded[OF assms]
+  by (auto simp add: BL_bounded_def)
+
+theorem GBL_bound_derivative_family_bounded:
+  assumes "GBL_bound r = Some n"
+  shows "\<forall>A \<in> {GBL (gxders r s) | s. True}. bounded_language n A"
+  using GBL_bound_gxders_bounded[OF assms]
+  by (auto simp add: GBL_bounded_def)
+
+theorem BL_bound_BBACKREF_finite_derivative_languages:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite_BL_derivatives (BBACKREF r mid cs)"
+proof -
+  have "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_finite_derivative_languages)
+qed
+
+theorem GBL_bound_GBACKREF4_finite_derivative_languages:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite_GBL_derivatives (GBACKREF4 r1 r2 r3 r4 cs)"
+proof -
+  have "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_finite_derivative_languages)
+qed
 
 end

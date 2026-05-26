@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-019 syntactic bound proof-prep)
+Last updated: 2026-05-27 (BR-019 derivative-family bound package)
 
 ## Current Branch
 
@@ -18,6 +18,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:11 elapsed),
+  local CI certificate generation, and explicit statement guard after adding a
+  BR-019 derivative-family bound package in `BackRefBoundedBlueprint.thy`. New
+  checked facts show that semantic boundedness is preserved by
+  `Ders`/`xders`/`gxders`, that every derivative language from a successful
+  `BL_bound`/`GBL_bound` calculation is bounded by the same bound, and that
+  syntactically bounded `BBACKREF` and `GBACKREF4` constructors have finite
+  derivative-language families. `BackRefBoundedBlueprint` replayed in about
+  0.8 seconds.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding syntactic bounded-fragment proof-prep
   in `BackRefBoundedBlueprint.thy`: bounded-language closure lemmas,
@@ -179,10 +189,19 @@ Latest result:
   - bounded-language closure lemmas for union, sequencing, fixed powers, and
     zero-bounded stars
   - constructor-level `BL_bounded`/`GBL_bounded` closure lemmas
+  - `bounded_language_Ders`
+  - `BL_bounded_xders`
+  - `GBL_bounded_gxders`
   - `BL_bound_sound`
   - `GBL_bound_sound`
   - `BL_bound_finite_derivative_languages`
   - `GBL_bound_finite_derivative_languages`
+  - `BL_bound_xders_bounded`
+  - `GBL_bound_gxders_bounded`
+  - `BL_bound_derivative_family_bounded`
+  - `GBL_bound_derivative_family_bounded`
+  - `BL_bound_BBACKREF_finite_derivative_languages`
+  - `GBL_bound_GBACKREF4_finite_derivative_languages`
 - `BackRefValues.thy` now defines:
   - `bval`
   - `bflat`
@@ -351,13 +370,55 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 21. BR-019 now has a checked semantic finite-derivative-language blueprint and
     checked syntactic bounded-fragment proof-prep through
     `BL_bound_finite_derivative_languages` and
-    `GBL_bound_finite_derivative_languages`; production bounds or closed-form
-    work should still wait for admin acceptance of the precise statement.
+    `GBL_bound_finite_derivative_languages`, plus derivative-family boundedness
+    and syntactic backreference constructor packages; production bounds or
+    closed-form work should still wait for admin acceptance of the precise
+    statement.
+
+## BR-019 Derivative-Family Bound Package (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+77 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked lemmas/theorems:
+  - `bounded_language_Ders`
+  - `BL_bounded_xders`
+  - `GBL_bounded_gxders`
+  - `BL_bound_xders_bounded`
+  - `GBL_bound_gxders_bounded`
+  - `BL_bound_derivative_family_bounded`
+  - `GBL_bound_derivative_family_bounded`
+  - `BL_bound_BBACKREF_finite_derivative_languages`
+  - `GBL_bound_GBACKREF4_finite_derivative_languages`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:10 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 0.7 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:11
+    elapsed), and local CI certificate generation; `BackRefBoundedBlueprint`
+    replayed in about 0.8 seconds.
+  - Explicit statement guard PASS: 2 frozen theory files checked, no statement
+    modifications.
+- Performance note:
+  - The first `bounded_language_Ders` proof failed fast on a local length
+    arithmetic step. The checked proof uses an explicit `Ders` membership
+    witness and a length chain; no slow command was accepted.
+- Notes:
+  - This is still bounded-fragment proof-prep for BR-019. It does not claim a
+    finite syntactic derivative-state bound.
+  - This does not touch `BackRefValues.thy`, production `Blexer*`, bounds, or
+    closed-form theories.
+- Next smallest safe step: keep BR-015 reserved for Codex Agent B; ask admin
+  whether the `BL_bound`/`GBL_bound` and derivative-family boundedness
+  statements are acceptable as the BR-019 production target.
 
 ## BR-019 Syntactic Bounded Fragment Proof-Prep (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: pending checked commit on top of `ab983b0`
+- Commit: `3418f0f`
 - Agent lane: Codex Agent A bounded-fragment proof-prep lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+288 before this progress
   note), `PROGRESS_BACKREF.md`
