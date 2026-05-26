@@ -833,6 +833,18 @@ lemma bounded_language_subset_bounded_strings:
   shows "A \<subseteq> bounded_strings n"
   using assms by (auto simp add: bounded_language_def bounded_strings_def)
 
+lemma bounded_strings_mono:
+  assumes "n \<le> m"
+  shows "bounded_strings n \<subseteq> bounded_strings m"
+  using assms by (auto simp add: bounded_strings_def)
+
+lemma bounded_language_subset_bounded_strings_mono:
+  assumes "bounded_language n A" "n \<le> m"
+  shows "A \<subseteq> bounded_strings m"
+  using bounded_language_subset_bounded_strings[OF assms(1)]
+    bounded_strings_mono[OF assms(2)]
+  by blast
+
 lemma card_Pow_finite:
   assumes "finite A"
   shows "card (Pow A) = 2 ^ card A"
@@ -902,6 +914,50 @@ proof -
   finally show ?thesis .
 qed
 
+theorem BL_bound_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings m)"
+  using BL_bound_derivative_family_bounded[OF assms(1)]
+    bounded_language_subset_bounded_strings_mono[OF _ assms(2)]
+  by blast
+
+theorem GBL_bound_derivative_family_subset_bounded_strings_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "{GBL (gxders r s) | s. True} \<subseteq> Pow (bounded_strings m)"
+  using GBL_bound_derivative_family_bounded[OF assms(1)]
+    bounded_language_subset_bounded_strings_mono[OF _ assms(2)]
+  by blast
+
+theorem BL_bound_derivative_family_card_bound_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "card {BL (xders r s) | s. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule BL_bound_derivative_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {BL (xders r s) | s. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_derivative_family_card_bound_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "card {GBL (gxders r s) | s. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{GBL (gxders r s) | s. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule GBL_bound_derivative_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {GBL (gxders r s) | s. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
 theorem BL_bound_BBACKREF_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
   shows "{BL (xders (BBACKREF r mid cs) s) | s. True} \<subseteq>
@@ -954,6 +1010,66 @@ proof -
     using assms by simp
   then show ?thesis
     by (rule GBL_bound_derivative_family_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "{BL (xders (BBACKREF r mid cs) s) | s. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_derivative_family_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "{GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True} \<subseteq>
+    Pow (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_derivative_family_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_BBACKREF_derivative_family_card_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card {BL (xders (BBACKREF r mid cs) s) | s. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_derivative_family_card_bound_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_derivative_family_card_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card {GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True} \<le>
+    2 ^ card (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_derivative_family_card_bound_mono)
 qed
 
 end

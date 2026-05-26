@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-019 completed constructor finite-universe bounds)
+Last updated: 2026-05-27 (BR-019 monotone finite-universe bounds)
 
 ## Current Branch
 
@@ -18,6 +18,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding monotone finite-universe/cardinality
+  wrappers in `BackRefBoundedBlueprint.thy`. New checked facts allow derivative
+  language families from successful `BL_bound`/`GBL_bound` calculations, and
+  the constructor-specific `BBACKREF`/`GBACKREF4` packages, to be placed in
+  `Pow (bounded_strings m)` for any larger external bound `m`; corresponding
+  cardinal bounds use `2 ^ card (bounded_strings m)`. Pilot-only local CI
+  passed with `BackRefPilot` (0:16 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 1.3 seconds. Final full local
+  CI passed with Isabelle `Posix`, Isabelle `BackRefPilot`, and certificate
+  generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding constructor-specific BR-019
   finite-universe/cardinality wrappers in `BackRefBoundedBlueprint.thy`. New
@@ -440,6 +451,42 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `Pow (bounded_strings n)` with explicit cardinal bounds. No active bounty
     remains on `BACKREF_BOUNTIES.md`; production bounds or closed-form work
     should still wait for a new admin task.
+
+## BR-019 Monotone Finite-Universe Bounds (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+116 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked lemmas:
+  - `bounded_strings_mono`
+  - `bounded_language_subset_bounded_strings_mono`
+- New checked theorems:
+  - `BL_bound_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_derivative_family_card_bound_mono`
+  - `GBL_bound_derivative_family_card_bound_mono`
+  - `BL_bound_BBACKREF_derivative_family_subset_bounded_strings_mono`
+  - `GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings_mono`
+  - `BL_bound_BBACKREF_derivative_family_card_bound_mono`
+  - `GBL_bound_GBACKREF4_derivative_family_card_bound_mono`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:04 elapsed).
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03
+    elapsed), and certificate generation.
+  - Explicit statement guard PASS.
+- Notes:
+  - This is an additive theorem-packaging step over the checked BR-019
+    finite-universe package.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
 
 ## BR-019 Constructor Finite-Universe Bounds (2026-05-27)
 
