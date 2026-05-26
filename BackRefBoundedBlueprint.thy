@@ -2173,4 +2173,144 @@ proof -
     by (rule GBL_bound_left_quotient_family_finite)
 qed
 
+section \<open>Derivative Residue Quotient Wrappers From Bound Calculators\<close>
+
+theorem BL_bound_xders_left_quotient_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n"
+  shows "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+proof -
+  have bounded: "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  have residual:
+    "{Ders t (Ders s (BL r)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using bounded
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+  have "{Ders t (BL (xders r s)) | t. True} =
+    {Ders t (Ders s (BL r)) | t. True}"
+    by (simp add: xders_correctness)
+  then show ?thesis
+    using residual by simp
+qed
+
+theorem GBL_bound_gxders_left_quotient_family_subset_bounded_strings:
+  assumes "GBL_bound r = Some n"
+  shows "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+proof -
+  have bounded: "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  have residual:
+    "{Ders t (Ders s (GBL r)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using bounded
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+  have "{Ders t (GBL (gxders r s)) | t. True} =
+    {Ders t (Ders s (GBL r)) | t. True}"
+    by (simp add: gxders_correctness)
+  then show ?thesis
+    using residual by simp
+qed
+
+theorem BL_bound_xders_left_quotient_family_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card {Ders t (BL (xders r s)) | t. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (BL (xders r s)) | t. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_gxders_left_quotient_family_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card {Ders t (GBL (gxders r s)) | t. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (GBL (gxders r s)) | t. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem BL_bound_xders_left_quotient_family_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings m)"
+proof -
+  have sub: "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms(1) by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings)
+  have "Pow (bounded_strings n) \<subseteq> Pow (bounded_strings m)"
+    using bounded_strings_mono[OF assms(2)] by blast
+  then show ?thesis
+    using sub by blast
+qed
+
+theorem GBL_bound_gxders_left_quotient_family_subset_bounded_strings_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings m)"
+proof -
+  have sub: "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms(1) by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings)
+  have "Pow (bounded_strings n) \<subseteq> Pow (bounded_strings m)"
+    using bounded_strings_mono[OF assms(2)] by blast
+  then show ?thesis
+    using sub by blast
+qed
+
+theorem BL_bound_xders_left_quotient_family_card_bound_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "card {Ders t (BL (xders r s)) | t. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (BL (xders r s)) | t. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_gxders_left_quotient_family_card_bound_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "card {Ders t (GBL (gxders r s)) | t. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings m)"
+    using assms by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {Ders t (GBL (gxders r s)) | t. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem BL_bound_xders_left_quotient_family_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite {Ders t (BL (xders r s)) | t. True}"
+proof -
+  have sub: "{Ders t (BL (xders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule BL_bound_xders_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem GBL_bound_gxders_left_quotient_family_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite {Ders t (GBL (gxders r s)) | t. True}"
+proof -
+  have sub: "{Ders t (GBL (gxders r s)) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule GBL_bound_gxders_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
 end
