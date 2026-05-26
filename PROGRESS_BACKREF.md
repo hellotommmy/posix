@@ -29,7 +29,9 @@ Latest result:
   in about 4.1 seconds and `BackRefGBlexer` replayed in about 2.0 seconds.
   Final full local CI passed with no-cheat guard, bounty guard, admin role
   guard, Isabelle `Posix` (0:31 elapsed), Isabelle `BackRefPilot` (0:04
-  elapsed), and local CI certificate generation.
+  elapsed), and local CI certificate generation. After rebasing over
+  `5f7ee75`, full local CI passed again with Isabelle `Posix` (0:04 elapsed),
+  Isabelle `BackRefPilot` (0:11 elapsed), and local CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding residual finite-quotient closure
   helpers in `BackRefBoundedBlueprint.thy`. New checked facts expose
@@ -653,7 +655,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Simplified Bitcoded Transport Wrappers (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `03625a6`
 - Agent lane: Codex Agent B implementation packaging lane
 - Files changed: `BackRefBlexer.thy` (+54), `BackRefGBlexer.thy` (+54),
   `PROGRESS_BACKREF.md`
@@ -682,6 +684,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - Final full local CI PASS with no-cheat guard, bounty guard, admin role
     guard, Isabelle `Posix` (0:31 elapsed), Isabelle `BackRefPilot` (0:04
     elapsed), and local CI certificate generation.
+  - Post-rebase full local CI PASS over remote `5f7ee75` with no-cheat guard,
+    bounty guard, admin role guard, Isabelle `Posix` (0:04 elapsed),
+    Isabelle `BackRefPilot` (0:11 elapsed), and local CI certificate
+    generation.
 - Notes:
   - This is additive theorem packaging only. It does not change lexer
     definitions, semantics, frozen statements, `BackRefBoundedBlueprint.thy`,
