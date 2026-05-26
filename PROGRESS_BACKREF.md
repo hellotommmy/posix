@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-008 generalized derivative story)
+Last updated: 2026-05-26 (BR-017 bitcoded backreference lexer definitions)
 
 ## Current Branch
 
@@ -18,6 +18,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` and Isabelle `BackRefPilot` -- BR-017 bitcoded
+  backreference lexer definitions in a separate pilot file.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
   and statement guard -- BR-008 generalized `backref_lang4` derivative story.
@@ -67,6 +70,20 @@ Latest result:
   - `BPosix_binjval` (BR-014)
   - `blexer_POSIX` (BR-014)
   - `blexer_POSIX_iff` (BR-014)
+- `BackRefBlexer.thy` now defines:
+  - `bbit` with `BZ`, `BS`, and `Backbit`
+  - annotated `barexp` constructors including `BABACKREF`, `BAHALF`,
+    and `BARESIDUE`
+  - `berase`, `bfuse`, `baintern`, `bbnullable`, `bbmkeps`, `bbder`,
+    `bbders`, and `bblexer`
+- `BackRefBlexer.thy` proves:
+  - `berase_bfuse`
+  - `berase_baintern`
+  - `bbnullable_correctness`
+  - `berase_bbder_residue`
+  - `berase_bbder`
+  - `berase_bbders`
+  - `bblexer_defined_iff`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -96,9 +113,41 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 4. ~~Define and prove `blexer` for pilot `brexp` (BR-013).~~ DONE (BR-013)
 5. ~~Prove `blexer` correctness for pilot `brexp` (BR-014).~~ DONE (BR-014)
 6. ~~Draft derivative story for generalized `backref_lang4`.~~ DONE (BR-008)
-7. Next non-overlapping lanes: BR-016 generalized value pilot, or BR-017
-   bitcoded backreference lexer definitions in a new pilot file. BR-015 remains
-   locked by Opus.
+7. ~~Start BR-017 bitcoded backreference lexer definitions in a new pilot file.~~ DONE (BR-017)
+8. Next non-overlapping lanes: BR-018 bitcoded lexer correctness/retrieve-decode
+   story, BR-020 simplification rules for the new pilot, or BR-016 generalized
+   value pilot. BR-015 remains locked by Opus.
+
+## BR-017 Bitcoded Backreference Lexer Definitions (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent lane: Codex new-file implementation lane
+- Files changed: `BackRefBlexer.thy`, `pilot/ROOT`, `PROGRESS_BACKREF.md`,
+  `BACKREF_BOUNTIES.md`
+- New checked definitions:
+  - `bbit` with `Backbit string`
+  - `barexp` with ordinary pilot constructors plus `BABACKREF`, `BAHALF`,
+    and `BARESIDUE`
+  - `berase`, `bfuse`, `baintern`, `bbnullable`, `bbmkeps`, `bbder`,
+    `bbders`, and `bblexer`
+- New checked lemmas:
+  - `berase_bfuse`
+  - `berase_baintern`
+  - `bbnullable_correctness`
+  - `berase_bbder_residue`
+  - `berase_bbder`
+  - `berase_bbders`
+  - `bblexer_defined_iff`
+- Build: full local CI PASS; Isabelle `Posix` (0:03 elapsed) and Isabelle
+  `BackRefPilot` (0:03 elapsed).
+- Notes:
+  - The theory imports `BackRefValues` and does not modify production
+    `Blexer.thy` or `BlexerSimp.thy`.
+  - The derivative mirrors the checked `xder` shape after erasure. `Backbit`
+    is emitted by nullable backreference evidence and by the transition to
+    replay/half state.
+- Next smallest safe step: BR-018 should add the retrieve/decode or code-value
+  correctness story for the new bitcoded pilot.
 
 ## BR-008 Generalized backref_lang4 Derivative Story (2026-05-26)
 

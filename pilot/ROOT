@@ -6,3 +6,4 @@ theories[document = false]
      "RegLangs"
      "BackRefLang"
      "BackRefValues"
+     "BackRefBlexer"
