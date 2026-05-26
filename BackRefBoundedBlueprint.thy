@@ -3267,4 +3267,92 @@ theorem GBL_bound_gxders_left_quotient_family_member_length_bound:
     assms(2,3)
   by (auto intro: bounded_strings_family_member_length_bound)
 
+theorem BL_bound_BBACKREF_derivative_family_member_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "A \<in> {BL (xders (BBACKREF r mid cs) s) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_derivative_family_subset_bounded_strings[OF assms(1,2), of cs]
+    assms(3,4)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_GBACKREF4_derivative_family_member_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "A \<in> {GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings[OF assms(1-4), of cs]
+    assms(5,6)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_BBACKREF_residual_derivative_family_member_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "A \<in> {BL (xders (xders (BBACKREF r mid cs) s) t) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_residual_derivative_family_subset_bounded_strings[OF assms(1,2), of cs s]
+    assms(3,4)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_GBACKREF4_residual_derivative_family_member_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "A \<in> {GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_residual_derivative_family_subset_bounded_strings[OF assms(1-4), of cs s]
+    assms(5,6)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_BBACKREF_left_quotient_family_member_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "A \<in> {Ders s (BL (BBACKREF r mid cs)) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_left_quotient_family_subset_bounded_strings[OF assms(1,2), of cs]
+    assms(3,4)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_GBACKREF4_left_quotient_family_member_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "A \<in> {Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs)) | s. True}"
+    and "w \<in> A"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_left_quotient_family_subset_bounded_strings[OF assms(1-4), of cs]
+    assms(5,6)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem BL_bound_BBACKREF_xders_left_quotient_family_member_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "A \<in> {Ders t (BL (xders (BBACKREF r mid cs) s)) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_xders_left_quotient_family_subset_bounded_strings[OF assms(1,2), of cs s]
+    assms(3,4)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
+theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_member_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "A \<in> {Ders t (GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s)) | t. True}"
+    and "w \<in> A"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_gxders_left_quotient_family_subset_bounded_strings[OF assms(1-4), of cs s]
+    assms(5,6)
+  by (auto intro: bounded_strings_family_member_length_bound)
+
 end

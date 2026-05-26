@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend same-witness obtains wrappers)
+Last updated: 2026-05-27 (constructor family member length wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,29 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `BackRefPilot`, and final full local CI after rebasing over
+  concurrent commit `f8a12a2` and adding direct constructor-specialized
+  bounded-family member-length wrappers in `BackRefBoundedBlueprint.thy`.
+  New checked facts are
+  `BL_bound_BBACKREF_derivative_family_member_length_bound`,
+  `GBL_bound_GBACKREF4_derivative_family_member_length_bound`,
+  `BL_bound_BBACKREF_residual_derivative_family_member_length_bound`,
+  `GBL_bound_GBACKREF4_residual_derivative_family_member_length_bound`,
+  `BL_bound_BBACKREF_left_quotient_family_member_length_bound`,
+  `GBL_bound_GBACKREF4_left_quotient_family_member_length_bound`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_member_length_bound`, and
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_member_length_bound`.
+  Files changed before this progress note: `BackRefBoundedBlueprint.thy`
+  (+88) and `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:19 elapsed). Pre-rebase post-edit pilot-only local CI
+  passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBoundedBlueprint` replaying in about 3.9 seconds. Final
+  post-rebase full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate
+  generation, and explicit statement guard PASS. Next smallest safe step:
+  stop until the admin opens a new bounty/phase, or add only similarly direct
+  downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after adding same-witness accepted-input wrappers for all
