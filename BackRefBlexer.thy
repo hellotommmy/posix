@@ -640,4 +640,178 @@ proof -
     using xnullable by (rule bmkeps_flat)
 qed
 
+section \<open>Bitcoded Backreference Simplification\<close>
+
+fun bbsimp :: "barexp \<Rightarrow> barexp"
+where
+  "bbsimp BAZERO = BAZERO"
+| "bbsimp (BAONE bs) = BAONE bs"
+| "bbsimp (BACHAR bs c) = BACHAR bs c"
+| "bbsimp (BAALTs bs []) = BAZERO"
+| "bbsimp (BAALTs bs [r]) = bfuse bs (bbsimp r)"
+| "bbsimp (BAALTs bs (r1 # r2 # rs)) = BAALTs bs (r1 # r2 # rs)"
+| "bbsimp (BASEQ bs r1 r2) = BASEQ bs (bbsimp r1) (bbsimp r2)"
+| "bbsimp (BASTAR bs r) = BASTAR bs (bbsimp r)"
+| "bbsimp (BANTIMES bs r n) = BANTIMES bs (bbsimp r) n"
+| "bbsimp (BABACKREF bs r mid cs) =
+     BABACKREF bs (bbsimp r) (bbsimp mid) cs"
+| "bbsimp (BAHALF bs mid cs rep) = BAHALF bs (bbsimp mid) cs rep"
+| "bbsimp (BARESIDUE bs cs rep) = BARESIDUE bs cs rep"
+
+lemma bfuse_append [simp]:
+  "bfuse (bs1 @ bs2) r = bfuse bs1 (bfuse bs2 r)"
+  by (cases r) (simp_all add: append_assoc)
+
+lemma berase_bbsimp [simp]:
+  "berase (bbsimp r) = berase r"
+proof (induct r)
+  case (BAALTs bs rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons r rs')
+    note outer = Cons
+    show ?thesis
+    proof (cases rs')
+      case Nil
+      then show ?thesis
+        using BAALTs.hyps outer by simp
+    next
+      case inner: (Cons r' rs'')
+      then show ?thesis
+        using outer by simp
+    qed
+  qed
+qed simp_all
+
+lemma bbnullable_bbsimp [simp]:
+  "bbnullable (bbsimp r) = bbnullable r"
+  by (simp add: bbnullable_correctness)
+
+lemma bbsimp_bfuse [simp]:
+  "bbsimp (bfuse bs r) = bfuse bs (bbsimp r)"
+proof (cases r)
+  case (BAALTs cs rs)
+  then show ?thesis
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using BAALTs by simp
+  next
+    case (Cons r rs')
+    then show ?thesis
+      using BAALTs by (cases rs') (simp_all add: append_assoc)
+  qed
+qed (simp_all add: append_assoc)
+
+lemma bretrieve_stars_bbsimp:
+  assumes "\<And>v. v \<in> set vs \<Longrightarrow> bretrieve (bbsimp r) v = bretrieve r v"
+  shows "bretrieve_stars bs (bretrieve (bbsimp r)) vs =
+    bretrieve_stars bs (bretrieve r) vs"
+  using assms
+  by (induct vs arbitrary: bs) simp_all
+
+lemma bretrieve_bbsimp:
+  assumes "BPrf v (berase r)"
+  shows "bretrieve (bbsimp r) v = bretrieve r v"
+  using assms
+proof (induct r arbitrary: v)
+  case (BAALTs bs rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using BAALTs.prems by (auto elim: BPrf_elims)
+  next
+    case (Cons r rs')
+    note outer = Cons
+    show ?thesis
+    proof (cases rs')
+      case Nil
+      have prf_r: "BPrf v (berase r)"
+        using BAALTs.prems outer Nil by simp
+      have "bretrieve (bfuse bs (bbsimp r)) v =
+        bs @ bretrieve (bbsimp r) v"
+        using prf_r by (simp add: bretrieve_bfuse)
+      also have "... = bs @ bretrieve r v"
+        using BAALTs.hyps prf_r outer Nil by simp
+      finally have "bretrieve (bfuse bs (bbsimp r)) v =
+        bs @ bretrieve r v" .
+      then show ?thesis
+        using outer Nil by simp
+    next
+      case inner: (Cons r' rs'')
+      then show ?thesis
+        using outer by simp
+    qed
+  qed
+next
+  case (BASTAR bs r)
+  show ?case
+  proof (cases v)
+    case (BStars vs)
+    have step: "\<And>w. w \<in> set vs \<Longrightarrow>
+        bretrieve (bbsimp r) w = bretrieve r w"
+      using BASTAR BStars by (auto elim!: BPrf_elims)
+    then show ?thesis
+      using BStars bretrieve_stars_bbsimp by simp
+  qed (use BASTAR.prems in \<open>auto elim!: BPrf_elims\<close>)
+next
+  case (BANTIMES bs r n)
+  show ?case
+  proof (cases v)
+    case (BStars vs)
+    have step: "\<And>w. w \<in> set vs \<Longrightarrow>
+        bretrieve (bbsimp r) w = bretrieve r w"
+      using BANTIMES BStars by (auto elim!: BPrf_elims)
+    then show ?thesis
+      using BStars bretrieve_stars_bbsimp by simp
+  qed (use BANTIMES.prems in \<open>auto elim!: BPrf_elims\<close>)
+qed (auto elim!: BPrf_elims)
+
+lemma bbmkeps_bbsimp:
+  assumes "bbnullable r"
+  shows "bbmkeps (bbsimp r) = bbmkeps r"
+proof -
+  have nullable_simp: "bbnullable (bbsimp r)"
+    using assms by simp
+  have "bbmkeps (bbsimp r) =
+      bretrieve (bbsimp r) (bmkeps (berase (bbsimp r)))"
+    using nullable_simp by (rule bbmkeps_bretrieve)
+  also have "... = bretrieve (bbsimp r) (bmkeps (berase r))"
+    by simp
+  also have "... = bretrieve r (bmkeps (berase r))"
+    using assms by (intro bretrieve_bbsimp bmkeps_BPrf)
+      (simp add: bbnullable_correctness)
+  also have "... = bbmkeps r"
+    using assms bbmkeps_bretrieve by simp
+  finally show ?thesis .
+qed
+
+definition bblexer_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
+where
+  "bblexer_simp r s =
+    (let r' = bbsimp (bbders (baintern r) s) in
+      if bbnullable r' then Some (bbmkeps r') else None)"
+
+theorem bblexer_simp_correctness:
+  "bblexer_simp r s = bblexer r s"
+proof -
+  show ?thesis
+  proof (cases "bbnullable (bbders (baintern r) s)")
+    case True
+    then have "bbmkeps (bbsimp (bbders (baintern r) s)) =
+        bbmkeps (bbders (baintern r) s)"
+      by (rule bbmkeps_bbsimp)
+    then show ?thesis
+      using True by (simp add: bblexer_simp_def bblexer_def Let_def)
+  next
+    case False
+    then show ?thesis
+      by (simp add: bblexer_simp_def bblexer_def Let_def)
+  qed
+qed
+
 end
