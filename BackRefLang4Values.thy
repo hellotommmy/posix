@@ -118,6 +118,26 @@ where
 inductive_cases GPrf_elims:
   "\<Turnstile>g v : r"
 
+fun gmkeps :: "gbrexp \<Rightarrow> gbval"
+where
+  "gmkeps (GBASE r) = GVBase (bmkeps r)"
+| "gmkeps (GALT r1 r2) =
+    (if gnullable r1 then GVLeft (gmkeps r1) else GVRight (gmkeps r2))"
+| "gmkeps (GBACKREF4 r1 r2 r3 r4 cs) =
+    GVBackref4 (BBackref4 (bmkeps r1) (bmkeps r2) (bmkeps r3) (bmkeps r4) cs)"
+
+lemma gmkeps_flat:
+  assumes "gnullable r"
+  shows "gflat (gmkeps r) = []"
+  using assms
+  by (induct r) (auto simp add: bmkeps_flat)
+
+lemma gmkeps_GPrf:
+  assumes "gnullable r"
+  shows "\<Turnstile>g gmkeps r : r"
+  using assms
+  by (induct r) (auto intro: GPrf.intros BPrf4.intros bmkeps_BPrf)
+
 lemma GBL_flat_GPrf1:
   assumes "\<Turnstile>g v : r"
   shows "gflat v \<in> GBL r"

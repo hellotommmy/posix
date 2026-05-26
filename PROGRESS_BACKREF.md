@@ -20,6 +20,10 @@ Latest result:
 
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard --
+  generalized constructor epsilon evidence with `gmkeps`, `gmkeps_flat`, and
+  `gmkeps_GPrf`.
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard --
   generalized constructor value correspondence with `GBL_flat_GPrf` and
   `gxders_GBL_flat_GPrf`.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
@@ -150,6 +154,7 @@ Latest result:
   - `gbval` with `GVBase`, `GVLeft`, `GVRight`, and `GVBackref4`
   - `gflat`
   - `GPrf`
+  - `gmkeps`
 - `BackRefLang4Values.thy` proves:
   - `backref_lang4_flat_BPrf4_1`
   - `backref_lang4_flat_BPrf4_2`
@@ -161,6 +166,8 @@ Latest result:
   - `GBL_flat_GPrf2`
   - `GBL_flat_GPrf`
   - `gxders_GBL_flat_GPrf`
+  - `gmkeps_flat`
+  - `gmkeps_GPrf`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -200,6 +207,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 14. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Constructor Epsilon Evidence (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit; remote fetch was blocked by an HTTPS TLS
+  handshake failure before work, and local `HEAD` matched
+  `origin/codex/backref-values`.
+- Agent lane: Codex generalized constructor/value bridge lane
+- Files changed: `BackRefLang4Values.thy` (+20 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked definition:
+  - `gmkeps`, nullable epsilon evidence for `GBASE`, `GALT`, and
+    `GBACKREF4`
+- New checked lemmas:
+  - `gmkeps_flat`
+  - `gmkeps_GPrf`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:14 elapsed), and local CI
+  certificate generation; final full local CI PASS with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix`, Isabelle `BackRefPilot`,
+  statement guard, and certificate generation.
+- Notes:
+  - This is additive generalized-constructor infrastructure and does not touch
+    frozen `brexp`, `BL`, `xnullable`, `xder`, `BPrf`, production lexer files,
+    bounds theories, or Opus's BR-015 lock.
+  - `gmkeps` mirrors `bmkeps` at the generalized layer and reuses checked
+    component epsilon evidence for `GBACKREF4`.
+- Next smallest safe step: keep BR-015 reserved for Opus; keep BR-019 blocked
+  until an explicit bounded-fragment statement is accepted.
 
 ## Generalized Constructor Value Correspondence (2026-05-26)
 
