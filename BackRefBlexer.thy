@@ -761,6 +761,37 @@ lemma bblexer_POSIX_retrieve_eq:
   shows "bs = bretrieve (baintern r) v"
   using assms(1) bblexer_POSIX_retrieve[OF assms(2)] by simp
 
+lemma bblexer_defined_POSIX_iff:
+  "(\<exists>bs. bblexer r s = Some bs) \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+  by (auto simp add: bblexer_POSIX_retrieve_iff)
+
+lemma bblexer_None_POSIX_iff:
+  "bblexer r s = None \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof
+  assume none: "bblexer r s = None"
+  show "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  proof
+    assume "\<exists>v. s \<in> r \<rightarrow> v"
+    then obtain bs where "bblexer r s = Some bs"
+      using bblexer_defined_POSIX_iff by blast
+    then show False
+      using none by simp
+  qed
+next
+  assume no_posix: "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  show "bblexer r s = None"
+  proof (cases "bblexer r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some bs)
+    then have "\<exists>v. s \<in> r \<rightarrow> v"
+      using bblexer_defined_POSIX_iff by blast
+    then show ?thesis
+      using no_posix by blast
+  qed
+qed
+
 section \<open>Bitcoded Backreference Simplification\<close>
 
 fun bbsimp :: "barexp \<Rightarrow> barexp"
@@ -1116,6 +1147,37 @@ lemma bblexer_simp_POSIX_retrieve_eq:
   shows "bs = bretrieve (baintern r) v"
   using assms(1) bblexer_simp_POSIX_retrieve[OF assms(2)] by simp
 
+lemma bblexer_simp_defined_POSIX_iff:
+  "(\<exists>bs. bblexer_simp r s = Some bs) \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+  by (auto simp add: bblexer_simp_POSIX_retrieve_iff)
+
+lemma bblexer_simp_None_POSIX_iff:
+  "bblexer_simp r s = None \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof
+  assume none: "bblexer_simp r s = None"
+  show "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  proof
+    assume "\<exists>v. s \<in> r \<rightarrow> v"
+    then obtain bs where "bblexer_simp r s = Some bs"
+      using bblexer_simp_defined_POSIX_iff by blast
+    then show False
+      using none by simp
+  qed
+next
+  assume no_posix: "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  show "bblexer_simp r s = None"
+  proof (cases "bblexer_simp r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some bs)
+    then have "\<exists>v. s \<in> r \<rightarrow> v"
+      using bblexer_simp_defined_POSIX_iff by blast
+    then show ?thesis
+      using no_posix by blast
+  qed
+qed
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -1273,6 +1335,37 @@ lemma bblexer_step_simp_POSIX_retrieve_eq:
     and "s \<in> r \<rightarrow> v"
   shows "bs = bretrieve (baintern r) v"
   using assms(1) bblexer_step_simp_POSIX_retrieve[OF assms(2)] by simp
+
+lemma bblexer_step_simp_defined_POSIX_iff:
+  "(\<exists>bs. bblexer_step_simp r s = Some bs) \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+  by (auto simp add: bblexer_step_simp_POSIX_retrieve_iff)
+
+lemma bblexer_step_simp_None_POSIX_iff:
+  "bblexer_step_simp r s = None \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof
+  assume none: "bblexer_step_simp r s = None"
+  show "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  proof
+    assume "\<exists>v. s \<in> r \<rightarrow> v"
+    then obtain bs where "bblexer_step_simp r s = Some bs"
+      using bblexer_step_simp_defined_POSIX_iff by blast
+    then show False
+      using none by simp
+  qed
+next
+  assume no_posix: "\<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  show "bblexer_step_simp r s = None"
+  proof (cases "bblexer_step_simp r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some bs)
+    then have "\<exists>v. s \<in> r \<rightarrow> v"
+      using bblexer_step_simp_defined_POSIX_iff by blast
+    then show ?thesis
+      using no_posix by blast
+  qed
+qed
 
 theorem bblexer_step_simp_blexer_retrieve:
   "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"

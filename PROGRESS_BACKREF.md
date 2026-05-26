@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual language bounded-string wrappers)
+Last updated: 2026-05-27 (bitcoded POSIX defined/None wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct POSIX evidence existence and
+  rejection wrappers for the ordinary bitcoded lexer frontends. New checked
+  facts are `bblexer_defined_POSIX_iff`, `bblexer_None_POSIX_iff`,
+  `bblexer_simp_defined_POSIX_iff`, `bblexer_simp_None_POSIX_iff`,
+  `bblexer_step_simp_defined_POSIX_iff`, and
+  `bblexer_step_simp_None_POSIX_iff`. Files changed before this progress note:
+  `BackRefBlexer.thy` (+93). Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed). Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed), with `BackRefBlexer` replaying in about 5.2
+  seconds. Final full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix` (0:33 elapsed), Isabelle `BackRefPilot` (0:16
+  elapsed), and local CI certificate generation. Next smallest safe step: stop
+  until the admin opens a new bounty/phase, or add only similarly direct
+  downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct residual-language bounded-string
   wrappers from successful `BL_bound`/`GBL_bound` calculations in
