@@ -678,6 +678,16 @@ lemma bblexer_Some_iff:
     bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
   by (auto simp add: bblexer_final_membership split: if_splits)
 
+lemma bblexer_Some_BL:
+  assumes "bblexer r s = Some bs"
+  shows "s \<in> BL r"
+  using assms by (auto simp add: bblexer_Some_iff)
+
+lemma bblexer_BL_obtains:
+  assumes "s \<in> BL r"
+  obtains bs where "bblexer r s = Some bs"
+  using assms bblexer_defined_iff by blast
+
 lemma bblexer_Some_blexer_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
     (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
@@ -1039,6 +1049,16 @@ lemma bblexer_simp_Some_iff:
     bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
   by (auto simp add: bblexer_simp_final_membership split: if_splits)
 
+lemma bblexer_simp_Some_BL:
+  assumes "bblexer_simp r s = Some bs"
+  shows "s \<in> BL r"
+  using assms by (auto simp add: bblexer_simp_Some_iff)
+
+lemma bblexer_simp_BL_obtains:
+  assumes "s \<in> BL r"
+  obtains bs where "bblexer_simp r s = Some bs"
+  using assms bblexer_simp_defined_iff by blast
+
 lemma bblexer_simp_Some_blexer_iff:
   "bblexer_simp r s = Some bs \<longleftrightarrow>
     (\<exists>v. blexer r s = Some v \<and> bs = bretrieve (baintern r) v)"
@@ -1174,6 +1194,16 @@ lemma bblexer_step_simp_Some_iff:
     s \<in> BL r \<and>
     bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
   by (auto simp add: bblexer_step_simp_final_membership split: if_splits)
+
+lemma bblexer_step_simp_Some_BL:
+  assumes "bblexer_step_simp r s = Some bs"
+  shows "s \<in> BL r"
+  using assms by (auto simp add: bblexer_step_simp_Some_iff)
+
+lemma bblexer_step_simp_BL_obtains:
+  assumes "s \<in> BL r"
+  obtains bs where "bblexer_step_simp r s = Some bs"
+  using assms bblexer_step_simp_defined_iff by blast
 
 lemma bblexer_step_simp_Some_blexer_iff:
   "bblexer_step_simp r s = Some bs \<longleftrightarrow>

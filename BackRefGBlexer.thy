@@ -670,6 +670,16 @@ lemma gbblexer_Some_iff:
     bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_final_membership split: if_splits)
 
+lemma gbblexer_Some_GBL:
+  assumes "gbblexer r s = Some bs"
+  shows "s \<in> GBL r"
+  using assms by (auto simp add: gbblexer_Some_iff)
+
+lemma gbblexer_GBL_obtains:
+  assumes "s \<in> GBL r"
+  obtains bs where "gbblexer r s = Some bs"
+  using assms gbblexer_defined_iff by blast
+
 lemma gbblexer_Some_gblexer_iff:
   "gbblexer r s = Some bs \<longleftrightarrow>
     (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
@@ -961,6 +971,16 @@ lemma gbblexer_simp_Some_iff:
     bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_simp_final_membership split: if_splits)
 
+lemma gbblexer_simp_Some_GBL:
+  assumes "gbblexer_simp r s = Some bs"
+  shows "s \<in> GBL r"
+  using assms by (auto simp add: gbblexer_simp_Some_iff)
+
+lemma gbblexer_simp_GBL_obtains:
+  assumes "s \<in> GBL r"
+  obtains bs where "gbblexer_simp r s = Some bs"
+  using assms gbblexer_simp_defined_iff by blast
+
 lemma gbblexer_simp_Some_gblexer_iff:
   "gbblexer_simp r s = Some bs \<longleftrightarrow>
     (\<exists>v. gblexer r s = Some v \<and> bs = gretrieve (gaintern r) v)"
@@ -1081,6 +1101,16 @@ lemma gbblexer_step_simp_Some_iff:
     s \<in> GBL r \<and>
     bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
   by (auto simp add: gbblexer_step_simp_final_membership split: if_splits)
+
+lemma gbblexer_step_simp_Some_GBL:
+  assumes "gbblexer_step_simp r s = Some bs"
+  shows "s \<in> GBL r"
+  using assms by (auto simp add: gbblexer_step_simp_Some_iff)
+
+lemma gbblexer_step_simp_GBL_obtains:
+  assumes "s \<in> GBL r"
+  obtains bs where "gbblexer_step_simp r s = Some bs"
+  using assms gbblexer_step_simp_defined_iff by blast
 
 lemma gbblexer_step_simp_Some_gblexer_iff:
   "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
