@@ -1,5 +1,5 @@
 theory BackRefLang4Values
-  imports BackRefValues
+  imports BackRefValues BackRefLang4Pilot
 begin
 
 section \<open>Generalized Backreference Value Blueprint\<close>
@@ -68,5 +68,24 @@ corollary backref_lang_flat_BPrf4_special:
     {bflat4 v | v. BPrf4 v BONE r mid BONE cs}"
   using backref_lang4_flat_BPrf4[of BONE r mid BONE cs]
   by (simp add: backref_lang_as_backref_lang4)
+
+section \<open>Bridge to Generalized Constructor Pilot\<close>
+
+theorem GBACKREF4_flat_BPrf4:
+  "GBL (GBACKREF4 r1 r2 r3 r4 cs) =
+    {bflat4 v | v. BPrf4 v r1 r2 r3 r4 cs}"
+  by (simp add: backref_lang4_flat_BPrf4)
+
+theorem gxders_GBACKREF4_flat_BPrf4:
+  "GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) =
+    Ders s {bflat4 v | v. BPrf4 v r1 r2 r3 r4 cs}"
+proof -
+  have "GBL (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) =
+    Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs))"
+    by (simp add: gxders_correctness)
+  also have "... = Ders s {bflat4 v | v. BPrf4 v r1 r2 r3 r4 cs}"
+    by (simp add: Ders_def backref_lang4_flat_BPrf4)
+  finally show ?thesis .
+qed
 
 end

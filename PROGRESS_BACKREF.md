@@ -19,6 +19,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 Latest result:
 
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard --
+  generalized constructor/value bridge with `GBACKREF4_flat_BPrf4` and
+  `gxders_GBACKREF4_flat_BPrf4`.
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
   and statement guard -- standalone generalized constructor pilot with
   `gxder_correctness` and `gxders_correctness`.
@@ -144,6 +148,8 @@ Latest result:
   - `backref_lang4_flat_BPrf4_2`
   - `backref_lang4_flat_BPrf4`
   - `backref_lang_flat_BPrf4_special`
+  - `GBACKREF4_flat_BPrf4`
+  - `gxders_GBACKREF4_flat_BPrf4`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -178,9 +184,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 9. ~~Finish BR-020 simplification rules for the bitcoded lexer.~~ DONE (BR-020)
 10. ~~Finish BR-016 generalized value pilot.~~ DONE (BR-016)
 11. ~~Add standalone generalized constructor derivative pilot.~~ DONE
-12. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+12. ~~Bridge generalized constructor derivatives to `BPrf4` value evidence.~~ DONE
+13. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Constructor/Value Bridge (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex generalized constructor/value bridge lane
+- Files changed: `BackRefLang4Values.thy` (+20/-1 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `GBACKREF4_flat_BPrf4`, connecting the standalone `GBACKREF4`
+    constructor language to the four-component `BPrf4` evidence set
+  - `gxders_GBACKREF4_flat_BPrf4`, lifting that bridge through generalized
+    derivatives via `gxders_correctness`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:09 elapsed), and local CI
+  certificate generation; final full local CI PASS with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix` (0:03 elapsed),
+  Isabelle `BackRefPilot` (0:03 elapsed), and certificate generation.
+- Notes:
+  - This only imports `BackRefLang4Pilot` into `BackRefLang4Values.thy` and
+    adds bridge theorems.
+  - It does not modify frozen `brexp`, `BL`, `xnullable`, `xder`, `BPrf`,
+    production lexer files, or bounds theories.
+- Next smallest safe step: leave BR-015 to Opus and keep BR-019 blocked until
+  an admin accepts an explicit bounded-fragment statement.
 
 ## Generalized backref_lang4 Constructor Pilot (2026-05-26)
 
