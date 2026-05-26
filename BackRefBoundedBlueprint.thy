@@ -1305,6 +1305,95 @@ theorem bounded_backref_lang4_left_quotient_family_finite:
   using bounded_backref_lang4_finite_left_quotients[OF assms]
   by (simp add: finite_left_quotients_def)
 
+theorem bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "{Ders t (Ders s (backref_lang A B cs)) | t. True} \<subseteq>
+    Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+  using bounded_language_backref_lang[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+
+theorem bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "{Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | t. True} \<subseteq>
+    Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+  using bounded_language_backref_lang4[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+
+theorem bounded_backref_lang_residual_left_quotient_family_card_bound:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "card {Ders t (Ders s (backref_lang A B cs)) | t. True} \<le>
+    2 ^ card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+  using bounded_language_backref_lang[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_card_bound)
+
+theorem bounded_backref_lang4_residual_left_quotient_family_card_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "card {Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | t. True} \<le>
+    2 ^ card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+  using bounded_language_backref_lang4[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_card_bound)
+
+theorem bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "{Ders t (Ders s (backref_lang A B cs)) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+  using bounded_language_backref_lang[OF assms(1,2)] assms(3)
+  by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings_mono)
+
+theorem bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "{Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | t. True} \<subseteq>
+    Pow (bounded_strings m)"
+  using bounded_language_backref_lang4[OF assms(1-4)] assms(5)
+  by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings_mono)
+
+theorem bounded_backref_lang_residual_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card {Ders t (Ders s (backref_lang A B cs)) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+  using bounded_language_backref_lang[OF assms(1,2)] assms(3)
+  by (rule bounded_language_residual_left_quotient_family_card_bound_mono)
+
+theorem bounded_backref_lang4_residual_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card {Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | t. True} \<le>
+    2 ^ card (bounded_strings m)"
+  using bounded_language_backref_lang4[OF assms(1-4)] assms(5)
+  by (rule bounded_language_residual_left_quotient_family_card_bound_mono)
+
+theorem bounded_backref_lang_residual_left_quotient_family_finite:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "finite {Ders t (Ders s (backref_lang A B cs)) | t. True}"
+  using bounded_language_backref_lang[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_finite)
+
+theorem bounded_backref_lang4_residual_left_quotient_family_finite:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "finite {Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | t. True}"
+  using bounded_language_backref_lang4[OF assms]
+  by (rule bounded_language_residual_left_quotient_family_finite)
+
 theorem BL_bound_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n"
   shows "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings n)"

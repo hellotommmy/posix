@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (final retrieve equations)
+Last updated: 2026-05-27 (semantic residual backref quotient wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct semantic residual left-quotient
+  wrappers for bounded `backref_lang` and `backref_lang4` in
+  `BackRefBoundedBlueprint.thy`. New checked facts expose subset,
+  cardinality, monotone, and finite wrappers for
+  `{Ders t (Ders s (backref_lang A B cs)) | t. True}` and the analogous
+  `backref_lang4` family. Pilot-only local CI passed with `BackRefPilot`
+  (0:11 elapsed) and `BackRefBoundedBlueprint` replaying in about 3.2 seconds.
+  Final full local CI passed with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:30 elapsed), Isabelle `BackRefPilot` (0:04
+  elapsed), and local CI certificate generation. After rebasing over
+  `80c636b`, full local CI passed again with Isabelle `Posix` (0:04 elapsed),
+  Isabelle `BackRefPilot` (0:11 elapsed), and local CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding unconditional final-derivative retrieve
   equations for the ordinary and generalized bitcoded lexers in
@@ -354,6 +367,44 @@ Latest result:
   Isabelle `Posix`, and Isabelle `BackRefPilot`.
 - Local CI certificate is generated only after both sessions pass:
   `agent_hunt_pipeline/certificates/local_ci_certificate.json` (ignored by git).
+
+## Semantic Residual Backref Quotient Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-blueprint proof-prep lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+89 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang_residual_left_quotient_family_card_bound`
+  - `bounded_backref_lang4_residual_left_quotient_family_card_bound`
+  - `bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang_residual_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang4_residual_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang_residual_left_quotient_family_finite`
+  - `bounded_backref_lang4_residual_left_quotient_family_finite`
+- Build: pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `BackRefPilot` (0:11 elapsed), and local CI certificate
+  generation; `BackRefBoundedBlueprint` replayed in about 3.2 seconds. Final
+  full local CI PASS with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:30 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and
+  local CI certificate generation. After rebasing over `80c636b`, full local
+  CI passed again with Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot`
+  (0:11 elapsed), and local CI certificate generation.
+- Notes:
+  - This is additive semantic proof packaging in the bounded-fragment
+    blueprint. It does not touch `BackRefValues.thy`, frozen language/value
+    statements, production lexer files, or production bounds/closed-form
+    theories.
+  - The new wrappers specialize the generic residual left-quotient family
+    universe/cardinality facts to `backref_lang` and `backref_lang4`, matching
+    the existing direct left-quotient wrappers.
+- Next smallest safe step: stop unless the admin opens a new bounty/statement
+  target, or continue only with similarly small non-conflicting blueprint
+  packaging.
 
 ## Residual Left-Quotient Family Helpers (2026-05-27)
 
