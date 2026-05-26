@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-020 post-derivative simplifier partial)
+Last updated: 2026-05-26 (BR-020 per-step derivative simplifier)
 
 ## Current Branch
 
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard -- BR-020
+  complete per-step bitcoded derivative simplifier with
+  `bblexer_step_simp_correctness`.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
   and statement guard -- BR-020 partial post-derivative bitcoded simplifier
@@ -101,6 +105,10 @@ Latest result:
   - `bretrieve_bbsimp`
   - `bbmkeps_bbsimp`
   - `bblexer_simp_correctness`
+  - `bbders_simp`
+  - `bblexer_step_simp`
+  - `bbders_simp_bretrieve_blexer`
+  - `bblexer_step_simp_correctness`
   - `bbmkeps_bretrieve`
   - `bretrieve_bfuse`
   - `bbder_bretrieve`
@@ -140,11 +148,37 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 6. ~~Draft derivative story for generalized `backref_lang4`.~~ DONE (BR-008)
 7. ~~Start BR-017 bitcoded backreference lexer definitions in a new pilot file.~~ DONE (BR-017)
 8. ~~Finish derivative-retrieve/decode-to-original-value correctness for BR-018.~~ DONE (BR-018)
-9. BR-020 simplification rules now have a checked post-derivative simplifier
-   in `BackRefBlexer.thy`; remaining BR-020 work is a stronger per-step
-   simplified derivative loop if desired. Other non-overlapping lane:
-   BR-016 generalized value pilot. BR-015 remains locked by Opus. BR-019
-   should still wait until the lexer/simplification story is stable.
+9. ~~Finish BR-020 simplification rules for the bitcoded lexer.~~ DONE (BR-020)
+10. Next non-overlapping lane: BR-016 generalized value pilot. BR-015 remains
+    locked by Opus. BR-019 should still wait until the lexer/simplification
+    story is stable.
+
+## BR-020 Per-Step Derivative Simplifier (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex new-file implementation lane
+- Files changed: `BackRefBlexer.thy`, `PROGRESS_BACKREF.md`,
+  `BACKREF_BOUNTIES.md`
+- New checked definitions:
+  - `bbders_simp`
+  - `bblexer_step_simp`
+- New checked lemmas/theorem:
+  - `berase_bbders_simp`
+  - `bbnullable_bbders_simp`
+  - `bbders_simp_bbnullable_blexer`
+  - `bbders_simp_bretrieve_blexer`
+  - `bblexer_step_simp_defined_iff`
+  - `bblexer_step_simp_correctness`
+- Build: full local CI PASS with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard.
+- Notes:
+  - `bbders_simp` applies `bbsimp` after each bitcoded derivative step.
+  - The proof reuses the existing retrieve transport: simplifying a derivative
+    preserves retrieval for any checked derivative value, then induction over
+    the input string recovers the same bitcode as `bblexer`.
+- Next smallest safe step: BR-016 generalized value evidence, unless Opus
+  releases or completes BR-015 first.
 
 ## BR-020 Post-Derivative Simplifier Partial (2026-05-26)
 

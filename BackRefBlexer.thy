@@ -790,6 +790,63 @@ proof -
   finally show ?thesis .
 qed
 
+fun bbders_simp :: "barexp \<Rightarrow> string \<Rightarrow> barexp"
+where
+  "bbders_simp r [] = bbsimp r"
+| "bbders_simp r (c # s) = bbders_simp (bbsimp (bbder c r)) s"
+
+lemma berase_bbders_simp [simp]:
+  "berase (bbders_simp r s) = xders (berase r) s"
+  by (induct s arbitrary: r) simp_all
+
+lemma bbnullable_bbders_simp [simp]:
+  "bbnullable (bbders_simp r s) = bbnullable (bbders r s)"
+  by (simp add: bbnullable_correctness)
+
+lemma bbders_simp_bbnullable_blexer:
+  assumes "blexer (berase a) s = Some v"
+  shows "bbnullable (bbders_simp a s)"
+  using assms bbders_bbnullable_blexer[of a s v] by simp
+
+lemma bbders_simp_bretrieve_blexer:
+  assumes "blexer (berase a) s = Some v"
+  shows "bbmkeps (bbders_simp a s) = bretrieve a v"
+  using assms
+proof (induct s arbitrary: a v)
+  case Nil
+  then have nullable: "bbnullable a" and v_def: "v = bmkeps (berase a)"
+    by (auto split: if_splits)
+  have "bbmkeps (bbders_simp a []) = bbmkeps (bbsimp a)"
+    by simp
+  also have "... = bbmkeps a"
+    using nullable by (rule bbmkeps_bbsimp)
+  also have "... = bretrieve a (bmkeps (berase a))"
+    using nullable bbmkeps_bretrieve by simp
+  finally show ?case
+    using v_def by simp
+next
+  case (Cons c s)
+  then obtain w where tail: "blexer (xder c (berase a)) s = Some w"
+    and v_def: "v = binjval (berase a) c w"
+    by (auto split: option.splits)
+  have tail_simp: "blexer (berase (bbsimp (bbder c a))) s = Some w"
+    using tail by simp
+  have mkeps_tail:
+    "bbmkeps (bbders_simp (bbsimp (bbder c a)) s) =
+      bretrieve (bbsimp (bbder c a)) w"
+    using Cons.hyps[OF tail_simp] .
+  have prf_w: "BPrf w (berase (bbder c a))"
+    using tail by (simp add: blexer_BPrf)
+  have retrieve_simp:
+    "bretrieve (bbsimp (bbder c a)) w = bretrieve (bbder c a) w"
+    using prf_w by (rule bretrieve_bbsimp)
+  have transport:
+    "bretrieve (bbder c a) w = bretrieve a (binjval (berase a) c w)"
+    using tail by (intro bbder_bretrieve blexer_BPrf)
+  show ?case
+    using mkeps_tail retrieve_simp transport v_def by simp
+qed
+
 definition bblexer_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_simp r s =
@@ -812,6 +869,46 @@ proof -
     then show ?thesis
       by (simp add: bblexer_simp_def bblexer_def Let_def)
   qed
+qed
+
+definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
+where
+  "bblexer_step_simp r s =
+    (let r' = bbders_simp (baintern r) s in
+      if bbnullable r' then Some (bbmkeps r') else None)"
+
+lemma bblexer_step_simp_defined_iff:
+  "(\<exists>bs. bblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+  by (simp add: bblexer_step_simp_def xnullable_correctness
+      xders_correctness Ders_def)
+
+theorem bblexer_step_simp_correctness:
+  "bblexer_step_simp r s = bblexer r s"
+proof (cases "blexer r s")
+  case None
+  then have "s \<notin> BL r"
+    using blexer_correct_None by blast
+  then have "\<not> (\<exists>bs. bblexer_step_simp r s = Some bs)"
+    using bblexer_step_simp_defined_iff by blast
+  then have step_none: "bblexer_step_simp r s = None"
+    by (cases "bblexer_step_simp r s") auto
+  moreover have "bblexer r s = None"
+    using None bblexer_blexer_retrieve by simp
+  ultimately show ?thesis
+    by simp
+next
+  case (Some v)
+  have nullable: "bbnullable (bbders_simp (baintern r) s)"
+    using Some bbders_simp_bbnullable_blexer[of "baintern r" s v] by simp
+  have bits:
+    "bbmkeps (bbders_simp (baintern r) s) = bretrieve (baintern r) v"
+    using Some bbders_simp_bretrieve_blexer[of "baintern r" s v] by simp
+  have step: "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
+    using nullable bits by (simp add: bblexer_step_simp_def Let_def)
+  have original: "bblexer r s = Some (bretrieve (baintern r) v)"
+    using Some bblexer_blexer_retrieve by simp
+  show ?thesis
+    using step original by simp
 qed
 
 end
