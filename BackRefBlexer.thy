@@ -709,6 +709,17 @@ next
     using ble bs by (simp add: bblexer_blexer_retrieve)
 qed
 
+theorem bblexer_POSIX_retrieve:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "bblexer r s = Some (bretrieve (baintern r) v)"
+  using assms by (auto simp add: bblexer_POSIX_retrieve_iff)
+
+lemma bblexer_POSIX_retrieve_eq:
+  assumes "bblexer r s = Some bs"
+    and "s \<in> r \<rightarrow> v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms(1) bblexer_POSIX_retrieve[OF assms(2)] by simp
+
 section \<open>Bitcoded Backreference Simplification\<close>
 
 fun bbsimp :: "barexp \<Rightarrow> barexp"
@@ -1012,6 +1023,17 @@ theorem bblexer_simp_POSIX_retrieve_iff:
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
   by (simp add: bblexer_simp_correctness bblexer_POSIX_retrieve_iff)
 
+theorem bblexer_simp_POSIX_retrieve:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "bblexer_simp r s = Some (bretrieve (baintern r) v)"
+  using assms by (auto simp add: bblexer_simp_POSIX_retrieve_iff)
+
+lemma bblexer_simp_POSIX_retrieve_eq:
+  assumes "bblexer_simp r s = Some bs"
+    and "s \<in> r \<rightarrow> v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms(1) bblexer_simp_POSIX_retrieve[OF assms(2)] by simp
+
 definition bblexer_step_simp :: "brexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "bblexer_step_simp r s =
@@ -1115,6 +1137,17 @@ theorem bblexer_step_simp_POSIX_retrieve_iff:
   "bblexer_step_simp r s = Some bs \<longleftrightarrow>
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
   by (simp add: bblexer_step_simp_correctness bblexer_POSIX_retrieve_iff)
+
+theorem bblexer_step_simp_POSIX_retrieve:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
+  using assms by (auto simp add: bblexer_step_simp_POSIX_retrieve_iff)
+
+lemma bblexer_step_simp_POSIX_retrieve_eq:
+  assumes "bblexer_step_simp r s = Some bs"
+    and "s \<in> r \<rightarrow> v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms(1) bblexer_step_simp_POSIX_retrieve[OF assms(2)] by simp
 
 theorem bblexer_step_simp_blexer_retrieve:
   "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
