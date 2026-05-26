@@ -1100,6 +1100,309 @@ next
     by (simp add: split card_Un_disjoint[OF finite_A finite_insert_A disjoint])
 qed
 
+theorem BL_bound_subset_bounded_strings:
+  assumes "BL_bound r = Some n"
+  shows "BL r \<subseteq> bounded_strings n"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_subset_bounded_strings)
+qed
+
+theorem GBL_bound_subset_bounded_strings:
+  assumes "GBL_bound r = Some n"
+  shows "GBL r \<subseteq> bounded_strings n"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_subset_bounded_strings)
+qed
+
+theorem BL_bound_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card (BL r) \<le> card (bounded_strings n)"
+proof -
+  have sub: "BL r \<subseteq> bounded_strings n"
+    using assms by (rule BL_bound_subset_bounded_strings)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem GBL_bound_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card (GBL r) \<le> card (bounded_strings n)"
+proof -
+  have sub: "GBL r \<subseteq> bounded_strings n"
+    using assms by (rule GBL_bound_subset_bounded_strings)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem BL_bound_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "BL r \<subseteq> bounded_strings m"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms(1)] by (simp add: BL_bounded_def)
+  then show ?thesis
+    using assms(2) by (rule bounded_language_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_subset_bounded_strings_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "GBL r \<subseteq> bounded_strings m"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms(1)] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    using assms(2) by (rule bounded_language_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_card_bound_mono:
+  assumes "BL_bound r = Some n" "n \<le> m"
+  shows "card (BL r) \<le> card (bounded_strings m)"
+proof -
+  have sub: "BL r \<subseteq> bounded_strings m"
+    using assms by (rule BL_bound_subset_bounded_strings_mono)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem GBL_bound_card_bound_mono:
+  assumes "GBL_bound r = Some n" "n \<le> m"
+  shows "card (GBL r) \<le> card (bounded_strings m)"
+proof -
+  have sub: "GBL r \<subseteq> bounded_strings m"
+    using assms by (rule GBL_bound_subset_bounded_strings_mono)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem BL_bound_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite (BL r)"
+proof -
+  have sub: "BL r \<subseteq> bounded_strings n"
+    using assms by (rule BL_bound_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem GBL_bound_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite (GBL r)"
+proof -
+  have sub: "GBL r \<subseteq> bounded_strings n"
+    using assms by (rule GBL_bound_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem BL_bound_length_bound:
+  assumes "BL_bound r = Some n"
+    and "w \<in> BL r"
+  shows "length w \<le> n"
+  using BL_bound_subset_bounded_strings[OF assms(1)] assms(2)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "w \<in> GBL r"
+  shows "length w \<le> n"
+  using GBL_bound_subset_bounded_strings[OF assms(1)] assms(2)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_length_bound_mono:
+  assumes "BL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> BL r"
+  shows "length w \<le> m"
+  using BL_bound_subset_bounded_strings_mono[OF assms(1,2)] assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_length_bound_mono:
+  assumes "GBL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> GBL r"
+  shows "length w \<le> m"
+  using GBL_bound_subset_bounded_strings_mono[OF assms(1,2)] assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_BBACKREF_subset_bounded_strings:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "BL (BBACKREF r mid cs) \<subseteq>
+    bounded_strings (n_capture + n_mid + length cs + n_capture)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_subset_bounded_strings)
+qed
+
+theorem GBL_bound_GBACKREF4_subset_bounded_strings:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "GBL (GBACKREF4 r1 r2 r3 r4 cs) \<subseteq>
+    bounded_strings (n1 + n2 + n3 + length cs + n2 + n4)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_subset_bounded_strings)
+qed
+
+theorem BL_bound_BBACKREF_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card (BL (BBACKREF r mid cs)) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card (GBL (GBACKREF4 r1 r2 r3 r4 cs)) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_subset_bounded_strings_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "BL (BBACKREF r mid cs) \<subseteq> bounded_strings m"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_subset_bounded_strings_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_subset_bounded_strings_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "GBL (GBACKREF4 r1 r2 r3 r4 cs) \<subseteq> bounded_strings m"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_subset_bounded_strings_mono)
+qed
+
+theorem BL_bound_BBACKREF_card_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card (BL (BBACKREF r mid cs)) \<le> card (bounded_strings m)"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    using assms(3) by (rule BL_bound_card_bound_mono)
+qed
+
+theorem GBL_bound_GBACKREF4_card_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card (GBL (GBACKREF4 r1 r2 r3 r4 cs)) \<le> card (bounded_strings m)"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    using assms(5) by (rule GBL_bound_card_bound_mono)
+qed
+
+theorem BL_bound_BBACKREF_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite (BL (BBACKREF r mid cs))"
+proof -
+  have bound: "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite (GBL (GBACKREF4 r1 r2 r3 r4 cs))"
+proof -
+  have bound: "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_finite)
+qed
+
+theorem BL_bound_BBACKREF_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "w \<in> BL (BBACKREF r mid cs)"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using BL_bound_BBACKREF_subset_bounded_strings[OF assms(1,2), of cs] assms(3)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_GBACKREF4_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "w \<in> GBL (GBACKREF4 r1 r2 r3 r4 cs)"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using GBL_bound_GBACKREF4_subset_bounded_strings[OF assms(1-4), of cs] assms(5)
+  by (auto simp add: bounded_strings_def)
+
+theorem BL_bound_BBACKREF_length_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+    and "w \<in> BL (BBACKREF r mid cs)"
+  shows "length w \<le> m"
+  using BL_bound_BBACKREF_subset_bounded_strings_mono[OF assms(1-3)] assms(4)
+  by (auto simp add: bounded_strings_def)
+
+theorem GBL_bound_GBACKREF4_length_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+    and "w \<in> GBL (GBACKREF4 r1 r2 r3 r4 cs)"
+  shows "length w \<le> m"
+  using GBL_bound_GBACKREF4_subset_bounded_strings_mono[OF assms(1-5)] assms(6)
+  by (auto simp add: bounded_strings_def)
+
 theorem bounded_language_left_quotient_family_subset_bounded_strings:
   assumes "bounded_language n A"
   shows "{Ders s A | s. True} \<subseteq> Pow (bounded_strings n)"

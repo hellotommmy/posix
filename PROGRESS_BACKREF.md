@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend value-lexer iff wrappers after rebase)
+Last updated: 2026-05-27 (direct bounded-language wrappers after rebase)
 
 ## Current Branch
 
@@ -18,6 +18,37 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct bounded-language wrappers in
+  `BackRefBoundedBlueprint.thy`. New checked facts package the original
+  `BL r`/`GBL r` languages from successful `BL_bound`/`GBL_bound`
+  calculations into bounded-string subsets, cardinality bounds, finiteness,
+  member length bounds, monotone variants, and direct `BBACKREF`/`GBACKREF4`
+  specializations. New facts include `BL_bound_subset_bounded_strings`,
+  `GBL_bound_subset_bounded_strings`, `BL_bound_card_bound`,
+  `GBL_bound_card_bound`, `BL_bound_finite`, `GBL_bound_finite`,
+  `BL_bound_length_bound`, `GBL_bound_length_bound`,
+  `BL_bound_BBACKREF_subset_bounded_strings`,
+  `GBL_bound_GBACKREF4_subset_bounded_strings`,
+  `BL_bound_BBACKREF_card_bound`, `GBL_bound_GBACKREF4_card_bound`,
+  `BL_bound_BBACKREF_finite`, `GBL_bound_GBACKREF4_finite`,
+  `BL_bound_BBACKREF_length_bound`, and
+  `GBL_bound_GBACKREF4_length_bound`, with monotone variants for each bound
+  family. Files changed before this progress note:
+  `BackRefBoundedBlueprint.thy` (+303). Baseline pilot-only local CI passed
+  with `BackRefPilot` (0:16 elapsed). Post-edit pilot-only local CI passed
+  with `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint`
+  replaying in about 4.1 seconds. Final full local CI passed with no-cheat
+  guard, bounty guard, admin role guard, Isabelle `Posix` (0:40 elapsed),
+  Isabelle `BackRefPilot` (0:19 elapsed), and local CI certificate
+  generation; explicit statement guard PASS. After rebasing over remote commit
+  `4b952c2`, pilot-only local CI passed with `BackRefPilot` (0:17 elapsed) and
+  `BackRefBoundedBlueprint` replaying in about 3.8 seconds. Final full
+  post-rebase local CI passed with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:36 elapsed), Isabelle `BackRefPilot` (0:17
+  elapsed), and local CI certificate generation; explicit statement guard
+  PASS. Next smallest safe step: stop until the admin opens a new bounty/phase
+  or explicitly asks for more direct packaging. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after
   rebasing over concurrent commit `a6f9492` and preserving its membership
