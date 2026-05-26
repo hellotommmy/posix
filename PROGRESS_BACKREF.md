@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded lexer value-lexer None bridges)
+Last updated: 2026-05-27 (bitcoded lexer value-output equality wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct equality wrappers from bitcoded
+  lexer outputs to known value-lexer outputs. New checked facts are
+  `bblexer_blexer_retrieve_eq`, `bblexer_simp_blexer_retrieve_eq`,
+  `bblexer_step_simp_blexer_retrieve_eq`,
+  `gbblexer_gblexer_retrieve_eq`, `gbblexer_simp_gblexer_retrieve_eq`, and
+  `gbblexer_step_simp_gblexer_retrieve_eq`. Files changed before this
+  progress note: `BackRefBlexer.thy` (+18) and `BackRefGBlexer.thy` (+18).
+  Baseline pilot-only local CI passed with `BackRefPilot` (0:16 elapsed).
+  Post-edit pilot-only local CI passed with `BackRefPilot` (0:16 elapsed);
+  `BackRefBlexer` replayed in about 4.3 seconds and `BackRefGBlexer` replayed
+  in about 2.1 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:34 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed), local CI certificate generation, and explicit
+  statement guard PASS. Rebase over concurrent commit `79e263f` preserved both
+  the new equality wrappers and the concurrently added `None` bridges.
+  Post-rebase full local CI passed again with Isabelle `Posix` (0:03 elapsed),
+  Isabelle `BackRefPilot` (0:03 elapsed), local CI certificate generation, and
+  explicit statement guard PASS. Next smallest safe step: stop until the admin
+  opens a new bounty/phase, or add only similarly direct downstream packaging
+  facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct `None` bridges from the ordinary
   and generalized bitcoded lexer frontends back to the corresponding value

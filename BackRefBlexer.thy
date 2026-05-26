@@ -687,6 +687,12 @@ lemma bblexer_None_blexer_iff:
   "bblexer r s = None \<longleftrightarrow> blexer r s = None"
   by (cases "blexer r s") (simp_all add: bblexer_blexer_retrieve)
 
+lemma bblexer_blexer_retrieve_eq:
+  assumes "bblexer r s = Some bs"
+    and "blexer r s = Some v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms by (simp add: bblexer_blexer_retrieve)
+
 theorem bblexer_POSIX_retrieve_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
@@ -1036,6 +1042,12 @@ lemma bblexer_simp_None_blexer_iff:
   "bblexer_simp r s = None \<longleftrightarrow> blexer r s = None"
   by (simp add: bblexer_simp_correctness bblexer_None_blexer_iff)
 
+lemma bblexer_simp_blexer_retrieve_eq:
+  assumes "bblexer_simp r s = Some bs"
+    and "blexer r s = Some v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms by (simp add: bblexer_simp_blexer_retrieve)
+
 theorem bblexer_simp_POSIX_retrieve_iff:
   "bblexer_simp r s = Some bs \<longleftrightarrow>
     (\<exists>v. s \<in> r \<rightarrow> v \<and> bs = bretrieve (baintern r) v)"
@@ -1160,6 +1172,12 @@ lemma bblexer_step_simp_Some_blexer_iff:
 lemma bblexer_step_simp_None_blexer_iff:
   "bblexer_step_simp r s = None \<longleftrightarrow> blexer r s = None"
   by (simp add: bblexer_step_simp_correctness bblexer_None_blexer_iff)
+
+lemma bblexer_step_simp_blexer_retrieve_eq:
+  assumes "bblexer_step_simp r s = Some bs"
+    and "blexer r s = Some v"
+  shows "bs = bretrieve (baintern r) v"
+  using assms by (simp add: bblexer_step_simp_correctness bblexer_blexer_retrieve)
 
 theorem bblexer_step_simp_POSIX_retrieve_iff:
   "bblexer_step_simp r s = Some bs \<longleftrightarrow>

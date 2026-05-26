@@ -679,6 +679,12 @@ lemma gbblexer_None_gblexer_iff:
   "gbblexer r s = None \<longleftrightarrow> gblexer r s = None"
   by (cases "gblexer r s") (simp_all add: gbblexer_gblexer_retrieve)
 
+lemma gbblexer_gblexer_retrieve_eq:
+  assumes "gbblexer r s = Some bs"
+    and "gblexer r s = Some v"
+  shows "bs = gretrieve (gaintern r) v"
+  using assms by (simp add: gbblexer_gblexer_retrieve)
+
 section \<open>Bitcoded Generalized Backreference Simplification\<close>
 
 fun gabbsimp :: "gabexp \<Rightarrow> gabexp"
@@ -958,6 +964,12 @@ lemma gbblexer_simp_None_gblexer_iff:
   "gbblexer_simp r s = None \<longleftrightarrow> gblexer r s = None"
   by (simp add: gbblexer_simp_correctness gbblexer_None_gblexer_iff)
 
+lemma gbblexer_simp_gblexer_retrieve_eq:
+  assumes "gbblexer_simp r s = Some bs"
+    and "gblexer r s = Some v"
+  shows "bs = gretrieve (gaintern r) v"
+  using assms by (simp add: gbblexer_simp_gblexer_retrieve)
+
 definition gbblexer_step_simp :: "gbrexp \<Rightarrow> string \<Rightarrow> bbit list option"
 where
   "gbblexer_step_simp r s =
@@ -1066,6 +1078,12 @@ lemma gbblexer_step_simp_Some_gblexer_iff:
 lemma gbblexer_step_simp_None_gblexer_iff:
   "gbblexer_step_simp r s = None \<longleftrightarrow> gblexer r s = None"
   by (simp add: gbblexer_step_simp_correctness gbblexer_None_gblexer_iff)
+
+lemma gbblexer_step_simp_gblexer_retrieve_eq:
+  assumes "gbblexer_step_simp r s = Some bs"
+    and "gblexer r s = Some v"
+  shows "bs = gretrieve (gaintern r) v"
+  using assms by (simp add: gbblexer_step_simp_correctness gbblexer_gblexer_retrieve)
 
 theorem gbblexer_step_simp_gblexer_retrieve:
   "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
