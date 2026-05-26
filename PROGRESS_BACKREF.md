@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (generalized constructor value correspondence)
+Last updated: 2026-05-26 (generalized constructor injection evidence)
 
 ## Current Branch
 
@@ -18,6 +18,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, explicit statement guard, and
+  local CI certificate generation -- generalized constructor injection
+  evidence with `ginjval`, `ginjval_flat`, and `ginjval_GPrf`. A broad proof
+  first timed out; it was replaced with explicit constructor/local-shape
+  proofs, and `BackRefLang4Values` replayed in about 2.2 seconds in the final
+  direct timed build.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and statement guard --
   generalized constructor epsilon evidence with `gmkeps`, `gmkeps_flat`, and
@@ -155,6 +162,8 @@ Latest result:
   - `gflat`
   - `GPrf`
   - `gmkeps`
+  - `gbackref4_from_tail`
+  - `ginjval`
 - `BackRefLang4Values.thy` proves:
   - `backref_lang4_flat_BPrf4_1`
   - `backref_lang4_flat_BPrf4_2`
@@ -168,6 +177,12 @@ Latest result:
   - `gxders_GBL_flat_GPrf`
   - `gmkeps_flat`
   - `gmkeps_GPrf`
+  - `gbackref4_from_tail_flat`
+  - `gbackref4_from_tail_GPrf`
+  - `gbackref4_from_xder_tail_flat`
+  - `gbackref4_from_xder_tail_GPrf`
+  - `ginjval_flat`
+  - `ginjval_GPrf`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -204,9 +219,50 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 11. ~~Add standalone generalized constructor derivative pilot.~~ DONE
 12. ~~Bridge generalized constructor derivatives to `BPrf4` value evidence.~~ DONE
 13. ~~Add generalized constructor value correspondence for all `gbrexp`.~~ DONE
-14. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
+14. ~~Add generalized constructor one-step value injection.~~ DONE
+15. Remaining open lanes: BR-015 remains locked by Opus. BR-019 should still
     wait until the lexer/simplification story is stable and an admin accepts
     the bounded-fragment statement.
+
+## Generalized Constructor Injection Evidence (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Commit: uncommitted working-tree step on top of local `986a4ca`; the branch
+  was clean before this edit and `git fetch --all --prune` succeeded.
+- Agent lane: Codex generalized constructor/value bridge lane
+- Files changed: `BackRefLang4Values.thy` (+179 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `gbackref4_from_tail`, extracting `GBACKREF4` evidence from the checked
+    post-capture tail value shape
+  - `ginjval`, one-character derivative value reconstruction for `gbrexp`
+- New checked lemmas:
+  - `gbackref4_from_tail_flat`
+  - `gbackref4_from_tail_GPrf`
+  - `gbackref4_from_xder_tail_flat`
+  - `gbackref4_from_xder_tail_GPrf`
+  - `ginjval_flat`
+  - `ginjval_GPrf`
+- Build: direct `timeout 90s isabelle build -v -d pilot BackRefPilot` PASS
+  (0:16 elapsed, `BackRefLang4Values` 2.172s); pilot-only local CI PASS with
+  no-cheat guard, bounty guard, admin role guard, Isabelle `BackRefPilot`
+  (0:05 elapsed), and local CI certificate generation; final full local CI
+  PASS with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), certificate
+  generation, and explicit statement guard PASS.
+- Performance note:
+  - An earlier broad `auto` over the whole `gbrexp` induction timed out after
+    the wrapper's 300 second limit and left a child build running; the child
+    build was stopped, and the proof was replaced with explicit `GALT` value
+    cases plus localized backreference/tail helper lemmas.
+- Notes:
+  - This is additive generalized-constructor infrastructure and does not touch
+    frozen `brexp`, `BL`, `xnullable`, `xder`, `BPrf`, production lexer files,
+    bounds theories, or Opus's BR-015 lock.
+- Next smallest safe step: optionally package a `gblexer` for the standalone
+  `gbrexp` layer from `gnullable`/`gmkeps`/`gxder`/`ginjval`; keep BR-015
+  reserved for Opus and keep BR-019 blocked until an explicit bounded-fragment
+  statement is accepted.
 
 ## Generalized Constructor Epsilon Evidence (2026-05-26)
 

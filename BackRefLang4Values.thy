@@ -126,6 +126,87 @@ where
 | "gmkeps (GBACKREF4 r1 r2 r3 r4 cs) =
     GVBackref4 (BBackref4 (bmkeps r1) (bmkeps r2) (bmkeps r3) (bmkeps r4) cs)"
 
+definition gbackref4_from_tail :: "bval \<Rightarrow> bval \<Rightarrow> string \<Rightarrow> bval \<Rightarrow> gbval"
+where
+  "gbackref4_from_tail v1 v2 cs tail =
+    (case tail of
+      BSeq v3 (BSeq res v4) \<Rightarrow> GVBackref4 (BBackref4 v1 v2 v3 v4 cs)
+    | _ \<Rightarrow> GVBase BVoid)"
+
+primrec ginjval :: "gbrexp \<Rightarrow> char \<Rightarrow> gbval \<Rightarrow> gbval"
+where
+  "ginjval (GBASE r) c v =
+    (case v of
+      GVBase v' \<Rightarrow> GVBase (binjval r c v')
+    | _ \<Rightarrow> GVBase BVoid)"
+| "ginjval (GALT r1 r2) c v =
+    (case v of
+      GVLeft v' \<Rightarrow> GVLeft (ginjval r1 c v')
+    | GVRight v' \<Rightarrow> GVRight (ginjval r2 c v')
+    | _ \<Rightarrow> GVBase BVoid)"
+| "ginjval (GBACKREF4 r1 r2 r3 r4 cs) c v =
+    (case v of
+      GVBackref4 (BBackref4 v1 v2 v3 v4 cs') \<Rightarrow>
+        GVBackref4 (BBackref4 (binjval r1 c v1) v2 v3 v4 cs)
+    | GVLeft (GVBackref4 (BBackref4 v1 v2 v3 v4 cs')) \<Rightarrow>
+        GVBackref4 (BBackref4 (binjval r1 c v1) v2 v3 v4 cs)
+    | GVRight (GVBackref4 (BBackref4 v1 v2 v3 v4 cs')) \<Rightarrow>
+        GVBackref4 (BBackref4 (bmkeps r1) (binjval r2 c v2) v3 v4 cs)
+    | GVRight (GVLeft (GVBackref4 (BBackref4 v1 v2 v3 v4 cs'))) \<Rightarrow>
+        GVBackref4 (BBackref4 (bmkeps r1) (binjval r2 c v2) v3 v4 cs)
+    | GVRight (GVRight (GVBase tail)) \<Rightarrow>
+        gbackref4_from_tail (bmkeps r1) (bmkeps r2) cs
+          (binjval (gtail4 r3 (rev cs) r4) c tail)
+    | _ \<Rightarrow> GVBase BVoid)"
+
+lemma gbackref4_from_tail_flat:
+  assumes "BPrf tail (gtail4 r3 (rev cs) r4)"
+    and "bflat v1 = []"
+    and "bflat v2 = []"
+  shows "gflat (gbackref4_from_tail v1 v2 cs tail) = bflat tail"
+  using assms
+  unfolding gbackref4_from_tail_def gtail4_def
+  by (auto elim!: BPrf_elims)
+
+lemma gbackref4_from_tail_GPrf:
+  assumes "\<Turnstile>b v1 : r1"
+    and "\<Turnstile>b v2 : r2"
+    and "BPrf tail (gtail4 r3 (rev cs) r4)"
+  shows "GPrf (gbackref4_from_tail v1 v2 cs tail) (GBACKREF4 r1 r2 r3 r4 cs)"
+  using assms
+  unfolding gbackref4_from_tail_def gtail4_def
+  by (auto intro!: GPrf.intros BPrf4.intros elim!: BPrf_elims)
+
+lemma gbackref4_from_xder_tail_flat:
+  assumes "BPrf tail (xder c (gtail4 r3 (rev cs) r4))"
+    and "xnullable r1"
+    and "xnullable r2"
+  shows "gflat (gbackref4_from_tail (bmkeps r1) (bmkeps r2) cs
+    (binjval (gtail4 r3 (rev cs) r4) c tail)) = c # bflat tail"
+proof -
+  define ft where "ft = binjval (gtail4 r3 (rev cs) r4) c tail"
+  have tail_prf: "\<Turnstile>b ft : gtail4 r3 (rev cs) r4"
+    unfolding ft_def using assms(1) by (rule binjval_BPrf)
+  have flat: "bflat ft = c # bflat tail"
+    unfolding ft_def using assms(1) by (rule binjval_flat)
+  have empty1: "bflat (bmkeps r1) = []"
+    using assms(2) by (rule bmkeps_flat)
+  have empty2: "bflat (bmkeps r2) = []"
+    using assms(3) by (rule bmkeps_flat)
+  show ?thesis
+    using gbackref4_from_tail_flat[OF tail_prf empty1 empty2] flat
+    unfolding ft_def by simp
+qed
+
+lemma gbackref4_from_xder_tail_GPrf:
+  assumes "BPrf tail (xder c (gtail4 r3 (rev cs) r4))"
+    and "xnullable r1"
+    and "xnullable r2"
+  shows "GPrf (gbackref4_from_tail (bmkeps r1) (bmkeps r2) cs
+    (binjval (gtail4 r3 (rev cs) r4) c tail)) (GBACKREF4 r1 r2 r3 r4 cs)"
+  using assms
+  by (auto intro!: gbackref4_from_tail_GPrf bmkeps_BPrf binjval_BPrf)
+
 lemma gmkeps_flat:
   assumes "gnullable r"
   shows "gflat (gmkeps r) = []"
@@ -137,6 +218,104 @@ lemma gmkeps_GPrf:
   shows "\<Turnstile>g gmkeps r : r"
   using assms
   by (induct r) (auto intro: GPrf.intros BPrf4.intros bmkeps_BPrf)
+
+lemma ginjval_flat:
+  assumes "GPrf v (gxder c r)"
+  shows "gflat (ginjval r c v) = c # gflat v"
+  using assms
+proof (induct r arbitrary: c v)
+  case (GBASE r)
+  then show ?case
+    by (auto elim!: GPrf_elims simp add: binjval_flat)
+next
+  case (GALT r1 r2)
+  show ?case
+  proof (cases v)
+    case (GVLeft v1)
+    then have "\<Turnstile>g v1 : gxder c r1"
+      using GALT.prems by (auto elim: GPrf_elims)
+    then show ?thesis
+      using GALT(1) GVLeft by simp
+  next
+    case (GVRight v2)
+    then have "\<Turnstile>g v2 : gxder c r2"
+      using GALT.prems by (auto elim: GPrf_elims)
+    then show ?thesis
+      using GALT(2) GVRight by simp
+  qed (use GALT.prems in \<open>auto elim: GPrf_elims\<close>)
+next
+  case (GBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof (cases "xnullable r1")
+    case False
+    with GBACKREF4.prems show ?thesis
+      by (auto elim!: GPrf_elims BPrf4_elims simp add: binjval_flat)
+  next
+    case r1_null: True
+    show ?thesis
+    proof (cases "xnullable r2")
+      case False
+      with r1_null GBACKREF4.prems show ?thesis
+        by (auto elim!: GPrf_elims BPrf4_elims BPrf_elims
+            simp add: binjval_flat bmkeps_flat)
+    next
+      case r2_null: True
+      with r1_null GBACKREF4.prems show ?thesis
+        by (auto elim!: GPrf_elims BPrf4_elims BPrf_elims
+            simp add: binjval_flat bmkeps_flat gbackref4_from_xder_tail_flat)
+    qed
+  qed
+qed
+
+lemma ginjval_GPrf:
+  assumes "GPrf v (gxder c r)"
+  shows "GPrf (ginjval r c v) r"
+  using assms
+proof (induct r arbitrary: c v)
+  case (GBASE r)
+  then show ?case
+    by (auto intro!: GPrf.intros binjval_BPrf elim!: GPrf_elims)
+next
+  case (GALT r1 r2)
+  show ?case
+  proof (cases v)
+    case (GVLeft v1)
+    then have "\<Turnstile>g v1 : gxder c r1"
+      using GALT.prems by (auto elim: GPrf_elims)
+    then show ?thesis
+      using GALT(1) GVLeft by (auto intro!: GPrf.intros)
+  next
+    case (GVRight v2)
+    then have "\<Turnstile>g v2 : gxder c r2"
+      using GALT.prems by (auto elim: GPrf_elims)
+    then show ?thesis
+      using GALT(2) GVRight by (auto intro!: GPrf.intros)
+  qed (use GALT.prems in \<open>auto elim: GPrf_elims\<close>)
+next
+  case (GBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof (cases "xnullable r1")
+    case False
+    with GBACKREF4.prems show ?thesis
+      by (auto intro!: GPrf.intros BPrf4.intros binjval_BPrf
+          elim!: GPrf_elims BPrf4_elims)
+  next
+    case r1_null: True
+    show ?thesis
+    proof (cases "xnullable r2")
+      case False
+      with r1_null GBACKREF4.prems show ?thesis
+        by (auto intro!: GPrf.intros BPrf4.intros bmkeps_BPrf binjval_BPrf
+            elim!: GPrf_elims BPrf4_elims)
+    next
+      case r2_null: True
+      with r1_null GBACKREF4.prems show ?thesis
+        by (auto intro!: GPrf.intros BPrf4.intros bmkeps_BPrf binjval_BPrf
+            gbackref4_from_xder_tail_GPrf
+            elim!: GPrf_elims BPrf4_elims)
+    qed
+  qed
+qed
 
 lemma GBL_flat_GPrf1:
   assumes "\<Turnstile>g v : r"
