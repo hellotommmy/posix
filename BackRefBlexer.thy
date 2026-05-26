@@ -118,6 +118,46 @@ where
 | "bbmkeps (BAHALF bs mid cs rep) = bs @ bbmkeps mid"
 | "bbmkeps (BARESIDUE bs cs rep) = bs"
 
+fun bretrieve_alts :: "bbit list \<Rightarrow> (bval \<Rightarrow> bbit list) list \<Rightarrow> bval \<Rightarrow> bbit list"
+where
+  "bretrieve_alts bs [] v = bs"
+| "bretrieve_alts bs [f] v = bs @ f v"
+| "bretrieve_alts bs (f # g # fs) v =
+     (case v of
+        BLeft v' \<Rightarrow> bs @ f v'
+      | BRight v' \<Rightarrow> bretrieve_alts bs (g # fs) v'
+      | _ \<Rightarrow> [])"
+
+fun bretrieve_stars :: "bbit list \<Rightarrow> (bval \<Rightarrow> bbit list) \<Rightarrow> bval list \<Rightarrow> bbit list"
+where
+  "bretrieve_stars bs f [] = bs @ [BS]"
+| "bretrieve_stars bs f (v # vs) = bs @ [BZ] @ f v @ bretrieve_stars [] f vs"
+
+primrec bretrieve :: "barexp \<Rightarrow> bval \<Rightarrow> bbit list"
+where
+  "bretrieve BAZERO v = []"
+| "bretrieve (BAONE bs) v =
+     (case v of BVoid \<Rightarrow> bs | _ \<Rightarrow> [])"
+| "bretrieve (BACHAR bs c) v =
+     (case v of BChar d \<Rightarrow> bs | _ \<Rightarrow> [])"
+| "bretrieve (BAALTs bs rs) v = bretrieve_alts bs (map bretrieve rs) v"
+| "bretrieve (BASEQ bs r1 r2) v =
+     (case v of BSeq v1 v2 \<Rightarrow> bs @ bretrieve r1 v1 @ bretrieve r2 v2 | _ \<Rightarrow> [])"
+| "bretrieve (BASTAR bs r) v =
+     (case v of
+        BStars vs \<Rightarrow> bretrieve_stars bs (bretrieve r) vs
+      | _ \<Rightarrow> [])"
+| "bretrieve (BANTIMES bs r n) v =
+     (case v of BStars vs \<Rightarrow> bretrieve_stars bs (bretrieve r) vs | _ \<Rightarrow> [])"
+| "bretrieve (BABACKREF bs r mid cs) v =
+     (case v of
+        BBackref v1 v2 cs' \<Rightarrow> bs @ [Backbit (rev cs)] @ bretrieve r v1 @ bretrieve mid v2
+      | _ \<Rightarrow> [])"
+| "bretrieve (BAHALF bs mid cs rep) v =
+     (case v of BHalf v' cs' rep' \<Rightarrow> bs @ bretrieve mid v' | _ \<Rightarrow> [])"
+| "bretrieve (BARESIDUE bs cs rep) v =
+     (case v of BResidue cs' rep' \<Rightarrow> bs | _ \<Rightarrow> [])"
+
 lemma xnullable_berase_BAALTs:
   "xnullable (berase (BAALTs bs rs)) =
     (\<exists>r \<in> set rs. xnullable (berase r))"
@@ -135,6 +175,91 @@ lemma bbnullable_correctness [simp]:
   apply (induct r)
            apply (simp_all add: xnullable_berase_BAALTs)
   done
+
+lemma bretrieve_stars_replicate:
+  assumes "bits = f v"
+  shows "bretrieve_stars bs f (replicate n v) = bs @ bstar_eps_bits n bits"
+  using assms
+  by (induct n arbitrary: bs) simp_all
+
+lemma bbmkeps_BAALTs_bretrieve:
+  assumes step: "\<And>r. \<lbrakk>r \<in> set rs; bbnullable r\<rbrakk> \<Longrightarrow>
+      bbmkeps r = bretrieve r (bmkeps (berase r))"
+    and nullable: "\<exists>r \<in> set rs. bbnullable r"
+  shows "bbmkeps (BAALTs bs rs) =
+    bretrieve_alts bs (map bretrieve rs) (bmkeps (berase (BAALTs bs rs)))"
+  using step nullable
+proof (induct rs arbitrary: bs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  then show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using Cons.prems by simp
+  next
+    case (Cons r' rs')
+    then show ?thesis
+    proof (cases "bbnullable r")
+      case True
+      then show ?thesis
+        using Cons.prems Cons by simp
+    next
+      case False
+      have tail_step: "\<And>x. \<lbrakk>x \<in> set rs; bbnullable x\<rbrakk> \<Longrightarrow>
+          bbmkeps x = bretrieve x (bmkeps (berase x))"
+        using Cons.prems by auto
+      have tail_nullable: "\<exists>x \<in> set rs. bbnullable x"
+        using Cons.prems False by auto
+      have "bbmkeps (BAALTs bs rs) =
+        bretrieve_alts bs (map bretrieve rs) (bmkeps (berase (BAALTs bs rs)))"
+        using Cons.hyps[OF tail_step tail_nullable] .
+      moreover have "berase (BAALTs bs rs) = berase (BAALTs [] rs)"
+        by (rule berase_BAALTs_ignore_bits)
+      then have "bmkeps (berase (BAALTs bs rs)) =
+        bmkeps (berase (BAALTs [] rs))"
+        by (rule arg_cong)
+      ultimately have tail: "bbmkeps (BAALTs bs rs) =
+        bretrieve_alts bs (map bretrieve rs) (bmkeps (berase (BAALTs [] rs)))"
+        by simp
+      then show ?thesis
+        using Cons False by simp
+    qed
+  qed
+qed
+
+lemma bbmkeps_bretrieve:
+  assumes "bbnullable r"
+  shows "bbmkeps r = bretrieve r (bmkeps (berase r))"
+  using assms
+proof (induct r)
+  case (BAALTs bs rs)
+  have step: "\<And>r. \<lbrakk>r \<in> set rs; bbnullable r\<rbrakk> \<Longrightarrow>
+      bbmkeps r = bretrieve r (bmkeps (berase r))"
+    using BAALTs.hyps by auto
+  have nullable: "\<exists>r \<in> set rs. bbnullable r"
+    using BAALTs.prems by (simp add: xnullable_berase_BAALTs)
+  then show ?case
+    using bbmkeps_BAALTs_bretrieve[OF step nullable, of bs] by simp
+next
+  case (BANTIMES bs r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    then have r_nullable: "bbnullable r"
+      using BANTIMES.prems by simp
+    then have "bbmkeps r = bretrieve r (bmkeps (berase r))"
+      using BANTIMES.hyps by simp
+    then show ?thesis
+      using Suc bretrieve_stars_replicate[of "bbmkeps r" "bretrieve r" "bmkeps (berase r)" bs n]
+      by simp
+  qed
+qed (auto simp add: bretrieve_stars_replicate)
 
 fun bbder_residue :: "char \<Rightarrow> bbit list \<Rightarrow> string \<Rightarrow> string \<Rightarrow> barexp"
 where
@@ -217,5 +342,37 @@ lemma berase_bbders [simp]:
 lemma bblexer_defined_iff:
   "(\<exists>bs. bblexer r s = Some bs) \<longleftrightarrow> s \<in> BL r"
   by (simp add: bblexer_def xnullable_correctness xders_correctness Ders_def)
+
+lemma bblexer_bretrieve:
+  assumes "bblexer r s = Some bs"
+  shows "bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+proof -
+  let ?a = "bbders (baintern r) s"
+  from assms have bs: "bs = bbmkeps ?a" and nullable: "bbnullable ?a"
+    by (auto simp add: bblexer_def Let_def split: if_splits)
+  from nullable have "bbmkeps ?a = bretrieve ?a (bmkeps (berase ?a))"
+    by (rule bbmkeps_bretrieve)
+  then show ?thesis
+    using bs by simp
+qed
+
+theorem bblexer_retrieve_correctness:
+  assumes "bblexer r s = Some bs"
+  shows "bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+    and "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    and "bflat (bmkeps (xders r s)) = []"
+proof -
+  let ?a = "bbders (baintern r) s"
+  from assms have nullable: "bbnullable ?a"
+    by (auto simp add: bblexer_def Let_def split: if_splits)
+  then have xnullable: "xnullable (xders r s)"
+    by simp
+  show "bs = bretrieve ?a (bmkeps (xders r s))"
+    using assms by (rule bblexer_bretrieve)
+  show "\<Turnstile>b bmkeps (xders r s) : xders r s"
+    using xnullable by (rule bmkeps_BPrf)
+  show "bflat (bmkeps (xders r s)) = []"
+    using xnullable by (rule bmkeps_flat)
+qed
 
 end

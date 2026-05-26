@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-26 (BR-017 bitcoded backreference lexer definitions)
+Last updated: 2026-05-26 (BR-018 retrieve layer partial)
 
 ## Current Branch
 
@@ -18,6 +18,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and statement guard -- BR-018 partial bitcoded retrieve layer for nullable
+  derivative evidence.
 - PASS on 2026-05-26 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` and Isabelle `BackRefPilot` -- BR-017 bitcoded
   backreference lexer definitions in a separate pilot file.
@@ -84,6 +88,9 @@ Latest result:
   - `berase_bbder`
   - `berase_bbders`
   - `bblexer_defined_iff`
+  - `bbmkeps_bretrieve`
+  - `bblexer_bretrieve`
+  - `bblexer_retrieve_correctness`
 - Local/remote CI scaffolding now checks:
   - no Isabelle proof-bypass markers;
   - bounty board invariants and checked artifacts;
@@ -114,9 +121,39 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 5. ~~Prove `blexer` correctness for pilot `brexp` (BR-014).~~ DONE (BR-014)
 6. ~~Draft derivative story for generalized `backref_lang4`.~~ DONE (BR-008)
 7. ~~Start BR-017 bitcoded backreference lexer definitions in a new pilot file.~~ DONE (BR-017)
-8. Next non-overlapping lanes: BR-018 bitcoded lexer correctness/retrieve-decode
-   story, BR-020 simplification rules for the new pilot, or BR-016 generalized
-   value pilot. BR-015 remains locked by Opus.
+8. BR-018 now has the nullable retrieve layer. Next non-overlapping lanes:
+   finish derivative-retrieve/decode-to-original-value correctness, BR-020
+   simplification rules for the new pilot, or BR-016 generalized value pilot.
+   BR-015 remains locked by Opus.
+
+## BR-018 Retrieve Layer Partial (2026-05-26)
+
+- Branch: `codex/backref-values`
+- Agent lane: Codex new-file implementation lane
+- Files changed: `BackRefBlexer.thy` (+157 before this progress note),
+  `PROGRESS_BACKREF.md`
+- New checked definitions:
+  - `bretrieve_alts`
+  - `bretrieve_stars`
+  - `bretrieve`
+- New checked lemmas/theorem:
+  - `bretrieve_stars_replicate`
+  - `bbmkeps_BAALTs_bretrieve`
+  - `bbmkeps_bretrieve`
+  - `bblexer_bretrieve`
+  - `bblexer_retrieve_correctness`
+- Build: full local CI PASS; no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and statement guard.
+- Notes:
+  - This does not complete BR-018 yet. It proves that nullable bitcoded
+    evidence from an annotated derivative is exactly retrieval from
+    `bmkeps (berase r)`, and packages the result for `bblexer`.
+  - The next proof step should connect retrieval across `bbder`/`binjval` or
+    define a decode/flex bridge back to the original `blexer` value.
+- Next smallest safe step: prove a `bbder` retrieval transport lemma analogous
+  to ordinary `bder_retrieve`, likely after adding any small helper facts for
+  `bfuse` and backreference transition cases.
 
 ## BR-017 Bitcoded Backreference Lexer Definitions (2026-05-26)
 
