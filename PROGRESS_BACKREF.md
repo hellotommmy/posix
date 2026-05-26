@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (BR-019 monotone finite-universe bounds)
+Last updated: 2026-05-27 (semantic left-quotient finite-universe bounds)
 
 ## Current Branch
 
@@ -18,6 +18,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and local CI certificate generation after adding semantic left-quotient
+  finite-universe/cardinality wrappers in `BackRefBoundedBlueprint.thy`. New
+  checked facts place `{Ders s A | s. True}` for any bounded language inside
+  `Pow (bounded_strings n)` with an explicit `2 ^ card (bounded_strings n)`
+  bound, and specialize that package to `backref_lang` and `backref_lang4`
+  with exact and larger external bounds. A pilot-only precheck passed with
+  `BackRefPilot` (0:15 elapsed), and `BackRefBoundedBlueprint` replayed in
+  about 1.5 seconds.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding monotone finite-universe/cardinality
   wrappers in `BackRefBoundedBlueprint.thy`. New checked facts allow derivative
@@ -270,6 +280,18 @@ Latest result:
   - `GBL_bound_derivative_family_subset_bounded_strings`
   - `BL_bound_derivative_family_card_bound`
   - `GBL_bound_derivative_family_card_bound`
+  - `bounded_language_left_quotient_family_subset_bounded_strings`
+  - `bounded_language_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_language_left_quotient_family_card_bound`
+  - `bounded_language_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang_left_quotient_family_card_bound`
+  - `bounded_backref_lang4_left_quotient_family_card_bound`
+  - `bounded_backref_lang_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang4_left_quotient_family_card_bound_mono`
   - `BL_bound_BBACKREF_derivative_family_subset_bounded_strings`
   - `GBL_bound_GBACKREF4_derivative_family_subset_bounded_strings`
   - `BL_bound_BBACKREF_derivative_family_card_bound`
@@ -451,6 +473,43 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `Pow (bounded_strings n)` with explicit cardinal bounds. No active bounty
     remains on `BACKREF_BOUNTIES.md`; production bounds or closed-form work
     should still wait for a new admin task.
+
+## Semantic Left-Quotient Finite-Universe Bounds (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+117 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `bounded_language_left_quotient_family_subset_bounded_strings`
+  - `bounded_language_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_language_left_quotient_family_card_bound`
+  - `bounded_language_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings`
+  - `bounded_backref_lang_left_quotient_family_card_bound`
+  - `bounded_backref_lang4_left_quotient_family_card_bound`
+  - `bounded_backref_lang_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang4_left_quotient_family_subset_bounded_strings_mono`
+  - `bounded_backref_lang_left_quotient_family_card_bound_mono`
+  - `bounded_backref_lang4_left_quotient_family_card_bound_mono`
+- Build:
+  - Pilot-only local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, and Isabelle `BackRefPilot` (0:15 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 1.5 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:03
+    elapsed), and certificate generation.
+- Notes:
+  - This is additive theorem packaging over the semantic bounded-language
+    layer and the checked `backref_lang`/`backref_lang4` boundedness lemmas.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
 
 ## BR-019 Monotone Finite-Universe Bounds (2026-05-27)
 

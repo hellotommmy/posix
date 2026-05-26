@@ -870,6 +870,123 @@ next
     by (simp add: split card_Un_disjoint[OF finite_A finite_insert_A disjoint])
 qed
 
+theorem bounded_language_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n A"
+  shows "{Ders s A | s. True} \<subseteq> Pow (bounded_strings n)"
+  using bounded_language_Ders[OF assms] bounded_language_subset_bounded_strings
+  by blast
+
+theorem bounded_language_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n A" "n \<le> m"
+  shows "{Ders s A | s. True} \<subseteq> Pow (bounded_strings m)"
+  using bounded_language_Ders[OF assms(1)]
+    bounded_language_subset_bounded_strings_mono[OF _ assms(2)]
+  by blast
+
+theorem bounded_language_left_quotient_family_card_bound:
+  assumes "bounded_language n A"
+  shows "card {Ders s A | s. True} \<le> 2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{Ders s A | s. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule bounded_language_left_quotient_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {Ders s A | s. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem bounded_language_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n A" "n \<le> m"
+  shows "card {Ders s A | s. True} \<le> 2 ^ card (bounded_strings m)"
+proof -
+  have sub: "{Ders s A | s. True} \<subseteq> Pow (bounded_strings m)"
+    using assms
+    by (rule bounded_language_left_quotient_family_subset_bounded_strings_mono)
+  have fin_pow: "finite (Pow (bounded_strings m))"
+    using finite_bounded_strings by simp
+  have "card {Ders s A | s. True} \<le> card (Pow (bounded_strings m))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings m)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem bounded_backref_lang_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "{Ders s (backref_lang A B cs) | s. True} \<subseteq>
+    Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+  using bounded_language_backref_lang[OF assms]
+  by (rule bounded_language_left_quotient_family_subset_bounded_strings)
+
+theorem bounded_backref_lang4_left_quotient_family_subset_bounded_strings:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "{Ders s (backref_lang4 L1 L2 L3 L4 cs) | s. True} \<subseteq>
+    Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+  using bounded_language_backref_lang4[OF assms]
+  by (rule bounded_language_left_quotient_family_subset_bounded_strings)
+
+theorem bounded_backref_lang_left_quotient_family_card_bound:
+  assumes "bounded_language n_capture A" "bounded_language n_mid B"
+  shows "card {Ders s (backref_lang A B cs) | s. True} \<le>
+    2 ^ card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+  using bounded_language_backref_lang[OF assms]
+  by (rule bounded_language_left_quotient_family_card_bound)
+
+theorem bounded_backref_lang4_left_quotient_family_card_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "card {Ders s (backref_lang4 L1 L2 L3 L4 cs) | s. True} \<le>
+    2 ^ card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+  using bounded_language_backref_lang4[OF assms]
+  by (rule bounded_language_left_quotient_family_card_bound)
+
+theorem bounded_backref_lang_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "{Ders s (backref_lang A B cs) | s. True} \<subseteq> Pow (bounded_strings m)"
+  using bounded_language_backref_lang[OF assms(1,2)] assms(3)
+  by (rule bounded_language_left_quotient_family_subset_bounded_strings_mono)
+
+theorem bounded_backref_lang4_left_quotient_family_subset_bounded_strings_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "{Ders s (backref_lang4 L1 L2 L3 L4 cs) | s. True} \<subseteq>
+    Pow (bounded_strings m)"
+  using bounded_language_backref_lang4[OF assms(1-4)] assms(5)
+  by (rule bounded_language_left_quotient_family_subset_bounded_strings_mono)
+
+theorem bounded_backref_lang_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+  shows "card {Ders s (backref_lang A B cs) | s. True} \<le>
+    2 ^ card (bounded_strings m)"
+  using bounded_language_backref_lang[OF assms(1,2)] assms(3)
+  by (rule bounded_language_left_quotient_family_card_bound_mono)
+
+theorem bounded_backref_lang4_left_quotient_family_card_bound_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+  shows "card {Ders s (backref_lang4 L1 L2 L3 L4 cs) | s. True} \<le>
+    2 ^ card (bounded_strings m)"
+  using bounded_language_backref_lang4[OF assms(1-4)] assms(5)
+  by (rule bounded_language_left_quotient_family_card_bound_mono)
+
 theorem BL_bound_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n"
   shows "{BL (xders r s) | s. True} \<subseteq> Pow (bounded_strings n)"
