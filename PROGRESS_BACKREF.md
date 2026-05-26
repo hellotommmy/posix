@@ -582,7 +582,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Finite Left-Quotient Predicate Wrappers (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `159374c`
 - Agent lane: Codex Agent A bounded-fragment theorem packaging lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+368 current theory delta
   before this progress note), `PROGRESS_BACKREF.md`
@@ -618,7 +618,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Derivative Residue Predicate Wrappers (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `159374c`
 - Agent lane: Codex Agent A bounded-fragment theorem packaging lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+294 current theory delta
   before this progress note), `PROGRESS_BACKREF.md`
@@ -649,7 +649,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Semantic Left-Quotient Finite Wrappers (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `159374c`
 - Agent lane: Codex Agent A bounded-fragment theorem packaging lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+267 current theory delta
   before this progress note), `PROGRESS_BACKREF.md`
@@ -679,7 +679,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Finite Derivative-Family Wrappers (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `159374c`
 - Agent lane: Codex Agent A bounded-fragment theorem packaging lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+246 total worktree delta
   before this progress note), `PROGRESS_BACKREF.md`
@@ -714,7 +714,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 ## Constructor Residual Derivative-Family Bounds (2026-05-27)
 
 - Branch: `codex/backref-values`
-- Commit: not created in this iteration
+- Commit: `159374c`
 - Agent lane: Codex Agent A bounded-fragment theorem packaging lane
 - Files changed: `BackRefBoundedBlueprint.thy` (+174 before this progress
   note), `PROGRESS_BACKREF.md`
