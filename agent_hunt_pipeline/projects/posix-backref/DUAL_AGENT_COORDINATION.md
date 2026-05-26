@@ -48,6 +48,30 @@ If this times out, inspect the reported `command "... " running for ...`
 line, narrow that proof, and rerun. Do not start a second build while the first
 one is alive.
 
+## Proof Performance Budget
+
+For this pilot, a few-hundred-line proof check should normally complete in
+about 5-10 seconds. A single Isabelle command running for 200 seconds is
+extremely abnormal and must be treated as a defect in the definition or proof
+script, not as normal progress.
+
+Operational rule:
+
+- At 10 seconds on one command, identify the command and source line.
+- At 30 seconds, stop broad automation and rewrite the proof locally.
+- At 120 seconds, interrupt or let the timeout wrapper kill the build.
+- At 200 seconds, do not rerun unchanged; replace the resource-intensive line
+  or fix the looping/search root cause.
+
+Preferred repairs:
+
+- change heavy `fun` commands with nested overlapping patterns into `primrec`
+  or explicit `case` definitions when possible;
+- replace broad `auto`/`force`/`blast`/`metis`/`elim!` calls by targeted rules;
+- introduce helper lemmas and explicit Isar proof steps;
+- use constructor-specific eliminators instead of handing automation the whole
+  inductive relation.
+
 ## Why `fun` Was Slow
 
 The old `fun (sequential) binjval` definition forced Isabelle's function package
@@ -74,4 +98,3 @@ heavy function-package pattern analysis and termination machinery.
 - Codex: blueprint/new-file lane for `backref_lang4` migration notes or pilot
   `BackRefBlexer.thy`, without touching production `Blexer.thy`, `BlexerSimp.thy`,
   bounds, or closed-form theories.
-

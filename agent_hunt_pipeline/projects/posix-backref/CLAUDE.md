@@ -266,6 +266,39 @@ failures were turned into rules.
   proof structure. Do not let `auto`/`simp` run for more than 30 seconds.
 - If `sledgehammer` does not solve a goal quickly, break it down manually.
 
+### Proof Performance Budget
+
+Small pilot theories and proof edits in this project should usually replay
+quickly. For a few-hundred-line proof change in `BackRefPilot`, a cold check
+should normally finish in about 5-10 seconds. A 200 second command is an
+extreme abnormality, not a tolerable build time.
+
+Use these thresholds:
+
+- 10 seconds on one Isabelle command: inspect the reported command and line.
+- 30 seconds on one command: stop relying on broad automation and narrow it.
+- 120 seconds on one command: interrupt or let the timeout wrapper kill it.
+- 200 seconds on one command: treat this as a bug in the definition/proof
+  structure and fix the root cause before doing more work.
+
+When this happens, do not merely raise timeouts or rerun the same command.
+Change the resource-intensive line. Typical fixes:
+
+- replace `fun` definitions with heavy nested/overlapping patterns by
+  `primrec`, `definition`, or a simpler recursive shape with explicit
+  `case ... of ...`;
+- replace broad `auto`, `force`, `blast`, `metis`, or `elim!` over many
+  inductive cases by targeted elimination rules such as `BPosix_elims(5)`;
+- split the goal into named helper lemmas and explicit Isar steps;
+- avoid passing all constructors or all simplification facts to automation
+  when only one constructor is relevant;
+- rerun with a timeout wrapper and verify that the same line now checks
+  quickly.
+
+This rule is mandatory for long-running agent loops. A stalled proof command
+can waste the build lease, corrupt the Cursor workflow through reconnects, and
+create false confidence from partial IDE state.
+
 ## Bounty Discipline
 
 This repository uses a competitive-collaborative bounty system adapted from the
