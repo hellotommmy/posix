@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend summary wrappers)
+Last updated: 2026-05-27 (bitcoded frontend retrieve iff wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding direct retrieve-iff summary wrappers
+  for all ordinary and generalized bitcoded lexer frontends in
+  `BackRefBitcodedSummary.thy`. New checked facts are
+  `bblexer_frontends_POSIX_retrieve_iff`,
+  `bblexer_frontends_BPrf_retrieve_iff`,
+  `bblexer_frontends_defined_BPrf_iff`,
+  `bblexer_frontends_None_BPrf_iff`, and
+  `gbblexer_frontends_GPrf_retrieve_iff`. Files changed before this progress
+  note: `BackRefBitcodedSummary.thy` (+56) and `PROGRESS_BACKREF.md`.
+  Baseline pilot-only local CI passed with `BackRefPilot` (0:17 elapsed).
+  Post-edit pilot-only local CI passed with `BackRefPilot` (0:17 elapsed),
+  with `BackRefBitcodedSummary` replaying in about 0.131 seconds. Final full
+  local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and local CI certificate generation; explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   explicit statement guard, and Isabelle `Posix` + `BackRefPilot` after
   rebasing over concurrent commit `8e5377e` and adding the new downstream
