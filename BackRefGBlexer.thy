@@ -929,4 +929,8 @@ theorem gbblexer_step_simp_gblexer_retrieve:
   "gbblexer_step_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
   by (simp add: gbblexer_step_simp_correctness gbblexer_gblexer_retrieve)
 
+theorem gbblexer_simp_step_simp_eq:
+  "gbblexer_simp r s = gbblexer_step_simp r s"
+  by (simp add: gbblexer_simp_correctness gbblexer_step_simp_correctness)
+
 end

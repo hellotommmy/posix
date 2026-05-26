@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual derivative-family subset helpers)
+Last updated: 2026-05-27 (simplified lexer equality wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct equality wrappers between the
+  post-derivative and per-step simplified bitcoded lexers in
+  `BackRefBlexer.thy` and `BackRefGBlexer.thy`. New checked facts are
+  `bblexer_simp_step_simp_eq` and `gbblexer_simp_step_simp_eq`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:11 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:10 elapsed);
+  `BackRefBlexer` replayed in about 4.1 seconds and `BackRefGBlexer` replayed
+  in about 1.9 seconds. Final full local CI passed with Isabelle `Posix`
+  (0:30 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and local CI
+  certificate generation. After rebasing over `ade8125`, full local CI passed
+  again with Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:11
+  elapsed), and local CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct retrieve/transport wrappers for
   the ordinary and generalized simplified bitcoded lexers in
@@ -701,6 +714,40 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     wait for a new admin task.
 23. ~~Add direct retrieve/transport wrappers for simplified bitcoded lexers.~~
     DONE
+24. ~~Package direct equality between post-derivative and per-step simplified
+    bitcoded lexer entry points.~~ DONE
+
+## Simplified Lexer Equality Wrappers (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent B implementation packaging lane
+- Files changed: `BackRefBlexer.thy` (+4), `BackRefGBlexer.thy` (+4),
+  `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `bblexer_simp_step_simp_eq`
+  - `gbblexer_simp_step_simp_eq`
+- Build:
+  - Baseline pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+    role guard, and Isabelle `BackRefPilot` (0:11 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:10 elapsed);
+    `BackRefBlexer` replayed in about 4.1 seconds and `BackRefGBlexer`
+    replayed in about 1.9 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:30 elapsed), Isabelle `BackRefPilot` (0:04
+    elapsed), and local CI certificate generation.
+  - Post-rebase full local CI PASS over remote `ade8125` with no-cheat guard,
+    bounty guard, admin role guard, Isabelle `Posix` (0:03 elapsed), Isabelle
+    `BackRefPilot` (0:11 elapsed), and local CI certificate generation.
+- Notes:
+  - This is additive theorem packaging only. It identifies the two checked
+    simplified lexer entry points directly, without changing definitions,
+    semantics, frozen statements, production `Blexer*`, bounds files, or
+    closed-form theories.
+- Next smallest safe step: no active bounty remains; wait for an admin-created
+  production integration task or a new bounty before changing frozen semantics,
+  production lexers, bounds, or closed-form theories.
 
 ## Simplified Bitcoded Transport Wrappers (2026-05-27)
 

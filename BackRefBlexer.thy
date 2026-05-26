@@ -965,4 +965,8 @@ theorem bblexer_step_simp_blexer_retrieve:
   "bblexer_step_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
   by (simp add: bblexer_step_simp_correctness bblexer_blexer_retrieve)
 
+theorem bblexer_simp_step_simp_eq:
+  "bblexer_simp r s = bblexer_step_simp r s"
+  by (simp add: bblexer_simp_correctness bblexer_step_simp_correctness)
+
 end
