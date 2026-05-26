@@ -167,6 +167,21 @@ proof -
   show thesis by (rule that[OF bs1 bs2 bs3])
 qed
 
+theorem bblexer_frontends_BL_obtains_same:
+  assumes "s \<in> BL r"
+  obtains bs where "bblexer r s = Some bs"
+    and "bblexer_simp r s = Some bs"
+    and "bblexer_step_simp r s = Some bs"
+proof -
+  from assms obtain bs where bs: "bblexer r s = Some bs"
+    using bblexer_frontends_defined_BL_iff(1) by blast
+  then have simp: "bblexer_simp r s = Some bs"
+    by (simp add: bblexer_frontends_eq)
+  from bs have step_simp: "bblexer_step_simp r s = Some bs"
+    by (simp add: bblexer_frontends_eq)
+  show thesis by (rule that[OF bs simp step_simp])
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -297,6 +312,21 @@ proof -
   from assms obtain bs3 where bs3: "gbblexer_step_simp r s = Some bs3"
     using gbblexer_frontends_defined_GBL_iff(3) by blast
   show thesis by (rule that[OF bs1 bs2 bs3])
+qed
+
+theorem gbblexer_frontends_GBL_obtains_same:
+  assumes "s \<in> GBL r"
+  obtains bs where "gbblexer r s = Some bs"
+    and "gbblexer_simp r s = Some bs"
+    and "gbblexer_step_simp r s = Some bs"
+proof -
+  from assms obtain bs where bs: "gbblexer r s = Some bs"
+    using gbblexer_frontends_defined_GBL_iff(1) by blast
+  then have simp: "gbblexer_simp r s = Some bs"
+    by (simp add: gbblexer_frontends_eq)
+  from bs have step_simp: "gbblexer_step_simp r s = Some bs"
+    by (simp add: gbblexer_frontends_eq)
+  show thesis by (rule that[OF bs simp step_simp])
 qed
 
 end
