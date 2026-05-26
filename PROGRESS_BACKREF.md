@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (semantic left-quotient finite-universe bounds)
+Last updated: 2026-05-27 (residual derivative-family universe bounds)
 
 ## Current Branch
 
@@ -18,6 +18,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding residual derivative-family
+  finite-universe/cardinality wrappers in `BackRefBoundedBlueprint.thy`. New
+  checked facts show that, from a successful `BL_bound`/`GBL_bound`, the
+  derivative family reachable after any already consumed prefix still lies in
+  the original `Pow (bounded_strings n)` universe and satisfies the same
+  `2 ^ card (bounded_strings n)` cardinal upper bound. Pilot-only local CI
+  passed with `BackRefPilot` (0:16 elapsed) and `BackRefBoundedBlueprint`
+  replaying in about 2.0 seconds. Final full local CI passed with Isabelle
+  `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and local
+  CI certificate generation.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
   and local CI certificate generation after adding semantic left-quotient
@@ -280,6 +291,10 @@ Latest result:
   - `GBL_bound_derivative_family_subset_bounded_strings`
   - `BL_bound_derivative_family_card_bound`
   - `GBL_bound_derivative_family_card_bound`
+  - `BL_bound_residual_derivative_family_subset_bounded_strings`
+  - `GBL_bound_residual_derivative_family_subset_bounded_strings`
+  - `BL_bound_residual_derivative_family_card_bound`
+  - `GBL_bound_residual_derivative_family_card_bound`
   - `bounded_language_left_quotient_family_subset_bounded_strings`
   - `bounded_language_left_quotient_family_subset_bounded_strings_mono`
   - `bounded_language_left_quotient_family_card_bound`
@@ -470,9 +485,42 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     and syntactic derivative-closure/constructor packages. The latest package
     also places the derivative-language family for bounded `BBACKREF` and
     `GBACKREF4` constructors inside the finite universe
-    `Pow (bounded_strings n)` with explicit cardinal bounds. No active bounty
-    remains on `BACKREF_BOUNTIES.md`; production bounds or closed-form work
-    should still wait for a new admin task.
+    `Pow (bounded_strings n)` with explicit cardinal bounds. The residual
+    derivative-family package shows the same original universe/cardinality
+    bound after any already consumed prefix. No active bounty remains on
+    `BACKREF_BOUNTIES.md`; production bounds or closed-form work should still
+    wait for a new admin task.
+
+## Residual Derivative-Family Universe Bounds (2026-05-27)
+
+- Branch: `codex/backref-values`
+- Commit: this checked commit
+- Agent lane: Codex Agent A bounded-fragment theorem packaging lane
+- Files changed: `BackRefBoundedBlueprint.thy` (+60 before this progress
+  note), `PROGRESS_BACKREF.md`
+- New checked theorems:
+  - `BL_bound_residual_derivative_family_subset_bounded_strings`
+  - `GBL_bound_residual_derivative_family_subset_bounded_strings`
+  - `BL_bound_residual_derivative_family_card_bound`
+  - `GBL_bound_residual_derivative_family_card_bound`
+- Build:
+  - Pre-edit pilot-only local CI PASS with no-cheat guard, bounty guard, admin
+    role guard, and Isabelle `BackRefPilot` (0:04 elapsed).
+  - Post-edit pilot-only local CI PASS with no-cheat guard, bounty guard,
+    admin role guard, and Isabelle `BackRefPilot` (0:16 elapsed);
+    `BackRefBoundedBlueprint` replayed in about 2.0 seconds.
+  - Final full local CI PASS with no-cheat guard, bounty guard, admin role
+    guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04
+    elapsed), and local CI certificate generation.
+- Notes:
+  - This is additive theorem packaging over `xders_append`/`gxders_append` and
+    the existing `bounded_strings` finite universe.
+  - It does not touch `BackRefValues.thy`, production `Blexer*`, old bounds, or
+    closed-form theories.
+  - No active bounty remains in `BACKREF_BOUNTIES.md`.
+- Next smallest safe step: wait for an admin-created production integration or
+  statement-freeze task; otherwise keep future work to additive pilot-only
+  packaging.
 
 ## Semantic Left-Quotient Finite-Universe Bounds (2026-05-27)
 

@@ -1075,6 +1075,66 @@ proof -
   finally show ?thesis .
 qed
 
+theorem BL_bound_residual_derivative_family_subset_bounded_strings:
+  assumes "BL_bound r = Some n"
+  shows "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+proof
+  fix A
+  assume "A \<in> {BL (xders (xders r s) t) | t. True}"
+  then obtain t where A: "A = BL (xders (xders r s) t)"
+    by blast
+  then have "A = BL (xders r (s @ t))"
+    by (simp add: xders_append)
+  then show "A \<in> Pow (bounded_strings n)"
+    using BL_bound_derivative_family_subset_bounded_strings[OF assms] by blast
+qed
+
+theorem GBL_bound_residual_derivative_family_subset_bounded_strings:
+  assumes "GBL_bound r = Some n"
+  shows "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+proof
+  fix A
+  assume "A \<in> {GBL (gxders (gxders r s) t) | t. True}"
+  then obtain t where A: "A = GBL (gxders (gxders r s) t)"
+    by blast
+  then have "A = GBL (gxders r (s @ t))"
+    by (simp add: gxders_append)
+  then show "A \<in> Pow (bounded_strings n)"
+    using GBL_bound_derivative_family_subset_bounded_strings[OF assms] by blast
+qed
+
+theorem BL_bound_residual_derivative_family_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card {BL (xders (xders r s) t) | t. True} \<le>
+    2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{BL (xders (xders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule BL_bound_residual_derivative_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {BL (xders (xders r s) t) | t. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
+theorem GBL_bound_residual_derivative_family_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card {GBL (gxders (gxders r s) t) | t. True} \<le>
+    2 ^ card (bounded_strings n)"
+proof -
+  have sub: "{GBL (gxders (gxders r s) t) | t. True} \<subseteq> Pow (bounded_strings n)"
+    using assms by (rule GBL_bound_residual_derivative_family_subset_bounded_strings)
+  have fin_pow: "finite (Pow (bounded_strings n))"
+    using finite_bounded_strings by simp
+  have "card {GBL (gxders (gxders r s) t) | t. True} \<le> card (Pow (bounded_strings n))"
+    by (rule card_mono[OF fin_pow sub])
+  also have "... = 2 ^ card (bounded_strings n)"
+    by (rule card_Pow_finite[OF finite_bounded_strings])
+  finally show ?thesis .
+qed
+
 theorem BL_bound_BBACKREF_derivative_family_subset_bounded_strings:
   assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
   shows "{BL (xders (BBACKREF r mid cs) s) | s. True} \<subseteq>
