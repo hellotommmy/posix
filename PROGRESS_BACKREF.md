@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded nullable result wrappers)
+Last updated: 2026-05-27 (value lexer POSIX iff)
 
 ## Current Branch
 
@@ -18,6 +18,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding the direct value-lexer POSIX
+  characterization `blexer_POSIX_correctness`, proving
+  `blexer r s = Some v \<longleftrightarrow> s \<in> r \<rightarrow> v` from the existing
+  POSIX soundness and determinism facts. Files changed before this progress
+  note: `BackRefValues.thy` (+20). Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:16 elapsed). Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:18 elapsed), with `BackRefValues` replaying in about 9.7
+  seconds. Final full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix`, Isabelle `BackRefPilot`, statement guard, and
+  local CI certificate generation. Next smallest safe step: stop until the
+  admin opens a new bounty/phase, or add only similarly direct downstream
+  packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct nullable-result wrappers for the
   ordinary and generalized bitcoded lexer frontends. New checked facts are

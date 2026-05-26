@@ -1521,6 +1521,26 @@ next
   then show "(c # s) \<in> r \<rightarrow> v" using v'(2) by simp
 qed
 
+theorem blexer_POSIX_correctness:
+  "blexer r s = Some v \<longleftrightarrow> s \<in> r \<rightarrow> v"
+proof
+  assume "blexer r s = Some v"
+  then show "s \<in> r \<rightarrow> v"
+    by (rule blexer_POSIX)
+next
+  assume pos: "s \<in> r \<rightarrow> v"
+  then have "s \<in> BL r"
+    by (rule BPosix1(1))
+  then obtain w where w: "blexer r s = Some w"
+    using blexer_correctness_defined by blast
+  then have "s \<in> r \<rightarrow> w"
+    by (rule blexer_POSIX)
+  then have "w = v"
+    using pos by (rule BPosix_determ)
+  with w show "blexer r s = Some v"
+    by simp
+qed
+
 lemma blexer_POSIX_iff:
   "s \<in> BL r \<longleftrightarrow> (\<exists>v. blexer r s = Some v \<and> s \<in> r \<rightarrow> v)"
 proof
