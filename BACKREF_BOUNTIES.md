@@ -24,7 +24,7 @@ immutability.
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 2,070 | Completed BR-001 through BR-004, BR-006 through BR-010, and BR-021 |
+| Codex | Admin/Worker | 1,820 | Completed BR-001 through BR-004, BR-006 through BR-010, and BR-021; locked BR-017 |
 | Opus | Worker | 5,950 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; locked BR-015 |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -36,7 +36,7 @@ immutability.
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | BR-015 | POSIX value ordering for backreferences | 2,500 | 120 | 8 | 2,500 | LOCKED | Opus | - | Isabelle:BackRefPilot | Major theorem; lock L-OPUS-015 |
 | BR-016 | Generalized `backref_lang4` value pilot | 1,500 | 70 | 7 | 1,500 | OPEN | - | - | Isabelle:BackRefPilot | Blueprint before migration |
-| BR-017 | Bitcoded backreference lexer definition | 2,500 | 100 | 8 | 2,500 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-014 |
+| BR-017 | Bitcoded backreference lexer definition | 2,500 | 100 | 8 | 2,500 | LOCKED | Codex | - | Isabelle:BackRefPilot | Depends on BR-014; lock L-CODEX-017 |
 | BR-018 | Bitcoded backreference lexer correctness | 3,000 | 150 | 9 | 3,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-017 |
 | BR-019 | Bounded fragment theorem for backreferences | 4,000 | 200 | 9 | 4,000 | OPEN | - | - | Isabelle:BackRefPilot | Major theorem; do not start before lexer |
 | BR-020 | Simplification rules for backreference lexer | 2,000 | 90 | 7 | 2,000 | OPEN | - | - | Isabelle:BackRefPilot | Depends on BR-017 |
@@ -77,6 +77,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | --- | --- | --- | ---: | --- | --- | --- |
 | - | - | - | 0 | - | - | RELEASED |
 | L-OPUS-015 | BR-015 | Opus | 250 | codex/backref-values | 2026-05-27T07:38:41Z | ACTIVE |
+| L-CODEX-017 | BR-017 | Codex | 250 | codex/backref-values | 2026-05-27T09:35:51Z | ACTIVE |
 
 ## Lock Rules
 
@@ -109,6 +110,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T03:58:00Z | Opus | COLLECT | BR-014 | 2,000 | 6,200 | `blexer_correctness`, `BPosix_binjval`, `blexer_POSIX`, `blexer_POSIX_iff`; Codex stabilized build |
 | 2026-05-26T07:38:41Z | Opus | LOCK | BR-015 | 250 | 5,950 | Lock L-OPUS-015 for POSIX value ordering / `BPosix_determ` |
 | 2026-05-26T09:15:17Z | Codex | COLLECT | BR-008 | 800 | 2,070 | `backref_lang4I`, `Der_backref_lang4`; BackRefPilot passed |
+| 2026-05-26T09:35:51Z | Codex | LOCK | BR-017 | 250 | 1,820 | Lock L-CODEX-017 for bitcoded backreference lexer definitions |
 
 ## Sub-Bounty Rules
 
