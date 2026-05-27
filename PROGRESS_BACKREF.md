@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bounded quotient finite/card wrappers)
+Last updated: 2026-05-27 (bitcoded frontend derivative-nullability wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,35 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard PASS after adding derivative-nullability
+  wrappers for the ordinary and generalized bitcoded frontend groups. New
+  checked facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_xnullable_iff`,
+  `bblexer_frontends_xnullable_same_iff`,
+  `gbblexer_frontends_gnullable_iff`, and
+  `gbblexer_frontends_gnullable_same_iff`, packaging all three frontend
+  variants against the nullable final derivative (`xnullable (xders r s)` /
+  `gnullable (gxders r s)`) and the shared accepted-input bit witness. Files
+  changed before this progress note: `BackRefBitcodedSummary.thy` (+110) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.479 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.517 seconds. Pre-progress full local CI passed with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix` (0:37 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed, cached), and local CI certificate generation;
+  explicit statement guard PASS. After fast-forwarding to concurrent remote
+  commit `e0aee64` and then rebasing over `23fb6c1`, the progress conflicts
+  were limited to title/order; all progress entries were preserved. Final
+  post-rebase full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:17
+  elapsed), `BackRefBitcodedSummary` replaying in about 0.564 seconds, and
+  local CI certificate generation; explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct semantic left-quotient and
   residual-left-quotient finiteness/cardinality wrappers in

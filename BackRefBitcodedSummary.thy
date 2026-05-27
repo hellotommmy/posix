@@ -261,6 +261,61 @@ next
     using bblexer_frontends_BL_obtains_same by blast
 qed
 
+theorem bblexer_frontends_xnullable_iff:
+  "bblexer r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  "bblexer_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  "bblexer_step_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  "bblexer r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+  "bblexer_simp r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbsimp (bbders (baintern r) s)) (bmkeps (xders r s))"
+  "bblexer_step_simp r s = Some bs \<longleftrightarrow>
+    xnullable (xders r s) \<and>
+    bs = bretrieve (bbders_simp (baintern r) s) (bmkeps (xders r s))"
+  by (simp_all add: bblexer_None_xnullable_iff
+      bblexer_simp_None_xnullable_iff bblexer_step_simp_None_xnullable_iff
+      bblexer_Some_xnullable_iff bblexer_simp_Some_xnullable_iff
+      bblexer_step_simp_Some_xnullable_iff)
+
+theorem bblexer_frontends_xnullable_same_iff:
+  "bblexer r s = None \<and>
+    bblexer_simp r s = None \<and>
+    bblexer_step_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+  "(\<exists>bs. bblexer r s = Some bs \<and>
+    bblexer_simp r s = Some bs \<and>
+    bblexer_step_simp r s = Some bs) \<longleftrightarrow> xnullable (xders r s)"
+proof -
+  show "bblexer r s = None \<and>
+      bblexer_simp r s = None \<and>
+      bblexer_step_simp r s = None \<longleftrightarrow> \<not> xnullable (xders r s)"
+    by (simp add: bblexer_frontends_xnullable_iff)
+  show "(\<exists>bs. bblexer r s = Some bs \<and>
+      bblexer_simp r s = Some bs \<and>
+      bblexer_step_simp r s = Some bs) \<longleftrightarrow> xnullable (xders r s)"
+  proof
+    assume "\<exists>bs. bblexer r s = Some bs \<and>
+      bblexer_simp r s = Some bs \<and>
+      bblexer_step_simp r s = Some bs"
+    then show "xnullable (xders r s)"
+      by (auto simp add: bblexer_frontends_xnullable_iff)
+  next
+    assume nullable: "xnullable (xders r s)"
+    let ?bs = "bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+    have b: "bblexer r s = Some ?bs"
+      using nullable by (simp add: bblexer_frontends_xnullable_iff)
+    then have simp: "bblexer_simp r s = Some ?bs"
+      by (simp add: bblexer_frontends_eq)
+    from b have step_simp: "bblexer_step_simp r s = Some ?bs"
+      by (simp add: bblexer_frontends_eq)
+    show "\<exists>bs. bblexer r s = Some bs \<and>
+      bblexer_simp r s = Some bs \<and>
+      bblexer_step_simp r s = Some bs"
+      using b simp step_simp by blast
+  qed
+qed
+
 theorem bblexer_frontends_BL_final_cases:
   obtains (reject) "s \<notin> BL r"
     "bblexer r s = None"
@@ -520,6 +575,61 @@ next
     gbblexer_simp r s = Some bs \<and>
     gbblexer_step_simp r s = Some bs"
     using gbblexer_frontends_GBL_obtains_same by blast
+qed
+
+theorem gbblexer_frontends_gnullable_iff:
+  "gbblexer r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  "gbblexer_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  "gbblexer_step_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  "gbblexer r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+  "gbblexer_simp r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabbsimp (gabders (gaintern r) s)) (gmkeps (gxders r s))"
+  "gbblexer_step_simp r s = Some bs \<longleftrightarrow>
+    gnullable (gxders r s) \<and>
+    bs = gretrieve (gabders_simp (gaintern r) s) (gmkeps (gxders r s))"
+  by (simp_all add: gbblexer_None_gnullable_iff
+      gbblexer_simp_None_gnullable_iff gbblexer_step_simp_None_gnullable_iff
+      gbblexer_Some_gnullable_iff gbblexer_simp_Some_gnullable_iff
+      gbblexer_step_simp_Some_gnullable_iff)
+
+theorem gbblexer_frontends_gnullable_same_iff:
+  "gbblexer r s = None \<and>
+    gbblexer_simp r s = None \<and>
+    gbblexer_step_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+  "(\<exists>bs. gbblexer r s = Some bs \<and>
+    gbblexer_simp r s = Some bs \<and>
+    gbblexer_step_simp r s = Some bs) \<longleftrightarrow> gnullable (gxders r s)"
+proof -
+  show "gbblexer r s = None \<and>
+      gbblexer_simp r s = None \<and>
+      gbblexer_step_simp r s = None \<longleftrightarrow> \<not> gnullable (gxders r s)"
+    by (simp add: gbblexer_frontends_gnullable_iff)
+  show "(\<exists>bs. gbblexer r s = Some bs \<and>
+      gbblexer_simp r s = Some bs \<and>
+      gbblexer_step_simp r s = Some bs) \<longleftrightarrow> gnullable (gxders r s)"
+  proof
+    assume "\<exists>bs. gbblexer r s = Some bs \<and>
+      gbblexer_simp r s = Some bs \<and>
+      gbblexer_step_simp r s = Some bs"
+    then show "gnullable (gxders r s)"
+      by (auto simp add: gbblexer_frontends_gnullable_iff)
+  next
+    assume nullable: "gnullable (gxders r s)"
+    let ?bs = "gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+    have b: "gbblexer r s = Some ?bs"
+      using nullable by (simp add: gbblexer_frontends_gnullable_iff)
+    then have simp: "gbblexer_simp r s = Some ?bs"
+      by (simp add: gbblexer_frontends_eq)
+    from b have step_simp: "gbblexer_step_simp r s = Some ?bs"
+      by (simp add: gbblexer_frontends_eq)
+    show "\<exists>bs. gbblexer r s = Some bs \<and>
+      gbblexer_simp r s = Some bs \<and>
+      gbblexer_step_simp r s = Some bs"
+      using b simp step_simp by blast
+  qed
 qed
 
 theorem gbblexer_frontends_GBL_final_cases:
