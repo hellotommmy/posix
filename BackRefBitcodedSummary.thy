@@ -448,6 +448,97 @@ theorem bblexer_frontends_final_retrieve_correctness:
         bblexer_simp_retrieve_correctness(2,3)
         bblexer_step_simp_retrieve_correctness(2,3))
 
+theorem bblexer_frontends_xders_defined_BL_iff:
+  "(\<exists>bs. bblexer (xders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> BL r"
+  "(\<exists>bs. bblexer_simp (xders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> BL r"
+  "(\<exists>bs. bblexer_step_simp (xders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> BL r"
+  by (simp_all add: bblexer_frontends_defined_BL_iff xders_correctness Ders_def)
+
+theorem bblexer_frontends_xders_None_BL_iff:
+  "bblexer (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
+  "bblexer_simp (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
+  "bblexer_step_simp (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
+  by (simp_all add: bblexer_frontends_BL_iff xders_correctness Ders_def)
+
+theorem bblexer_frontends_xders_Some_BL:
+  "bblexer (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+  "bblexer_simp (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+  "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+proof -
+  show "bblexer (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+    using bblexer_frontends_xders_defined_BL_iff(1) by blast
+  show "bblexer_simp (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+    using bblexer_frontends_xders_defined_BL_iff(2) by blast
+  show "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow> p @ s \<in> BL r"
+    using bblexer_frontends_xders_defined_BL_iff(3) by blast
+qed
+
+theorem bblexer_frontends_xders_BL_cases:
+  obtains (reject) "p @ s \<notin> BL r"
+    "bblexer (xders r p) s = None"
+    "bblexer_simp (xders r p) s = None"
+    "bblexer_step_simp (xders r p) s = None"
+  | (accept) bs where "p @ s \<in> BL r"
+    "bblexer (xders r p) s = Some bs"
+    "bblexer_simp (xders r p) s = Some bs"
+    "bblexer_step_simp (xders r p) s = Some bs"
+proof (cases "p @ s \<in> BL r")
+  case True
+  then have residual: "s \<in> BL (xders r p)"
+    by (simp add: xders_correctness Ders_def)
+  then obtain bs where b: "bblexer (xders r p) s = Some bs"
+    and simp: "bblexer_simp (xders r p) s = Some bs"
+    and step_simp: "bblexer_step_simp (xders r p) s = Some bs"
+    by (rule bblexer_frontends_BL_obtains_same)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "bblexer (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  have simp_none: "bblexer_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  have step_simp_none: "bblexer_step_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
+theorem bblexer_frontends_xders_final_cases:
+  obtains (reject) "p @ s \<notin> BL r"
+    "bblexer (xders r p) s = None"
+    "bblexer_simp (xders r p) s = None"
+    "bblexer_step_simp (xders r p) s = None"
+  | (accept) "p @ s \<in> BL r"
+    "bblexer (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+    "bblexer_simp (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+    "bblexer_step_simp (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+proof (cases "p @ s \<in> BL r")
+  case True
+  then have residual: "s \<in> BL (xders r p)"
+    by (simp add: xders_correctness Ders_def)
+  have b: "bblexer (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+    using residual by (simp add: bblexer_frontends_final_same xders_append)
+  have simp: "bblexer_simp (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+    using residual by (simp add: bblexer_frontends_final_same xders_append)
+  have step_simp: "bblexer_step_simp (xders r p) s =
+      Some (bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s))))"
+    using residual by (simp add: bblexer_frontends_final_same xders_append)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "bblexer (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  have simp_none: "bblexer_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  have step_simp_none: "bblexer_step_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BL_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -852,5 +943,96 @@ theorem gbblexer_frontends_final_retrieve_correctness:
       intro: gbblexer_retrieve_correctness(2,3)
         gbblexer_simp_retrieve_correctness(2,3)
         gbblexer_step_simp_retrieve_correctness(2,3))
+
+theorem gbblexer_frontends_gxders_defined_GBL_iff:
+  "(\<exists>bs. gbblexer (gxders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> GBL r"
+  "(\<exists>bs. gbblexer_simp (gxders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> GBL r"
+  "(\<exists>bs. gbblexer_step_simp (gxders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> GBL r"
+  by (simp_all add: gbblexer_frontends_defined_GBL_iff gxders_correctness Ders_def)
+
+theorem gbblexer_frontends_gxders_None_GBL_iff:
+  "gbblexer (gxders r p) s = None \<longleftrightarrow> p @ s \<notin> GBL r"
+  "gbblexer_simp (gxders r p) s = None \<longleftrightarrow> p @ s \<notin> GBL r"
+  "gbblexer_step_simp (gxders r p) s = None \<longleftrightarrow> p @ s \<notin> GBL r"
+  by (simp_all add: gbblexer_frontends_GBL_iff gxders_correctness Ders_def)
+
+theorem gbblexer_frontends_gxders_Some_GBL:
+  "gbblexer (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+  "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+proof -
+  show "gbblexer (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+    using gbblexer_frontends_gxders_defined_GBL_iff(1) by blast
+  show "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+    using gbblexer_frontends_gxders_defined_GBL_iff(2) by blast
+  show "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
+    using gbblexer_frontends_gxders_defined_GBL_iff(3) by blast
+qed
+
+theorem gbblexer_frontends_gxders_GBL_cases:
+  obtains (reject) "p @ s \<notin> GBL r"
+    "gbblexer (gxders r p) s = None"
+    "gbblexer_simp (gxders r p) s = None"
+    "gbblexer_step_simp (gxders r p) s = None"
+  | (accept) bs where "p @ s \<in> GBL r"
+    "gbblexer (gxders r p) s = Some bs"
+    "gbblexer_simp (gxders r p) s = Some bs"
+    "gbblexer_step_simp (gxders r p) s = Some bs"
+proof (cases "p @ s \<in> GBL r")
+  case True
+  then have residual: "s \<in> GBL (gxders r p)"
+    by (simp add: gxders_correctness Ders_def)
+  then obtain bs where b: "gbblexer (gxders r p) s = Some bs"
+    and simp: "gbblexer_simp (gxders r p) s = Some bs"
+    and step_simp: "gbblexer_step_simp (gxders r p) s = Some bs"
+    by (rule gbblexer_frontends_GBL_obtains_same)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "gbblexer (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  have simp_none: "gbblexer_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  have step_simp_none: "gbblexer_step_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
+theorem gbblexer_frontends_gxders_final_cases:
+  obtains (reject) "p @ s \<notin> GBL r"
+    "gbblexer (gxders r p) s = None"
+    "gbblexer_simp (gxders r p) s = None"
+    "gbblexer_step_simp (gxders r p) s = None"
+  | (accept) "p @ s \<in> GBL r"
+    "gbblexer (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+    "gbblexer_simp (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+    "gbblexer_step_simp (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+proof (cases "p @ s \<in> GBL r")
+  case True
+  then have residual: "s \<in> GBL (gxders r p)"
+    by (simp add: gxders_correctness Ders_def)
+  have b: "gbblexer (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+    using residual by (simp add: gbblexer_frontends_final_same gxders_append)
+  have simp: "gbblexer_simp (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+    using residual by (simp add: gbblexer_frontends_final_same gxders_append)
+  have step_simp: "gbblexer_step_simp (gxders r p) s =
+      Some (gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s))))"
+    using residual by (simp add: gbblexer_frontends_final_same gxders_append)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "gbblexer (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  have simp_none: "gbblexer_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  have step_simp_none: "gbblexer_step_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
 
 end

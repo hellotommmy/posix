@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (generalized derivative-prefix GPrf wrappers)
+Last updated: 2026-05-27 (bitcoded frontend derivative-prefix wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,43 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding ordinary and generalized bitcoded
+  frontend derivative-prefix wrappers. New checked facts in
+  `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_xders_defined_BL_iff`,
+  `bblexer_frontends_xders_None_BL_iff`,
+  `bblexer_frontends_xders_Some_BL`,
+  `bblexer_frontends_xders_BL_cases`,
+  `bblexer_frontends_xders_final_cases`,
+  `gbblexer_frontends_gxders_defined_GBL_iff`,
+  `gbblexer_frontends_gxders_None_GBL_iff`,
+  `gbblexer_frontends_gxders_Some_GBL`,
+  `gbblexer_frontends_gxders_GBL_cases`, and
+  `gbblexer_frontends_gxders_final_cases`, packaging all three bitcoded
+  frontend variants after a consumed derivative prefix `p` against
+  `p @ s` membership in the original ordinary/generalized language and the
+  normalized residual final-retrieve output. Files changed before this
+  progress note: `BackRefBitcodedSummary.thy` (+182) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:18 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.721 seconds. An initial post-edit proof attempt failed only for the
+  bundled `Some` membership wrappers because `auto` did not extract the
+  existential-defined equivalence strongly enough; the proof was narrowed to
+  explicit per-frontend `blast` steps. Post-fix pilot-only local CI passed
+  with `BackRefPilot` (0:18 elapsed), with `BackRefBitcodedSummary` replaying
+  in about 2.025 seconds. Full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:34 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed, cached), and local CI certificate generation.
+  After fast-forwarding to concurrent remote commit `57c8cdb`, the autostash
+  conflict was limited to `PROGRESS_BACKREF.md` title/order and both progress
+  entries plus theory changes were preserved. Final post-rebase full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:36 elapsed), Isabelle `BackRefPilot` (0:18 elapsed),
+  `BackRefBitcodedSummary` replaying in about 0.930 seconds, and local CI
+  certificate generation; explicit statement guard PASS. Next smallest safe
+  step: stop until the admin opens a new bounty/phase, or add only similarly
+  direct downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding derivative-prefix `GPrf`
