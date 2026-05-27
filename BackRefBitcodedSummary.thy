@@ -473,6 +473,90 @@ proof -
     using bblexer_frontends_xders_defined_BL_iff(3) by blast
 qed
 
+theorem bblexer_frontends_xders_BPrf_retrieve_iff:
+  "bblexer (xders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer (xders r p) s = Some v \<and>
+      \<Turnstile>b v : xders r p \<and> bflat v = s \<and>
+      bs = bretrieve (baintern (xders r p)) v)"
+  "bblexer_simp (xders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer (xders r p) s = Some v \<and>
+      \<Turnstile>b v : xders r p \<and> bflat v = s \<and>
+      bs = bretrieve (baintern (xders r p)) v)"
+  "bblexer_step_simp (xders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. blexer (xders r p) s = Some v \<and>
+      \<Turnstile>b v : xders r p \<and> bflat v = s \<and>
+      bs = bretrieve (baintern (xders r p)) v)"
+  by (simp_all add: bblexer_frontends_BPrf_retrieve_iff)
+
+theorem bblexer_frontends_xders_defined_BPrf_iff:
+  "(\<exists>bs. bblexer (xders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "(\<exists>bs. bblexer_simp (xders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "(\<exists>bs. bblexer_step_simp (xders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  by (simp_all add: bblexer_frontends_defined_BPrf_iff)
+
+theorem bblexer_frontends_xders_None_BPrf_iff:
+  "bblexer (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "bblexer_simp (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "bblexer_step_simp (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  by (simp_all add: bblexer_frontends_None_BPrf_iff)
+
+theorem bblexer_frontends_xders_Some_BPrf:
+  "bblexer (xders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "bblexer_simp (xders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+proof -
+  show "bblexer (xders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+    using bblexer_frontends_xders_defined_BPrf_iff(1) by blast
+  show "bblexer_simp (xders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+    using bblexer_frontends_xders_defined_BPrf_iff(2) by blast
+  show "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+    using bblexer_frontends_xders_defined_BPrf_iff(3) by blast
+qed
+
+theorem bblexer_frontends_xders_BPrf_cases:
+  obtains (reject) "\<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+    "bblexer (xders r p) s = None"
+    "bblexer_simp (xders r p) s = None"
+    "bblexer_step_simp (xders r p) s = None"
+  | (accept) v bs where "\<Turnstile>b v : xders r p"
+    "bflat v = s"
+    "bblexer (xders r p) s = Some bs"
+    "bblexer_simp (xders r p) s = Some bs"
+    "bblexer_step_simp (xders r p) s = Some bs"
+proof (cases "\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s")
+  case True
+  then obtain v where v: "\<Turnstile>b v : xders r p" "bflat v = s"
+    by blast
+  from True obtain bs where b: "bblexer (xders r p) s = Some bs"
+    using bblexer_frontends_xders_defined_BPrf_iff(1) by blast
+  then have simp: "bblexer_simp (xders r p) s = Some bs"
+    by (simp add: bblexer_frontends_eq)
+  from b have step_simp: "bblexer_step_simp (xders r p) s = Some bs"
+    by (simp add: bblexer_frontends_eq)
+  show thesis by (rule accept[OF v b simp step_simp])
+next
+  case False
+  have none: "bblexer (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BPrf_iff)
+  have simp_none: "bblexer_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BPrf_iff)
+  have step_simp_none: "bblexer_step_simp (xders r p) s = None"
+    using False by (simp add: bblexer_frontends_xders_None_BPrf_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
 theorem bblexer_frontends_xders_BL_cases:
   obtains (reject) "p @ s \<notin> BL r"
     "bblexer (xders r p) s = None"
@@ -1010,6 +1094,90 @@ theorem gbblexer_frontends_gxders_same_iff:
     gbblexer_step_simp (gxders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> GBL r"
   by (simp_all add: gbblexer_frontends_all_None_iff
       gbblexer_frontends_same_Some_iff gxders_correctness Ders_def)
+
+theorem gbblexer_frontends_gxders_GPrf_retrieve_iff:
+  "gbblexer (gxders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer (gxders r p) s = Some v \<and>
+      \<Turnstile>g v : gxders r p \<and> gflat v = s \<and>
+      bs = gretrieve (gaintern (gxders r p)) v)"
+  "gbblexer_simp (gxders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer (gxders r p) s = Some v \<and>
+      \<Turnstile>g v : gxders r p \<and> gflat v = s \<and>
+      bs = gretrieve (gaintern (gxders r p)) v)"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<longleftrightarrow>
+    (\<exists>v. gblexer (gxders r p) s = Some v \<and>
+      \<Turnstile>g v : gxders r p \<and> gflat v = s \<and>
+      bs = gretrieve (gaintern (gxders r p)) v)"
+  by (simp_all add: gbblexer_frontends_GPrf_retrieve_iff)
+
+theorem gbblexer_frontends_gxders_defined_GPrf_iff:
+  "(\<exists>bs. gbblexer (gxders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "(\<exists>bs. gbblexer_simp (gxders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "(\<exists>bs. gbblexer_step_simp (gxders r p) s = Some bs) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  by (simp_all add: gbblexer_frontends_defined_GPrf_iff)
+
+theorem gbblexer_frontends_gxders_None_GPrf_iff:
+  "gbblexer (gxders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "gbblexer_simp (gxders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "gbblexer_step_simp (gxders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  by (simp_all add: gbblexer_frontends_None_GPrf_iff)
+
+theorem gbblexer_frontends_gxders_Some_GPrf:
+  "gbblexer (gxders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+proof -
+  show "gbblexer (gxders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+    using gbblexer_frontends_gxders_defined_GPrf_iff(1) by blast
+  show "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+    using gbblexer_frontends_gxders_defined_GPrf_iff(2) by blast
+  show "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow>
+      (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+    using gbblexer_frontends_gxders_defined_GPrf_iff(3) by blast
+qed
+
+theorem gbblexer_frontends_gxders_GPrf_cases:
+  obtains (reject) "\<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+    "gbblexer (gxders r p) s = None"
+    "gbblexer_simp (gxders r p) s = None"
+    "gbblexer_step_simp (gxders r p) s = None"
+  | (accept) v bs where "\<Turnstile>g v : gxders r p"
+    "gflat v = s"
+    "gbblexer (gxders r p) s = Some bs"
+    "gbblexer_simp (gxders r p) s = Some bs"
+    "gbblexer_step_simp (gxders r p) s = Some bs"
+proof (cases "\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s")
+  case True
+  then obtain v where v: "\<Turnstile>g v : gxders r p" "gflat v = s"
+    by blast
+  from True obtain bs where b: "gbblexer (gxders r p) s = Some bs"
+    using gbblexer_frontends_gxders_defined_GPrf_iff(1) by blast
+  then have simp: "gbblexer_simp (gxders r p) s = Some bs"
+    by (simp add: gbblexer_frontends_eq)
+  from b have step_simp: "gbblexer_step_simp (gxders r p) s = Some bs"
+    by (simp add: gbblexer_frontends_eq)
+  show thesis by (rule accept[OF v b simp step_simp])
+next
+  case False
+  have none: "gbblexer (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GPrf_iff)
+  have simp_none: "gbblexer_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GPrf_iff)
+  have step_simp_none: "gbblexer_step_simp (gxders r p) s = None"
+    using False by (simp add: gbblexer_frontends_gxders_None_GPrf_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
 
 theorem gbblexer_frontends_gxders_GBL_cases:
   obtains (reject) "p @ s \<notin> GBL r"

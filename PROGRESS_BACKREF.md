@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded derivative-prefix final retrieve wrappers)
+Last updated: 2026-05-27 (bitcoded frontend derivative-prefix evidence wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,44 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding ordinary and generalized bitcoded
+  frontend derivative-prefix residual-evidence wrappers. New checked facts in
+  `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_xders_BPrf_retrieve_iff`,
+  `bblexer_frontends_xders_defined_BPrf_iff`,
+  `bblexer_frontends_xders_None_BPrf_iff`,
+  `bblexer_frontends_xders_Some_BPrf`,
+  `bblexer_frontends_xders_BPrf_cases`,
+  `gbblexer_frontends_gxders_GPrf_retrieve_iff`,
+  `gbblexer_frontends_gxders_defined_GPrf_iff`,
+  `gbblexer_frontends_gxders_None_GPrf_iff`,
+  `gbblexer_frontends_gxders_Some_GPrf`, and
+  `gbblexer_frontends_gxders_GPrf_cases`, packaging all three bitcoded
+  frontend variants after a consumed derivative prefix `p` against explicit
+  residual `BPrf`/`GPrf` evidence for `xders r p` / `gxders r p`. Files
+  changed before this progress note: `BackRefBitcodedSummary.thy` (+168) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:18 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.905 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 1.019 seconds. Pre-progress full local CI passed with no-cheat guard,
+  bounty guard, admin role guard, Isabelle `Posix` (0:04 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed), and local CI certificate generation. After
+  fast-forwarding to concurrent remote commit `abcd83e`, the autostash
+  conflict was limited to the `BackRefBitcodedSummary.thy` generalized
+  derivative-prefix insertion point and the `PROGRESS_BACKREF.md` title; both
+  the remote `*_same_iff` wrappers and this residual-evidence wrapper set were
+  preserved. Post-sync pilot-only local CI passed with `BackRefPilot` (0:18
+  elapsed), with `BackRefBitcodedSummary` replaying in about 0.970 seconds.
+  After rebasing over concurrent remote commit `645b9ec`, the conflict was
+  limited to `PROGRESS_BACKREF.md` title/order and both progress entries plus
+  theory changes were preserved. Final post-rebase full local CI passed with
+  no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`, Isabelle
+  `BackRefPilot`, and local CI certificate generation; explicit statement
+  guard PASS. Next smallest safe step: stop until the admin opens a new
+  bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding ordinary and generalized
