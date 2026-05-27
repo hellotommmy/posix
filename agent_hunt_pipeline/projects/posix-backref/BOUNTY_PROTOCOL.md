@@ -145,6 +145,35 @@ The ledger entry alone does not pay the bounty. The payout is recognized only
 for a commit whose local or GitHub CI certificate says the corresponding
 Isabelle sessions passed.
 
+## Bounty Eligibility
+
+Wrapper-only theorem packages are not bounty-eligible. A wrapper-only package
+is a set of lemmas that mainly restates, bundles, renames, specializes, or
+combines already checked facts without adding a new semantic definition, a new
+algorithmic definition, or a nontrivial proof bridge that was missing before.
+
+Examples of non-eligible work:
+
+- frontend equality summaries that are direct `simp` consequences of existing
+  correctness theorems;
+- `*_cases`, `*_iff`, `*_same`, and `*_retrieve_eq` facts that merely repackage
+  existing acceptance/rejection theorems;
+- downstream boundedness/cardinality restatements that only instantiate an
+  already proved finite-family theorem.
+
+Eligible bounties must target one of:
+
+- a new checked semantic or algorithmic layer;
+- a central correctness theorem whose proof is not just theorem packaging;
+- a proof-system bridge, such as a rewriting relation, derivative-commutation
+  theorem, value/retrieval preservation theorem, or finite-bound theorem that
+  is needed by later work.
+
+When in doubt, mark the task `BLOCKED` and ask the admin before locking or
+collecting it. Existing wrapper facts may stay in the repository as useful API
+surface, but they are documentation/interface conveniences, not bounty
+deliverables.
+
 ## Strategic Guidance
 
 Following the Agent Hunt paper:

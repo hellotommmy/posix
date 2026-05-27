@@ -7,6 +7,11 @@ for theorem bounties but are incentivized to collaborate.
 Amounts are in simulated USD. A payout is valid only when the named artifact
 exists, the guards pass, and the required Isabelle CI session succeeds.
 
+Admin policy update: wrapper-only theorem packages do not count as bounty
+deliverables. Summary/cases/iff/same/retrieve-equality facts may remain as API
+convenience lemmas, but future bounty claims must introduce a new semantic or
+algorithmic layer, or a nontrivial proof bridge needed by later work.
+
 See `agent_hunt_pipeline/projects/posix-backref/BOUNTY_PROTOCOL.md` for the
 full rules including locking, sub-bounties, effort estimates, and statement
 immutability.
@@ -16,9 +21,9 @@ immutability.
 | Category | Amount |
 | --- | ---: |
 | Total pool | 50,000 |
-| Allocated (active + completed) | 24,970 |
+| Allocated (active + completed) | 25,090 |
 | Collected (paid out) | 24,970 |
-| Reserved (unallocated) | 25,030 |
+| Reserved (unallocated) | 24,910 |
 
 ## Agent Balances
 
@@ -34,6 +39,7 @@ immutability.
 
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
+| BR-023 | Original-file migration TODO audit | 120 | 30 | 3 | 120 | OPEN | - | RegLangs.thy;PosixSpec.thy;Lexer.thy;LexerSimp.thy;Blexer.thy;BlexerSimp.thy;BasicIdentities.thy;GeneralRegexBound.thy;ClosedForms.thy;ClosedFormsBounds.thy;FBound.thy | AdminReview | Small planning bounty only; no theorem payout until admin approves direct original-file implementation |
 
 ## Completed
 

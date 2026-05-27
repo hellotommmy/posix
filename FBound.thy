@@ -10,6 +10,10 @@ fun distinctBy :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b 
      (if (f x) \<in> acc then distinctBy xs f acc 
       else x # (distinctBy xs f ({f x} \<union> acc)))"
 
+(* BACKREF-MIGRATION-TODO (deletion/migration note, ADMIN APPROVAL REQUIRED):
+   rerase is the bridge from arexp to rrexp. If admin removes rrexp, delete this
+   bridge and migrate annotated_size_bound to reason over arexp/rexp directly.
+   If rrexp is temporarily retained, add cases for the new arexp constructors. *)
 fun rerase :: "arexp \<Rightarrow> rrexp"
 where
   "rerase AZERO = RZERO"
@@ -145,6 +149,10 @@ lemma rerase_earlier_later_same:
   apply simp
   done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend bsimp_rerase for the new constructor cases if rrexp is retained. If
+   rrexp is removed, replace this transfer lemma with a direct arexp/rexp
+   simplifier bound proof. *)
 lemma bsimp_rerase:
   shows "rerase (bsimp a) = rsimp (rerase a)"
   apply(induct a rule: bsimp.induct)
@@ -152,6 +160,10 @@ lemma bsimp_rerase:
   using rerase_bsimp_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same by fastforce
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original bound-transfer proof for the new constructor cases.
+   Bounty counts only if annotated_size_bound itself is preserved or directly
+   strengthened; separate wrapper bounds do not count. *)
 lemma rders_simp_size:
   shows "rders_simp (rerase r) s  = rerase (bders_simp r s)"
   apply(induct s rule: rev_induct)
@@ -172,6 +184,9 @@ proof -
   then show "\<exists>N. \<forall>s. asize (bders_simp r s) \<le> N" by blast
 qed
   
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original final bound theorem for the approved representation.
+   Do not claim a separate BackRefBoundedBlueprint wrapper as the final bounty. *)
 theorem annotated_size_bound:
   shows "\<exists>N. \<forall>s. asize (bders_simp r s) \<le> N"
   apply(insert aders_simp_finiteness)

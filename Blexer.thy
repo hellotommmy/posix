@@ -5,8 +5,18 @@ begin
 
 section \<open>Bit-Encodings\<close>
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
+   Decide the final bit-code representation for backreference evidence before
+   editing this file. Either extend the existing bit alphabet or encode
+   backreference payloads without introducing a parallel bbit datatype. Do not
+   add bblexer/gbblexer wrapper frontends; bounty only counts for extending the
+   original code/decode/retrieve/blexer theorem chain. *)
 datatype bit = Z | S
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Extend code for the new original value constructors and the approved
+   backreference bit representation. The goal remains decode (retrieve ...)
+   for the original lexer pipeline, not a separate bit-output wrapper. *)
 fun code :: "val \<Rightarrow> bit list"
 where
   "code Void = []"
@@ -17,6 +27,8 @@ where
 | "code (Stars []) = [S]"
 | "code (Stars (v # vs)) =  (Z # code v) @ code (Stars vs)"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add sz cases for BACKREF4/HALF/RESIDUE before changing decode'. *)
 fun sz where
   "sz ZERO = 0"
 | "sz ONE = 0"
@@ -31,6 +43,9 @@ fun
 where
   "Stars_add v (Stars vs) = Stars (v # vs)"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Extend decode' for BACKREF4/HALF/RESIDUE and the approved value/bit encoding.
+   This is part of the original decode theorem chain, not a wrapper. *)
 function (sequential)
   decode' :: "bit list \<Rightarrow> rexp \<Rightarrow> (val * bit list)"
 where
@@ -110,6 +125,11 @@ lemma decode_code:
 
 section \<open>Annotated Regular Expressions\<close>
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Extend the original annotated datatype arexp with approved annotated
+   backreference, half, and residue constructors corresponding directly to the
+   new rexp constructors. Do not introduce barexp/gabexp or any parallel
+   annotated regex datatype. *)
 datatype arexp = 
   AZERO
 | AONE "bit list"
@@ -122,6 +142,9 @@ datatype arexp =
 abbreviation
   "AALT bs r1 r2 \<equiv> AALTs bs [r1, r2]"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add size cases for the new arexp constructors. Keep termination measures
+   explicit and lightweight; avoid tactics that run for minutes. *)
 fun asize :: "arexp \<Rightarrow> nat" where
   "asize AZERO = 1"
 | "asize (AONE cs) = 1" 
@@ -131,6 +154,8 @@ fun asize :: "arexp \<Rightarrow> nat" where
 | "asize (ASTAR cs r) = Suc (asize r)"
 | "asize (ANTIMES cs r n) = Suc (asize r) + n"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add az2 cases for the new arexp constructors before changing retrieve. *)
 fun az2 :: "arexp \<Rightarrow> nat" where
   "az2 AZERO = 1"
 | "az2 (AONE cs) = 1" 
@@ -140,6 +165,9 @@ fun az2 :: "arexp \<Rightarrow> nat" where
 | "az2 (ASTAR cs r) = Suc (az2 r)"
 | "az2 (ANTIMES cs r n) = Suc (az2 r) + n + 1"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add erase cases for new arexp constructors and ensure erase/bder commute
+   with the final rexp L/nullable/der semantics, including backref_lang4. *)
 fun 
   erase :: "arexp \<Rightarrow> rexp"
 where
@@ -154,6 +182,9 @@ where
 | "erase (ANTIMES _ r n) = NTIMES (erase r) n"
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add fuse cases for the new arexp constructors while preserving bit-prefix
+   behaviour used by retrieve and bsimp. *)
 fun fuse :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp" where
   "fuse bs AZERO = AZERO"
 | "fuse bs (AONE cs) = AONE (bs @ cs)" 
@@ -170,6 +201,9 @@ lemma fuse_append:
   done
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add intern cases for the new rexp constructors, producing only the original
+   arexp constructors. Do not route through pilot barexp/gabexp. *)
 fun intern :: "rexp \<Rightarrow> arexp" where
   "intern ZERO = AZERO"
 | "intern ONE = AONE []"
@@ -180,6 +214,10 @@ fun intern :: "rexp \<Rightarrow> arexp" where
 | "intern (STAR r) = ASTAR [] (intern r)"
 | "intern (NTIMES r n) = ANTIMES [] (intern r) n"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Extend retrieve for the new value and arexp constructors under the approved
+   backreference bit representation. This is the central original bitcoded
+   evidence path; wrapper retrieval lemmas do not count. *)
 function (sequential) retrieve  :: "arexp \<Rightarrow> val \<Rightarrow> bit list" where
   "retrieve (AONE bs) Void = bs"
 | "retrieve (ACHAR bs c) (Char d) = bs"
@@ -202,6 +240,8 @@ apply(relation "inv_image (measure(%cs. size cs) <*lex*> measure(%s. az2 s)) (%(
   apply(auto)
 done
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add bnullable cases for the new arexp constructors. *)
 fun
  bnullable :: "arexp \<Rightarrow> bool"
 where
@@ -218,6 +258,9 @@ abbreviation
 where
   "bnullables rs \<equiv> (\<exists>r \<in> set rs. bnullable r)"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add bmkeps cases for the new arexp constructors, matching original mkeps
+   after erase and preserving retrieve correctness. *)
 function (sequential)
   bmkeps :: "arexp \<Rightarrow> bit list" 
 where
@@ -257,6 +300,9 @@ lemma bmkepss2:
   by (induct rs1) (auto)
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add bder cases for the new arexp constructors. These cases must commute with
+   original der through erase; do not preserve the old two-part pilot language. *)
 fun
  bder :: "char \<Rightarrow> arexp \<Rightarrow> arexp"
 where
@@ -271,6 +317,9 @@ where
 | "bder c (ASTAR bs r) = ASEQ (bs @ [Z]) (bder c r) (ASTAR [] r)"
 | "bder c (ANTIMES bs r n) = (if n = 0 then AZERO else ASEQ (bs @ [Z]) (bder c r) (ANTIMES [] r (n - 1)))"
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   bders should keep its recursion shape, but must be rechecked after bder is
+   extended with BACKREF4/HALF/RESIDUE cases. *)
 fun 
   bders :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
 where
@@ -301,6 +350,9 @@ lemma erase_intern [simp]:
   apply(simp_all add: erase_fuse)
   done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original theorem by adding the new constructor cases. Keep the
+   original interface; do not prove a renamed wrapper theorem. *)
 lemma erase_bder [simp]:
   shows "erase (bder a r) = der a (erase r)"
   apply(induct r rule: erase.induct)
@@ -372,6 +424,10 @@ lemma retrieve_fuse:
   by (simp_all add: retrieve_fuse2)
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend retrieve_code for the new original constructors. Bounty applies only
+   if this theorem keeps its original interface and passes with the extended
+   datatype. *)
 lemma retrieve_code:
   assumes "\<Turnstile> v : r"
   shows "code v = retrieve (intern r) v"
@@ -430,6 +486,8 @@ lemma bmkeps_retrieve_ANTIMES:
   apply(simp)
   done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend bmkeps_retrieve for the new constructor cases; no wrapper theorem. *)
 lemma bmkeps_retrieve:
   assumes "bnullable r"
   shows "bmkeps r = retrieve r (mkeps (erase r))"
@@ -444,6 +502,9 @@ lemma bmkeps_retrieve:
 
  
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend bder_retrieve for the new constructor cases. This is one of the main
+   original bitcoded proof obligations. *)
 lemma bder_retrieve:
   assumes "\<Turnstile> v : der c (erase r)"
   shows "retrieve (bder c r) v = retrieve r (injval (erase r) c v)"
@@ -497,6 +558,9 @@ lemma bder_retrieve:
   using Prf_elims(3) apply fastforce
   done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend MAIN_decode over the new constructor cases after retrieve_code and
+   bder_retrieve are repaired. *)
 lemma MAIN_decode:
   assumes "\<Turnstile> v : ders s r"
   shows "Some (flex r id s v) = decode (retrieve (bders (intern r) s) v) r"
@@ -530,6 +594,9 @@ definition blexer where
  "blexer r s \<equiv> if bnullable (bders (intern r) s) then 
                 decode (bmkeps (bders (intern r) s)) r else None"
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend the original blexer_correctness theorem. Separate bblexer/gbblexer
+   wrappers do not count as bounty. *)
 lemma blexer_correctness:
   shows "blexer r s = lexer r s"
 proof -

@@ -1,6 +1,30 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (simple lexer derivative-prefix API)
+Last updated: 2026-05-27 (original-file migration TODO audit)
+
+## Original-File Migration Audit (2026-05-27)
+
+- Admin direction: stop growing `BackRef*` wrapper files as bounty targets.
+  Future bounty should only count direct extensions of the original `rexp`,
+  `val`, `arexp`, `lexer`, `blexer`, `bsimp`, and bounds theorem chain.
+- Round status: two subagents completed two read-only audit rounds:
+  - semantic/value lane: `RegLangs.thy`, `PosixSpec.thy`, `Lexer.thy`,
+    `LexerSimp.thy`
+  - bitcoded/bounds lane: `Blexer.thy`, `BlexerSimp.thy`,
+    `BasicIdentities.thy`, `GeneralRegexBound.thy`, `ClosedForms.thy`,
+    `ClosedFormsBounds.thy`, `FBound.thy`
+- Comment-only TODOs were added to original files. They mark which
+  datatype/function/theorem families need definition augmentation, proof
+  constructor cases, deletion/migration, or admin approval.
+- New low-value active bounty: BR-023 `Original-file migration TODO audit`
+  for admin review. No payout collected yet.
+- Admin approval is required before implementation for the exact `rexp`
+  constructor shape, value constructors/flattening, POSIX priority rule,
+  bit-code representation, and whether bounds-only `rrexp` is removed or
+  temporarily retained.
+- Proof-performance rule remains mandatory: any Isabelle command running around
+  10 seconds must be split or narrowed; a 200 second `fun`/proof command is a
+  bug to fix, not a normal build delay.
 
 ## Current Branch
 

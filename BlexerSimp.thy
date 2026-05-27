@@ -2,6 +2,14 @@ theory BlexerSimp
   imports Blexer 
 begin
 
+(* BACKREF-MIGRATION-TODO (aggressive simplifier/rewrite-system preservation):
+   Backreference support must preserve the original thesis-style bsimp route:
+   aggressive flattening of alternatives, zero elimination, singleton-alt fuse,
+   duplicate/subsumed alternative removal, and the rrewrite/srewrite simulation.
+   A conservative structural simplifier is not an acceptable replacement. If a
+   proof command runs for more than about 10 seconds, replace it with explicit
+   local lemmas or narrower tactics. *)
+
 fun distinctWith :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a list"
   where
   "distinctWith [] eq acc = []"
@@ -10,6 +18,10 @@ fun distinctWith :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bo
       else x # (distinctWith xs eq ({x} \<union> acc)))"
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add cases for the new arexp constructors while preserving the existing
+   aggressive equivalence test behaviour. Any rule that changes backreference
+   structure or capture order needs admin approval before implementation. *)
 fun eq1 ("_ ~1 _" [80, 80] 80) where  
   "AZERO ~1 AZERO = True"
 | "(AONE bs1) ~1 (AONE bs2) = True"
@@ -32,6 +44,9 @@ lemma eq1_L:
   apply presburger
   done
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add cases for the new arexp constructors while preserving aggressive
+   alternative flattening. *)
 fun flts :: "arexp list \<Rightarrow> arexp list"
   where 
   "flts [] = []"
@@ -41,6 +56,9 @@ fun flts :: "arexp list \<Rightarrow> arexp list"
 
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Add cases for new constructor interactions with sequence simplification only
+   after the capture-order implications are approved. *)
 fun bsimp_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp"
   where
   "bsimp_ASEQ _ AZERO _ = AZERO"
@@ -65,6 +83,9 @@ lemma bsimp_ASEQ2[simp]:
   by (case_tac r2) (simp_all)
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+   Preserve singleton-alt fuse and zero-alt elimination for the extended arexp
+   datatype. *)
 fun bsimp_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp"
   where
   "bsimp_AALTs _ [] = AZERO"
@@ -74,6 +95,10 @@ fun bsimp_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp"
 
 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
+   Extend bsimp with the new arexp constructors while keeping the original
+   aggressive, structure-changing simplifier. Do not replace this with a weak
+   structural recursion or a wrapper equality theorem. *)
 fun bsimp :: "arexp \<Rightarrow> arexp" 
   where
   "bsimp (ASEQ bs1 r1 r2) = bsimp_ASEQ bs1 (bsimp r1) (bsimp r2)"
@@ -125,6 +150,11 @@ lemma bder_fuse:
 
 
 
+(* BACKREF-MIGRATION-TODO (aggressive simplifier/rewrite-system preservation):
+   Extend rrewrite/srewrite with context rules for the new constructors and any
+   approved backreference simplification rules. The proof obligation remains
+   r \<leadsto>* bsimp r and derivative-commutation through rewrites; wrapper
+   equivalence theorems do not count as bounty. *)
 inductive 
   rrewrite:: "arexp \<Rightarrow> arexp \<Rightarrow> bool" ("_ \<leadsto> _" [99, 99] 99)
 and 
@@ -373,6 +403,9 @@ lemma fltsfrewrites: "rs s\<leadsto>* flts rs"
 
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this proof over the new constructor cases using the original rewrite
+   relation. Keep proof commands lightweight; split resource-heavy automation. *)
 lemma bnullable0:
 shows "r1 \<leadsto> r2 \<Longrightarrow> bnullable r1 = bnullable r2" 
   and "rs1 s\<leadsto> rs2 \<Longrightarrow> bnullables rs1 = bnullables rs2" 
@@ -390,6 +423,9 @@ using assms
   apply simp
   using bnullable0(1) by auto
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this proof over the new constructor cases using the original rewrite
+   relation. Keep proof commands lightweight; split resource-heavy automation. *)
 lemma rewrite_bmkeps_aux: 
   shows "r1 \<leadsto> r2 \<Longrightarrow> (bnullable r1 \<and> bnullable r2 \<Longrightarrow> bmkeps r1 = bmkeps r2)"
   and   "rs1 s\<leadsto> rs2 \<Longrightarrow> (bnullables rs1 \<and> bnullables rs2 \<Longrightarrow> bmkepss rs1 = bmkepss rs2)" 
@@ -443,6 +479,9 @@ next
 qed
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend rewrites_to_bsimp for the new constructors. This is the central
+   thesis-style simplifier theorem; wrapper equalities do not count. *)
 lemma rewrites_to_bsimp: 
   shows "r \<leadsto>* bsimp r"
 proof (induction r rule: bsimp.induct)
@@ -504,6 +543,9 @@ lemma map1:
   shows "(map f [a]) = [f a]"
   by (simp)
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend derivative preservation through rewrites for BACKREF4/HALF/RESIDUE.
+   This is where long-running automation must be replaced by explicit cases. *)
 lemma rewrite_preserves_bder: 
   shows "r1 \<leadsto> r2 \<Longrightarrow> (bder c r1) \<leadsto>* (bder c r2)"
   and   "rs1 s\<leadsto> rs2 \<Longrightarrow> map (bder c) rs1 s\<leadsto>* map (bder c) rs2"
@@ -590,6 +632,9 @@ apply(simp_all add: rewrite_preserves_bder rrewrites_trans)
 done
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend central after rewrites_to_bsimp and rewrite_preserves_bder are repaired
+   for the new constructors. *)
 lemma central:  
   shows "bders r s \<leadsto>* bders_simp r s"
 proof(induct s arbitrary: r rule: rev_induct)
@@ -620,11 +665,17 @@ qed
 
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend the original main_blexer_simp theorem; no wrapper simplifier theorem
+   can substitute for this result. *)
 theorem main_blexer_simp: 
   shows "blexer r s = blexer_simp r s"
   unfolding blexer_def blexer_simp_def
   by (metis central main_aux rewritesnullable)
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend the original blexersimp_correctness theorem after main_blexer_simp is
+   repaired. *)
 theorem blexersimp_correctness: 
   shows "lexer r s = blexer_simp r s"
   using blexer_correctness main_blexer_simp by simp

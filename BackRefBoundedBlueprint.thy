@@ -383,12 +383,23 @@ lemma finite_backref_lang4:
   assumes "finite L1" "finite L2" "finite L3" "finite L4"
   shows "finite (backref_lang4 L1 L2 L3 L4 cs)"
 proof -
-  have "backref_lang4 L1 L2 L3 L4 cs =
-    (\<lambda>(s1, s2, s3, s4). s1 @ s2 @ s3 @ rev cs @ s2 @ s4) `
-      (L1 \<times> L2 \<times> L3 \<times> L4)"
-    by (auto simp add: backref_lang4_def)
-  then show ?thesis
+  let ?F = "(\<lambda>(((s1, s2), s3), s4). s1 @ s2 @ s3 @ rev cs @ s2 @ s4) `
+      (((L1 \<times> L2) \<times> L3) \<times> L4)"
+  have finite_F: "finite ?F"
     using assms by simp
+  have "backref_lang4 L1 L2 L3 L4 cs \<subseteq> ?F"
+  proof
+    fix s
+    assume "s \<in> backref_lang4 L1 L2 L3 L4 cs"
+    then obtain s1 s2 s3 s4 where
+      "s1 \<in> L1" "s2 \<in> L2" "s3 \<in> L3" "s4 \<in> L4"
+      "s = s1 @ s2 @ s3 @ rev cs @ s2 @ s4"
+      by (auto simp add: backref_lang4_def)
+    then show "s \<in> ?F"
+      by (auto simp add: image_def)
+  qed
+  then show ?thesis
+    using finite_F finite_subset by blast
 qed
 
 theorem finite_components_backref_lang_left_quotients:

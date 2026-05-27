@@ -6,6 +6,11 @@ lemma size_geq1:
   shows "rsize r \<ge> 1"
   by (induct r) auto 
 
+(* BACKREF-MIGRATION-TODO (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
+   Update this finite regex universe only after the rrexp-vs-rexp decision. If
+   rrexp is retained, add constructor-family sets and size decomposition cases
+   for the new backreference constructors. If rrexp is removed, migrate this
+   finite-universe argument to rexp. *)
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
@@ -194,6 +199,10 @@ lemma s9_aux:
   apply (metis finite_subset s9_aux0)
   by blast
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend finite_size_n for the approved representation of backreference
+   constructors. This is a real bounds theorem; wrapper cardinality facts in a
+   separate BackRefBoundedBlueprint-style file must not count as bounty. *)
 lemma finite_size_n:
   shows "finite (sizeNregex n)"
   apply(induct n)

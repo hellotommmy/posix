@@ -14,6 +14,10 @@ lemma rlist_bound:
   apply simp
   by simp
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck this bound after the new constructor cases are added to the shared
+   size universe and simplifier. Keep the original theorem name and statement
+   shape unless admin approves a stronger bound. *)
 lemma alts_closed_form_bounded: 
   assumes "\<forall>r \<in> set rs. \<forall>s. rsize (rders_simp r s) \<le> N"
   shows "rsize (rders_simp (RALTS rs) s) \<le> max (Suc (N * (length rs))) (rsize (RALTS rs))"
@@ -391,6 +395,10 @@ lemma star_control_bounded:
   by (smt (verit, del_insts) Suc_le_mono add_mono_thms_linordered_semiring(1) assms distinct_list_rexp_upto image_iff list.set_map rsimp.simps(6) rsimp_mono rsize.simps(5))
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck this bound after the new constructor cases are added to the shared
+   size universe and simplifier. Keep the original theorem name and statement
+   shape unless admin approves a stronger bound. *)
 lemma star_closed_form_bounded:
   assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
   shows "rsize (rders_simp (RSTAR r) s) \<le> 
@@ -598,6 +606,10 @@ next
 qed
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck this bound after the new constructor cases are added to the shared
+   size universe and simplifier. Keep the original theorem name and statement
+   shape unless admin approves a stronger bound. *)
 lemma ntimes_closed_form_boundedA:
   assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
   shows "\<exists>N'. \<forall>s. rsize (rders_simp (RNTIMES r n) s) \<le> N'"
@@ -652,6 +664,10 @@ proof -
 qed    
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck this bound after the new constructor cases are added to the shared
+   size universe and simplifier. Keep the original theorem name and statement
+   shape unless admin approves a stronger bound. *)
 lemma seq_closed_form_bounded2: 
   assumes "\<forall>s. rsize (rders_simp r1 s) \<le> N1"
   and     "\<forall>s. rsize (rders_simp r2 s) \<le> N2"
@@ -676,6 +692,10 @@ next
     by auto 
 qed
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend the final boundedness induction with the approved backreference
+   constructor cases. This is the downstream theorem that matters for bounty;
+   constructor-specific wrapper bounds elsewhere are migration notes only. *)
 lemma rders_simp_bounded: 
   shows "\<exists>N. \<forall>s. rsize (rders_simp r s) \<le> N"
   apply(induct r)

@@ -2,6 +2,12 @@ theory ClosedForms
   imports "BasicIdentities"
 begin
 
+(* BACKREF-MIGRATION-TODO (deletion/migration note, ADMIN APPROVAL REQUIRED):
+   Closed-form proofs currently operate on rrexp. Before implementation, admin
+   must approve whether these closed forms are migrated to rexp or rrexp is
+   temporarily extended. No new BackRefClosedForms wrapper theory should be
+   created for bounty. *)
+
 lemma flts_middle0:
   shows "rflts (rsa @ RZERO # rsb) = rflts (rsa @ rsb)"
   apply(induct rsa)
@@ -15,6 +21,11 @@ lemma simp_flatten_aux0:
   by (metis append_Nil head_one_more_simp identity_wwo0 list.simps(8) rdistinct.simps(1) rflts.simps(1) rsimp.simps(2) rsimp_ALTs.simps(1) rsimp_ALTs.simps(3) simp_flatten spawn_simp_rsimpalts)
   
 
+(* BACKREF-MIGRATION-TODO (aggressive simplifier/rewrite-system preservation):
+   Extend the existing closed-form/rewrite machinery to the new constructor
+   cases only through the original rsimp/rders_simp route. Preserve the
+   flatten/distinct/aggressive simplification invariants; do not replace them
+   with a weak structural simplifier. *)
 inductive 
   hrewrite:: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" ("_ h\<leadsto> _" [99, 99] 99)
 where

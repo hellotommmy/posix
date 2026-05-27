@@ -200,6 +200,12 @@ lemma empty_pow_add:
 
 section \<open>Regular Expressions\<close>
 
+(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+   Extend the original rexp datatype directly with the final four-part
+   backreference constructor, plus derivative-only HALF and RESIDUE states.
+   Do not introduce brexp/gbrexp aliases or wrapper datatypes. The approved
+   language shape should be the generalized four-language form, not the old
+   two-component pilot backref_lang. *)
 datatype rexp =
   ZERO
 | ONE
@@ -211,6 +217,11 @@ datatype rexp =
 
 section \<open>Semantics of Regular Expressions\<close>
  
+(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+   Add L cases for the new BACKREF4/HALF/RESIDUE constructors. BACKREF4 must
+   use backref_lang4 directly in this file, with strings of the form
+   s1 @ s2 @ s3 @ rev cs @ s2 @ s4. Delete or retire the simplified
+   backref_lang target after migration. *)
 fun
   L :: "rexp \<Rightarrow> string set"
 where
@@ -224,6 +235,9 @@ where
 
 section \<open>Nullable, Derivatives\<close>
 
+(* BACKREF-MIGRATION-TODO (definition augmentation):
+   Add nullable cases for BACKREF4/HALF/RESIDUE once the rexp constructors are
+   approved. This must extend the original nullable function, not a wrapper. *)
 fun
  nullable :: "rexp \<Rightarrow> bool"
 where
@@ -235,6 +249,11 @@ where
 | "nullable (STAR r) = True"
 | "nullable (NTIMES r n) = (if n = 0 then True else nullable r)"
 
+(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+   Add derivative cases for BACKREF4/HALF/RESIDUE directly to der. Migrate the
+   useful gxder/xder residue idea into this original function, then delete the
+   pilot gxder path. Avoid broad automation if any proof command starts running
+   for tens of seconds; split it into local lemmas instead. *)
 fun
  der :: "char \<Rightarrow> rexp \<Rightarrow> rexp"
 where
@@ -260,10 +279,16 @@ lemma pow_empty_iff:
   shows "[] \<in> (L r) ^^ n \<longleftrightarrow> (if n = 0 then True else [] \<in> (L r))"
   by (induct n) (auto simp add: Sequ_def)
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend nullable_correctness with direct BACKREF4/HALF/RESIDUE cases. *)
 lemma nullable_correctness:
   shows "nullable r  \<longleftrightarrow> [] \<in> (L r)"
   by (induct r) (auto simp add: Sequ_def pow_empty_iff) 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend der_correctness with direct BACKREF4/HALF/RESIDUE cases, using a
+   migrated Der_backref_lang4 lemma in this file. Wrapper derivative theorems
+   do not count as bounty. *)
 lemma der_correctness:
   shows "L (der c r) = Der c (L r)"
   apply (induct r) 
@@ -276,6 +301,9 @@ lemma der_correctness:
   done
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck ders_correctness after der_correctness is extended; this theorem
+   must remain the original repeated-derivative correctness statement. *)
 lemma ders_correctness:
   shows "L (ders s r) = Ders s (L r)"
   by (induct s arbitrary: r)

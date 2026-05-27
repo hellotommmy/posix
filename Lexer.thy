@@ -5,6 +5,8 @@ begin
 
 section \<open>The Lexer Functions by Sulzmann and Lu  (without simplification)\<close>
 
+(* BACKREF-MIGRATION-TODO (definition augmentation):
+   Add mkeps cases for BACKREF4/HALF/RESIDUE in the original lexer. *)
 fun 
   mkeps :: "rexp \<Rightarrow> val"
 where
@@ -14,6 +16,10 @@ where
 | "mkeps(STAR r) = Stars []"
 | "mkeps(NTIMES r n) = Stars (replicate n (mkeps r))" 
 
+(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+   Add injval cases for BACKREF4/HALF/RESIDUE directly to the original
+   function. Migrate only the useful binjval/ginjval ideas; do not keep
+   parallel injectors. *)
 fun injval :: "rexp \<Rightarrow> char \<Rightarrow> val \<Rightarrow> val"
 where
   "injval (CH d) c Void = Char d"
@@ -37,6 +43,8 @@ where
 
 section \<open>Mkeps, Injval Properties\<close>
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original lexer value theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma mkeps_flat:
   assumes "nullable(r)" 
   shows "flat (mkeps r) = []"
@@ -51,6 +59,8 @@ lemma Prf_NTimes_empty:
   by (metis Prf.intros(7) empty_iff eq_Nil_appendI list.set(1))
   
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original lexer value theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma mkeps_nullable:
   assumes "nullable(r)" 
   shows "\<Turnstile> mkeps r : r"
@@ -62,6 +72,8 @@ using assms
   apply(auto simp add: mkeps_flat)
   done
  
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original lexer value theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma Prf_injval_flat:
   assumes "\<Turnstile> v : der c r" 
   shows "flat (injval r c v) = c # (flat v)"
@@ -70,6 +82,8 @@ apply(induct c r arbitrary: v rule: der.induct)
 apply(auto elim!: Prf_elims intro: mkeps_flat split: if_splits)
 done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this original lexer value theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma Prf_injval:
   assumes "\<Turnstile> v : der c r" 
   shows "\<Turnstile> (injval r c v) : r"
@@ -89,6 +103,8 @@ apply(subst append.simps(2)[symmetric])
 text \<open>Mkeps and injval produce, or preserve, Posix values.\<close>
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend nullable POSIX construction for BACKREF4/HALF/RESIDUE. *)
 lemma Posix_mkeps:
   assumes "nullable r"
   shows "[] \<in> r \<rightarrow> mkeps r"
@@ -103,6 +119,10 @@ apply(auto)
 
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
+   Extend POSIX preservation of injval for BACKREF4/HALF/RESIDUE after the
+   BACKREF4 Posix rule and injval cases are approved. This is a main bounty
+   item. *)
 lemma Posix_injval:
   assumes "s \<in> (der c r) \<rightarrow> v"
   shows "(c # s) \<in> r \<rightarrow> (injval r c v)"
@@ -297,6 +317,9 @@ qed
 section \<open>Lexer Correctness\<close>
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck and extend the original lexer correctness theorem after
+   der/injval/Posix are extended. Wrapper lexer correctness does not count. *)
 lemma lexer_correct_None:
   shows "s \<notin> L r \<longleftrightarrow> lexer r s = None"
   apply(induct s arbitrary: r)
@@ -305,9 +328,12 @@ lemma lexer_correct_None:
   apply(simp)
   apply(drule_tac x="der a r" in meta_spec) 
   apply(auto)
-  apply(auto simp add: der_correctness Der_def)
+apply(auto simp add: der_correctness Der_def)
 done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck and extend the original lexer correctness theorem after
+   der/injval/Posix are extended. Wrapper lexer correctness does not count. *)
 lemma lexer_correct_Some:
   shows "s \<in> L r \<longleftrightarrow> (\<exists>v. lexer r s = Some(v) \<and> s \<in> r \<rightarrow> v)"
   apply(induct s arbitrary : r)
@@ -328,6 +354,9 @@ lemma lexer_correct_Some:
   apply(simp add: Posix1(1))
 done 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Recheck and extend the original lexer correctness theorem after
+   der/injval/Posix are extended. Wrapper lexer correctness does not count. *)
 lemma lexer_correctness:
   shows "(lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
   and   "(lexer r s = None) \<longleftrightarrow> \<not>(\<exists>v. s \<in> r \<rightarrow> v)"
@@ -383,6 +412,8 @@ lemma Posix_flex:
   apply(simp)
   done
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this supporting original lexer proof with BACKREF4/HALF/RESIDUE cases. *)
 lemma injval_inj:
   assumes "\<Turnstile> a : (der c r)" "\<Turnstile> v : (der c r)" "injval r c a = injval r c v" 
   shows "a = v"
@@ -421,6 +452,8 @@ lemma injval_inj:
   done
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this supporting original lexer proof with BACKREF4/HALF/RESIDUE cases. *)
 lemma uu:
   assumes "(c # s) \<in> r \<rightarrow> injval r c v" "\<Turnstile> v : (der c r)"
   shows "s \<in> der c r \<rightarrow> v"
@@ -442,6 +475,8 @@ lemma uu:
   using injval_inj by blast
   
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this supporting original lexer proof with BACKREF4/HALF/RESIDUE cases. *)
 lemma Posix_flex2:
   assumes "(s1 @ s2) \<in> r \<rightarrow> flex r id s1 v" "\<Turnstile> v : ders s1 r"
   shows "s2 \<in> (ders s1 r) \<rightarrow> v"
@@ -455,6 +490,8 @@ lemma Posix_flex2:
   apply(simp add: flex_append ders_append)
   using Prf_injval uu by blast
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this supporting original lexer proof with BACKREF4/HALF/RESIDUE cases. *)
 lemma Posix_flex3:
   assumes "s1 \<in> r \<rightarrow> flex r id s1 v" "\<Turnstile> v : ders s1 r"
   shows "[] \<in> (ders s1 r) \<rightarrow> v"
@@ -465,6 +502,8 @@ lemma flex_injval:
   shows "flex (der a r) (injval r a) s v = injval r a (flex (der a r) id s v)"
   by (simp add: flex_fun_apply)
   
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+   Extend this supporting original lexer proof with BACKREF4/HALF/RESIDUE cases. *)
 lemma Prf_flex:
   assumes "\<Turnstile> v : ders s r"
   shows "\<Turnstile> flex r id s v : r"

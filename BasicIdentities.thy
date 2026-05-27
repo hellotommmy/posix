@@ -2,6 +2,12 @@ theory BasicIdentities
   imports "Lexer" 
 begin
 
+(* BACKREF-MIGRATION-TODO (deletion/migration note, ADMIN APPROVAL REQUIRED):
+   This file introduces rrexp, a third regex datatype used for bounds and closed
+   forms. Admin must decide before implementation: migrate these results to the
+   extended rexp directly, or temporarily extend rrexp as a bounds-only skeleton.
+   Do not proceed silently, because the project goal is to keep only rexp and
+   arexp as regex datatypes. *)
 datatype rrexp = 
   RZERO
 | RONE 
@@ -185,6 +191,11 @@ where
   "rders_simp r [] = r"
 | "rders_simp r (c#s) = rders_simp (rsimp (rder c r)) s"
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
+   If rrexp is retained, every rrexp function and theorem in this file must get
+   direct BACKREF4/HALF/RESIDUE cases. If rrexp is removed, migrate the
+   rnullable/rder/rsimp/rders_simp/RL theorem chain to rexp instead. No
+   separate BackRef* wrapper theory counts as bounty. *)
 fun rsize :: "rrexp \<Rightarrow> nat" where
   "rsize RZERO = 1"
 | "rsize (RONE) = 1" 
@@ -638,6 +649,10 @@ lemma good1:
   done
 
 
+(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
+   If rrexp remains, extend RL/rnullable/rder/rsimp correctness directly for the
+   new constructors. If rrexp is deleted, this whole semantic bridge must be
+   replaced by the original rexp language and simplifier statements. *)
 fun
   RL :: "rrexp \<Rightarrow> string set"
 where

@@ -16,17 +16,21 @@ compacted.
 - Isabelle version: `C:\Users\Chengsong\Isabelle2025-2`.
 - Current sessions: `Posix` for the inherited development and `BackRefPilot`
   for the backreference pilot.
-- Current research phase: value/Prf/flat correspondence for the pilot language.
+- Current research phase: migrate the checked pilot ideas back into the
+  original `Posix` theories after admin approval. The target interface is the
+  original `rexp`, `val`, `arexp`, `lexer`, `blexer`, and `bsimp` chain.
 
 ## Historical Context
 
 - PR #1 added `BackRefLang.thy` and `pilot/ROOT`.
 - PR #1 was merged into `origin/main` at merge commit `e207e04`.
 - The old branch `codex/backref-pilot` contains the initial language pilot.
-- New proof work should start from `origin/main` unless the admin says
-  otherwise.
-- The next target is controlled carry-over of value evidence, not lexer or
-  bounds work.
+- Current branch for shared work is `codex/backref-values` unless the admin
+  says otherwise.
+- The next target is an original-file migration plan: direct extension of
+  `RegLangs.thy`, `PosixSpec.thy`, `Lexer.thy`, `Blexer.thy`,
+  `BlexerSimp.thy`, and downstream bounds files. Implementation waits for
+  admin approval of the TODO audit.
 
 ## Source Documents
 
@@ -53,19 +57,23 @@ For this project, the blueprint is the pilot language:
 - `BSEQ`, `BALT`, `BSTAR`, `BNTIMES`
 - `BBACKREF`, `BHALF`, `BRESIDUE`
 
-The backreference constructors are not ordinary regular expression
-constructors. Treat them as a separate checked pilot until the core story is
-stable.
+The backreference constructors started as a separate checked pilot, but the
+current goal is to fold them back into the original files. Do not create new
+parallel regex datatypes. The final regex datatypes should be the original
+`rexp` and annotated `arexp`; pilot-only `brexp`, `gbrexp`, `barexp`, and
+`gabexp` are migration scaffolding only.
 
 ## Strict Prohibitions
 
 - Do not store or print GitHub PATs or other secrets.
 - Do not modify files outside this repository unless the user asks.
-- Do not edit `Blexer.thy`, `BlexerSimp.thy`, `FBound.thy`,
-  `GeneralRegexBound.thy`, `ClosedForms.thy`, or `ClosedFormsBounds.thy`
-  during the value/Prf/flat phase.
-- Do not change `BL`, `xnullable`, `xder`, or the meaning of
-  `backref_lang` without an explicit admin decision.
+- Do not implement changes to `RegLangs.thy`, `PosixSpec.thy`, `Lexer.thy`,
+  `Blexer.thy`, `BlexerSimp.thy`, `FBound.thy`, `GeneralRegexBound.thy`,
+  `ClosedForms.thy`, or `ClosedFormsBounds.thy` until the admin approves the
+  TODO audit. Comment-only audit edits are allowed.
+- Do not keep simplified two-part `backref_lang` as the final semantics.
+  The original `L` semantics should use the approved four-part
+  `backref_lang4` shape directly.
 - Do not weaken theorem statements to make proofs easy.
 - Do not replace real work with axioms or unchecked assumptions.
 - Do not leave `sorry` in Isabelle files.
@@ -106,22 +114,27 @@ This must never happen in this project.
 
 During the current phase, normal worker agents may edit:
 
-- `BackRefValues.thy`
-- `pilot/ROOT`
+- Comment-only TODO audit notes in original theory files.
 - `PROGRESS_BACKREF.md`
 - `BACKREF_BOUNTIES.md`
 - small helper files under `agent_hunt_pipeline/scripts/`
 
-Only an admin or merge steward should edit:
+Only after admin approval may workers implement direct original-file changes in:
 
-- `BackRefLang.thy`
-- root `CLAUDE.md`
-- this project profile
-- `AGENTS.md`
-- statement-freeze or governance files
+- `RegLangs.thy`
+- `PosixSpec.thy`
+- `Lexer.thy`
+- `LexerSimp.thy`
+- `Blexer.thy`
+- `BlexerSimp.thy`
+- `BasicIdentities.thy`
+- `GeneralRegexBound.thy`
+- `ClosedForms.thy`
+- `ClosedFormsBounds.thy`
+- `FBound.thy`
 
-No one should touch old lexer and bounds theories until the value/Prf/flat
-pilot is checked.
+Only an admin or merge steward should edit root governance files, statement
+freeze files, or bounty policy.
 
 ## Mandatory Start Sequence
 
@@ -304,6 +317,19 @@ create false confidence from partial IDE state.
 This repository uses a competitive-collaborative bounty system adapted from the
 Agent Hunt paper (130k Lines Formal Topology). The full protocol is in
 `agent_hunt_pipeline/projects/posix-backref/BOUNTY_PROTOCOL.md`.
+
+Wrapper-only theorem packages do not count as bounty work. Do not lock or
+collect a bounty for facts that merely bundle, rename, specialize, or restate
+existing theorems, such as `*_cases`, `*_iff`, `*_same`, frontend summary, or
+retrieve-equality wrappers. Such facts may be useful as an API layer, but they
+are not a paid research deliverable.
+
+Paid bounty work must add a new semantic or algorithmic layer, or prove a
+nontrivial bridge needed by later work. Good examples are derivative
+correctness, value/flat/Prf correspondence, bitcoded retrieve transport,
+rewrite-relation preservation, derivative-commutation for simplification, and
+real finite-bound theorems. If a task might be only theorem packaging, stop and
+ask the admin before claiming it.
 
 ### Total Pool
 

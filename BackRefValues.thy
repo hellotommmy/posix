@@ -1641,11 +1641,21 @@ section \<open>Derivative-Prefix Lexer API\<close>
 
 lemma blexer_xders_defined_BL_iff:
   "(\<exists>v. blexer (xders r p) s = Some v) \<longleftrightarrow> p @ s \<in> BL r"
-  by (simp add: blexer_correctness_defined xders_correctness Ders_def)
+proof -
+  have "s \<in> BL (xders r p) \<longleftrightarrow> p @ s \<in> BL r"
+    by (simp add: xders_correctness Ders_def)
+  then show ?thesis
+    by (metis blexer_correctness_defined)
+qed
 
 lemma blexer_xders_None_BL_iff:
   "blexer (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
-  by (simp add: blexer_correctness_None xders_correctness Ders_def)
+proof -
+  have "s \<in> BL (xders r p) \<longleftrightarrow> p @ s \<in> BL r"
+    by (simp add: xders_correctness Ders_def)
+  then show ?thesis
+    by (metis blexer_correctness_None)
+qed
 
 lemma blexer_xders_Some_BL:
   assumes "blexer (xders r p) s = Some v"
