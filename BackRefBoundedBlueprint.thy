@@ -3538,4 +3538,91 @@ theorem GBL_bound_GBACKREF4_gxders_left_quotient_family_member_length_bound_mono
     assms(6,7)
   by (auto intro: bounded_strings_family_member_length_bound)
 
+theorem BL_bound_residual_derivative_length_bound:
+  assumes "BL_bound r = Some n"
+    and "w \<in> BL (xders (xders r s) t)"
+  shows "length w \<le> n"
+  using assms
+    BL_bound_residual_derivative_family_member_length_bound[
+      of r n "BL (xders (xders r s) t)" s w]
+  by auto
+
+theorem GBL_bound_residual_derivative_length_bound:
+  assumes "GBL_bound r = Some n"
+    and "w \<in> GBL (gxders (gxders r s) t)"
+  shows "length w \<le> n"
+  using assms
+    GBL_bound_residual_derivative_family_member_length_bound[
+      of r n "GBL (gxders (gxders r s) t)" s w]
+  by auto
+
+theorem BL_bound_residual_derivative_length_bound_mono:
+  assumes "BL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> BL (xders (xders r s) t)"
+  shows "length w \<le> m"
+  using assms
+    BL_bound_residual_derivative_family_member_length_bound_mono[
+      of r n m "BL (xders (xders r s) t)" s w]
+  by auto
+
+theorem GBL_bound_residual_derivative_length_bound_mono:
+  assumes "GBL_bound r = Some n"
+    and "n \<le> m"
+    and "w \<in> GBL (gxders (gxders r s) t)"
+  shows "length w \<le> m"
+  using assms
+    GBL_bound_residual_derivative_family_member_length_bound_mono[
+      of r n m "GBL (gxders (gxders r s) t)" s w]
+  by auto
+
+theorem BL_bound_BBACKREF_residual_derivative_length_bound:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "w \<in> BL (xders (xders (BBACKREF r mid cs) s) t)"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+  using assms
+    BL_bound_BBACKREF_residual_derivative_family_member_length_bound[
+      of r n_capture mid n_mid
+        "BL (xders (xders (BBACKREF r mid cs) s) t)" cs s w]
+  by auto
+
+theorem GBL_bound_GBACKREF4_residual_derivative_length_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "w \<in> GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+  using assms
+    GBL_bound_GBACKREF4_residual_derivative_family_member_length_bound[
+      of r1 n1 r2 n2 r3 n3 r4 n4
+        "GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)" cs s w]
+  by auto
+
+theorem BL_bound_BBACKREF_residual_derivative_length_bound_mono:
+  assumes "BL_bound r = Some n_capture"
+    and "BL_bound mid = Some n_mid"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+    and "w \<in> BL (xders (xders (BBACKREF r mid cs) s) t)"
+  shows "length w \<le> m"
+  using assms
+    BL_bound_BBACKREF_residual_derivative_family_member_length_bound_mono[
+      OF assms(1-3), of "BL (xders (xders (BBACKREF r mid cs) s) t)" s w]
+  by auto
+
+theorem GBL_bound_GBACKREF4_residual_derivative_length_bound_mono:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+    and "w \<in> GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)"
+  shows "length w \<le> m"
+  using assms
+    GBL_bound_GBACKREF4_residual_derivative_family_member_length_bound_mono[
+      OF assms(1-5),
+      of "GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)" s w]
+  by auto
+
 end
