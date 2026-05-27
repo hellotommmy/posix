@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend accept/reject case wrappers)
+Last updated: 2026-05-27 (monotone family member length wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,41 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding monotone family-member length wrappers
+  in `BackRefBoundedBlueprint.thy`. New checked facts are
+  `bounded_strings_family_member_length_bound_mono`,
+  `BL_bound_derivative_family_member_length_bound_mono`,
+  `GBL_bound_derivative_family_member_length_bound_mono`,
+  `BL_bound_residual_derivative_family_member_length_bound_mono`,
+  `GBL_bound_residual_derivative_family_member_length_bound_mono`,
+  `BL_bound_left_quotient_family_member_length_bound_mono`,
+  `GBL_bound_left_quotient_family_member_length_bound_mono`,
+  `BL_bound_xders_left_quotient_family_member_length_bound_mono`,
+  `GBL_bound_gxders_left_quotient_family_member_length_bound_mono`,
+  `BL_bound_BBACKREF_derivative_family_member_length_bound_mono`,
+  `GBL_bound_GBACKREF4_derivative_family_member_length_bound_mono`,
+  `BL_bound_BBACKREF_residual_derivative_family_member_length_bound_mono`,
+  `GBL_bound_GBACKREF4_residual_derivative_family_member_length_bound_mono`,
+  `BL_bound_BBACKREF_left_quotient_family_member_length_bound_mono`,
+  `GBL_bound_GBACKREF4_left_quotient_family_member_length_bound_mono`,
+  `BL_bound_BBACKREF_xders_left_quotient_family_member_length_bound_mono`, and
+  `GBL_bound_GBACKREF4_gxders_left_quotient_family_member_length_bound_mono`.
+  Files changed before this progress note: `BackRefBoundedBlueprint.thy`
+  (+183) and `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed). Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 4.0 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:35 elapsed), Isabelle
+  `BackRefPilot` (0:03 elapsed), local CI certificate generation, and explicit
+  statement guard PASS. After rebasing over concurrent commit `10be0c0`, final
+  post-rebase full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:17
+  elapsed), local CI certificate generation, `BackRefBoundedBlueprint`
+  replaying in about 3.8 seconds, and explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after adding accept/reject case wrappers for the ordinary and
