@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend output uniqueness wrappers)
+Last updated: 2026-05-27 (bitcoded frontend value-lexer case wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard PASS after adding ordinary and generalized
+  bitcoded frontend case wrappers keyed by the value lexer result. New checked
+  facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_blexer_cases` and
+  `gbblexer_frontends_gblexer_cases`, packaging that a failed
+  `blexer`/`gblexer` run makes all three bitcoded frontend variants reject,
+  while a successful value run gives the same retrieved bit output for all
+  three frontend variants. Files changed before this progress note:
+  `BackRefBitcodedSummary.thy` (+38) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:18 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.631 seconds. Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:18 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.784 seconds. Pre-progress
+  full local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04 elapsed,
+  cached), and local CI certificate generation; explicit statement guard PASS.
+  Final
+  after-progress full local CI passed with no-cheat guard, bounty guard, admin
+  role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:03
+  elapsed), and local CI certificate generation; explicit statement guard
+  PASS. Next smallest safe step: stop until the admin opens a new
+  bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after preserving the uncommitted bitcoded frontend
   output equality wrappers across the fast-forward to remote commit `1ad2a3e`

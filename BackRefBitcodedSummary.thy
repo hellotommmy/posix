@@ -58,6 +58,25 @@ theorem bblexer_frontends_blexer_iff:
       bblexer_None_blexer_iff bblexer_simp_None_blexer_iff
       bblexer_step_simp_None_blexer_iff)
 
+theorem bblexer_frontends_blexer_cases:
+  obtains (reject) "blexer r s = None"
+    "bblexer r s = None"
+    "bblexer_simp r s = None"
+    "bblexer_step_simp r s = None"
+  | (accept) v where "blexer r s = Some v"
+    "bblexer r s = Some (bretrieve (baintern r) v)"
+    "bblexer_simp r s = Some (bretrieve (baintern r) v)"
+    "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
+proof (cases "blexer r s")
+  case None
+  then show thesis
+    by (simp add: bblexer_frontends_blexer_iff reject)
+next
+  case (Some v)
+  then show thesis
+    by (simp add: bblexer_frontends_blexer_Some_retrieve accept)
+qed
+
 theorem bblexer_frontends_POSIX_retrieve:
   assumes "s \<in> r \<rightarrow> v"
   shows "bblexer r s = Some (bretrieve (baintern r) v)"
@@ -463,6 +482,25 @@ theorem gbblexer_frontends_gblexer_iff:
       gbblexer_simp_Some_gblexer_iff gbblexer_step_simp_Some_gblexer_iff
       gbblexer_None_gblexer_iff gbblexer_simp_None_gblexer_iff
       gbblexer_step_simp_None_gblexer_iff)
+
+theorem gbblexer_frontends_gblexer_cases:
+  obtains (reject) "gblexer r s = None"
+    "gbblexer r s = None"
+    "gbblexer_simp r s = None"
+    "gbblexer_step_simp r s = None"
+  | (accept) v where "gblexer r s = Some v"
+    "gbblexer r s = Some (gretrieve (gaintern r) v)"
+    "gbblexer_simp r s = Some (gretrieve (gaintern r) v)"
+    "gbblexer_step_simp r s = Some (gretrieve (gaintern r) v)"
+proof (cases "gblexer r s")
+  case None
+  then show thesis
+    by (simp add: gbblexer_frontends_gblexer_iff reject)
+next
+  case (Some v)
+  then show thesis
+    by (simp add: gbblexer_frontends_gblexer_Some_retrieve accept)
+qed
 
 theorem gbblexer_frontends_GPrf_retrieve_iff:
   "gbblexer r s = Some bs \<longleftrightarrow>
