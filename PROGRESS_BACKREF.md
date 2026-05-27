@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (generalized value lexer derivative-prefix wrappers)
+Last updated: 2026-05-27 (bitcoded frontend final retrieve evidence wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,37 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding ordinary and generalized bitcoded
+  frontend final retrieve evidence wrappers. New checked facts in
+  `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_final_retrieve_correctness` and
+  `gbblexer_frontends_final_retrieve_correctness`, packaging that any accepted
+  result from any of the three bitcoded frontend variants is the normalized
+  final derivative retrieve output and carries the corresponding
+  `bmkeps`/`gmkeps` residual proof plus empty flat witness. Files changed
+  before this progress note: `BackRefBitcodedSummary.thy` (+40) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.781 seconds. An initial proof attempt for the wrappers failed
+  because the residual epsilon evidence did not follow from the normalized
+  membership rewrite alone; the proof was narrowed to reuse the already
+  checked per-frontend retrieve correctness lemmas. Post-fix pilot-only local
+  CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.682 seconds. Full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:35 elapsed), Isabelle `BackRefPilot` (0:17 elapsed),
+  `BackRefBitcodedSummary` replaying in about 0.720 seconds, and local CI
+  certificate generation; explicit statement guard PASS. Sync note:
+  `git pull --rebase --autostash origin codex/backref-values` fast-forwarded
+  to `1dfb775`; the autostash conflicted only in `PROGRESS_BACKREF.md`, and
+  both progress entries plus theory changes were preserved. Final post-sync
+  full local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:17 elapsed),
+  `BackRefBitcodedSummary` replaying in about 1.716 seconds, and local CI
+  certificate generation; explicit statement guard PASS. Next smallest safe
+  step: stop until the admin opens a new bounty/phase, or add only similarly
+  direct downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after preserving the uncommitted generalized
   value-lexer case wrappers across the fast-forward to remote commit
