@@ -539,6 +539,28 @@ next
   show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
+theorem bblexer_frontends_xders_final_retrieve_correctness:
+  "bblexer (xders r p) s = Some bs \<Longrightarrow>
+    bs = bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s)))"
+  "bblexer_simp (xders r p) s = Some bs \<Longrightarrow>
+    bs = bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s)))"
+  "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow>
+    bs = bretrieve (bbders (baintern (xders r p)) s) (bmkeps (xders r (p @ s)))"
+  "bblexer (xders r p) s = Some bs \<Longrightarrow>
+    \<Turnstile>b bmkeps (xders r (p @ s)) : xders r (p @ s)"
+  "bblexer_simp (xders r p) s = Some bs \<Longrightarrow>
+    \<Turnstile>b bmkeps (xders r (p @ s)) : xders r (p @ s)"
+  "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow>
+    \<Turnstile>b bmkeps (xders r (p @ s)) : xders r (p @ s)"
+  "bblexer (xders r p) s = Some bs \<Longrightarrow>
+    bflat (bmkeps (xders r (p @ s))) = []"
+  "bblexer_simp (xders r p) s = Some bs \<Longrightarrow>
+    bflat (bmkeps (xders r (p @ s))) = []"
+  "bblexer_step_simp (xders r p) s = Some bs \<Longrightarrow>
+    bflat (bmkeps (xders r (p @ s))) = []"
+  by (auto simp add: xders_append
+      intro: bblexer_frontends_final_retrieve_correctness)
+
 theorem bblexer_frontends_xders_same_iff:
   "bblexer (xders r p) s = None \<and>
     bblexer_simp (xders r p) s = None \<and>
@@ -1054,5 +1076,27 @@ next
     using False by (simp add: gbblexer_frontends_gxders_None_GBL_iff)
   show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
+
+theorem gbblexer_frontends_gxders_final_retrieve_correctness:
+  "gbblexer (gxders r p) s = Some bs \<Longrightarrow>
+    bs = gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s)))"
+  "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow>
+    bs = gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s)))"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow>
+    bs = gretrieve (gabders (gaintern (gxders r p)) s) (gmkeps (gxders r (p @ s)))"
+  "gbblexer (gxders r p) s = Some bs \<Longrightarrow>
+    GPrf (gmkeps (gxders r (p @ s))) (gxders r (p @ s))"
+  "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow>
+    GPrf (gmkeps (gxders r (p @ s))) (gxders r (p @ s))"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow>
+    GPrf (gmkeps (gxders r (p @ s))) (gxders r (p @ s))"
+  "gbblexer (gxders r p) s = Some bs \<Longrightarrow>
+    gflat (gmkeps (gxders r (p @ s))) = []"
+  "gbblexer_simp (gxders r p) s = Some bs \<Longrightarrow>
+    gflat (gmkeps (gxders r (p @ s))) = []"
+  "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow>
+    gflat (gmkeps (gxders r (p @ s))) = []"
+  by (auto simp add: gxders_append
+      intro: gbblexer_frontends_final_retrieve_correctness)
 
 end
