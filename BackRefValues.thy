@@ -1637,4 +1637,174 @@ next
   qed
 qed
 
+section \<open>Derivative-Prefix Lexer API\<close>
+
+lemma blexer_xders_defined_BL_iff:
+  "(\<exists>v. blexer (xders r p) s = Some v) \<longleftrightarrow> p @ s \<in> BL r"
+  by (simp add: blexer_correctness_defined xders_correctness Ders_def)
+
+lemma blexer_xders_None_BL_iff:
+  "blexer (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
+  by (simp add: blexer_correctness_None xders_correctness Ders_def)
+
+lemma blexer_xders_Some_BL:
+  assumes "blexer (xders r p) s = Some v"
+  shows "p @ s \<in> BL r"
+  using assms blexer_xders_defined_BL_iff by blast
+
+lemma xders_BPrf_BL_iff:
+  "(\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s) \<longleftrightarrow> p @ s \<in> BL r"
+proof -
+  have "(\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s) \<longleftrightarrow>
+      s \<in> BL (xders r p)"
+    by (auto simp add: BL_flat_BPrf)
+  also have "... \<longleftrightarrow> p @ s \<in> BL r"
+    by (simp add: xders_correctness Ders_def)
+  finally show ?thesis .
+qed
+
+lemma blexer_xders_defined_BPrf_iff:
+  "(\<exists>v. blexer (xders r p) s = Some v) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+  by (simp add: blexer_xders_defined_BL_iff xders_BPrf_BL_iff)
+
+lemma blexer_xders_None_BPrf_iff:
+  "blexer (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+proof -
+  have "blexer (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. blexer (xders r p) s = Some v)"
+    by (cases "blexer (xders r p) s") auto
+  then show ?thesis
+    by (simp add: blexer_xders_defined_BPrf_iff)
+qed
+
+lemma blexer_xders_Some_BPrf:
+  assumes "blexer (xders r p) s = Some v"
+  shows "\<Turnstile>b v : xders r p"
+    and "bflat v = s"
+  using assms blexer_BPrf blexer_flat by blast+
+
+lemma blexer_xders_BPrf_obtains:
+  assumes "\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s"
+  obtains v where "blexer (xders r p) s = Some v"
+    and "\<Turnstile>b v : xders r p"
+    and "bflat v = s"
+proof -
+  from assms have "\<exists>v. blexer (xders r p) s = Some v"
+    using blexer_xders_defined_BPrf_iff by blast
+  then obtain v where "blexer (xders r p) s = Some v"
+    by blast
+  then have "\<Turnstile>b v : xders r p" "bflat v = s"
+    using blexer_xders_Some_BPrf by blast+
+  then show thesis
+    using \<open>blexer (xders r p) s = Some v\<close> that by blast
+qed
+
+lemma blexer_xders_BL_obtains:
+  assumes "p @ s \<in> BL r"
+  obtains v where "blexer (xders r p) s = Some v"
+    and "\<Turnstile>b v : xders r p"
+    and "bflat v = s"
+proof -
+  have "s \<in> BL (xders r p)"
+    using assms by (simp add: xders_correctness Ders_def)
+  then obtain v where "blexer (xders r p) s = Some v"
+    and "\<Turnstile>b v : xders r p"
+    and "bflat v = s"
+    by (rule blexer_BL_obtains) (auto dest: blexer_BPrf blexer_flat)
+  then show thesis
+    using that by blast
+qed
+
+lemma blexer_xders_BL_cases:
+  obtains (reject) "p @ s \<notin> BL r" "blexer (xders r p) s = None"
+    | (accept) v where "p @ s \<in> BL r" "blexer (xders r p) s = Some v"
+      "\<Turnstile>b v : xders r p" "bflat v = s"
+proof (cases "blexer (xders r p) s")
+  case None
+  then have "p @ s \<notin> BL r"
+    by (simp add: blexer_xders_None_BL_iff)
+  then show thesis
+    using None reject by blast
+next
+  case (Some v)
+  then have "p @ s \<in> BL r" "\<Turnstile>b v : xders r p" "bflat v = s"
+    using blexer_xders_Some_BL blexer_BPrf blexer_flat by blast+
+  then show thesis
+    using Some accept by blast
+qed
+
+lemma blexer_xders_BPrf_cases:
+  obtains (reject) "\<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+      "blexer (xders r p) s = None"
+    | (accept) v where "\<Turnstile>b v : xders r p" "bflat v = s"
+      "blexer (xders r p) s = Some v"
+proof (cases "blexer (xders r p) s")
+  case None
+  then have "\<not> (\<exists>v. \<Turnstile>b v : xders r p \<and> bflat v = s)"
+    by (simp add: blexer_xders_None_BPrf_iff)
+  then show thesis
+    using None reject by blast
+next
+  case (Some v)
+  then have "\<Turnstile>b v : xders r p" "bflat v = s"
+    using blexer_xders_Some_BPrf by blast+
+  then show thesis
+    using Some accept by blast
+qed
+
+lemma blexer_xders_defined_POSIX_iff:
+  "(\<exists>v. blexer (xders r p) s = Some v) \<longleftrightarrow> (\<exists>v. s \<in> (xders r p) \<rightarrow> v)"
+  by (auto simp add: blexer_POSIX_correctness)
+
+lemma blexer_xders_Some_POSIX:
+  assumes "blexer (xders r p) s = Some v"
+  shows "s \<in> (xders r p) \<rightarrow> v"
+  using assms by (simp add: blexer_POSIX_correctness)
+
+lemma blexer_xders_None_POSIX_iff:
+  "blexer (xders r p) s = None \<longleftrightarrow> \<not> (\<exists>v. s \<in> (xders r p) \<rightarrow> v)"
+proof -
+  have "blexer (xders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. blexer (xders r p) s = Some v)"
+    by (cases "blexer (xders r p) s") auto
+  then show ?thesis
+    by (simp add: blexer_xders_defined_POSIX_iff)
+qed
+
+lemma blexer_xders_POSIX_obtains:
+  assumes "\<exists>v. s \<in> (xders r p) \<rightarrow> v"
+  obtains v where "blexer (xders r p) s = Some v"
+    and "s \<in> (xders r p) \<rightarrow> v"
+proof -
+  from assms have "\<exists>v. blexer (xders r p) s = Some v"
+    using blexer_xders_defined_POSIX_iff by blast
+  then obtain v where "blexer (xders r p) s = Some v"
+    by blast
+  then have "s \<in> (xders r p) \<rightarrow> v"
+    using blexer_xders_Some_POSIX by blast
+  then show thesis
+    using \<open>blexer (xders r p) s = Some v\<close> that by blast
+qed
+
+lemma blexer_xders_POSIX_cases:
+  obtains (reject) "\<not> (\<exists>v. s \<in> (xders r p) \<rightarrow> v)"
+      "blexer (xders r p) s = None"
+    | (accept) v where "s \<in> (xders r p) \<rightarrow> v"
+      "blexer (xders r p) s = Some v"
+proof (cases "blexer (xders r p) s")
+  case None
+  then have "\<not> (\<exists>v. s \<in> (xders r p) \<rightarrow> v)"
+    by (simp add: blexer_xders_None_POSIX_iff)
+  then show thesis
+    using None reject by blast
+next
+  case (Some v)
+  then have "s \<in> (xders r p) \<rightarrow> v"
+    using blexer_xders_Some_POSIX by blast
+  then show thesis
+    using Some accept by blast
+qed
+
 end

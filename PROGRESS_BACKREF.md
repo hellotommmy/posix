@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bounded individual quotient wrappers)
+Last updated: 2026-05-27 (simple lexer derivative-prefix API)
 
 ## Current Branch
 
@@ -17,6 +17,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 ```
 
 Latest result:
+
+- PASS on 2026-05-27 (abbypan) with no-cheat guard after adding simple lexer
+  derivative-prefix API (`blexer_xders_*` family) to `BackRefValues.thy`.
+  New checked lemmas mirror the existing `gblexer_gxders_*` family from
+  `BackRefLang4Values.thy`, filling the asymmetry between simple and
+  generalized lexer APIs. New facts:
+  `blexer_xders_defined_BL_iff`,
+  `blexer_xders_None_BL_iff`,
+  `blexer_xders_Some_BL`,
+  `xders_BPrf_BL_iff`,
+  `blexer_xders_defined_BPrf_iff`,
+  `blexer_xders_None_BPrf_iff`,
+  `blexer_xders_Some_BPrf`,
+  `blexer_xders_BPrf_obtains`,
+  `blexer_xders_BL_obtains`,
+  `blexer_xders_BL_cases`,
+  `blexer_xders_BPrf_cases`,
+  `blexer_xders_defined_POSIX_iff`,
+  `blexer_xders_Some_POSIX`,
+  `blexer_xders_None_POSIX_iff`,
+  `blexer_xders_POSIX_obtains`,
+  `blexer_xders_POSIX_cases`.
+  The simple side now has POSIX-specific derivative-prefix lemmas that the
+  generalized side does not yet have. Files changed:
+  `BackRefValues.thy` (+170 lines), `PROGRESS_BACKREF.md`.
 
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding individual left-quotient finite/card
