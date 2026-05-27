@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend derivative-nullability wrappers)
+Last updated: 2026-05-27 (bitcoded frontend derivative-nullability case wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+  generation after adding explicit accept/reject case wrappers for the
+  ordinary and generalized bitcoded frontend groups keyed by final derivative
+  nullability. New checked facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_xnullable_cases` and
+  `gbblexer_frontends_gnullable_cases`, packaging all three frontend variants
+  to reject together when `xnullable (xders r s)` / `gnullable (gxders r s)`
+  is false and to return the same normalized final retrieval bit witness when
+  it is true. Files changed before this progress note:
+  `BackRefBitcodedSummary.thy` (+66) and `PROGRESS_BACKREF.md`. Baseline
+  synced pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.494 seconds. Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.550 seconds. Pre-progress full
+  local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:37 elapsed), Isabelle `BackRefPilot` (0:03 elapsed,
+  cached), and local CI certificate generation. Explicit after-progress guards
+  passed: statement guard, no-cheat guard, bounty guard, and admin role guard.
+  Final after-progress full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot`
+  (0:18 elapsed), `BackRefBitcodedSummary` replaying in about 0.668 seconds,
+  and local CI certificate generation. Next smallest safe step: stop until the
+  admin opens a new bounty/phase, or add only similarly direct downstream
+  packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding derivative-nullability

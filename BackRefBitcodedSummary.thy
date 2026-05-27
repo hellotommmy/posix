@@ -316,6 +316,39 @@ proof -
   qed
 qed
 
+theorem bblexer_frontends_xnullable_cases:
+  obtains (reject) "\<not> xnullable (xders r s)"
+    "bblexer r s = None"
+    "bblexer_simp r s = None"
+    "bblexer_step_simp r s = None"
+  | (accept) "xnullable (xders r s)"
+    "bblexer r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    "bblexer_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    "bblexer_step_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+proof (cases "xnullable (xders r s)")
+  case True
+  let ?bs = "bretrieve (bbders (baintern r) s) (bmkeps (xders r s))"
+  have b: "bblexer r s = Some ?bs"
+    using True by (simp add: bblexer_frontends_xnullable_iff)
+  then have simp: "bblexer_simp r s = Some ?bs"
+    by (simp add: bblexer_frontends_eq)
+  from b have step_simp: "bblexer_step_simp r s = Some ?bs"
+    by (simp add: bblexer_frontends_eq)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "bblexer r s = None"
+    using False by (simp add: bblexer_frontends_xnullable_iff)
+  have simp_none: "bblexer_simp r s = None"
+    using False by (simp add: bblexer_frontends_xnullable_iff)
+  have step_simp_none: "bblexer_step_simp r s = None"
+    using False by (simp add: bblexer_frontends_xnullable_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
 theorem bblexer_frontends_BL_final_cases:
   obtains (reject) "s \<notin> BL r"
     "bblexer r s = None"
@@ -630,6 +663,39 @@ proof -
       gbblexer_step_simp r s = Some bs"
       using b simp step_simp by blast
   qed
+qed
+
+theorem gbblexer_frontends_gnullable_cases:
+  obtains (reject) "\<not> gnullable (gxders r s)"
+    "gbblexer r s = None"
+    "gbblexer_simp r s = None"
+    "gbblexer_step_simp r s = None"
+  | (accept) "gnullable (gxders r s)"
+    "gbblexer r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    "gbblexer_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    "gbblexer_step_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+proof (cases "gnullable (gxders r s)")
+  case True
+  let ?bs = "gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s))"
+  have b: "gbblexer r s = Some ?bs"
+    using True by (simp add: gbblexer_frontends_gnullable_iff)
+  then have simp: "gbblexer_simp r s = Some ?bs"
+    by (simp add: gbblexer_frontends_eq)
+  from b have step_simp: "gbblexer_step_simp r s = Some ?bs"
+    by (simp add: gbblexer_frontends_eq)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "gbblexer r s = None"
+    using False by (simp add: gbblexer_frontends_gnullable_iff)
+  have simp_none: "gbblexer_simp r s = None"
+    using False by (simp add: gbblexer_frontends_gnullable_iff)
+  have step_simp_none: "gbblexer_step_simp r s = None"
+    using False by (simp add: gbblexer_frontends_gnullable_iff)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
 theorem gbblexer_frontends_GBL_final_cases:
