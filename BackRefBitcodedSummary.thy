@@ -261,6 +261,41 @@ next
     using bblexer_frontends_BL_obtains_same by blast
 qed
 
+theorem bblexer_frontends_BL_final_cases:
+  obtains (reject) "s \<notin> BL r"
+    "bblexer r s = None"
+    "bblexer_simp r s = None"
+    "bblexer_step_simp r s = None"
+  | (accept) "s \<in> BL r"
+    "bblexer r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    "bblexer_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    "bblexer_step_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+proof (cases "s \<in> BL r")
+  case True
+  have b: "bblexer r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    using True by (simp add: bblexer_frontends_final_same)
+  have simp: "bblexer_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    using True by (simp add: bblexer_frontends_final_same)
+  have step_simp: "bblexer_step_simp r s =
+      Some (bretrieve (bbders (baintern r) s) (bmkeps (xders r s)))"
+    using True by (simp add: bblexer_frontends_final_same)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "bblexer r s = None"
+    using False by (simp add: bblexer_frontends_final_same)
+  have simp_none: "bblexer_simp r s = None"
+    using False by (simp add: bblexer_frontends_final_same)
+  have step_simp_none: "bblexer_step_simp r s = None"
+    using False by (simp add: bblexer_frontends_final_same)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -485,6 +520,41 @@ next
     gbblexer_simp r s = Some bs \<and>
     gbblexer_step_simp r s = Some bs"
     using gbblexer_frontends_GBL_obtains_same by blast
+qed
+
+theorem gbblexer_frontends_GBL_final_cases:
+  obtains (reject) "s \<notin> GBL r"
+    "gbblexer r s = None"
+    "gbblexer_simp r s = None"
+    "gbblexer_step_simp r s = None"
+  | (accept) "s \<in> GBL r"
+    "gbblexer r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    "gbblexer_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    "gbblexer_step_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+proof (cases "s \<in> GBL r")
+  case True
+  have b: "gbblexer r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    using True by (simp add: gbblexer_frontends_final_same)
+  have simp: "gbblexer_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    using True by (simp add: gbblexer_frontends_final_same)
+  have step_simp: "gbblexer_step_simp r s =
+      Some (gretrieve (gabders (gaintern r) s) (gmkeps (gxders r s)))"
+    using True by (simp add: gbblexer_frontends_final_same)
+  show thesis by (rule accept[OF True b simp step_simp])
+next
+  case False
+  have none: "gbblexer r s = None"
+    using False by (simp add: gbblexer_frontends_final_same)
+  have simp_none: "gbblexer_simp r s = None"
+    using False by (simp add: gbblexer_frontends_final_same)
+  have step_simp_none: "gbblexer_step_simp r s = None"
+    using False by (simp add: gbblexer_frontends_final_same)
+  show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
 end

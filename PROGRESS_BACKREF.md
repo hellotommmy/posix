@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend accept/reject wrappers)
+Last updated: 2026-05-27 (bitcoded frontend final case wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,43 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard PASS after adding exact accept/reject case
+  wrappers for the ordinary and generalized bitcoded frontend groups. New
+  checked facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_BL_final_cases` and
+  `gbblexer_frontends_GBL_final_cases`, packaging all three frontend variants
+  to reject together outside `BL`/`GBL` and to return the same normalized
+  unsimplified final retrieval expression on accepted inputs. Files changed
+  before this progress note: `BackRefBitcodedSummary.thy` (+70) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.244 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.307 seconds. Final after-progress full local CI passed with no-cheat
+  guard, bounty guard, admin role guard, Isabelle `Posix` (0:36 elapsed),
+  Isabelle `BackRefPilot` (0:17 elapsed), `BackRefBitcodedSummary` replaying
+  in about 0.323 seconds, and local CI certificate generation; explicit
+  statement guard passed. After fast-forwarding to concurrent remote commit
+  `8f6b34e`, the autostash conflicted only in the progress title; both
+  progress entries were preserved. Post-sync pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBitcodedSummary` replaying in
+  about 0.302 seconds. Final post-sync full local CI passed with no-cheat
+  guard, bounty guard, admin role guard, Isabelle `Posix` (0:35 elapsed),
+  Isabelle `BackRefPilot` (0:17 elapsed), `BackRefBitcodedSummary` replaying
+  in about 0.280 seconds, and local CI certificate generation; explicit
+  statement guard PASS. Next smallest safe step: stop until the admin opens a
+  new bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. After rebasing over concurrent commit `4643efa`, both
+  the compact accept/reject wrappers and the final-case wrappers were
+  preserved. Post-rebase pilot-only local CI passed with `BackRefPilot` (0:18
+  elapsed), with `BackRefBitcodedSummary` replaying in about 0.533 seconds.
+  Final post-rebase full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot`
+  (0:17 elapsed), `BackRefBitcodedSummary` replaying in about 0.590 seconds,
+  and local CI certificate generation; explicit statement guard PASS.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   and Isabelle `BackRefPilot` after adding compact accept/reject iff wrappers
   for the ordinary and generalized bitcoded frontend groups. New checked facts
