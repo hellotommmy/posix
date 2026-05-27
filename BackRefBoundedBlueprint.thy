@@ -3777,4 +3777,146 @@ proof -
     using sub assms(6) by (auto simp add: bounded_strings_def)
 qed
 
+theorem bounded_language_left_quotient_finite:
+  assumes "bounded_language n A"
+  shows "finite (Ders s A)"
+proof -
+  have sub: "Ders s A \<subseteq> bounded_strings n"
+    using bounded_language_Ders[OF assms, of s]
+    by (rule bounded_language_subset_bounded_strings)
+  show ?thesis
+    using finite_subset[OF sub] finite_bounded_strings by simp
+qed
+
+theorem bounded_language_left_quotient_card_bound:
+  assumes "bounded_language n A"
+  shows "card (Ders s A) \<le> card (bounded_strings n)"
+proof -
+  have sub: "Ders s A \<subseteq> bounded_strings n"
+    using bounded_language_Ders[OF assms, of s]
+    by (rule bounded_language_subset_bounded_strings)
+  show ?thesis
+    by (rule card_mono[OF finite_bounded_strings sub])
+qed
+
+theorem bounded_backref_lang_left_quotient_finite:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+  shows "finite (Ders s (backref_lang A B cs))"
+proof -
+  have bounded: "bounded_language (n_capture + n_mid + length cs + n_capture)
+    (backref_lang A B cs)"
+    using assms by (rule bounded_language_backref_lang)
+  show ?thesis
+    using bounded by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem bounded_backref_lang4_left_quotient_finite:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "finite (Ders s (backref_lang4 L1 L2 L3 L4 cs))"
+proof -
+  have bounded: "bounded_language (n1 + n2 + n3 + length cs + n2 + n4)
+    (backref_lang4 L1 L2 L3 L4 cs)"
+    using assms by (rule bounded_language_backref_lang4)
+  show ?thesis
+    using bounded by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem bounded_backref_lang_left_quotient_card_bound:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+  shows "card (Ders s (backref_lang A B cs)) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bounded: "bounded_language (n_capture + n_mid + length cs + n_capture)
+    (backref_lang A B cs)"
+    using assms by (rule bounded_language_backref_lang)
+  show ?thesis
+    using bounded by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem bounded_backref_lang4_left_quotient_card_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "card (Ders s (backref_lang4 L1 L2 L3 L4 cs)) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bounded: "bounded_language (n1 + n2 + n3 + length cs + n2 + n4)
+    (backref_lang4 L1 L2 L3 L4 cs)"
+    using assms by (rule bounded_language_backref_lang4)
+  show ?thesis
+    using bounded by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem bounded_language_residual_left_quotient_finite:
+  assumes "bounded_language n A"
+  shows "finite (Ders t (Ders s A))"
+  using bounded_language_Ders[OF assms, of s]
+  by (rule bounded_language_left_quotient_finite)
+
+theorem bounded_language_residual_left_quotient_card_bound:
+  assumes "bounded_language n A"
+  shows "card (Ders t (Ders s A)) \<le> card (bounded_strings n)"
+  using bounded_language_Ders[OF assms, of s]
+  by (rule bounded_language_left_quotient_card_bound)
+
+theorem bounded_backref_lang_residual_left_quotient_finite:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+  shows "finite (Ders t (Ders s (backref_lang A B cs)))"
+proof -
+  have bounded: "bounded_language (n_capture + n_mid + length cs + n_capture)
+    (backref_lang A B cs)"
+    using assms by (rule bounded_language_backref_lang)
+  show ?thesis
+    using bounded by (rule bounded_language_residual_left_quotient_finite)
+qed
+
+theorem bounded_backref_lang4_residual_left_quotient_finite:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "finite (Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs)))"
+proof -
+  have bounded: "bounded_language (n1 + n2 + n3 + length cs + n2 + n4)
+    (backref_lang4 L1 L2 L3 L4 cs)"
+    using assms by (rule bounded_language_backref_lang4)
+  show ?thesis
+    using bounded by (rule bounded_language_residual_left_quotient_finite)
+qed
+
+theorem bounded_backref_lang_residual_left_quotient_card_bound:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+  shows "card (Ders t (Ders s (backref_lang A B cs))) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have bounded: "bounded_language (n_capture + n_mid + length cs + n_capture)
+    (backref_lang A B cs)"
+    using assms by (rule bounded_language_backref_lang)
+  show ?thesis
+    using bounded by (rule bounded_language_residual_left_quotient_card_bound)
+qed
+
+theorem bounded_backref_lang4_residual_left_quotient_card_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+  shows "card (Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs))) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have bounded: "bounded_language (n1 + n2 + n3 + length cs + n2 + n4)
+    (backref_lang4 L1 L2 L3 L4 cs)"
+    using assms by (rule bounded_language_backref_lang4)
+  show ?thesis
+    using bounded by (rule bounded_language_residual_left_quotient_card_bound)
+qed
+
 end

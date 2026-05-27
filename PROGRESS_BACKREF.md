@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bounded left quotient length wrappers)
+Last updated: 2026-05-27 (bounded quotient finite/card wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,33 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct semantic left-quotient and
+  residual-left-quotient finiteness/cardinality wrappers in
+  `BackRefBoundedBlueprint.thy`. New checked facts are
+  `bounded_language_left_quotient_finite`,
+  `bounded_language_left_quotient_card_bound`,
+  `bounded_backref_lang_left_quotient_finite`,
+  `bounded_backref_lang4_left_quotient_finite`,
+  `bounded_backref_lang_left_quotient_card_bound`,
+  `bounded_backref_lang4_left_quotient_card_bound`,
+  `bounded_language_residual_left_quotient_finite`,
+  `bounded_language_residual_left_quotient_card_bound`,
+  `bounded_backref_lang_residual_left_quotient_finite`,
+  `bounded_backref_lang4_residual_left_quotient_finite`,
+  `bounded_backref_lang_residual_left_quotient_card_bound`, and
+  `bounded_backref_lang4_residual_left_quotient_card_bound`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+142) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:19 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 5.2 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:18 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 4.7 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:35 elapsed), Isabelle
+  `BackRefPilot` (0:16 elapsed), local CI certificate generation, and
+  explicit statement guard PASS. Next smallest safe step: stop until the admin
+  opens a new bounty/phase, or add only similarly direct downstream packaging
+  facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding direct semantic left-quotient member
   length wrappers in `BackRefBoundedBlueprint.thy`. New checked facts are
