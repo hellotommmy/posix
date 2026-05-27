@@ -562,6 +562,55 @@ lemma gblexer_gxders_Some_GBL:
   shows "p @ s \<in> GBL r"
   using assms gblexer_gxders_defined_GBL_iff by blast
 
+lemma gxders_GPrf_GBL_iff:
+  "(\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s) \<longleftrightarrow> p @ s \<in> GBL r"
+proof -
+  have "(\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s) \<longleftrightarrow>
+      s \<in> GBL (gxders r p)"
+    by (auto simp add: GBL_flat_GPrf)
+  also have "... \<longleftrightarrow> p @ s \<in> GBL r"
+    by (simp add: gxders_correctness Ders_def)
+  finally show ?thesis .
+qed
+
+lemma gblexer_gxders_defined_GPrf_iff:
+  "(\<exists>v. gblexer (gxders r p) s = Some v) \<longleftrightarrow>
+    (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+  by (simp add: gblexer_gxders_defined_GBL_iff gxders_GPrf_GBL_iff)
+
+lemma gblexer_gxders_None_GPrf_iff:
+  "gblexer (gxders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+proof -
+  have "gblexer (gxders r p) s = None \<longleftrightarrow>
+    \<not> (\<exists>v. gblexer (gxders r p) s = Some v)"
+    by (cases "gblexer (gxders r p) s") auto
+  then show ?thesis
+    by (simp add: gblexer_gxders_defined_GPrf_iff)
+qed
+
+lemma gblexer_gxders_Some_GPrf:
+  assumes "gblexer (gxders r p) s = Some v"
+  shows "\<Turnstile>g v : gxders r p"
+    and "gflat v = s"
+  using assms gblexer_GPrf gblexer_flat by blast+
+
+lemma gblexer_gxders_GPrf_obtains:
+  assumes "\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s"
+  obtains v where "gblexer (gxders r p) s = Some v"
+    and "\<Turnstile>g v : gxders r p"
+    and "gflat v = s"
+proof -
+  from assms have "\<exists>v. gblexer (gxders r p) s = Some v"
+    using gblexer_gxders_defined_GPrf_iff by blast
+  then obtain v where "gblexer (gxders r p) s = Some v"
+    by blast
+  then have "\<Turnstile>g v : gxders r p" "gflat v = s"
+    using gblexer_gxders_Some_GPrf by blast+
+  then show thesis
+    using \<open>gblexer (gxders r p) s = Some v\<close> that by blast
+qed
+
 lemma gblexer_gxders_GBL_obtains:
   assumes "p @ s \<in> GBL r"
   obtains v where "gblexer (gxders r p) s = Some v"
@@ -592,6 +641,25 @@ next
   case (Some v)
   then have "p @ s \<in> GBL r" "\<Turnstile>g v : gxders r p" "gflat v = s"
     using gblexer_gxders_Some_GBL gblexer_GPrf gblexer_flat by blast+
+  then show thesis
+    using Some accept by blast
+qed
+
+lemma gblexer_gxders_GPrf_cases:
+  obtains (reject) "\<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+      "gblexer (gxders r p) s = None"
+    | (accept) v where "\<Turnstile>g v : gxders r p" "gflat v = s"
+      "gblexer (gxders r p) s = Some v"
+proof (cases "gblexer (gxders r p) s")
+  case None
+  then have "\<not> (\<exists>v. \<Turnstile>g v : gxders r p \<and> gflat v = s)"
+    by (simp add: gblexer_gxders_None_GPrf_iff)
+  then show thesis
+    using None reject by blast
+next
+  case (Some v)
+  then have "\<Turnstile>g v : gxders r p" "gflat v = s"
+    using gblexer_gxders_Some_GPrf by blast+
   then show thesis
     using Some accept by blast
 qed

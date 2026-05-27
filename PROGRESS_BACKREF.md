@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend final retrieve evidence wrappers)
+Last updated: 2026-05-27 (generalized derivative-prefix GPrf wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,36 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard PASS after adding derivative-prefix `GPrf`
+  packaging facts for the standalone generalized value lexer. New checked
+  facts in `BackRefLang4Values.thy` are `gxders_GPrf_GBL_iff`,
+  `gblexer_gxders_defined_GPrf_iff`,
+  `gblexer_gxders_None_GPrf_iff`, `gblexer_gxders_Some_GPrf`,
+  `gblexer_gxders_GPrf_obtains`, and
+  `gblexer_gxders_GPrf_cases`, relating `gblexer (gxders r p) s`
+  directly to explicit `GPrf` evidence for `gxders r p` and to
+  `p @ s \<in> GBL r`. Files changed before this progress note:
+  `BackRefLang4Values.thy` (+68) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefLang4Values` replaying in about 1.872 seconds. The first post-edit
+  proof of `gxders_GPrf_GBL_iff` was too broad: simplification left two
+  evidence-existence forms, and the next version still needed equality
+  orientation normalization. It was replaced with an explicit chain through
+  `s \<in> GBL (gxders r p)` plus a localized `auto` step. Post-fix pilot-only
+  local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefLang4Values` replaying in about 2.061 seconds. Initial full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix`, Isabelle `BackRefPilot`, and local CI certificate generation;
+  explicit statement guard PASS. After rebasing over concurrent remote commit
+  `792a41d`, the progress conflict was limited to the title/order and both
+  entries plus theory changes were preserved. Final post-rebase full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix`, Isabelle `BackRefPilot`, and local CI certificate generation;
+  explicit statement guard PASS. Next smallest safe step: stop until the admin
+  opens a new bounty/phase, or add only similarly direct downstream packaging
+  facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding ordinary and generalized bitcoded
   frontend final retrieve evidence wrappers. New checked facts in
