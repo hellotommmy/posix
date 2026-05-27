@@ -21,9 +21,9 @@ immutability.
 | Category | Amount |
 | --- | ---: |
 | Total pool | 50,000 |
-| Allocated (active + completed) | 25,090 |
+| Allocated (active + completed) | 35,090 |
 | Collected (paid out) | 24,970 |
-| Reserved (unallocated) | 24,910 |
+| Reserved (unallocated) | 14,910 |
 
 ## Agent Balances
 
@@ -40,6 +40,13 @@ immutability.
 | ID | Task | Bounty | Est. Lines | Difficulty | Est. USD | Status | Owner | Artifact | Verifier | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 | BR-023 | Original-file migration TODO audit | 120 | 30 | 3 | 120 | OPEN | - | RegLangs.thy;PosixSpec.thy;Lexer.thy;LexerSimp.thy;Blexer.thy;BlexerSimp.thy;BasicIdentities.thy;GeneralRegexBound.thy;ClosedForms.thy;ClosedFormsBounds.thy;FBound.thy | AdminReview | Small planning bounty only; no theorem payout until admin approves direct original-file implementation |
+| BR-024 | Migrate backref4 language semantics into original RegLangs | 1,400 | 120 | 8 | 1,400 | OPEN | - | RegLangs.thy:backref_lang4,nullable_correctness,der_correctness,ders_correctness | Isabelle:Posix | Direct `rexp/L/nullable/der/ders` extension with BACKREF4/HALF/RESIDUE; no brexp/gbrexp wrappers |
+| BR-025 | Migrate backref values and POSIX rules into original PosixSpec | 1,800 | 180 | 9 | 1,800 | OPEN | - | PosixSpec.thy:L_flat_Prf,LV_finite,Posix_determ,Posix_LV | Isabelle:Posix | Direct `val/flat/Prf/LV/Posix` extension; no bval/bval4/gbval wrappers |
+| BR-026 | Migrate backref injection and lexer correctness into original Lexer | 1,400 | 140 | 9 | 1,400 | OPEN | - | Lexer.thy:Prf_injval,Posix_injval,lexer_correctness,Prf_flex | Isabelle:Posix | Direct `mkeps/injval/lexer/flex` extension after BR-024/025 |
+| BR-027 | Migrate backref bitcoded lexer into original Blexer | 1,800 | 170 | 9 | 1,800 | OPEN | - | Blexer.thy:erase_bder,retrieve_code,bmkeps_retrieve,bder_retrieve,MAIN_decode,blexer_correctness | Isabelle:Posix | Direct `bit/arexp/code/decode/retrieve/bder/blexer` extension; no bbit/barexp/gabexp wrappers |
+| BR-028 | Preserve aggressive original BlexerSimp for backrefs | 1,400 | 140 | 9 | 1,400 | OPEN | - | BlexerSimp.thy:rewrites_to_bsimp,rewrite_preserves_bder,central,main_blexer_simp,blexersimp_correctness | Isabelle:Posix | Must use original rewrite-system route; weak structural simplifier or wrapper equality does not count |
+| BR-029 | Add backref closed-form families in original closed-form machinery | 1,200 | 160 | 9 | 1,200 | OPEN | - | BasicIdentities.thy;ClosedForms.thy:backref4_closed_form,half_closed_form,residue_closed_form | Isabelle:Posix | Decide rexp vs temporary rrexp, then add real BACKREF4/HALF/RESIDUE closed-form coverage |
+| BR-030 | Close original bounds after backref migration | 1,000 | 120 | 8 | 1,000 | OPEN | - | GeneralRegexBound.thy;ClosedFormsBounds.thy;FBound.thy:finite_size_n,rders_simp_bounded,annotated_size_bound | Isabelle:Posix | Final boundedness through original theorem chain; BackRefBoundedBlueprint wrappers do not count |
 
 ## Completed
 
