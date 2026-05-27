@@ -3625,6 +3625,71 @@ theorem GBL_bound_GBACKREF4_residual_derivative_length_bound_mono:
       of "GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)" s w]
   by auto
 
+theorem bounded_language_left_quotient_length_bound:
+  assumes "bounded_language n A"
+    and "w \<in> Ders s A"
+  shows "length w \<le> n"
+  using assms bounded_language_Ders[of n A s]
+  by (auto simp add: bounded_language_def)
+
+theorem bounded_language_left_quotient_length_bound_mono:
+  assumes "bounded_language n A"
+    and "n \<le> m"
+    and "w \<in> Ders s A"
+  shows "length w \<le> m"
+  using bounded_language_left_quotient_length_bound[OF assms(1,3)] assms(2)
+  by simp
+
+theorem bounded_backref_lang_left_quotient_length_bound:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "w \<in> Ders s (backref_lang A B cs)"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+proof -
+  have bounded: "bounded_language (n_capture + n_mid + length cs + n_capture)
+    (backref_lang A B cs)"
+    using assms(1,2) by (rule bounded_language_backref_lang)
+  show ?thesis
+    using bounded assms(3) by (rule bounded_language_left_quotient_length_bound)
+qed
+
+theorem bounded_backref_lang4_left_quotient_length_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "w \<in> Ders s (backref_lang4 L1 L2 L3 L4 cs)"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+proof -
+  have bounded: "bounded_language (n1 + n2 + n3 + length cs + n2 + n4)
+    (backref_lang4 L1 L2 L3 L4 cs)"
+    using assms(1-4) by (rule bounded_language_backref_lang4)
+  show ?thesis
+    using bounded assms(5) by (rule bounded_language_left_quotient_length_bound)
+qed
+
+theorem bounded_backref_lang_left_quotient_length_bound_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+    and "w \<in> Ders s (backref_lang A B cs)"
+  shows "length w \<le> m"
+  using bounded_backref_lang_left_quotient_length_bound[OF assms(1,2,4)]
+    assms(3)
+  by simp
+
+theorem bounded_backref_lang4_left_quotient_length_bound_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+    and "w \<in> Ders s (backref_lang4 L1 L2 L3 L4 cs)"
+  shows "length w \<le> m"
+  using bounded_backref_lang4_left_quotient_length_bound[OF assms(1-4,6)]
+    assms(5)
+  by simp
+
 theorem bounded_language_residual_left_quotient_length_bound:
   assumes "bounded_language n A"
     and "w \<in> Ders t (Ders s A)"

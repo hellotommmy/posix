@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend final case wrappers)
+Last updated: 2026-05-27 (bounded left quotient length wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,26 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding direct semantic left-quotient member
+  length wrappers in `BackRefBoundedBlueprint.thy`. New checked facts are
+  `bounded_language_left_quotient_length_bound`,
+  `bounded_language_left_quotient_length_bound_mono`,
+  `bounded_backref_lang_left_quotient_length_bound`,
+  `bounded_backref_lang4_left_quotient_length_bound`,
+  `bounded_backref_lang_left_quotient_length_bound_mono`, and
+  `bounded_backref_lang4_left_quotient_length_bound_mono`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+65) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 3.8 seconds. Post-edit pilot-only local CI passed with `BackRefPilot`
+  (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in about 4.5
+  seconds. Full local CI passed with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:03
+  elapsed), local CI certificate generation, and explicit statement guard
+  PASS. Next smallest safe step: stop until the admin opens a new
+  bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding exact accept/reject case
