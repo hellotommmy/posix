@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend value-lexer case wrappers)
+Last updated: 2026-05-27 (generalized value lexer derivative-prefix wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,39 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after preserving the uncommitted generalized
+  value-lexer case wrappers across the fast-forward to remote commit
+  `3eb3be6` and adding derivative-prefix packaging facts for the standalone
+  generalized value lexer. New checked facts in `BackRefLang4Values.thy` are
+  `gblexer_gxders_defined_GBL_iff`, `gblexer_gxders_None_GBL_iff`,
+  `gblexer_gxders_Some_GBL`, `gblexer_gxders_GBL_obtains`, and
+  `gblexer_gxders_GBL_cases`, relating `gblexer (gxders r p) s` directly to
+  `p @ s \<in> GBL r`. Files changed before this progress note:
+  `BackRefLang4Values.thy` (+90 total since `3eb3be6`, including +47 in this
+  step) and `PROGRESS_BACKREF.md`. Sync note: `git pull --rebase --autostash
+  origin codex/backref-values` fast-forwarded to `3eb3be6`; the autostash
+  conflicted only in `PROGRESS_BACKREF.md`, and both progress entries plus
+  theory changes were preserved. Baseline post-sync pilot-only local CI passed
+  with `BackRefPilot` (0:19 elapsed), with `BackRefLang4Values` replaying in
+  about 2.084 seconds. An initial post-edit pilot check exposed an overly broad
+  proof for `gblexer_gxders_GBL_obtains`; it was replaced by an explicit
+  `s \<in> GBL (gxders r p)` step through `gxders_correctness`. Post-fix
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefLang4Values` replaying in about 2.174 seconds. Final full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:37 elapsed), Isabelle `BackRefPilot` (0:03 elapsed, cached), and local CI
+  certificate generation; an explicit statement guard check also passed. After
+  rebasing over concurrent remote commit `9a2d375`, the progress conflict was
+  limited to title/order and both entries were preserved. Post-rebase
+  pilot-only local CI passed with `BackRefPilot` (0:18 elapsed), with
+  `BackRefLang4Values` replaying in about 2.690 seconds. Final post-rebase
+  full local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:04 elapsed),
+  and local CI certificate generation; explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding ordinary and generalized
@@ -93,6 +126,28 @@ Latest result:
   smallest safe step: stop until the admin opens a new bounty/phase, or add
   only similarly direct downstream packaging facts if explicitly requested.
   Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+  generation after adding direct generalized value-lexer accept/reject case
+  wrappers. New checked facts in `BackRefLang4Values.thy` are
+  `gblexer_defined_GBL_iff`, `gblexer_None_GBL_iff`,
+  `gblexer_GBL_cases`, and `gblexer_GPrf_cases`, packaging the standalone
+  generalized value lexer against `GBL` membership and explicit `GPrf`
+  evidence without changing `gbrexp`, `GBL`, `gxder`, `GPrf`, or production
+  lexer files. Files changed before this progress note:
+  `BackRefLang4Values.thy` (+43) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:18 elapsed). Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefLang4Values` replaying in about 1.980 seconds. Pre-progress full
+  local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04 elapsed,
+  cached), and local CI certificate generation. Final after-progress full
+  local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:03 elapsed), Isabelle `BackRefPilot` (0:03 elapsed),
+  and local CI certificate generation; a subsequent explicit statement guard
+  check also passed. Next smallest safe step: stop until the admin opens a new
+  bounty/phase, or add only similarly direct downstream packaging facts if
+  explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after adding generalized value-lexer evidence packaging facts.
