@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend derivative-nullability case wrappers)
+Last updated: 2026-05-27 (generalized value lexer evidence wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,29 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
+  generation after adding generalized value-lexer evidence packaging facts.
+  New checked facts in `BackRefLang4Values.thy` are `gblexer_Some_GBL`,
+  `gblexer_GBL_obtains`, `gblexer_defined_GPrf_iff`, and
+  `gblexer_None_GPrf_iff`, aligning the standalone generalized value lexer
+  with the ordinary value and bitcoded wrapper style without changing
+  `gbrexp`, `GBL`, `gxder`, or `GPrf`. Files changed before this progress
+  note: `BackRefLang4Values.thy` (+35) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:16 elapsed). An initial
+  post-edit pilot check exposed one overly implicit option-case proof in
+  `gblexer_None_GPrf_iff`; the proof was replaced by an explicit
+  `None`-versus-`Some` equivalence. Post-fix pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefLang4Values` replaying in about
+  2.208 seconds. Pre-progress full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:35 elapsed), Isabelle
+  `BackRefPilot` (0:04 elapsed, cached), and local CI certificate generation.
+  Final after-progress full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot`
+  (0:18 elapsed), `BackRefLang4Values` replaying in about 2.043 seconds, and
+  local CI certificate generation. Next smallest safe step: stop until the
+  admin opens a new bounty/phase, or add only similarly direct downstream
+  packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after adding explicit accept/reject case wrappers for the

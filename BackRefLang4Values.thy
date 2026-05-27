@@ -471,4 +471,39 @@ proof -
   qed
 qed
 
+lemma gblexer_Some_GBL:
+  assumes "gblexer r s = Some v"
+  shows "s \<in> GBL r"
+  using assms gblexer_GPrf gblexer_flat GBL_flat_GPrf1 by blast
+
+lemma gblexer_GBL_obtains:
+  assumes "s \<in> GBL r"
+  obtains v where "gblexer r s = Some v"
+    and "\<Turnstile>g v : r"
+    and "gflat v = s"
+  using assms gblexer_correct_Some that by blast
+
+lemma gblexer_defined_GPrf_iff:
+  "(\<exists>v. gblexer r s = Some v) \<longleftrightarrow> (\<exists>v. \<Turnstile>g v : r \<and> gflat v = s)"
+proof
+  assume "\<exists>v. gblexer r s = Some v"
+  then show "\<exists>v. \<Turnstile>g v : r \<and> gflat v = s"
+    using gblexer_GPrf gblexer_flat by blast
+next
+  assume "\<exists>v. \<Turnstile>g v : r \<and> gflat v = s"
+  then have "s \<in> GBL r"
+    using GBL_flat_GPrf1 by blast
+  then show "\<exists>v. gblexer r s = Some v"
+    using gblexer_correctness_defined by blast
+qed
+
+lemma gblexer_None_GPrf_iff:
+  "gblexer r s = None \<longleftrightarrow> \<not> (\<exists>v. \<Turnstile>g v : r \<and> gflat v = s)"
+proof -
+  have "gblexer r s = None \<longleftrightarrow> \<not> (\<exists>v. gblexer r s = Some v)"
+    by (cases "gblexer r s") auto
+  then show ?thesis
+    by (simp add: gblexer_defined_GPrf_iff)
+qed
+
 end
