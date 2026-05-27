@@ -237,6 +237,30 @@ next
   show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
+theorem bblexer_frontends_all_None_iff:
+  "bblexer r s = None \<and>
+    bblexer_simp r s = None \<and>
+    bblexer_step_simp r s = None \<longleftrightarrow> s \<notin> BL r"
+  by (auto simp add: bblexer_frontends_BL_iff)
+
+theorem bblexer_frontends_same_Some_iff:
+  "(\<exists>bs. bblexer r s = Some bs \<and>
+    bblexer_simp r s = Some bs \<and>
+    bblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> BL r"
+proof
+  assume "\<exists>bs. bblexer r s = Some bs \<and>
+    bblexer_simp r s = Some bs \<and>
+    bblexer_step_simp r s = Some bs"
+  then show "s \<in> BL r"
+    by (auto intro: bblexer_frontends_Some_BL(1))
+next
+  assume "s \<in> BL r"
+  then show "\<exists>bs. bblexer r s = Some bs \<and>
+    bblexer_simp r s = Some bs \<and>
+    bblexer_step_simp r s = Some bs"
+    using bblexer_frontends_BL_obtains_same by blast
+qed
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -437,6 +461,30 @@ next
   have step_simp_none: "gbblexer_step_simp r s = None"
     using False by (simp add: gbblexer_frontends_GBL_iff(3))
   show thesis by (rule reject[OF False none simp_none step_simp_none])
+qed
+
+theorem gbblexer_frontends_all_None_iff:
+  "gbblexer r s = None \<and>
+    gbblexer_simp r s = None \<and>
+    gbblexer_step_simp r s = None \<longleftrightarrow> s \<notin> GBL r"
+  by (auto simp add: gbblexer_frontends_GBL_iff)
+
+theorem gbblexer_frontends_same_Some_iff:
+  "(\<exists>bs. gbblexer r s = Some bs \<and>
+    gbblexer_simp r s = Some bs \<and>
+    gbblexer_step_simp r s = Some bs) \<longleftrightarrow> s \<in> GBL r"
+proof
+  assume "\<exists>bs. gbblexer r s = Some bs \<and>
+    gbblexer_simp r s = Some bs \<and>
+    gbblexer_step_simp r s = Some bs"
+  then show "s \<in> GBL r"
+    by (auto intro: gbblexer_frontends_Some_GBL(1))
+next
+  assume "s \<in> GBL r"
+  then show "\<exists>bs. gbblexer r s = Some bs \<and>
+    gbblexer_simp r s = Some bs \<and>
+    gbblexer_step_simp r s = Some bs"
+    using gbblexer_frontends_GBL_obtains_same by blast
 qed
 
 end

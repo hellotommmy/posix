@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (residual left-quotient length wrappers)
+Last updated: 2026-05-27 (bitcoded frontend accept/reject wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  and Isabelle `BackRefPilot` after adding compact accept/reject iff wrappers
+  for the ordinary and generalized bitcoded frontend groups. New checked facts
+  in `BackRefBitcodedSummary.thy` are `bblexer_frontends_all_None_iff`,
+  `bblexer_frontends_same_Some_iff`, `gbblexer_frontends_all_None_iff`, and
+  `gbblexer_frontends_same_Some_iff`, packaging that all three frontend
+  variants reject exactly outside `BL`/`GBL` and have a shared `Some` witness
+  exactly on accepted inputs. Files changed before this progress note:
+  `BackRefBitcodedSummary.thy` (+48) and `PROGRESS_BACKREF.md`. Baseline
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.244 seconds. Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:18 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.449 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix` (0:34 elapsed), Isabelle `BackRefPilot` (0:18 elapsed),
+  `BackRefBitcodedSummary` replaying in about 0.408 seconds, local CI
+  certificate generation, and explicit statement guard PASS. Next smallest safe
+  step: stop until the admin opens a new bounty/phase, or add only similarly
+  direct downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after preserving the uncommitted final-same wrappers across the
