@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend derivative-prefix wrappers)
+Last updated: 2026-05-27 (bitcoded derivative-prefix same-output wrappers)
 
 ## Current Branch
 
@@ -55,6 +55,21 @@ Latest result:
   certificate generation; explicit statement guard PASS. Next smallest safe
   step: stop until the admin opens a new bounty/phase, or add only similarly
   direct downstream packaging facts if explicitly requested. Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
+  and explicit statement guard PASS before rebasing over remote commit
+  `97668d6`; during the rebase the broader remote derivative-prefix wrapper
+  facts were preserved and the non-duplicated checked additions kept from this
+  step are `bblexer_frontends_xders_same_iff` and
+  `gbblexer_frontends_gxders_same_iff` in `BackRefBitcodedSummary.thy`.
+  These package the three bitcoded frontend variants run on `xders r p` /
+  `gxders r p` as rejecting together or accepting with one shared bit output
+  exactly when `p @ s \<notin> BL r` / `p @ s \<notin> GBL r` or
+  `p @ s \<in> BL r` / `p @ s \<in> GBL r`. Files changed before this
+  progress note: `BackRefBitcodedSummary.thy` and `PROGRESS_BACKREF.md`.
+  Next smallest safe step: stop until the admin opens a new bounty/phase, or
+  add only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, local CI certificate generation,
   and explicit statement guard PASS after adding derivative-prefix `GPrf`

@@ -539,6 +539,16 @@ next
   show thesis by (rule reject[OF False none simp_none step_simp_none])
 qed
 
+theorem bblexer_frontends_xders_same_iff:
+  "bblexer (xders r p) s = None \<and>
+    bblexer_simp (xders r p) s = None \<and>
+    bblexer_step_simp (xders r p) s = None \<longleftrightarrow> p @ s \<notin> BL r"
+  "(\<exists>bs. bblexer (xders r p) s = Some bs \<and>
+    bblexer_simp (xders r p) s = Some bs \<and>
+    bblexer_step_simp (xders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> BL r"
+  by (simp_all add: bblexer_frontends_all_None_iff
+      bblexer_frontends_same_Some_iff xders_correctness Ders_def)
+
 theorem gbblexer_frontends_eq:
   "gbblexer r s = gbblexer_simp r s"
   "gbblexer r s = gbblexer_step_simp r s"
@@ -968,6 +978,16 @@ proof -
   show "gbblexer_step_simp (gxders r p) s = Some bs \<Longrightarrow> p @ s \<in> GBL r"
     using gbblexer_frontends_gxders_defined_GBL_iff(3) by blast
 qed
+
+theorem gbblexer_frontends_gxders_same_iff:
+  "gbblexer (gxders r p) s = None \<and>
+    gbblexer_simp (gxders r p) s = None \<and>
+    gbblexer_step_simp (gxders r p) s = None \<longleftrightarrow> p @ s \<notin> GBL r"
+  "(\<exists>bs. gbblexer (gxders r p) s = Some bs \<and>
+    gbblexer_simp (gxders r p) s = Some bs \<and>
+    gbblexer_step_simp (gxders r p) s = Some bs) \<longleftrightarrow> p @ s \<in> GBL r"
+  by (simp_all add: gbblexer_frontends_all_None_iff
+      gbblexer_frontends_same_Some_iff gxders_correctness Ders_def)
 
 theorem gbblexer_frontends_gxders_GBL_cases:
   obtains (reject) "p @ s \<notin> GBL r"
