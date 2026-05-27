@@ -379,11 +379,29 @@ proof
     by linarith
 qed
 
+lemma finite_backref_lang4:
+  assumes "finite L1" "finite L2" "finite L3" "finite L4"
+  shows "finite (backref_lang4 L1 L2 L3 L4 cs)"
+proof -
+  have "backref_lang4 L1 L2 L3 L4 cs =
+    (\<lambda>(s1, s2, s3, s4). s1 @ s2 @ s3 @ rev cs @ s2 @ s4) `
+      (L1 \<times> L2 \<times> L3 \<times> L4)"
+    by (auto simp add: backref_lang4_def)
+  then show ?thesis
+    using assms by simp
+qed
+
 theorem finite_components_backref_lang_left_quotients:
   assumes "finite A" "finite B"
   shows "finite_left_quotients (backref_lang A B cs)"
   using assms
   by (intro finite_left_quotients_if_finite_language finite_backref_lang)
+
+theorem finite_components_backref_lang4_left_quotients:
+  assumes "finite L1" "finite L2" "finite L3" "finite L4"
+  shows "finite_left_quotients (backref_lang4 L1 L2 L3 L4 cs)"
+  using assms
+  by (intro finite_left_quotients_if_finite_language finite_backref_lang4)
 
 theorem bounded_backref_lang_finite_left_quotients:
   assumes "bounded_language n1 A" "bounded_language n2 B"
