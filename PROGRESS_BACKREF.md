@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (generalized value lexer evidence wrappers)
+Last updated: 2026-05-27 (bitcoded frontend output uniqueness wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,56 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after preserving the uncommitted bitcoded frontend
+  output equality wrappers across the fast-forward to remote commit `1ad2a3e`
+  and adding ordinary/generalized frontend output uniqueness wrappers. New
+  checked facts in `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_output_unique` and
+  `gbblexer_frontends_output_unique`, packaging that any two successful
+  bitcoded frontend variants report the same bit output. Files changed before
+  this progress note: `BackRefBitcodedSummary.thy` (+18 in this step, +42
+  total uncommitted since `1ad2a3e`) and `PROGRESS_BACKREF.md`. Sync note:
+  `git pull --rebase --autostash origin codex/backref-values` fast-forwarded
+  to `1ad2a3e`; the autostash conflicted only in the progress title, and both
+  progress entries plus theory changes were preserved. Baseline post-sync
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.637 seconds. Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.719 seconds. Full local CI
+  passed with no-cheat guard, bounty guard, admin role guard, Isabelle `Posix`
+  (0:35 elapsed), Isabelle `BackRefPilot` (0:03 elapsed, cached), and local CI
+  certificate generation; explicit statement guard PASS. After rebasing over
+  concurrent remote commit `b23b16a`, the progress conflict was limited to the
+  title/order and all progress entries were preserved. Post-rebase pilot-only
+  local CI passed with `BackRefPilot` (0:18 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.626 seconds. Final post-rebase
+  full local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (0:04 elapsed), Isabelle `BackRefPilot` (0:04 elapsed), and
+  local CI certificate generation; explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding bitcoded frontend output equality
+  wrappers for ordinary and generalized value evidence. New checked facts in
+  `BackRefBitcodedSummary.thy` are
+  `bblexer_frontends_blexer_retrieve_eq`,
+  `bblexer_frontends_POSIX_retrieve_eq`, and
+  `gbblexer_frontends_gblexer_retrieve_eq`, packaging that any reported bit
+  output from the three frontend variants is the retrieve output for the
+  known `blexer`/POSIX/`gblexer` value. Files changed before this progress
+  note: `BackRefBitcodedSummary.thy` (+24) and `PROGRESS_BACKREF.md`.
+  Baseline pilot-only local CI passed with `BackRefPilot` (0:16 elapsed),
+  with `BackRefBitcodedSummary` replaying in about 0.545 seconds. Post-edit
+  pilot-only local CI passed with `BackRefPilot` (0:17 elapsed), with
+  `BackRefBitcodedSummary` replaying in about 0.582 seconds. Final full local
+  CI passed with no-cheat guard, bounty guard, admin role guard, Isabelle
+  `Posix` (0:34 elapsed), Isabelle `BackRefPilot` (0:03 elapsed, cached), and
+  local CI certificate generation; explicit statement guard PASS. Next
+  smallest safe step: stop until the admin opens a new bounty/phase, or add
+  only similarly direct downstream packaging facts if explicitly requested.
+  Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix`, Isabelle `BackRefPilot`, and local CI certificate
   generation after adding generalized value-lexer evidence packaging facts.

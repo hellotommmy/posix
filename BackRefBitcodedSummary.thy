@@ -11,6 +11,15 @@ theorem bblexer_frontends_eq:
   by (simp_all add: bblexer_simp_correctness bblexer_step_simp_correctness
       bblexer_simp_step_simp_eq)
 
+theorem bblexer_frontends_output_unique:
+  "bblexer r s = Some bs1 \<Longrightarrow>
+    bblexer_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  "bblexer r s = Some bs1 \<Longrightarrow>
+    bblexer_step_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  "bblexer_simp r s = Some bs1 \<Longrightarrow>
+    bblexer_step_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  by (simp_all add: bblexer_frontends_eq)
+
 theorem bblexer_frontends_blexer_retrieve:
   "bblexer r s = map_option (bretrieve (baintern r)) (blexer r s)"
   "bblexer_simp r s = map_option (bretrieve (baintern r)) (blexer r s)"
@@ -25,6 +34,14 @@ theorem bblexer_frontends_blexer_Some_retrieve:
     and "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
   using assms by (simp_all add: bblexer_blexer_retrieve
       bblexer_simp_blexer_retrieve bblexer_step_simp_blexer_retrieve)
+
+theorem bblexer_frontends_blexer_retrieve_eq:
+  assumes "blexer r s = Some v"
+  shows "bblexer r s = Some bs \<Longrightarrow> bs = bretrieve (baintern r) v"
+    and "bblexer_simp r s = Some bs \<Longrightarrow> bs = bretrieve (baintern r) v"
+    and "bblexer_step_simp r s = Some bs \<Longrightarrow>
+      bs = bretrieve (baintern r) v"
+  using assms by (simp_all add: bblexer_frontends_blexer_retrieve)
 
 theorem bblexer_frontends_blexer_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
@@ -48,6 +65,14 @@ theorem bblexer_frontends_POSIX_retrieve:
     and "bblexer_step_simp r s = Some (bretrieve (baintern r) v)"
   using assms by (simp_all add: bblexer_POSIX_retrieve
       bblexer_simp_POSIX_retrieve bblexer_step_simp_POSIX_retrieve)
+
+theorem bblexer_frontends_POSIX_retrieve_eq:
+  assumes "s \<in> r \<rightarrow> v"
+  shows "bblexer r s = Some bs \<Longrightarrow> bs = bretrieve (baintern r) v"
+    and "bblexer_simp r s = Some bs \<Longrightarrow> bs = bretrieve (baintern r) v"
+    and "bblexer_step_simp r s = Some bs \<Longrightarrow>
+      bs = bretrieve (baintern r) v"
+  using assms by (simp_all add: bblexer_frontends_POSIX_retrieve)
 
 theorem bblexer_frontends_POSIX_retrieve_iff:
   "bblexer r s = Some bs \<longleftrightarrow>
@@ -391,6 +416,15 @@ theorem gbblexer_frontends_eq:
   by (simp_all add: gbblexer_simp_correctness gbblexer_step_simp_correctness
       gbblexer_simp_step_simp_eq)
 
+theorem gbblexer_frontends_output_unique:
+  "gbblexer r s = Some bs1 \<Longrightarrow>
+    gbblexer_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  "gbblexer r s = Some bs1 \<Longrightarrow>
+    gbblexer_step_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  "gbblexer_simp r s = Some bs1 \<Longrightarrow>
+    gbblexer_step_simp r s = Some bs2 \<Longrightarrow> bs1 = bs2"
+  by (simp_all add: gbblexer_frontends_eq)
+
 theorem gbblexer_frontends_gblexer_retrieve:
   "gbblexer r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
   "gbblexer_simp r s = map_option (gretrieve (gaintern r)) (gblexer r s)"
@@ -406,6 +440,14 @@ theorem gbblexer_frontends_gblexer_Some_retrieve:
     and "gbblexer_step_simp r s = Some (gretrieve (gaintern r) v)"
   using assms by (simp_all add: gbblexer_gblexer_retrieve
       gbblexer_simp_gblexer_retrieve gbblexer_step_simp_gblexer_retrieve)
+
+theorem gbblexer_frontends_gblexer_retrieve_eq:
+  assumes "gblexer r s = Some v"
+  shows "gbblexer r s = Some bs \<Longrightarrow> bs = gretrieve (gaintern r) v"
+    and "gbblexer_simp r s = Some bs \<Longrightarrow> bs = gretrieve (gaintern r) v"
+    and "gbblexer_step_simp r s = Some bs \<Longrightarrow>
+      bs = gretrieve (gaintern r) v"
+  using assms by (simp_all add: gbblexer_frontends_gblexer_retrieve)
 
 theorem gbblexer_frontends_gblexer_iff:
   "gbblexer r s = Some bs \<longleftrightarrow>
