@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend normalized Some iff wrappers)
+Last updated: 2026-05-27 (residual left-quotient length wrappers)
 
 ## Current Branch
 
@@ -51,6 +51,30 @@ Latest result:
   explicit statement guard PASS. Next smallest safe step: stop until the admin
   opens a new bounty/phase, or add only similarly direct downstream packaging
   facts if explicitly requested. Blockers: none.
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `BackRefPilot`, and final full local CI after adding direct
+  residual left-quotient member length wrappers in
+  `BackRefBoundedBlueprint.thy`. New checked facts are
+  `bounded_language_residual_left_quotient_length_bound`,
+  `bounded_language_residual_left_quotient_length_bound_mono`,
+  `bounded_backref_lang_residual_left_quotient_length_bound`,
+  `bounded_backref_lang4_residual_left_quotient_length_bound`,
+  `bounded_backref_lang_residual_left_quotient_length_bound_mono`, and
+  `bounded_backref_lang4_residual_left_quotient_length_bound_mono`. Files
+  changed before this progress note: `BackRefBoundedBlueprint.thy` (+87) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:19 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 3.8 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed) and `BackRefBoundedBlueprint` replaying in
+  about 3.8 seconds. Full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot`
+  (0:03 elapsed), and local CI certificate generation. After rebasing over
+  concurrent commit `59345fb`, final post-rebase full local CI passed with
+  no-cheat guard, bounty guard, admin role guard, Isabelle `Posix` (0:35
+  elapsed), Isabelle `BackRefPilot` (0:17 elapsed), local CI certificate
+  generation, and explicit statement guard PASS. Next smallest safe step:
+  stop until the admin opens a new bounty/phase, or add only similarly direct
+  downstream packaging facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard,
   Isabelle `BackRefPilot`, and final full local CI after adding direct
   residual-derivative member length wrappers in

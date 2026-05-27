@@ -3625,4 +3625,91 @@ theorem GBL_bound_GBACKREF4_residual_derivative_length_bound_mono:
       of "GBL (gxders (gxders (GBACKREF4 r1 r2 r3 r4 cs) s) t)" s w]
   by auto
 
+theorem bounded_language_residual_left_quotient_length_bound:
+  assumes "bounded_language n A"
+    and "w \<in> Ders t (Ders s A)"
+  shows "length w \<le> n"
+proof -
+  have sub: "{Ders u (Ders s A) | u. True} \<subseteq> Pow (bounded_strings n)"
+    using assms(1)
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using sub assms(2) by (auto simp add: bounded_strings_def)
+qed
+
+theorem bounded_language_residual_left_quotient_length_bound_mono:
+  assumes "bounded_language n A"
+    and "n \<le> m"
+    and "w \<in> Ders t (Ders s A)"
+  shows "length w \<le> m"
+proof -
+  have sub: "{Ders u (Ders s A) | u. True} \<subseteq> Pow (bounded_strings m)"
+    using assms(1,2)
+    by (rule bounded_language_residual_left_quotient_family_subset_bounded_strings_mono)
+  show ?thesis
+    using sub assms(3) by (auto simp add: bounded_strings_def)
+qed
+
+theorem bounded_backref_lang_residual_left_quotient_length_bound:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "w \<in> Ders t (Ders s (backref_lang A B cs))"
+  shows "length w \<le> n_capture + n_mid + length cs + n_capture"
+proof -
+  have sub: "{Ders u (Ders s (backref_lang A B cs)) | u. True} \<subseteq>
+      Pow (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+    using assms(1,2)
+    by (rule bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using sub assms(3) by (auto simp add: bounded_strings_def)
+qed
+
+theorem bounded_backref_lang4_residual_left_quotient_length_bound:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "w \<in> Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs))"
+  shows "length w \<le> n1 + n2 + n3 + length cs + n2 + n4"
+proof -
+  have sub: "{Ders u (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | u. True} \<subseteq>
+      Pow (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+    using assms(1-4)
+    by (rule bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings)
+  show ?thesis
+    using sub assms(5) by (auto simp add: bounded_strings_def)
+qed
+
+theorem bounded_backref_lang_residual_left_quotient_length_bound_mono:
+  assumes "bounded_language n_capture A"
+    and "bounded_language n_mid B"
+    and "n_capture + n_mid + length cs + n_capture \<le> m"
+    and "w \<in> Ders t (Ders s (backref_lang A B cs))"
+  shows "length w \<le> m"
+proof -
+  have sub: "{Ders u (Ders s (backref_lang A B cs)) | u. True} \<subseteq>
+      Pow (bounded_strings m)"
+    using assms(1-3)
+    by (rule bounded_backref_lang_residual_left_quotient_family_subset_bounded_strings_mono)
+  show ?thesis
+    using sub assms(4) by (auto simp add: bounded_strings_def)
+qed
+
+theorem bounded_backref_lang4_residual_left_quotient_length_bound_mono:
+  assumes "bounded_language n1 L1"
+    and "bounded_language n2 L2"
+    and "bounded_language n3 L3"
+    and "bounded_language n4 L4"
+    and "n1 + n2 + n3 + length cs + n2 + n4 \<le> m"
+    and "w \<in> Ders t (Ders s (backref_lang4 L1 L2 L3 L4 cs))"
+  shows "length w \<le> m"
+proof -
+  have sub: "{Ders u (Ders s (backref_lang4 L1 L2 L3 L4 cs)) | u. True} \<subseteq>
+      Pow (bounded_strings m)"
+    using assms(1-5)
+    by (rule bounded_backref_lang4_residual_left_quotient_family_subset_bounded_strings_mono)
+  show ?thesis
+    using sub assms(6) by (auto simp add: bounded_strings_def)
+qed
+
 end
