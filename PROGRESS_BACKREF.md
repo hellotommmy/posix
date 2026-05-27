@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (bitcoded frontend derivative-prefix evidence wrappers)
+Last updated: 2026-05-27 (bounded individual quotient wrappers)
 
 ## Current Branch
 
@@ -18,6 +18,41 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/
 
 Latest result:
 
+- PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
+  Isabelle `BackRefPilot` after adding individual left-quotient finite/card
+  wrappers in the bounded-fragment blueprint. New checked facts in
+  `BackRefBoundedBlueprint.thy` package `BL_bound`/`GBL_bound` results for
+  single `Ders` quotients, derivative residual quotients, and the ordinary
+  `BBACKREF` plus generalized `GBACKREF4` constructor instances, including
+  `BL_bound_left_quotient_finite`,
+  `GBL_bound_left_quotient_finite`,
+  `BL_bound_left_quotient_card_bound`,
+  `GBL_bound_left_quotient_card_bound`,
+  `BL_bound_xders_left_quotient_finite`,
+  `GBL_bound_gxders_left_quotient_finite`,
+  `BL_bound_BBACKREF_left_quotient_finite`,
+  `GBL_bound_GBACKREF4_left_quotient_finite`,
+  `BL_bound_residual_left_quotient_finite`,
+  `GBL_bound_residual_left_quotient_finite`,
+  `BL_bound_BBACKREF_residual_left_quotient_card_bound`, and
+  `GBL_bound_GBACKREF4_residual_left_quotient_card_bound`. Files changed
+  before this progress note: `BackRefBoundedBlueprint.thy` (+226) and
+  `PROGRESS_BACKREF.md`. Baseline pilot-only local CI passed with
+  `BackRefPilot` (0:18 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 4.298 seconds. Post-edit pilot-only local CI passed with
+  `BackRefPilot` (0:17 elapsed), with `BackRefBoundedBlueprint` replaying in
+  about 4.277 seconds. Final full local CI passed with no-cheat guard, bounty
+  guard, admin role guard, Isabelle `Posix` (0:35 elapsed), cached Isabelle
+  `BackRefPilot` (0:03 elapsed), and local CI certificate generation;
+  explicit statement guard PASS. After fast-forwarding to remote commit
+  `82e2ca7`, the autostash conflict was limited to the `PROGRESS_BACKREF.md`
+  title/order and both progress entries plus theory changes were preserved.
+  Final post-sync full local CI passed with no-cheat guard, bounty guard,
+  admin role guard, cached Isabelle `Posix` (0:04 elapsed), cached Isabelle
+  `BackRefPilot` (0:05 elapsed), and local CI certificate generation;
+  explicit statement guard PASS. Next smallest safe step: stop until the admin
+  opens a new bounty/phase, or add only similarly direct downstream packaging
+  facts if explicitly requested. Blockers: none.
 - PASS on 2026-05-27 with no-cheat guard, bounty guard, admin role guard, and
   Isabelle `BackRefPilot` after adding ordinary and generalized bitcoded
   frontend derivative-prefix residual-evidence wrappers. New checked facts in

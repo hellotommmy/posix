@@ -3919,4 +3919,230 @@ proof -
     using bounded by (rule bounded_language_residual_left_quotient_card_bound)
 qed
 
+section \<open>Individual Quotient Wrappers From Bound Calculators\<close>
+
+theorem BL_bound_left_quotient_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite (Ders s (BL r))"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem GBL_bound_left_quotient_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite (Ders s (GBL r))"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem BL_bound_left_quotient_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card (Ders s (BL r)) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem GBL_bound_left_quotient_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card (Ders s (GBL r)) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem BL_bound_xders_left_quotient_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite (Ders t (BL (xders r s)))"
+proof -
+  have "bounded_language n (BL (xders r s))"
+    using BL_bound_xders_bounded[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem GBL_bound_gxders_left_quotient_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite (Ders t (GBL (gxders r s)))"
+proof -
+  have "bounded_language n (GBL (gxders r s))"
+    using GBL_bound_gxders_bounded[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_finite)
+qed
+
+theorem BL_bound_xders_left_quotient_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card (Ders t (BL (xders r s))) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (BL (xders r s))"
+    using BL_bound_xders_bounded[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem GBL_bound_gxders_left_quotient_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card (Ders t (GBL (gxders r s))) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (GBL (gxders r s))"
+    using GBL_bound_gxders_bounded[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_left_quotient_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_left_quotient_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite (Ders s (BL (BBACKREF r mid cs)))"
+proof -
+  have "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_left_quotient_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_left_quotient_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite (Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs)))"
+proof -
+  have "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_left_quotient_finite)
+qed
+
+theorem BL_bound_BBACKREF_left_quotient_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card (Ders s (BL (BBACKREF r mid cs))) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_left_quotient_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_left_quotient_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card (Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs))) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_left_quotient_card_bound)
+qed
+
+theorem BL_bound_residual_left_quotient_finite:
+  assumes "BL_bound r = Some n"
+  shows "finite (Ders t (Ders s (BL r)))"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_residual_left_quotient_finite)
+qed
+
+theorem GBL_bound_residual_left_quotient_finite:
+  assumes "GBL_bound r = Some n"
+  shows "finite (Ders t (Ders s (GBL r)))"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_residual_left_quotient_finite)
+qed
+
+theorem BL_bound_residual_left_quotient_card_bound:
+  assumes "BL_bound r = Some n"
+  shows "card (Ders t (Ders s (BL r))) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (BL r)"
+    using BL_bound_sound[OF assms] by (simp add: BL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_residual_left_quotient_card_bound)
+qed
+
+theorem GBL_bound_residual_left_quotient_card_bound:
+  assumes "GBL_bound r = Some n"
+  shows "card (Ders t (Ders s (GBL r))) \<le> card (bounded_strings n)"
+proof -
+  have "bounded_language n (GBL r)"
+    using GBL_bound_sound[OF assms] by (simp add: GBL_bounded_def)
+  then show ?thesis
+    by (rule bounded_language_residual_left_quotient_card_bound)
+qed
+
+theorem BL_bound_BBACKREF_residual_left_quotient_finite:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "finite (Ders t (Ders s (BL (BBACKREF r mid cs))))"
+proof -
+  have "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_residual_left_quotient_finite)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_left_quotient_finite:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "finite (Ders t (Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs))))"
+proof -
+  have "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_residual_left_quotient_finite)
+qed
+
+theorem BL_bound_BBACKREF_residual_left_quotient_card_bound:
+  assumes "BL_bound r = Some n_capture" "BL_bound mid = Some n_mid"
+  shows "card (Ders t (Ders s (BL (BBACKREF r mid cs)))) \<le>
+    card (bounded_strings (n_capture + n_mid + length cs + n_capture))"
+proof -
+  have "BL_bound (BBACKREF r mid cs) =
+    Some (n_capture + n_mid + length cs + n_capture)"
+    using assms by simp
+  then show ?thesis
+    by (rule BL_bound_residual_left_quotient_card_bound)
+qed
+
+theorem GBL_bound_GBACKREF4_residual_left_quotient_card_bound:
+  assumes "BL_bound r1 = Some n1"
+    and "BL_bound r2 = Some n2"
+    and "BL_bound r3 = Some n3"
+    and "BL_bound r4 = Some n4"
+  shows "card (Ders t (Ders s (GBL (GBACKREF4 r1 r2 r3 r4 cs)))) \<le>
+    card (bounded_strings (n1 + n2 + n3 + length cs + n2 + n4))"
+proof -
+  have "GBL_bound (GBACKREF4 r1 r2 r3 r4 cs) =
+    Some (n1 + n2 + n3 + length cs + n2 + n4)"
+    using assms by simp
+  then show ?thesis
+    by (rule GBL_bound_residual_left_quotient_card_bound)
+qed
+
 end
