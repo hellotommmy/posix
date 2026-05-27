@@ -8,6 +8,20 @@ begin
    temporarily extended. No new BackRefClosedForms wrapper theory should be
    created for bounty. *)
 
+(* BACKREF-MIGRATION-TODO (constructor closed-form coverage, ADMIN APPROVAL REQUIRED):
+   Current closed-form coverage is constructor-specific: RALTS, RSEQ, RSTAR,
+   and RNTIMES each has its own shape lemmas and final closed_form theorem.
+   The backreference migration must add the corresponding original-file
+   coverage for BACKREF4, HALF, and RESIDUE, either directly over rexp or over
+   a temporarily approved rrexp skeleton. Missing expected families:
+   - backref4_closed_form: rders_simp/derivatives of BACKREF4 must expand into
+     the approved HALF/RESIDUE derivative states, preserving capture order.
+   - half_closed_form: derivatives while carrying the captured/replayed string
+     must reduce to the same residue semantics used by der.
+   - residue_closed_form: leaf/tail derivatives should be bounded and should
+     not spawn an unbounded new family.
+   These are real closed-form theorem obligations, not wrapper summaries. *)
+
 lemma flts_middle0:
   shows "rflts (rsa @ RZERO # rsb) = rflts (rsa @ rsb)"
   apply(induct rsa)
@@ -1178,6 +1192,10 @@ lemma repeated_altssimp:
 
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port this RALTS closed-form family when the representation is extended.
+   It remains the model for aggressive alternative flattening and duplicate
+   removal; BACKREF4 alternatives must flow through the same rsimp route. *)
 lemma alts_closed_form: 
   shows "rsimp (rders_simp (RALTS rs) s) = rsimp (RALTS (map (\<lambda>r. rders_simp r s) rs))"
   apply(induct s rule: rev_induct)
@@ -1242,6 +1260,10 @@ fun sflat :: "rrexp \<Rightarrow> rrexp" where
 | "sflat (RALTS (r # rs)) = RALTS (sflat_aux r @ rs)"
 | "sflat r = r"
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port the RSEQ shape machinery. BACKREF4 migration will likely need a
+   similar created_by_backref4 predicate or a direct rexp induction lemma for
+   the derivative shapes produced by the approved BACKREF4/HALF/RESIDUE cases. *)
 inductive created_by_seq:: "rrexp \<Rightarrow> bool" where
   "created_by_seq (RSEQ r1 r2) "
 | "created_by_seq r1 \<Longrightarrow> created_by_seq (RALT r1 r2)"
@@ -1442,6 +1464,10 @@ lemma seq_closed_form_aux2:
   by (metis add_simp_to_rest rsimp_compose_der2 vsuf_nonempty)
   
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port this RSEQ closed-form theorem. The BACKREF4 theorem should not
+   bypass it: the four component languages still use the original derivative
+   closed forms for their subexpressions. *)
 lemma seq_closed_form: 
   shows "rsimp (rders_simp (RSEQ r1 r2) s) = 
            rsimp (RALTS ((RSEQ (rders_simp r1 s) r2) # (map (rders_simp r2) (vsuf s r1))))"
@@ -1475,6 +1501,10 @@ lemma seq_closed_form_variant:
   using assms q seq_closed_form by force
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port the RSTAR flattening machinery. HALF/RESIDUE must not be hidden
+   inside STAR-specific helper lists unless their derivative states are proved
+   to preserve the same finite closed-form invariant. *)
 fun hflat_aux :: "rrexp \<Rightarrow> rrexp list" where
   "hflat_aux (RALT r1 r2) = hflat_aux r1 @ hflat_aux r2"
 | "hflat_aux r = [r]"
@@ -1691,6 +1721,10 @@ lemma star_closed_form8:
   by (smt (verit, ccfv_SIG) list.simps(8) map_eq_conv rders__onechar rders_simp_same_simpders set_ConsD stupdates_nonempty)
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port this RSTAR closed-form theorem. It is also the performance model:
+   derive explicit helper lemmas instead of using broad automation that runs for
+   hundreds of seconds. *)
 lemma star_closed_form:
   shows "rders_simp (RSTAR r0) (c#s) = 
 rsimp ( RALTS ( (map (\<lambda>s1. RSEQ (rders_simp r0 s1) (RSTAR r0) ) (star_updates s r0 [[c]]) ) ))"
@@ -1702,6 +1736,10 @@ rsimp ( RALTS ( (map (\<lambda>s1. RSEQ (rders_simp r0 s1) (RSTAR r0) ) (star_up
 
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port the RNTIMES update machinery. If BACKREF4 introduces stored string
+   state, do not overload these ntimes option-list helpers; add a separate,
+   clearly bounded state update if needed. *)
 fun nupdate :: "char \<Rightarrow> rrexp \<Rightarrow>  (string * nat) option  list \<Rightarrow> (string * nat) option  list" where
   "nupdate c r [] = []"
 | "nupdate c r (Some (s, Suc n) # Ss) = (if (rnullable (rders r s)) 
@@ -2185,6 +2223,10 @@ lemma rder_ntimes:
   by simp
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Keep/port this RNTIMES closed-form theorem before adding the new constructor
+   closed forms, because BACKREF4 component derivatives may contain NTIMES
+   subterms. *)
 lemma ntimes_closed_form:
   shows "rders_simp (RNTIMES r0 (Suc n)) (c#s) = 
 rsimp ( RALTS ( (map (optermsimp r0 ) (nupdates s r0 [Some ([c], n)]) ) ))"
@@ -2197,6 +2239,10 @@ rsimp ( RALTS ( (map (optermsimp r0 ) (nupdates s r0 [Some ([c], n)]) ) ))"
 
 
 
+(* BACKREF-MIGRATION-TODO (existing constructor closed form):
+   Preserve the general RNTIMES closed_form statement shape or provide a direct
+   rexp replacement if rrexp is removed. The old sketch below is commented out,
+   so the migration needs an active theorem before it can count. *)
 (*
 lemma ntimes_closed_form:
   assumes "s \<noteq> []"
