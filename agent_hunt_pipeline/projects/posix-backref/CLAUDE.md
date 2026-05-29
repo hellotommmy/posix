@@ -275,6 +275,12 @@ failures were turned into rules.
 - When a proof becomes tangled, record the blocker and reduce the target.
 - If a statement seems false, stop and write a notice instead of forcing a
   bogus proof.
+- Preserve proof shape before using automation. First split on the relevant
+  datatype constructor or inductive case, expose the assumptions for that
+  branch, and only then use targeted `simp`, `auto[1]`, or a specific rule.
+  Complex branches should become named helper lemmas. Broad automation on an
+  undigested goal can irreversibly rewrite or split the state into a shape that
+  hides the proof idea.
 - If a tactic explodes (large proof terms, slow automation), simplify the
   proof structure. Human rule of thumb: `auto`, `simp`, `force`, or similarly
   broad proof search should normally return within about 0.5 seconds. If it

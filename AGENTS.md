@@ -21,6 +21,10 @@ Short version:
   if it visibly hangs, abandon that tactic and split the proof. A small pilot
   check should usually finish in 5-10 seconds, and a 200 second command is never
   normal.
+- Preserve proof shape before using automation: split by datatype constructor
+  or inductive case first, expose the relevant assumptions, and move complex
+  branches into named helper lemmas. Do not fire broad `auto` at an undigested
+  goal; it can rewrite or split the state into a harder, less recoverable form.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

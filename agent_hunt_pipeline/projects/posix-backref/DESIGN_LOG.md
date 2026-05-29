@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-05-29: Structured proof-shape rule
+
+- Do not start difficult Isabelle proofs by throwing broad `auto` at the whole
+  goal. Split first by datatype constructor or inductive case, expose the case
+  facts, and keep the goal shape close to the semantic proof idea.
+- If a branch is still complex, make it a named helper lemma with only the
+  assumptions needed for that branch. This keeps later repair local and avoids
+  burying the invariant inside a giant proof state.
+- Use broad automation only after the structure is understood. An early `auto`
+  can rewrite, split, or simplify away information in a way that leaves a less
+  recoverable goal.
+
 ## 2026-05-28: Long-run execution model
 
 - The 4h40m work interval was a single Codex Desktop conversation that kept
