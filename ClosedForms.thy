@@ -548,25 +548,94 @@ lemma frewrites_alt:
   shows "rs1 \<leadsto>f* rs2 \<Longrightarrow> (RALT r1 r2) # rs1 \<leadsto>f* r1 # r2 # rs2"  
   by (metis Cons_eq_appendI append_self_conv2 frewrite.intros(2) frewrites_cons many_steps_later)
 
+lemma frewrites_rflts_head:
+  shows "r # rflts rs \<leadsto>f* rflts (r # rs)"
+proof (cases r)
+  case RZERO
+  then show ?thesis
+    using frewrite.intros(1) fr_in_rstar by simp
+next
+  case (RALTS xs)
+  then show ?thesis
+    using frewrite.intros(2) fr_in_rstar by simp
+qed simp_all
+
+lemma early_late_der_frewrites_nonflat_cons:
+  assumes "a \<noteq> RZERO" "\<nexists>rs1. a = RALTS rs1"
+      and ih: "map (rder x) (rflts rs) \<leadsto>f* rflts (map (rder x) rs)"
+  shows "map (rder x) (rflts (a # rs)) \<leadsto>f* rflts (map (rder x) (a # rs))"
+proof -
+  have head:
+    "rder x a # map (rder x) (rflts rs) \<leadsto>f*
+     rder x a # rflts (map (rder x) rs)"
+    using ih by (rule frewrites_cons)
+  have tail:
+    "rder x a # rflts (map (rder x) rs) \<leadsto>f*
+     rflts (rder x a # map (rder x) rs)"
+    by (rule frewrites_rflts_head)
+  have start:
+    "map (rder x) (rflts (a # rs)) =
+     rder x a # map (rder x) (rflts rs)"
+    using assms rflts_def_idiot by simp
+  have path:
+    "rder x a # map (rder x) (rflts rs) \<leadsto>f*
+     rflts (rder x a # map (rder x) rs)"
+    using head tail by (rule freal_trans)
+  show ?thesis
+    using start path by simp
+qed
+
 lemma early_late_der_frewrites:
   shows "map (rder x) (rflts rs) \<leadsto>f* rflts (map (rder x) rs)"
-  apply(induct rs)
-   apply simp
-  apply(case_tac a)
-       apply simp+
-  using frewrite.intros(1) many_steps_later apply blast
-     apply(case_tac "x = x3")
-      apply simp
-  using frewrites_cons apply presburger
-  using frewrite.intros(1) many_steps_later apply fastforce
-  apply(case_tac "rnullable x41")
-     apply simp+
-     apply (simp add: frewrites_alt)
-  apply (simp add: frewrites_cons)
-   apply (simp add: frewrites_append)
-  apply (simp add: frewrites_cons)
-  apply (auto simp add: frewrites_cons)
-  using frewrite.intros(1) many_steps_later by blast
+proof (induction rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons a rs)
+  show ?case
+  proof (cases a)
+    case RZERO
+    then show ?thesis
+      using Cons.IH by simp
+  next
+    case (RALTS xs)
+    then show ?thesis
+      using Cons.IH by (simp add: frewrites_append)
+  next
+    case RONE
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RSEQ r1 r2)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RSTAR r)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RNTIMES r n)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RBACKREF4 r1 r2 r3 r4 cs)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RHALF r cs rep)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using Cons.IH early_late_der_frewrites_nonflat_cons by blast
+  qed
+qed
   
 
 lemma gstar0:
@@ -666,12 +735,27 @@ lemma list_dlist_union:
 
 lemma r_finite1:
   shows "r = RALTS (r # rs) = False"
-  apply(induct r)
-  apply simp+
-   apply (metis list.set_intros(1))
-    apply blast
-  apply(simp)
-  done
+proof -
+  have "r \<noteq> RALTS (r # rs)"
+  proof (cases r)
+    case (RALTS xs)
+    show ?thesis
+    proof
+      assume "r = RALTS (r # rs)"
+      then have "xs = RALTS xs # rs"
+        using RALTS by simp
+      then have "rsize (RALTS xs) = rsize (RALTS (RALTS xs # rs))"
+        by simp
+      also have "... = Suc (rsize (RALTS xs) + rsizes rs)"
+        by simp
+      finally have "rsize (RALTS xs) = Suc (rsize (RALTS xs) + rsizes rs)" .
+      then show False
+        by linarith
+    qed
+  qed simp_all
+  then show ?thesis
+    by simp
+qed
 
   
 
@@ -1282,19 +1366,12 @@ lemma seq_ders_shape1:
 
 lemma created_by_seq_der:
   shows "created_by_seq r \<Longrightarrow> created_by_seq (rder c r)"
-  apply(induct r)
-  apply simp+
-  
-  using created_by_seq.cases apply blast
-       apply(auto)
-  using created_by_seq.simps apply blast
-  using created_by_seq.simps apply blast
-  apply (meson created_by_seq.simps)
-  using created_by_seq.simps apply blast
-  using   created_by_seq.intros
-  apply auto
-  apply (metis (no_types, lifting) created_by_seq.cases list.set_intros(1) list.simps(8) list.simps(9) rrexp.distinct(31) rrexp.inject(3))
-  using created_by_seq.simps by blast
+  apply(induction rule: created_by_seq.induct)
+   apply(case_tac "rnullable r1")
+    apply(simp add: created_by_seq.intros)
+   apply(simp add: created_by_seq.intros)
+  apply(simp add: created_by_seq.intros)
+  done
 
 lemma createdbyseq_left_creatable:
   shows "created_by_seq (RALT r1 r2) \<Longrightarrow> created_by_seq r1"
@@ -1626,29 +1703,20 @@ lemma cbs_hfau_rsimpeq1:
 
 lemma hfau_rsimpeq2:
   shows "created_by_star r \<Longrightarrow> rsimp r = rsimp ( (RALTS (hflat_aux r)))"
-  apply(induct r)
-       apply simp+
-  
-    apply (metis rsimp_seq_equal1)
-  prefer 2
-   apply simp
-  apply(case_tac x)
-   apply simp
-  apply(case_tac "list")
-   apply simp
-  
-  apply (metis idem_after_simp1)
-  apply(case_tac "lista")
-  prefer 2
-   apply (metis hflat_aux.simps(8) idem_after_simp1 list.simps(8) list.simps(9) rsimp.simps(2))
-  apply(subgoal_tac "rsimp (RALT a aa) = rsimp (RALTS (hflat_aux (RALT a aa)))")
-  apply simp
-  apply(subgoal_tac "rsimp (RALT a aa) = rsimp (RALTS (hflat_aux a @ hflat_aux aa))")
-  using hflat_aux.simps(1) apply presburger
-  apply simp
-  using cbs_hfau_rsimpeq1 apply(fastforce)
-  apply(simp)
-  done
+proof (induction rule: created_by_star.induct)
+  case (1 ra rb)
+  let ?t = "RSEQ ra (RSTAR rb)"
+  have "rsimp_ALTs (rdistinct (rflts [rsimp ?t]) {}) = rsimp ?t"
+    by (rule idem_after_simp1)
+  then show ?case
+    by simp
+next
+  case (2 r1 r2)
+  have "rsimp (RALT r1 r2) = rsimp (RALTS (hflat_aux r1 @ hflat_aux r2))"
+    by (rule cbs_hfau_rsimpeq1)
+  then show ?case
+    by simp
+qed
 
   
 
@@ -2049,29 +2117,30 @@ lemma ntimes_ders_hfau_also1:
 
 lemma hfau_rsimpeq2_ntimes:
   shows "created_by_ntimes r \<Longrightarrow> rsimp r = rsimp ( (RALTS (hflat_aux r)))"
-  apply(induct r)
-       apply simp+
-  
-    apply (metis rsimp_seq_equal1)
-  prefer 2
-   apply simp
-  apply(case_tac x)
-   apply simp
-  apply(case_tac "list")
-   apply simp
-  
-  apply (metis idem_after_simp1)
-  apply(case_tac "lista")
-  prefer 2
-   apply (metis hflat_aux.simps(8) idem_after_simp1 list.simps(8) list.simps(9) rsimp.simps(2))
-  apply(subgoal_tac "rsimp (RALT a aa) = rsimp (RALTS (hflat_aux (RALT a aa)))")
-  apply simp
-  apply(subgoal_tac "rsimp (RALT a aa) = rsimp (RALTS (hflat_aux a @ hflat_aux aa))")
-  using hflat_aux.simps(1) apply presburger
-  apply simp
-  using cbs_hfau_rsimpeq1 apply(fastforce)
-  apply(simp)
-  done
+proof (induction rule: created_by_ntimes.induct)
+  case 1
+  then show ?case
+    by simp
+next
+  case (2 ra rb n)
+  let ?t = "RSEQ ra (RNTIMES rb n)"
+  have "rsimp_ALTs (rdistinct (rflts [rsimp ?t]) {}) = rsimp ?t"
+    by (rule idem_after_simp1)
+  then show ?case
+    by simp
+next
+  case (3 r1 r2)
+  have "rsimp (RALT r1 r2) = rsimp (RALTS (hflat_aux r1 @ hflat_aux r2))"
+    by (rule cbs_hfau_rsimpeq1)
+  then show ?case
+    by simp
+next
+  case (4 r)
+  have "rsimp (RALT r RZERO) = rsimp (RALTS (hflat_aux r @ hflat_aux RZERO))"
+    by (rule cbs_hfau_rsimpeq1)
+  then show ?case
+    by simp
+qed
 
   
 

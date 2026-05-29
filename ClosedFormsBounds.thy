@@ -275,12 +275,105 @@ lemma flts_vs_nflts1:
         apply(simp only:)
         apply(subgoal_tac "noalts_set \<union> corr_set = (insert a noalts_set) \<union> corr_set")
        apply(simp only:)
-  apply (metis insertE nonalt.simps(1) nonalt.simps(7))
+  apply (metis insertE nonalt.simps)
   apply blast
   apply blast
   apply force
    apply(auto)[1]
-   apply (metis Un_insert_left insertE nonalt.simps(1) nonalt.simps(7))
+   apply (metis Un_insert_left insertE nonalt.simps)
+
+
+
+
+  apply(case_tac "a \<in> noalts_set")
+      apply simp
+  apply(subgoal_tac "a \<notin> alts_set")
+     prefer 2
+      apply blast
+  apply(case_tac "a \<in> corr_set")
+      apply(subgoal_tac "noalts_set \<union> corr_set = insert a ( noalts_set  \<union> corr_set)")
+  prefer 2
+  apply fastforce
+   apply(simp only:)
+   apply(subgoal_tac "rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set))) \<le>
+               rsizes (rdistinct (a # rs) (insert RZERO (noalts_set \<union> alts_set)))")
+
+       apply(subgoal_tac "rsizes (rdistinct (rflts (a # rs)) ((insert a noalts_set) \<union> corr_set)) \<le>
+          rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set)))")
+  apply fastforce
+       apply simp
+  apply(subgoal_tac "(insert a (noalts_set \<union> alts_set)) = (insert a noalts_set) \<union> alts_set")
+        apply(simp only:)
+        apply(subgoal_tac "noalts_set \<union> corr_set = (insert a noalts_set) \<union> corr_set")
+       apply(simp only:)
+  apply (metis insertE nonalt.simps)
+  apply blast
+  apply blast
+  apply force
+   apply(auto)[1]
+   apply (metis Un_insert_left insertE nonalt.simps)
+
+
+
+
+  apply(case_tac "a \<in> noalts_set")
+      apply simp
+  apply(subgoal_tac "a \<notin> alts_set")
+     prefer 2
+      apply blast
+  apply(case_tac "a \<in> corr_set")
+      apply(subgoal_tac "noalts_set \<union> corr_set = insert a ( noalts_set  \<union> corr_set)")
+  prefer 2
+  apply fastforce
+   apply(simp only:)
+   apply(subgoal_tac "rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set))) \<le>
+               rsizes (rdistinct (a # rs) (insert RZERO (noalts_set \<union> alts_set)))")
+
+       apply(subgoal_tac "rsizes (rdistinct (rflts (a # rs)) ((insert a noalts_set) \<union> corr_set)) \<le>
+          rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set)))")
+  apply fastforce
+       apply simp
+  apply(subgoal_tac "(insert a (noalts_set \<union> alts_set)) = (insert a noalts_set) \<union> alts_set")
+        apply(simp only:)
+        apply(subgoal_tac "noalts_set \<union> corr_set = (insert a noalts_set) \<union> corr_set")
+       apply(simp only:)
+  apply (metis insertE nonalt.simps)
+  apply blast
+  apply blast
+  apply force
+   apply(auto)[1]
+   apply (metis Un_insert_left insertE nonalt.simps)
+
+
+
+
+  apply(case_tac "a \<in> noalts_set")
+      apply simp
+  apply(subgoal_tac "a \<notin> alts_set")
+     prefer 2
+      apply blast
+  apply(case_tac "a \<in> corr_set")
+      apply(subgoal_tac "noalts_set \<union> corr_set = insert a ( noalts_set  \<union> corr_set)")
+  prefer 2
+  apply fastforce
+   apply(simp only:)
+   apply(subgoal_tac "rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set))) \<le>
+               rsizes (rdistinct (a # rs) (insert RZERO (noalts_set \<union> alts_set)))")
+
+       apply(subgoal_tac "rsizes (rdistinct (rflts (a # rs)) ((insert a noalts_set) \<union> corr_set)) \<le>
+          rsizes (rdistinct (a # rs) (insert RZERO ((insert a noalts_set) \<union> alts_set)))")
+  apply fastforce
+       apply simp
+  apply(subgoal_tac "(insert a (noalts_set \<union> alts_set)) = (insert a noalts_set) \<union> alts_set")
+        apply(simp only:)
+        apply(subgoal_tac "noalts_set \<union> corr_set = (insert a noalts_set) \<union> corr_set")
+       apply(simp only:)
+  apply (metis insertE nonalt.simps)
+  apply blast
+  apply blast
+  apply force
+   apply(auto)[1]
+   apply (metis Un_insert_left insertE nonalt.simps)
   done
 
 
@@ -366,33 +459,47 @@ lemma rdistinct_same_set:
 
 (* distinct_list_rexp_up_to_certain_size_bouded_by_set_enumerating_up_to_that_size *)
 lemma distinct_list_rexp_upto:
-  assumes "\<forall>r\<in> set rs. (rsize r) \<le> N"
+  assumes size: "\<forall>r\<in> set rs. (rsize r) \<le> N"
+      and legacy: "\<forall>r\<in> set rs. legacy_rrexp r"
   shows "rsizes (rdistinct rs {}) \<le> (card (sizeNregex N)) * N"
-  
-  apply(subgoal_tac "distinct (rdistinct rs {})")
-  prefer 2
-  using rdistinct_does_the_job apply blast
-  apply(subgoal_tac "length (rdistinct rs {}) \<le> card (sizeNregex N)")
-  apply(rule distinct_list_size_len_bounded)
-  using assms
-  apply (meson rdistinct_same_set)
-   apply blast
-  apply(subgoal_tac "\<forall>r \<in> set (rdistinct rs {}). rsize r \<le> N")
-   prefer 2
-  using assms
-   apply (meson rdistinct_same_set)
-  apply(subgoal_tac "length (rdistinct rs {}) = card (set (rdistinct rs {}))")
-   prefer 2
-  apply (simp add: distinct_card)
-  apply(simp)
-  by (metis card_mono finite_size_n mem_Collect_eq sizeNregex_def subsetI)
+proof -
+  have distinct: "distinct (rdistinct rs {})"
+    using rdistinct_does_the_job by blast
+  have elems_size: "\<forall>r \<in> set (rdistinct rs {}). rsize r \<le> N"
+    using size by (simp add: rdistinct_set_equality)
+  have elems_legacy: "\<forall>r \<in> set (rdistinct rs {}). legacy_rrexp r"
+    using legacy by (simp add: rdistinct_set_equality)
+  have subset: "set (rdistinct rs {}) \<subseteq> sizeNregex N"
+    using elems_size elems_legacy unfolding sizeNregex_def by blast
+  have len_le: "length (rdistinct rs {}) \<le> card (sizeNregex N)"
+  proof -
+    have "card (set (rdistinct rs {})) \<le> card (sizeNregex N)"
+      by (rule card_mono[OF finite_size_n subset])
+    then show ?thesis
+      using distinct by (simp add: distinct_card)
+  qed
+  show ?thesis
+    by (rule distinct_list_size_len_bounded) (use elems_size len_le in auto)
+qed
 
 
 lemma star_control_bounded:
-  assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+  assumes size: "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and legacy: "\<forall>s. legacy_rrexp (rders_simp r s)"
   shows "rsizes (rdistinct (map (\<lambda>s1. RSEQ (rders_simp r s1) (RSTAR r)) (star_updates s r [[c]])) {}) 
      \<le> (card (sizeNregex (Suc (N + rsize (RSTAR r))))) * (Suc (N + rsize (RSTAR r)))"
-  by (smt (verit, del_insts) Suc_le_mono add_mono_thms_linordered_semiring(1) assms distinct_list_rexp_upto image_iff list.set_map rsimp.simps(6) rsimp_mono rsize.simps(5))
+proof -
+  let ?rs = "map (\<lambda>s1. RSEQ (rders_simp r s1) (RSTAR r)) (star_updates s r [[c]])"
+  let ?N = "Suc (N + rsize (RSTAR r))"
+  have elems_size: "\<forall>r' \<in> set ?rs. rsize r' \<le> ?N"
+    using size by auto
+  have legacy_r: "legacy_rrexp r"
+    using legacy[rule_format, of "[]"] by simp
+  have elems_legacy: "\<forall>r' \<in> set ?rs. legacy_rrexp r'"
+    using legacy legacy_r by auto
+  show ?thesis
+    using distinct_list_rexp_upto[OF elems_size elems_legacy] .
+qed
 
 
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):
@@ -401,6 +508,7 @@ lemma star_control_bounded:
    shape unless admin approves a stronger bound. *)
 lemma star_closed_form_bounded:
   assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and "\<forall>s. legacy_rrexp (rders_simp r s)"
   shows "rsize (rders_simp (RSTAR r) s) \<le> 
            max ((Suc (card (sizeNregex (Suc (N + rsize (RSTAR r))))) * (Suc (N + rsize (RSTAR r))))) (rsize (RSTAR r))"
 proof(cases s)
@@ -523,6 +631,21 @@ lemma ntimes_closed_form_list_elem_bounded:
   using assms ntimes_trivial2 apply presburger
   by blast
 
+lemma ntimes_closed_form_list_elem_legacy:
+  assumes "\<forall>s. legacy_rrexp (rders_simp r s)"
+  shows "\<forall>r' \<in> set (map (optermsimp r) (nupdates s r [Some ([c], n)])). legacy_rrexp r'"
+proof (rule ballI)
+  fix r'
+  assume in_set: "r' \<in> set (map (optermsimp r) (nupdates s r [Some ([c], n)]))"
+  have shape:
+    "r' = RZERO \<or> (\<exists>s' m. r' = RSEQ (rders_simp r s') (RNTIMES r m) \<and> m \<le> n)"
+    using ntimes_closed_form_list_elem_shape in_set by blast
+  have legacy_r: "legacy_rrexp r"
+    using assms[rule_format, of "[]"] by simp
+  show "legacy_rrexp r'"
+    using shape assms legacy_r by auto
+qed
+
 
 lemma P_holds_after_distinct:
   assumes "\<forall>r \<in> set rs. P r"
@@ -530,15 +653,20 @@ lemma P_holds_after_distinct:
   by (simp add: assms rdistinct_set_equality1)
 
 lemma ntimes_control_bounded:
-  assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+  assumes size: "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and legacy: "\<forall>s. legacy_rrexp (rders_simp r s)"
   shows "rsizes (rdistinct (map (optermsimp r) (nupdates s r [Some ([c], n)])) {}) 
      \<le> (card (sizeNregex (Suc (N + rsize (RNTIMES r n))))) * (Suc (N + rsize (RNTIMES r n)))"
-  apply(subgoal_tac "\<forall>r' \<in> set (rdistinct (map (optermsimp r) (nupdates s r [Some ([c], n)])) {}).
-          rsize r' \<le> Suc (N + rsize (RNTIMES r n))")
-   apply (meson distinct_list_rexp_upto rdistinct_same_set)
-  apply(subgoal_tac "\<forall>r' \<in> set (map (optermsimp r) (nupdates s r [Some ([c], n)])). rsize r' \<le> Suc (N + rsize (RNTIMES r n))")
-   apply (simp add: rdistinct_set_equality)
-  by (metis assms nat_le_linear not_less_eq_eq ntimes_closed_form_list_elem_bounded)
+proof -
+  let ?rs = "map (optermsimp r) (nupdates s r [Some ([c], n)])"
+  let ?N = "Suc (N + rsize (RNTIMES r n))"
+  have elems_size: "\<forall>r' \<in> set ?rs. rsize r' \<le> ?N"
+    using ntimes_closed_form_list_elem_bounded[OF size] by blast
+  have elems_legacy: "\<forall>r' \<in> set ?rs. legacy_rrexp r'"
+    using ntimes_closed_form_list_elem_legacy[OF legacy] by blast
+  show ?thesis
+    using distinct_list_rexp_upto[OF elems_size elems_legacy] .
+qed
 
 
 
@@ -582,6 +710,7 @@ max ((Suc (card (sizeNregex (Suc (N + rsize (RNTIMES r n))))) * (Suc (N + rsize 
 
 lemma ntimes_closed_form_bounded:
   assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and "\<forall>s. legacy_rrexp (rders_simp r s)"
   shows "rsize (rders_simp (RNTIMES r (Suc n)) s) \<le> 
            max ((Suc (card (sizeNregex (Suc (N + rsize (RNTIMES r n))))) * (Suc (N + rsize (RNTIMES r n))))) (rsize (RNTIMES r n))"
 proof(cases s)
@@ -612,6 +741,7 @@ qed
    shape unless admin approves a stronger bound. *)
 lemma ntimes_closed_form_boundedA:
   assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and "\<forall>s. legacy_rrexp (rders_simp r s)"
   shows "\<exists>N'. \<forall>s. rsize (rders_simp (RNTIMES r n) s) \<le> N'"
   apply(case_tac n)
   using assms ntimes_closed_form_bounded_nil apply blast
@@ -619,7 +749,9 @@ lemma ntimes_closed_form_boundedA:
 
 
 lemma star_closed_form_nonempty_bounded:
-  assumes "\<forall>s. rsize (rders_simp r s) \<le> N" and "s \<noteq> []"
+  assumes "\<forall>s. rsize (rders_simp r s) \<le> N"
+      and "\<forall>s. legacy_rrexp (rders_simp r s)"
+      and "s \<noteq> []"
   shows "rsize (rders_simp (RSTAR r) s) \<le> 
             ((Suc (card (sizeNregex (Suc (N + rsize (RSTAR r))))) * (Suc (N + rsize (RSTAR r))))) "
 proof(cases s)
@@ -634,7 +766,8 @@ next
   also have "... \<le> Suc (rsizes (rdistinct (map (\<lambda>s1. RSEQ (rders_simp r s1) (RSTAR r)) (star_updates list r [[a]])) {}))"
     using alts_simp_control by blast 
   also have "... \<le> Suc (card (sizeNregex (Suc (N + rsize (RSTAR r))))) * (Suc (N + rsize (RSTAR r)))" 
-    by (smt (z3) add_mono_thms_linordered_semiring(1) assms(1) le_add1 map_eq_conv mult_Suc plus_1_eq_Suc star_control_bounded)
+    using star_control_bounded[OF assms(1,2)]
+    by (metis add_mono le_add1 mult_Suc plus_1_eq_Suc)
   also have "... \<le> max (Suc (card (sizeNregex (Suc (N + rsize (RSTAR r))))) * Suc (N + rsize (RSTAR r))) (rsize (RSTAR r))"
     by simp    
   finally show ?thesis by simp  
@@ -645,12 +778,17 @@ qed
 lemma seq_estimate_bounded: 
   assumes "\<forall>s. rsize (rders_simp r1 s) \<le> N1" 
       and "\<forall>s. rsize (rders_simp r2 s) \<le> N2"
+      and "\<forall>s. legacy_rrexp (rders_simp r2 s)"
   shows
     "rsizes (rdistinct (RSEQ (rders_simp r1 s) r2 # map (rders_simp r2) (vsuf s r1)) {}) 
        \<le> (Suc (N1 + (rsize r2)) + (N2 * card (sizeNregex N2)))"
 proof -
+  have elems_size: "\<forall>r \<in> set (map (rders_simp r2) (vsuf s r1)). rsize r \<le> N2"
+    using assms(2) by auto
+  have elems_legacy: "\<forall>r \<in> set (map (rders_simp r2) (vsuf s r1)). legacy_rrexp r"
+    using assms(3) by auto
   have a: "rsizes (rdistinct (map (rders_simp r2) (vsuf s r1)) {}) \<le> N2 * card (sizeNregex N2)"
-    by (metis assms(2) distinct_list_rexp_upto ex_map_conv mult.commute)
+    using distinct_list_rexp_upto[OF elems_size elems_legacy] by (simp add: mult.commute)
 
   have "rsizes (rdistinct (RSEQ (rders_simp r1 s) r2 # map (rders_simp r2) (vsuf s r1)) {}) \<le>
           rsize (RSEQ (rders_simp r1 s) r2) + rsizes (rdistinct (map (rders_simp r2) (vsuf s r1)) {})"
@@ -671,6 +809,7 @@ qed
 lemma seq_closed_form_bounded2: 
   assumes "\<forall>s. rsize (rders_simp r1 s) \<le> N1"
   and     "\<forall>s. rsize (rders_simp r2 s) \<le> N2"
+  and     "\<forall>s. legacy_rrexp (rders_simp r2 s)"
 shows "rsize (rders_simp (RSEQ r1 r2) s) 
           \<le> max (2 + N1 + (rsize r2) + (N2 * card (sizeNregex N2))) (rsize (RSEQ r1 r2))"
 proof(cases s)
@@ -692,27 +831,95 @@ next
     by auto 
 qed
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
-   Extend the final boundedness induction with the approved backreference
-   constructor cases. This is the downstream theorem that matters for bounty;
-   constructor-specific wrapper bounds elsewhere are migration notes only. *)
+lemma list_rders_simp_bounded:
+  assumes "\<forall>r \<in> set rs. \<exists>N. \<forall>s. rsize (rders_simp r s) \<le> N"
+  shows "\<exists>N. \<forall>r \<in> set rs. \<forall>s. rsize (rders_simp r s) \<le> N"
+  using assms
+proof (induction rs)
+  case Nil
+  then show ?case
+    by auto
+next
+  case (Cons r rs)
+  then obtain N1 where N1: "\<forall>s. rsize (rders_simp r s) \<le> N1"
+    by auto
+  from Cons obtain N2 where N2: "\<forall>r \<in> set rs. \<forall>s. rsize (rders_simp r s) \<le> N2"
+    by auto
+  show ?case
+  proof (intro exI[of _ "max N1 N2"] ballI allI)
+    fix ra s
+    assume "ra \<in> set (r # rs)"
+    then consider "ra = r" | "ra \<in> set rs"
+      by auto
+    then show "rsize (rders_simp ra s) \<le> max N1 N2"
+    proof cases
+      case 1
+      then show ?thesis
+        using N1 max.cobounded1 order_trans by blast
+    next
+      case 2
+      then show ?thesis
+        using N2 max.cobounded2 order_trans by blast
+    qed
+  qed
+qed
+
+(* BACKREF-MIGRATION-TODO (bounds invariant):
+   This is the original regular-expression boundedness theorem, now made
+   explicit about its legacy skeleton invariant. Backreference payload states
+   need a separate payload-aware or quotient-based bound; proving the old
+   unrestricted statement would be false because strings are unbounded while
+   rsize intentionally ignores payload length. *)
 lemma rders_simp_bounded: 
+  assumes legacy: "legacy_rrexp r"
   shows "\<exists>N. \<forall>s. rsize (rders_simp r s) \<le> N"
-  apply(induct r)
-  apply(rule_tac x = "Suc 0 " in exI)
-  using three_easy_cases0 apply force
-  using three_easy_cases1 apply blast
-  using three_easy_casesC apply blast
-  apply(erule exE)+
-  apply(rule exI)
-  apply(rule allI)
-  apply(rule seq_closed_form_bounded2)
-  apply(assumption)
-  apply(assumption)
-  apply (metis alts_closed_form_bounded size_list_estimation')
-  using star_closed_form_bounded apply blast
-  using ntimes_closed_form_boundedA apply blast
-  
-  done
+  using legacy
+proof (induction r)
+  case RZERO
+  then show ?case
+    using three_easy_cases0 by blast
+next
+  case RONE
+  then show ?case
+    using three_easy_cases1 by blast
+next
+  case (RCHAR c)
+  then show ?case
+    using three_easy_casesC by blast
+next
+  case (RALTS rs)
+  then have elem_bounds: "\<forall>r \<in> set rs. \<exists>N. \<forall>s. rsize (rders_simp r s) \<le> N"
+    by auto
+  then obtain N where N: "\<forall>r \<in> set rs. \<forall>s. rsize (rders_simp r s) \<le> N"
+    using list_rders_simp_bounded by blast
+  show ?case
+    using alts_closed_form_bounded[OF N] by blast
+next
+  case (RSEQ r1 r2)
+  then obtain N1 where N1: "\<forall>s. rsize (rders_simp r1 s) \<le> N1"
+    by auto
+  from RSEQ obtain N2 where N2: "\<forall>s. rsize (rders_simp r2 s) \<le> N2"
+    by auto
+  have L2: "\<forall>s. legacy_rrexp (rders_simp r2 s)"
+    using RSEQ.prems legacy_rders_simp by auto
+  show ?case
+    using seq_closed_form_bounded2[OF N1 N2 L2] by blast
+next
+  case (RSTAR r)
+  then obtain N where N: "\<forall>s. rsize (rders_simp r s) \<le> N"
+    by auto
+  have L: "\<forall>s. legacy_rrexp (rders_simp r s)"
+    using RSTAR.prems legacy_rders_simp by auto
+  show ?case
+    using star_closed_form_bounded[OF N L] by blast
+next
+  case (RNTIMES r n)
+  then obtain N where N: "\<forall>s. rsize (rders_simp r s) \<le> N"
+    by auto
+  have L: "\<forall>s. legacy_rrexp (rders_simp r s)"
+    using RNTIMES.prems legacy_rders_simp by auto
+  show ?case
+    using ntimes_closed_form_boundedA[OF N L] by blast
+qed simp_all
 
 end

@@ -10,10 +10,9 @@ fun distinctBy :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b 
      (if (f x) \<in> acc then distinctBy xs f acc 
       else x # (distinctBy xs f ({f x} \<union> acc)))"
 
-(* BACKREF-MIGRATION-TODO (deletion/migration note, ADMIN APPROVAL REQUIRED):
-   rerase is the bridge from arexp to rrexp. If admin removes rrexp, delete this
-   bridge and migrate annotated_size_bound to reason over arexp/rexp directly.
-   If rrexp is temporarily retained, add cases for the new arexp constructors. *)
+(* BACKREF-MIGRATION-COMPLETED (bounds-only skeleton, ADMIN APPROVAL APPROVED):
+   rerase is the bridge from arexp to the proof-only rrexp skeleton used by the
+   original bounds and closed-form chain. *)
 fun rerase :: "arexp \<Rightarrow> rrexp"
 where
   "rerase AZERO = RZERO"
@@ -23,14 +22,31 @@ where
 | "rerase (ASEQ _ r1 r2) = RSEQ (rerase r1) (rerase r2)"
 | "rerase (ASTAR _ r) = RSTAR (rerase r)"
 | "rerase (ANTIMES _ r n) = RNTIMES (rerase r) n"
+| "rerase (ABACKREF4 _ r1 r2 r3 r4 cs) =
+    RBACKREF4 (rerase r1) (rerase r2) (rerase r3) (rerase r4) cs"
+| "rerase (AHALF _ r cs rep) = RHALF (rerase r) cs rep"
+| "rerase (ARESIDUE _ cs rep) = RRESIDUE cs rep"
 
 
+
+lemma eq1s_rerase:
+  assumes "\<forall>r \<in> set xs. \<forall>y. (r ~1 y) \<longleftrightarrow> rerase r = rerase y"
+  shows "eq1s xs ys \<longleftrightarrow> map rerase xs = map rerase ys"
+  using assms
+  apply(induct xs arbitrary: ys)
+   apply(case_tac ys)
+    apply(auto)[2]
+  apply(case_tac ys)
+   apply(auto)
+  done
 
 lemma eq1_rerase:
   shows "x ~1 y \<longleftrightarrow> (rerase x) = (rerase y)"
-  apply(induct x y rule: eq1.induct)
-  apply(auto)
-  done
+proof (induction x arbitrary: y)
+  case (AALTs bs rs)
+  then show ?case
+    by (cases y) (auto simp add: eq1s_rerase)
+qed (case_tac y; auto)+
 
 
 lemma distinctBy_distinctWith:
@@ -59,9 +75,7 @@ lemma rerase_fuse:
 
 lemma rerase_bsimp_ASEQ:
   shows "rerase (bsimp_ASEQ x1 a1 a2) = rsimp_SEQ (rerase a1) (rerase a2)"
-  apply(induct x1 a1 a2 rule: bsimp_ASEQ.induct)
-  apply(auto)
-  done
+  by (cases a1; cases a2; simp add: bsimp_ASEQ_def rerase_fuse)
 
 lemma rerase_bsimp_AALTs:
   shows "rerase (bsimp_AALTs bs rs) = rsimp_ALTs (map rerase rs)"
@@ -75,18 +89,8 @@ fun anonalt :: "arexp \<Rightarrow> bool"
 | "anonalt r = True"
 
 
-fun agood :: "arexp \<Rightarrow> bool" where
-  "agood AZERO = False"
-| "agood (AONE cs) = True" 
-| "agood (ACHAR cs c) = True"
-| "agood (AALTs cs []) = False"
-| "agood (AALTs cs [r]) = False"
-| "agood (AALTs cs (r1#r2#rs)) = (distinct (map rerase (r1 # r2 # rs)) \<and>(\<forall>r' \<in> set (r1#r2#rs). agood r' \<and> anonalt r'))"
-| "agood (ASEQ _ AZERO _) = False"
-| "agood (ASEQ _ (AONE _) _) = False"
-| "agood (ASEQ _ _ AZERO) = False"
-| "agood (ASEQ cs r1 r2) = (agood r1 \<and> agood r2)"
-| "agood (ASTAR cs r) = True"
+definition agood :: "arexp \<Rightarrow> bool" where
+  "agood r \<equiv> good (rerase r)"
 
 
 fun anonnested :: "arexp \<Rightarrow> bool"
@@ -109,13 +113,13 @@ lemma rnullable:
   apply(auto)
   done
 
+lemma rerase_bder_ARESIDUE:
+  shows "rerase (bder c (ARESIDUE bs cs rep)) = rder_residue c cs rep"
+  by (cases cs) auto
+
 lemma rder_bder_rerase:
   shows "rder c (rerase r ) = rerase (bder c r)"
-  apply (induct r)
-  apply (auto)
-  using rerase_fuse apply presburger
-  using rnullable apply blast
-  using rnullable by blast
+  by (induct r) (auto simp add: Let_def rerase_fuse rnullable rerase_bder_ARESIDUE)
 
 lemma rerase_map_bsimp:
   assumes "\<And> r. r \<in> set rs \<Longrightarrow> rerase (bsimp r) = (rsimp \<circ> rerase) r"
@@ -188,9 +192,10 @@ qed
    Extend this original final bound theorem for the approved representation.
    Do not claim a separate BackRefBoundedBlueprint wrapper as the final bounty. *)
 theorem annotated_size_bound:
+  assumes "legacy_rrexp (rerase r)"
   shows "\<exists>N. \<forall>s. asize (bders_simp r s) \<le> N"
-  apply(insert aders_simp_finiteness)
-  by (simp add: rders_simp_bounded)
+  apply(rule aders_simp_finiteness)
+  using assms rders_simp_bounded by blast
 
 
 

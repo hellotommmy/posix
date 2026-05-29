@@ -6,11 +6,95 @@ lemma size_geq1:
   shows "rsize r \<ge> 1"
   by (induct r) auto 
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
-   Update this finite regex universe only after the rrexp-vs-rexp decision. If
-   rrexp is retained, add constructor-family sets and size decomposition cases
-   for the new backreference constructors. If rrexp is removed, migrate this
-   finite-universe argument to rexp. *)
+(* BACKREF-MIGRATION-TODO (bounds invariant, ADMIN APPROVAL REQUIRED):
+   The original finite-universe argument is valid only for the old regular
+   rrexp skeleton. The new backreference states carry arbitrary strings while
+   the structural size deliberately ignores payload length, so {r. rsize r <= N}
+   is not finite once RBACKREF4/RHALF/RRESIDUE are present. Keep the bound
+   theorem honest by making the legacy invariant explicit until a payload-aware
+   or quotient-based bound is designed. *)
+fun legacy_rrexp :: "rrexp \<Rightarrow> bool" where
+  "legacy_rrexp RZERO = True"
+| "legacy_rrexp RONE = True"
+| "legacy_rrexp (RCHAR c) = True"
+| "legacy_rrexp (RALTS rs) = (\<forall>r \<in> set rs. legacy_rrexp r)"
+| "legacy_rrexp (RSEQ r1 r2) = (legacy_rrexp r1 \<and> legacy_rrexp r2)"
+| "legacy_rrexp (RSTAR r) = legacy_rrexp r"
+| "legacy_rrexp (RNTIMES r n) = legacy_rrexp r"
+| "legacy_rrexp (RBACKREF4 r1 r2 r3 r4 cs) = False"
+| "legacy_rrexp (RHALF r cs rep) = False"
+| "legacy_rrexp (RRESIDUE cs rep) = False"
+
+lemma legacy_rflts:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rflts rs). legacy_rrexp r"
+  using assms
+  by (induct rs rule: rflts.induct) auto
+
+lemma legacy_rdistinct:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rdistinct rs acc). legacy_rrexp r"
+  using assms by (auto simp add: rdistinct_set_equality1)
+
+lemma legacy_rsimp_ALTs:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "legacy_rrexp (rsimp_ALTs rs)"
+  using assms
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons r rs')
+  show ?thesis
+  proof (cases rs')
+    assume "rs' = []"
+    then show ?thesis
+      using Cons assms by simp
+  next
+    fix r' rs''
+    assume "rs' = r' # rs''"
+    then show ?thesis
+      using Cons assms by simp
+  qed
+qed
+
+lemma legacy_rsimp_SEQ:
+  assumes "legacy_rrexp r1" "legacy_rrexp r2"
+  shows "legacy_rrexp (rsimp_SEQ r1 r2)"
+  using assms by (cases r1; cases r2; auto)
+
+lemma legacy_rsimp:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimp r)"
+  using assms
+proof (induction r)
+  case (RALTS rs)
+  have mapped: "\<forall>r \<in> set (map rsimp rs). legacy_rrexp r"
+    using RALTS by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimp rs)). legacy_rrexp r"
+    using legacy_rflts[OF mapped] .
+  have distinct: "\<forall>r \<in> set (rdistinct (rflts (map rsimp rs)) {}). legacy_rrexp r"
+    using legacy_rdistinct[OF flat] .
+  show ?case
+    using legacy_rsimp_ALTs[OF distinct] by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    using legacy_rsimp_SEQ by simp
+qed simp_all
+
+lemma legacy_rder:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rder c r)"
+  using assms by (induction r) auto
+
+lemma legacy_rders_simp:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_simp r s)"
+  using assms
+  by (induction s arbitrary: r) (auto simp add: legacy_rsimp legacy_rder)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
@@ -21,7 +105,7 @@ definition RALT_set where
   "RALT_set A n \<equiv> {RALTS rs | rs. set rs \<subseteq> A \<and> rsizes rs \<le> n}"
 
 definition RALTs_set where
-  "RALTs_set A n \<equiv> {RALTS rs | rs. \<forall>r \<in> set rs. r \<in> A \<and> rsizes rs \<le> n}"
+  "RALTs_set A n \<equiv> {RALTS rs | rs. (\<forall>r \<in> set rs. r \<in> A) \<and> rsizes rs \<le> n}"
 
 definition RNTIMES_set where
   "RNTIMES_set A n \<equiv> {RNTIMES r m | m r. r \<in> A \<and> rsize r + m \<le> n}"
@@ -29,7 +113,7 @@ definition RNTIMES_set where
 
 
 definition
-  "sizeNregex N \<equiv> {r. rsize r \<le> N}"
+  "sizeNregex N \<equiv> {r. legacy_rrexp r \<and> rsize r \<le> N}"
 
 lemma elem_size_le_rsizes:
   assumes "r \<in> set rs"
@@ -48,30 +132,11 @@ lemma sizenregex_induct1:
                          \<union> (RSEQ_set (sizeNregex n) n)
                          \<union> (RALTs_set (sizeNregex n) n))
                          \<union> (RNTIMES_set (sizeNregex n) n)"
+  unfolding sizeNregex_def RSEQ_set_def RALTs_set_def RNTIMES_set_def
   apply(auto)
         apply(case_tac x)
-             apply(auto simp add: RSEQ_set_def)
-  using sizeNregex_def apply force
-  using sizeNregex_def apply auto[1]
-  apply (simp add: sizeNregex_def)
-         apply (simp add: sizeNregex_def)
-         apply (simp add: RALTs_set_def)
-  apply (simp add: elem_size_le_bound sizeNregex_def)
-  apply (simp add: sizeNregex_def)
-        apply (simp add: sizeNregex_def)
-  apply (simp add: RNTIMES_set_def)
-         apply (simp add: sizeNregex_def)
-
-
-  using sizeNregex_def apply force
-  apply (simp add: sizeNregex_def)
-  apply (simp add: sizeNregex_def)
-      apply (simp add: sizeNregex_def)
-  apply (simp add: sizeNregex_def)
-    apply (simp add: RALTs_set_def)
-  
-  using linorder_le_less_linear apply fastforce
-  using RNTIMES_set_def sizeNregex_def by force
+             apply(auto simp add: elem_size_le_bound)
+  done
     
 
 lemma s4:
@@ -91,16 +156,16 @@ lemma s5:
 
 definition RALTs_set_length
   where
-  "RALTs_set_length A n l \<equiv> {RALTS rs | rs. \<forall>r \<in> set rs. r \<in> A \<and> rsizes rs \<le> n \<and> length rs \<le> l}"
+  "RALTs_set_length A n l \<equiv> {RALTS rs | rs. (\<forall>r \<in> set rs. r \<in> A) \<and> rsizes rs \<le> n \<and> length rs \<le> l}"
 
 
 definition RALTs_set_length2
   where
-  "RALTs_set_length2 A l \<equiv> {RALTS rs | rs. \<forall>r \<in> set rs. r \<in> A \<and> length rs \<le> l}"
+  "RALTs_set_length2 A l \<equiv> {RALTS rs | rs. (\<forall>r \<in> set rs. r \<in> A) \<and> length rs \<le> l}"
 
 definition set_length2
   where
-  "set_length2 A l \<equiv> {rs. \<forall>r \<in> set rs. r \<in> A \<and> length rs \<le> l}"
+  "set_length2 A l \<equiv> {rs. (\<forall>r \<in> set rs. r \<in> A) \<and> length rs \<le> l}"
 
 
 lemma r000: 
@@ -111,10 +176,7 @@ lemma r000:
 
 lemma r02: 
   shows "set_length2 A 0 \<subseteq> {[]}"
-  apply(auto simp add: set_length2_def)
-  apply(case_tac x)
-  apply(auto)
-  done
+  by (auto simp add: set_length2_def)
 
 lemma r03:
   shows "set_length2 A (Suc n) \<subseteq> 

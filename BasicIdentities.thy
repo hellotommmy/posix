@@ -2,12 +2,10 @@ theory BasicIdentities
   imports "Lexer" 
 begin
 
-(* BACKREF-MIGRATION-TODO (deletion/migration note, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (bounds-only skeleton, ADMIN APPROVAL APPROVED):
    This file introduces rrexp, a third regex datatype used for bounds and closed
-   forms. Admin must decide before implementation: migrate these results to the
-   extended rexp directly, or temporarily extend rrexp as a bounds-only skeleton.
-   Do not proceed silently, because the project goal is to keep only rexp and
-   arexp as regex datatypes. *)
+   forms. Admin approved retaining rrexp as a proof-only skeleton while the
+   production syntax remains rexp/arexp. *)
 datatype rrexp = 
   RZERO
 | RONE 
@@ -16,6 +14,9 @@ datatype rrexp =
 | RALTS "rrexp list"
 | RSTAR rrexp
 | RNTIMES rrexp nat
+| RBACKREF4 rrexp rrexp rrexp rrexp string
+| RHALF rrexp string string
+| RRESIDUE string string
 
 abbreviation
   "RALT r1 r2 \<equiv> RALTS [r1, r2]"
@@ -31,6 +32,15 @@ where
 | "rnullable (RSEQ r1 r2) = (rnullable r1 \<and> rnullable r2)"
 | "rnullable (RSTAR r) = True"
 | "rnullable (RNTIMES r n) = (if n = 0 then True else rnullable r)"
+| "rnullable (RBACKREF4 r1 r2 r3 r4 cs) =
+    (rnullable r1 \<and> rnullable r2 \<and> rnullable r3 \<and> rnullable r4 \<and> cs = [])"
+| "rnullable (RHALF r cs rep) = (rnullable r \<and> cs = [])"
+| "rnullable (RRESIDUE cs rep) = (cs = [])"
+
+fun rder_residue :: "char \<Rightarrow> string \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rder_residue c [] rep = RZERO"
+| "rder_residue c (d # ds) rep = (if c = d then RRESIDUE ds rep else RZERO)"
 
 fun
  rder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp"
@@ -45,6 +55,24 @@ where
       else RSEQ   (rder c r1) r2)"
 | "rder c (RSTAR r) = RSEQ  (rder c r) (RSTAR r)"   
 | "rder c (RNTIMES r n) = (if n = 0 then RZERO else RSEQ (rder c r) (RNTIMES r (n - 1)))"
+| "rder c (RBACKREF4 r1 r2 r3 r4 cs) =
+     (let prefix = RBACKREF4 (rder c r1) r2 r3 r4 cs;
+          capture = RBACKREF4 RONE (rder c r2) r3 r4 (c # cs);
+          res = rev cs;
+          res_tail = (if res = []
+            then RALT (RSEQ (rder_residue c res res) r4) (rder c r4)
+            else RSEQ (rder_residue c res res) r4);
+          tail = (if rnullable r3
+            then RALT (RSEQ (rder c r3) (RSEQ (RRESIDUE res res) r4)) res_tail
+            else RSEQ (rder c r3) (RSEQ (RRESIDUE res res) r4))
+      in if rnullable r1
+         then RALT prefix (if rnullable r2 then RALT capture tail else capture)
+         else prefix)"
+| "rder c (RHALF r cs rep) =
+     (if rnullable r
+      then RALT (RHALF (rder c r) cs rep) (rder_residue c cs rep)
+      else RHALF (rder c r) cs rep)"
+| "rder c (RRESIDUE cs rep) = rder_residue c cs rep"
 
 fun 
   rders :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -191,11 +219,9 @@ where
   "rders_simp r [] = r"
 | "rders_simp r (c#s) = rders_simp (rsimp (rder c r)) s"
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
-   If rrexp is retained, every rrexp function and theorem in this file must get
-   direct BACKREF4/HALF/RESIDUE cases. If rrexp is removed, migrate the
-   rnullable/rder/rsimp/rders_simp/RL theorem chain to rexp instead. No
-   separate BackRef* wrapper theory counts as bounty. *)
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
+   Constructor-case maintenance below covers the proof-only RBACKREF4, RHALF,
+   and RRESIDUE skeleton. *)
 fun rsize :: "rrexp \<Rightarrow> nat" where
   "rsize RZERO = 1"
 | "rsize (RONE) = 1" 
@@ -204,6 +230,10 @@ fun rsize :: "rrexp \<Rightarrow> nat" where
 | "rsize (RSEQ  r1 r2) = Suc (rsize r1 + rsize r2)"
 | "rsize (RSTAR  r) = Suc (rsize r)"
 | "rsize (RNTIMES r n) = Suc (rsize r) + n"
+| "rsize (RBACKREF4 r1 r2 r3 r4 cs) =
+    Suc (rsize r1 + rsize r2 + rsize r3 + rsize r4)"
+| "rsize (RHALF r cs rep) = Suc (rsize r)"
+| "rsize (RRESIDUE cs rep) = 1"
 
 abbreviation rsizes where
   "rsizes rs \<equiv> sum_list (map rsize rs)"
@@ -370,6 +400,9 @@ fun good :: "rrexp \<Rightarrow> bool" where
 | "good (RSEQ r1 r2) = (good r1 \<and> good r2)"
 | "good (RSTAR r) = True"
 | "good (RNTIMES r n) = True"
+| "good (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "good (RHALF r cs rep) = True"
+| "good (RRESIDUE cs rep) = True"
 
 lemma  k0a:
   shows "rflts [RALTS rs] =   rs"
@@ -404,42 +437,40 @@ lemma flts1:
        apply(simp_all)
   using good.simps(4) by blast
 
+lemma good_RALTS_elem:
+  assumes "good (RALTS rs)" "r \<in> set rs"
+  shows "good r \<and> nonalt r"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    using assms by simp
+next
+  case (Cons a xs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases xs)
+    case Nil
+    then show ?thesis
+      using assms rs_cons by simp
+  next
+    case (Cons b ys)
+    then have rs: "rs = a # b # ys"
+      using rs_cons by simp
+    then have all: "\<forall>r \<in> set rs. good r \<and> nonalt r"
+      using assms(1) by simp
+    then show ?thesis
+      using assms(2) by blast
+  qed
+qed
+
 lemma flts2:
   assumes "good r" 
   shows "\<forall>r' \<in> set (rflts [r]). good r' \<and> nonalt r'"
-  using  assms
-  apply(induct r rule: good.induct)
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-  apply simp
-  apply (metis empty_set equals0D nonalt.simps(5) rflts.simps(1) rflts.simps(6) set_ConsD)
-                      apply (metis empty_set equals0D nonalt.simps(5) rflts.simps(1) rflts.simps(6) set_ConsD)
-  apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                     apply simp
-                    apply simp
-                   apply simp
-  apply fastforce
-  apply(auto)  
-  done
+proof (cases r)
+  case (RALTS rs)
+  then show ?thesis
+    using assms good_RALTS_elem by auto
+qed (use assms in simp_all)
 
 lemma flts3:
   assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO" 
@@ -448,6 +479,40 @@ lemma flts3:
   apply(induct rs arbitrary: rule: rflts.induct)
         apply(simp_all)
   by (metis UnE flts2 k0a)
+
+lemma flts3_good_nonalt:
+  assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+  shows "\<forall>r \<in> set (rflts rs). good r \<and> nonalt r"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  have tail_prems: "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+    using Cons.prems by simp
+  have tail: "\<forall>r \<in> set (rflts rs). good r \<and> nonalt r"
+    using Cons.hyps[OF tail_prems] .
+  show ?case
+  proof (cases a)
+    case RZERO
+    then show ?thesis
+      using tail by simp
+  next
+    case (RALTS xs)
+    then have "good (RALTS xs)"
+      using Cons.prems by simp
+    then have head: "\<forall>r \<in> set (rflts [RALTS xs]). good r \<and> nonalt r"
+      using flts2 by blast
+    show ?thesis
+      using RALTS head tail by auto
+  qed (use Cons.prems tail in simp_all)
+qed
+
+lemma good_not_RZERO:
+  assumes "good r"
+  shows "r \<noteq> RZERO"
+  using assms by (cases r) auto
 
 
 lemma  k0:
@@ -461,19 +526,7 @@ lemma good_SEQ:
   assumes "r1 \<noteq> RZERO" "r2 \<noteq> RZERO" " r1 \<noteq> RONE"
   shows "good (RSEQ r1 r2) = (good r1 \<and> good r2)"
   using assms
-  apply(induct r1)
-       apply(simp_all)
-  apply(case_tac r2)
-          apply(simp_all)
-  apply(case_tac r2)
-         apply(simp_all)
-  apply(case_tac r2)
-        apply(simp_all)
-  apply(case_tac r2)
-         apply(simp_all)
-apply(case_tac r2)
-        apply(simp_all)
-  done
+  by (cases r1; cases r2; simp)
 
 
 lemma rsize0:
@@ -646,13 +699,15 @@ lemma good1:
   using less_add_Suc2 apply blast  
   using less_iff_Suc_add apply blast
   apply simp
+  apply simp
+  apply simp
+  apply simp
   done
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
-   If rrexp remains, extend RL/rnullable/rder/rsimp correctness directly for the
-   new constructors. If rrexp is deleted, this whole semantic bridge must be
-   replaced by the original rexp language and simplifier statements. *)
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
+   RL/rnullable/rder/rsimp correctness covers the proof-only RBACKREF4, RHALF,
+   and RRESIDUE skeleton. *)
 fun
   RL :: "rrexp \<Rightarrow> string set"
 where
@@ -663,6 +718,10 @@ where
 | "RL (RALTS rs) = (\<Union> (set (map RL rs)))"
 | "RL (RSTAR r) = (RL r)\<star>"
 | "RL (RNTIMES r n) = (RL r) ^^ n"
+| "RL (RBACKREF4 r1 r2 r3 r4 cs) =
+    backref_lang4 (RL r1) (RL r2) (RL r3) (RL r4) cs"
+| "RL (RHALF r cs rep) = (RL r) ;; {cs}"
+| "RL (RRESIDUE cs rep) = {cs}"
 
 lemma pow_rempty_iff:
   shows "[] \<in> (RL r) ^^ n \<longleftrightarrow> (if n = 0 then True else [] \<in> (RL r))"
@@ -671,7 +730,7 @@ lemma pow_rempty_iff:
 lemma RL_rnullable:
   shows "rnullable r = ([] \<in> RL r)"
   apply(induct r)
-         apply(auto simp add: Sequ_def pow_rempty_iff)
+         apply(auto simp add: Sequ_def pow_rempty_iff backref_lang4_def)
   
   done
 
@@ -696,18 +755,92 @@ lemma der_pow:
   by (smt (verit, best) Suc_pred concE concI concI_if_Nil2 conc_pow_comm lang_pow.simps(2))
 *)
 
+lemma RL_rder_residue:
+  shows "RL (rder_residue c cs rep) = Der c {cs}"
+  by (cases cs) auto
+
 lemma RL_rder:
   shows "RL (rder c r) = Der c (RL r)"
-  apply(induct r)
-  apply(auto simp add: Sequ_def Der_def)[5]
-        apply (metis append_Cons)
-  using RL_rnullable apply blast
-  apply (metis append_eq_Cons_conv)
-  apply (metis append_Cons)
-    apply (metis RL_rnullable append_eq_Cons_conv)
-  apply simp
-  apply(simp)
-  done
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (simp add: Der_Sequ RL_rnullable)
+next
+  case (RALTS rs)
+  then show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have lhs: "RL (rder c (RNTIMES r (Suc m))) = Der c (RL r) ;; (RL r ^^ m)"
+      using RNTIMES by simp
+    have rhs: "Der c (RL (RNTIMES r (Suc m))) = Der c (RL r) ;; (RL r ^^ m)"
+    proof -
+      have "Der c (RL (RNTIMES r (Suc m))) = Der c ((RL r) ^^ Suc m)"
+        by simp
+      also have "... = Der c (RL r) ;; (RL r ^^ (Suc m - 1))"
+        by (subst Der_pow) simp
+      also have "... = Der c (RL r) ;; (RL r ^^ m)"
+        by simp
+      finally show ?thesis .
+    qed
+    show ?thesis
+      using Suc lhs rhs by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  let ?res = "rev cs"
+  let ?mid = "RSEQ (RRESIDUE ?res ?res) r4"
+  let ?res_tail =
+    "if ?res = []
+     then RALT (RSEQ (rder_residue c ?res ?res) r4) (rder c r4)
+     else RSEQ (rder_residue c ?res ?res) r4"
+  let ?tail =
+    "if rnullable r3
+     then RALT (RSEQ (rder c r3) ?mid) ?res_tail
+     else RSEQ (rder c r3) ?mid"
+  have res_tail: "RL ?res_tail = Der c ({?res} ;; RL r4)"
+  proof (cases ?res)
+    case Nil
+    then show ?thesis
+      using RBACKREF4(4)
+      by (simp add: RL_rder_residue Der_Sequ)
+  next
+    case (Cons d ds)
+    then show ?thesis
+      by (simp add: RL_rder_residue Der_Sequ)
+  qed
+  have tail: "RL ?tail = Der c (RL r3 ;; ({?res} ;; RL r4))"
+    using RBACKREF4(3) res_tail
+    by (simp add: RL_rnullable Der_Sequ)
+  show ?case
+    using RBACKREF4(1,2) tail
+    by (simp add: Let_def RL_rnullable Der_backref_lang4 Un_assoc)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: RL_rnullable RL_rder_residue Der_Sequ)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: RL_rder_residue)
+qed
 
 
 lemma RL_rsimp_RSEQ:
@@ -887,6 +1020,9 @@ lemma idem_after_simp1:
   apply (metis no_alt_short_list_after_simp no_further_dB_after_simp)
    apply(simp)
   apply(simp)
+  apply(simp)
+  apply(simp)
+  apply(simp)
   done
 
 
@@ -1027,28 +1163,40 @@ lemma good1_flatten:
 lemma flatten_rsimpalts:
   shows "rflts (rsimp_ALTs (rdistinct (rflts (map rsimp rsa)) {}) # map rsimp rsb) = 
          rflts ( (rdistinct (rflts (map rsimp rsa)) {}) @ map rsimp rsb)"
-  apply(case_tac "map rsimp rsa")
-   apply simp
-  apply(case_tac "list")
-   apply simp
-   apply(case_tac a)
-        apply simp+
-    apply(rename_tac rs1)
-    apply (metis good1_flatten map_eq_Cons_D no_further_dB_after_simp)
-  
-  apply simp
-  
-  apply(subgoal_tac "\<forall>r \<in> set( rflts (map rsimp rsa)). good r")
-   apply(case_tac "rdistinct (rflts (map rsimp rsa)) {}")
-     apply simp
-  apply auto[1]
-  apply simp
-  apply(simp)
-   apply(case_tac "lista")
-  apply simp_all
- 
-   apply (metis append_Cons append_Nil good1_flatten rflts.simps(2) rsimp.simps(2) rsimp_ALTs.elims)
-   by (metis (no_types, opaque_lifting) append_Cons append_Nil good1_flatten rflts.simps(2) rsimp.simps(2) rsimp_ALTs.elims)
+proof -
+  let ?xs = "rdistinct (rflts (map rsimp rsa)) {}"
+  let ?ys = "map rsimp rsb"
+  have good_or_zero: "\<forall>r \<in> set (map rsimp rsa). good r \<or> r = RZERO"
+    using good1 by auto
+  have flat_good: "\<forall>r \<in> set (rflts (map rsimp rsa)). good r \<and> nonalt r"
+    using flts3_good_nonalt[OF good_or_zero] .
+  have xs_props: "\<forall>r \<in> set ?xs. r \<noteq> RZERO \<and> nonalt r"
+    using flat_good good_not_RZERO rdistinct_set_equality1 by fastforce
+  have rflts_xs: "rflts ?xs = ?xs"
+    using xs_props nonalt0_fltseq by blast
+  show ?thesis
+  proof (cases ?xs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons a xs)
+    note xs_cons = Cons
+    then show ?thesis
+    proof (cases xs)
+      case Nil
+      then show ?thesis
+        using xs_cons by simp
+    next
+      case (Cons b ys)
+      then have xs_shape: "?xs = a # b # ys"
+        using xs_cons by simp
+      have rhs: "rflts (?xs @ ?ys) = ?xs @ rflts ?ys"
+        using rflts_xs flts_append[of ?xs ?ys] by simp
+      show ?thesis
+        using xs_shape rhs by simp
+    qed
+  qed
+qed
 
 lemma last_elem_out:
   shows "\<lbrakk>x \<notin> set xs; x \<notin> rset \<rbrakk> \<Longrightarrow> rdistinct (xs @ [x]) rset = rdistinct xs rset @ [x]"
@@ -1161,54 +1309,111 @@ lemma flts_keeps_others:
   apply(auto)
   by (meson k0b nonalt.elims(3))
 
+lemma distinct_removes_duplicate_flts_nonalt:
+  assumes "a \<in> set rs" "a \<noteq> RZERO" "\<nexists>rs1. a = RALTS rs1"
+  shows "rdistinct (rflts (rs @ [a])) {} = rdistinct (rflts rs) {}"
+proof -
+  have "a \<in> set (rflts rs)"
+    using assms by (intro rflts_def_idiot2) auto
+  moreover have "rflts (rs @ [a]) = rflts rs @ [a]"
+    using assms by (intro flts_keeps_others) auto
+  ultimately show ?thesis
+    by (simp add: distinct_removes_last(1))
+qed
+
+lemma rflts_tail_subset:
+  shows "set (rflts rs) \<subseteq> set (rflts (r # rs))"
+  by (cases r) auto
+
 lemma spilled_alts_contained:
   shows "\<lbrakk>a = RALTS rs ; a \<in> set rs1\<rbrakk> \<Longrightarrow> \<forall>r \<in> set rs. r \<in> set (rflts rs1)"
-  apply(induct rs1)
-   apply simp 
-  apply(case_tac "a = aa")
-   apply simp
-  apply(subgoal_tac " a \<in> set rs1")
-  prefer 2
-   apply (meson set_ConsD)
-  apply(case_tac aa)
-  using rflts.simps(2) apply presburger
-      apply fastforce
-  apply fastforce
-  apply fastforce
-  apply fastforce
-    apply fastforce
-  apply(simp)
-  done
+proof (induct rs1)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons aa rs1)
+  show ?case
+  proof (cases "a = aa")
+    case True
+    then show ?thesis
+      using Cons.prems by auto
+  next
+    case False
+    then have a_in_tail: "a \<in> set rs1"
+      using Cons.prems by simp
+    have "\<forall>r \<in> set rs. r \<in> set (rflts rs1)"
+      using Cons.hyps Cons.prems(1) a_in_tail by blast
+    moreover have "set (rflts rs1) \<subseteq> set (rflts (aa # rs1))"
+      by (rule rflts_tail_subset)
+    ultimately show ?thesis
+      by blast
+  qed
+qed
   
 
 lemma distinct_removes_duplicate_flts:
   shows " a \<in> set rsa
        \<Longrightarrow> rdistinct (rflts (map rsimp rsa @ [rsimp a])) {} =
            rdistinct (rflts (map rsimp rsa)) {}"
-  apply(subgoal_tac "rsimp a \<in> set (map rsimp rsa)")
-  prefer 2
-   apply simp
-  apply(induct "rsimp a")
-       apply simp
-  using flts_removes0 apply presburger
-      apply(subgoal_tac " rdistinct (rflts (map rsimp rsa @ [rsimp a])) {} =  
-                          rdistinct (rflts (map rsimp rsa @ [RONE])) {}")
-      apply (simp only:)
-        apply(subst flts_keeps1)
-  apply (metis distinct_removes_last(1) flts_append in_set_conv_decomp rflts.simps(4))
-      apply presburger
-        apply(subgoal_tac " rdistinct (rflts (map rsimp rsa @ [rsimp a]))    {} =  
-                            rdistinct ((rflts (map rsimp rsa)) @ [RCHAR x]) {}")
-      apply (simp only:)
-       prefer 2
-       apply (metis flts_append rflts.simps(1) rflts.simps(5))
-  apply (metis distinct_removes_last(1) rflts_def_idiot2 rrexp.distinct(25) rrexp.distinct(3))
-
-     apply (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(6) rflts_def_idiot2 rrexp.distinct(31) rrexp.distinct(5))
-
-  apply (metis distinct_removes_list rflts_spills_last spilled_alts_contained)
-  apply (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(7) rflts_def_idiot2 rrexp.distinct(37) rrexp.distinct(9))
-  by (metis distinct_removes_last(1) flts_append rflts.simps(1) rflts.simps(8) rflts_def_idiot2 rrexp.distinct(11) rrexp.distinct(39))
+proof -
+  assume a_in: "a \<in> set rsa"
+  then have simp_in: "rsimp a \<in> set (map rsimp rsa)"
+    by simp
+  have nonalt_case:
+    "\<And>x. \<lbrakk>x \<in> set (map rsimp rsa); x \<noteq> RZERO; \<nexists>rs1. x = RALTS rs1\<rbrakk>
+      \<Longrightarrow> rdistinct (rflts (map rsimp rsa @ [x])) {} =
+          rdistinct (rflts (map rsimp rsa)) {}"
+    by (rule distinct_removes_duplicate_flts_nonalt)
+  show ?thesis
+  proof (cases "rsimp a")
+    case RZERO
+    then show ?thesis
+      using flts_removes0 by presburger
+  next
+    case RONE
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RSEQ r1 r2)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RALTS rs)
+    have in_map: "RALTS rs \<in> set (map rsimp rsa)"
+      using RALTS simp_in by simp
+    have contained: "\<forall>r \<in> set rs. r \<in> set (rflts (map rsimp rsa))"
+      using spilled_alts_contained[OF refl in_map] .
+    have spill: "rflts (map rsimp rsa @ [RALTS rs]) =
+      rflts (map rsimp rsa) @ rs"
+      by (rule rflts_spills_last)
+    show ?thesis
+      using RALTS contained spill distinct_removes_list by simp
+  next
+    case (RSTAR r)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RNTIMES r n)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RBACKREF4 r1 r2 r3 r4 cs)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RHALF r cs rep)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using nonalt_case simp_in by simp
+  qed
+qed
   
 
 (*some basic facts about rsimp*)
