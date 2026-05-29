@@ -47,7 +47,28 @@ primrec eq1 ("_ ~1 _" [80, 80] 80) and eq1s where
 | "eq1s (r # rs) ys =
     (case ys of s # ss \<Rightarrow> r ~1 s \<and> eq1s rs ss | _ \<Rightarrow> False)"
 
+lemma ABACKREF4_cs_affects_language:
+  fixes c :: char
+  shows
+    "L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) [])) \<noteq>
+     L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) [c]))"
+proof
+  assume same:
+    "L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) [])) =
+     L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) [c]))"
+  have empty_left:
+    "[] \<in> L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) []))"
+    by (simp add: backref_lang4_def)
+  have empty_not_right:
+    "[] \<notin> L (erase (ABACKREF4 [] (AONE []) (AONE []) (AONE []) (AONE []) [c]))"
+    by (auto simp add: backref_lang4_def)
+  show False
+    using same empty_left empty_not_right by blast
+qed
 
+(* The ABACKREF4 branch of eq1 must compare cs. Otherwise distinctWith could
+   drop a later alternative with the same four subexpressions but a different
+   language, as witnessed by ABACKREF4_cs_affects_language. *)
 
 lemma size_list_member_less:
   assumes "r \<in> set rs"
