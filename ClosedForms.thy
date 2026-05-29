@@ -305,7 +305,7 @@ lemma grewrite_cases_middle:
 
 lemma good_singleton:
   shows "good a \<and> nonalt a  \<Longrightarrow> rflts [a] = [a]"
-  using good.simps(1) k0b by blast
+  using good_RZERO k0b by blast
 
 
 
@@ -437,7 +437,7 @@ lemma good_flatten_aux:
   apply (metis Diff_empty flts3 nonalt_flts_rd qqq1 rdistinct_set_equality1)  
   apply(subgoal_tac "\<forall>r \<in> set (rflts rsb). good r \<and> r \<noteq> RZERO \<and> nonalt r")
    prefer 2
-  apply (metis Diff_empty flts3 good.simps(1) nonalt_flts_rd rdistinct_set_equality1)  
+  apply (metis Diff_empty flts3 good_RZERO nonalt_flts_rd rdistinct_set_equality1)
   by (smt (verit, ccfv_threshold) good_flatten_aux_aux)
 
   
@@ -996,9 +996,7 @@ lemma inside_simp_seq_nullable:
        \<Longrightarrow> rsimp (rder x (rsimp_SEQ (rsimp r1) (rsimp r2))) =
            rsimp_ALTs (rdistinct (rflts [rsimp_SEQ (rsimp (rder x r1)) (rsimp r2), rsimp (rder x r2)]) {})"
   apply(case_tac "rsimp r1 = RONE")
-   apply(simp)
-  apply(subst basic_rsimp_SEQ_property1)
-   apply (simp add: idem_after_simp1)
+   apply(simp add: idem_after_simp1)
   apply(case_tac "rsimp r1 = RZERO")
   
   using basic_regex_property1 apply blast
@@ -1110,17 +1108,15 @@ lemma hrewrites_list:
 lemma hrewrite_simpeq:
   shows "r1 h\<leadsto> r2 \<Longrightarrow> rsimp r1 = rsimp r2"
   apply(induct rule: hrewrite.induct)
-            apply simp+
-  apply (simp add: basic_rsimp_SEQ_property3)
-  apply (simp add: basic_rsimp_SEQ_property1)
-  using rsimp.simps(1) apply presburger
-        apply simp+
+            apply simp
+           apply simp
+          apply simp
+         apply simp
+        apply simp
+       apply simp
   using flts_middle0 apply force
-
-  
   using simp_flatten3 apply presburger
-
-  apply simp+
+    apply simp
   apply (simp add: idem_after_simp1)
   using grewrite.intros(4) grewrite_equal_rsimp by presburger
 
@@ -1140,7 +1136,6 @@ lemma simp_hrewrites:
        apply simp+
     apply(case_tac "rsimp r11 = RONE")
      apply simp
-     apply(subst basic_rsimp_SEQ_property1)
   apply(subgoal_tac "RSEQ r11 r12 h\<leadsto>* RSEQ RONE r12")
   using hreal_trans hrewrite.intros(3) apply blast
   using hrewrites_seq_context apply presburger
@@ -1149,7 +1144,6 @@ lemma simp_hrewrites:
   using hrewrite.intros(1) hrewrites_seq_context apply blast
     apply(case_tac "rsimp r12 = RZERO")
      apply simp
-  apply(subst basic_rsimp_SEQ_property3)
   apply (meson hrewrite.intros(2) hrewrites.simps hrewrites_seq_context2)
     apply(subst idiot2)
        apply simp+
@@ -1231,7 +1225,7 @@ lemma inside_simp_removal:
   
   using inside_simp_seq_nullable apply blast
     apply simp
-  apply (smt (verit, del_insts) idiot2 basic_rsimp_SEQ_property3 der_simp_nullability rder.simps(1) rder.simps(5) rnullable.simps(2) rsimp.simps(1) rsimp_SEQ.simps(1) rsimp_idem)
+  apply (smt (verit, del_insts) idiot2 basic_rsimp_SEQ_property3 der_simp_nullability rder.simps(1) rder.simps(5) rnullable.simps(2) rsimp.simps(1) rsimp_SEQ_RZERO rsimp_idem)
    apply(subgoal_tac "rder x (RALTS xa) h\<leadsto>* rder x (rsimp (RALTS xa))")
   using hrewrites_simpeq apply presburger
   using interleave_star1 simp_hrewrites apply presburger

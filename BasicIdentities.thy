@@ -198,12 +198,30 @@ lemma rsimp_alts_equal:
   by (metis append_Cons append_Nil neq_Nil_conv rsimpalts_conscons)
 
 
-fun rsimp_SEQ :: " rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp"
+definition rsimp_SEQ :: " rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp"
   where
-  "rsimp_SEQ  RZERO _ = RZERO"
-| "rsimp_SEQ  _ RZERO = RZERO"
-| "rsimp_SEQ RONE r2 = r2"
-| "rsimp_SEQ r1 r2 = RSEQ r1 r2"
+  "rsimp_SEQ r1 r2 =
+    (case r1 of
+      RZERO \<Rightarrow> RZERO
+    | RONE \<Rightarrow> r2
+    | _ \<Rightarrow> (case r2 of RZERO \<Rightarrow> RZERO | _ \<Rightarrow> RSEQ r1 r2))"
+
+lemma rsimp_SEQ_RZERO [simp]:
+  "rsimp_SEQ RZERO r = RZERO"
+  by (simp add: rsimp_SEQ_def)
+
+lemma rsimp_SEQ_RZERO_right [simp]:
+  "rsimp_SEQ r RZERO = RZERO"
+  by (cases r) (simp_all add: rsimp_SEQ_def)
+
+lemma rsimp_SEQ_RONE [simp]:
+  "rsimp_SEQ RONE r = r"
+  by (simp add: rsimp_SEQ_def)
+
+lemma rsimp_SEQ_default [simp]:
+  assumes "r1 \<noteq> RZERO" "r1 \<noteq> RONE" "r2 \<noteq> RZERO"
+  shows "rsimp_SEQ r1 r2 = RSEQ r1 r2"
+  using assms by (cases r1; cases r2) (simp_all add: rsimp_SEQ_def)
 
 
 fun rsimp :: "rrexp \<Rightarrow> rrexp" 
@@ -268,10 +286,7 @@ lemma rsimp_aalts_smaller:
 
 lemma rSEQ_mono:
   shows "rsize (rsimp_SEQ r1 r2) \<le> rsize (RSEQ r1 r2)"
-  apply auto
-  apply(induct r1 r2 rule: rsimp_SEQ.induct)
-       apply auto
-  done
+  by (cases r1; cases r2) (simp_all add: rsimp_SEQ_def)
 
 lemma ralts_cap_mono:
   shows "rsize (RALTS rs) \<le> Suc (rsizes rs)"
@@ -352,10 +367,7 @@ lemma idiot:
 lemma idiot2:
   assumes "r1 \<noteq> RZERO" "r1 \<noteq> RONE" "r2 \<noteq> RZERO"
   shows "rsimp_SEQ r1 r2 = RSEQ r1 r2"
-  using assms
-  apply(induct r1 r2 rule: rsimp_SEQ.induct)
-  apply(auto)
-  done
+  using assms by simp
 
 lemma rders__onechar:
   shows " (rders_simp r [c]) =  (rsimp (rders r [c]))"
@@ -391,18 +403,52 @@ fun good :: "rrexp \<Rightarrow> bool" where
   "good RZERO = False"
 | "good (RONE) = True" 
 | "good (RCHAR c) = True"
-| "good (RALTS []) = False"
-| "good (RALTS [r]) = False"
-| "good (RALTS (r1 # r2 # rs)) = ((distinct ( (r1 # r2 # rs))) \<and>(\<forall>r' \<in> set (r1 # r2 # rs). good r' \<and> nonalt r'))"
-| "good (RSEQ RZERO _) = False"
-| "good (RSEQ RONE _) = False"
-| "good (RSEQ  _ RZERO) = False"
-| "good (RSEQ r1 r2) = (good r1 \<and> good r2)"
+| "good (RALTS rs) =
+    (case rs of
+      [] \<Rightarrow> False
+    | [_] \<Rightarrow> False
+    | _ \<Rightarrow> distinct rs \<and> (\<forall>r' \<in> set rs. good r' \<and> nonalt r'))"
+| "good (RSEQ r1 r2) =
+    (if r1 = RZERO \<or> r1 = RONE \<or> r2 = RZERO then False else good r1 \<and> good r2)"
 | "good (RSTAR r) = True"
 | "good (RNTIMES r n) = True"
 | "good (RBACKREF4 r1 r2 r3 r4 cs) = True"
 | "good (RHALF r cs rep) = True"
 | "good (RRESIDUE cs rep) = True"
+
+lemma good_RZERO [simp]:
+  "good RZERO = False"
+  by simp
+
+lemma good_RALTS_Nil [simp]:
+  "good (RALTS []) = False"
+  by simp
+
+lemma good_RALTS_single [simp]:
+  "good (RALTS [r]) = False"
+  by simp
+
+lemma good_RALTS_ConsCons [simp]:
+  "good (RALTS (r1 # r2 # rs)) =
+    (distinct (r1 # r2 # rs) \<and> (\<forall>r' \<in> set (r1 # r2 # rs). good r' \<and> nonalt r'))"
+  by simp
+
+lemma good_RSEQ_RZERO [simp]:
+  "good (RSEQ RZERO r) = False"
+  by simp
+
+lemma good_RSEQ_RONE [simp]:
+  "good (RSEQ RONE r) = False"
+  by simp
+
+lemma good_RSEQ_RZERO_right [simp]:
+  "good (RSEQ r RZERO) = False"
+  by (cases r) simp_all
+
+lemma good_RSEQ_default [simp]:
+  assumes "r1 \<noteq> RZERO" "r1 \<noteq> RONE" "r2 \<noteq> RZERO"
+  shows "good (RSEQ r1 r2) = (good r1 \<and> good r2)"
+  using assms by (cases r1; cases r2) simp_all
 
 lemma  k0a:
   shows "rflts [RALTS rs] =   rs"
@@ -413,7 +459,7 @@ lemma bbbbs:
   assumes "good r" "r = RALTS rs"
   shows "rsimp_ALTs  (rflts [r]) = RALTS rs"
   using  assms
-  by (metis good.simps(4) good.simps(5) k0a rsimp_ALTs.elims)
+  by (cases rs) (auto simp add: k0a split: list.splits)
 
 lemma bbbbs1:
   shows "nonalt r \<or> (\<exists> rs. r  = RALTS  rs)"
@@ -432,10 +478,11 @@ lemma good0:
 lemma flts1:
   assumes "good r" 
   shows "rflts [r] \<noteq> []"
-  using  assms
-  apply(induct r)
-       apply(simp_all)
-  using good.simps(4) by blast
+proof (cases r)
+  case (RALTS rs)
+  then show ?thesis
+    using assms by (cases rs) (auto split: list.splits)
+qed (use assms in simp_all)
 
 lemma good_RALTS_elem:
   assumes "good (RALTS rs)" "r \<in> set rs"
@@ -475,10 +522,32 @@ qed (use assms in simp_all)
 lemma flts3:
   assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO" 
   shows "\<forall>r \<in> set (rflts rs). good r"
-  using  assms
-  apply(induct rs arbitrary: rule: rflts.induct)
-        apply(simp_all)
-  by (metis UnE flts2 k0a)
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  have tail_prems: "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+    using Cons.prems by simp
+  have tail: "\<forall>r \<in> set (rflts rs). good r"
+    using Cons.hyps[OF tail_prems] .
+  have head: "\<forall>r \<in> set (rflts [a]). good r"
+  proof (cases "a = RZERO")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "good a"
+      using Cons.prems by simp
+    then show ?thesis
+      using flts2 by blast
+  qed
+  have split: "rflts (a # rs) = rflts [a] @ rflts rs"
+    using flts_append[of "[a]" rs] by simp
+  show ?case
+    using head tail split by auto
+qed
 
 lemma flts3_good_nonalt:
   assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO"
@@ -493,20 +562,21 @@ next
     using Cons.prems by simp
   have tail: "\<forall>r \<in> set (rflts rs). good r \<and> nonalt r"
     using Cons.hyps[OF tail_prems] .
-  show ?case
-  proof (cases a)
-    case RZERO
-    then show ?thesis
-      using tail by simp
+  have head: "\<forall>r \<in> set (rflts [a]). good r \<and> nonalt r"
+  proof (cases "a = RZERO")
+    case True
+    then show ?thesis by simp
   next
-    case (RALTS xs)
-    then have "good (RALTS xs)"
+    case False
+    then have "good a"
       using Cons.prems by simp
-    then have head: "\<forall>r \<in> set (rflts [RALTS xs]). good r \<and> nonalt r"
+    then show ?thesis
       using flts2 by blast
-    show ?thesis
-      using RALTS head tail by auto
-  qed (use Cons.prems tail in simp_all)
+  qed
+  have split: "rflts (a # rs) = rflts [a] @ rflts rs"
+    using flts_append[of "[a]" rs] by simp
+  show ?case
+    using head tail split by auto
 qed
 
 lemma good_not_RZERO:
@@ -601,25 +671,54 @@ lemma nn1bb:
 
 lemma bsimp_ASEQ0:
   shows "rsimp_SEQ  r1 RZERO = RZERO"
-  apply(induct r1)
-  apply(auto)
-  done
+  by simp
+
+lemma nonnested_rsimp_SEQ:
+  assumes "nonnested r1" "nonnested r2"
+  shows "nonnested (rsimp_SEQ r1 r2)"
+  using assms by (cases r1; cases r2) (simp_all add: rsimp_SEQ_def)
 
 lemma nn1b:
   shows "nonnested (rsimp r)"
-  apply(induct r)
-       apply(simp_all)
-  apply(case_tac "rsimp r1 = RZERO")
-    apply(simp)
- apply(case_tac "rsimp r2 = RZERO")
-   apply(simp)
-    apply(subst bsimp_ASEQ0)
-  apply(simp)
-  apply(case_tac "\<exists>bs. rsimp r1 = RONE")
-    apply(auto)[1]
-  using idiot apply fastforce
-  apply (simp add: idiot2)
-  by (metis (mono_tags, lifting) image_iff list.set_map nn1bb nn1c rdistinct_set_equality)
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (simp add: nonnested_rsimp_SEQ)
+next
+  case (RALTS rs)
+  have "\<forall>r \<in> set (map rsimp rs). nonnested r"
+    using RALTS by auto
+  then have "\<forall>r \<in> set (rflts (map rsimp rs)). nonalt r"
+    using nn1c by blast
+  then have "\<forall>r \<in> set (rdistinct (rflts (map rsimp rs)) {}). nonalt r"
+    by (simp add: rdistinct_set_equality)
+  then show ?case
+    using nn1bb by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
 
 lemma nonalt_flts_rd:
   shows "\<lbrakk>xa \<in> set (rdistinct (rflts (map rsimp rs)) {})\<rbrakk>
@@ -643,9 +742,12 @@ lemma rsimpalts_implies21:
 
 lemma bsimp_ASEQ2:
   shows "rsimp_SEQ RONE r2 =  r2"
-  apply(induct r2)
-  apply(auto)
-  done
+  by simp
+
+lemma good_rsimp_SEQ:
+  assumes "good r1 \<or> r1 = RZERO" "good r2 \<or> r2 = RZERO"
+  shows "good (rsimp_SEQ r1 r2) \<or> rsimp_SEQ r1 r2 = RZERO"
+  using assms by (cases r1; cases r2) (simp_all add: rsimp_SEQ_def)
 
 lemma elem_smaller_than_set:
   shows "xa \<in> set  list \<Longrightarrow> rsize xa < Suc (rsizes list)"
@@ -671,38 +773,70 @@ thm Diff_empty flts3 rdistinct_set_equality1
   
 lemma good1:
   shows "good (rsimp a) \<or> rsimp a = RZERO"
-  apply(induct a taking: rsize rule: measure_induct)
-  apply(case_tac x)
-  apply(simp)
-  apply(simp)
-  apply(simp)
-  prefer 3
-    apply(simp)
-   prefer 2
-   apply(simp only:)
-   apply simp
-  apply (smt (verit, ccfv_threshold) add_mono_thms_linordered_semiring(1) elem_smaller_than_set good0 good2_obv_simplified le_eq_less_or_eq nonalt_flts_rd order_less_trans plus_1_eq_Suc rdistinct_does_the_job rdistinct_smaller rflts_mono rsimp_ALTs.simps(1) rsimp_list_mono)
-  apply simp
-  apply(subgoal_tac "good (rsimp x41) \<or> rsimp x41 = RZERO")
-   apply(subgoal_tac "good (rsimp x42) \<or> rsimp x42 = RZERO")
-    apply(case_tac "rsimp x41 = RZERO")
-     apply simp
-    apply(case_tac "rsimp x42 = RZERO")
-     apply simp
-  using bsimp_ASEQ0 apply blast
-    apply(subgoal_tac "good (rsimp x41)")
-     apply(subgoal_tac "good (rsimp x42)")
-      apply simp
-  apply (metis bsimp_ASEQ2 good_SEQ idiot2)
-  apply blast
-  apply fastforce
-  using less_add_Suc2 apply blast  
-  using less_iff_Suc_add apply blast
-  apply simp
-  apply simp
-  apply simp
-  apply simp
-  done
+proof (induct a)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have IH1: "good (rsimp r1) \<or> rsimp r1 = RZERO"
+    using RSEQ(1) .
+  have IH2: "good (rsimp r2) \<or> rsimp r2 = RZERO"
+    using RSEQ(2) .
+  then show ?case
+    using good_rsimp_SEQ[OF IH1 IH2] by simp
+next
+  case (RALTS rs)
+  let ?xs = "rdistinct (rflts (map rsimp rs)) {}"
+  have elems: "\<forall>r \<in> set (map rsimp rs). good r \<or> r = RZERO"
+    using RALTS by auto
+  have good_nonalt: "\<forall>r \<in> set ?xs. good r \<and> nonalt r"
+    using flts3_good_nonalt[OF elems] by (simp add: rdistinct_set_equality)
+  show ?case
+  proof (cases ?xs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons a ys)
+    note xs_cons = Cons
+    then show ?thesis
+    proof (cases ys)
+      case Nil
+      then show ?thesis
+        using Cons good_nonalt by simp
+    next
+      case (Cons b zs)
+      have distinct_xs: "distinct ?xs"
+        by (rule rdistinct_does_the_job)
+      have xs_two: "?xs = a # b # zs"
+        using xs_cons Cons by simp
+      then have "good (RALTS ?xs)"
+        using good_nonalt distinct_xs by simp
+      then show ?thesis
+        using xs_two by simp
+    qed
+  qed
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
 
 
 (* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
@@ -845,9 +979,7 @@ qed
 
 lemma RL_rsimp_RSEQ:
   shows "RL (rsimp_SEQ r1 r2) = (RL r1 ;; RL r2)"
-  apply(induct r1 r2 rule: rsimp_SEQ.induct)
-  apply(simp_all)
-  done
+  by (cases r1; cases r2) (simp_all add: rsimp_SEQ_def)
 
 lemma RL_rsimp_RALTS:
   shows "RL (rsimp_ALTs rs) = (\<Union> (set (map RL rs)))"
@@ -877,7 +1009,7 @@ lemma RL_rsimp:
   
 lemma qqq1:
   shows "RZERO \<notin> set (rflts (map rsimp rs))"
-  by (metis ex_map_conv flts3 good.simps(1) good1)
+  by (metis ex_map_conv flts3 good_RZERO good1)
 
 
 fun nonazero :: "rrexp \<Rightarrow> bool"
@@ -917,23 +1049,13 @@ lemma nonalt0_fltseq:
 
 lemma goodalts_nonalt:
   shows "good (RALTS rs) \<Longrightarrow> rflts rs = rs"
-  apply(induct x == "RALTS rs" arbitrary: rs rule: good.induct)
-    apply simp
-  
-  using good.simps(5) apply blast
-  apply simp
-  apply(case_tac "r1 = RZERO")
-  using good.simps(1) apply force
-  apply(case_tac "r2 = RZERO")
-  using good.simps(1) apply force
-  apply(subgoal_tac "rflts (r1 # r2 # rs) = r1 # r2 # rflts rs")
-  prefer 2
-   apply (metis nonalt.simps(1) rflts_def_idiot)
-  apply(subgoal_tac "\<forall>r \<in> set rs. r \<noteq> RZERO \<and> nonalt r")
-   apply(subgoal_tac "rflts rs = rs")
-    apply presburger
-  using nonalt0_fltseq apply presburger
-  using good.simps(1) by blast
+proof -
+  assume good: "good (RALTS rs)"
+  have "\<forall>r \<in> set rs. r \<noteq> RZERO \<and> nonalt r"
+    using good good_RALTS_elem good_not_RZERO by blast
+  then show "rflts rs = rs"
+    using nonalt0_fltseq by blast
+qed
   
 
   
@@ -942,40 +1064,60 @@ lemma goodalts_nonalt:
 lemma test:
   assumes "good r"
   shows "rsimp r = r"
-
   using assms
-  apply(induct rule: good.induct)
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply simp
-                      apply(subgoal_tac "distinct (r1 # r2 # rs)")
-  prefer 2
-  using good.simps(6) apply blast
-  apply(subgoal_tac "rflts (r1 # r2 # rs ) = r1 # r2 # rs")
-  prefer 2
-  using goodalts_nonalt apply blast
-
-                      apply(subgoal_tac "r1 \<noteq> r2")
-  prefer 2
-                      apply (meson distinct_length_2_or_more)
-                      apply(subgoal_tac "r1 \<notin> set rs")
-                      apply(subgoal_tac "r2 \<notin> set rs")
-                      apply(subgoal_tac "\<forall>r \<in> set rs. rsimp r = r")
-                      apply(subgoal_tac "map rsimp rs = rs")
-  apply simp             
-                      apply(subgoal_tac "\<forall>r \<in>  {r1, r2}. r \<notin> set rs")
-  apply (metis distinct_not_exist rdistinct_on_distinct)
-  
-                      apply blast
-                      apply (meson map_idI)
-                      apply (metis good.simps(6) insert_iff list.simps(15))
-
-  apply (meson distinct.simps(2))
-                      apply (simp add: distinct_length_2_or_more)
-                      apply simp+
-  done
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have nz: "r1 \<noteq> RZERO" "r1 \<noteq> RONE" "r2 \<noteq> RZERO"
+    using RSEQ.prems by auto
+  have good12: "good r1" "good r2"
+    using RSEQ.prems nz by simp_all
+  have "rsimp r1 = r1" "rsimp r2 = r2"
+    using RSEQ.hyps good12 by blast+
+  then show ?case
+    using nz by (simp add: idiot2)
+next
+  case (RALTS rs)
+  have elems_good: "\<forall>r \<in> set rs. good r"
+    using RALTS.prems good_RALTS_elem by blast
+  have map_id: "map rsimp rs = rs"
+    using RALTS.hyps elems_good by (simp add: map_idI)
+  have flts: "rflts rs = rs"
+    using RALTS.prems goodalts_nonalt by blast
+  have distinct_rs: "distinct rs"
+    using RALTS.prems by (cases rs) (auto split: list.splits)
+  obtain r1 r2 rest where rs: "rs = r1 # r2 # rest"
+    using RALTS.prems by (cases rs) (auto split: list.splits)
+  have rd: "rdistinct (rflts (map rsimp rs)) {} = rs"
+    using map_id flts distinct_rs by (simp add: rdistinct_on_distinct)
+  have alts: "rsimp_ALTs rs = RALTS rs"
+    using rs by simp
+  show ?case
+    using rd alts by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
 
 
 
@@ -1006,11 +1148,17 @@ lemma no_alt_short_list_after_simp:
 
 lemma no_further_dB_after_simp:
   shows "RALTS rs = rsimp r \<Longrightarrow> rdistinct rs {} = rs"
-  apply(subgoal_tac "good (RALTS rs)")
-  apply(subgoal_tac "distinct rs")
-  using rdistinct_on_distinct apply blast
-  apply (metis distinct.simps(1) distinct.simps(2) empty_iff good.simps(6) list.exhaust set_empty2)
-  using good1 by fastforce
+proof -
+  assume rs: "RALTS rs = rsimp r"
+  have "good (rsimp r) \<or> rsimp r = RZERO"
+    by (rule good1)
+  then have good: "good (RALTS rs)"
+    using rs by auto
+  have "distinct rs"
+    using good by (cases rs) (auto split: list.splits)
+  then show "rdistinct rs {} = rs"
+    using rdistinct_on_distinct by blast
+qed
 
 
 lemma idem_after_simp1:
@@ -1249,7 +1397,7 @@ lemma basic_rsimp_SEQ_property1:
 
 lemma basic_rsimp_SEQ_property3:
   shows "rsimp_SEQ r RZERO = RZERO"  
-  using rsimp_SEQ.elims by blast
+  by simp
 
 
 
