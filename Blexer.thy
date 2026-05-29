@@ -26,6 +26,9 @@ where
 | "code (Seq v1 v2) = (code v1) @ (code v2)"
 | "code (Stars []) = [S]"
 | "code (Stars (v # vs)) =  (Z # code v) @ code (Stars vs)"
+| "code (Backref4 v1 v2 v3 v4 cs) = code v1 @ code v2 @ code v3 @ code v4"
+| "code (Half v cs rep) = code v"
+| "code (Residue cs rep) = []"
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Add sz cases for BACKREF4/HALF/RESIDUE before changing decode'. *)
@@ -37,6 +40,9 @@ fun sz where
 | "sz (ALT r1 r2) = 1 + sz r1 + sz r2"
 | "sz (STAR r) = 1 + sz r"
 | "sz (NTIMES r n) = 1 + (n + 1) + sz r"
+| "sz (BACKREF4 r1 r2 r3 r4 cs) = 1 + sz r1 + sz r2 + sz r3 + sz r4"
+| "sz (HALF r cs rep) = 1 + sz r"
+| "sz (RESIDUE cs rep) = 0"
 
 fun 
   Stars_add :: "val \<Rightarrow> val \<Rightarrow> val"
@@ -60,9 +66,18 @@ where
 | "decode' [] (STAR r) = (Void, [])"
 | "decode' (S # bs) (STAR r) = (Stars [], bs)"
 | "decode' (Z # bs) (STAR r) = (let (v, bs') = decode' bs r in
-                                    let (vs, bs'') = decode' bs' (STAR r) 
-                                    in (Stars_add v vs, bs''))"
+                                     let (vs, bs'') = decode' bs' (STAR r)
+                                     in (Stars_add v vs, bs''))"
 | "decode' bs (NTIMES r n) = decode' bs (STAR r)"
+| "decode' bs (BACKREF4 r1 r2 r3 r4 cs) =
+    (let (v1, bs1) = decode' bs r1 in
+     let (v2, bs2) = decode' bs1 r2 in
+     let (v3, bs3) = decode' bs2 r3 in
+     let (v4, bs4) = decode' bs3 r4 in
+       (Backref4 v1 v2 v3 v4 cs, bs4))"
+| "decode' bs (HALF r cs rep) =
+    (let (v, bs') = decode' bs r in (Half v cs rep, bs'))"
+| "decode' bs (RESIDUE cs rep) = (Residue cs rep, bs)"
 by pat_completeness auto
 
 lemma decode'_smaller:
@@ -73,6 +88,7 @@ apply(induct bs r)
 apply(auto simp add: decode'.psimps split: prod.split)
 using dual_order.trans apply blast
 apply (meson dual_order.trans le_SucI)
+apply (metis dual_order.trans)
   done
 
 termination "decode'"  
@@ -138,6 +154,9 @@ datatype arexp =
 | AALTs "bit list" "arexp list"
 | ASTAR "bit list" arexp
 | ANTIMES "bit list" arexp nat
+| ABACKREF4 "bit list" arexp arexp arexp arexp string
+| AHALF "bit list" arexp string string
+| ARESIDUE "bit list" string string
 
 abbreviation
   "AALT bs r1 r2 \<equiv> AALTs bs [r1, r2]"
@@ -153,6 +172,10 @@ fun asize :: "arexp \<Rightarrow> nat" where
 | "asize (ASEQ cs r1 r2) = Suc (asize r1 + asize r2)"
 | "asize (ASTAR cs r) = Suc (asize r)"
 | "asize (ANTIMES cs r n) = Suc (asize r) + n"
+| "asize (ABACKREF4 cs r1 r2 r3 r4 s) =
+    Suc (asize r1 + asize r2 + asize r3 + asize r4)"
+| "asize (AHALF cs r s rep) = Suc (asize r)"
+| "asize (ARESIDUE cs s rep) = 1"
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Add az2 cases for the new arexp constructors before changing retrieve. *)
@@ -164,6 +187,10 @@ fun az2 :: "arexp \<Rightarrow> nat" where
 | "az2 (ASEQ cs r1 r2) = Suc (az2 r1 + az2 r2)"
 | "az2 (ASTAR cs r) = Suc (az2 r)"
 | "az2 (ANTIMES cs r n) = Suc (az2 r) + n + 1"
+| "az2 (ABACKREF4 cs r1 r2 r3 r4 s) =
+    Suc (az2 r1 + az2 r2 + az2 r3 + az2 r4)"
+| "az2 (AHALF cs r s rep) = Suc (az2 r)"
+| "az2 (ARESIDUE cs s rep) = 1"
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Add erase cases for new arexp constructors and ensure erase/bder commute
@@ -180,6 +207,21 @@ where
 | "erase (ASEQ _ r1 r2) = SEQ (erase r1) (erase r2)"
 | "erase (ASTAR _ r) = STAR (erase r)"
 | "erase (ANTIMES _ r n) = NTIMES (erase r) n"
+| "erase (ABACKREF4 _ r1 r2 r3 r4 cs) =
+    BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs"
+| "erase (AHALF _ r cs rep) = HALF (erase r) cs rep"
+| "erase (ARESIDUE _ cs rep) = RESIDUE cs rep"
+
+lemma erase_AALTs_ignore_bits [simp]:
+  "erase (AALTs bs rs) = erase (AALTs bs' rs)"
+proof (induct rs arbitrary: bs bs')
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  then show ?case
+    by (cases rs) simp_all
+qed
 
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
@@ -193,12 +235,19 @@ fun fuse :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp" where
 | "fuse bs (ASEQ cs r1 r2) = ASEQ (bs @ cs) r1 r2"
 | "fuse bs (ASTAR cs r) = ASTAR (bs @ cs) r"
 | "fuse bs (ANTIMES cs r n) = ANTIMES (bs @ cs) r n"
+| "fuse bs (ABACKREF4 cs r1 r2 r3 r4 s) = ABACKREF4 (bs @ cs) r1 r2 r3 r4 s"
+| "fuse bs (AHALF cs r s rep) = AHALF (bs @ cs) r s rep"
+| "fuse bs (ARESIDUE cs s rep) = ARESIDUE (bs @ cs) s rep"
 
 lemma fuse_append:
   shows "fuse (bs1 @ bs2) r = fuse bs1 (fuse bs2 r)"
   apply(induct r)
   apply(auto)
   done
+
+lemma fuse_Nil [simp]:
+  shows "fuse [] r = r"
+  by (induct r) auto
 
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
@@ -213,27 +262,48 @@ fun intern :: "rexp \<Rightarrow> arexp" where
 | "intern (SEQ r1 r2) = ASEQ [] (intern r1) (intern r2)"
 | "intern (STAR r) = ASTAR [] (intern r)"
 | "intern (NTIMES r n) = ANTIMES [] (intern r) n"
+| "intern (BACKREF4 r1 r2 r3 r4 cs) =
+    ABACKREF4 [] (intern r1) (intern r2) (intern r3) (intern r4) cs"
+| "intern (HALF r cs rep) = AHALF [] (intern r) cs rep"
+| "intern (RESIDUE cs rep) = ARESIDUE [] cs rep"
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Extend retrieve for the new value and arexp constructors under the approved
    backreference bit representation. This is the central original bitcoded
    evidence path; wrapper retrieval lemmas do not count. *)
 function (sequential) retrieve  :: "arexp \<Rightarrow> val \<Rightarrow> bit list" where
-  "retrieve (AONE bs) Void = bs"
-| "retrieve (ACHAR bs c) (Char d) = bs"
-| "retrieve (AALTs bs [r]) v = bs @ retrieve r v"
-| "retrieve (AALTs bs (r#rs)) (Left v) = bs @ retrieve r v"
-| "retrieve (AALTs bs (r#rs)) (Right v) = bs @ retrieve (AALTs [] rs) v"
-| "retrieve (ASEQ bs r1 r2) (Seq v1 v2) = bs @ retrieve r1 v1 @ retrieve r2 v2"
-
-| "retrieve (ASTAR bs r) (Stars []) = bs @ [S]"
-| "retrieve (ASTAR bs r) (Stars (v#vs)) = bs @ [Z] @ retrieve r v @ retrieve (ASTAR [] r) (Stars vs)"
-
-| "retrieve (ANTIMES bs r n) (Stars vs) = retrieve (ASTAR bs r) (Stars vs)"
-| "retrieve _ _ = undefined"
+  "retrieve AZERO v = undefined"
+| "retrieve (AONE bs) v = (case v of Void \<Rightarrow> bs | _ \<Rightarrow> undefined)"
+| "retrieve (ACHAR bs c) v = (case v of Char d \<Rightarrow> bs | _ \<Rightarrow> undefined)"
+| "retrieve (AALTs bs rs) v =
+    (case rs of
+      [] \<Rightarrow> undefined
+    | [r] \<Rightarrow> bs @ retrieve r v
+    | r # r' # rs' \<Rightarrow>
+        (case v of
+          Left v' \<Rightarrow> bs @ retrieve r v'
+        | Right v' \<Rightarrow> bs @ retrieve (AALTs [] (r' # rs')) v'
+        | _ \<Rightarrow> undefined))"
+| "retrieve (ASEQ bs r1 r2) v =
+    (case v of Seq v1 v2 \<Rightarrow> bs @ retrieve r1 v1 @ retrieve r2 v2 | _ \<Rightarrow> undefined)"
+| "retrieve (ASTAR bs r) v =
+    (case v of
+      Stars [] \<Rightarrow> bs @ [S]
+    | Stars (v' # vs) \<Rightarrow> bs @ [Z] @ retrieve r v' @ retrieve (ASTAR [] r) (Stars vs)
+    | _ \<Rightarrow> undefined)"
+| "retrieve (ANTIMES bs r n) v =
+    (case v of Stars vs \<Rightarrow> retrieve (ASTAR bs r) (Stars vs) | _ \<Rightarrow> undefined)"
+| "retrieve (ABACKREF4 bs r1 r2 r3 r4 cs) v =
+    (case v of
+      Backref4 v1 v2 v3 v4 cs' \<Rightarrow>
+        bs @ retrieve r1 v1 @ retrieve r2 v2 @ retrieve r3 v3 @ retrieve r4 v4
+    | _ \<Rightarrow> undefined)"
+| "retrieve (AHALF bs r cs rep) v =
+    (case v of Half v' cs' rep' \<Rightarrow> bs @ retrieve r v' | _ \<Rightarrow> undefined)"
+| "retrieve (ARESIDUE bs cs rep) v =
+    (case v of Residue cs' rep' \<Rightarrow> bs | _ \<Rightarrow> undefined)"
      apply(pat_completeness)
-apply(auto)
-done
+  by simp_all
 
 termination "retrieve" 
 apply(relation "inv_image (measure(%cs. size cs) <*lex*> measure(%s. az2 s)) (%(ds,r). (r,ds))") 
@@ -252,6 +322,10 @@ where
 | "bnullable (ASEQ bs r1 r2) = (bnullable r1 \<and> bnullable r2)"
 | "bnullable (ASTAR bs r) = True"
 | "bnullable (ANTIMES bs r n) = (if n  = 0 then True else bnullable r)"
+| "bnullable (ABACKREF4 bs r1 r2 r3 r4 cs) =
+    (bnullable r1 \<and> bnullable r2 \<and> bnullable r3 \<and> bnullable r4 \<and> cs = [])"
+| "bnullable (AHALF bs r cs rep) = (bnullable r \<and> cs = [])"
+| "bnullable (ARESIDUE bs cs rep) = (cs = [])"
 
 abbreviation
   bnullables :: "arexp list \<Rightarrow> bool"
@@ -271,6 +345,10 @@ where
 | "bmkeps(ASTAR bs r) = bs @ [S]"
 | "bmkeps(ANTIMES bs r n) = 
     (if n = 0 then bs @ [S] else bs @ [Z] @ (bmkeps r) @ bmkeps(ANTIMES [] r (n - 1)))"
+| "bmkeps(ABACKREF4 bs r1 r2 r3 r4 cs) =
+    bs @ bmkeps r1 @ bmkeps r2 @ bmkeps r3 @ bmkeps r4"
+| "bmkeps(AHALF bs r cs rep) = bs @ bmkeps r"
+| "bmkeps(ARESIDUE bs cs rep) = bs"
 apply(pat_completeness)
 apply(auto)
 done
@@ -316,6 +394,30 @@ where
       else ASEQ bs (bder c r1) r2)"
 | "bder c (ASTAR bs r) = ASEQ (bs @ [Z]) (bder c r) (ASTAR [] r)"
 | "bder c (ANTIMES bs r n) = (if n = 0 then AZERO else ASEQ (bs @ [Z]) (bder c r) (ANTIMES [] r (n - 1)))"
+| "bder c (ABACKREF4 bs r1 r2 r3 r4 cs) =
+     (let prefix = ABACKREF4 [] (bder c r1) r2 r3 r4 cs;
+          capture = ABACKREF4 (bmkeps r1) (AONE []) (bder c r2) r3 r4 (c # cs);
+          res = rev cs;
+          res_der = bder c (ARESIDUE [] res res);
+          res_tail = (if res = []
+            then AALT (bmkeps r3)
+              (ASEQ [] res_der r4) (bder c r4)
+            else ASEQ (bmkeps r3) res_der r4);
+          tail = (if bnullable r3
+            then AALT (bmkeps r1 @ bmkeps r2)
+              (ASEQ [] (bder c r3) (ASEQ [] (ARESIDUE [] res res) r4)) res_tail
+            else ASEQ (bmkeps r1 @ bmkeps r2)
+              (bder c r3) (ASEQ [] (ARESIDUE [] res res) r4))
+      in fuse bs (if bnullable r1
+         then AALT [] prefix (if bnullable r2 then AALT [] capture tail else capture)
+         else prefix))"
+| "bder c (AHALF bs r cs rep) =
+     (if bnullable r
+      then AALT bs (AHALF [] (bder c r) cs rep)
+        (fuse (bmkeps r) (bder c (ARESIDUE [] cs rep)))
+      else AHALF bs (bder c r) cs rep)"
+| "bder c (ARESIDUE bs [] rep) = AZERO"
+| "bder c (ARESIDUE bs (d # ds) rep) = (if c = d then ARESIDUE bs ds rep else AZERO)"
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    bders should keep its recursion shape, but must be rechecked after bder is
@@ -350,13 +452,17 @@ lemma erase_intern [simp]:
   apply(simp_all add: erase_fuse)
   done
 
+lemma erase_bder_ARESIDUE [simp]:
+  shows "erase (bder a (ARESIDUE bs cs rep)) = der_residue a cs rep"
+  by (cases cs) simp_all
+
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):
    Extend this original theorem by adding the new constructor cases. Keep the
    original interface; do not prove a renamed wrapper theorem. *)
 lemma erase_bder [simp]:
   shows "erase (bder a r) = der a (erase r)"
   apply(induct r rule: erase.induct)
-  apply(simp_all add: erase_fuse bnullable_correctness)
+  apply(simp_all add: erase_fuse bnullable_correctness Let_def)
   done
 
 lemma erase_bders [simp]:
@@ -379,11 +485,41 @@ lemma retrieve_encode_STARS:
   apply(simp_all)
   done
 
+lemma retrieve_encode_STARS_case:
+  assumes "\<forall>v\<in>set vs. \<Turnstile> v : r \<and> code v = retrieve (intern r) v"
+  shows "code (Stars vs) =
+    (case vs of [] \<Rightarrow> [] @ [S]
+     | v # vs' \<Rightarrow> [] @ [Z] @ retrieve (intern r) v @
+        retrieve (ASTAR [] (intern r)) (Stars vs'))"
+  using retrieve_encode_STARS[OF assms]
+  by (cases vs) (simp_all add: retrieve.simps)
+
 lemma retrieve_encode_NTIMES:
   assumes "\<forall>v\<in>set vs. \<Turnstile> v : r \<and> code v = retrieve (intern r) v" 
   shows "code (Stars vs) = retrieve (ANTIMES [] (intern r) n) (Stars vs)"
-  using assms
-  using retrieve.simps(9) retrieve_encode_STARS by presburger
+proof -
+  have "code (Stars vs) = retrieve (ASTAR [] (intern r)) (Stars vs)"
+    using assms by (rule retrieve_encode_STARS)
+  then show ?thesis
+    by (simp add: retrieve.simps)
+qed
+
+lemma retrieve_encode_STARS_append:
+  assumes "\<forall>v\<in>set vs1. \<Turnstile> v : r \<and> code v = retrieve (intern r) v"
+    and "\<forall>v\<in>set vs2. \<Turnstile> v : r \<and> code v = retrieve (intern r) v"
+  shows "code (Stars (vs1 @ vs2)) =
+    retrieve (ASTAR [] (intern r)) (Stars (vs1 @ vs2))"
+  using assms retrieve_encode_STARS[of "vs1 @ vs2" r] by auto
+
+lemma retrieve_encode_STARS_append_case:
+  assumes "\<forall>v\<in>set vs1. \<Turnstile> v : r \<and> code v = retrieve (intern r) v"
+    and "\<forall>v\<in>set vs2. \<Turnstile> v : r \<and> code v = retrieve (intern r) v"
+  shows "code (Stars (vs1 @ vs2)) =
+    (case vs1 @ vs2 of [] \<Rightarrow> [] @ [S]
+     | v # vs \<Rightarrow> [] @ [Z] @ retrieve (intern r) v @
+        retrieve (ASTAR [] (intern r)) (Stars vs))"
+  using retrieve_encode_STARS_append[OF assms]
+  by (cases "vs1 @ vs2") (simp_all add: retrieve.simps)
 
  
 
@@ -391,31 +527,67 @@ lemma retrieve_fuse2:
   assumes "\<Turnstile> v : (erase r)"
   shows "retrieve (fuse bs r) v = bs @ retrieve r v"
   using assms
-  apply(induct r arbitrary: v bs)
-  apply(auto elim: Prf_elims)[4]
-  apply(case_tac x2a)
-  apply(simp)
-  using Prf_elims(1) apply blast
-  apply(case_tac x2a)
-  apply(simp)
-  apply(simp)
-  apply(case_tac list)
-  apply(simp)
-  apply(simp)
-  apply (smt (verit, best) Prf_elims(3) append_assoc retrieve.simps(4) retrieve.simps(5))
-  apply(simp)
-  using retrieve_encode_STARS
-  apply(auto elim!: Prf_elims)[1]
-  apply(case_tac vs)
-  apply(simp)
-   apply(simp)
-  (* NTIMES *)
-  apply(auto elim!: Prf_elims)[1]
-  apply(case_tac vs1)
-   apply(simp_all)
-  apply(case_tac vs2)
-    apply(simp_all)
-  done
+proof (induct r arbitrary: v bs)
+  case AZERO
+  then show ?case by (auto elim: Prf_elims)
+next
+  case (AONE x)
+  then show ?case by (auto elim: Prf_elims)
+next
+  case (ACHAR x1 x2)
+  then show ?case by (auto elim: Prf_elims)
+next
+  case (ASEQ x1 r1 r2)
+  then show ?case by (auto elim!: Prf_elims simp add: append_assoc)
+next
+  case (AALTs x rs)
+  then show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using AALTs.prems by (auto elim: Prf_elims)
+  next
+    case (Cons r rs')
+    note rs_cons = Cons
+    then show ?thesis
+    proof (cases rs')
+      case Nil
+      then show ?thesis
+        using rs_cons by (simp add: append_assoc)
+    next
+      case (Cons r' rs'')
+      then show ?thesis
+        using AALTs.prems rs_cons Cons
+        by (cases v) (auto elim!: Prf_elims simp add: append_assoc)
+    qed
+  qed
+next
+  case (ASTAR x r)
+  then show ?case
+    by (cases v) (auto elim!: Prf_elims simp add: append_assoc split: list.splits)
+next
+  case (ANTIMES x1 r x3)
+  then show ?case
+    by (cases v) (auto elim!: Prf_elims simp add: append_assoc split: list.splits)
+next
+  case (ABACKREF4 x1 r1 r2 r3 r4 x6)
+  then show ?case
+    by (cases v) (auto elim!: Prf_elims simp add: append_assoc)
+next
+  case (AHALF x1 r x3 x4)
+  then show ?case
+    by (cases v) (auto elim!: Prf_elims simp add: append_assoc)
+next
+  case (ARESIDUE x1 x2 x3)
+  then show ?case
+    by (cases v) (auto elim!: Prf_elims simp add: append_assoc)
+qed
+
+lemma retrieve_fuse2_erase:
+  assumes "\<Turnstile> v : erase (fuse bs r)"
+  shows "retrieve (fuse bs r) v = bs @ retrieve r v"
+  using assms retrieve_fuse2[of v r bs]
+  by (simp add: erase_fuse)
 
 lemma retrieve_fuse:
   assumes "\<Turnstile> v : r"
@@ -433,9 +605,10 @@ lemma retrieve_code:
   shows "code v = retrieve (intern r) v"
   using assms
   apply(induct v r )
-        apply(simp_all add: retrieve_fuse retrieve_encode_STARS)
-  apply(subst retrieve_encode_NTIMES)
-   apply(auto)
+        apply(simp_all add: retrieve_fuse retrieve_encode_STARS retrieve_encode_STARS_append
+          retrieve_encode_STARS_append_case)
+  apply (rule retrieve_encode_STARS_case)
+  apply auto
   done
 
 
@@ -464,17 +637,68 @@ lemma retrieve_AALTs_bnullable2:
   apply(auto)
   done
 
+lemma retrieve_AALTs_nonempty_prefix:
+  assumes "rs \<noteq> []" "\<Turnstile> v : erase (AALTs bs rs)"
+  shows "retrieve (AALTs bs rs) v = bs @ retrieve (AALTs [] rs) v"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    using assms by simp
+next
+  case (Cons r rs')
+  note outer = Cons
+  then show ?thesis
+  proof (cases rs')
+    case Nil
+    then show ?thesis
+      using outer by (simp add: append_assoc)
+  next
+    case (Cons r' rs'')
+    then show ?thesis
+      using outer assms by (auto elim!: Prf_elims simp add: append_assoc)
+  qed
+qed
+
+lemma erase_AALTs_map_bder:
+  "erase (AALTs bs (map (bder c) rs)) = der c (erase (AALTs bs rs))"
+  using erase_bder[of c "AALTs bs rs"] by simp
+
 lemma bmkeps_retrieve_AALTs: 
   assumes "\<forall>r \<in> set rs. bnullable r \<longrightarrow> bmkeps r = retrieve r (mkeps (erase r))" 
           "bnullables rs"
   shows "bs @ bmkepss rs = retrieve (AALTs bs rs) (mkeps (erase (AALTs bs rs)))"
- using assms
-  apply(induct rs arbitrary: bs)
-  apply(auto)
-  using retrieve_AALTs_bnullable1 apply presburger
-  apply (metis retrieve_AALTs_bnullable2)
-  apply (simp add: retrieve_AALTs_bnullable1)
-  by (metis retrieve_AALTs_bnullable2)
+  using assms
+proof (induct rs arbitrary: bs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  show ?case
+  proof (cases "bnullable a")
+    case True
+    then have rec_a: "bmkeps a = retrieve a (mkeps (erase a))"
+      using Cons.prems(1) by simp
+    show ?thesis
+      using retrieve_AALTs_bnullable1[OF True, of bs rs] rec_a True
+      by simp
+  next
+    case False
+    then have tail_nullable: "bnullables rs"
+      using Cons.prems(2) by simp
+    have tail_hyp:
+      "\<forall>r\<in>set rs. bnullable r \<longrightarrow> bmkeps r = retrieve r (mkeps (erase r))"
+      using Cons.prems(1) by simp
+    have ih: "bs @ bmkepss rs =
+      retrieve (AALTs bs rs) (mkeps (erase (AALTs bs rs)))"
+      using Cons.hyps[OF tail_hyp tail_nullable, of bs] .
+    have step:
+      "retrieve (AALTs bs (a # rs)) (mkeps (erase (AALTs bs (a # rs)))) =
+       retrieve (AALTs bs rs) (mkeps (erase (AALTs bs rs)))"
+      using retrieve_AALTs_bnullable2[OF False tail_nullable, of bs] .
+    show ?thesis
+      using False ih step by simp
+  qed
+qed
 
 lemma bmkeps_retrieve_ANTIMES: 
   assumes "if n = 0 then True else bmkeps r = retrieve r (mkeps (erase r))" 
@@ -493,11 +717,206 @@ lemma bmkeps_retrieve:
   shows "bmkeps r = retrieve r (mkeps (erase r))"
   using assms
   apply(induct r rule: bmkeps.induct)
-        apply(auto)
-  apply (simp add: retrieve_AALTs_bnullable1)
-  using retrieve_AALTs_bnullable1 apply force
-    apply(metis retrieve_AALTs_bnullable2)
-  apply (metis Cons_eq_appendI One_nat_def Suc_diff_1 append_Nil replicate_Suc retrieve.simps(8))
+        apply(auto simp add: append_assoc)
+  apply (case_tac rs)
+   apply (simp_all add: bnullable_correctness)
+  apply (case_tac rs)
+   apply (simp_all add: bnullable_correctness)
+  apply (case_tac rs)
+   apply simp
+  apply (simp add: bnullable_correctness)
+  apply (case_tac "bnullable a")
+   apply (case_tac list)
+    apply (simp add: bnullable_correctness)
+   apply (simp add: bnullable_correctness)
+  apply (subgoal_tac "bnullables list")
+   apply (case_tac list)
+    apply simp
+   apply simp
+  apply force
+  apply (case_tac n)
+   apply simp
+  apply (simp add: replicate_Suc)
+  done
+
+lemma retrieve_bder_ARESIDUE:
+  assumes "\<Turnstile> v : der_residue c cs rep"
+  shows "retrieve (bder c (ARESIDUE bs cs rep)) v = bs"
+  using assms
+  by (cases cs; cases v) (auto elim!: Prf_elims split: if_splits)
+
+lemma bder_retrieve_AHALF:
+  assumes IH: "\<And>v. \<Turnstile> v : der c (erase r) \<Longrightarrow>
+      retrieve (bder c r) v = retrieve r (injval (erase r) c v)"
+    and P: "\<Turnstile> v : der c (erase (AHALF bs r cs rep))"
+  shows "retrieve (bder c (AHALF bs r cs rep)) v =
+    retrieve (AHALF bs r cs rep) (injval (erase (AHALF bs r cs rep)) c v)"
+proof (cases "bnullable r")
+  case False
+  then obtain v0 where v:
+    "v = Half v0 cs rep" "\<Turnstile> v0 : der c (erase r)"
+    using P by (auto elim!: Prf_elims simp add: bnullable_correctness)
+  then show ?thesis
+    using IH[OF v(2)] False by simp
+next
+  case n: True
+  then have alt: "\<Turnstile> v : ALT (HALF (der c (erase r)) cs rep) (der_residue c cs rep)"
+    using P by (simp add: bnullable_correctness)
+  then consider
+    (left) v0 where "v = Left (Half v0 cs rep)" "\<Turnstile> v0 : der c (erase r)"
+  | (right) vr where "v = Right vr" "\<Turnstile> vr : der_residue c cs rep"
+    by (auto elim!: Prf_elims)
+  then show ?thesis
+  proof cases
+    case left
+    then show ?thesis
+      using IH[OF left(2)] n by simp
+  next
+    case right
+    have residue: "retrieve (bder c (ARESIDUE [] cs rep)) vr = []"
+      using right(2) by (rule retrieve_bder_ARESIDUE)
+    have inj: "inj_residue cs rep c vr = Residue cs rep"
+      using right(2) by (rule Prf_der_residue_inj)
+    show ?thesis
+      using right residue inj bmkeps_retrieve[OF n] n
+      by (simp add: retrieve_fuse2 bnullable_correctness)
+  qed
+qed
+
+lemma bder_retrieve_AALTs_Cons:
+  assumes IH: "\<And>v. \<Turnstile> v : der c (erase r) \<Longrightarrow>
+      retrieve (bder c r) v = retrieve r (injval (erase r) c v)"
+    and IHs: "\<And>v. \<Turnstile> v : der c (erase (AALTs bs rs)) \<Longrightarrow>
+      retrieve (bder c (AALTs bs rs)) v =
+      retrieve (AALTs bs rs) (injval (erase (AALTs bs rs)) c v)"
+    and P: "\<Turnstile> v : der c (erase (AALTs bs (r # rs)))"
+  shows "retrieve (bder c (AALTs bs (r # rs))) v =
+    retrieve (AALTs bs (r # rs)) (injval (erase (AALTs bs (r # rs))) c v)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    using IH P by simp
+next
+  case (Cons r' rs')
+  then have Palt: "\<Turnstile> v : ALT (der c (erase r)) (der c (erase (AALTs bs rs)))"
+    using P by simp
+  then consider
+    (left) v1 where "v = Left v1" "\<Turnstile> v1 : der c (erase r)"
+  | (right) v2 where "v = Right v2" "\<Turnstile> v2 : der c (erase (AALTs bs rs))"
+    by (auto elim!: Prf_elims)
+  then show ?thesis
+  proof cases
+    case left
+    then show ?thesis
+      using IH[OF left(2)] Cons by simp
+  next
+    case right
+    have rs_ne: "rs \<noteq> []"
+      using Cons by simp
+    have map_ne: "map (bder c) rs \<noteq> []"
+      using rs_ne by simp
+    have map_prf: "\<Turnstile> v2 : erase (AALTs bs (map (bder c) rs))"
+      using right(2) by (simp add: erase_AALTs_map_bder)
+    have lhs_prefix:
+      "retrieve (bder c (AALTs bs rs)) v2 =
+       bs @ retrieve (AALTs [] (map (bder c) rs)) v2"
+      using retrieve_AALTs_nonempty_prefix[OF map_ne map_prf] by simp
+    have inj_prf: "\<Turnstile> injval (erase (AALTs bs rs)) c v2 : erase (AALTs bs rs)"
+      using right(2) by (rule Prf_injval)
+    have rhs_prefix:
+      "retrieve (AALTs bs rs) (injval (erase (AALTs bs rs)) c v2) =
+       bs @ retrieve (AALTs [] rs) (injval (erase (AALTs bs rs)) c v2)"
+      using retrieve_AALTs_nonempty_prefix[OF rs_ne inj_prf] .
+    have "retrieve (bder c (AALTs bs rs)) v2 =
+      retrieve (AALTs bs rs) (injval (erase (AALTs bs rs)) c v2)"
+      using IHs[OF right(2)] .
+    then have "retrieve (AALTs [] (map (bder c) rs)) v2 =
+      retrieve (AALTs [] rs) (injval (erase (AALTs bs rs)) c v2)"
+      using lhs_prefix rhs_prefix by simp
+    then show ?thesis
+      using right Cons by simp
+  qed
+qed
+
+lemma bder_retrieve_ABACKREF4:
+  assumes IH1: "\<And>v. \<Turnstile> v : der c (erase r1) \<Longrightarrow>
+      retrieve (bder c r1) v = retrieve r1 (injval (erase r1) c v)"
+    and IH2: "\<And>v. \<Turnstile> v : der c (erase r2) \<Longrightarrow>
+      retrieve (bder c r2) v = retrieve r2 (injval (erase r2) c v)"
+    and IH3: "\<And>v. \<Turnstile> v : der c (erase r3) \<Longrightarrow>
+      retrieve (bder c r3) v = retrieve r3 (injval (erase r3) c v)"
+    and IH4: "\<And>v. \<Turnstile> v : der c (erase r4) \<Longrightarrow>
+      retrieve (bder c r4) v = retrieve r4 (injval (erase r4) c v)"
+    and P: "\<Turnstile> v : der c (erase (ABACKREF4 bs r1 r2 r3 r4 cs))"
+  shows "retrieve (bder c (ABACKREF4 bs r1 r2 r3 r4 cs)) v =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (erase (ABACKREF4 bs r1 r2 r3 r4 cs)) c v)"
+  using assms
+  apply (cases "bnullable r1"; cases "bnullable r2"; cases "bnullable r3"; cases "rev cs")
+                 apply (auto elim!: Prf_elims
+                  simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                    retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+                  split: val.splits if_splits)[1]
+                apply (auto elim!: Prf_elims
+                  simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                    retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+                  split: val.splits if_splits)[1]
+               apply (auto elim!: Prf_elims
+                 simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                   retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+                 split: val.splits if_splits)[1]
+              apply (auto elim!: Prf_elims
+                simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                  retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+                split: val.splits if_splits)[1]
+             apply (auto elim!: Prf_elims
+               simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                 retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+               split: val.splits if_splits)[1]
+            apply (auto elim!: Prf_elims
+              simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+                retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+              split: val.splits if_splits)[1]
+           apply (auto elim!: Prf_elims
+             simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+               retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+             split: val.splits if_splits)[1]
+          apply (auto elim!: Prf_elims
+            simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+              retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+            split: val.splits if_splits)[1]
+         apply (auto elim!: Prf_elims
+           simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+             retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+           split: val.splits if_splits)[1]
+        apply (auto elim!: Prf_elims
+          simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+            retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+          split: val.splits if_splits)[1]
+       apply (auto elim!: Prf_elims
+         simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+           retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+         split: val.splits if_splits)[1]
+      apply (auto elim!: Prf_elims
+        simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+          retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+        split: val.splits if_splits)[1]
+     apply (auto elim!: Prf_elims
+       simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+         retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+       split: val.splits if_splits)[1]
+    apply (auto elim!: Prf_elims
+      simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+        retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+      split: val.splits if_splits)[1]
+   apply (auto elim!: Prf_elims
+     simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+       retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+     split: val.splits if_splits)[1]
+  apply (auto elim!: Prf_elims
+    simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
+      retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
+    split: val.splits if_splits)[1]
   done
 
  
@@ -513,13 +932,13 @@ lemma bder_retrieve:
   using Prf_elims(1) apply auto[1]
   using Prf_elims(1) apply auto[1]
   apply(auto)[1]
-  apply (metis Prf_elims(4) injval.simps(1) retrieve.simps(1) retrieve.simps(2))
+  apply(erule Prf_elims)
+  apply simp
   using Prf_elims(1) apply blast
   (* AALTs case *)
   apply(simp)
   apply simp
-  apply(simp)
-  defer
+  apply (rule bder_retrieve_AALTs_Cons; assumption)
   (* ASEQ case *) 
   apply(simp)
   apply(case_tac "nullable (erase r1)")
@@ -539,7 +958,7 @@ lemma bder_retrieve:
    apply (simp add: retrieve_fuse2)
   (* ANTIMES case *)
   apply(simp)
-  apply(auto)  
+  apply(auto)[1]
   apply(erule Prf_elims)
   apply(erule Prf_elims)
   apply(clarify)
@@ -547,15 +966,10 @@ lemma bder_retrieve:
   apply(clarify)
   apply simp
 
-  (* AALTS *)
-  apply(rename_tac "r\<^sub>1" "r\<^sub>2" rs v) 
-   apply(erule Prf_elims)
-   apply(simp)
-  apply(simp)
-  apply(case_tac rs)
-  apply(simp)
-  apply(simp)
-  using Prf_elims(3) apply fastforce
+  (* BACKREF4/HALF/RESIDUE cases *)
+  apply (rule bder_retrieve_ABACKREF4; assumption)
+  apply (rule bder_retrieve_AHALF; assumption)
+  apply (simp add: retrieve_bder_ARESIDUE Prf_der_residue_inj)
   done
 
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):
