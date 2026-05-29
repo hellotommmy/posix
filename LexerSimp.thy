@@ -27,18 +27,20 @@ fun F_SEQ where
   "F_SEQ f\<^sub>1 f\<^sub>2 (Seq v\<^sub>1 v\<^sub>2) = Seq (f\<^sub>1 v\<^sub>1) (f\<^sub>2 v\<^sub>2)"
 | "F_SEQ f1 f2 v = v"
 
-fun simp_ALT where
-  "simp_ALT (ZERO, f\<^sub>1) (r\<^sub>2, f\<^sub>2) = (r\<^sub>2, F_RIGHT f\<^sub>2)"
-| "simp_ALT (r\<^sub>1, f\<^sub>1) (ZERO, f\<^sub>2) = (r\<^sub>1, F_LEFT f\<^sub>1)"
-| "simp_ALT (r\<^sub>1, f\<^sub>1) (r\<^sub>2, f\<^sub>2) = (ALT r\<^sub>1 r\<^sub>2, F_ALT f\<^sub>1 f\<^sub>2)"
+definition simp_ALT where
+  "simp_ALT p1 p2 =
+    (if fst p1 = ZERO then (fst p2, F_RIGHT (snd p2))
+     else if fst p2 = ZERO then (fst p1, F_LEFT (snd p1))
+     else (ALT (fst p1) (fst p2), F_ALT (snd p1) (snd p2)))"
 
 
-fun simp_SEQ where
-  "simp_SEQ (ONE, f\<^sub>1) (r\<^sub>2, f\<^sub>2) = (r\<^sub>2, F_SEQ1 f\<^sub>1 f\<^sub>2)"
-| "simp_SEQ (r\<^sub>1, f\<^sub>1) (ONE, f\<^sub>2) = (r\<^sub>1, F_SEQ2 f\<^sub>1 f\<^sub>2)"
-| "simp_SEQ (ZERO, f\<^sub>1) (r\<^sub>2, f\<^sub>2) = (ZERO, undefined)"
-| "simp_SEQ (r\<^sub>1, f\<^sub>1) (ZERO, f\<^sub>2) = (ZERO, undefined)"
-| "simp_SEQ (r\<^sub>1, f\<^sub>1) (r\<^sub>2, f\<^sub>2) = (SEQ r\<^sub>1 r\<^sub>2, F_SEQ f\<^sub>1 f\<^sub>2)"  
+definition simp_SEQ where
+  "simp_SEQ p1 p2 =
+    (if fst p1 = ONE then (fst p2, F_SEQ1 (snd p1) (snd p2))
+     else if fst p2 = ONE then (fst p1, F_SEQ2 (snd p1) (snd p2))
+     else if fst p1 = ZERO then (ZERO, undefined)
+     else if fst p2 = ZERO then (ZERO, undefined)
+     else (SEQ (fst p1) (fst p2), F_SEQ (snd p1) (snd p2)))"
  
 lemma simp_SEQ_simps[simp]:
   "simp_SEQ p1 p2 = (if (fst p1 = ONE) then (fst p2, F_SEQ1 (snd p1) (snd p2))
@@ -46,13 +48,13 @@ lemma simp_SEQ_simps[simp]:
                     else (if (fst p1 = ZERO) then (ZERO, undefined)         
                     else (if (fst p2 = ZERO) then (ZERO, undefined)  
                     else (SEQ (fst p1) (fst p2), F_SEQ (snd p1) (snd p2))))))"
-by (induct p1 p2 rule: simp_SEQ.induct) (auto)
+  by (simp add: simp_SEQ_def)
 
 lemma simp_ALT_simps[simp]:
   "simp_ALT p1 p2 = (if (fst p1 = ZERO) then (fst p2, F_RIGHT (snd p2))
                     else (if (fst p2 = ZERO) then (fst p1, F_LEFT (snd p1))
                     else (ALT (fst p1) (fst p2), F_ALT (snd p1) (snd p2))))"
-by (induct p1 p2 rule: simp_ALT.induct) (auto)
+  by (simp add: simp_ALT_def)
 
 (* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
    Decide whether BACKREF4/HALF/RESIDUE remain identity cases in the source-level

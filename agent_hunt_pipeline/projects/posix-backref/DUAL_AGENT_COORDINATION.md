@@ -57,6 +57,8 @@ script, not as normal progress.
 
 Operational rule:
 
+- At about 0.5 seconds for `auto`/`simp`/broad proof search, if it has not
+  returned, abandon it and replace it by explicit cases/helper lemmas.
 - At 10 seconds on one command, identify the command and source line.
 - At 30 seconds, stop broad automation and rewrite the proof locally.
 - At 120 seconds, interrupt or let the timeout wrapper kill the build.
@@ -67,7 +69,8 @@ Preferred repairs:
 
 - change heavy `fun` commands with nested overlapping patterns into `primrec`
   or explicit `case` definitions when possible;
-- replace broad `auto`/`force`/`blast`/`metis`/`elim!` calls by targeted rules;
+- replace broad `auto`/`force`/`blast`/`metis`/`elim!` calls by targeted rules
+  as soon as they visibly hang;
 - introduce helper lemmas and explicit Isar proof steps;
 - use constructor-specific eliminators instead of handing automation the whole
   inductive relation.

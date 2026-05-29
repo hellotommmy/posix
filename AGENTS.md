@@ -16,9 +16,11 @@ Short version:
   value/Prf/flat pilot is checked.
 - Fetch before work, build after work, and record progress in
   `PROGRESS_BACKREF.md`.
-- Treat slow Isabelle commands as proof-script bugs: a small pilot check should
-  usually finish in 5-10 seconds; if one command runs past 30 seconds, narrow
-  the tactic or definition, and never accept a 200 second command as normal.
+- Treat slow Isabelle commands as proof-script bugs. Human rule of thumb:
+  `auto`/`simp`/broad proof search should normally return within about 0.5s;
+  if it visibly hangs, abandon that tactic and split the proof. A small pilot
+  check should usually finish in 5-10 seconds, and a 200 second command is never
+  normal.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

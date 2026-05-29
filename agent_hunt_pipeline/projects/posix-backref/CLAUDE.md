@@ -276,7 +276,10 @@ failures were turned into rules.
 - If a statement seems false, stop and write a notice instead of forcing a
   bogus proof.
 - If a tactic explodes (large proof terms, slow automation), simplify the
-  proof structure. Do not let `auto`/`simp` run for more than 30 seconds.
+  proof structure. Human rule of thumb: `auto`, `simp`, `force`, or similarly
+  broad proof search should normally return within about 0.5 seconds. If it
+  visibly hangs, abandon that tactic immediately and split the proof into
+  explicit cases/helper lemmas.
 - If `sledgehammer` does not solve a goal quickly, break it down manually.
 
 ### Proof Performance Budget
@@ -288,6 +291,8 @@ extreme abnormality, not a tolerable build time.
 
 Use these thresholds:
 
+- 0.5 seconds for `auto`/`simp`/broad proof search: if it has not returned,
+  treat the tactic choice as wrong and replace it with a structured proof.
 - 10 seconds on one Isabelle command: inspect the reported command and line.
 - 30 seconds on one command: stop relying on broad automation and narrow it.
 - 120 seconds on one command: interrupt or let the timeout wrapper kill it.
