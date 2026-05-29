@@ -299,6 +299,9 @@ Use these thresholds:
 
 - 0.5 seconds for `auto`/`simp`/broad proof search: if it has not returned,
   treat the tactic choice as wrong and replace it with a structured proof.
+- 1-2 seconds on one proof line: treat it as proof-performance debt unless the
+  line is a known unavoidable definition package command. Try a named helper
+  lemma or a more local elimination/simplification rule before accepting it.
 - 10 seconds on one Isabelle command: inspect the reported command and line.
 - 30 seconds on one command: stop relying on broad automation and narrow it.
 - 120 seconds on one command: interrupt or let the timeout wrapper kill it.

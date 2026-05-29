@@ -8,12 +8,18 @@ to be read before continuing long-running agent work.
 - Do not start difficult Isabelle proofs by throwing broad `auto` at the whole
   goal. Split first by datatype constructor or inductive case, expose the case
   facts, and keep the goal shape close to the semantic proof idea.
+- For production proofs, a single line taking more than about 1-2 seconds is
+  already suspect. Prefer a named helper lemma with only the branch-specific
+  assumptions over accepting a slow monolithic tactic line.
 - If a branch is still complex, make it a named helper lemma with only the
   assumptions needed for that branch. This keeps later repair local and avoids
   burying the invariant inside a giant proof state.
 - Use broad automation only after the structure is understood. An early `auto`
   can rewrite, split, or simplify away information in a way that leaves a less
   recoverable goal.
+- `Blexer.thy:bder_retrieve_ABACKREF4` follows this rule: the old 16-branch
+  `auto` proof was split into prefix, capture, r3-tail, residue-tail, and
+  r4-tail retrieve lemmas, then reassembled with explicit nullable cases.
 
 ## 2026-05-28: Long-run execution model
 

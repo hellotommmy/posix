@@ -838,6 +838,96 @@ next
   qed
 qed
 
+lemma bder_retrieve_ABACKREF4_prefix:
+  assumes IH: "\<And>v. \<Turnstile> v : der c (erase r1) \<Longrightarrow>
+      retrieve (bder c r1) v = retrieve r1 (injval (erase r1) c v)"
+    and P: "\<Turnstile> w : BACKREF4 (der c (erase r1)) (erase r2) (erase r3) (erase r4) cs"
+  shows "retrieve (ABACKREF4 bs (bder c r1) r2 r3 r4 cs) w =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c w)"
+    and "retrieve (AALT bs (ABACKREF4 [] (bder c r1) r2 r3 r4 cs) rest) (Left w) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c (Left w))"
+  using P by (auto elim!: Prf_elims simp add: IH)
+
+lemma bder_retrieve_ABACKREF4_capture:
+  assumes n1: "bnullable r1"
+    and IH: "\<And>v. \<Turnstile> v : der c (erase r2) \<Longrightarrow>
+      retrieve (bder c r2) v = retrieve r2 (injval (erase r2) c v)"
+    and P: "\<Turnstile> w : BACKREF4 ONE (der c (erase r2)) (erase r3) (erase r4) (c # cs)"
+  shows "retrieve (AALT bs (pre :: arexp)
+      (ABACKREF4 (bmkeps r1) (AONE []) (bder c r2) r3 r4 (c # cs))) (Right w) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c (Right w))"
+    and "retrieve (AALT bs (pre :: arexp)
+      (AALT [] (ABACKREF4 (bmkeps r1) (AONE []) (bder c r2) r3 r4 (c # cs)) tail))
+      (Right (Left w)) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c
+        (Right (Left w)))"
+  using P n1
+  by (auto elim!: Prf_elims simp add: IH bmkeps_retrieve bnullable_correctness append_assoc)
+
+lemma bder_retrieve_ABACKREF4_tail3:
+  assumes n1: "bnullable r1" and n2: "bnullable r2"
+    and IH: "\<And>v. \<Turnstile> v : der c (erase r3) \<Longrightarrow>
+      retrieve (bder c r3) v = retrieve r3 (injval (erase r3) c v)"
+    and P: "\<Turnstile> w : SEQ (der c (erase r3))
+      (SEQ (RESIDUE (rev cs) (rev cs)) (erase r4))"
+  shows "retrieve (AALT bs (pre :: arexp)
+      (AALT [] (cap :: arexp)
+        (ASEQ (bmkeps r1 @ bmkeps r2) (bder c r3)
+          (ASEQ [] (ARESIDUE [] (rev cs) (rev cs)) r4))))
+      (Right (Right w)) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c
+        (Right (Right w)))"
+    and "retrieve (AALT bs (pre :: arexp)
+      (AALT [] (cap :: arexp)
+        (AALT (bmkeps r1 @ bmkeps r2)
+          (ASEQ [] (bder c r3) (ASEQ [] (ARESIDUE [] (rev cs) (rev cs)) r4))
+          res_tail)))
+      (Right (Right (Left w))) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c
+        (Right (Right (Left w))))"
+  using P n1 n2
+  by (auto elim!: Prf_elims
+    simp add: IH bmkeps_retrieve bnullable_correctness append_assoc retrieve_bder_ARESIDUE)
+
+lemma bder_retrieve_ABACKREF4_tail_residue:
+  assumes n1: "bnullable r1" and n2: "bnullable r2" and n3: "bnullable r3"
+    and P: "\<Turnstile> w : SEQ (der_residue c (rev cs) (rev cs)) (erase r4)"
+  shows "retrieve (AALT bs (pre :: arexp)
+      (AALT [] (cap :: arexp)
+        (AALT (bmkeps r1 @ bmkeps r2) (tail3 :: arexp)
+          (ASEQ (bmkeps r3) (bder c (ARESIDUE [] (rev cs) (rev cs))) r4))))
+      (Right (Right (Right w))) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c
+        (Right (Right (Right w))))"
+  using P n1 n2 n3
+  by (auto elim!: Prf_elims
+    simp add: bmkeps_retrieve bnullable_correctness append_assoc
+      Prf_der_residue_inj retrieve_bder_ARESIDUE)
+
+lemma bder_retrieve_ABACKREF4_tail4:
+  assumes n1: "bnullable r1" and n2: "bnullable r2" and n3: "bnullable r3"
+    and empty: "rev cs = []"
+    and IH: "\<And>v. \<Turnstile> v : der c (erase r4) \<Longrightarrow>
+      retrieve (bder c r4) v = retrieve r4 (injval (erase r4) c v)"
+    and P: "\<Turnstile> w : der c (erase r4)"
+  shows "retrieve (AALT bs (pre :: arexp)
+      (AALT [] (cap :: arexp)
+        (AALT (bmkeps r1 @ bmkeps r2) (tail3 :: arexp)
+          (AALT (bmkeps r3) (residue_tail :: arexp) (bder c r4)))))
+      (Right (Right (Right (Right w)))) =
+    retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
+      (injval (BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs) c
+        (Right (Right (Right (Right w)))))"
+  using P n1 n2 n3 empty
+  by (auto simp add: IH bmkeps_retrieve bnullable_correctness append_assoc)
+
 lemma bder_retrieve_ABACKREF4:
   assumes IH1: "\<And>v. \<Turnstile> v : der c (erase r1) \<Longrightarrow>
       retrieve (bder c r1) v = retrieve r1 (injval (erase r1) c v)"
@@ -851,73 +941,145 @@ lemma bder_retrieve_ABACKREF4:
   shows "retrieve (bder c (ABACKREF4 bs r1 r2 r3 r4 cs)) v =
     retrieve (ABACKREF4 bs r1 r2 r3 r4 cs)
       (injval (erase (ABACKREF4 bs r1 r2 r3 r4 cs)) c v)"
-  using assms
-  apply (cases "bnullable r1"; cases "bnullable r2"; cases "bnullable r3"; cases "rev cs")
-                 apply (auto elim!: Prf_elims
-                  simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                    retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-                  split: val.splits if_splits)[1]
-                apply (auto elim!: Prf_elims
-                  simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                    retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-                  split: val.splits if_splits)[1]
-               apply (auto elim!: Prf_elims
-                 simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                   retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-                 split: val.splits if_splits)[1]
-              apply (auto elim!: Prf_elims
-                simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                  retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-                split: val.splits if_splits)[1]
-             apply (auto elim!: Prf_elims
-               simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                 retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-               split: val.splits if_splits)[1]
-            apply (auto elim!: Prf_elims
-              simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-                retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-              split: val.splits if_splits)[1]
-           apply (auto elim!: Prf_elims
-             simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-               retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-             split: val.splits if_splits)[1]
-          apply (auto elim!: Prf_elims
-            simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-              retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-            split: val.splits if_splits)[1]
-         apply (auto elim!: Prf_elims
-           simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-             retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-           split: val.splits if_splits)[1]
-        apply (auto elim!: Prf_elims
-          simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-            retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-          split: val.splits if_splits)[1]
-       apply (auto elim!: Prf_elims
-         simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-           retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-         split: val.splits if_splits)[1]
-      apply (auto elim!: Prf_elims
-        simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-          retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-        split: val.splits if_splits)[1]
-     apply (auto elim!: Prf_elims
-       simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-         retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-       split: val.splits if_splits)[1]
-    apply (auto elim!: Prf_elims
-      simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-        retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-      split: val.splits if_splits)[1]
-   apply (auto elim!: Prf_elims
-     simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-       retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-     split: val.splits if_splits)[1]
-  apply (auto elim!: Prf_elims
-    simp add: Let_def append_assoc bmkeps_retrieve bnullable_correctness
-      retrieve_fuse2 retrieve_fuse2_erase Prf_der_residue_inj retrieve_bder_ARESIDUE
-    split: val.splits if_splits)[1]
-  done
+proof -
+  let ?R = "BACKREF4 (erase r1) (erase r2) (erase r3) (erase r4) cs"
+  let ?prefix = "ABACKREF4 [] (bder c r1) r2 r3 r4 cs"
+  let ?capture = "ABACKREF4 (bmkeps r1) (AONE []) (bder c r2) r3 r4 (c # cs)"
+  let ?res = "rev cs"
+  let ?res_der = "bder c (ARESIDUE [] ?res ?res)"
+  let ?res_tail =
+    "if ?res = []
+     then AALT (bmkeps r3) (ASEQ [] ?res_der r4) (bder c r4)
+     else ASEQ (bmkeps r3) ?res_der r4"
+  let ?mid = "ASEQ [] (ARESIDUE [] ?res ?res) r4"
+  let ?tail =
+    "if bnullable r3
+     then AALT (bmkeps r1 @ bmkeps r2) (ASEQ [] (bder c r3) ?mid) ?res_tail
+     else ASEQ (bmkeps r1 @ bmkeps r2) (bder c r3) ?mid"
+  let ?rest = "if bnullable r2 then AALT [] ?capture ?tail else ?capture"
+  show ?thesis
+  proof (cases "bnullable r1")
+    case False
+    then have p: "\<Turnstile> v : BACKREF4 (der c (erase r1)) (erase r2) (erase r3) (erase r4) cs"
+      using P by (simp add: Let_def bnullable_correctness)
+    show ?thesis
+      using False bder_retrieve_ABACKREF4_prefix(1)[OF IH1 p]
+      by (simp add: Let_def)
+  next
+    case n1: True
+    then have alt1: "\<Turnstile> v : ALT (erase ?prefix) (erase ?rest)"
+      using P n1 by (auto simp add: Let_def bnullable_correctness)
+    then consider
+      (prefix) w where "v = Left w" "\<Turnstile> w : erase ?prefix"
+    | (rest) w where "v = Right w" "\<Turnstile> w : erase ?rest"
+      by (erule Prf_elims) auto
+    then show ?thesis
+    proof cases
+      case prefix
+      then have p: "\<Turnstile> w : BACKREF4 (der c (erase r1)) (erase r2) (erase r3) (erase r4) cs"
+        by simp
+      show ?thesis
+        using n1 prefix bder_retrieve_ABACKREF4_prefix(2)[OF IH1 p, of bs ?rest]
+        by (simp add: Let_def)
+    next
+      case (rest w)
+      show ?thesis
+      proof (cases "bnullable r2")
+        case False
+        then have p: "\<Turnstile> w : BACKREF4 ONE (der c (erase r2)) (erase r3) (erase r4) (c # cs)"
+          using rest by simp
+        show ?thesis
+          using n1 False rest bder_retrieve_ABACKREF4_capture(1)[OF n1 IH2 p, of bs ?prefix]
+          by (simp add: Let_def)
+      next
+        case n2: True
+        then have alt2: "\<Turnstile> w : ALT (erase ?capture) (erase ?tail)"
+          using rest by simp
+        then consider
+          (capture) wc where "w = Left wc" "\<Turnstile> wc : erase ?capture"
+        | (tail) wt where "w = Right wt" "\<Turnstile> wt : erase ?tail"
+          by (erule Prf_elims) auto
+        then show ?thesis
+        proof cases
+          case capture
+          then have p: "\<Turnstile> wc : BACKREF4 ONE (der c (erase r2)) (erase r3) (erase r4) (c # cs)"
+            by simp
+          show ?thesis
+            using n1 n2 rest capture
+              bder_retrieve_ABACKREF4_capture(2)[OF n1 IH2 p, of bs ?prefix ?tail]
+            by (simp add: Let_def)
+        next
+          case (tail wt)
+          show ?thesis
+          proof (cases "bnullable r3")
+            case False
+            then have p: "\<Turnstile> wt :
+              SEQ (der c (erase r3)) (SEQ (RESIDUE ?res ?res) (erase r4))"
+              using tail by simp
+            show ?thesis
+              using n1 n2 False rest tail
+                bder_retrieve_ABACKREF4_tail3(1)[OF n1 n2 IH3 p, of bs ?prefix ?capture]
+              by (simp add: Let_def)
+          next
+            case n3: True
+            then have alt3: "\<Turnstile> wt :
+              ALT (SEQ (der c (erase r3)) (SEQ (RESIDUE ?res ?res) (erase r4)))
+                (erase ?res_tail)"
+              using tail by simp
+            then consider
+              (tail3) w3 where "wt = Left w3"
+                "\<Turnstile> w3 : SEQ (der c (erase r3)) (SEQ (RESIDUE ?res ?res) (erase r4))"
+            | (residue) wr where "wt = Right wr" "\<Turnstile> wr : erase ?res_tail"
+              by (erule Prf_elims) auto
+            then show ?thesis
+            proof cases
+              case tail3
+              show ?thesis
+                using n1 n2 n3 rest tail tail3
+                  bder_retrieve_ABACKREF4_tail3(2)[OF n1 n2 IH3 tail3(2),
+                    of bs ?prefix ?capture ?res_tail]
+                by (simp add: Let_def)
+            next
+              case (residue wr)
+              show ?thesis
+              proof (cases ?res)
+                case Nil
+                then have alt4: "\<Turnstile> wr : ALT (erase (ASEQ [] ?res_der r4)) (der c (erase r4))"
+                  using residue by simp
+                then consider
+                  (impossible) wi where "wr = Left wi" "\<Turnstile> wi : erase (ASEQ [] ?res_der r4)"
+                | (tail4) w4 where "wr = Right w4" "\<Turnstile> w4 : der c (erase r4)"
+                  by (erule Prf_elims) auto
+                then show ?thesis
+                proof cases
+                  case impossible
+                  then show ?thesis
+                    using Nil by (auto elim!: Prf_elims)
+                next
+                  case tail4
+                  show ?thesis
+                    using n1 n2 n3 rest tail residue Nil tail4
+                      bder_retrieve_ABACKREF4_tail4[OF n1 n2 n3 Nil IH4 tail4(2),
+                        of bs ?prefix ?capture "ASEQ [] (bder c r3) ?mid" "ASEQ [] ?res_der r4"]
+                    by (simp add: Let_def)
+                qed
+              next
+                case (Cons a list)
+                then have p: "\<Turnstile> wr : SEQ (der_residue c ?res ?res) (erase r4)"
+                  using residue by (cases "c = a") simp_all
+                show ?thesis
+                  using n1 n2 n3 rest tail residue Cons
+                    bder_retrieve_ABACKREF4_tail_residue[OF n1 n2 n3 p,
+                      of bs ?prefix ?capture "ASEQ [] (bder c r3) ?mid"]
+                  by (simp add: Let_def)
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
 
  
 
