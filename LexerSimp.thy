@@ -56,7 +56,7 @@ lemma simp_ALT_simps[simp]:
                     else (ALT (fst p1) (fst p2), F_ALT (snd p1) (snd p2))))"
   by (simp add: simp_ALT_def)
 
-(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (definition augmentation, ADMIN APPROVAL REQUIRED):
    Decide whether BACKREF4/HALF/RESIDUE remain identity cases in the source-level
    simp function. Do not hide missing constructor work behind wrapper equality. *)
 fun 
@@ -83,13 +83,13 @@ lemma slexer_better_simp:
 by (auto split: prod.split option.split)
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend language preservation of source simplification for BACKREF4/HALF/RESIDUE. *)
 lemma L_fst_simp:
   shows "L(r) = L(fst (simp r))"
 by (induct r) (auto)
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
    Extend POSIX preservation of source simplification after the BACKREF4 Posix
    rule is approved. Direct original theorem only; wrapper proofs do not count. *)
 lemma Posix_simp:
@@ -215,7 +215,7 @@ next
 qed (simp_all)
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Recheck the original simplified lexer correctness after L_fst_simp and
    Posix_simp are extended. *)
 lemma slexer_correctness:

@@ -5,7 +5,7 @@ begin
 
 section \<open>"Plain" Values\<close>
 
-(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (definition augmentation, ADMIN APPROVAL REQUIRED):
    Extend the original val datatype with the approved BACKREF4/HALF/RESIDUE
    value shapes. Do not introduce bval, bval4, gbval, or bridge wrappers. *)
 datatype val = 
@@ -22,7 +22,7 @@ datatype val =
 
 section \<open>The string behind a value\<close>
 
-(* BACKREF-MIGRATION-TODO (definition augmentation):
+(* BACKREF-MIGRATION-COMPLETED (definition augmentation):
    Add flat cases for the new original value constructors so BACKREF4 flattens
    to s1 @ s2 @ s3 @ rev cs @ s2 @ s4, and HALF/RESIDUE flatten to their
    carried residual strings. *)
@@ -51,7 +51,7 @@ by (induct vs) (auto)
 
 section \<open>Lexical Values\<close>
 
-(* BACKREF-MIGRATION-TODO (definition augmentation):
+(* BACKREF-MIGRATION-COMPLETED (definition augmentation):
    Add original Prf rules for BACKREF4/HALF/RESIDUE. This replaces
    BPrf/BPrf4/GPrf; direct Prf extension is bounty-eligible, wrappers are not. *)
 inductive 
@@ -73,7 +73,7 @@ where
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Add elimination rules for BACKREF4/HALF/RESIDUE after Prf is extended. *)
 inductive_cases Prf_elims:
   "\<Turnstile> v : ZERO"
@@ -163,7 +163,7 @@ lemma pow_Prf:
   using assms
   by (induct vs) (auto)
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend soundness of flat values with BACKREF4/HALF/RESIDUE cases. *)
 lemma L_flat_Prf1:
   assumes "\<Turnstile> v : r" 
@@ -176,7 +176,7 @@ lemma L_flat_Prf1:
 
 
   
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend completeness of flat values with BACKREF4/HALF/RESIDUE cases. The
    BACKREF4 case should build one original val, not a bval4/gbval wrapper. *)
 lemma L_flat_Prf2:
@@ -253,7 +253,7 @@ next
 qed (auto intro: Prf.intros)
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Keep this as the original value-language correspondence theorem after the
    new constructors are added. Wrapper summaries do not count as bounty. *)
 lemma L_flat_Prf:
@@ -272,7 +272,7 @@ definition
   LV :: "rexp \<Rightarrow> string \<Rightarrow> val set"
 where  "LV r s \<equiv> {v. \<Turnstile> v : r \<and> flat v = s}"
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Add LV facts for the new constructors where useful. Avoid huge fragile simp
    rules for BACKREF4 if split lemmas are clearer. *)
 lemma LV_simps:
@@ -541,7 +541,7 @@ qed
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend LV_finite with BACKREF4/HALF/RESIDUE. Add finite split helper lemmas
    for possible s1/s2/s3/s4 decompositions of a fixed target string. *)
 lemma LV_finite:
@@ -631,7 +631,7 @@ where
         (length t1 = length s1 \<and> length t2 = length s2
           \<longrightarrow> length t3 \<le> length s3))"
 
-(* BACKREF-MIGRATION-TODO (definition augmentation, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (definition augmentation, ADMIN APPROVAL REQUIRED):
    Add original Posix rules for BACKREF4/HALF/RESIDUE. The BACKREF4 rule must
    settle the intended POSIX priority/greediness over s1, s2, s3, s4 before
    proof work starts. Do not use BPosix as a parallel specification. *)
@@ -666,7 +666,7 @@ where
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Add Posix elimination cases for BACKREF4/HALF/RESIDUE. *)
 inductive_cases Posix_elims:
   "s \<in> ZERO \<rightarrow> v"
@@ -680,7 +680,7 @@ inductive_cases Posix_elims:
   "s \<in> HALF r cs rep \<rightarrow> v"
   "s \<in> RESIDUE cs rep \<rightarrow> v"
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend this original Posix theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma Posix1:
   assumes "s \<in> r \<rightarrow> v"
@@ -694,7 +694,7 @@ using assms
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend this original Posix theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma Posix1a:
   assumes "s \<in> r \<rightarrow> v"
@@ -809,7 +809,7 @@ lemma List_eq_zipI:
   done 
 *)
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension, ADMIN APPROVAL REQUIRED):
    Extend determinism with BACKREF4/HALF/RESIDUE cases only after the BACKREF4
    POSIX priority rule is approved. Add direct split-uniqueness lemmas here;
    do not rely on BPosix wrapper determinism. *)
@@ -957,7 +957,7 @@ text \<open>
   Our POSIX values are lexical values.
 \<close>
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend this original Posix theorem with BACKREF4/HALF/RESIDUE cases. *)
 lemma Posix_LV:
   assumes "s \<in> r \<rightarrow> v"

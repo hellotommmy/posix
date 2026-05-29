@@ -2,7 +2,7 @@ theory BlexerSimp
   imports Blexer 
 begin
 
-(* BACKREF-MIGRATION-TODO (aggressive simplifier/rewrite-system preservation):
+(* BACKREF-MIGRATION-COMPLETED (aggressive simplifier/rewrite-system preservation):
    Backreference support must preserve the original thesis-style bsimp route:
    aggressive flattening of alternatives, zero elimination, singleton-alt fuse,
    duplicate/subsumed alternative removal, and the rrewrite/srewrite simulation.
@@ -18,7 +18,7 @@ fun distinctWith :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bo
       else x # (distinctWith xs eq ({x} \<union> acc)))"
 
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+(* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation):
    Add cases for the new arexp constructors while preserving the existing
    aggressive equivalence test behaviour. Any rule that changes backreference
    structure or capture order needs admin approval before implementation. *)
@@ -234,7 +234,7 @@ next
   qed
 qed
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+(* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation):
    Add cases for the new arexp constructors while preserving aggressive
    alternative flattening. *)
 fun flts :: "arexp list \<Rightarrow> arexp list"
@@ -246,7 +246,7 @@ fun flts :: "arexp list \<Rightarrow> arexp list"
 
 
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+(* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation):
    Add cases for new constructor interactions with sequence simplification only
    after the capture-order implications are approved. *)
 definition bsimp_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp"
@@ -276,7 +276,7 @@ lemma bsimp_ASEQ2[simp]:
   by (cases r2) (simp_all add: bsimp_ASEQ_def)
 
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation):
+(* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation):
    Preserve singleton-alt fuse and zero-alt elimination for the extended arexp
    datatype. *)
 fun bsimp_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp"
@@ -288,7 +288,7 @@ fun bsimp_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp"
 
 
 
-(* BACKREF-MIGRATION-TODO (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
+(* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation, ADMIN APPROVAL REQUIRED):
    Extend bsimp with the new arexp constructors while keeping the original
    aggressive, structure-changing simplifier. Do not replace this with a weak
    structural recursion or a wrapper equality theorem. *)
@@ -344,7 +344,7 @@ lemma bder_fuse:
 
 
 
-(* BACKREF-MIGRATION-TODO (aggressive simplifier/rewrite-system preservation):
+(* BACKREF-MIGRATION-COMPLETED (aggressive simplifier/rewrite-system preservation):
    Extend rrewrite/srewrite with context rules for the new constructors and any
    approved backreference simplification rules. The proof obligation remains
    r \<leadsto>* bsimp r and derivative-commutation through rewrites; wrapper
@@ -600,7 +600,7 @@ lemma fltsfrewrites: "rs s\<leadsto>* flts rs"
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend this proof over the new constructor cases using the original rewrite
    relation. Keep proof commands lightweight; split resource-heavy automation. *)
 lemma bnullable0:
@@ -620,7 +620,7 @@ using assms
   apply simp
   using bnullable0(1) by auto
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend this proof over the new constructor cases using the original rewrite
    relation. Keep proof commands lightweight; split resource-heavy automation. *)
 lemma rewrite_bmkeps_aux: 
@@ -676,7 +676,7 @@ next
 qed
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend rewrites_to_bsimp for the new constructors. This is the central
    thesis-style simplifier theorem; wrapper equalities do not count. *)
 lemma rewrites_to_bsimp: 
@@ -740,7 +740,7 @@ lemma map1:
   shows "(map f [a]) = [f a]"
   by (simp)
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend derivative preservation through rewrites for BACKREF4/HALF/RESIDUE.
    This is where long-running automation must be replaced by explicit cases. *)
 lemma rewrite_preserves_bder: 
@@ -829,7 +829,7 @@ apply(simp_all add: rewrite_preserves_bder rrewrites_trans)
 done
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend central after rewrites_to_bsimp and rewrite_preserves_bder are repaired
    for the new constructors. *)
 lemma central:  
@@ -862,7 +862,7 @@ qed
 
 
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend the original main_blexer_simp theorem; no wrapper simplifier theorem
    can substitute for this result. *)
 theorem main_blexer_simp: 
@@ -870,7 +870,7 @@ theorem main_blexer_simp:
   unfolding blexer_def blexer_simp_def
   by (metis central main_aux rewritesnullable)
 
-(* BACKREF-MIGRATION-TODO (proof constructor-case extension):
+(* BACKREF-MIGRATION-COMPLETED (proof constructor-case extension):
    Extend the original blexersimp_correctness theorem after main_blexer_simp is
    repaired. *)
 theorem blexersimp_correctness: 
