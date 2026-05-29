@@ -22,27 +22,217 @@ fun distinctWith :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bo
    Add cases for the new arexp constructors while preserving the existing
    aggressive equivalence test behaviour. Any rule that changes backreference
    structure or capture order needs admin approval before implementation. *)
-fun eq1 ("_ ~1 _" [80, 80] 80) where  
-  "AZERO ~1 AZERO = True"
-| "(AONE bs1) ~1 (AONE bs2) = True"
-| "(ACHAR bs1 c) ~1 (ACHAR bs2 d) = (if c = d then True else False)"
-| "(ASEQ bs1 ra1 ra2) ~1 (ASEQ bs2 rb1 rb2) = (ra1 ~1 rb1 \<and> ra2 ~1 rb2)"
-| "(AALTs bs1 []) ~1 (AALTs bs2 []) = True"
-| "(AALTs bs1 (r1 # rs1)) ~1 (AALTs bs2 (r2 # rs2)) = (r1 ~1 r2 \<and> (AALTs bs1 rs1) ~1 (AALTs bs2 rs2))"
-| "(ASTAR bs1 r1) ~1 (ASTAR bs2 r2) = r1 ~1 r2"
-| "(ANTIMES bs1 r1 n1) ~1 (ANTIMES bs2 r2 n2) = (r1 ~1 r2 \<and> n1 = n2)"
-| "_ ~1 _ = False"
+primrec eq1 ("_ ~1 _" [80, 80] 80) and eq1s where
+  "AZERO ~1 y = (case y of AZERO \<Rightarrow> True | _ \<Rightarrow> False)"
+| "(AONE bs1) ~1 y = (case y of AONE bs2 \<Rightarrow> True | _ \<Rightarrow> False)"
+| "(ACHAR bs1 c) ~1 y = (case y of ACHAR bs2 d \<Rightarrow> c = d | _ \<Rightarrow> False)"
+| "(ASEQ bs1 ra1 ra2) ~1 y =
+    (case y of ASEQ bs2 rb1 rb2 \<Rightarrow> ra1 ~1 rb1 \<and> ra2 ~1 rb2 | _ \<Rightarrow> False)"
+| "(AALTs bs1 rs1) ~1 y =
+    (case y of AALTs bs2 rs2 \<Rightarrow> eq1s rs1 rs2 | _ \<Rightarrow> False)"
+| "(ASTAR bs1 r1) ~1 y =
+    (case y of ASTAR bs2 r2 \<Rightarrow> r1 ~1 r2 | _ \<Rightarrow> False)"
+| "(ANTIMES bs1 r1 n1) ~1 y =
+    (case y of ANTIMES bs2 r2 n2 \<Rightarrow> r1 ~1 r2 \<and> n1 = n2 | _ \<Rightarrow> False)"
+| "(ABACKREF4 bs1 ra1 ra2 ra3 ra4 cs1) ~1 y =
+    (case y of ABACKREF4 bs2 rb1 rb2 rb3 rb4 cs2 \<Rightarrow>
+       cs1 = cs2 \<and> ra1 ~1 rb1 \<and> ra2 ~1 rb2 \<and> ra3 ~1 rb3 \<and> ra4 ~1 rb4
+     | _ \<Rightarrow> False)"
+| "(AHALF bs1 r1 cs1 rep1) ~1 y =
+    (case y of AHALF bs2 r2 cs2 rep2 \<Rightarrow> cs1 = cs2 \<and> rep1 = rep2 \<and> r1 ~1 r2
+     | _ \<Rightarrow> False)"
+| "(ARESIDUE bs1 cs1 rep1) ~1 y =
+    (case y of ARESIDUE bs2 cs2 rep2 \<Rightarrow> cs1 = cs2 \<and> rep1 = rep2 | _ \<Rightarrow> False)"
+| "eq1s [] ys = (case ys of [] \<Rightarrow> True | _ \<Rightarrow> False)"
+| "eq1s (r # rs) ys =
+    (case ys of s # ss \<Rightarrow> r ~1 s \<and> eq1s rs ss | _ \<Rightarrow> False)"
 
 
+
+lemma size_list_member_less:
+  assumes "r \<in> set rs"
+  shows "size r < Suc (size_list size rs)"
+  using assms
+  by (induct rs) auto
 
 lemma eq1_L:
   assumes "x ~1 y"
   shows "L (erase x) = L (erase y)"
   using assms
-  apply(induct rule: eq1.induct)
-  apply(auto elim: eq1.elims)
-  apply presburger
-  done
+proof (induct "size x" arbitrary: x y rule: less_induct)
+  case less
+  show ?case
+  proof (cases x)
+  case AZERO
+  then show ?thesis using less.prems by (cases y) auto
+next
+  case (AONE bs)
+  then show ?thesis using less.prems by (cases y) auto
+next
+  case (ACHAR bs c)
+  then show ?thesis using less.prems by (cases y) auto
+next
+  case (ASEQ bs r1 r2)
+  note x_ASEQ = ASEQ
+  show ?thesis
+  proof (cases y)
+    case (ASEQ bs' s1 s2)
+    have small1: "size r1 < size x"
+      using x_ASEQ by simp
+    have small2: "size r2 < size x"
+      using x_ASEQ by simp
+    have eq_left: "r1 ~1 s1"
+      using less.prems x_ASEQ ASEQ by simp
+    have eq_right: "r2 ~1 s2"
+      using less.prems x_ASEQ ASEQ by simp
+    have left: "L (erase r1) = L (erase s1)"
+      using less.hyps[OF small1 eq_left] .
+    have right: "L (erase r2) = L (erase s2)"
+      using less.hyps[OF small2 eq_right] .
+    then show ?thesis
+      using x_ASEQ ASEQ left by (simp add: Sequ_def)
+  qed (use less.prems x_ASEQ in auto)
+next
+  case (AALTs bs rs)
+  note x_AALTs = AALTs
+  have list_eq:
+    "\<And>xs ys bs bs'.
+      \<lbrakk>eq1s xs ys;
+       \<forall>r \<in> set xs. size r < size x\<rbrakk>
+      \<Longrightarrow> L (erase (AALTs bs xs)) = L (erase (AALTs bs' ys))"
+  proof -
+    fix xs ys bs bs'
+    assume eqs: "eq1s xs ys"
+      and smalls: "\<forall>r \<in> set xs. size r < size x"
+    show "L (erase (AALTs bs xs)) = L (erase (AALTs bs' ys))"
+      using eqs smalls
+    proof (induct xs arbitrary: ys bs bs')
+    case Nil
+    then show ?case by (cases ys) simp_all
+  next
+    case (Cons r xs)
+    note IH = Cons.hyps
+    note prems = Cons.prems
+    show ?case
+    proof (cases ys)
+      case Nil
+      then show ?thesis using prems by simp
+    next
+      case (Cons s ss)
+      have small_r: "size r < size x"
+        using prems by simp
+      have eq_head: "r ~1 s"
+        using prems Cons by simp
+      have head: "L (erase r) = L (erase s)"
+        using less.hyps[OF small_r eq_head] .
+      have eq_tail: "eq1s xs ss"
+        using prems Cons by simp
+      have small_tail: "\<forall>r \<in> set xs. size r < size x"
+        using prems by simp
+      have tail: "L (erase (AALTs bs xs)) = L (erase (AALTs bs' ss))"
+        using IH[OF eq_tail small_tail] .
+      show ?thesis
+      proof -
+        have "L (erase (AALTs bs (r # xs))) =
+              L (erase r) \<union> L (erase (AALTs bs xs))"
+          by (cases xs) auto
+        also have "... = L (erase s) \<union> L (erase (AALTs bs' ss))"
+          using head tail by simp
+        also have "... = L (erase (AALTs bs' (s # ss)))"
+          by (cases ss) auto
+        finally show ?thesis
+          using Cons by simp
+      qed
+    qed
+    qed
+  qed
+  have small: "\<forall>r \<in> set rs. size r < size x"
+    using x_AALTs size_list_member_less by auto
+  show ?thesis
+  proof (cases y)
+    case (AALTs bs' ys)
+    have eqs: "eq1s rs ys"
+      using less.prems x_AALTs AALTs by simp
+    have "L (erase (AALTs bs rs)) = L (erase (AALTs bs' ys))"
+      using list_eq[OF eqs small] .
+    then show ?thesis
+      using x_AALTs AALTs by simp
+  qed (use less.prems x_AALTs in auto)
+next
+  case (ASTAR bs r)
+  note x_ASTAR = ASTAR
+  show ?thesis
+  proof (cases y)
+    case (ASTAR bs' s)
+    have small: "size r < size x"
+      using x_ASTAR by simp
+    have eq: "r ~1 s"
+      using less.prems x_ASTAR ASTAR by simp
+    have "L (erase r) = L (erase s)"
+      using less.hyps[OF small eq] .
+    then show ?thesis
+      using x_ASTAR ASTAR by simp
+  qed (use less.prems x_ASTAR in auto)
+next
+  case (ANTIMES bs r n)
+  note x_ANTIMES = ANTIMES
+  show ?thesis
+  proof (cases y)
+    case (ANTIMES bs' s m)
+    have small: "size r < size x"
+      using x_ANTIMES by simp
+    have eq: "r ~1 s"
+      using less.prems x_ANTIMES ANTIMES by simp
+    have n_eq: "n = m"
+      using less.prems x_ANTIMES ANTIMES by simp
+    have "L (erase r) = L (erase s)"
+      using less.hyps[OF small eq] .
+    then show ?thesis
+      using x_ANTIMES ANTIMES n_eq by simp
+  qed (use less.prems x_ANTIMES in auto)
+next
+  case (ABACKREF4 bs r1 r2 r3 r4 cs)
+  note x_ABACKREF4 = ABACKREF4
+  show ?thesis
+  proof (cases y)
+    case (ABACKREF4 bs' s1 s2 s3 s4 ds)
+    have small1: "size r1 < size x" and small2: "size r2 < size x"
+      and small3: "size r3 < size x" and small4: "size r4 < size x"
+      using x_ABACKREF4 by simp_all
+    have eq1: "r1 ~1 s1" and eq2: "r2 ~1 s2"
+      and eq3: "r3 ~1 s3" and eq4: "r4 ~1 s4" and cs_eq: "cs = ds"
+      using less.prems x_ABACKREF4 ABACKREF4 by simp_all
+    have l1: "L (erase r1) = L (erase s1)"
+      using less.hyps[OF small1 eq1] .
+    have l2: "L (erase r2) = L (erase s2)"
+      using less.hyps[OF small2 eq2] .
+    have l3: "L (erase r3) = L (erase s3)"
+      using less.hyps[OF small3 eq3] .
+    have l4: "L (erase r4) = L (erase s4)"
+      using less.hyps[OF small4 eq4] .
+    show ?thesis
+      using x_ABACKREF4 ABACKREF4 cs_eq l1 l2 l3 l4 by simp
+  qed (use less.prems x_ABACKREF4 in auto)
+next
+  case (AHALF bs r cs rep)
+  note x_AHALF = AHALF
+  show ?thesis
+  proof (cases y)
+    case (AHALF bs' s ds rep')
+    have small: "size r < size x"
+      using x_AHALF by simp
+    have eq: "r ~1 s" and cs_eq: "cs = ds" and rep_eq: "rep = rep'"
+      using less.prems x_AHALF AHALF by simp_all
+    have "L (erase r) = L (erase s)"
+      using less.hyps[OF small eq] .
+    then show ?thesis
+      using x_AHALF AHALF cs_eq rep_eq by simp
+  qed (use less.prems x_AHALF in auto)
+next
+  case (ARESIDUE bs cs rep)
+  then show ?thesis using less.prems by (cases y) auto
+  qed
+qed
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Add cases for the new arexp constructors while preserving aggressive
@@ -59,28 +249,31 @@ fun flts :: "arexp list \<Rightarrow> arexp list"
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
    Add cases for new constructor interactions with sequence simplification only
    after the capture-order implications are approved. *)
-fun bsimp_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp"
+definition bsimp_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp"
   where
-  "bsimp_ASEQ _ AZERO _ = AZERO"
-| "bsimp_ASEQ _ _ AZERO = AZERO"
-| "bsimp_ASEQ bs1 (AONE bs2) r2 = fuse (bs1 @ bs2) r2"
-| "bsimp_ASEQ bs1 r1 r2 = ASEQ  bs1 r1 r2"
+  "bsimp_ASEQ bs1 r1 r2 =
+    (if r1 = AZERO \<or> r2 = AZERO then AZERO
+     else case r1 of
+       AONE bs2 \<Rightarrow> fuse (bs1 @ bs2) r2
+     | _ \<Rightarrow> ASEQ bs1 r1 r2)"
 
 lemma bsimp_ASEQ0[simp]:
   shows "bsimp_ASEQ bs r1 AZERO = AZERO"
-  by (case_tac r1)(simp_all)
+  by (simp add: bsimp_ASEQ_def)
+
+lemma bsimp_ASEQ_left0[simp]:
+  shows "bsimp_ASEQ bs AZERO r2 = AZERO"
+  by (simp add: bsimp_ASEQ_def)
 
 lemma bsimp_ASEQ1:
   assumes "r1 \<noteq> AZERO" "r2 \<noteq> AZERO" "\<nexists>bs. r1 = AONE bs"
   shows "bsimp_ASEQ bs r1 r2 = ASEQ bs r1 r2"
   using assms
-  apply(induct bs r1 r2 rule: bsimp_ASEQ.induct)
-  apply(auto)
-  done
+  by (cases r1) (auto simp add: bsimp_ASEQ_def)
 
 lemma bsimp_ASEQ2[simp]:
   shows "bsimp_ASEQ bs1 (AONE bs2) r2 = fuse (bs1 @ bs2) r2"
-  by (case_tac r2) (simp_all)
+  by (cases r2) (simp_all add: bsimp_ASEQ_def)
 
 
 (* BACKREF-MIGRATION-TODO (datatype/function augmentation):
@@ -144,7 +337,8 @@ lemma bmkepss_fuse:
 lemma bder_fuse:
   shows "bder c (fuse bs a) = fuse bs  (bder c a)"
   apply(induct a arbitrary: bs c)
-  apply(simp_all)
+  apply(simp_all add: Let_def append_assoc fuse_append)
+  apply(case_tac x2a; simp add: append_assoc)
   done
 
 
@@ -398,7 +592,10 @@ lemma fltsfrewrites: "rs s\<leadsto>* flts rs"
   using srewrites7 apply force
   apply (simp add: srewrites7)
    apply(simp add: srewrites7)
-  apply(simp add: srewrites7)
+  apply(erule srewrites7, simp)
+  apply(erule srewrites7, simp)
+  apply(erule srewrites7, simp)
+  apply(erule srewrites7, simp)
   done
 
 
