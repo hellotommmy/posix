@@ -824,6 +824,15 @@ lemma distinct_rpder_norm_rows [simp]:
   "distinct (rpder_norm_rows c rs)"
   by (simp add: rpder_norm_rows_def rdistinct_does_the_job)
 
+lemma distinct_rpders_norm_rows:
+  assumes "distinct rs"
+  shows "distinct (rpders_norm_rows rs s)"
+  using assms by (induct s arbitrary: rs) simp_all
+
+lemma distinct_rpders_norm1_rows [simp]:
+  "distinct (rpders_norm1_rows r s)"
+  by (simp add: rpders_norm1_rows_def distinct_rpders_norm_rows)
+
 lemma legacy_rpd_der:
   assumes "legacy_rrexp r"
   shows "legacy_rrexp (rpd_der c r)"
@@ -4611,6 +4620,13 @@ proof -
     by (rule quadratic_times_linear_cubic_bound)
   finally show ?thesis .
 qed
+
+lemma rsizes_rpders_norm1_rows_frontier_universe_cubic:
+  assumes "set (rpders_norm1_rows r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+  shows "rsizes (rpders_norm1_rows r s) \<le> 3 * (rsize r + 2) ^ 3"
+  by (rule rsizes_distinct_frontier_universe_cubic)
+    (use assms in auto)
 
 lemma partial_derivative_path_universe_zero [simp]:
   "RZERO \<in> partial_derivative_path_universe r"
