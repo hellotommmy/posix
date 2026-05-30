@@ -3316,6 +3316,38 @@ lemma distributed_suffix_atom_in_path_frontier_universe:
   by (simp add: partial_derivative_path_frontier_universe_def
       rpath_frontiers_def rsimp4_SEQ_def)
 
+lemma rsimp4_derivative_keeps_middle_alt_opaque:
+  assumes "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e)) \<in>
+    rfrontier
+      (rsimp4
+        (rder a
+          (RSEQ
+            (RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RALTS [RCHAR c, RCHAR d]))
+            (RCHAR e))))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+qed
+
+lemma current_path_frontier_universe_misses_middle_alt_opaque:
+  assumes "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e)) \<notin>
+    partial_derivative_path_frontier_universe
+      (RSEQ
+        (RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RALTS [RCHAR c, RCHAR d]))
+        (RCHAR e))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms
+    by (simp add: partial_derivative_path_frontier_universe_def
+        rpath_frontiers_def rsimp4_SEQ_def)
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 

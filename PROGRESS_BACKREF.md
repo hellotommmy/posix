@@ -379,6 +379,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `rfrontier_rsimp4_SEQ_rder_RALTS_path_acc`. A normalized derivative row now
     traces back to an original alternative child before entering the parent
     path-frontier accumulator.
+  - Found and checked a real design counterexample for the `RSEQ` closure path:
+    current `rsimp4` can keep a middle alternative opaque after a non-empty
+    head (`b ((c+d) e)` shape), while the current path-frontier universe records
+    the fully distributed continuation instead. This is a simplifier/universe
+    design issue, not a tactic issue.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
