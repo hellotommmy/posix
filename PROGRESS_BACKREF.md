@@ -437,6 +437,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `partial_derivative_path_atom_frontier_universe_card_le`, alternative-child
     monotonicity, top-level RZERO/RONE/RCHAR/RALTS derivative closure, and
     carried RZERO/RONE/RCHAR/RALTS closure lemmas.
+  - Added `rpath_dual_frontiers` and
+    `partial_derivative_path_dual_frontier_universe`, the union of full
+    continuation frontiers and atom-continuation frontiers. This is the current
+    best candidate universe: full continuations cover distributed suffix rows,
+    while atom continuations cover opaque middle-alternative rows. Checked both
+    examples and added the dual card skeleton.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

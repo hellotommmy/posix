@@ -3864,6 +3864,13 @@ definition partial_derivative_path_atom_frontier_universe :: "rrexp \<Rightarrow
   "partial_derivative_path_atom_frontier_universe r =
     insert RZERO (insert RONE (rsubterms r \<union> rpath_atom_frontiers r))"
 
+definition rpath_dual_frontiers :: "rrexp \<Rightarrow> rrexp set" where
+  "rpath_dual_frontiers r = rpath_frontiers r \<union> rpath_atom_frontiers r"
+
+definition partial_derivative_path_dual_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_path_dual_frontier_universe r =
+    insert RZERO (insert RONE (rsubterms r \<union> rpath_dual_frontiers r))"
+
 lemma finite_rpath_atom_frontier_acc [simp]:
   "finite (rpath_atom_frontier_acc r k)"
   by (induct r arbitrary: k) auto
@@ -3876,6 +3883,14 @@ lemma finite_partial_derivative_path_atom_frontier_universe [simp]:
   "finite (partial_derivative_path_atom_frontier_universe r)"
   by (simp add: partial_derivative_path_atom_frontier_universe_def)
 
+lemma finite_rpath_dual_frontiers [simp]:
+  "finite (rpath_dual_frontiers r)"
+  by (simp add: rpath_dual_frontiers_def)
+
+lemma finite_partial_derivative_path_dual_frontier_universe [simp]:
+  "finite (partial_derivative_path_dual_frontier_universe r)"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def)
+
 lemma partial_derivative_path_atom_frontier_universe_card_le:
   "card (partial_derivative_path_atom_frontier_universe r) \<le>
     2 + rsize r + card (rpath_atom_frontiers r)"
@@ -3886,6 +3901,28 @@ proof -
     by (rule card_insert2_Un_le) simp_all
   also have "... \<le> 2 + rsize r + card (rpath_atom_frontiers r)"
     using card_rsubterms_le_rsize[of r] by linarith
+  finally show ?thesis .
+qed
+
+lemma partial_derivative_path_dual_frontier_universe_card_le:
+  "card (partial_derivative_path_dual_frontier_universe r) \<le>
+    2 + rsize r + card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
+proof -
+  have "card (partial_derivative_path_dual_frontier_universe r) \<le>
+    2 + card (rsubterms r) + card (rpath_dual_frontiers r)"
+    unfolding partial_derivative_path_dual_frontier_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le>
+    2 + rsize r + card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
+  proof -
+    have subterms: "card (rsubterms r) \<le> rsize r"
+      by (rule card_rsubterms_le_rsize)
+    have dual: "card (rpath_dual_frontiers r) \<le>
+      card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
+      unfolding rpath_dual_frontiers_def by (rule card_Un_le)
+    show ?thesis
+      using subterms dual by linarith
+  qed
   finally show ?thesis .
 qed
 
@@ -4025,6 +4062,13 @@ lemma distributed_suffix_atom_in_path_atom_frontier_universe:
   by (simp add: partial_derivative_path_atom_frontier_universe_def
       rpath_atom_frontiers_def rsimp4_SEQ_def)
 
+lemma distributed_suffix_atom_in_path_dual_frontier_universe:
+  "RSEQ (RCHAR b) (RCHAR d) \<in>
+    partial_derivative_path_dual_frontier_universe
+      (RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d)))"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def
+      rpath_dual_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
+
 lemma rsimp4_derivative_keeps_middle_alt_opaque:
   assumes "c \<noteq> d"
   shows "RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e)) \<in>
@@ -4071,6 +4115,22 @@ proof -
     using assms
     by (simp add: partial_derivative_path_atom_frontier_universe_def
         rpath_atom_frontiers_def rsimp4_SEQ_def)
+qed
+
+lemma middle_alt_opaque_in_path_dual_frontier_universe:
+  assumes "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e)) \<in>
+    partial_derivative_path_dual_frontier_universe
+      (RSEQ
+        (RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RALTS [RCHAR c, RCHAR d]))
+        (RCHAR e))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms
+    by (simp add: partial_derivative_path_dual_frontier_universe_def
+        rpath_dual_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
 qed
 
 lemma rsimp5_derivative_distributes_middle_alt_left:
