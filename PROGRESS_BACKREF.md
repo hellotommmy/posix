@@ -1,6 +1,87 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-27 (original-file migration TODO audit)
+Last updated: 2026-05-31 (cubic-size-bound research kickoff)
+
+## Cubic Size-Bound Research Kickoff (2026-05-31)
+
+- Branch: `codex/backref-values` at `89b40aa` before this kickoff note.
+  Remote `origin/codex/backref-values` was already up to date with the checked
+  reachable `BACKREF4` `cs` counterexample.
+- Current dirty files before this note were this progress log plus local backup
+  files `BackRefLang.thy~`, `BackRefLang4Pilot.thy~`, and `Lexer.thy~`. The
+  backup files remain intentionally untracked and should not be committed.
+- New research target from Chengsong: investigate how to reduce the size bound
+  to cubic in the regex size for the non-backref fragment. Backreferences are
+  explicitly excluded from the bounded fragment. The likely direction is a
+  stronger, redesigned `bsimp` inspired by Antimirov partial derivatives and
+  Chengsong's thesis final chapter, with a new 50k bounty pool and 25k reserved
+  for the new simplifier definition.
+- Important constraint: the new bound work must not weaken the checked
+  backreference correctness path. Any new simplifier should have a clearly
+  delimited non-backref fragment theorem first, then connect back to the
+  current original files only through proved preservation lemmas.
+
+## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
+
+- Branch: `codex/backref-values` at `d8f84f7`; `git fetch --all --prune`
+  found no newer remote core-constructor work. The worktree had only the two
+  untracked backup files `BackRefLang.thy~` and `BackRefLang4Pilot.thy~`
+  before this checkpoint.
+- Scope respected: only `Blexer.thy` and `PROGRESS_BACKREF.md` were changed
+  by Worker B.
+  `RegLangs.thy`, `PosixSpec.thy`, `Lexer.thy`, and `LexerSimp.thy` were read
+  only.
+- Initial core blocker: before the concurrent edit, original `RegLangs.thy`
+  still had only
+  `ZERO/ONE/CH/SEQ/ALT/STAR/NTIMES`, and original `PosixSpec.thy` still has
+  only `Void/Char/Seq/Right/Left/Stars`. Therefore the BR-027/BR-028
+  constructor cases for `BACKREF4/HALF/RESIDUE`, the corresponding original
+  value constructors, and the `injval`/`mkeps` bridge are not yet available.
+  Worker B did not fake wrappers or introduce `bbit`, `barexp`, `gabexp`, or
+  any new `BackRef*` wrapper files.
+- Checked original-file scaffold added:
+  - `Blexer.thy:erase_AALTs_ignore_bits [simp]`, mirroring the pilot
+    `berase_BAALTs_ignore_bits` fact directly in the original `arexp` layer.
+    This is a non-conflicting helper for future retrieve/derivative proofs
+    where `AALTs` bit prefixes must not affect erasure.
+- Precise BR-027 port sections to apply once Worker A lands the original core
+  constructors:
+  - Extend original `bit` with `Backbit string` unless admin chooses a
+    different in-band string encoding.
+  - Extend original `arexp` with annotated cases matching the frozen core
+    arities: `ABACKREF4` for `BACKREF4`, `AHALF` for `HALF`, and `ARESIDUE`
+    for `RESIDUE`. Use only these original constructors.
+  - Port the pilot `BackRefGBlexer.gaintern/gabder/gretrieve` shape into
+    original `intern/bder/retrieve`, and port the simple
+    `BackRefBlexer.bbder_residue` shape into original `bder` for `RESIDUE`.
+  - Preserve the original theorem names and interfaces:
+    `erase_bder`, `retrieve_code`, `bmkeps_retrieve`, `bder_retrieve`,
+    `MAIN_decode`, and `blexer_correctness`.
+- Precise BR-028 port sections queued after BR-027 parses:
+  - Add `eq1`, `flts`, `bsimp_ASEQ`, `bsimp_AALTs`, and `bsimp` cases for the
+    new annotated constructors without replacing the aggressive rewrite route.
+  - Extend `rrewrite/srewrite` only with constructor context rules and any
+    approved semantics-preserving backreference simplifications.
+  - Repair, in order, `rewrites_to_bsimp`, `rewrite_preserves_bder`,
+    `central`, `main_blexer_simp`, and `blexersimp_correctness`.
+- BR-029/BR-030 blocker: `BasicIdentities.thy`, `ClosedForms.thy`,
+  `ClosedFormsBounds.thy`, `FBound.thy`, and `GeneralRegexBound.thy` still
+  depend on the pre-migration `rrexp` skeleton. Their TODOs require admin/core
+  approval on whether to migrate the closed-form chain to `rexp` or
+  temporarily extend `rrexp`; Worker B made no speculative datatype edit.
+- Build before the concurrent core edit:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -Role admin`
+  passed after the scaffold with no-cheat guard, bounty guard, admin role
+  guard, Isabelle `Posix` (0:35 elapsed), Isabelle `BackRefPilot` (0:04
+  elapsed), and local CI certificate generation. Baseline before the edit also
+  passed with cached `Posix`/`BackRefPilot`.
+- Final build after a concurrent `RegLangs.thy` core-constructor edit appeared
+  in the worktree failed before Worker B-owned files were replayed. Failure:
+  Isabelle could not prove termination of `RegLangs.thy:der` for the
+  `BACKREF4` tail call
+  `der c (SEQ r3 (SEQ (RESIDUE (rev cs) (rev cs)) r4))`. `RegLangs.thy` is
+  outside Worker B's write scope, so this checkpoint stops with that blocker
+  instead of editing the core layer.
 
 ## Original-File Migration Audit (2026-05-27)
 
