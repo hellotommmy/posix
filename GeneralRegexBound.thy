@@ -1862,6 +1862,96 @@ next
   qed
 qed
 
+lemma good_rsimp4_SEQ_atom:
+  assumes "good r1 \<or> r1 = RZERO" "good r2 \<or> r2 = RZERO"
+  shows "good (rsimp4_SEQ_atom r1 r2) \<or> rsimp4_SEQ_atom r1 r2 = RZERO"
+  using assms
+proof (induct r1 arbitrary: r2)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSEQ r1 r1')
+  have good_left: "good r1"
+    using RSEQ.prems by (cases r1; cases r1') auto
+  have good_mid: "good r1'"
+    using RSEQ.prems by (cases r1; cases r1') auto
+  have inner: "good (rsimp4_SEQ_atom r1' r2) \<or>
+      rsimp4_SEQ_atom r1' r2 = RZERO"
+    by (rule RSEQ.hyps(2)) (use good_mid RSEQ.prems in auto)
+  show ?case
+    by (simp add: RSEQ.hyps(1)[OF disjI1[OF good_left] inner])
+next
+  case (RALTS rs)
+  then show ?case
+  proof (cases r2)
+    case RZERO
+    then show ?thesis by simp
+  next
+    case RONE
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RSEQ a b)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RALTS xs)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RSTAR r)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RNTIMES r n)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RBACKREF4 a b c d cs)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RHALF r cs rep)
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using RALTS.prems by simp
+  qed
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases r2) simp_all
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"

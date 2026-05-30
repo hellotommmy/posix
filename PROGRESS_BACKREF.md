@@ -363,6 +363,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     constrain nested alternatives inside `a` or `b`. The next invariant should
     be `good`-style or a new sequence-normal-form predicate, not plain
     `nonnested`.
+  - Added `good_rsimp4_SEQ_atom`: under `good-or-zero` inputs, the atom-level
+    sequence normalizer preserves `good-or-zero`. This is the first checked
+    replacement for the weak `nonnested` path and recursively constrains
+    sequence structure via the existing `good` predicate.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
