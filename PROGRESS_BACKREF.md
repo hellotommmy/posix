@@ -125,6 +125,21 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- Checked design counterexample for over-eager row products:
+  - Added lemmas showing that `rsimp5` distributes a right alternative suffix
+    in `(a b) (c+d)` into rows `b c` and `b d`.
+  - Added
+    `current_dual_frontier_universe_misses_right_alt_suffix_distribution`,
+    proving that the current dual frontier universe does not contain one of
+    those rows for a distinct-character witness.
+  - Design consequence: the fully eager `rsimp5` row-product is semantically
+    correct, but it is probably too aggressive to be the final cubic
+    simplifier as-is. The next candidate should use the Antimirov frontier
+    discipline more selectively, or the universe must be redesigned with a
+    checked non-exponential accounting argument before any bounty claim.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 

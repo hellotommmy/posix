@@ -5048,6 +5048,52 @@ proof -
     using assms by (simp add: rsimp5_SEQ_def)
 qed
 
+lemma rsimp5_derivative_distributes_right_alt_suffix_left:
+  assumes "a \<noteq> b" "b \<noteq> c" "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RCHAR c) \<in>
+    rfrontier
+      (rsimp5
+        (rder a
+          (RSEQ (RSEQ (RCHAR a) (RCHAR b))
+            (RALTS [RCHAR c, RCHAR d]))))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms by (simp add: rsimp5_SEQ_def)
+qed
+
+lemma rsimp5_derivative_distributes_right_alt_suffix_right:
+  assumes "a \<noteq> b" "b \<noteq> c" "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RCHAR d) \<in>
+    rfrontier
+      (rsimp5
+        (rder a
+          (RSEQ (RSEQ (RCHAR a) (RCHAR b))
+            (RALTS [RCHAR c, RCHAR d]))))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms by (simp add: rsimp5_SEQ_def)
+qed
+
+lemma current_dual_frontier_universe_misses_right_alt_suffix_distribution:
+  assumes "a \<noteq> b" "b \<noteq> c" "c \<noteq> d"
+  shows "RSEQ (RCHAR b) (RCHAR c) \<notin>
+    partial_derivative_path_dual_frontier_universe
+      (RSEQ (RSEQ (RCHAR a) (RCHAR b))
+        (RALTS [RCHAR c, RCHAR d]))"
+proof -
+  have "d \<noteq> c"
+    using assms by simp
+  then show ?thesis
+    using assms
+    by (simp add: partial_derivative_path_dual_frontier_universe_def
+        rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+        rpath_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
