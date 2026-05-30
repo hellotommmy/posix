@@ -140,6 +140,34 @@ lemma rerase_dB:
   apply(induct rs arbitrary: acc)
   apply simp+
   done
+
+lemma map_rerase_distinctWith_eq1:
+  shows "map rerase (distinctWith xs eq1 {}) = rdistinct (map rerase xs) {}"
+  using distinctBy_distinctWith2 rerase_dB by metis
+
+lemma rerase_bsimp3_ASEQ_atom:
+  shows "rerase (bsimp3_ASEQ_atom bs a1 a2) =
+    rsimp3_SEQ_atom (rerase a1) (rerase a2)"
+  by (cases a1; cases a2)
+     (simp_all add: bsimp3_ASEQ_atom_def rsimp3_SEQ_atom_def rerase_fuse)
+
+lemma rerase_bsimp3_seq_row:
+  shows "map rerase (bsimp3_seq_row bs a1 a2) =
+    rsimp3_seq_row (rerase a1) (rerase a2)"
+  by (simp add: rerase_bsimp3_ASEQ_atom)
+
+lemma rerase_concat_bsimp3_seq_rows:
+  shows "map rerase (concat (map (\<lambda>x. bsimp3_seq_row bs x a2) rs)) =
+    concat (map (\<lambda>x. rsimp3_seq_row (rerase x) (rerase a2)) rs)"
+  by (induct rs) (simp_all add: rerase_bsimp3_seq_row rerase_bsimp3_ASEQ_atom)
+
+lemma rerase_bsimp3_ASEQ:
+  shows "rerase (bsimp3_ASEQ bs a1 a2) =
+    rsimp3_SEQ (rerase a1) (rerase a2)"
+  by (cases a1)
+     (simp_all add: bsimp3_ASEQ_def rsimp3_SEQ_def rerase_bsimp_AALTs
+       map_rerase_distinctWith_eq1 rerase_flts rerase_bsimp3_seq_row
+       rerase_concat_bsimp3_seq_rows rerase_bsimp3_ASEQ_atom map_map comp_def)
   
 lemma rerase_earlier_later_same:
   assumes " \<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp r) = rsimp (rerase r)"
@@ -148,6 +176,25 @@ lemma rerase_earlier_later_same:
   apply(subst rerase_dB)
   apply(subst rerase_flts)
   apply(subst rerase_map_bsimp)
+  apply auto
+  using assms
+  apply simp
+  done
+
+lemma rerase_map_bsimp3:
+  assumes "\<And> r. r \<in> set rs \<Longrightarrow> rerase (bsimp3 r) = (rsimp3 \<circ> rerase) r"
+  shows "map rerase (map bsimp3 rs) =  map (rsimp3 \<circ> rerase) rs"
+  using assms
+  apply(induct rs)
+  by simp_all
+
+lemma rerase_earlier_later_same3:
+  assumes " \<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp3 r) = rsimp3 (rerase r)"
+  shows " (map rerase (distinctBy (flts (map bsimp3 rs)) rerase {})) =
+          (rdistinct (rflts (map (rsimp3 \<circ> rerase) rs)) {})"
+  apply(subst rerase_dB)
+  apply(subst rerase_flts)
+  apply(subst rerase_map_bsimp3)
   apply auto
   using assms
   apply simp
@@ -163,6 +210,17 @@ lemma bsimp_rerase:
   apply(auto)
   using rerase_bsimp_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same by fastforce
+
+lemma bsimp3_rerase:
+  shows "rerase (bsimp3 a) = rsimp3 (rerase a)"
+  apply(induct a rule: bsimp3.induct)
+  apply(auto)
+  using rerase_bsimp3_ASEQ apply presburger
+  using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same3 by fastforce
+
+lemma rders_simp3_size:
+  shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
+  by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])
 
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):
    Extend this original bound-transfer proof for the new constructor cases.

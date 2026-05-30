@@ -319,6 +319,40 @@ fun bsimp :: "arexp \<Rightarrow> arexp"
 | "bsimp (AALTs bs1 rs) = bsimp_AALTs bs1 (distinctWith (flts (map bsimp rs)) eq1 {}) "
 | "bsimp r = r"
 
+definition bsimp3_ASEQ_atom :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp3_ASEQ_atom bs r1 r2 =
+    (if r1 = AZERO \<or> r2 = AZERO then AZERO
+     else case r1 of
+       AONE bs2 \<Rightarrow> fuse (bs @ bs2) r2
+     | _ \<Rightarrow> ASEQ bs r1 r2)"
+
+fun bsimp3_seq_row :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bsimp3_seq_row bs r1 r2 = [bsimp3_ASEQ_atom bs r1 r2]"
+
+definition bsimp3_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp3_ASEQ bs r1 r2 =
+    (case r1 of
+      AALTs bs1 rs1 \<Rightarrow>
+        bsimp_AALTs (bs @ bs1)
+          (distinctWith (flts (concat (map (\<lambda>x. bsimp3_seq_row [] x r2) rs1))) eq1 {})
+    | _ \<Rightarrow>
+        bsimp_AALTs [] (distinctWith (flts (bsimp3_seq_row bs r1 r2)) eq1 {}))"
+
+(* Cubic-bound prototype for the annotated layer. This mirrors rsimp3 and only
+   distributes a sequence over a left alternative frontier, preserving the
+   order of right-hand alternative choice bits for later bitcoded proofs. *)
+fun bsimp3 :: "arexp \<Rightarrow> arexp" 
+  where
+  "bsimp3 (ASEQ bs1 r1 r2) = bsimp3_ASEQ bs1 (bsimp3 r1) (bsimp3 r2)"
+| "bsimp3 (AALTs bs1 rs) = bsimp_AALTs bs1 (distinctWith (flts (map bsimp3 rs)) eq1 {})"
+| "bsimp3 r = r"
+
+fun 
+  bders_simp3 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simp3 r [] = r"
+| "bders_simp3 r (c # s) = bders_simp3 (bsimp3 (bder c r)) s"
+
 
 fun 
   bders_simp :: "arexp \<Rightarrow> string \<Rightarrow> arexp"

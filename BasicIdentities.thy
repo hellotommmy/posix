@@ -230,6 +230,40 @@ fun rsimp :: "rrexp \<Rightarrow> rrexp"
 | "rsimp (RALTS rs) = rsimp_ALTs  (rdistinct (rflts (map rsimp rs))  {}) "
 | "rsimp r = r"
 
+definition rsimp3_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp3_SEQ_atom r1 r2 =
+    (case r1 of
+      RZERO \<Rightarrow> RZERO
+    | RONE \<Rightarrow> r2
+    | _ \<Rightarrow> (case r2 of RZERO \<Rightarrow> RZERO | _ \<Rightarrow> RSEQ r1 r2))"
+
+fun rsimp3_seq_row :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rsimp3_seq_row r1 r2 = [rsimp3_SEQ_atom r1 r2]"
+
+definition rsimp3_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp3_SEQ r1 r2 =
+    (case r1 of
+      RALTS rs1 \<Rightarrow>
+        rsimp_ALTs (rdistinct (rflts (concat (map (\<lambda>x. rsimp3_seq_row x r2) rs1))) {})
+    | _ \<Rightarrow>
+        rsimp_ALTs (rdistinct (rflts (rsimp3_seq_row r1 r2)) {}))"
+
+(* Cubic-bound prototype:
+   rsimp3 keeps the old zero/one/flatten/distinct behaviour, but additionally
+   distributes simplified sequences over RALTS. This turns Brzozowski-style
+   alternative trees into an Antimirov-style frontier list. *)
+fun rsimp3 :: "rrexp \<Rightarrow> rrexp" 
+  where
+  "rsimp3 (RSEQ r1 r2) = rsimp3_SEQ (rsimp3 r1) (rsimp3 r2)"
+| "rsimp3 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp3 rs)) {})"
+| "rsimp3 r = r"
+
+fun 
+  rders_simp3 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp3 r [] = r"
+| "rders_simp3 r (c#s) = rders_simp3 (rsimp3 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -1005,6 +1039,82 @@ lemma RL_rsimp:
        apply(auto simp add: Sequ_def RL_rsimp_RSEQ)
   using RL_rsimp_RALTS RL_rsimp_rdistinct RL_rsimp_rflts apply auto[1]
   by (smt (verit, del_insts) RL_rsimp_RALTS RL_rsimp_rdistinct RL_rsimp_rflts UN_E image_iff list.set_map)
+
+lemma RL_rsimp_ALTs_normalize:
+  "RL (rsimp_ALTs (rdistinct (rflts rs) {})) = (\<Union> (set (map RL rs)))"
+proof -
+  have "RL (rsimp_ALTs (rdistinct (rflts rs) {})) =
+    (\<Union> (set (map RL (rdistinct (rflts rs) {}))))"
+    by (rule RL_rsimp_RALTS)
+  also have "... = (\<Union> (set (map RL (rflts rs))))"
+    by (rule RL_rsimp_rdistinct)
+  also have "... = (\<Union> (set (map RL rs)))"
+    by (rule RL_rsimp_rflts)
+  finally show ?thesis .
+qed
+
+lemma Sequ_Union_left:
+  "(\<Union>A\<in>As. A ;; B) = (\<Union> As) ;; B"
+  by (auto simp add: Sequ_def)
+
+lemma Sequ_Union_right:
+  "A ;; (\<Union> Bs) = (\<Union>B\<in>Bs. A ;; B)"
+  by (auto simp add: Sequ_def)
+
+lemma Sequ_Un_left2:
+  "(A ;; C) \<union> (B ;; C) = (A \<union> B) ;; C"
+  by (auto simp add: Sequ_def)
+
+lemma RL_RALTS_Sequ:
+  "(\<Union>x\<in>set rs. RL x ;; B) = RL (RALTS rs) ;; B"
+  by (auto simp add: Sequ_def)
+
+lemma RL_rsimp3_SEQ_atom:
+  "RL (rsimp3_SEQ_atom r1 r2) = RL r1 ;; RL r2"
+  by (cases r1; cases r2) (simp_all add: rsimp3_SEQ_atom_def RL_RALTS_Sequ)
+
+lemma RL_rsimp3_seq_row:
+  "(\<Union> (RL ` set (rsimp3_seq_row r1 r2))) = RL r1 ;; RL r2"
+  by (cases r2) (auto simp add: RL_rsimp3_SEQ_atom Sequ_def)
+
+lemma RL_concat_rsimp3_seq_rows:
+  "(\<Union> (RL ` set (concat (map (\<lambda>x. rsimp3_seq_row x r2) rs)))) =
+   RL (RALTS rs) ;; RL r2"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons a rs)
+  have "(\<Union> (RL ` set (concat (map (\<lambda>x. rsimp3_seq_row x r2) (a # rs))))) =
+    (\<Union> (RL ` set (rsimp3_seq_row a r2))) \<union>
+    (\<Union> (RL ` set (concat (map (\<lambda>x. rsimp3_seq_row x r2) rs))))"
+    by simp
+  also have "... = (RL a ;; RL r2) \<union> (RL (RALTS rs) ;; RL r2)"
+    using Cons by (simp add: RL_rsimp3_seq_row RL_rsimp3_SEQ_atom)
+  also have "... = (RL a \<union> RL (RALTS rs)) ;; RL r2"
+    by (rule Sequ_Un_left2)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp3_SEQ:
+  "RL (rsimp3_SEQ r1 r2) = RL r1 ;; RL r2"
+  by (cases r1)
+     (simp_all add: rsimp3_SEQ_def RL_rsimp_ALTs_normalize
+       RL_rsimp3_seq_row RL_rsimp3_SEQ_atom RL_concat_rsimp3_seq_rows RL_RALTS_Sequ)
+
+lemma RL_rsimp3:
+  shows "RL r = RL (rsimp3 r)"
+proof (induct r rule: rsimp3.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp3_SEQ)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+qed simp_all
 
   
 lemma qqq1:

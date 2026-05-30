@@ -20,6 +20,26 @@ Last updated: 2026-05-31 (cubic-size-bound research kickoff)
   backreference correctness path. Any new simplifier should have a clearly
   delimited non-backref fragment theorem first, then connect back to the
   current original files only through proved preservation lemmas.
+- Checked first implementation checkpoint:
+  - Added new bounty tasks `BR-031` through `BR-034` and raised the project
+    pool to 100k simulated USD. `BR-032` reserves 25k for the new simplifier
+    definition.
+  - Added proof-only `rsimp3`/`rders_simp3` in `BasicIdentities.thy`.
+    `rsimp3` keeps zero/one simplification, alternative flattening, and
+    duplicate removal, and adds the Antimirov-style step that distributes a
+    sequence over a left `RALTS` frontier. It intentionally does not distribute
+    over right `RALTS`, because that would move right-side alternative choice
+    bits before the left value in the annotated lexer.
+  - Proved `RL_rsimp3`, the semantic preservation theorem for `rsimp3`.
+  - Added annotated `bsimp3`/`bders_simp3` in `BlexerSimp.thy`, mirroring the
+    left-frontier distribution while preserving right-hand choice-bit order.
+  - Added `bsimp3_rerase` and `rders_simp3_size` in `FBound.thy`, establishing
+    the transfer bridge from annotated states back to proof-only `rrexp`.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: define a non-backref partial-derivative universe whose
+  elements are generated from original subterms and continuation contexts, then
+  prove a cubic cardinality bound for that universe and show `rders_simp3`
+  stays inside it.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
