@@ -22,7 +22,7 @@ Isabelle sessions pass.
 
 ## Total Bounty Pool
 
-The total bounty pool for this project is **50,000 simulated USD**.
+The total bounty pool for this project is **100,000 simulated USD**.
 
 All bounty amounts are denominated in simulated USD. The pool is the maximum
 total payout across all agents. Bounties are allocated by the admin and
@@ -30,10 +30,10 @@ tracked in `BACKREF_BOUNTIES.md` under the `## Pool` section.
 
 | Category | Amount |
 | --- | ---: |
-| Total pool | 50,000 |
+| Total pool | 100,000 |
 | Allocated (active + completed bounties) | sum of all bounty amounts |
 | Collected (paid out) | sum of COLLECT ledger entries |
-| Reserved (unallocated) | 50,000 minus allocated |
+| Reserved (unallocated) | 100,000 minus allocated |
 
 The guard script validates that total allocated bounties never exceed the pool.
 

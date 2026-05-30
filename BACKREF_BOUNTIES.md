@@ -20,8 +20,8 @@ immutability.
 
 | Category | Amount |
 | --- | ---: |
-| Total pool | 50,000 |
-| Allocated (active + completed) | 35,090 |
+| Total pool | 100,000 |
+| Allocated (active + completed) | 85,090 |
 | Collected (paid out) | 24,970 |
 | Reserved (unallocated) | 14,910 |
 
@@ -47,6 +47,10 @@ immutability.
 | BR-028 | Preserve aggressive original BlexerSimp for backrefs | 1,400 | 140 | 9 | 1,400 | OPEN | - | BlexerSimp.thy:rewrites_to_bsimp,rewrite_preserves_bder,central,main_blexer_simp,blexersimp_correctness | Isabelle:Posix | Must use original rewrite-system route; weak structural simplifier or wrapper equality does not count |
 | BR-029 | Add backref closed-form families in original closed-form machinery | 1,200 | 160 | 9 | 1,200 | OPEN | - | BasicIdentities.thy;ClosedForms.thy:backref4_closed_form,half_closed_form,residue_closed_form | Isabelle:Posix | Decide rexp vs temporary rrexp, then add real BACKREF4/HALF/RESIDUE closed-form coverage |
 | BR-030 | Close original bounds after backref migration | 1,000 | 120 | 8 | 1,000 | OPEN | - | GeneralRegexBound.thy;ClosedFormsBounds.thy;FBound.thy:finite_size_n,rders_simp_bounded,annotated_size_bound | Isabelle:Posix | Final boundedness through original theorem chain; BackRefBoundedBlueprint wrappers do not count |
+| BR-031 | Cubic non-backref size-bound blueprint | 5,000 | 120 | 8 | 5,000 | OPEN | - | PROGRESS_BACKREF.md;BasicIdentities.thy;ClosedFormsBounds.thy;FBound.thy | AdminReview | State the cubic target, fragment invariant, and Antimirov-style frontier plan; no theorem payout for wrapper-only restatements |
+| BR-032 | Define stronger cubic-bound simplifier | 25,000 | 260 | 10 | 25,000 | OPEN | - | BasicIdentities.thy:rsimp3,rders_simp3;BlexerSimp.thy:bsimp3,bders_simp3;FBound.thy:bsimp3_rerase | Isabelle:Posix | New definition bounty reserved by admin; redesign `rsimp`/`bsimp` for a non-backref Antimirov-style frontier while preserving checked semantics |
+| BR-033 | Prove partial-derivative universe cubic bound | 12,000 | 300 | 10 | 12,000 | OPEN | - | GeneralRegexBound.thy:partial_derivative_universe,partial_derivative_universe_card_cubic | Isabelle:Posix | Replace `card(sizeNregex N)` reasoning with a finite universe generated from subterms/continuations of the original non-backref regex |
+| BR-034 | Transfer cubic bound to annotated lexer states | 8,000 | 260 | 10 | 8,000 | OPEN | - | ClosedFormsBounds.thy;FBound.thy:annotated_size_bound_cubic_nonbackref | Isabelle:Posix | Final non-backref theorem for `bders_simp3`/`bsimp3`; backref constructors explicitly excluded from the fragment |
 
 ## Completed
 
