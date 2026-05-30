@@ -3864,8 +3864,12 @@ definition partial_derivative_path_atom_frontier_universe :: "rrexp \<Rightarrow
   "partial_derivative_path_atom_frontier_universe r =
     insert RZERO (insert RONE (rsubterms r \<union> rpath_atom_frontiers r))"
 
+definition rpath_dual_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rpath_dual_frontier_acc r k =
+    rpath_frontier_acc r k \<union> rpath_atom_frontier_acc r k"
+
 definition rpath_dual_frontiers :: "rrexp \<Rightarrow> rrexp set" where
-  "rpath_dual_frontiers r = rpath_frontiers r \<union> rpath_atom_frontiers r"
+  "rpath_dual_frontiers r = rpath_dual_frontier_acc r RONE"
 
 definition partial_derivative_path_dual_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
   "partial_derivative_path_dual_frontier_universe r =
@@ -3885,7 +3889,7 @@ lemma finite_partial_derivative_path_atom_frontier_universe [simp]:
 
 lemma finite_rpath_dual_frontiers [simp]:
   "finite (rpath_dual_frontiers r)"
-  by (simp add: rpath_dual_frontiers_def)
+  by (simp add: rpath_dual_frontiers_def rpath_dual_frontier_acc_def)
 
 lemma finite_partial_derivative_path_dual_frontier_universe [simp]:
   "finite (partial_derivative_path_dual_frontier_universe r)"
@@ -3919,12 +3923,40 @@ proof -
       by (rule card_rsubterms_le_rsize)
     have dual: "card (rpath_dual_frontiers r) \<le>
       card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
-      unfolding rpath_dual_frontiers_def by (rule card_Un_le)
+      unfolding rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+        rpath_frontiers_def rpath_atom_frontiers_def
+      by (rule card_Un_le)
     show ?thesis
       using subterms dual by linarith
   qed
   finally show ?thesis .
 qed
+
+lemma rpath_frontier_acc_subset_dual:
+  "rpath_frontier_acc r k \<subseteq> rpath_dual_frontier_acc r k"
+  by (simp add: rpath_dual_frontier_acc_def)
+
+lemma rpath_atom_frontier_acc_subset_dual:
+  "rpath_atom_frontier_acc r k \<subseteq> rpath_dual_frontier_acc r k"
+  by (simp add: rpath_dual_frontier_acc_def)
+
+lemma partial_derivative_path_frontier_universe_subset_dual:
+  "partial_derivative_path_frontier_universe r \<subseteq>
+    partial_derivative_path_dual_frontier_universe r"
+  unfolding partial_derivative_path_frontier_universe_def
+    partial_derivative_path_dual_frontier_universe_def
+    rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+    rpath_frontiers_def rpath_atom_frontiers_def
+  by auto
+
+lemma partial_derivative_path_atom_frontier_universe_subset_dual:
+  "partial_derivative_path_atom_frontier_universe r \<subseteq>
+    partial_derivative_path_dual_frontier_universe r"
+  unfolding partial_derivative_path_atom_frontier_universe_def
+    partial_derivative_path_dual_frontier_universe_def
+    rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+    rpath_frontiers_def rpath_atom_frontiers_def
+  by auto
 
 lemma partial_derivative_path_atom_frontier_universe_alt_child_mono:
   assumes "r \<in> set rs"
@@ -3933,6 +3965,16 @@ lemma partial_derivative_path_atom_frontier_universe_alt_child_mono:
   using assms
   unfolding partial_derivative_path_atom_frontier_universe_def
     rpath_atom_frontiers_def
+  by auto
+
+lemma partial_derivative_path_dual_frontier_universe_alt_child_mono:
+  assumes "r \<in> set rs"
+  shows "partial_derivative_path_dual_frontier_universe r \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RALTS rs)"
+  using assms
+  unfolding partial_derivative_path_dual_frontier_universe_def
+    rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+    rpath_frontiers_def rpath_atom_frontiers_def
   by auto
 
 lemma rfrontier_rsimp4_rder_RZERO_path_atom_frontier [simp]:
@@ -3975,6 +4017,49 @@ proof
     partial_derivative_path_atom_frontier_universe (RALTS rs)"
     by (rule partial_derivative_path_atom_frontier_universe_alt_child_mono[OF r(1)])
   ultimately show "q \<in> partial_derivative_path_atom_frontier_universe (RALTS rs)"
+    by blast
+qed
+
+lemma rfrontier_rsimp4_rder_RZERO_path_dual_frontier [simp]:
+  "rfrontier (rsimp4 (rder c RZERO)) \<subseteq>
+    partial_derivative_path_dual_frontier_universe RZERO"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RONE_path_dual_frontier [simp]:
+  "rfrontier (rsimp4 (rder c RONE)) \<subseteq>
+    partial_derivative_path_dual_frontier_universe RONE"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RCHAR_path_dual_frontier [simp]:
+  "rfrontier (rsimp4 (rder c (RCHAR d))) \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RCHAR d)"
+  by (cases "c = d") (simp_all add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RALTS_path_dual_frontier:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    rfrontier (rsimp4 (rder c r)) \<subseteq>
+      partial_derivative_path_dual_frontier_universe r"
+  shows "rfrontier (rsimp4 (rder c (RALTS rs))) \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RALTS rs)"
+proof
+  fix q
+  assume q: "q \<in> rfrontier (rsimp4 (rder c (RALTS rs)))"
+  have q_norm: "q \<in>
+    rfrontier
+      (rsimp_ALTs (rdistinct (rflts (map (rsimp4 \<circ> rder c) rs)) {}))"
+    using q by simp
+  then obtain x where x:
+      "x \<in> set (map (rsimp4 \<circ> rder c) rs)"
+      "q \<in> rfrontier x"
+    by (rule rfrontier_normalize_memberE)
+  then obtain r where r: "r \<in> set rs" "x = rsimp4 (rder c r)"
+    by (auto simp add: comp_def)
+  have "q \<in> partial_derivative_path_dual_frontier_universe r"
+    using step[OF r(1)] x r by blast
+  moreover have "partial_derivative_path_dual_frontier_universe r \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RALTS rs)"
+    by (rule partial_derivative_path_dual_frontier_universe_alt_child_mono[OF r(1)])
+  ultimately show "q \<in> partial_derivative_path_dual_frontier_universe (RALTS rs)"
     by blast
 qed
 
@@ -4055,6 +4140,82 @@ proof -
     by (simp add: comp_def)
 qed
 
+lemma rfrontier_rsimp4_SEQ_rder_RZERO_path_dual_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c RZERO)) k) \<subseteq>
+    insert RZERO (rpath_dual_frontier_acc RZERO k)"
+  using rfrontier_rsimp4_SEQ_rder_RZERO_path_acc[of c k]
+    rpath_frontier_acc_subset_dual[of RZERO k]
+  by blast
+
+lemma rfrontier_rsimp4_SEQ_rder_RONE_path_dual_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c RONE)) k) \<subseteq>
+    insert RZERO (rpath_dual_frontier_acc RONE k)"
+  using rfrontier_rsimp4_SEQ_rder_RONE_path_acc[of c k]
+    rpath_frontier_acc_subset_dual[of RONE k]
+  by blast
+
+lemma rfrontier_rsimp4_SEQ_rder_RCHAR_path_dual_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c (RCHAR d))) k) \<subseteq>
+    insert RZERO (rpath_dual_frontier_acc (RCHAR d) k)"
+  using rfrontier_rsimp4_SEQ_rder_RCHAR_path_acc[of c d k]
+    rpath_frontier_acc_subset_dual[of "RCHAR d" k]
+  by blast
+
+lemma rfrontier_rsimp4_SEQ_rder_RALTS_path_dual_acc:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    rfrontier (rsimp4_SEQ (rsimp4 (rder c r)) k) \<subseteq>
+      insert RZERO (rpath_dual_frontier_acc r k)"
+  shows "rfrontier (rsimp4_SEQ (rsimp4 (rder c (RALTS rs))) k) \<subseteq>
+    insert RZERO (rpath_dual_frontier_acc (RALTS rs) k)"
+proof -
+  let ?xs = "rdistinct (rflts (map (rsimp4 \<circ> rder c) rs)) {}"
+  have mapped_good: "\<forall>r \<in> set (map (rsimp4 \<circ> rder c) rs).
+      good r \<or> r = RZERO"
+    using good_rsimp4 by auto
+  have xs_good: "\<forall>x \<in> set ?xs. good x \<and> nonalt x"
+    using flts3_good_nonalt[OF mapped_good]
+    by (simp add: rdistinct_set_equality)
+  have elem_subset: "\<And>x. x \<in> set ?xs \<Longrightarrow>
+    rfrontier (rsimp4_SEQ x k) \<subseteq>
+      insert RZERO (rpath_dual_frontier_acc (RALTS rs) k)"
+  proof -
+    fix x
+    assume x: "x \<in> set ?xs"
+    have x_nonalt: "nonalt x"
+      using xs_good x by blast
+    have x_nonzero: "x \<noteq> RZERO"
+      using xs_good x good_not_RZERO by blast
+    have x_front_xs: "x \<in> rfrontiers ?xs"
+      using x rfrontier_nonzero_nonalt_self[OF x_nonzero x_nonalt]
+        rfrontiers_member_iff by blast
+    have x_front_children: "x \<in> rfrontiers (map (rsimp4 \<circ> rder c) rs)"
+      using x_front_xs by simp
+    then obtain y where y:
+        "y \<in> set (map (rsimp4 \<circ> rder c) rs)"
+        "x \<in> rfrontier y"
+      using rfrontiers_member_iff by blast
+    then obtain r where r: "r \<in> set rs" "y = rsimp4 (rder c r)"
+      by (auto simp add: comp_def)
+    have y_good: "good y \<or> y = RZERO"
+      using r(2) good_rsimp4 by simp
+    have "rfrontier (rsimp4_SEQ x k) \<subseteq>
+      rfrontier (rsimp4_SEQ y k)"
+      by (rule rfrontier_good_member_SEQ_subset[OF y_good y(2)])
+    also have "... \<subseteq> insert RZERO (rpath_dual_frontier_acc r k)"
+      using step[OF r(1)] r(2) by simp
+    also have "... \<subseteq> insert RZERO (rpath_dual_frontier_acc (RALTS rs) k)"
+      using r(1) by (auto simp add: rpath_dual_frontier_acc_def)
+    finally show "rfrontier (rsimp4_SEQ x k) \<subseteq>
+      insert RZERO (rpath_dual_frontier_acc (RALTS rs) k)" .
+  qed
+  have "rfrontier (rsimp4_SEQ (rsimp_ALTs ?xs) k) \<subseteq>
+    insert RZERO (rpath_dual_frontier_acc (RALTS rs) k)"
+    by (rule rfrontier_rsimp4_SEQ_rsimp_ALTs_nonalt_subset)
+      (use elem_subset xs_good in auto)
+  then show ?thesis
+    by (simp add: comp_def)
+qed
+
 lemma distributed_suffix_atom_in_path_atom_frontier_universe:
   "RSEQ (RCHAR b) (RCHAR d) \<in>
     partial_derivative_path_atom_frontier_universe
@@ -4067,7 +4228,8 @@ lemma distributed_suffix_atom_in_path_dual_frontier_universe:
     partial_derivative_path_dual_frontier_universe
       (RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d)))"
   by (simp add: partial_derivative_path_dual_frontier_universe_def
-      rpath_dual_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
+      rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+      rpath_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
 
 lemma rsimp4_derivative_keeps_middle_alt_opaque:
   assumes "c \<noteq> d"
@@ -4130,7 +4292,8 @@ proof -
   then show ?thesis
     using assms
     by (simp add: partial_derivative_path_dual_frontier_universe_def
-        rpath_dual_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
+        rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+        rpath_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
 qed
 
 lemma rsimp5_derivative_distributes_middle_alt_left:

@@ -443,6 +443,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     best candidate universe: full continuations cover distributed suffix rows,
     while atom continuations cover opaque middle-alternative rows. Checked both
     examples and added the dual card skeleton.
+  - Lifted the old/atom proof interfaces into a real dual accumulator
+    `rpath_dual_frontier_acc`. Added subset bridges, dual universe inclusion
+    lemmas, and dual RZERO/RONE/RCHAR/RALTS closure lemmas for both top-level
+    derivatives and carried derivatives.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
