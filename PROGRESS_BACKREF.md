@@ -367,6 +367,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     sequence normalizer preserves `good-or-zero`. This is the first checked
     replacement for the weak `nonnested` path and recursively constrains
     sequence structure via the existing `good` predicate.
+  - Lifted that invariant to full `rsimp4_SEQ` with two small bridge lemmas:
+    normalized/flattened alternative lists preserve `good-or-zero`, and
+    concatenated `rsimp4_seq_row`s inherit the atom-level invariant. This gives
+    later closure proofs a checked syntactic normal-form hook.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

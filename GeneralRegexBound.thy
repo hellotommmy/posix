@@ -1952,6 +1952,121 @@ next
     by (cases r2) simp_all
 qed
 
+lemma good_rsimp_ALTs_rdistinct_rflts:
+  assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+  shows "good (rsimp_ALTs (rdistinct (rflts rs) {})) \<or>
+    rsimp_ALTs (rdistinct (rflts rs) {}) = RZERO"
+proof -
+  let ?xs = "rdistinct (rflts rs) {}"
+  have good_nonalt: "\<forall>r \<in> set ?xs. good r \<and> nonalt r"
+    using flts3_good_nonalt[OF assms] by (simp add: rdistinct_set_equality)
+  have distinct: "distinct ?xs"
+    by (rule rdistinct_does_the_job)
+  show ?thesis
+  proof (cases ?xs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons a ys)
+    note xs_cons = Cons
+    then show ?thesis
+    proof (cases ys)
+      case Nil
+      then show ?thesis
+        using xs_cons good_nonalt by simp
+    next
+      case (Cons b zs)
+      then show ?thesis
+        using xs_cons good_nonalt distinct by simp
+    qed
+  qed
+qed
+
+lemma good_rsimp4_SEQ_rows:
+  assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+      and "good k \<or> k = RZERO"
+  shows "\<forall>r \<in> set (concat (map (\<lambda>x. rsimp4_seq_row x k) rs)).
+    good r \<or> r = RZERO"
+  using assms good_rsimp4_SEQ_atom by auto
+
+lemma good_rsimp4_SEQ:
+  assumes "good r1 \<or> r1 = RZERO" "good r2 \<or> r2 = RZERO"
+  shows "good (rsimp4_SEQ r1 r2) \<or> rsimp4_SEQ r1 r2 = RZERO"
+proof (cases r1)
+  case RZERO
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RZERO good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case RONE
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RONE good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RCHAR x)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RCHAR good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RSEQ x1 x2)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RSEQ good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RALTS rs)
+  have elems: "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+    using assms RALTS good_RALTS_elem by fastforce
+  have rows: "\<forall>r \<in> set (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs)).
+      good r \<or> r = RZERO"
+    by (rule good_rsimp4_SEQ_rows[OF elems assms(2)])
+  show ?thesis
+    using RALTS good_rsimp_ALTs_rdistinct_rflts[OF rows]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RSTAR x)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RSTAR good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RNTIMES x1 x2)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RNTIMES good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RBACKREF4 x1 x2 x3 x4 x5)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RBACKREF4 good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RHALF x1 x2 x3)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RHALF good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RRESIDUE x1 x2)
+  have "\<forall>r \<in> set (rsimp4_seq_row r1 r2). good r \<or> r = RZERO"
+    using good_rsimp4_SEQ_atom[OF assms] by simp
+  then show ?thesis
+    using RRESIDUE good_rsimp_ALTs_rdistinct_rflts
+    by (simp add: rsimp4_SEQ_def)
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
