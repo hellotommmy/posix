@@ -918,6 +918,12 @@ fun rfrontier :: "rrexp \<Rightarrow> rrexp set"
 | "rfrontiers [] = {}"
 | "rfrontiers (r # rs) = rfrontier r \<union> rfrontiers rs"
 
+lemma finite_rfrontier [simp]:
+  "finite (rfrontier r)"
+  and finite_rfrontiers [simp]:
+  "finite (rfrontiers rs)"
+  by (induct r and rs rule: rfrontier_rfrontiers.induct) auto
+
 fun rnonseq :: "rrexp \<Rightarrow> bool" where
   "rnonseq (RSEQ r1 r2) = False"
 | "rnonseq r = True"
@@ -2077,6 +2083,61 @@ lemma rder_path_continuations_universe_subset:
   using rder_path_continuations_subset
     partial_derivative_path_universe_path_continuation
   by blast
+
+fun rpath_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rpath_frontier_acc RZERO k = {}"
+| "rpath_frontier_acc RONE k = {}"
+| "rpath_frontier_acc (RCHAR c) k = rfrontier (rsimp4 k)"
+| "rpath_frontier_acc (RALTS rs) k =
+    (\<Union> (set (map (\<lambda>r. rpath_frontier_acc r k) rs)))"
+| "rpath_frontier_acc (RSEQ r1 r2) k =
+    rpath_frontier_acc r1 (rsimp4_SEQ (rsimp4 r2) k) \<union>
+    rpath_frontier_acc r2 k"
+| "rpath_frontier_acc (RSTAR r) k =
+    rpath_frontier_acc r (rsimp4_SEQ (RSTAR r) k)"
+| "rpath_frontier_acc (RNTIMES r n) k =
+    (if n = 0 then {} else
+      rpath_frontier_acc r (rsimp4_SEQ (RNTIMES r (n - 1)) k))"
+| "rpath_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rpath_frontier_acc r1 k \<union> rpath_frontier_acc r2 k \<union>
+    rpath_frontier_acc r3 k \<union> rpath_frontier_acc r4 k"
+| "rpath_frontier_acc (RHALF r cs rep) k = rpath_frontier_acc r k"
+| "rpath_frontier_acc (RRESIDUE cs rep) k = {}"
+
+definition rpath_frontiers :: "rrexp \<Rightarrow> rrexp set" where
+  "rpath_frontiers r = rpath_frontier_acc r RONE"
+
+definition partial_derivative_path_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_path_frontier_universe r =
+    insert RZERO (insert RONE (rsubterms r \<union> rpath_frontiers r))"
+
+lemma finite_rpath_frontier_acc [simp]:
+  "finite (rpath_frontier_acc r k)"
+  by (induct r arbitrary: k) auto
+
+lemma finite_rpath_frontiers [simp]:
+  "finite (rpath_frontiers r)"
+  by (simp add: rpath_frontiers_def)
+
+lemma finite_partial_derivative_path_frontier_universe [simp]:
+  "finite (partial_derivative_path_frontier_universe r)"
+  by (simp add: partial_derivative_path_frontier_universe_def)
+
+lemma left_nested_atom_in_path_frontier_universe:
+  assumes "a \<noteq> b"
+  shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>
+    partial_derivative_path_frontier_universe
+      (RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c))"
+  using assms
+  by (simp add: partial_derivative_path_frontier_universe_def
+      rpath_frontiers_def rsimp4_SEQ_def)
+
+lemma distributed_suffix_atom_in_path_frontier_universe:
+  "RSEQ (RCHAR b) (RCHAR d) \<in>
+    partial_derivative_path_frontier_universe
+      (RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d)))"
+  by (simp add: partial_derivative_path_frontier_universe_def
+      rpath_frontiers_def rsimp4_SEQ_def)
 
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"

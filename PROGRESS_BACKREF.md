@@ -257,6 +257,21 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: replace `rpath_continuations` with a frontier-aware
   path universe whose suffix component is `rfrontier (rsimp4 suffix)`, then
   reprove the linear-count/quadratic-size accounting.
+- Checked sixteenth implementation checkpoint:
+  - Added `rpath_frontier_acc`/`rpath_frontiers` and
+    `partial_derivative_path_frontier_universe`.
+  - This candidate records `rfrontier (rsimp4 carried_suffix)` at character
+    positions, rather than only the carried suffix syntax. It therefore covers
+    both classes of counterexample discovered so far.
+  - Checked sanity lemmas:
+    `left_nested_atom_in_path_frontier_universe` and
+    `distributed_suffix_atom_in_path_frontier_universe`.
+  - Added finite-frontier lemmas for `rfrontier`/`rfrontiers`, needed by the
+    new universe.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove linear/quadratic accounting for
+  `partial_derivative_path_frontier_universe`, then use it as the target for
+  one-step `rsimp4 (rder c r)` closure.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
