@@ -95,6 +95,116 @@ lemma legacy_rders_simp:
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp legacy_rder)
 
+lemma legacy_rsimp4_SEQ_atom:
+  assumes "legacy_rrexp r1" "legacy_rrexp r2"
+  shows "legacy_rrexp (rsimp4_SEQ_atom r1 r2)"
+  using assms
+proof (induct r1 arbitrary: r2)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSEQ r1 r1')
+  have left: "legacy_rrexp r1"
+    using RSEQ.prems by simp
+  have mid: "legacy_rrexp r1'"
+    using RSEQ.prems by simp
+  have inner: "legacy_rrexp (rsimp4_SEQ_atom r1' r2)"
+    by (rule RSEQ.hyps(2)[OF mid RSEQ.prems(2)])
+  show ?case
+    by (simp add: RSEQ.hyps(1)[OF left inner])
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma legacy_rsimp5_alt_rows:
+  assumes "legacy_rrexp r"
+  shows "\<forall>x \<in> set (rsimp5_alt_rows r). legacy_rrexp x"
+  using assms by (cases r) auto
+
+lemma legacy_rsimp5_seq_products:
+  assumes "\<forall>x \<in> set xs. legacy_rrexp x"
+      and "\<forall>y \<in> set ys. legacy_rrexp y"
+  shows "\<forall>z \<in> set (rsimp5_seq_products xs ys). legacy_rrexp z"
+  using assms legacy_rsimp4_SEQ_atom by (induct xs) auto
+
+lemma legacy_rsimp5_SEQ:
+  assumes "legacy_rrexp r1" "legacy_rrexp r2"
+  shows "legacy_rrexp (rsimp5_SEQ r1 r2)"
+proof -
+  have rows1: "\<forall>x \<in> set (rsimp5_alt_rows r1). legacy_rrexp x"
+    by (rule legacy_rsimp5_alt_rows[OF assms(1)])
+  have rows2: "\<forall>x \<in> set (rsimp5_alt_rows r2). legacy_rrexp x"
+    by (rule legacy_rsimp5_alt_rows[OF assms(2)])
+  have products: "\<forall>z \<in>
+      set (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)).
+      legacy_rrexp z"
+    by (rule legacy_rsimp5_seq_products[OF rows1 rows2])
+  have flat: "\<forall>z \<in>
+      set (rflts (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2))).
+      legacy_rrexp z"
+    by (rule legacy_rflts[OF products])
+  have distinct: "\<forall>z \<in>
+      set (rdistinct
+        (rflts (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)))
+        {}). legacy_rrexp z"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rsimp5_SEQ_def
+    by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
+lemma legacy_rsimp5:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimp5 r)"
+  using assms
+proof (induction r)
+  case (RALTS rs)
+  have mapped: "\<forall>r \<in> set (map rsimp5 rs). legacy_rrexp r"
+    using RALTS by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimp5 rs)). legacy_rrexp r"
+    using legacy_rflts[OF mapped] .
+  have distinct: "\<forall>r \<in> set (rdistinct (rflts (map rsimp5 rs)) {}). legacy_rrexp r"
+    using legacy_rdistinct[OF flat] .
+  show ?case
+    using legacy_rsimp_ALTs[OF distinct] by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    using legacy_rsimp5_SEQ by simp
+qed simp_all
+
+lemma legacy_rders_simp5:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_simp5 r s)"
+  using assms
+  by (induction s arbitrary: r) (auto simp add: legacy_rsimp5 legacy_rder)
+
 fun rsubterms :: "rrexp \<Rightarrow> rrexp set" where
   "rsubterms RZERO = {RZERO}"
 | "rsubterms RONE = {RONE}"

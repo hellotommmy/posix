@@ -394,6 +394,9 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     is now language-preserving.
   - Proved `good_rsimp5_SEQ` and `good_rsimp5`: the row-product simplifier also
     preserves the `good-or-zero` normal-form invariant.
+  - Proved `legacy_rsimp5_SEQ`, `legacy_rsimp5`, and `legacy_rders_simp5`.
+    The candidate cubic simplifier therefore preserves the non-backref fragment
+    required by the theorem statement.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
