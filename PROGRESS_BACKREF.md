@@ -55,6 +55,22 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove membership/closure, first for one derivative
   step and then for `rders_simp3`, showing that every generated frontier atom
   stays in `partial_derivative_universe r` for the non-backref fragment.
+- Checked third implementation checkpoint:
+  - Added `rlinear_continuations`, which keeps only syntactically reachable
+    continuation contexts: sequence suffixes, star loop contexts, and bounded
+    `RNTIMES r k` counters from the original `RNTIMES r n` node.
+  - Proved `card_rlinear_continuations_le_rsize`, replacing the deliberately
+    broad global-counter continuation set with a linear one.
+  - Added `partial_derivative_frontier_universe` and proved
+    `partial_derivative_frontier_universe_card_quadratic`:
+    `card (partial_derivative_frontier_universe r) <= (rsize r + 2)^2`.
+    This is the stronger cubic-size route: a quadratic number of frontier
+    atoms times a linear atom-size bound, instead of the earlier cubic
+    cardinality overapproximation.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove every element of the quadratic frontier universe
+  has size at most linear in `rsize r`, then prove `rsimp3`/`rders_simp3`
+  frontier membership for the non-backref fragment.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

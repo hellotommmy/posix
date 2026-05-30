@@ -370,6 +370,195 @@ proof -
   finally show ?thesis .
 qed
 
+fun rlinear_continuations :: "rrexp \<Rightarrow> rrexp set" where
+  "rlinear_continuations RZERO = {}"
+| "rlinear_continuations RONE = {}"
+| "rlinear_continuations (RCHAR c) = {}"
+| "rlinear_continuations (RALTS rs) =
+    (\<Union> (set (map rlinear_continuations rs)))"
+| "rlinear_continuations (RSEQ r1 r2) =
+    insert r2 (rlinear_continuations r1 \<union> rlinear_continuations r2)"
+| "rlinear_continuations (RSTAR r) =
+    insert (RSTAR r) (rlinear_continuations r)"
+| "rlinear_continuations (RNTIMES r n) =
+    ((\<lambda>k. RNTIMES r k) ` {..n}) \<union> rlinear_continuations r"
+| "rlinear_continuations (RBACKREF4 r1 r2 r3 r4 cs) =
+    rlinear_continuations r1 \<union> rlinear_continuations r2 \<union>
+    rlinear_continuations r3 \<union> rlinear_continuations r4"
+| "rlinear_continuations (RHALF r cs rep) = rlinear_continuations r"
+| "rlinear_continuations (RRESIDUE cs rep) = {}"
+
+lemma finite_rlinear_continuations [simp]:
+  "finite (rlinear_continuations r)"
+  by (induct r) auto
+
+lemma finite_rlinear_continuations_list [simp]:
+  "finite (\<Union> (set (map rlinear_continuations rs)))"
+  by (induct rs) auto
+
+lemma card_rlinear_continuations_list_le_rsizes:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow> card (rlinear_continuations r) \<le> rsize r"
+  shows "card (\<Union> (set (map rlinear_continuations rs))) \<le> rsizes rs"
+  using step
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have "card (\<Union> (set (map rlinear_continuations (r # rs)))) =
+    card (rlinear_continuations r \<union> (\<Union> (set (map rlinear_continuations rs))))"
+    by simp
+  also have "... \<le> card (rlinear_continuations r) +
+    card (\<Union> (set (map rlinear_continuations rs)))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize r + rsizes rs"
+  proof -
+    have r_le: "card (rlinear_continuations r) \<le> rsize r"
+      using Cons.prems by simp
+    have rs_le: "card (\<Union> (set (map rlinear_continuations rs))) \<le> rsizes rs"
+      using Cons.hyps Cons.prems by simp
+    show ?thesis
+      using r_le rs_le by linarith
+  qed
+  finally show ?case
+    by simp
+qed
+
+lemma card_rlinear_continuations_le_rsize:
+  "card (rlinear_continuations r) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case
+    using card_rlinear_continuations_list_le_rsizes[of rs] by simp
+next
+  case (RSEQ r1 r2)
+  have "card (rlinear_continuations (RSEQ r1 r2)) \<le>
+    Suc (card (rlinear_continuations r1 \<union> rlinear_continuations r2))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> Suc (card (rlinear_continuations r1) +
+    card (rlinear_continuations r2))"
+    using card_Un_le by simp
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using RSEQ by simp
+  finally show ?case .
+next
+  case (RSTAR r)
+  have "card (rlinear_continuations (RSTAR r)) \<le>
+    Suc (card (rlinear_continuations r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rsize (RSTAR r)"
+    using RSTAR by simp
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  have upto: "card ((\<lambda>k. RNTIMES r k) ` {..n}) \<le> Suc n"
+  proof -
+    have "card ((\<lambda>k. RNTIMES r k) ` {..n}) \<le> card ({..n})"
+      by (rule card_image_le) simp
+    then show ?thesis
+      by simp
+  qed
+  have "card (rlinear_continuations (RNTIMES r n)) =
+    card (((\<lambda>k. RNTIMES r k) ` {..n}) \<union> rlinear_continuations r)"
+    by simp
+  also have "... \<le>
+    card ((\<lambda>k. RNTIMES r k) ` {..n}) + card (rlinear_continuations r)"
+    by (rule card_Un_le)
+  also have "... \<le> Suc n + rsize r"
+    using upto RNTIMES by simp
+  also have "... \<le> rsize (RNTIMES r n)"
+    by simp
+  finally show ?case .
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "card (rlinear_continuations (RBACKREF4 r1 r2 r3 r4 cs)) \<le>
+    card (rlinear_continuations r1) + card (rlinear_continuations r2) +
+    card (rlinear_continuations r3) + card (rlinear_continuations r4)"
+    using card_Un4_le[of "rlinear_continuations r1" "rlinear_continuations r2"
+      "rlinear_continuations r3" "rlinear_continuations r4"] by simp
+  also have "... \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs)"
+    using RBACKREF4 by simp
+  finally show ?case .
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+definition partial_derivative_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_frontier_universe r =
+    insert RZERO
+      (insert RONE
+        (rsubterms r \<union>
+         (\<lambda>(p, k). RSEQ p k) ` (rsubterms r \<times> rlinear_continuations r)))"
+
+lemma finite_partial_derivative_frontier_universe [simp]:
+  "finite (partial_derivative_frontier_universe r)"
+  by (simp add: partial_derivative_frontier_universe_def)
+
+lemma quadratic_padding_bound:
+  fixes n :: nat
+  shows "2 + n + n * n \<le> (n + 2) ^ 2"
+proof -
+  have "(n + 2) ^ 2 = n * n + 4 * n + 4"
+    by (simp add: algebra_simps power2_eq_square)
+  moreover have "2 + n \<le> 4 * n + 4"
+    by simp
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma partial_derivative_frontier_universe_card_quadratic:
+  "card (partial_derivative_frontier_universe r) \<le> (rsize r + 2) ^ 2"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rlinear_continuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have A: "card ?A \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  have K: "card ?K \<le> rsize r"
+    by (rule card_rlinear_continuations_le_rsize)
+  have P: "card ?P \<le> card ?A * card ?K"
+  proof -
+    have "card ?P \<le> card (?A \<times> ?K)"
+      by (rule card_image_le) simp
+    then show ?thesis
+      by simp
+  qed
+  have P_size: "card ?P \<le> rsize r * rsize r"
+  proof -
+    have "card ?P \<le> card ?A * rsize r"
+    proof -
+      have "card ?A * card ?K \<le> card ?A * rsize r"
+        using K by (simp add: mult_left_mono)
+      then show ?thesis
+        using P by linarith
+    qed
+    also have "... \<le> rsize r * rsize r"
+      using A by (simp add: mult_right_mono)
+    finally show ?thesis .
+  qed
+  have "card (partial_derivative_frontier_universe r) \<le> 2 + card ?A + card ?P"
+    unfolding partial_derivative_frontier_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le> 2 + rsize r + rsize r * rsize r"
+    using A P_size by linarith
+  also have "... \<le> (rsize r + 2) ^ 2"
+    by (rule quadratic_padding_bound)
+  finally show ?thesis .
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
