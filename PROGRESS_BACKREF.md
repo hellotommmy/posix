@@ -77,6 +77,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Proved `partial_derivative_frontier_universe_member_size_linear`:
     any atom in the quadratic frontier universe has structural size at most
     `Suc (rsize r + rsize r)`.
+  - Corrected `partial_derivative_frontier_universe` to include reachable
+    continuations themselves, not only `RSEQ p k` pairs. This is necessary
+    because `rsimp3_SEQ_atom RONE k` simplifies directly to `k`.
+    The cardinality theorem remains quadratic.
   - This establishes the two numeric ingredients for a cubic result:
     quadratic many frontier atoms, each of linear size. The remaining proof
     obligation is semantic/closure-shaped: show the actual `rsimp3` derivative

@@ -761,6 +761,7 @@ definition partial_derivative_frontier_universe :: "rrexp \<Rightarrow> rrexp se
     insert RZERO
       (insert RONE
         (rsubterms r \<union>
+         rlinear_continuations r \<union>
          (\<lambda>(p, k). RSEQ p k) ` (rsubterms r \<times> rlinear_continuations r)))"
 
 lemma finite_partial_derivative_frontier_universe [simp]:
@@ -769,11 +770,11 @@ lemma finite_partial_derivative_frontier_universe [simp]:
 
 lemma quadratic_padding_bound:
   fixes n :: nat
-  shows "2 + n + n * n \<le> (n + 2) ^ 2"
+  shows "2 + n + n + n * n \<le> (n + 2) ^ 2"
 proof -
   have "(n + 2) ^ 2 = n * n + 4 * n + 4"
     by (simp add: algebra_simps power2_eq_square)
-  moreover have "2 + n \<le> 4 * n + 4"
+  moreover have "2 + n + n \<le> 4 * n + 4"
     by simp
   ultimately show ?thesis
     by simp
@@ -809,11 +810,22 @@ proof -
       using A by (simp add: mult_right_mono)
     finally show ?thesis .
   qed
-  have "card (partial_derivative_frontier_universe r) \<le> 2 + card ?A + card ?P"
-    unfolding partial_derivative_frontier_universe_def
-    by (rule card_insert2_Un_le) simp_all
-  also have "... \<le> 2 + rsize r + rsize r * rsize r"
-    using A P_size by linarith
+  have "card (partial_derivative_frontier_universe r) \<le>
+    2 + card ?A + card ?K + card ?P"
+  proof -
+    have U: "partial_derivative_frontier_universe r =
+      insert RZERO (insert RONE (?A \<union> ?K \<union> ?P))"
+      unfolding partial_derivative_frontier_universe_def by simp
+    have "card (insert RZERO (insert RONE (?A \<union> ?K \<union> ?P))) \<le>
+      2 + card (?A \<union> ?K) + card ?P"
+      by (rule card_insert2_Un_le) simp_all
+    also have "... \<le> 2 + card ?A + card ?K + card ?P"
+      using card_Un_le[of ?A ?K] by simp
+    finally show ?thesis
+      using U by simp
+  qed
+  also have "... \<le> 2 + rsize r + rsize r + rsize r * rsize r"
+    using A K P_size by linarith
   also have "... \<le> (rsize r + 2) ^ 2"
     by (rule quadratic_padding_bound)
   finally show ?thesis .
@@ -826,20 +838,20 @@ proof -
   let ?A = "rsubterms r"
   let ?K = "rlinear_continuations r"
   let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
-  have q_cases: "q = RZERO \<or> q = RONE \<or> q \<in> ?A \<or> q \<in> ?P"
+  have q_cases: "q = RZERO \<or> q = RONE \<or> q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
     using assms unfolding partial_derivative_frontier_universe_def by auto
   then show ?thesis
   proof
     assume "q = RZERO"
     then show ?thesis by simp
   next
-    assume rest1: "q = RONE \<or> q \<in> ?A \<or> q \<in> ?P"
+    assume rest1: "q = RONE \<or> q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
     then show ?thesis
     proof
       assume "q = RONE"
       then show ?thesis by simp
     next
-      assume rest2: "q \<in> ?A \<or> q \<in> ?P"
+      assume rest2: "q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
       then show ?thesis
       proof
         assume "q \<in> ?A"
@@ -847,16 +859,25 @@ proof -
           using rsubterms_member_size_le_rsize by blast
         then show ?thesis by simp
       next
-        assume "q \<in> ?P"
-        then obtain p k where pk:
-          "p \<in> ?A" "k \<in> ?K" "q = RSEQ p k"
-          by auto
-        have p_size: "rsize p \<le> rsize r"
-          using pk rsubterms_member_size_le_rsize by blast
-        have k_size: "rsize k \<le> rsize r"
-          using pk rlinear_continuations_member_size_le_rsize by blast
-        show ?thesis
-          using pk p_size k_size by simp
+        assume rest3: "q \<in> ?K \<or> q \<in> ?P"
+        then show ?thesis
+        proof
+          assume "q \<in> ?K"
+          then have "rsize q \<le> rsize r"
+            using rlinear_continuations_member_size_le_rsize by blast
+          then show ?thesis by simp
+        next
+          assume "q \<in> ?P"
+          then obtain p k where pk:
+            "p \<in> ?A" "k \<in> ?K" "q = RSEQ p k"
+            by auto
+          have p_size: "rsize p \<le> rsize r"
+            using pk rsubterms_member_size_le_rsize by blast
+          have k_size: "rsize k \<le> rsize r"
+            using pk rlinear_continuations_member_size_le_rsize by blast
+          show ?thesis
+            using pk p_size k_size by simp
+        qed
       qed
     qed
   qed
