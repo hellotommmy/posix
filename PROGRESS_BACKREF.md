@@ -371,6 +371,9 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     normalized/flattened alternative lists preserve `good-or-zero`, and
     concatenated `rsimp4_seq_row`s inherit the atom-level invariant. This gives
     later closure proofs a checked syntactic normal-form hook.
+  - Added `good_rsimp4`: the whole `rsimp4` simplifier now has a checked
+    `good-or-zero` output invariant. This packages the sequence and alternative
+    cases for later derivative-closure proofs.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

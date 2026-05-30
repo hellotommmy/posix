@@ -2067,6 +2067,44 @@ next
     by (simp add: rsimp4_SEQ_def)
 qed
 
+lemma good_rsimp4:
+  shows "good (rsimp4 r) \<or> rsimp4 r = RZERO"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    using good_rsimp4_SEQ by simp
+next
+  case (RALTS rs)
+  have elems: "\<forall>r \<in> set (map rsimp4 rs). good r \<or> r = RZERO"
+    using RALTS by auto
+  show ?case
+    using good_rsimp_ALTs_rdistinct_rflts[OF elems] by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
