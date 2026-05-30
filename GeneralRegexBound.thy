@@ -1989,6 +1989,57 @@ next
   then show ?case by simp
 qed
 
+lemma rfrontier_frontier_universe_member_subset:
+  assumes "q \<in> partial_derivative_frontier_universe r"
+  shows "rfrontier q \<subseteq> partial_derivative_frontier_universe r"
+proof
+  fix x
+  assume x: "x \<in> rfrontier q"
+  let ?A = "rsubterms r"
+  let ?K = "rlinear_continuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have q_cases: "q = RZERO \<or> q = RONE \<or> q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
+    using assms unfolding partial_derivative_frontier_universe_def by auto
+  then show "x \<in> partial_derivative_frontier_universe r"
+  proof
+    assume "q = RZERO"
+    then show ?thesis
+      using x by simp
+  next
+    assume rest1: "q = RONE \<or> q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
+    then show ?thesis
+    proof
+      assume "q = RONE"
+      then show ?thesis
+        using x by simp
+    next
+      assume rest2: "q \<in> ?A \<or> q \<in> ?K \<or> q \<in> ?P"
+      then show ?thesis
+      proof
+        assume "q \<in> ?A"
+        then show ?thesis
+          using x rfrontier_subterm_subset by blast
+      next
+        assume rest3: "q \<in> ?K \<or> q \<in> ?P"
+        then show ?thesis
+        proof
+          assume "q \<in> ?K"
+          then show ?thesis
+            using x rfrontier_linear_continuation_subset by blast
+        next
+          assume "q \<in> ?P"
+          then have "q \<in> partial_derivative_frontier_universe r"
+            unfolding partial_derivative_frontier_universe_def by auto
+          moreover have "rfrontier q = {q}"
+            using \<open>q \<in> ?P\<close> by auto
+          ultimately show ?thesis
+            using x by auto
+        qed
+      qed
+    qed
+  qed
+qed
+
 lemma rfrontier_rsimp4_SEQ_atom_nonseq_subset:
   assumes p: "p \<in> rsubterms r"
       and k: "k \<in> rlinear_continuations r"
