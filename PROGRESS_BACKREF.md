@@ -347,6 +347,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     This gives the local reassociation needed by the future `RSEQ` proof; the
     remaining hard part is lifting it through full `rsimp4_SEQ` where
     alternatives may distribute.
+  - Added `rfrontier_rsimp4_SEQ_atom_source_subset`, the converse visibility
+    direction for sequence sources: a source row's atom frontier is contained
+    in the full `rsimp4_SEQ` frontier. Together with
+    `rfrontier_rsimp4_SEQ_memberE`, this gives a controlled way to move between
+    whole-frontier and row-frontier goals without broad search.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

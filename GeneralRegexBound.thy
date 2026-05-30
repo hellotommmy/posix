@@ -1755,6 +1755,64 @@ next
     using RRESIDUE that by simp
 qed
 
+lemma rfrontier_rsimp4_SEQ_atom_source_subset:
+  assumes "x \<in> rseq_sources r"
+  shows "rfrontier (rsimp4_SEQ_atom x k) \<subseteq>
+    rfrontier (rsimp4_SEQ r k)"
+proof (cases r)
+  case (RALTS rs)
+  show ?thesis
+  proof
+    fix q
+    assume q: "q \<in> rfrontier (rsimp4_SEQ_atom x k)"
+    have "x \<in> set rs"
+      using assms RALTS by simp
+    then have "rsimp4_SEQ_atom x k \<in>
+      set (concat (map (\<lambda>y. rsimp4_seq_row y k) rs))"
+      by auto
+    then have "q \<in> rfrontiers (concat (map (\<lambda>y. rsimp4_seq_row y k) rs))"
+      using q rfrontiers_member_iff by blast
+    then show "q \<in> rfrontier (rsimp4_SEQ r k)"
+      using RALTS by (simp add: rsimp4_SEQ_def)
+  qed
+next
+  case RZERO
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case RONE
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RCHAR c)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RSEQ r1 r2)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RSTAR r)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    using assms by (simp add: rsimp4_SEQ_def)
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
