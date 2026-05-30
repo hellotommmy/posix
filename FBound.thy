@@ -441,6 +441,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rerase_concat_map_bpder_norm_list:
+  "map rerase (concat (map (bpder_norm_list c) rs)) =
+    concat (map (\<lambda>r. rpder_norm_list c (rerase r)) rs)"
+  by (induct rs) (simp_all add: rerase_bpder_norm_list)
+
+lemma rerase_bpder_norm_rows:
+  "map rerase (bpder_norm_rows c rs) = rpder_norm_rows c (map rerase rs)"
+  by (simp add: bpder_norm_rows_def rpder_norm_rows_def
+      map_rerase_distinctWith_eq1 rerase_flts
+      rerase_concat_map_bpder_norm_list map_map comp_def)
+
 lemma bp_der_norm_rerase:
   shows "rerase (bp_der_norm c r) = rpd_der_norm c (rerase r)"
   by (simp add: bp_der_norm_def rpd_der_norm_def rerase_bsimp_AALTs
@@ -485,6 +496,32 @@ lemma rders_pder_size:
 lemma rders_pder_norm_size:
   shows "rders_pder_norm (rerase r) s = rerase (bders_pder_norm r s)"
   by (induct s arbitrary: r) (simp_all add: bp_der_norm_rerase[symmetric])
+
+lemma rpders_norm_rows_rerase:
+  "rpders_norm_rows (map rerase rs) s =
+    map rerase (bpders_norm_rows rs s)"
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have "rpders_norm_rows (map rerase rs) (c # s) =
+    rpders_norm_rows (rpder_norm_rows c (map rerase rs)) s"
+    by simp
+  also have "... =
+    rpders_norm_rows (map rerase (bpder_norm_rows c rs)) s"
+    by (simp add: rerase_bpder_norm_rows)
+  also have "... =
+    map rerase (bpders_norm_rows (bpder_norm_rows c rs) s)"
+    by (rule Cons.hyps)
+  finally show ?case by simp
+qed
+
+lemma rpders_norm1_rows_rerase:
+  "rpders_norm1_rows (rerase r) s =
+    map rerase (bpders_norm1_rows r s)"
+  using rpders_norm_rows_rerase[of "[r]" s]
+  by (simp add: rpders_norm1_rows_def bpders_norm1_rows_def)
 
 lemma asize_bp_der_rpd_der:
   shows "asize (bp_der c r) = rsize (rpd_der c (rerase r))"

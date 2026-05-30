@@ -473,6 +473,10 @@ definition bp_der_norm :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
   "bp_der_norm c r =
     bsimp_AALTs [] (distinctWith (flts (bpder_norm_list c r)) eq1 {})"
 
+definition bpder_norm_rows :: "char \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bpder_norm_rows c rs =
+    distinctWith (flts (concat (map (bpder_norm_list c) rs))) eq1 {}"
+
 fun
   bders_pder :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
 where
@@ -484,6 +488,15 @@ fun
 where
   "bders_pder_norm r [] = r"
 | "bders_pder_norm r (c # s) = bders_pder_norm (bp_der_norm c r) s"
+
+fun
+  bpders_norm_rows :: "arexp list \<Rightarrow> string \<Rightarrow> arexp list"
+where
+  "bpders_norm_rows rs [] = rs"
+| "bpders_norm_rows rs (c # s) = bpders_norm_rows (bpder_norm_rows c rs) s"
+
+definition bpders_norm1_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
+  "bpders_norm1_rows r s = bpders_norm_rows [r] s"
 
 
 fun 
