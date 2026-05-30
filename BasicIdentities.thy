@@ -320,6 +320,39 @@ where
   "rders_simp4 r [] = r"
 | "rders_simp4 r (c#s) = rders_simp4 (rsimp4 (rder c r)) s"
 
+fun rsimp5_alt_rows :: "rrexp \<Rightarrow> rrexp list" where
+  "rsimp5_alt_rows RZERO = []"
+| "rsimp5_alt_rows (RALTS rs) = rs"
+| "rsimp5_alt_rows r = [r]"
+
+fun rsimp5_seq_products :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimp5_seq_products [] ys = []"
+| "rsimp5_seq_products (x # xs) ys =
+    map (\<lambda>y. rsimp4_SEQ_atom x y) ys @ rsimp5_seq_products xs ys"
+
+definition rsimp5_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp5_SEQ r1 r2 =
+    rsimp_ALTs
+      (rdistinct
+        (rflts (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)))
+        {})"
+
+(* Cubic-bound redesign candidate:
+   rsimp5 distributes sequence over alternatives on both sides by taking a
+   row-product. rsimp4 only distributed the left side, which leaves middle
+   alternatives opaque after a non-empty head. *)
+fun rsimp5 :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimp5 (RSEQ r1 r2) = rsimp5_SEQ (rsimp5 r1) (rsimp5 r2)"
+| "rsimp5 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp5 rs)) {})"
+| "rsimp5 r = r"
+
+fun
+  rders_simp5 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp5 r [] = r"
+| "rders_simp5 r (c#s) = rders_simp5 (rsimp5 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"

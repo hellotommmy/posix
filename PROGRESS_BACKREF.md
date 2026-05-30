@@ -384,6 +384,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     head (`b ((c+d) e)` shape), while the current path-frontier universe records
     the fully distributed continuation instead. This is a simplifier/universe
     design issue, not a tactic issue.
+  - Added `rsimp5`/`rders_simp5` prototype in `BasicIdentities.thy`. Its
+    sequence normalizer converts both sides to alternative rows and takes a
+    row-product, using `rsimp4_SEQ_atom` for zero/one and sequence reassociation.
+    Checked sanity lemmas show the middle-alternative counterexample now yields
+    both distributed rows `b (c e)` and `b (d e)`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
