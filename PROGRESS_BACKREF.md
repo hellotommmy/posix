@@ -340,6 +340,13 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `rfrontier (rsimp4_SEQ r k)` into a concrete sequence source `x` with
     `q in rfrontier (rsimp4_SEQ_atom x k)`. This is intended as the entry
     point for the upcoming `RSEQ` carried-closure proof.
+  - Added `rsimp4_SEQ_atom_assoc`, a checked syntactic associativity lemma for
+    sequence atoms:
+    `rsimp4_SEQ_atom (rsimp4_SEQ_atom r1 r2) k =
+    rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)`.
+    This gives the local reassociation needed by the future `RSEQ` proof; the
+    remaining hard part is lifting it through full `rsimp4_SEQ` where
+    alternatives may distribute.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

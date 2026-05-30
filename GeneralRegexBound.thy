@@ -1428,6 +1428,60 @@ next
     by (cases k) simp_all
 qed
 
+lemma rsimp4_SEQ_atom_assoc:
+  "rsimp4_SEQ_atom (rsimp4_SEQ_atom r1 r2) k =
+    rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)"
+proof (induct r1 arbitrary: r2 k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSEQ r1 r1')
+  have "rsimp4_SEQ_atom (rsimp4_SEQ_atom (RSEQ r1 r1') r2) k =
+    rsimp4_SEQ_atom (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r1' r2)) k"
+    by simp
+  also have "... =
+    rsimp4_SEQ_atom r1
+      (rsimp4_SEQ_atom (rsimp4_SEQ_atom r1' r2) k)"
+    by (rule RSEQ.hyps(1))
+  also have "... =
+    rsimp4_SEQ_atom r1
+      (rsimp4_SEQ_atom r1' (rsimp4_SEQ_atom r2 k))"
+    by (simp add: RSEQ.hyps(2))
+  finally show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases r2) simp_all
+qed
+
 lemma card_rfrontier_normalize_le_rfrontiers:
   "card (rfrontier (rsimp_ALTs (rdistinct (rflts rs) {}))) \<le>
     card (rfrontiers rs)"
