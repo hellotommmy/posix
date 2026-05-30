@@ -2105,6 +2105,72 @@ next
   then show ?case by simp
 qed
 
+lemma good_rsimp5_alt_rows:
+  assumes "good r \<or> r = RZERO"
+  shows "\<forall>x \<in> set (rsimp5_alt_rows r). good x \<or> x = RZERO"
+  using assms good_RALTS_elem by (cases r) auto
+
+lemma good_rsimp5_seq_products:
+  assumes "\<forall>x \<in> set xs. good x \<or> x = RZERO"
+      and "\<forall>y \<in> set ys. good y \<or> y = RZERO"
+  shows "\<forall>z \<in> set (rsimp5_seq_products xs ys). good z \<or> z = RZERO"
+  using assms good_rsimp4_SEQ_atom by (induct xs) auto
+
+lemma good_rsimp5_SEQ:
+  assumes "good r1 \<or> r1 = RZERO" "good r2 \<or> r2 = RZERO"
+  shows "good (rsimp5_SEQ r1 r2) \<or> rsimp5_SEQ r1 r2 = RZERO"
+proof -
+  have rows1: "\<forall>x \<in> set (rsimp5_alt_rows r1). good x \<or> x = RZERO"
+    by (rule good_rsimp5_alt_rows[OF assms(1)])
+  have rows2: "\<forall>x \<in> set (rsimp5_alt_rows r2). good x \<or> x = RZERO"
+    by (rule good_rsimp5_alt_rows[OF assms(2)])
+  have products: "\<forall>z \<in>
+      set (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)).
+      good z \<or> z = RZERO"
+    by (rule good_rsimp5_seq_products[OF rows1 rows2])
+  show ?thesis
+    unfolding rsimp5_SEQ_def
+    by (rule good_rsimp_ALTs_rdistinct_rflts[OF products])
+qed
+
+lemma good_rsimp5:
+  shows "good (rsimp5 r) \<or> rsimp5 r = RZERO"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    using good_rsimp5_SEQ by simp
+next
+  case (RALTS rs)
+  have elems: "\<forall>r \<in> set (map rsimp5 rs). good r \<or> r = RZERO"
+    using RALTS by auto
+  show ?case
+    using good_rsimp_ALTs_rdistinct_rflts[OF elems] by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma rfrontier_nonzero_nonalt_self:
   assumes "r \<noteq> RZERO" "nonalt r"
   shows "r \<in> rfrontier r"

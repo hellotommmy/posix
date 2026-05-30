@@ -392,6 +392,8 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Proved `RL_rsimp5_SEQ` and `RL_rsimp5`. The proof factors through
     `rsimp5_alt_rows` and `rsimp5_seq_products`, so the row-product definition
     is now language-preserving.
+  - Proved `good_rsimp5_SEQ` and `good_rsimp5`: the row-product simplifier also
+    preserves the `good-or-zero` normal-form invariant.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
