@@ -2105,6 +2105,81 @@ next
   then show ?case by simp
 qed
 
+lemma rfrontier_nonzero_nonalt_self:
+  assumes "r \<noteq> RZERO" "nonalt r"
+  shows "r \<in> rfrontier r"
+  using assms by (cases r) simp_all
+
+lemma rfrontier_nonzero_nonalt_eq:
+  assumes "r \<noteq> RZERO" "nonalt r"
+  shows "rfrontier r = {r}"
+  using assms by (cases r) simp_all
+
+lemma rfrontier_good_member_SEQ_subset:
+  assumes "good r \<or> r = RZERO"
+      and "x \<in> rfrontier r"
+  shows "rfrontier (rsimp4_SEQ x k) \<subseteq> rfrontier (rsimp4_SEQ r k)"
+proof (cases r)
+  case RZERO
+  then show ?thesis
+    using assms by simp
+next
+  case RONE
+  then show ?thesis
+    using assms by simp
+next
+  case (RCHAR c)
+  then show ?thesis
+    using assms by simp
+next
+  case (RSEQ r1 r2)
+  then show ?thesis
+    using assms by simp
+next
+  case (RALTS rs)
+  then obtain y where y: "y \<in> set rs" "x \<in> rfrontier y"
+    using assms rfrontiers_member_iff by auto
+  have good_y: "good y \<and> nonalt y"
+    using assms RALTS y(1) good_RALTS_elem by blast
+  then have y_nonzero: "y \<noteq> RZERO"
+    using good_not_RZERO by blast
+  have y_frontier: "rfrontier y = {y}"
+    by (rule rfrontier_nonzero_nonalt_eq) (use y_nonzero good_y in auto)
+  have x_y: "x = y"
+    using y(2) y_frontier by simp
+  have "rfrontier (rsimp4_SEQ x k) =
+    rfrontier (rsimp4_SEQ_atom x k)"
+    using good_y x_y by (simp add: rfrontier_rsimp4_SEQ_nonalt_eq_atom)
+  also have "... \<subseteq> rfrontier (rsimp4_SEQ r k)"
+  proof -
+    have "x \<in> rseq_sources r"
+      using RALTS y(1) x_y by simp
+    then show ?thesis
+      by (rule rfrontier_rsimp4_SEQ_atom_source_subset)
+  qed
+  finally show ?thesis .
+next
+  case (RSTAR r)
+  then show ?thesis
+    using assms by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using assms by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using assms by simp
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using assms by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    using assms by simp
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
@@ -3168,6 +3243,61 @@ next
   case False
   then show ?thesis
     by (simp add: rsimp4_SEQ_def)
+qed
+
+lemma rfrontier_rsimp4_SEQ_rder_RALTS_path_acc:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    rfrontier (rsimp4_SEQ (rsimp4 (rder c r)) k) \<subseteq>
+      insert RZERO (rpath_frontier_acc r k)"
+  shows "rfrontier (rsimp4_SEQ (rsimp4 (rder c (RALTS rs))) k) \<subseteq>
+    insert RZERO (rpath_frontier_acc (RALTS rs) k)"
+proof -
+  let ?xs = "rdistinct (rflts (map (rsimp4 \<circ> rder c) rs)) {}"
+  have mapped_good: "\<forall>r \<in> set (map (rsimp4 \<circ> rder c) rs).
+      good r \<or> r = RZERO"
+    using good_rsimp4 by auto
+  have xs_good: "\<forall>x \<in> set ?xs. good x \<and> nonalt x"
+    using flts3_good_nonalt[OF mapped_good]
+    by (simp add: rdistinct_set_equality)
+  have elem_subset: "\<And>x. x \<in> set ?xs \<Longrightarrow>
+    rfrontier (rsimp4_SEQ x k) \<subseteq>
+      insert RZERO (rpath_frontier_acc (RALTS rs) k)"
+  proof -
+    fix x
+    assume x: "x \<in> set ?xs"
+    have x_nonalt: "nonalt x"
+      using xs_good x by blast
+    have x_nonzero: "x \<noteq> RZERO"
+      using xs_good x good_not_RZERO by blast
+    have x_front_xs: "x \<in> rfrontiers ?xs"
+      using x rfrontier_nonzero_nonalt_self[OF x_nonzero x_nonalt]
+        rfrontiers_member_iff by blast
+    have x_front_children: "x \<in> rfrontiers (map (rsimp4 \<circ> rder c) rs)"
+      using x_front_xs by simp
+    then obtain y where y:
+        "y \<in> set (map (rsimp4 \<circ> rder c) rs)"
+        "x \<in> rfrontier y"
+      using rfrontiers_member_iff by blast
+    then obtain r where r: "r \<in> set rs" "y = rsimp4 (rder c r)"
+      by (auto simp add: comp_def)
+    have y_good: "good y \<or> y = RZERO"
+      using r(2) good_rsimp4 by simp
+    have "rfrontier (rsimp4_SEQ x k) \<subseteq>
+      rfrontier (rsimp4_SEQ y k)"
+      by (rule rfrontier_good_member_SEQ_subset[OF y_good y(2)])
+    also have "... \<subseteq> insert RZERO (rpath_frontier_acc r k)"
+      using step[OF r(1)] r(2) by simp
+    also have "... \<subseteq> insert RZERO (rpath_frontier_acc (RALTS rs) k)"
+      using r(1) by auto
+    finally show "rfrontier (rsimp4_SEQ x k) \<subseteq>
+      insert RZERO (rpath_frontier_acc (RALTS rs) k)" .
+  qed
+  have "rfrontier (rsimp4_SEQ (rsimp_ALTs ?xs) k) \<subseteq>
+    insert RZERO (rpath_frontier_acc (RALTS rs) k)"
+    by (rule rfrontier_rsimp4_SEQ_rsimp_ALTs_nonalt_subset)
+      (use elem_subset xs_good in auto)
+  then show ?thesis
+    by (simp add: comp_def)
 qed
 
 lemma left_nested_atom_in_path_frontier_universe:

@@ -374,6 +374,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Added `good_rsimp4`: the whole `rsimp4` simplifier now has a checked
     `good-or-zero` output invariant. This packages the sequence and alternative
     cases for later derivative-closure proofs.
+  - Added frontier-row bridge lemmas for `good` expressions and proved the
+    carried `RALTS` closure:
+    `rfrontier_rsimp4_SEQ_rder_RALTS_path_acc`. A normalized derivative row now
+    traces back to an original alternative child before entering the parent
+    path-frontier accumulator.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
