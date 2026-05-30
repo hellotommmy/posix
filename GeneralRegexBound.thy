@@ -1319,6 +1319,21 @@ proof -
     by (rule rfrontier_rsimp_ALTs_subset)
 qed
 
+lemma rfrontier_rsimp4_SEQ_RONE_subset:
+  "rfrontier (rsimp4_SEQ RONE k) \<subseteq> rfrontier k"
+proof -
+  have "rfrontier
+      (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row RONE k)) {})) \<subseteq>
+    rfrontier k"
+    by (rule rfrontier_normalize_subset) auto
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def)
+qed
+
+lemma card_rfrontier_rsimp4_SEQ_RONE_le:
+  "card (rfrontier (rsimp4_SEQ RONE k)) \<le> card (rfrontier k)"
+  by (rule card_mono) (simp_all add: rfrontier_rsimp4_SEQ_RONE_subset)
+
 fun rseq_sources :: "rrexp \<Rightarrow> rrexp set" where
   "rseq_sources (RALTS rs) = set rs"
 | "rseq_sources r = {r}"
@@ -2130,6 +2145,19 @@ lemma finite_rpath_frontiers [simp]:
 lemma finite_partial_derivative_path_frontier_universe [simp]:
   "finite (partial_derivative_path_frontier_universe r)"
   by (simp add: partial_derivative_path_frontier_universe_def)
+
+lemma partial_derivative_path_frontier_universe_card_le:
+  "card (partial_derivative_path_frontier_universe r) \<le>
+    2 + rsize r + card (rpath_frontiers r)"
+proof -
+  have "card (partial_derivative_path_frontier_universe r) \<le>
+    2 + card (rsubterms r) + card (rpath_frontiers r)"
+    unfolding partial_derivative_path_frontier_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le> 2 + rsize r + card (rpath_frontiers r)"
+    using card_rsubterms_le_rsize[of r] by linarith
+  finally show ?thesis .
+qed
 
 lemma left_nested_atom_in_path_frontier_universe:
   assumes "a \<noteq> b"

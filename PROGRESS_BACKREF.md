@@ -288,6 +288,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     sequence normalizer used by `rsimp4_SEQ`. This lines up the `RCHAR`
     derivative case with the universe directly and avoids hiding an expensive
     full simplifier call inside the universe collector.
+  - Added `rfrontier_rsimp4_SEQ_RONE_subset` and
+    `card_rfrontier_rsimp4_SEQ_RONE_le`, showing that exposing an empty-left
+    sequence continuation does not increase frontier cardinality.
+  - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
+    remaining cubic accounting problem to bounding `rpath_frontiers`.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
