@@ -353,6 +353,53 @@ where
   "bders_simp3 r [] = r"
 | "bders_simp3 r (c # s) = bders_simp3 (bsimp3 (bder c r)) s"
 
+fun bsimp4_ASEQ_atom :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp4_ASEQ_atom bs AZERO r2 = AZERO"
+| "bsimp4_ASEQ_atom bs (AONE bs2) r2 = fuse (bs @ bs2) r2"
+| "bsimp4_ASEQ_atom bs (ASEQ bs2 r1 r2) r3 =
+    bsimp4_ASEQ_atom bs2 r1 (bsimp4_ASEQ_atom bs r2 r3)"
+| "bsimp4_ASEQ_atom bs (ACHAR bs2 c) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ACHAR bs2 c) r2 = ASEQ bs (ACHAR bs2 c) r2"
+| "bsimp4_ASEQ_atom bs (AALTs bs2 rs) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (AALTs bs2 rs) r2 = ASEQ bs (AALTs bs2 rs) r2"
+| "bsimp4_ASEQ_atom bs (ASTAR bs2 r) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ASTAR bs2 r) r2 = ASEQ bs (ASTAR bs2 r) r2"
+| "bsimp4_ASEQ_atom bs (ANTIMES bs2 r n) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ANTIMES bs2 r n) r2 = ASEQ bs (ANTIMES bs2 r n) r2"
+| "bsimp4_ASEQ_atom bs (ABACKREF4 bs2 r1 r2 r3 r4 s) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ABACKREF4 bs2 r1 r2 r3 r4 s) r5 =
+    ASEQ bs (ABACKREF4 bs2 r1 r2 r3 r4 s) r5"
+| "bsimp4_ASEQ_atom bs (AHALF bs2 r s rep) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (AHALF bs2 r s rep) r2 = ASEQ bs (AHALF bs2 r s rep) r2"
+| "bsimp4_ASEQ_atom bs (ARESIDUE bs2 s rep) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ARESIDUE bs2 s rep) r2 = ASEQ bs (ARESIDUE bs2 s rep) r2"
+
+fun bsimp4_seq_row :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bsimp4_seq_row bs r1 r2 = [bsimp4_ASEQ_atom bs r1 r2]"
+
+definition bsimp4_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp4_ASEQ bs r1 r2 =
+    (case r1 of
+      AALTs bs1 rs1 \<Rightarrow>
+        bsimp_AALTs (bs @ bs1)
+          (distinctWith (flts (concat (map (\<lambda>x. bsimp4_seq_row [] x r2) rs1))) eq1 {})
+    | _ \<Rightarrow>
+        bsimp_AALTs [] (distinctWith (flts (bsimp4_seq_row bs r1 r2)) eq1 {}))"
+
+(* Annotated counterpart of rsimp4. It reassociates left-nested ASEQ nodes while
+   preserving the erasure-level head-plus-continuation normal form. *)
+fun bsimp4 :: "arexp \<Rightarrow> arexp" 
+where
+  "bsimp4 (ASEQ bs1 r1 r2) = bsimp4_ASEQ bs1 (bsimp4 r1) (bsimp4 r2)"
+| "bsimp4 (AALTs bs1 rs) = bsimp_AALTs bs1 (distinctWith (flts (map bsimp4 rs)) eq1 {})"
+| "bsimp4 r = r"
+
+fun 
+  bders_simp4 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simp4 r [] = r"
+| "bders_simp4 r (c # s) = bders_simp4 (bsimp4 (bder c r)) s"
+
 
 fun 
   bders_simp :: "arexp \<Rightarrow> string \<Rightarrow> arexp"

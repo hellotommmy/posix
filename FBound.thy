@@ -218,6 +218,98 @@ lemma bsimp3_rerase:
   using rerase_bsimp3_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same3 by fastforce
 
+lemma rerase_bsimp4_ASEQ_atom:
+  shows "rerase (bsimp4_ASEQ_atom bs a1 a2) =
+    rsimp4_SEQ_atom (rerase a1) (rerase a2)"
+proof (induct a1 arbitrary: bs a2)
+  case AZERO
+  then show ?case by simp
+next
+  case (AONE x)
+  then show ?case
+    by (cases a2) (simp_all add: rerase_fuse)
+next
+  case (ACHAR x1 x2)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (ASEQ x1 a1a a1b)
+  then show ?case
+    by simp
+next
+  case (AALTs x1 x2)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (ASTAR x1 x2)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (ANTIMES x1 x2 x3)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (ABACKREF4 x1 x2 x3 x4 x5 x6)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (AHALF x1 x2 x3 x4)
+  then show ?case
+    by (cases a2) simp_all
+next
+  case (ARESIDUE x1 x2 x3)
+  then show ?case
+    by (cases a2) simp_all
+qed
+
+lemma rerase_bsimp4_seq_row:
+  shows "map rerase (bsimp4_seq_row bs a1 a2) =
+    rsimp4_seq_row (rerase a1) (rerase a2)"
+  by (simp add: rerase_bsimp4_ASEQ_atom)
+
+lemma rerase_concat_bsimp4_seq_rows:
+  shows "map rerase (concat (map (\<lambda>x. bsimp4_seq_row bs x a2) rs)) =
+    concat (map (\<lambda>x. rsimp4_seq_row (rerase x) (rerase a2)) rs)"
+  by (induct rs) (simp_all add: rerase_bsimp4_seq_row rerase_bsimp4_ASEQ_atom)
+
+lemma rerase_bsimp4_ASEQ:
+  shows "rerase (bsimp4_ASEQ bs a1 a2) =
+    rsimp4_SEQ (rerase a1) (rerase a2)"
+  by (cases a1)
+     (simp_all add: bsimp4_ASEQ_def rsimp4_SEQ_def rerase_bsimp_AALTs
+       map_rerase_distinctWith_eq1 rerase_flts rerase_bsimp4_seq_row
+       rerase_concat_bsimp4_seq_rows rerase_bsimp4_ASEQ_atom rerase_fuse map_map comp_def)
+
+lemma rerase_map_bsimp4:
+  assumes "\<And> r. r \<in> set rs \<Longrightarrow> rerase (bsimp4 r) = (rsimp4 \<circ> rerase) r"
+  shows "map rerase (map bsimp4 rs) =  map (rsimp4 \<circ> rerase) rs"
+  using assms
+  apply(induct rs)
+  by simp_all
+
+lemma rerase_earlier_later_same4:
+  assumes " \<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp4 r) = rsimp4 (rerase r)"
+  shows " (map rerase (distinctBy (flts (map bsimp4 rs)) rerase {})) =
+          (rdistinct (rflts (map (rsimp4 \<circ> rerase) rs)) {})"
+  apply(subst rerase_dB)
+  apply(subst rerase_flts)
+  apply(subst rerase_map_bsimp4)
+  apply auto
+  using assms
+  apply simp
+  done
+
+lemma bsimp4_rerase:
+  shows "rerase (bsimp4 a) = rsimp4 (rerase a)"
+  apply(induct a rule: bsimp4.induct)
+  apply(auto)
+  using rerase_bsimp4_ASEQ apply presburger
+  using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same4 by fastforce
+
+lemma rders_simp4_size:
+  shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
+  by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])

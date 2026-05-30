@@ -102,6 +102,20 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed for both `Posix` and `BackRefPilot`.
 - Next research target: port `rsimp4` to annotated `bsimp4`, prove the
   `rerase` bridge, then use the quadratic frontier universe for closure.
+- Checked sixth implementation checkpoint:
+  - Added annotated `bsimp4`/`bders_simp4` in `BlexerSimp.thy`.
+    The reassociation clause mirrors `rsimp4`: an `ASEQ` on the left is
+    recursively converted into a head-plus-continuation shape while keeping
+    bit prefixes in the corresponding annotated nodes.
+  - Added `bsimp4_rerase` and `rders_simp4_size` in `FBound.thy`, proving
+    that the annotated simplifier erases to `rsimp4`.
+  - One subtle proof repair: `rerase_bsimp4_ASEQ` needs `rerase_fuse`
+    explicitly, because the `AONE` case simplifies to `fuse (bs @ bs2) r2`
+    while `rsimp4` sees only `rerase r2`.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove `rsimp4` frontier closure into
+  `partial_derivative_frontier_universe`, then state the first actual cubic
+  non-backref `rders_simp4` size theorem.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
