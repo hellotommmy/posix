@@ -1361,6 +1361,565 @@ lemma rsimp4_derivative_needs_left_nested_suffix:
         (rder a (RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c))))"
   using assms by (simp add: rsimp4_SEQ_def)
 
+fun rpath_continuations_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rpath_continuations_acc RZERO k = {}"
+| "rpath_continuations_acc RONE k = {}"
+| "rpath_continuations_acc (RCHAR c) k = {k}"
+| "rpath_continuations_acc (RALTS rs) k =
+    (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs)))"
+| "rpath_continuations_acc (RSEQ r1 r2) k =
+    rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    rpath_continuations_acc r2 k"
+| "rpath_continuations_acc (RSTAR r) k =
+    rpath_continuations_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "rpath_continuations_acc (RNTIMES r n) k =
+    (if n = 0 then {} else
+      rpath_continuations_acc r (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k))"
+| "rpath_continuations_acc (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rpath_continuations_acc r1 k \<union> rpath_continuations_acc r2 k \<union>
+    rpath_continuations_acc r3 k \<union> rpath_continuations_acc r4 k"
+| "rpath_continuations_acc (RHALF r cs rep) k = rpath_continuations_acc r k"
+| "rpath_continuations_acc (RRESIDUE cs rep) k = {}"
+
+definition rpath_continuations :: "rrexp \<Rightarrow> rrexp set" where
+  "rpath_continuations r = rpath_continuations_acc r RONE"
+
+lemma finite_rpath_continuations_acc [simp]:
+  "finite (rpath_continuations_acc r k)"
+  by (induct r arbitrary: k) auto
+
+lemma finite_rpath_continuations_list [simp]:
+  "finite (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs)))"
+  by (induct rs) auto
+
+lemma card_rpath_continuations_acc_list_le_rsizes:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    card (rpath_continuations_acc r k) \<le> rsize r"
+  shows "card (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs)))
+    \<le> rsizes rs"
+  using step
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have "card (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) (r # rs)))) =
+    card (rpath_continuations_acc r k \<union>
+      (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs))))"
+    by simp
+  also have "... \<le> card (rpath_continuations_acc r k) +
+    card (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs)))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize r + rsizes rs"
+  proof -
+    have r_le: "card (rpath_continuations_acc r k) \<le> rsize r"
+      using Cons.prems by simp
+    have rs_le: "card (\<Union> (set (map (\<lambda>r. rpath_continuations_acc r k) rs)))
+      \<le> rsizes rs"
+      using Cons.hyps Cons.prems by simp
+    show ?thesis
+      using r_le rs_le by linarith
+  qed
+  finally show ?case
+    by simp
+qed
+
+lemma card_rpath_continuations_acc_le_rsize:
+  "card (rpath_continuations_acc r k) \<le> rsize r"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case
+    using card_rpath_continuations_acc_list_le_rsizes[of rs k] by simp
+next
+  case (RSEQ r1 r2)
+  have "card (rpath_continuations_acc (RSEQ r1 r2) k) \<le>
+    card (rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k)) +
+    card (rpath_continuations_acc r2 k)"
+    by (simp add: card_Un_le)
+  also have "... \<le> rsize r1 + rsize r2"
+  proof -
+    have left: "card (rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k)) \<le> rsize r1"
+      using RSEQ.hyps(1) by simp
+    have right: "card (rpath_continuations_acc r2 k) \<le> rsize r2"
+      using RSEQ.hyps(2) by simp
+    show ?thesis
+      using left right by linarith
+  qed
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    by simp
+  finally show ?case .
+next
+  case (RSTAR r)
+  then have "card (rpath_continuations_acc r (rsimp4_SEQ_atom (RSTAR r) k)) \<le> rsize r"
+    by simp
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have "card (rpath_continuations_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le> rsize r"
+      using RNTIMES.hyps by simp
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "card (rpath_continuations_acc (RBACKREF4 r1 r2 r3 r4 cs) k) \<le>
+    card (rpath_continuations_acc r1 k) + card (rpath_continuations_acc r2 k) +
+    card (rpath_continuations_acc r3 k) + card (rpath_continuations_acc r4 k)"
+    using card_Un4_le[of "rpath_continuations_acc r1 k" "rpath_continuations_acc r2 k"
+      "rpath_continuations_acc r3 k" "rpath_continuations_acc r4 k"] by simp
+  also have "... \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs)"
+  proof -
+    have c1: "card (rpath_continuations_acc r1 k) \<le> rsize r1"
+      using RBACKREF4.hyps(1) by simp
+    have c2: "card (rpath_continuations_acc r2 k) \<le> rsize r2"
+      using RBACKREF4.hyps(2) by simp
+    have c3: "card (rpath_continuations_acc r3 k) \<le> rsize r3"
+      using RBACKREF4.hyps(3) by simp
+    have c4: "card (rpath_continuations_acc r4 k) \<le> rsize r4"
+      using RBACKREF4.hyps(4) by simp
+    show ?thesis
+      using c1 c2 c3 c4 by simp
+  qed
+  finally show ?case .
+next
+  case (RHALF r cs rep)
+  then have "card (rpath_continuations_acc r k) \<le> rsize r"
+    by simp
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma card_rpath_continuations_le_rsize:
+  "card (rpath_continuations r) \<le> rsize r"
+  unfolding rpath_continuations_def
+  by (rule card_rpath_continuations_acc_le_rsize)
+
+lemma rsize_rsimp4_SEQ_atom_le:
+  "rsize (rsimp4_SEQ_atom r1 r2) \<le> Suc (rsize r1 + rsize r2)"
+proof (induct r1 arbitrary: r2)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  show ?case
+  proof (cases r2)
+    case RZERO
+    then show ?thesis by simp
+  next
+    case RONE
+    then show ?thesis by simp
+  next
+    case (RCHAR y)
+    then show ?thesis by simp
+  next
+    case (RSEQ y1 y2)
+    then show ?thesis by simp
+  next
+    case (RALTS ys)
+    then show ?thesis by simp
+  next
+    case (RSTAR y)
+    then show ?thesis by simp
+  next
+    case (RNTIMES y n)
+    then show ?thesis by simp
+  next
+    case (RBACKREF4 y1 y2 y3 y4 ys)
+    then show ?thesis by simp
+  next
+    case (RHALF y ys rep)
+    then show ?thesis by simp
+  next
+    case (RRESIDUE ys rep)
+    then show ?thesis by simp
+  qed
+next
+  case (RSEQ r1 r1')
+  have "rsize (rsimp4_SEQ_atom (RSEQ r1 r1') r2) =
+    rsize (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r1' r2))"
+    by simp
+  also have "... \<le> Suc (rsize r1 + rsize (rsimp4_SEQ_atom r1' r2))"
+    using RSEQ.hyps(1) by simp
+  also have "... \<le> Suc (rsize r1 + Suc (rsize r1' + rsize r2))"
+    using RSEQ.hyps(2) by simp
+  also have "... \<le> Suc (rsize (RSEQ r1 r1') + rsize r2)"
+    by simp
+  finally show ?case .
+next
+  case (RALTS x)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RSTAR x)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RNTIMES x1 x2)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RBACKREF4 x1 x2 x3 x4 x5)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RHALF x1 x2 x3)
+  then show ?case
+    by (cases r2) simp_all
+next
+  case (RRESIDUE x1 x2)
+  then show ?case
+    by (cases r2) simp_all
+qed
+
+lemma square_mono_nat:
+  fixes m n :: nat
+  assumes "m \<le> n"
+  shows "m\<^sup>2 \<le> n\<^sup>2"
+proof -
+  have "m * m \<le> n * m"
+    using assms by (simp add: mult_right_mono)
+  also have "... \<le> n * n"
+    using assms by (simp add: mult_left_mono)
+  finally show ?thesis
+    by (simp add: power2_eq_square)
+qed
+
+lemma add_square_le_Suc_square:
+  fixes n :: nat
+  shows "n + n\<^sup>2 \<le> (Suc n)\<^sup>2"
+  by (simp add: power2_eq_square algebra_simps)
+
+lemma Suc_plus_square_le_Suc_square:
+  fixes n :: nat
+  shows "Suc n + n\<^sup>2 \<le> (Suc n)\<^sup>2"
+  by (simp add: power2_eq_square algebra_simps)
+
+lemma nat_le_one_plus_square:
+  fixes n :: nat
+  shows "n \<le> 1 + n\<^sup>2"
+  by (cases n) (simp_all add: power2_eq_square algebra_simps)
+
+lemma component_plus_square_le_Suc_sum_square:
+  fixes a b :: nat
+  shows "b + a\<^sup>2 \<le> (Suc (a + b))\<^sup>2"
+proof -
+  have a2: "a\<^sup>2 \<le> (a + b)\<^sup>2"
+    by (rule square_mono_nat) simp
+  have "b + a\<^sup>2 \<le> (a + b) + (a + b)\<^sup>2"
+    using a2 by linarith
+  also have "... \<le> (Suc (a + b))\<^sup>2"
+    by (rule add_square_le_Suc_square)
+  finally show ?thesis .
+qed
+
+lemma component_Suc_plus_shifted_square_le:
+  fixes a b :: nat
+  shows "Suc b + (a + 2)\<^sup>2 \<le> (Suc (a + b) + 2)\<^sup>2"
+proof -
+  let ?n = "a + b + 2"
+  have sq: "(a + 2)\<^sup>2 \<le> ?n\<^sup>2"
+    by (rule square_mono_nat) simp
+  have "Suc b + (a + 2)\<^sup>2 \<le> ?n + ?n\<^sup>2"
+    using sq by linarith
+  also have "... \<le> (Suc ?n)\<^sup>2"
+    by (rule add_square_le_Suc_square)
+  also have "(Suc ?n)\<^sup>2 = (Suc (a + b) + 2)\<^sup>2"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpath_continuations_acc_member_size_quadratic:
+  assumes "q \<in> rpath_continuations_acc r k"
+  shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+  using assms
+proof (induct r arbitrary: k q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain r where r: "r \<in> set rs" "q \<in> rpath_continuations_acc r k"
+    by auto
+  have "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+    using RALTS r by auto
+  also have "... \<le> rsize k + (rsize (RALTS rs) + 2)\<^sup>2"
+  proof -
+    have "rsize r + 2 \<le> rsize (RALTS rs) + 2"
+      using rsize_member_le_rsizes[OF r(1)] by simp
+    then have "(rsize r + 2)\<^sup>2 \<le> (rsize (RALTS rs) + 2)\<^sup>2"
+      by (rule square_mono_nat)
+    then show ?thesis
+      by linarith
+  qed
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  then consider
+      "q \<in> rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k)"
+    | "q \<in> rpath_continuations_acc r2 k"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "rsize q \<le>
+      rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2"
+      using RSEQ 1 by auto
+    also have "... \<le> Suc (rsize r2 + rsize k) + (rsize r1 + 2)\<^sup>2"
+      using rsize_rsimp4_SEQ_atom_le[of r2 k] by linarith
+    also have "... \<le> rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+    proof -
+      have "Suc (rsize r2) + (rsize r1 + 2)\<^sup>2 \<le>
+        (Suc (rsize r1 + rsize r2) + 2)\<^sup>2"
+        by (rule component_Suc_plus_shifted_square_le)
+      then show ?thesis
+        by simp
+    qed
+    finally show ?thesis .
+  next
+    case 2
+    have "rsize q \<le> rsize k + (rsize r2 + 2)\<^sup>2"
+      using RSEQ 2 by auto
+    also have "... \<le> rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+      using square_mono_nat[of "rsize r2 + 2" "rsize (RSEQ r1 r2) + 2"] by simp
+    finally show ?thesis .
+  qed
+next
+  case (RSTAR r)
+  have "rsize q \<le>
+    rsize (rsimp4_SEQ_atom (RSTAR r) k) + (rsize r + 2)\<^sup>2"
+    using RSTAR by auto
+  also have "... \<le> Suc (rsize (RSTAR r) + rsize k) + (rsize r + 2)\<^sup>2"
+    using rsize_rsimp4_SEQ_atom_le[of "RSTAR r" k] by linarith
+  also have "... \<le> rsize k + (rsize (RSTAR r) + 2)\<^sup>2"
+  proof -
+    have "Suc (rsize (RSTAR r)) + (rsize r + 2)\<^sup>2 \<le>
+      (rsize (RSTAR r) + 2)\<^sup>2"
+      using add_square_le_Suc_square[of "rsize r + 2"] by simp
+    then show ?thesis
+      by simp
+  qed
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES by simp
+  next
+    case (Suc m)
+    have q: "q \<in> rpath_continuations_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k)"
+      using RNTIMES Suc by simp
+    have "rsize q \<le>
+      rsize (rsimp4_SEQ_atom (RNTIMES r m) k) + (rsize r + 2)\<^sup>2"
+      using RNTIMES.hyps[OF q] .
+    also have "... \<le> Suc (rsize (RNTIMES r m) + rsize k) + (rsize r + 2)\<^sup>2"
+      using rsize_rsimp4_SEQ_atom_le[of "RNTIMES r m" k] by linarith
+  also have "... \<le> rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+    proof -
+      let ?base = "rsize r + Suc m + 2"
+      have r_le: "rsize r + 2 \<le> ?base"
+        by simp
+      have sq_le: "(rsize r + 2)\<^sup>2 \<le> ?base\<^sup>2"
+        by (rule square_mono_nat[OF r_le])
+      have size_le: "Suc (rsize (RNTIMES r m)) \<le> ?base"
+        by simp
+      have "Suc (rsize (RNTIMES r m)) + (rsize r + 2)\<^sup>2 \<le>
+        ?base + ?base\<^sup>2"
+        using sq_le size_le by linarith
+      also have "... \<le> (Suc ?base)\<^sup>2"
+        by (rule add_square_le_Suc_square)
+      finally show ?thesis
+        using Suc by simp
+    qed
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then consider
+      "q \<in> rpath_continuations_acc r1 k"
+    | "q \<in> rpath_continuations_acc r2 k"
+    | "q \<in> rpath_continuations_acc r3 k"
+    | "q \<in> rpath_continuations_acc r4 k"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    then have "rsize q \<le> rsize k + (rsize r1 + 2)\<^sup>2"
+      using RBACKREF4 by auto
+    then show ?thesis
+    proof -
+      have "(rsize r1 + 2)\<^sup>2 \<le> (rsize (RBACKREF4 r1 r2 r3 r4 cs) + 2)\<^sup>2"
+        by (rule square_mono_nat) simp
+      then show ?thesis
+        using \<open>rsize q \<le> rsize k + (rsize r1 + 2)\<^sup>2\<close> by linarith
+    qed
+  next
+    case 2
+    then have "rsize q \<le> rsize k + (rsize r2 + 2)\<^sup>2"
+      using RBACKREF4 by auto
+    then show ?thesis
+    proof -
+      have "(rsize r2 + 2)\<^sup>2 \<le> (rsize (RBACKREF4 r1 r2 r3 r4 cs) + 2)\<^sup>2"
+        by (rule square_mono_nat) simp
+      then show ?thesis
+        using \<open>rsize q \<le> rsize k + (rsize r2 + 2)\<^sup>2\<close> by linarith
+    qed
+  next
+    case 3
+    then have "rsize q \<le> rsize k + (rsize r3 + 2)\<^sup>2"
+      using RBACKREF4 by auto
+    then show ?thesis
+    proof -
+      have "(rsize r3 + 2)\<^sup>2 \<le> (rsize (RBACKREF4 r1 r2 r3 r4 cs) + 2)\<^sup>2"
+        by (rule square_mono_nat) simp
+      then show ?thesis
+        using \<open>rsize q \<le> rsize k + (rsize r3 + 2)\<^sup>2\<close> by linarith
+    qed
+  next
+    case 4
+    then have "rsize q \<le> rsize k + (rsize r4 + 2)\<^sup>2"
+      using RBACKREF4 by auto
+    then show ?thesis
+    proof -
+      have "(rsize r4 + 2)\<^sup>2 \<le> (rsize (RBACKREF4 r1 r2 r3 r4 cs) + 2)\<^sup>2"
+        by (rule square_mono_nat) simp
+      then show ?thesis
+        using \<open>rsize q \<le> rsize k + (rsize r4 + 2)\<^sup>2\<close> by linarith
+    qed
+  qed
+next
+  case (RHALF r cs rep)
+  then have "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+    by auto
+  then show ?case
+  proof -
+    have "(rsize r + 2)\<^sup>2 \<le> (rsize (RHALF r cs rep) + 2)\<^sup>2"
+      by (rule square_mono_nat) simp
+    then show ?thesis
+      using \<open>rsize q \<le> rsize k + (rsize r + 2)\<^sup>2\<close> by linarith
+  qed
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rpath_continuations_member_size_quadratic:
+  assumes "q \<in> rpath_continuations r"
+  shows "rsize q \<le> 1 + (rsize r + 2)\<^sup>2"
+proof -
+  have "rsize q \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+    using assms
+    unfolding rpath_continuations_def
+    by (rule rpath_continuations_acc_member_size_quadratic)
+  then show ?thesis
+    by simp
+qed
+
+lemma finite_rpath_continuations [simp]:
+  "finite (rpath_continuations r)"
+  unfolding rpath_continuations_def by simp
+
+definition partial_derivative_path_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_path_universe r =
+    insert RZERO (insert RONE (rsubterms r \<union> rpath_continuations r))"
+
+lemma finite_partial_derivative_path_universe [simp]:
+  "finite (partial_derivative_path_universe r)"
+  by (simp add: partial_derivative_path_universe_def rpath_continuations_def)
+
+lemma partial_derivative_path_universe_card_linear:
+  "card (partial_derivative_path_universe r) \<le> 2 + 2 * rsize r"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rpath_continuations r"
+  have A: "card ?A \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  have K: "card ?K \<le> rsize r"
+    by (rule card_rpath_continuations_le_rsize)
+  have "card (partial_derivative_path_universe r) \<le> 2 + card ?A + card ?K"
+  proof -
+    have U: "partial_derivative_path_universe r = insert RZERO (insert RONE (?A \<union> ?K))"
+      unfolding partial_derivative_path_universe_def by simp
+    have "card (insert RZERO (insert RONE (?A \<union> ?K))) \<le>
+      2 + card ?A + card ?K"
+      by (rule card_insert2_Un_le) simp_all
+    then show ?thesis
+      using U by simp
+  qed
+  also have "... \<le> 2 + 2 * rsize r"
+    using A K by linarith
+  finally show ?thesis .
+qed
+
+lemma partial_derivative_path_universe_member_size_quadratic:
+  assumes "q \<in> partial_derivative_path_universe r"
+  shows "rsize q \<le> 1 + (rsize r + 2)\<^sup>2"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rpath_continuations r"
+  have q_cases: "q = RZERO \<or> q = RONE \<or> q \<in> ?A \<or> q \<in> ?K"
+    using assms unfolding partial_derivative_path_universe_def by auto
+  then show ?thesis
+  proof
+    assume "q = RZERO"
+    then show ?thesis by simp
+  next
+    assume rest1: "q = RONE \<or> q \<in> ?A \<or> q \<in> ?K"
+    then show ?thesis
+    proof
+      assume "q = RONE"
+      then show ?thesis by simp
+    next
+      assume rest2: "q \<in> ?A \<or> q \<in> ?K"
+      then show ?thesis
+      proof
+        assume "q \<in> ?A"
+        then have "rsize q \<le> rsize r"
+          using rsubterms_member_size_le_rsize by blast
+        then show ?thesis
+        proof -
+          have "rsize r \<le> 1 + (rsize r + 2)\<^sup>2"
+            using nat_le_one_plus_square[of "rsize r + 2"] by simp
+          then show ?thesis
+            using \<open>rsize q \<le> rsize r\<close> by linarith
+        qed
+      next
+        assume "q \<in> ?K"
+        then show ?thesis
+          using rpath_continuations_member_size_quadratic by blast
+      qed
+    qed
+  qed
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 

@@ -201,6 +201,26 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   finite/cardinality and linear member-size bounds for the non-backref
   fragment, then replace `partial_derivative_frontier_universe` with this
   stronger checked universe.
+- Checked thirteenth implementation checkpoint:
+  - Added `rpath_continuations_acc`/`rpath_continuations`, a path-sensitive
+    continuation universe. Unlike `rlinear_continuations`, this accumulates
+    composed suffixes along the syntax path, so nested sequences such as
+    `((a*) b) c` are represented by the actual continuation carried to each
+    character position.
+  - Proved `card_rpath_continuations_acc_le_rsize` and
+    `card_rpath_continuations_le_rsize`: the number of path continuations is
+    linear in the original regex size.
+  - Proved `rpath_continuations_member_size_quadratic`: each carried
+    continuation has size at most `1 + (rsize r + 2)^2` at top level. This is
+    intentionally looser than the local linear-continuation bound, because
+    nested star/sequence contexts can duplicate ancestor syntax along a path.
+  - Added `partial_derivative_path_universe` with checked linear cardinality
+    and quadratic member-size bounds. This is the new cubic route:
+    linear many path atoms, each at most quadratic size.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove that one `rsimp4 (rder c r)` frontier is a subset
+  of `partial_derivative_path_universe r` for `legacy_rrexp r`, then lift from
+  one step to `rders_simp4`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
