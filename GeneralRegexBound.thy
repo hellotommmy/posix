@@ -4118,6 +4118,70 @@ proof -
   qed
 qed
 
+lemma linear_times_quadratic_cubic_bound:
+  fixes n :: nat
+  shows "(2 + 2 * n) * (1 + (n + 2)\<^sup>2) \<le> 2 * (n + 3) ^ 3"
+  by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+
+lemma rsizes_le_length_times_bound:
+  assumes "\<And>x. x \<in> set rs \<Longrightarrow> rsize x \<le> M"
+  shows "rsizes rs \<le> length rs * M"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "rsize r \<le> M"
+    by (rule Cons.prems) simp
+  have tail: "rsizes rs \<le> length rs * M"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using head tail by simp
+qed
+
+lemma length_distinct_subset_card:
+  assumes "finite A" "set rs \<subseteq> A" "distinct rs"
+  shows "length rs \<le> card A"
+proof -
+  have "length rs = card (set rs)"
+    using assms by (simp add: distinct_card)
+  also have "... \<le> card A"
+    by (rule card_mono) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma rsizes_distinct_path_universe_cubic:
+  assumes "set rs \<subseteq> partial_derivative_path_universe r"
+      and "distinct rs"
+  shows "rsizes rs \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  let ?U = "partial_derivative_path_universe r"
+  let ?M = "1 + (rsize r + 2)\<^sup>2"
+  have member_bound: "\<And>x. x \<in> set rs \<Longrightarrow> rsize x \<le> ?M"
+    using assms(1) partial_derivative_path_universe_member_size_quadratic
+    by blast
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound[OF member_bound])
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use assms in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + 2 * rsize r) * ?M"
+  proof -
+    have "card ?U \<le> 2 + 2 * rsize r"
+      by (rule partial_derivative_path_universe_card_linear)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule linear_times_quadratic_cubic_bound)
+  finally show ?thesis .
+qed
+
 lemma partial_derivative_path_universe_zero [simp]:
   "RZERO \<in> partial_derivative_path_universe r"
   by (simp add: partial_derivative_path_universe_def)

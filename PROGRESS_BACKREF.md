@@ -80,6 +80,28 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
 
+## Partial-Derivative Size Transfer Checkpoint (2026-05-31)
+
+- Added `asize_bp_der_rpd_der` and `asize_bders_pder_rders_pder` in
+  `FBound.thy`. These facts make the annotated partial-derivative candidate
+  size-exact with the proof-level `rpd_der`/`rders_pder` pipeline after
+  erasure.
+- Added `aders_pder_finiteness`, the direct finite-size transfer hook for any
+  future checked bound on `rders_pder`. This is intentionally a transfer hook,
+  not a bounty claim for the final cubic theorem.
+- Added a reusable cubic accounting lemma in `GeneralRegexBound.thy`:
+  `rsizes_distinct_path_universe_cubic`. If a normalized derivative row list
+  is distinct and contained in `partial_derivative_path_universe r`, its total
+  structural size is bounded by `2 * (rsize r + 3) ^ 3`.
+- Design consequence: the remaining hard theorem is now sharply separated.
+  The numeric side of the cubic argument is checked; the open research work is
+  the closure side, namely proving that the chosen stronger simplifier keeps
+  derivative rows inside a universe with the same linear-cardinality and
+  quadratic-member-size discipline.
+- Local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+  (about 3 seconds elapsed).
+
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
 - Branch: `codex/backref-values` at `89b40aa` before this kickoff note.

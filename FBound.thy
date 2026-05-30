@@ -441,6 +441,25 @@ lemma rders_pder_size:
   shows "rders_pder (rerase r) s = rerase (bders_pder r s)"
   by (induct s arbitrary: r) (simp_all add: bp_der_rerase[symmetric])
 
+lemma asize_bp_der_rpd_der:
+  shows "asize (bp_der c r) = rsize (rpd_der c (rerase r))"
+  by (simp add: asize_rsize bp_der_rerase[symmetric])
+
+lemma asize_bders_pder_rders_pder:
+  shows "asize (bders_pder r s) = rsize (rders_pder (rerase r) s)"
+  by (simp add: asize_rsize rders_pder_size)
+
+corollary aders_pder_finiteness:
+  assumes "\<exists>N. \<forall>s. rsize (rders_pder (rerase r) s) \<le> N"
+  shows "\<exists>N. \<forall>s. asize (bders_pder r s) \<le> N"
+proof -
+  from assms obtain N where "\<forall>s. rsize (rders_pder (rerase r) s) \<le> N"
+    by blast
+  then have "\<forall>s. asize (bders_pder r s) \<le> N"
+    by (simp add: asize_bders_pder_rders_pder)
+  then show ?thesis by blast
+qed
+
 lemma legacy_rerase_bders_pder:
   assumes "legacy_rrexp (rerase r)"
   shows "legacy_rrexp (rerase (bders_pder r s))"
