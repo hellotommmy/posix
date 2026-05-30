@@ -4411,6 +4411,33 @@ proof -
     using rder_path_continuations_universe_subset[of c r] by auto
 qed
 
+lemma rsizes_rpder_list_RONE_cubic:
+  assumes "legacy_rrexp r"
+  shows "rsizes (map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  let ?rows = "map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)"
+  let ?M = "1 + (rsize r + 2)\<^sup>2"
+  have member_bound: "\<And>x. x \<in> set ?rows \<Longrightarrow> rsize x \<le> ?M"
+    using rpder_list_path_universe_subset[OF assms]
+      partial_derivative_path_universe_member_size_quadratic
+    by blast
+  have "rsizes ?rows \<le> length ?rows * ?M"
+    by (rule rsizes_le_length_times_bound[OF member_bound])
+  also have "... \<le> rsize r * ?M"
+  proof -
+    have "length ?rows \<le> rsize r"
+      using length_rpder_list_le_rsize[OF assms] by simp
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + 2 * rsize r) * ?M"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule linear_times_quadratic_cubic_bound)
+  finally show ?thesis .
+qed
+
 fun rpath_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_frontier_acc RZERO k = {}"
 | "rpath_frontier_acc RONE k = {}"

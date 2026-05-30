@@ -153,6 +153,13 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     normalizer may still remove zero/one structure or reassociate. The theorem
     therefore states closure for the normalized row list, which is the object
     relevant to the size-bound pipeline.
+  - Added `rsizes_rpder_list_RONE_cubic`, proving that one executable
+    partial-derivative step has cubic total row size after this local
+    continuation normalization, for the legacy/non-backref fragment.
+  - This is the positive replacement for the over-eager `rsimp5` direction:
+    keep Antimirov rows as rows, normalize local continuations, and account
+    for the row list directly instead of expanding every right alternative
+    suffix into a full Cartesian product.
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
