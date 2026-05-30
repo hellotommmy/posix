@@ -39,6 +39,22 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Local CI passed with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
   (about 3 seconds elapsed).
+- Follow-up executable checkpoint:
+  - Added `rpder_list`, an ordered/list implementation of `rpder`, with
+    `set_rpder_list`.
+  - Proved `length_rpder_list_le_rsize` for the legacy non-backref fragment,
+    giving the executable one-step partial-derivative list the same linear
+    size-count discipline as the set model.
+  - Added `rpd_der`, which packages `rpder_list` through the existing
+    `rsimp_ALTs`/`rdistinct`/`rflts` normalization.
+  - Added `rders_pder` and proved `legacy_rpd_der`, `legacy_rders_pder`,
+    `RL_rpd_der`, and `RL_rders_pder`.
+  - Design consequence: the next annotated `bsimp` candidate should mirror
+    this list-producing derivative pipeline and then prove an erasure bridge,
+    instead of treating `rsimp5`'s global row product as the final algorithm.
+  - Local CI again passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 

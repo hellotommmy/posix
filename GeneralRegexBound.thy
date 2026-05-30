@@ -619,6 +619,170 @@ lemma RLS_rpders1:
   using RLS_rpders[of "{r}" s] assms
   by (simp add: rpders1_def RLS_def)
 
+fun rpder_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rpder_list c RZERO = []"
+| "rpder_list c RONE = []"
+| "rpder_list c (RCHAR d) = (if c = d then [RONE] else [])"
+| "rpder_list c (RALTS rs) = concat (map (rpder_list c) rs)"
+| "rpder_list c (RSEQ r1 r2) =
+    map (\<lambda>p. rsimp4_SEQ_atom p r2) (rpder_list c r1) @
+      (if rnullable r1 then rpder_list c r2 else [])"
+| "rpder_list c (RSTAR r) =
+    map (\<lambda>p. rsimp4_SEQ_atom p (RSTAR r)) (rpder_list c r)"
+| "rpder_list c (RNTIMES r n) =
+    (if n = 0 then [] else
+      map (\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r (n - 1))) (rpder_list c r))"
+| "rpder_list c (RBACKREF4 r1 r2 r3 r4 cs) = []"
+| "rpder_list c (RHALF r cs rep) = []"
+| "rpder_list c (RRESIDUE cs rep) = []"
+
+lemma set_rpder_list:
+  "set (rpder_list c r) = rpder c r"
+  by (induct r) auto
+
+lemma length_rpder_list_list_le_rsizes:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> length (rpder_list c r) \<le> rsize r"
+  shows "length (concat (map (rpder_list c) rs)) \<le> rsizes rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "length (rpder_list c r) \<le> rsize r"
+    by (rule Cons.prems) simp
+  have tail: "length (concat (map (rpder_list c) rs)) \<le> rsizes rs"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using head tail by simp
+qed
+
+lemma length_rpder_list_le_rsize:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_list c r) \<le> rsize r"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have elems: "\<And>r. r \<in> set rs \<Longrightarrow> length (rpder_list c r) \<le> rsize r"
+    using RALTS by auto
+  have "length (rpder_list c (RALTS rs)) \<le> rsizes rs"
+    using length_rpder_list_list_le_rsizes[OF elems] by simp
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have left: "length (rpder_list c r1) \<le> rsize r1"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in simp)
+  have right: "length (if rnullable r1 then rpder_list c r2 else []) \<le> rsize r2"
+    using RSEQ by simp
+  have "length (rpder_list c (RSEQ r1 r2)) =
+    length (rpder_list c r1) +
+      length (if rnullable r1 then rpder_list c r2 else [])"
+    by simp
+  also have "... \<le> rsize r1 + rsize r2"
+    using left right by linarith
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    by simp
+  finally show ?case .
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have "length (rpder_list c (RNTIMES r n)) = length (rpder_list c r)"
+      using Suc by simp
+    also have "... \<le> rsize r"
+      using RNTIMES by simp
+    also have "... \<le> rsize (RNTIMES r n)"
+      by simp
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+definition rpd_der :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rpd_der c r = rsimp_ALTs (rdistinct (rflts (rpder_list c r)) {})"
+
+fun rders_pder :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "rders_pder r [] = r"
+| "rders_pder r (c # s) = rders_pder (rpd_der c r) s"
+
+lemma legacy_rpd_der:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rpd_der c r)"
+proof -
+  have elems: "\<forall>p \<in> set (rpder_list c r). legacy_rrexp p"
+    using assms legacy_rpder set_rpder_list by blast
+  have flat: "\<forall>p \<in> set (rflts (rpder_list c r)). legacy_rrexp p"
+    by (rule legacy_rflts[OF elems])
+  have distinct:
+    "\<forall>p \<in> set (rdistinct (rflts (rpder_list c r)) {}). legacy_rrexp p"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rpd_der_def by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
+lemma legacy_rders_pder:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_pder r s)"
+  using assms
+  by (induct s arbitrary: r) (auto simp add: legacy_rpd_der)
+
+lemma RL_rpd_der:
+  assumes "legacy_rrexp r"
+  shows "RL (rpd_der c r) = Der c (RL r)"
+proof -
+  have "RL (rpd_der c r) = (\<Union> (set (map RL (rpder_list c r))))"
+    unfolding rpd_der_def by (rule RL_rsimp_ALTs_normalize)
+  also have "... = RLS (rpder c r)"
+    unfolding RLS_def using set_rpder_list[of c r] by auto
+  also have "... = Der c (RL r)"
+    by (rule RLS_rpder[OF assms])
+  finally show ?thesis .
+qed
+
+lemma RL_rders_pder:
+  assumes "legacy_rrexp r"
+  shows "RL (rders_pder r s) = Ders s (RL r)"
+  using assms
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "legacy_rrexp (rpd_der c r)"
+    by (rule legacy_rpd_der[OF Cons.prems])
+  have "RL (rders_pder r (c # s)) = Ders s (RL (rpd_der c r))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RL r))"
+    by (simp add: RL_rpd_der[OF Cons.prems])
+  also have "... = Ders (c # s) (RL r)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
 fun rsubterms :: "rrexp \<Rightarrow> rrexp set" where
   "rsubterms RZERO = {RZERO}"
 | "rsubterms RONE = {RONE}"
