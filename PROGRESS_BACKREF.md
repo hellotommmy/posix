@@ -280,6 +280,14 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     universe: the remaining issue is bounding the size/cardinality of
     `rsimp4`-normalized carried suffixes.
   - Local CI passed for both `Posix` and `BackRefPilot`.
+- Checked eighteenth implementation checkpoint:
+  - Tightened the path-frontier universe definition at character leaves:
+    `rpath_frontier_acc (RCHAR c) k` now records
+    `rfrontier (rsimp4_SEQ RONE k)` rather than running a fresh full `rsimp4 k`.
+  - Design reason: the carried continuation should be exposed through the same
+    sequence normalizer used by `rsimp4_SEQ`. This lines up the `RCHAR`
+    derivative case with the universe directly and avoids hiding an expensive
+    full simplifier call inside the universe collector.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

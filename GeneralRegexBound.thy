@@ -2095,7 +2095,7 @@ lemma rder_path_continuations_universe_subset:
 fun rpath_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_frontier_acc RZERO k = {}"
 | "rpath_frontier_acc RONE k = {}"
-| "rpath_frontier_acc (RCHAR c) k = rfrontier (rsimp4 k)"
+| "rpath_frontier_acc (RCHAR c) k = rfrontier (rsimp4_SEQ RONE k)"
 | "rpath_frontier_acc (RALTS rs) k =
     (\<Union> (set (map (\<lambda>r. rpath_frontier_acc r k) rs)))"
 | "rpath_frontier_acc (RSEQ r1 r2) k =
