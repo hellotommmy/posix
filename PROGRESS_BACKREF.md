@@ -432,6 +432,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     erasure bridge in `FBound.thy`: `bsimp5_rerase` and `rders_simp5_size`.
     This gives the cubic prototype a checked path from `arexp` back to the
     proof-level `rsimp5` skeleton.
+  - Started replacing the old path-frontier proof interface with the
+    atom-continuation universe. Added the card skeleton
+    `partial_derivative_path_atom_frontier_universe_card_le`, alternative-child
+    monotonicity, top-level RZERO/RONE/RCHAR/RALTS derivative closure, and
+    carried RZERO/RONE/RCHAR/RALTS closure lemmas.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
