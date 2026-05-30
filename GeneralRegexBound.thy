@@ -745,6 +745,12 @@ qed
 definition rpd_der :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der c r = rsimp_ALTs (rdistinct (rflts (rpder_list c r)) {})"
 
+definition rpder_norm_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rpder_norm_list c r = map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)"
+
+definition rpd_der_norm :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rpd_der_norm c r = rsimp_ALTs (rdistinct (rflts (rpder_norm_list c r)) {})"
+
 lemma rsize_rpd_der_le_rsizes_rpder_list:
   "rsize (rpd_der c r) \<le> Suc (rsizes (rpder_list c r))"
 proof -
@@ -760,9 +766,28 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_rpd_der_norm_le_rsizes:
+  "rsize (rpd_der_norm c r) \<le> Suc (rsizes (rpder_norm_list c r))"
+proof -
+  have "rsize (rpd_der_norm c r) \<le>
+    rsize (RALTS (rdistinct (rflts (rpder_norm_list c r)) {}))"
+    unfolding rpd_der_norm_def by (rule rsimp_aalts_smaller)
+  also have "... = Suc (rsizes (rdistinct (rflts (rpder_norm_list c r)) {}))"
+    by simp
+  also have "... \<le> Suc (rsizes (rflts (rpder_norm_list c r)))"
+    using rdistinct_smaller[of "rflts (rpder_norm_list c r)" "{}"] by simp
+  also have "... \<le> Suc (rsizes (rpder_norm_list c r))"
+    using rflts_mono[of "rpder_norm_list c r"] by simp
+  finally show ?thesis .
+qed
+
 fun rders_pder :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
   "rders_pder r [] = r"
 | "rders_pder r (c # s) = rders_pder (rpd_der c r) s"
+
+fun rders_pder_norm :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "rders_pder_norm r [] = r"
+| "rders_pder_norm r (c # s) = rders_pder_norm (rpd_der_norm c r) s"
 
 lemma legacy_rpd_der:
   assumes "legacy_rrexp r"
@@ -779,11 +804,44 @@ proof -
     unfolding rpd_der_def by (rule legacy_rsimp_ALTs[OF distinct])
 qed
 
+lemma legacy_rpder_norm_list:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+proof -
+  have elems: "\<forall>p \<in> set (rpder_list c r). legacy_rrexp p"
+    using assms legacy_rpder set_rpder_list by blast
+  show ?thesis
+    unfolding rpder_norm_list_def
+    using elems legacy_rsimp4_SEQ_atom[of _ RONE]
+    by auto
+qed
+
+lemma legacy_rpd_der_norm:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rpd_der_norm c r)"
+proof -
+  have elems: "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  have flat: "\<forall>p \<in> set (rflts (rpder_norm_list c r)). legacy_rrexp p"
+    by (rule legacy_rflts[OF elems])
+  have distinct:
+    "\<forall>p \<in> set (rdistinct (rflts (rpder_norm_list c r)) {}). legacy_rrexp p"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rpd_der_norm_def by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
 lemma legacy_rders_pder:
   assumes "legacy_rrexp r"
   shows "legacy_rrexp (rders_pder r s)"
   using assms
   by (induct s arbitrary: r) (auto simp add: legacy_rpd_der)
+
+lemma legacy_rders_pder_norm:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_pder_norm r s)"
+  using assms
+  by (induct s arbitrary: r) (auto simp add: legacy_rpd_der_norm)
 
 lemma RL_rpd_der:
   assumes "legacy_rrexp r"
@@ -791,6 +849,33 @@ lemma RL_rpd_der:
 proof -
   have "RL (rpd_der c r) = (\<Union> (set (map RL (rpder_list c r))))"
     unfolding rpd_der_def by (rule RL_rsimp_ALTs_normalize)
+  also have "... = RLS (rpder c r)"
+    unfolding RLS_def using set_rpder_list[of c r] by auto
+  also have "... = Der c (RL r)"
+    by (rule RLS_rpder[OF assms])
+  finally show ?thesis .
+qed
+
+lemma RL_rsimp4_SEQ_atom_RONE:
+  "RL (rsimp4_SEQ_atom p RONE) = RL p"
+  using RL_rsimp4_SEQ_atom[of p RONE]
+  by (simp add: Sequ_def)
+
+lemma RL_rpder_norm_list:
+  "(\<Union> (set (map RL (rpder_norm_list c r)))) =
+    (\<Union> (set (map RL (rpder_list c r))))"
+  unfolding rpder_norm_list_def
+  by (auto simp add: RL_rsimp4_SEQ_atom_RONE)
+
+lemma RL_rpd_der_norm:
+  assumes "legacy_rrexp r"
+  shows "RL (rpd_der_norm c r) = Der c (RL r)"
+proof -
+  have "RL (rpd_der_norm c r) =
+    (\<Union> (set (map RL (rpder_norm_list c r))))"
+    unfolding rpd_der_norm_def by (rule RL_rsimp_ALTs_normalize)
+  also have "... = (\<Union> (set (map RL (rpder_list c r))))"
+    by (rule RL_rpder_norm_list)
   also have "... = RLS (rpder c r)"
     unfolding RLS_def using set_rpder_list[of c r] by auto
   also have "... = Der c (RL r)"
@@ -813,6 +898,26 @@ next
     by (simp add: Cons.hyps[OF next_legacy])
   also have "... = Ders s (Der c (RL r))"
     by (simp add: RL_rpd_der[OF Cons.prems])
+  also have "... = Ders (c # s) (RL r)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RL_rders_pder_norm:
+  assumes "legacy_rrexp r"
+  shows "RL (rders_pder_norm r s) = Ders s (RL r)"
+  using assms
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "legacy_rrexp (rpd_der_norm c r)"
+    by (rule legacy_rpd_der_norm[OF Cons.prems])
+  have "RL (rders_pder_norm r (c # s)) = Ders s (RL (rpd_der_norm c r))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RL r))"
+    by (simp add: RL_rpd_der_norm[OF Cons.prems])
   also have "... = Ders (c # s) (RL r)"
     by (simp add: Ders_Cons)
   finally show ?case .
@@ -4435,6 +4540,23 @@ proof -
     by simp
   also have "... \<le> 2 * (rsize r + 3) ^ 3"
     by (rule linear_times_quadratic_cubic_bound)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_norm_list_cubic:
+  assumes "legacy_rrexp r"
+  shows "rsizes (rpder_norm_list c r) \<le> 2 * (rsize r + 3) ^ 3"
+  unfolding rpder_norm_list_def
+  by (rule rsizes_rpder_list_RONE_cubic[OF assms])
+
+lemma rsize_rpd_der_norm_cubic:
+  assumes "legacy_rrexp r"
+  shows "rsize (rpd_der_norm c r) \<le> Suc (2 * (rsize r + 3) ^ 3)"
+proof -
+  have "rsize (rpd_der_norm c r) \<le> Suc (rsizes (rpder_norm_list c r))"
+    by (rule rsize_rpd_der_norm_le_rsizes)
+  also have "... \<le> Suc (2 * (rsize r + 3) ^ 3)"
+    using rsizes_rpder_norm_list_cubic[OF assms] by simp
   finally show ?thesis .
 qed
 

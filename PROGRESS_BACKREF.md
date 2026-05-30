@@ -163,6 +163,23 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- Normalized partial-derivative pipeline:
+  - Added explicit proof-level definitions `rpder_norm_list`, `rpd_der_norm`,
+    and `rders_pder_norm`.
+  - Proved `legacy_rpd_der_norm`, `legacy_rders_pder_norm`,
+    `RL_rpd_der_norm`, and `RL_rders_pder_norm`. The local row normalization
+    uses `rsimp4_SEQ_atom p RONE`, and `RL_rsimp4_SEQ_atom_RONE` proves this
+    preserves row language.
+  - Proved `rsize_rpd_der_norm_cubic`: one normalized partial-derivative step
+    is bounded by `Suc (2 * (rsize r + 3) ^ 3)` for the legacy/non-backref
+    fragment.
+  - Design consequence: the likely final algorithm should mirror
+    `rpd_der_norm` in the annotated layer, rather than use the raw
+    `bp_der` or the over-eager `bsimp5` row-product loop as the final cubic
+    simplifier.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
