@@ -113,6 +113,18 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- First `rsimp5` closure layer:
+  - Added dual-universe one-step closure for `rsimp5 (rder c r)` on
+    `RZERO`, `RONE`, `RCHAR`, and `RALTS`.
+  - The `RALTS` proof mirrors the Antimirov row discipline: normalize mapped
+    branch derivatives, extract the branch row with
+    `rfrontier_normalize_memberE`, then transport through the alternative
+    child monotonicity lemma for `partial_derivative_path_dual_frontier_universe`.
+  - This leaves the real continuation cases (`RSEQ`, `RSTAR`, `RNTIMES`) as
+    the next isolated closure target.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 

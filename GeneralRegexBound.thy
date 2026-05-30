@@ -4740,6 +4740,49 @@ proof
     by blast
 qed
 
+lemma rfrontier_rsimp5_rder_RZERO_path_dual_frontier [simp]:
+  "rfrontier (rsimp5 (rder c RZERO)) \<subseteq>
+    partial_derivative_path_dual_frontier_universe RZERO"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp5_rder_RONE_path_dual_frontier [simp]:
+  "rfrontier (rsimp5 (rder c RONE)) \<subseteq>
+    partial_derivative_path_dual_frontier_universe RONE"
+  by (simp add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp5_rder_RCHAR_path_dual_frontier [simp]:
+  "rfrontier (rsimp5 (rder c (RCHAR d))) \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RCHAR d)"
+  by (cases "c = d") (simp_all add: partial_derivative_path_dual_frontier_universe_def)
+
+lemma rfrontier_rsimp5_rder_RALTS_path_dual_frontier:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    rfrontier (rsimp5 (rder c r)) \<subseteq>
+      partial_derivative_path_dual_frontier_universe r"
+  shows "rfrontier (rsimp5 (rder c (RALTS rs))) \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RALTS rs)"
+proof
+  fix q
+  assume q: "q \<in> rfrontier (rsimp5 (rder c (RALTS rs)))"
+  have q_norm: "q \<in>
+    rfrontier
+      (rsimp_ALTs (rdistinct (rflts (map (rsimp5 \<circ> rder c) rs)) {}))"
+    using q by (simp add: comp_def)
+  then obtain x where x:
+      "x \<in> set (map (rsimp5 \<circ> rder c) rs)"
+      "q \<in> rfrontier x"
+    by (rule rfrontier_normalize_memberE)
+  then obtain r where r: "r \<in> set rs" "x = rsimp5 (rder c r)"
+    by (auto simp add: comp_def)
+  have "q \<in> partial_derivative_path_dual_frontier_universe r"
+    using step[OF r(1)] x r by blast
+  moreover have "partial_derivative_path_dual_frontier_universe r \<subseteq>
+    partial_derivative_path_dual_frontier_universe (RALTS rs)"
+    by (rule partial_derivative_path_dual_frontier_universe_alt_child_mono[OF r(1)])
+  ultimately show "q \<in> partial_derivative_path_dual_frontier_universe (RALTS rs)"
+    by blast
+qed
+
 lemma rfrontier_rsimp4_SEQ_rder_RZERO_path_atom_acc [simp]:
   "rfrontier (rsimp4_SEQ (rsimp4 (rder c RZERO)) k) \<subseteq>
     insert RZERO (rpath_atom_frontier_acc RZERO k)"
