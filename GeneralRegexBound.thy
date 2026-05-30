@@ -1905,6 +1905,92 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rfrontier_rsimp4_SEQ_atom_member_size_quadratic:
+  assumes "q \<in> rfrontier (rsimp4_SEQ_atom r k)"
+  shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+  using assms
+proof (induct r arbitrary: k q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  have "q \<in> rfrontier k"
+    using RONE.prems by simp
+  then have "q \<in> rsubterms k"
+    using rfrontier_subset_rsubterms by blast
+  then have "rsize q \<le> rsize k"
+    using rsubterms_member_size_le_rsize by blast
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+next
+  case (RSEQ r1 r2)
+  have "rsize q \<le>
+    rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2"
+    using RSEQ.hyps(1) RSEQ.prems by simp
+  also have "... \<le> Suc (rsize r2 + rsize k) + (rsize r1 + 2)\<^sup>2"
+    using rsize_rsimp4_SEQ_atom_le[of r2 k] by linarith
+  also have "... \<le> rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+  proof -
+    have "Suc (rsize r2) + (rsize r1 + 2)\<^sup>2 \<le>
+      (Suc (rsize r1 + rsize r2) + 2)\<^sup>2"
+      by (rule component_Suc_plus_shifted_square_le)
+    then show ?thesis
+      by simp
+  qed
+  finally show ?case .
+next
+  case (RALTS rs)
+  then show ?case
+  proof (cases k)
+    case RONE
+    have q_front: "q \<in> rfrontiers rs"
+      using RALTS.prems RONE by simp
+    then have "q \<in> (\<Union> (set (map rsubterms rs)))"
+      using rfrontiers_subset_rsubterms by blast
+    then have "q \<in> rsubterms (RALTS rs)"
+      by simp
+    then have "rsize q \<le> rsize (RALTS rs)"
+      using rsubterms_member_size_le_rsize by blast
+    moreover have "rsize (RALTS rs) \<le>
+      rsize RONE + (rsize (RALTS rs) + 2)\<^sup>2"
+    proof -
+      have base: "rsize (RALTS rs) \<le> 1 + (rsize (RALTS rs))\<^sup>2"
+        by (rule nat_le_one_plus_square)
+      have sq: "(rsize (RALTS rs))\<^sup>2 \<le> (rsize (RALTS rs) + 2)\<^sup>2"
+        by (rule square_mono_nat) simp
+      have "rsize (RALTS rs) \<le> 1 + (rsize (RALTS rs) + 2)\<^sup>2"
+        using base sq by linarith
+      then show ?thesis
+        by simp
+    qed
+    then show ?thesis
+      using RONE calculation by simp
+  qed (simp_all add: power2_eq_square)
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) (simp_all add: power2_eq_square)
+qed
+
 lemma rpath_continuations_acc_member_size_quadratic:
   assumes "q \<in> rpath_continuations_acc r k"
   shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"

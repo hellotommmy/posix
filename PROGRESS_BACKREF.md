@@ -303,6 +303,13 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     rsize r * Suc (card (rfrontier k))`.
     This is not the final cubic theorem, but it is a reusable accounting
     interface for one layer of Antimirov-style sequence distribution.
+  - Added `rfrontier_rsimp4_SEQ_atom_member_size_quadratic`, a local size
+    bound for frontier atoms exposed by a single sequence atom with a carried
+    continuation:
+    `q in rfrontier (rsimp4_SEQ_atom r k) ==> rsize q <=
+    rsize k + (rsize r + 2)^2`.
+    The proof deliberately splits `RONE`, `RSEQ`, and `RALTS ... RONE`
+    instead of relying on broad automation.
   - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
     remaining cubic accounting problem to bounding `rpath_frontiers`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
