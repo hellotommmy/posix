@@ -389,6 +389,9 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     row-product, using `rsimp4_SEQ_atom` for zero/one and sequence reassociation.
     Checked sanity lemmas show the middle-alternative counterexample now yields
     both distributed rows `b (c e)` and `b (d e)`.
+  - Proved `RL_rsimp5_SEQ` and `RL_rsimp5`. The proof factors through
+    `rsimp5_alt_rows` and `rsimp5_seq_products`, so the row-product definition
+    is now language-preserving.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

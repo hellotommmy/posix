@@ -1381,6 +1381,88 @@ next
     by (auto simp add: RL_rsimp_ALTs_normalize)
 qed simp_all
 
+lemma RL_rsimp5_alt_rows:
+  "(\<Union> (RL ` set (rsimp5_alt_rows r))) = RL r"
+  by (cases r) auto
+
+lemma RL_rsimp5_seq_product_row:
+  "(\<Union> (RL ` set (map (\<lambda>y. rsimp4_SEQ_atom x y) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+proof (induct ys)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def)
+next
+  case (Cons y ys)
+  have "(\<Union> (RL ` set (map (\<lambda>y. rsimp4_SEQ_atom x y) (y # ys)))) =
+    RL (rsimp4_SEQ_atom x y) \<union>
+      (\<Union> (RL ` set (map (\<lambda>y. rsimp4_SEQ_atom x y) ys)))"
+    by simp
+  also have "... = (RL x ;; RL y) \<union> (RL x ;; (\<Union> (RL ` set ys)))"
+    using Cons by (simp add: RL_rsimp4_SEQ_atom)
+  also have "... = RL x ;; (RL y \<union> (\<Union> (RL ` set ys)))"
+    by (auto simp add: Sequ_def)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp5_seq_products:
+  "(\<Union> (RL ` set (rsimp5_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def)
+next
+  case (Cons x xs)
+  have row: "(\<Union> (RL ` set (map (\<lambda>y. rsimp4_SEQ_atom x y) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+    by (rule RL_rsimp5_seq_product_row)
+  have tail: "(\<Union> (RL ` set (rsimp5_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+    by (rule Cons.hyps)
+  have "(\<Union> (RL ` set (rsimp5_seq_products (x # xs) ys))) =
+    (\<Union> (RL ` set (map (\<lambda>y. rsimp4_SEQ_atom x y) ys))) \<union>
+      (\<Union> (RL ` set (rsimp5_seq_products xs ys)))"
+    by simp
+  also have "... =
+    (RL x ;; (\<Union> (RL ` set ys))) \<union>
+      ((\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys)))"
+    using row tail by simp
+  also have "... =
+    (RL x \<union> (\<Union> (RL ` set xs))) ;; (\<Union> (RL ` set ys))"
+    by (rule Sequ_Un_left2)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp5_SEQ:
+  "RL (rsimp5_SEQ r1 r2) = RL r1 ;; RL r2"
+proof -
+  have "RL (rsimp5_SEQ r1 r2) =
+    (\<Union> (RL ` set (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2))))"
+    by (simp add: rsimp5_SEQ_def RL_rsimp_ALTs_normalize)
+  also have "... =
+    (\<Union> (RL ` set (rsimp5_alt_rows r1))) ;;
+      (\<Union> (RL ` set (rsimp5_alt_rows r2)))"
+    by (rule RL_rsimp5_seq_products)
+  also have "... = RL r1 ;; RL r2"
+    by (simp add: RL_rsimp5_alt_rows)
+  finally show ?thesis .
+qed
+
+lemma RL_rsimp5:
+  shows "RL r = RL (rsimp5 r)"
+proof (induct r rule: rsimp5.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp5_SEQ)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+qed simp_all
+
   
 lemma qqq1:
   shows "RZERO \<notin> set (rflts (map rsimp rs))"
