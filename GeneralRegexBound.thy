@@ -751,6 +751,9 @@ definition rpder_norm_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list
 definition rpd_der_norm :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der_norm c r = rsimp_ALTs (rdistinct (rflts (rpder_norm_list c r)) {})"
 
+definition rpder_norm_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp set" where
+  "rpder_norm_set c rs = (\<Union>r \<in> rs. set (rpder_norm_list c r))"
+
 lemma rsize_rpd_der_le_rsizes_rpder_list:
   "rsize (rpd_der c r) \<le> Suc (rsizes (rpder_list c r))"
 proof -
@@ -788,6 +791,23 @@ fun rders_pder :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
 fun rders_pder_norm :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
   "rders_pder_norm r [] = r"
 | "rders_pder_norm r (c # s) = rders_pder_norm (rpd_der_norm c r) s"
+
+fun rpders_norm_set :: "rrexp set \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders_norm_set rs [] = rs"
+| "rpders_norm_set rs (c # s) = rpders_norm_set (rpder_norm_set c rs) s"
+
+definition rpders_norm1 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders_norm1 r s = rpders_norm_set {r} s"
+
+lemma finite_rpder_norm_set [simp]:
+  assumes "finite rs"
+  shows "finite (rpder_norm_set c rs)"
+  using assms unfolding rpder_norm_set_def by auto
+
+lemma finite_rpders_norm_set [simp]:
+  assumes "finite rs"
+  shows "finite (rpders_norm_set rs s)"
+  using assms by (induct s arbitrary: rs) auto
 
 lemma legacy_rpd_der:
   assumes "legacy_rrexp r"
@@ -831,6 +851,13 @@ proof -
     unfolding rpd_der_norm_def by (rule legacy_rsimp_ALTs[OF distinct])
 qed
 
+lemma legacy_rpder_norm_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpder_norm_set c rs"
+  shows "legacy_rrexp p"
+  using assms legacy_rpder_norm_list
+  unfolding rpder_norm_set_def by blast
+
 lemma legacy_rders_pder:
   assumes "legacy_rrexp r"
   shows "legacy_rrexp (rders_pder r s)"
@@ -842,6 +869,24 @@ lemma legacy_rders_pder_norm:
   shows "legacy_rrexp (rders_pder_norm r s)"
   using assms
   by (induct s arbitrary: r) (auto simp add: legacy_rpd_der_norm)
+
+lemma legacy_rpders_norm_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpders_norm_set rs s"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_norm_set c rs. legacy_rrexp r"
+    using Cons.prems(1) legacy_rpder_norm_set by blast
+  have p_next: "p \<in> rpders_norm_set (rpder_norm_set c rs) s"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
 
 lemma RL_rpd_der:
   assumes "legacy_rrexp r"
@@ -883,6 +928,24 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RLS_rpder_norm_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpder_norm_set c rs) = Der c (RLS rs)"
+proof -
+  have "RLS (rpder_norm_set c rs) =
+    (\<Union>r \<in> rs. \<Union> (set (map RL (rpder_norm_list c r))))"
+    unfolding RLS_def rpder_norm_set_def by auto
+  also have "... = (\<Union>r \<in> rs. \<Union> (set (map RL (rpder_list c r))))"
+    using RL_rpder_norm_list by simp
+  also have "... = (\<Union>r \<in> rs. RLS (rpder c r))"
+    unfolding RLS_def using set_rpder_list by auto
+  also have "... = (\<Union>r \<in> rs. Der c (RL r))"
+    using assms RLS_rpder by blast
+  also have "... = Der c (RLS rs)"
+    unfolding RLS_def Der_def by auto
+  finally show ?thesis .
+qed
+
 lemma RL_rders_pder:
   assumes "legacy_rrexp r"
   shows "RL (rders_pder r s) = Ders s (RL r)"
@@ -902,6 +965,34 @@ next
     by (simp add: Ders_Cons)
   finally show ?case .
 qed
+
+lemma RLS_rpders_norm_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpders_norm_set rs s) = Ders s (RLS rs)"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_norm_set c rs. legacy_rrexp r"
+    using Cons.prems legacy_rpder_norm_set by blast
+  have "RLS (rpders_norm_set rs (c # s)) =
+    Ders s (RLS (rpder_norm_set c rs))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS rs))"
+    by (simp add: RLS_rpder_norm_set[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS rs)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders_norm1:
+  assumes "legacy_rrexp r"
+  shows "RLS (rpders_norm1 r s) = Ders s (RL r)"
+  using RLS_rpders_norm_set[of "{r}" s] assms
+  by (simp add: rpders_norm1_def RLS_def)
 
 lemma RL_rders_pder_norm:
   assumes "legacy_rrexp r"
