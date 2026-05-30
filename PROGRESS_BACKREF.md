@@ -291,6 +291,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Added `rfrontier_rsimp4_SEQ_RONE_subset` and
     `card_rfrontier_rsimp4_SEQ_RONE_le`, showing that exposing an empty-left
     sequence continuation does not increase frontier cardinality.
+  - Added `card_rfrontier_rsimp4_SEQ_atom_le`: appending a carried
+    continuation to a single sequence atom increases exposed frontier count by
+    at most the size of that atom. The only nontrivial branch is
+    `RALTS ... RONE`, discharged with `card_rfrontiers_le_rsizes`.
   - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
     remaining cubic accounting problem to bounding `rpath_frontiers`.
   - Local CI passed for both `Posix` and `BackRefPilot`.

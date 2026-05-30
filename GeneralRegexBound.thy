@@ -1334,6 +1334,62 @@ lemma card_rfrontier_rsimp4_SEQ_RONE_le:
   "card (rfrontier (rsimp4_SEQ RONE k)) \<le> card (rfrontier k)"
   by (rule card_mono) (simp_all add: rfrontier_rsimp4_SEQ_RONE_subset)
 
+lemma card_rfrontier_rsimp4_SEQ_atom_le:
+  "card (rfrontier (rsimp4_SEQ_atom r k)) \<le>
+    rsize r + card (rfrontier k)"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case
+    by (cases k) simp_all
+next
+  case (RSEQ r1 r2)
+  have "card (rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k)) =
+    card (rfrontier (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)))"
+    by simp
+  also have "... \<le> rsize r1 +
+    card (rfrontier (rsimp4_SEQ_atom r2 k))"
+    by (rule RSEQ.hyps(1))
+  also have "... \<le> rsize r1 + (rsize r2 + card (rfrontier k))"
+    using RSEQ.hyps(2)[of k] by linarith
+  also have "... \<le> rsize (RSEQ r1 r2) + card (rfrontier k)"
+    by simp
+  finally show ?case .
+next
+  case (RALTS rs)
+  then show ?case
+  proof (cases k)
+    case RONE
+    then show ?thesis
+      using card_rfrontiers_le_rsizes[of rs] by simp
+  qed simp_all
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases k) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) simp_all
+qed
+
 fun rseq_sources :: "rrexp \<Rightarrow> rrexp set" where
   "rseq_sources (RALTS rs) = set rs"
 | "rseq_sources r = {r}"
