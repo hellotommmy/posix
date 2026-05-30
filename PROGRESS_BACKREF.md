@@ -357,6 +357,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     invariant needed for full `RALTS`/`RSEQ` closure: normalized alternative
     rows must be `nonalt`, after which sequence-frontier normalization can be
     pushed through using row-wise subset proofs.
+  - Failed path, intentionally not kept: trying to use the existing
+    `nonnested` predicate as that invariant is too weak, because
+    `nonnested (RSEQ a b)` is definitionally `True` and therefore does not
+    constrain nested alternatives inside `a` or `b`. The next invariant should
+    be `good`-style or a new sequence-normal-form predicate, not plain
+    `nonnested`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
