@@ -2587,6 +2587,58 @@ proof -
   finally show ?thesis .
 qed
 
+lemma partial_derivative_path_frontier_universe_alt_child_mono:
+  assumes "r \<in> set rs"
+  shows "partial_derivative_path_frontier_universe r \<subseteq>
+    partial_derivative_path_frontier_universe (RALTS rs)"
+  using assms
+  unfolding partial_derivative_path_frontier_universe_def
+    rpath_frontiers_def
+  by auto
+
+lemma rfrontier_rsimp4_rder_RZERO_path_frontier [simp]:
+  "rfrontier (rsimp4 (rder c RZERO)) \<subseteq>
+    partial_derivative_path_frontier_universe RZERO"
+  by (simp add: partial_derivative_path_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RONE_path_frontier [simp]:
+  "rfrontier (rsimp4 (rder c RONE)) \<subseteq>
+    partial_derivative_path_frontier_universe RONE"
+  by (simp add: partial_derivative_path_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RCHAR_path_frontier [simp]:
+  "rfrontier (rsimp4 (rder c (RCHAR d))) \<subseteq>
+    partial_derivative_path_frontier_universe (RCHAR d)"
+  by (cases "c = d") (simp_all add: partial_derivative_path_frontier_universe_def)
+
+lemma rfrontier_rsimp4_rder_RALTS_path_frontier:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow>
+    rfrontier (rsimp4 (rder c r)) \<subseteq>
+      partial_derivative_path_frontier_universe r"
+  shows "rfrontier (rsimp4 (rder c (RALTS rs))) \<subseteq>
+    partial_derivative_path_frontier_universe (RALTS rs)"
+proof
+  fix q
+  assume q: "q \<in> rfrontier (rsimp4 (rder c (RALTS rs)))"
+  have q_norm: "q \<in>
+    rfrontier
+      (rsimp_ALTs (rdistinct (rflts (map (rsimp4 \<circ> rder c) rs)) {}))"
+    using q by simp
+  then obtain x where x:
+      "x \<in> set (map (rsimp4 \<circ> rder c) rs)"
+      "q \<in> rfrontier x"
+    by (rule rfrontier_normalize_memberE)
+  then obtain r where r: "r \<in> set rs" "x = rsimp4 (rder c r)"
+    by (auto simp add: comp_def)
+  have "q \<in> partial_derivative_path_frontier_universe r"
+    using step[OF r(1)] x r by blast
+  moreover have "partial_derivative_path_frontier_universe r \<subseteq>
+    partial_derivative_path_frontier_universe (RALTS rs)"
+    by (rule partial_derivative_path_frontier_universe_alt_child_mono[OF r(1)])
+  ultimately show "q \<in> partial_derivative_path_frontier_universe (RALTS rs)"
+    by blast
+qed
+
 lemma left_nested_atom_in_path_frontier_universe:
   assumes "a \<noteq> b"
   shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>

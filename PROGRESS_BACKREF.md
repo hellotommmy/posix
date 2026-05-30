@@ -321,6 +321,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     returned to normal timing.
   - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
     remaining cubic accounting problem to bounding `rpath_frontiers`.
+  - Started one-step derivative closure for the new path-frontier universe:
+    base constructors `RZERO`, `RONE`, `RCHAR`, plus a compositional
+    `RALTS` rule. The `RALTS` rule uses the Antimirov-style shape directly:
+    normalize the mapped branch derivatives, extract a normalized frontier
+    member, then transport it through
+    `partial_derivative_path_frontier_universe_alt_child_mono`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
