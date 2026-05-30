@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (cubic-size-bound research kickoff)
+Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
@@ -40,6 +40,21 @@ Last updated: 2026-05-31 (cubic-size-bound research kickoff)
   elements are generated from original subterms and continuation contexts, then
   prove a cubic cardinality bound for that universe and show `rders_simp3`
   stays inside it.
+- Checked second implementation checkpoint:
+  - Added `rsubterms`, `rcontinuations`, and
+    `partial_derivative_universe` in `GeneralRegexBound.thy`.
+  - Proved `partial_derivative_universe_card_cubic`:
+    `card (partial_derivative_universe r) <= (rsize r + 3)^3`.
+    This is the first finite-universe replacement for the older
+    `sizeNregex`-style counting argument; it is still an overapproximation,
+    not yet the final closure theorem for `rders_simp3`.
+  - Kept the proof granular: explicit `card_Un3_le`, `card_Un4_le`, image
+    cardinality, and cubic padding lemmas. No long-running `auto`/`fun`
+    proof search was introduced.
+  - Local CI passed for both `Posix` and `BackRefPilot` after this checkpoint.
+- Next research target: prove membership/closure, first for one derivative
+  step and then for `rders_simp3`, showing that every generated frontier atom
+  stays in `partial_derivative_universe r` for the non-backref fragment.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

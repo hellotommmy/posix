@@ -95,6 +95,281 @@ lemma legacy_rders_simp:
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp legacy_rder)
 
+fun rsubterms :: "rrexp \<Rightarrow> rrexp set" where
+  "rsubterms RZERO = {RZERO}"
+| "rsubterms RONE = {RONE}"
+| "rsubterms (RCHAR c) = {RCHAR c}"
+| "rsubterms (RALTS rs) = insert (RALTS rs) (\<Union> (set (map rsubterms rs)))"
+| "rsubterms (RSEQ r1 r2) = insert (RSEQ r1 r2) (rsubterms r1 \<union> rsubterms r2)"
+| "rsubterms (RSTAR r) = insert (RSTAR r) (rsubterms r)"
+| "rsubterms (RNTIMES r n) = insert (RNTIMES r n) (rsubterms r)"
+| "rsubterms (RBACKREF4 r1 r2 r3 r4 cs) =
+    insert (RBACKREF4 r1 r2 r3 r4 cs)
+      (rsubterms r1 \<union> rsubterms r2 \<union> rsubterms r3 \<union> rsubterms r4)"
+| "rsubterms (RHALF r cs rep) = insert (RHALF r cs rep) (rsubterms r)"
+| "rsubterms (RRESIDUE cs rep) = {RRESIDUE cs rep}"
+
+lemma finite_rsubterms [simp]:
+  "finite (rsubterms r)"
+  by (induct r) auto
+
+lemma finite_rsubterms_list [simp]:
+  "finite (\<Union> (set (map rsubterms rs)))"
+  by (induct rs) auto
+
+lemma card_Un3_le:
+  "card (A \<union> B \<union> C) \<le> card A + card B + card C"
+proof -
+  have "card (A \<union> B \<union> C) \<le> card (A \<union> B) + card C"
+    by (rule card_Un_le)
+  also have "... \<le> card A + card B + card C"
+    using card_Un_le[of A B] by simp
+  finally show ?thesis .
+qed
+
+lemma card_Un4_le:
+  "card (A \<union> B \<union> C \<union> D) \<le> card A + card B + card C + card D"
+proof -
+  have "card (A \<union> B \<union> C \<union> D) \<le> card (A \<union> B \<union> C) + card D"
+    by (rule card_Un_le)
+  also have "... \<le> card A + card B + card C + card D"
+    using card_Un3_le[of A B C] by simp
+  finally show ?thesis .
+qed
+
+lemma card_rsubterms_list_le_rsizes:
+  assumes step: "\<And>r. r \<in> set rs \<Longrightarrow> card (rsubterms r) \<le> rsize r"
+  shows "card (\<Union> (set (map rsubterms rs))) \<le> rsizes rs"
+  using step
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have "card (\<Union> (set (map rsubterms (r # rs)))) =
+    card (rsubterms r \<union> (\<Union> (set (map rsubterms rs))))"
+    by simp
+  also have "... \<le> card (rsubterms r) + card (\<Union> (set (map rsubterms rs)))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize r + rsizes rs"
+  proof -
+    have r_le: "card (rsubterms r) \<le> rsize r"
+      using Cons.prems by simp
+    have rs_le: "card (\<Union> (set (map rsubterms rs))) \<le> rsizes rs"
+      using Cons.hyps Cons.prems by simp
+    show ?thesis
+      using r_le rs_le by linarith
+  qed
+  finally show ?case
+    by simp
+qed
+
+lemma card_insert_le_Suc:
+  assumes "finite A"
+  shows "card (insert x A) \<le> Suc (card A)"
+  using assms by (simp add: card_insert_if)
+
+lemma card_insert2_Un_le:
+  assumes "finite A" "finite B"
+  shows "card (insert x (insert y (A \<union> B))) \<le> 2 + card A + card B"
+proof -
+  have "card (insert x (insert y (A \<union> B))) \<le> Suc (card (insert y (A \<union> B)))"
+    by (rule card_insert_le_Suc) (simp add: assms)
+  also have "... \<le> Suc (Suc (card (A \<union> B)))"
+    using assms card_insert_le_Suc[of "A \<union> B" y] by simp
+  also have "... \<le> 2 + card A + card B"
+    using card_Un_le[of A B] by simp
+  finally show ?thesis .
+qed
+
+lemma cubic_padding_bound:
+  fixes n :: nat
+  shows "2 + n + n * (n * (n + 3)) \<le> (n + 3) ^ 3"
+proof -
+  have "(n + 3) ^ 3 = n * (n * (n + 3)) + (6 * n + 9) * (n + 3)"
+    by (simp add: algebra_simps power3_eq_cube)
+  moreover have "2 + n \<le> (6 * n + 9) * (n + 3)"
+  proof -
+    have "2 + n \<le> 6 * n + 9"
+      by simp
+    also have "... \<le> (6 * n + 9) * (n + 3)"
+    proof -
+      have "(6 * n + 9) * 1 \<le> (6 * n + 9) * (n + 3)"
+        by (rule mult_le_mono2) simp
+      then show ?thesis
+        by simp
+    qed
+    finally show ?thesis .
+  qed
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma card_rsubterms_le_rsize:
+  "card (rsubterms r) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have "card (rsubterms (RALTS rs)) \<le>
+    Suc (card (\<Union> (set (map rsubterms rs))))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> Suc (rsizes rs)"
+    using card_rsubterms_list_le_rsizes[of rs] RALTS by simp
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  have "card (rsubterms (RSEQ r1 r2)) \<le>
+    Suc (card (rsubterms r1 \<union> rsubterms r2))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> Suc (card (rsubterms r1) + card (rsubterms r2))"
+    using card_Un_le by simp
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using RSEQ by simp
+  finally show ?case .
+next
+  case (RSTAR r)
+  have "card (rsubterms (RSTAR r)) \<le> Suc (card (rsubterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rsize (RSTAR r)"
+    using RSTAR by simp
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  have "card (rsubterms (RNTIMES r n)) \<le> Suc (card (rsubterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rsize (RNTIMES r n)"
+    using RNTIMES by simp
+  finally show ?case .
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "card (rsubterms (RBACKREF4 r1 r2 r3 r4 cs)) \<le>
+    Suc (card (rsubterms r1 \<union> rsubterms r2 \<union> rsubterms r3 \<union> rsubterms r4))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le>
+    Suc (card (rsubterms r1) + card (rsubterms r2) +
+      card (rsubterms r3) + card (rsubterms r4))"
+    using card_Un4_le[of "rsubterms r1" "rsubterms r2" "rsubterms r3" "rsubterms r4"] by simp
+  also have "... \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs)"
+    using RBACKREF4 by simp
+  finally show ?case .
+next
+  case (RHALF r cs rep)
+  have "card (rsubterms (RHALF r cs rep)) \<le> Suc (card (rsubterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rsize (RHALF r cs rep)"
+    using RHALF by simp
+  finally show ?case .
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+definition rcontinuations :: "rrexp \<Rightarrow> rrexp set" where
+  "rcontinuations r =
+    rsubterms r \<union>
+    RSTAR ` rsubterms r \<union>
+    (\<lambda>(s, n). RNTIMES s n) ` (rsubterms r \<times> {..rsize r})"
+
+lemma finite_rcontinuations [simp]:
+  "finite (rcontinuations r)"
+  by (simp add: rcontinuations_def)
+
+lemma card_rcontinuations_le:
+  "card (rcontinuations r) \<le> rsize r * (rsize r + 3)"
+proof -
+  let ?A = "rsubterms r"
+  let ?B = "RSTAR ` ?A"
+  let ?C = "(\<lambda>(s, n). RNTIMES s n) ` (?A \<times> {..rsize r})"
+  have A: "card ?A \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  have B: "card ?B \<le> card ?A"
+    by (rule card_image_le) simp
+  have C: "card ?C \<le> card ?A * Suc (rsize r)"
+  proof -
+    have "card ?C \<le> card (?A \<times> {..rsize r})"
+      by (rule card_image_le) simp
+    then show ?thesis
+      by simp
+  qed
+  have "card (rcontinuations r) = card (?A \<union> ?B \<union> ?C)"
+    unfolding rcontinuations_def
+    by simp
+  also have "... \<le> card ?A + card ?B + card ?C"
+    by (rule card_Un3_le)
+  also have "... \<le> card ?A * (rsize r + 3)"
+  proof -
+    have "card ?A + card ?B + card ?C \<le>
+      card ?A + card ?A + card ?A * Suc (rsize r)"
+      using B C by linarith
+    also have "... = card ?A * (rsize r + 3)"
+      by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+  also have "... \<le> rsize r * (rsize r + 3)"
+    using A by (simp add: mult_right_mono)
+  finally show ?thesis .
+qed
+
+definition partial_derivative_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_universe r =
+    insert RZERO
+      (insert RONE
+        (rsubterms r \<union>
+         (\<lambda>(p, k). RSEQ p k) ` (rsubterms r \<times> rcontinuations r)))"
+
+lemma finite_partial_derivative_universe [simp]:
+  "finite (partial_derivative_universe r)"
+  by (simp add: partial_derivative_universe_def)
+
+lemma partial_derivative_universe_card_cubic:
+  "card (partial_derivative_universe r) \<le> (rsize r + 3) ^ 3"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rcontinuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have A: "card ?A \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  have K: "card ?K \<le> rsize r * (rsize r + 3)"
+    by (rule card_rcontinuations_le)
+  have P: "card ?P \<le> card ?A * card ?K"
+  proof -
+    have "card ?P \<le> card (?A \<times> ?K)"
+      by (rule card_image_le) simp
+    then show ?thesis
+      by simp
+  qed
+  have P_size: "card ?P \<le> rsize r * (rsize r * (rsize r + 3))"
+  proof -
+    have "card ?P \<le> card ?A * (rsize r * (rsize r + 3))"
+    proof -
+      have "card ?A * card ?K \<le> card ?A * (rsize r * (rsize r + 3))"
+        using K by (simp add: mult_left_mono)
+      then show ?thesis
+        using P by linarith
+    qed
+    also have "... \<le> rsize r * (rsize r * (rsize r + 3))"
+      using A by (simp add: mult_right_mono)
+    finally show ?thesis .
+  qed
+  have "card (partial_derivative_universe r) \<le> 2 + card ?A + card ?P"
+    unfolding partial_derivative_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le> 2 + rsize r + rsize r * (rsize r * (rsize r + 3))"
+    using A P_size by linarith
+  also have "... \<le> (rsize r + 3) ^ 3"
+    by (rule cubic_padding_bound)
+  finally show ?thesis .
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
