@@ -2236,6 +2236,19 @@ proof -
     by (rule rfrontier_rsimp_ALTs_subset)
 qed
 
+lemma rfrontiers_frontier_universe_members_subset:
+  assumes "set rs \<subseteq> partial_derivative_frontier_universe r"
+  shows "rfrontiers rs \<subseteq> partial_derivative_frontier_universe r"
+  by (rule rfrontiers_subsetI)
+    (use assms rfrontier_frontier_universe_member_subset in blast)
+
+lemma rfrontier_rpd_der_norm_subsetI:
+  assumes "rfrontiers (rpder_norm_list c r) \<subseteq> U"
+  shows "rfrontier (rpd_der_norm c r) \<subseteq> U"
+  unfolding rpd_der_norm_def
+  by (rule rfrontier_normalize_subset)
+    (use assms rfrontiers_member_iff in blast)
+
 lemma rfrontier_rsimp4_SEQ_RONE_subset:
   "rfrontier (rsimp4_SEQ RONE k) \<subseteq> rfrontier k"
 proof -
