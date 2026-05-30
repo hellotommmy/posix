@@ -2315,6 +2315,141 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma rsimp4_SEQ_atom_RZERO_right [simp]:
+  "rsimp4_SEQ_atom r RZERO = RZERO"
+  by (induct r) simp_all
+
+fun row_nf :: "rrexp \<Rightarrow> bool" where
+  "row_nf RZERO = False"
+| "row_nf RONE = True"
+| "row_nf (RCHAR c) = True"
+| "row_nf (RALTS rs) = False"
+| "row_nf (RSEQ r1 r2) =
+    (row_nf r1 \<and> row_nf r2 \<and>
+      r1 \<noteq> RZERO \<and> r1 \<noteq> RONE \<and> r2 \<noteq> RZERO \<and> r2 \<noteq> RONE)"
+| "row_nf (RSTAR r) = True"
+| "row_nf (RNTIMES r n) = True"
+| "row_nf (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "row_nf (RHALF r cs rep) = True"
+| "row_nf (RRESIDUE cs rep) = True"
+
+lemma row_nf_nonalt:
+  assumes "row_nf r"
+  shows "nonalt r"
+  using assms by (cases r) auto
+
+lemma row_nf_not_RZERO:
+  assumes "row_nf r"
+  shows "r \<noteq> RZERO"
+  using assms by (cases r) auto
+
+lemma row_nf_rsimp4_SEQ_atom:
+  assumes "row_nf x" "row_nf y"
+  shows "row_nf (rsimp4_SEQ_atom x y) \<or> rsimp4_SEQ_atom x y = RZERO"
+  using assms
+proof (induct x arbitrary: y)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RSEQ x1 x2)
+  have x1_nf: "row_nf x1"
+    using RSEQ.prems by simp
+  have x2_nf: "row_nf x2"
+    using RSEQ.prems by simp
+  have inner: "row_nf (rsimp4_SEQ_atom x2 y) \<or>
+      rsimp4_SEQ_atom x2 y = RZERO"
+    by (rule RSEQ.hyps(2)[OF x2_nf RSEQ.prems(2)])
+  then show ?case
+  proof
+    assume inner_nf: "row_nf (rsimp4_SEQ_atom x2 y)"
+    show ?thesis
+      using RSEQ.hyps(1)[OF x1_nf inner_nf] by simp
+  next
+    assume inner_zero: "rsimp4_SEQ_atom x2 y = RZERO"
+    then show ?thesis by simp
+  qed
+next
+  case (RALTS rs)
+  then show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases y) simp_all
+qed
+
+lemma row_nf_rsimp5_seq_products:
+  assumes "\<forall>x \<in> set xs. row_nf x"
+      and "\<forall>y \<in> set ys. row_nf y"
+  shows "\<forall>z \<in> set (rsimp5_seq_products xs ys). row_nf z \<or> z = RZERO"
+  using assms row_nf_rsimp4_SEQ_atom by (induct xs) auto
+
+lemma card_rfrontier_row_nf_or_zero_le_one:
+  assumes "row_nf r \<or> r = RZERO"
+  shows "card (rfrontier r) \<le> 1"
+  using assms by (cases r) auto
+
+lemma card_rfrontiers_row_nf_or_zero_le_length:
+  assumes "\<forall>r \<in> set rs. row_nf r \<or> r = RZERO"
+  shows "card (rfrontiers rs) \<le> length rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "card (rfrontier r) \<le> 1"
+    by (rule card_rfrontier_row_nf_or_zero_le_one) (use Cons.prems in auto)
+  have tail: "card (rfrontiers rs) \<le> length rs"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "card (rfrontiers (r # rs)) \<le>
+    card (rfrontier r) + card (rfrontiers rs)"
+    by (simp add: card_Un_le)
+  then show ?case
+    using head tail by simp
+qed
+
+lemma card_rfrontier_rsimp5_SEQ_le_size_product_if_row_nf:
+  assumes "\<forall>x \<in> set (rsimp5_alt_rows r1). row_nf x"
+      and "\<forall>x \<in> set (rsimp5_alt_rows r2). row_nf x"
+  shows "card (rfrontier (rsimp5_SEQ r1 r2)) \<le> rsize r1 * rsize r2"
+proof -
+  let ?rows1 = "rsimp5_alt_rows r1"
+  let ?rows2 = "rsimp5_alt_rows r2"
+  let ?products = "rsimp5_seq_products ?rows1 ?rows2"
+  have products: "\<forall>z \<in> set ?products. row_nf z \<or> z = RZERO"
+    by (rule row_nf_rsimp5_seq_products[OF assms])
+  have "card (rfrontier (rsimp5_SEQ r1 r2)) = card (rfrontiers ?products)"
+    by (simp add: rsimp5_SEQ_def)
+  also have "... \<le> length ?products"
+    by (rule card_rfrontiers_row_nf_or_zero_le_length[OF products])
+  also have "... \<le> rsize r1 * rsize r2"
+    by (rule length_rsimp5_seq_products_alt_rows_le)
+  finally show ?thesis .
+qed
+
 lemma rfrontier_nonzero_nonalt_self:
   assumes "r \<noteq> RZERO" "nonalt r"
   shows "r \<in> rfrontier r"

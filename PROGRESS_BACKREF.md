@@ -406,6 +406,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `RALTS`. The next proof layer should introduce a row-level alt-free/sequence
     normal-form predicate before claiming that each product row has frontier
     cardinality at most one.
+  - Added checked `row_nf` predicate for product rows. Proved
+    `row_nf_rsimp4_SEQ_atom`, `row_nf_rsimp5_seq_products`, and the conditional
+    local bound
+    `card_rfrontier_rsimp5_SEQ_le_size_product_if_row_nf`. The remaining local
+    gap is now precise: show `rsimp5` outputs have `row_nf` alternative rows.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
