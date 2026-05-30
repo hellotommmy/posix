@@ -924,6 +924,14 @@ lemma finite_rfrontier [simp]:
   "finite (rfrontiers rs)"
   by (induct r and rs rule: rfrontier_rfrontiers.induct) auto
 
+lemma card_rfrontier_le_rsize:
+  "card (rfrontier r) \<le> rsize r"
+  and card_rfrontiers_le_rsizes:
+  "card (rfrontiers rs) \<le> rsizes rs"
+  apply (induct r and rs rule: rfrontier_rfrontiers.induct)
+      apply simp_all
+  by (meson add_mono card_Un_le le_trans)
+
 fun rnonseq :: "rrexp \<Rightarrow> bool" where
   "rnonseq (RSEQ r1 r2) = False"
 | "rnonseq r = True"

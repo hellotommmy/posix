@@ -272,6 +272,14 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove linear/quadratic accounting for
   `partial_derivative_path_frontier_universe`, then use it as the target for
   one-step `rsimp4 (rder c r)` closure.
+- Checked seventeenth implementation checkpoint:
+  - Proved `card_rfrontier_le_rsize` and `card_rfrontiers_le_rsizes`.
+    This establishes that taking the recursive Antimirov-style frontier of a
+    single syntax tree does not introduce more atoms than the tree size.
+  - This is the first accounting lemma needed for the frontier-aware path
+    universe: the remaining issue is bounding the size/cardinality of
+    `rsimp4`-normalized carried suffixes.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
