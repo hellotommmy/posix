@@ -131,6 +131,23 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove row-atom closure for the quadratic frontier
   universe, or refine the continuation universe if the proof exposes a missing
   syntactic continuation shape.
+- Checked eighth implementation checkpoint:
+  - Added membership API lemmas for `partial_derivative_frontier_universe`:
+    direct membership for `RZERO`, `RONE`, subterms, continuations, and
+    `RSEQ p k` pairs.
+  - Added `rnonseq` and proved
+    `rfrontier_rsimp4_SEQ_atom_nonseq_subset`: if `p` is a non-`RSEQ`
+    subterm, `k` is a reachable continuation, and `rfrontier k` is already in
+    the universe, then the frontier of `rsimp4_SEQ_atom p k` stays in the
+    quadratic frontier universe.
+  - The proof exposed a useful design invariant: continuations cannot merely
+    be members of the universe; their own frontiers must also be closed.
+    This is now an explicit premise for the row-atom lemma instead of being
+    hidden under automation.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove `rfrontier k` closure for all
+  `k \<in> rlinear_continuations r`, then use it to discharge the row closure
+  premise for derivative continuations.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

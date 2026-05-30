@@ -768,6 +768,29 @@ lemma finite_partial_derivative_frontier_universe [simp]:
   "finite (partial_derivative_frontier_universe r)"
   by (simp add: partial_derivative_frontier_universe_def)
 
+lemma partial_derivative_frontier_universe_zero [simp]:
+  "RZERO \<in> partial_derivative_frontier_universe r"
+  by (simp add: partial_derivative_frontier_universe_def)
+
+lemma partial_derivative_frontier_universe_one [simp]:
+  "RONE \<in> partial_derivative_frontier_universe r"
+  by (simp add: partial_derivative_frontier_universe_def)
+
+lemma partial_derivative_frontier_universe_subterm:
+  assumes "p \<in> rsubterms r"
+  shows "p \<in> partial_derivative_frontier_universe r"
+  using assms by (auto simp add: partial_derivative_frontier_universe_def)
+
+lemma partial_derivative_frontier_universe_continuation:
+  assumes "k \<in> rlinear_continuations r"
+  shows "k \<in> partial_derivative_frontier_universe r"
+  using assms by (auto simp add: partial_derivative_frontier_universe_def)
+
+lemma partial_derivative_frontier_universe_seq:
+  assumes "p \<in> rsubterms r" "k \<in> rlinear_continuations r"
+  shows "RSEQ p k \<in> partial_derivative_frontier_universe r"
+  using assms by (auto simp add: partial_derivative_frontier_universe_def)
+
 lemma quadratic_padding_bound:
   fixes n :: nat
   shows "2 + n + n + n * n \<le> (n + 2) ^ 2"
@@ -890,6 +913,58 @@ fun rfrontier :: "rrexp \<Rightarrow> rrexp set"
 | "rfrontier r = {r}"
 | "rfrontiers [] = {}"
 | "rfrontiers (r # rs) = rfrontier r \<union> rfrontiers rs"
+
+fun rnonseq :: "rrexp \<Rightarrow> bool" where
+  "rnonseq (RSEQ r1 r2) = False"
+| "rnonseq r = True"
+
+lemma rfrontier_rsimp4_SEQ_atom_nonseq_subset:
+  assumes p: "p \<in> rsubterms r"
+      and k: "k \<in> rlinear_continuations r"
+      and k_frontier: "rfrontier k \<subseteq> partial_derivative_frontier_universe r"
+      and nonseq: "rnonseq p"
+  shows "rfrontier (rsimp4_SEQ_atom p k) \<subseteq> partial_derivative_frontier_universe r"
+  using p k k_frontier nonseq
+proof (cases p)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis
+    using k_frontier by auto
+next
+  case (RCHAR x)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RSEQ x41 x42)
+  then show ?thesis
+    using nonseq by simp
+next
+  case (RALTS x5)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RSTAR x6)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RNTIMES x71 x72)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RBACKREF4 x81 x82 x83 x84 x85)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RHALF x91 x92 x93)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+next
+  case (RRESIDUE x101 x102)
+  then show ?thesis
+    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+qed
 
 lemma rfrontiers_append [simp]:
   "rfrontiers (rs1 @ rs2) = rfrontiers rs1 \<union> rfrontiers rs2"
