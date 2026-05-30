@@ -2593,6 +2593,39 @@ proof -
     by (rule card_rfrontier_rsimp5_SEQ_le_size_product_if_row_nf[OF rows1 rows2])
 qed
 
+lemma rfrontier_alt_rows_eq:
+  "rfrontier r = rfrontiers (rsimp5_alt_rows r)"
+  by (cases r) simp_all
+
+lemma card_rfrontier_rows_nf_le_alt_rows:
+  assumes "rows_nf r"
+  shows "card (rfrontier r) \<le> length (rsimp5_alt_rows r)"
+proof -
+  have rows: "\<forall>x \<in> set (rsimp5_alt_rows r). row_nf x \<or> x = RZERO"
+    using assms by (auto simp add: rows_nf_def)
+  have "card (rfrontier r) = card (rfrontiers (rsimp5_alt_rows r))"
+    by (simp add: rfrontier_alt_rows_eq)
+  also have "... \<le> length (rsimp5_alt_rows r)"
+    by (rule card_rfrontiers_row_nf_or_zero_le_length[OF rows])
+  finally show ?thesis .
+qed
+
+lemma card_rfrontier_rsimp5_le_alt_rows:
+  "card (rfrontier (rsimp5 r)) \<le> length (rsimp5_alt_rows (rsimp5 r))"
+  by (rule card_rfrontier_rows_nf_le_alt_rows[OF rows_nf_rsimp5])
+
+lemma rsimp5_rows_two_binary_alts:
+  assumes "a \<noteq> b" "c \<noteq> d"
+  shows "length
+    (rsimp5_alt_rows
+      (rsimp5 (RSEQ (RALTS [RCHAR a, RCHAR b]) (RALTS [RCHAR c, RCHAR d])))) = 4"
+proof -
+  have "b \<noteq> a" "d \<noteq> c"
+    using assms by auto
+  then show ?thesis
+    using assms by (simp add: rsimp5_SEQ_def)
+qed
+
 lemma rfrontier_nonzero_nonalt_self:
   assumes "r \<noteq> RZERO" "nonalt r"
   shows "r \<in> rfrontier r"

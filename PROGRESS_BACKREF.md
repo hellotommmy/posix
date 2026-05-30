@@ -415,6 +415,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `rdistinct`, and `rsimp_ALTs` preserves row normal form; hence
     `rows_nf_rsimp5` holds. This yields the unconditional local frontier bound
     `card_rfrontier_rsimp5_SEQ_le_size_product` for simplified operands.
+  - Added the bridge from rows to frontiers:
+    `card_rfrontier_rows_nf_le_alt_rows` and
+    `card_rfrontier_rsimp5_le_alt_rows`. Also checked that a binary-alternative
+    sequence has four row-product alternatives under `rsimp5`. The helper
+    `rfrontier_alt_rows_eq` is intentionally not a global simp rule; briefly
+    marking it `[simp]` made unrelated proof lines run for tens of seconds.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
