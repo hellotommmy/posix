@@ -140,6 +140,22 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- Positive Antimirov-list closure step:
+  - Added `rpder_list_path_continuations_acc_subset`, a carried-continuation
+    theorem showing that the executable partial-derivative rows, after the
+    local `rsimp4_SEQ_atom` continuation normalization, are contained in the
+    derivative path-continuation collector.
+  - Added `rpder_list_path_universe_subset`: for legacy/non-backref regexes,
+    `map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)` is contained in
+    `partial_derivative_path_universe r`.
+  - Important proof-shape lesson: `rsimp4_SEQ_atom p RONE` is not globally
+    identical to `p` for sequence-shaped rows, because the continuation
+    normalizer may still remove zero/one structure or reassociate. The theorem
+    therefore states closure for the normalized row list, which is the object
+    relevant to the size-bound pipeline.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 

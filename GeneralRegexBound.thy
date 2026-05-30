@@ -4317,6 +4317,100 @@ lemma rder_path_continuations_universe_subset:
     partial_derivative_path_universe_path_continuation
   by blast
 
+lemma rpder_list_path_continuations_acc_subset:
+  assumes "legacy_rrexp r"
+  shows "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)) \<subseteq>
+    rder_path_continuations_acc c r k"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof
+    fix x
+    assume x: "x \<in> set (map (\<lambda>p. rsimp4_SEQ_atom p k)
+      (rpder_list c (RALTS rs)))"
+    then obtain r p where r:
+        "r \<in> set rs"
+        "p \<in> set (rpder_list c r)"
+        "x = rsimp4_SEQ_atom p k"
+      by auto
+    have legacy: "legacy_rrexp r"
+      using RALTS.prems r(1) by auto
+    have subset: "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)) \<subseteq>
+      rder_path_continuations_acc c r k"
+      by (rule RALTS.hyps[OF r(1) legacy])
+    have "x \<in> rder_path_continuations_acc c r k"
+      using subset r by auto
+    then show "x \<in> rder_path_continuations_acc c (RALTS rs) k"
+      using r(1) by auto
+  qed
+next
+  case (RSEQ r1 r2)
+  have left: "set (map (\<lambda>p. rsimp4_SEQ_atom p (rsimp4_SEQ_atom r2 k))
+      (rpder_list c r1)) \<subseteq>
+    rder_path_continuations_acc c r1 (rsimp4_SEQ_atom r2 k)"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in simp)
+  have right: "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r2)) \<subseteq>
+    rder_path_continuations_acc c r2 k"
+    by (rule RSEQ.hyps(2)) (use RSEQ.prems in simp)
+  show ?case
+    using left right by (auto simp add: rsimp4_SEQ_atom_assoc)
+next
+  case (RSTAR r)
+  have inner: "set (map (\<lambda>p. rsimp4_SEQ_atom p
+      (rsimp4_SEQ_atom (RSTAR r) k)) (rpder_list c r)) \<subseteq>
+    rder_path_continuations_acc c r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule RSTAR.hyps) (use RSTAR.prems in simp)
+  then show ?case
+    by (auto simp add: rsimp4_SEQ_atom_assoc)
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have inner: "set (map (\<lambda>p. rsimp4_SEQ_atom p
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) (rpder_list c r)) \<subseteq>
+      rder_path_continuations_acc c r (rsimp4_SEQ_atom (RNTIMES r m) k)"
+      by (rule RNTIMES.hyps) (use RNTIMES.prems in simp)
+    then show ?thesis
+      using Suc by (auto simp add: rsimp4_SEQ_atom_assoc)
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rpder_list_path_universe_subset:
+  assumes "legacy_rrexp r"
+  shows "set (map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)) \<subseteq>
+    partial_derivative_path_universe r"
+proof -
+  have "set (map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)) \<subseteq>
+    rder_path_continuations c r"
+    unfolding rder_path_continuations_def
+    by (rule rpder_list_path_continuations_acc_subset[OF assms])
+  then show ?thesis
+    using rder_path_continuations_universe_subset[of c r] by auto
+qed
+
 fun rpath_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_frontier_acc RZERO k = {}"
 | "rpath_frontier_acc RONE k = {}"
