@@ -169,6 +169,19 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     cleaner: row closure can now rely only on `p \<in> rsubterms r`,
     `k \<in> rlinear_continuations r`, and `rnonseq p`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
+- Checked eleventh implementation checkpoint:
+  - Added `rfrontier_rsimp4_SEQ_atom_nonseq_subset'`, discharging the
+    explicit continuation-frontier premise via
+    `rfrontier_linear_continuation_subset`.
+  - Added `rfrontier_rsimp4_SEQ_nonseq_sources_subset`: if all actual
+    `rsimp4_SEQ` sources are non-`RSEQ` subterms and the right operand is a
+    reachable continuation, the whole simplified sequence frontier is inside
+    `partial_derivative_frontier_universe`.
+  - This gives a compact target for the derivative closure induction: prove
+    that the sources produced by one `rder`/`rsimp4` step are non-sequence
+    subterms of the original and that the carried suffix is in
+    `rlinear_continuations`.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

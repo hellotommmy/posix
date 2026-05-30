@@ -1195,6 +1195,14 @@ next
     using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
 qed
 
+lemma rfrontier_rsimp4_SEQ_atom_nonseq_subset':
+  assumes p: "p \<in> rsubterms r"
+      and k: "k \<in> rlinear_continuations r"
+      and nonseq: "rnonseq p"
+  shows "rfrontier (rsimp4_SEQ_atom p k) \<subseteq> partial_derivative_frontier_universe r"
+  by (rule rfrontier_rsimp4_SEQ_atom_nonseq_subset)
+    (use p k nonseq rfrontier_linear_continuation_subset in auto)
+
 lemma rfrontiers_append [simp]:
   "rfrontiers (rs1 @ rs2) = rfrontiers rs1 \<union> rfrontiers rs2"
   by (induct rs1) auto
@@ -1331,6 +1339,14 @@ next
   then show ?thesis
     by (simp add: RRESIDUE rsimp4_SEQ_def)
 qed
+
+lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
+  assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
+      and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
+      and cont: "r2 \<in> rlinear_continuations r"
+  shows "rfrontier (rsimp4_SEQ r1 r2) \<subseteq> partial_derivative_frontier_universe r"
+  by (rule rfrontier_rsimp4_SEQ_subset)
+    (use sub nonseq cont rfrontier_rsimp4_SEQ_atom_nonseq_subset' in blast)
 
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
