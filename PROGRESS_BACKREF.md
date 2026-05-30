@@ -116,6 +116,21 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove `rsimp4` frontier closure into
   `partial_derivative_frontier_universe`, then state the first actual cubic
   non-backref `rders_simp4` size theorem.
+- Checked seventh implementation checkpoint:
+  - Added recursive `rfrontier`/`rfrontiers` in `GeneralRegexBound.thy`.
+    `RALTS` frontiers are now recursive, so nested alternatives are treated
+    like Antimirov frontier sets rather than opaque syntax nodes.
+  - Proved normalization lemmas for `rsimp_ALTs`, `rflts`, and `rdistinct`:
+    if input frontiers are inside a set `U`, the normalized frontier remains
+    inside `U`.
+  - Added `rseq_sources` and `rfrontier_rsimp4_SEQ_subset`. This isolates the
+    next closure obligation: to prove `rsimp4_SEQ` stays in a universe, it is
+    enough to prove the row atoms `rsimp4_SEQ_atom x r2` stay there for each
+    source `x` actually sequenced.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: prove row-atom closure for the quadratic frontier
+  universe, or refine the continuation universe if the proof exposes a missing
+  syntactic continuation shape.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

@@ -883,6 +883,151 @@ proof -
   qed
 qed
 
+fun rfrontier :: "rrexp \<Rightarrow> rrexp set"
+  and rfrontiers :: "rrexp list \<Rightarrow> rrexp set" where
+  "rfrontier RZERO = {}"
+| "rfrontier (RALTS rs) = rfrontiers rs"
+| "rfrontier r = {r}"
+| "rfrontiers [] = {}"
+| "rfrontiers (r # rs) = rfrontier r \<union> rfrontiers rs"
+
+lemma rfrontiers_append [simp]:
+  "rfrontiers (rs1 @ rs2) = rfrontiers rs1 \<union> rfrontiers rs2"
+  by (induct rs1) auto
+
+lemma rfrontiers_subsetI:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rfrontier r \<subseteq> U"
+  shows "rfrontiers rs \<subseteq> U"
+  using assms by (induct rs) auto
+
+lemma rfrontier_rsimp_ALTs_subset:
+  assumes "rfrontiers rs \<subseteq> U"
+  shows "rfrontier (rsimp_ALTs rs) \<subseteq> U"
+proof (cases rs)
+  case Nil
+  then show ?thesis by simp
+next
+  case (Cons a rest)
+  then show ?thesis
+  proof (cases rest)
+    case Nil
+    then show ?thesis
+      using Cons assms by simp
+  next
+    case (Cons b bs)
+    have rs_shape: "rs = a # b # bs"
+      using Cons `rs = a # rest` by simp
+    then have "rfrontier (rsimp_ALTs rs) = rfrontiers rs"
+      by simp
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma rfrontiers_rflts_subset:
+  assumes "rfrontiers rs \<subseteq> U"
+  shows "rfrontiers (rflts rs) \<subseteq> U"
+  using assms
+  by (induct rs rule: rflts.induct) auto
+
+lemma rfrontiers_rdistinct_subset:
+  assumes "rfrontiers rs \<subseteq> U"
+  shows "rfrontiers (rdistinct rs acc) \<subseteq> U"
+  using assms
+  by (induct rs arbitrary: acc) auto
+
+lemma rfrontier_normalize_subset:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rfrontier r \<subseteq> U"
+  shows "rfrontier (rsimp_ALTs (rdistinct (rflts rs) {})) \<subseteq> U"
+proof -
+  have "rfrontiers rs \<subseteq> U"
+    by (rule rfrontiers_subsetI) (use assms in auto)
+  then have "rfrontiers (rflts rs) \<subseteq> U"
+    by (rule rfrontiers_rflts_subset)
+  then have "rfrontiers (rdistinct (rflts rs) {}) \<subseteq> U"
+    by (rule rfrontiers_rdistinct_subset)
+  then show ?thesis
+    by (rule rfrontier_rsimp_ALTs_subset)
+qed
+
+fun rseq_sources :: "rrexp \<Rightarrow> rrexp set" where
+  "rseq_sources (RALTS rs) = set rs"
+| "rseq_sources r = {r}"
+
+lemma rfrontier_rsimp4_SEQ_single:
+  assumes "rfrontier (rsimp4_SEQ_atom r1 r2) \<subseteq> U"
+  shows "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row r1 r2)) {})) \<subseteq> U"
+  by (rule rfrontier_normalize_subset) (use assms in auto)
+
+lemma rfrontier_rsimp4_SEQ_subset:
+  assumes "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rfrontier (rsimp4_SEQ_atom x r2) \<subseteq> U"
+  shows "rfrontier (rsimp4_SEQ r1 r2) \<subseteq> U"
+proof (cases r1)
+  case RZERO
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row RZERO r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms in auto)
+  then show ?thesis
+    by (simp add: RZERO rsimp4_SEQ_def)
+next
+  case RONE
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row RONE r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RONE in auto)
+  then show ?thesis
+    by (simp add: RONE rsimp4_SEQ_def)
+next
+  case (RCHAR x)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RCHAR x) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RCHAR in auto)
+  then show ?thesis
+    by (simp add: RCHAR rsimp4_SEQ_def)
+next
+  case (RSEQ x41 x42)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RSEQ x41 x42) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RSEQ in auto)
+  then show ?thesis
+    by (simp add: RSEQ rsimp4_SEQ_def)
+next
+  case (RALTS rs)
+  have "\<And>y. y \<in> set (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs)) \<Longrightarrow>
+    rfrontier y \<subseteq> U"
+    using assms RALTS by auto
+  then have "rfrontier
+    (rsimp_ALTs (rdistinct (rflts (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs))) {})) \<subseteq> U"
+    by (rule rfrontier_normalize_subset)
+  then show ?thesis
+    by (simp add: RALTS rsimp4_SEQ_def)
+next
+  case (RSTAR x6)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RSTAR x6) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RSTAR in auto)
+  then show ?thesis
+    by (simp add: RSTAR rsimp4_SEQ_def)
+next
+  case (RNTIMES x71 x72)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RNTIMES x71 x72) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RNTIMES in auto)
+  then show ?thesis
+    by (simp add: RNTIMES rsimp4_SEQ_def)
+next
+  case (RBACKREF4 x81 x82 x83 x84 x85)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RBACKREF4 x81 x82 x83 x84 x85) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RBACKREF4 in auto)
+  then show ?thesis
+    by (simp add: RBACKREF4 rsimp4_SEQ_def)
+next
+  case (RHALF x91 x92 x93)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RHALF x91 x92 x93) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RHALF in auto)
+  then show ?thesis
+    by (simp add: RHALF rsimp4_SEQ_def)
+next
+  case (RRESIDUE x101 x102)
+  have "rfrontier (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RRESIDUE x101 x102) r2)) {})) \<subseteq> U"
+    by (rule rfrontier_rsimp4_SEQ_single) (use assms RRESIDUE in auto)
+  then show ?thesis
+    by (simp add: RRESIDUE rsimp4_SEQ_def)
+qed
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
