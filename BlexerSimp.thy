@@ -441,6 +441,36 @@ where
   "bders_simp5 r [] = r"
 | "bders_simp5 r (c # s) = bders_simp5 (bsimp5 (bder c r)) s"
 
+fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bpder_list c AZERO = []"
+| "bpder_list c (AONE bs) = []"
+| "bpder_list c (ACHAR bs d) = (if c = d then [AONE bs] else [])"
+| "bpder_list c (AALTs bs rs) =
+    map (fuse bs) (concat (map (bpder_list c) rs))"
+| "bpder_list c (ASEQ bs r1 r2) =
+    map (\<lambda>p. bsimp4_ASEQ_atom bs p r2) (bpder_list c r1) @
+      (if bnullable r1
+       then map (\<lambda>p. fuse bs (fuse (bmkeps r1) p)) (bpder_list c r2)
+       else [])"
+| "bpder_list c (ASTAR bs r) =
+    map (\<lambda>p. bsimp4_ASEQ_atom (bs @ [Z]) p (ASTAR [] r)) (bpder_list c r)"
+| "bpder_list c (ANTIMES bs r n) =
+    (if n = 0 then [] else
+      map (\<lambda>p. bsimp4_ASEQ_atom (bs @ [Z]) p (ANTIMES [] r (n - 1)))
+        (bpder_list c r))"
+| "bpder_list c (ABACKREF4 bs r1 r2 r3 r4 cs) = []"
+| "bpder_list c (AHALF bs r cs rep) = []"
+| "bpder_list c (ARESIDUE bs cs rep) = []"
+
+definition bp_der :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bp_der c r = bsimp_AALTs [] (distinctWith (flts (bpder_list c r)) eq1 {})"
+
+fun
+  bders_pder :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_pder r [] = r"
+| "bders_pder r (c # s) = bders_pder (bp_der c r) s"
+
 
 fun 
   bders_simp :: "arexp \<Rightarrow> string \<Rightarrow> arexp"

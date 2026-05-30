@@ -357,6 +357,74 @@ lemma bsimp5_rerase:
   using rerase_bsimp5_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same5 by fastforce
 
+lemma rerase_map_fuse:
+  "map rerase (map (fuse bs) rs) = map rerase rs"
+  by (induct rs) (simp_all add: rerase_fuse)
+
+lemma rerase_map_fuse_fuse:
+  "map rerase (map (\<lambda>r. fuse bs (fuse bs' r)) rs) = map rerase rs"
+  by (induct rs) (simp_all add: rerase_fuse)
+
+lemma rerase_map_bsimp4_ASEQ_atom_if:
+  assumes "map rerase xs = ys"
+  shows "map rerase (map (\<lambda>x. bsimp4_ASEQ_atom bs x r) xs) =
+    map (\<lambda>x. rsimp4_SEQ_atom x (rerase r)) ys"
+  using assms
+proof (induct xs arbitrary: ys)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  then show ?case
+    by (cases ys) (simp_all add: rerase_bsimp4_ASEQ_atom)
+qed
+
+lemma map_rsimp4_SEQ_atom_rerase_cong:
+  assumes "map rerase xs = ys"
+  shows "map (\<lambda>x. rsimp4_SEQ_atom (rerase x) k) xs =
+    map (\<lambda>x. rsimp4_SEQ_atom x k) ys"
+  using assms
+proof (induct xs arbitrary: ys)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  then show ?case
+    by (cases ys) simp_all
+qed
+
+lemma rerase_concat_map_bpder_list:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow>
+    map rerase (bpder_list c r) = rpder_list c (rerase r)"
+  shows "map rerase (concat (map (bpder_list c) rs)) =
+    concat (map (\<lambda>r. rpder_list c (rerase r)) rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "map rerase (bpder_list c r) = rpder_list c (rerase r)"
+    by (rule Cons.prems) simp
+  have tail: "map rerase (concat (map (bpder_list c) rs)) =
+    concat (map (\<lambda>r. rpder_list c (rerase r)) rs)"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using head tail by simp
+qed
+
+lemma rerase_bpder_list:
+  "map rerase (bpder_list c r) = rpder_list c (rerase r)"
+  by (induct r)
+    (simp_all add: rerase_bsimp4_ASEQ_atom rerase_fuse rnullable map_map comp_def
+      rerase_map_bsimp4_ASEQ_atom_if rerase_map_fuse_fuse
+      rerase_concat_map_bpder_list map_rsimp4_SEQ_atom_rerase_cong)
+
+lemma bp_der_rerase:
+  shows "rerase (bp_der c r) = rpd_der c (rerase r)"
+  by (simp add: bp_der_def rpd_der_def rerase_bsimp_AALTs
+      map_rerase_distinctWith_eq1 rerase_flts rerase_bpder_list)
+
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])
@@ -368,6 +436,22 @@ lemma rders_simp5_size:
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])
+
+lemma rders_pder_size:
+  shows "rders_pder (rerase r) s = rerase (bders_pder r s)"
+  by (induct s arbitrary: r) (simp_all add: bp_der_rerase[symmetric])
+
+lemma legacy_rerase_bders_pder:
+  assumes "legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bders_pder r s))"
+  using legacy_rders_pder[OF assms, of s] rders_pder_size[of r s]
+  by simp
+
+lemma RL_rerase_bders_pder:
+  assumes "legacy_rrexp (rerase r)"
+  shows "RL (rerase (bders_pder r s)) = Ders s (RL (rerase r))"
+  using RL_rders_pder[OF assms, of s] rders_pder_size[of r s]
+  by simp
 
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):
    Extend this original bound-transfer proof for the new constructor cases.

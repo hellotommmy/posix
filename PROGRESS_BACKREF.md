@@ -59,6 +59,26 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI again passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- Annotated pipeline checkpoint:
+  - Added `bpder_list`, `bp_der`, and `bders_pder` in `BlexerSimp.thy`.
+    This is the annotated counterpart of the executable partial-derivative
+    pipeline. It preserves bit-prefix structure rather than being a mere
+    wrapper: `AALTs bs` fuses `bs` into each produced row, `ASEQ bs r1 r2`
+    carries `bs` through left rows, and the nullable right branch fuses
+    `bs` followed by `bmkeps r1`.
+  - Added `rerase_bpder_list`, `bp_der_rerase`, and `rders_pder_size` in
+    `FBound.thy`, proving the annotated pipeline erases to
+    `rpder_list`/`rpd_der`/`rders_pder`.
+  - Added `legacy_rerase_bders_pder` and `RL_rerase_bders_pder`, so for the
+    legacy non-backref fragment the annotated candidate has the same semantic
+    derivative language as `Ders`.
+  - Proof-performance note: the bridge proof was kept modular with explicit
+    list-map lemmas (`rerase_concat_map_bpder_list`,
+    `map_rsimp4_SEQ_atom_rerase_cong`) instead of a broad `simp_all` that
+    left map-congruence subgoals unresolved.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
