@@ -182,6 +182,25 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     subterms of the original and that the carried suffix is in
     `rlinear_continuations`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
+- Checked twelfth implementation checkpoint:
+  - Added two small diagnostic lemmas showing that the current
+    `rlinear_continuations` universe is too weak for nested sequencing.
+    In the example `RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c)`,
+    the simple local-continuation set does not contain the composed suffix
+    `RSEQ (RCHAR b) (RCHAR c)`.
+  - The corresponding checked derivative lemma shows why this is a real
+    closure issue rather than a proof accident: after differentiating by
+    `a` and applying `rsimp4`, the frontier contains
+    `RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c))`.
+  - Design consequence: the next universe should use composed continuation
+    contexts, not just immediate sequence suffixes. This matches the
+    Antimirov/continuation view: frontier atoms are heads paired with the
+    continuation accumulated along the path.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: define composed continuation contexts, prove their
+  finite/cardinality and linear member-size bounds for the non-backref
+  fragment, then replace `partial_derivative_frontier_universe` with this
+  stronger checked universe.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

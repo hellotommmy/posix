@@ -1348,6 +1348,19 @@ lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   by (rule rfrontier_rsimp4_SEQ_subset)
     (use sub nonseq cont rfrontier_rsimp4_SEQ_atom_nonseq_subset' in blast)
 
+lemma simple_continuations_miss_left_nested_suffix:
+  "RSEQ (RCHAR b) (RCHAR c) \<notin>
+    rlinear_continuations (RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c))"
+  by simp
+
+lemma rsimp4_derivative_needs_left_nested_suffix:
+  assumes "a \<noteq> b"
+  shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>
+    rfrontier
+      (rsimp4
+        (rder a (RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c))))"
+  using assms by (simp add: rsimp4_SEQ_def)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
