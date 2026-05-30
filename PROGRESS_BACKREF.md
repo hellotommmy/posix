@@ -148,6 +148,16 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove `rfrontier k` closure for all
   `k \<in> rlinear_continuations r`, then use it to discharge the row closure
   premise for derivative continuations.
+- Checked ninth implementation checkpoint:
+  - Proved `rfrontier_subset_rsubterms`/`rfrontiers_subset_rsubterms` by
+    mutual induction over the recursive frontier view.
+  - Proved `rsubterms_trans` and `rfrontier_subterm_subset`, so the frontier
+    of any subterm of the original expression is directly inside
+    `partial_derivative_frontier_universe`.
+  - This is a small but important proof-throughput improvement: future closure
+    cases can reduce subterm-frontier obligations without unfolding the whole
+    universe each time.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

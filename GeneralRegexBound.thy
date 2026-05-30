@@ -918,6 +918,32 @@ fun rnonseq :: "rrexp \<Rightarrow> bool" where
   "rnonseq (RSEQ r1 r2) = False"
 | "rnonseq r = True"
 
+lemma rfrontier_subset_rsubterms:
+  "rfrontier r \<subseteq> rsubterms r"
+  and rfrontiers_subset_rsubterms:
+  "rfrontiers rs \<subseteq> (\<Union> (set (map rsubterms rs)))"
+  by (induct r and rs rule: rfrontier_rfrontiers.induct) auto
+
+lemma rsubterms_trans:
+  assumes "q \<in> rsubterms r" "p \<in> rsubterms q"
+  shows "p \<in> rsubterms r"
+  using assms
+  by (induct r arbitrary: q p) auto
+
+lemma rfrontier_subterm_subset:
+  assumes "q \<in> rsubterms r"
+  shows "rfrontier q \<subseteq> partial_derivative_frontier_universe r"
+proof
+  fix x
+  assume "x \<in> rfrontier q"
+  then have "x \<in> rsubterms q"
+    using rfrontier_subset_rsubterms by blast
+  then have "x \<in> rsubterms r"
+    using rsubterms_trans[OF assms] by blast
+  then show "x \<in> partial_derivative_frontier_universe r"
+    by (rule partial_derivative_frontier_universe_subterm)
+qed
+
 lemma rfrontier_rsimp4_SEQ_atom_nonseq_subset:
   assumes p: "p \<in> rsubterms r"
       and k: "k \<in> rlinear_continuations r"
