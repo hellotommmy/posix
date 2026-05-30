@@ -352,6 +352,11 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     in the full `rsimp4_SEQ` frontier. Together with
     `rfrontier_rsimp4_SEQ_memberE`, this gives a controlled way to move between
     whole-frontier and row-frontier goals without broad search.
+  - Added `rfrontier_rsimp4_SEQ_nonalt_eq_atom` and
+    `rfrontier_rsimp4_SEQ_rsimp_ALTs_nonalt_subset`. These isolate the next
+    invariant needed for full `RALTS`/`RSEQ` closure: normalized alternative
+    rows must be `nonalt`, after which sequence-frontier normalization can be
+    pushed through using row-wise subset proofs.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

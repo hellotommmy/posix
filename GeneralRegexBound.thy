@@ -1813,6 +1813,55 @@ next
     using assms by (simp add: rsimp4_SEQ_def)
 qed
 
+lemma rfrontier_rsimp4_SEQ_nonalt_eq_atom:
+  assumes "nonalt r"
+  shows "rfrontier (rsimp4_SEQ r k) =
+    rfrontier (rsimp4_SEQ_atom r k)"
+  using assms
+  by (cases r) (simp_all add: rsimp4_SEQ_def)
+
+lemma rfrontier_rsimp4_SEQ_rsimp_ALTs_nonalt_subset:
+  assumes step: "\<And>x. x \<in> set rs \<Longrightarrow> rfrontier (rsimp4_SEQ x k) \<subseteq> U"
+      and nonalt: "\<And>x. x \<in> set rs \<Longrightarrow> nonalt x"
+  shows "rfrontier (rsimp4_SEQ (rsimp_ALTs rs) k) \<subseteq> U"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (Cons r rs')
+  note rs_shape = Cons
+  then show ?thesis
+  proof (cases rs')
+    case Nil
+    then show ?thesis
+      using rs_shape step by simp
+  next
+    case (Cons r' rs'')
+    then have rs_two: "rs = r # r' # rs''"
+      using rs_shape by simp
+    have "\<And>x. x \<in> rseq_sources (RALTS rs) \<Longrightarrow>
+      rfrontier (rsimp4_SEQ_atom x k) \<subseteq> U"
+    proof -
+      fix x
+      assume x: "x \<in> rseq_sources (RALTS rs)"
+      then have x_set: "x \<in> set rs"
+        by simp
+      have "rfrontier (rsimp4_SEQ_atom x k) =
+        rfrontier (rsimp4_SEQ x k)"
+        using nonalt[OF x_set]
+        by (simp add: rfrontier_rsimp4_SEQ_nonalt_eq_atom)
+      also have "... \<subseteq> U"
+        by (rule step[OF x_set])
+      finally show "rfrontier (rsimp4_SEQ_atom x k) \<subseteq> U" .
+    qed
+    then have "rfrontier (rsimp4_SEQ (RALTS rs) k) \<subseteq> U"
+      by (rule rfrontier_rsimp4_SEQ_subset)
+    then show ?thesis
+      using rs_two by simp
+  qed
+qed
+
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
   assumes sub: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> x \<in> rsubterms r"
       and nonseq: "\<And>x. x \<in> rseq_sources r1 \<Longrightarrow> rnonseq x"
