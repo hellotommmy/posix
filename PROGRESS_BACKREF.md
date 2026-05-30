@@ -88,6 +88,20 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed for both `Posix` and `BackRefPilot`.
 - Next research target: define a small `rfrontier`/normal-form extractor and
   prove closure lemmas for `rsimp3_SEQ`, then lift to one derivative step.
+- Checked fifth implementation checkpoint:
+  - Added proof-only `rsimp4`/`rders_simp4` in `BasicIdentities.thy`.
+    `rsimp4` extends `rsimp3` by reassociating left-nested sequences:
+    `SEQ (SEQ p k1) k2` is simplified recursively into a head-plus-continuation
+    shape. This is the structural move needed for a cubic Antimirov-style
+    frontier proof; without it, closure wants nested continuation towers.
+  - Proved `RL_rsimp4`, the language preservation theorem.
+  - The first draft used overlapping catch-all equations for `rsimp4_SEQ_atom`;
+    that produced awkward split goals. The checked version uses explicit
+    constructor equations, following the project rule that slow or strange
+    proof states should be removed at the definition/proof-shape level.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: port `rsimp4` to annotated `bsimp4`, prove the
+  `rerase` bridge, then use the quadratic frontier universe for closure.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

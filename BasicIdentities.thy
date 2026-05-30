@@ -264,6 +264,54 @@ where
   "rders_simp3 r [] = r"
 | "rders_simp3 r (c#s) = rders_simp3 (rsimp3 (rder c r)) s"
 
+fun rsimp4_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp4_SEQ_atom RZERO r2 = RZERO"
+| "rsimp4_SEQ_atom RONE r2 = r2"
+| "rsimp4_SEQ_atom (RSEQ r1 r2) r3 =
+    rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 r3)"
+| "rsimp4_SEQ_atom (RCHAR c) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RCHAR c) r2 = RSEQ (RCHAR c) r2"
+| "rsimp4_SEQ_atom (RALTS rs) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RALTS rs) r2 = RSEQ (RALTS rs) r2"
+| "rsimp4_SEQ_atom (RSTAR r) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RSTAR r) r2 = RSEQ (RSTAR r) r2"
+| "rsimp4_SEQ_atom (RNTIMES r n) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RNTIMES r n) r2 = RSEQ (RNTIMES r n) r2"
+| "rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) r5 =
+    RSEQ (RBACKREF4 r1 r2 r3 r4 cs) r5"
+| "rsimp4_SEQ_atom (RHALF r cs rep) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RHALF r cs rep) r2 = RSEQ (RHALF r cs rep) r2"
+| "rsimp4_SEQ_atom (RRESIDUE cs rep) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RRESIDUE cs rep) r2 = RSEQ (RRESIDUE cs rep) r2"
+
+fun rsimp4_seq_row :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rsimp4_seq_row r1 r2 = [rsimp4_SEQ_atom r1 r2]"
+
+definition rsimp4_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp4_SEQ r1 r2 =
+    (case r1 of
+      RALTS rs1 \<Rightarrow>
+        rsimp_ALTs (rdistinct (rflts (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs1))) {})
+    | _ \<Rightarrow>
+        rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row r1 r2)) {}))"
+
+(* Stronger cubic-bound simplifier prototype:
+   rsimp4 extends rsimp3 by reassociating left-nested sequences. This keeps
+   frontier atoms in a head-plus-continuation shape instead of accumulating
+   nested left sequence towers. *)
+fun rsimp4 :: "rrexp \<Rightarrow> rrexp" 
+where
+  "rsimp4 (RSEQ r1 r2) = rsimp4_SEQ (rsimp4 r1) (rsimp4 r2)"
+| "rsimp4 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp4 rs)) {})"
+| "rsimp4 r = r"
+
+fun 
+  rders_simp4 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp4 r [] = r"
+| "rders_simp4 r (c#s) = rders_simp4 (rsimp4 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -1110,6 +1158,144 @@ proof (induct r rule: rsimp3.induct)
   case (1 r1 r2)
   then show ?case
     by (simp add: RL_rsimp3_SEQ)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+qed simp_all
+
+lemma RL_rsimp4_SEQ_atom:
+  "RL (rsimp4_SEQ_atom r1 r2) = RL r1 ;; RL r2"
+proof (induct r1 arbitrary: r2)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RSEQ r1a r1b)
+  have "RL (rsimp4_SEQ_atom (RSEQ r1a r1b) r2) =
+    RL (rsimp4_SEQ_atom r1a (rsimp4_SEQ_atom r1b r2))"
+    by simp
+  also have "... = RL r1a ;; RL (rsimp4_SEQ_atom r1b r2)"
+    using RSEQ by simp
+  also have "... = RL r1a ;; (RL r1b ;; RL r2)"
+    using RSEQ by simp
+  also have "... = (RL r1a ;; RL r1b) ;; RL r2"
+    by (simp add: conc_assoc)
+  finally show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RBACKREF4 r1 r2a r3 r4 cs)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases r2) (simp_all add: Sequ_def)
+qed
+
+lemma RL_rsimp4_seq_row:
+  "(\<Union> (RL ` set (rsimp4_seq_row r1 r2))) = RL r1 ;; RL r2"
+  by (simp add: RL_rsimp4_SEQ_atom)
+
+lemma RL_concat_rsimp4_seq_rows:
+  "(\<Union> (RL ` set (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs)))) =
+   RL (RALTS rs) ;; RL r2"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons a rs)
+  have "(\<Union> (RL ` set (concat (map (\<lambda>x. rsimp4_seq_row x r2) (a # rs))))) =
+    (\<Union> (RL ` set (rsimp4_seq_row a r2))) \<union>
+    (\<Union> (RL ` set (concat (map (\<lambda>x. rsimp4_seq_row x r2) rs))))"
+    by simp
+  also have "... = (RL a ;; RL r2) \<union> (RL (RALTS rs) ;; RL r2)"
+    using Cons by (simp add: RL_rsimp4_seq_row RL_rsimp4_SEQ_atom)
+  also have "... = (RL a \<union> RL (RALTS rs)) ;; RL r2"
+    by (rule Sequ_Un_left2)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp4_SEQ:
+  "RL (rsimp4_SEQ r1 r2) = RL r1 ;; RL r2"
+proof (cases r1)
+  case RZERO
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case RONE
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RCHAR x)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RSEQ x41 x42)
+  have "RL (rsimp4_SEQ (RSEQ x41 x42) r2) =
+    RL (rsimp4_SEQ_atom (RSEQ x41 x42) r2)"
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize)
+  also have "... = RL (RSEQ x41 x42) ;; RL r2"
+    by (rule RL_rsimp4_SEQ_atom)
+  finally show ?thesis
+    using RSEQ by simp
+next
+  case (RALTS x5)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize
+      RL_rsimp4_SEQ_atom RL_concat_rsimp4_seq_rows RL_RALTS_Sequ)
+next
+  case (RSTAR x6)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RNTIMES x71 x72)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RBACKREF4 x81 x82 x83 x84 x85)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RHALF x91 x92 x93)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+next
+  case (RRESIDUE x101 x102)
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def RL_rsimp_ALTs_normalize RL_rsimp4_SEQ_atom)
+qed
+
+lemma RL_rsimp4:
+  shows "RL r = RL (rsimp4 r)"
+proof (induct r rule: rsimp4.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp4_SEQ)
 next
   case (2 rs)
   then show ?case
