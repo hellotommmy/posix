@@ -4137,6 +4137,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Do not touch bounds or closed-form theories.
 - Do not claim a finite derivative bound for backreferences.
 
+## Cubic Bound Research: Frontier Universe Accounting (2026-05-31)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Files changed: `GeneralRegexBound.thy`
+- New checked lemmas:
+  - `quadratic_times_linear_cubic_bound`
+  - `rsizes_distinct_frontier_universe_cubic`
+- Design result:
+  - The viable repeated-derivative invariant should be frontier/product based:
+    `partial_derivative_frontier_universe` has quadratic cardinality and
+    linear member size, hence any distinct row list inside it has cubic total
+    size.
+  - A tempting invariant, "all subterms are closed under normalized partial
+    derivatives", is too broad. In particular, subterms under an outer suffix
+    can lose that suffix if treated as standalone states; `RNTIMES` exposes
+    this sharply because `RNTIMES r n` can step to smaller repetition payloads.
+  - Next target: prove that the normalized Antimirov rows/frontier generated
+    by `rpder_norm_list`/`rpd_der_norm` stay inside the original
+    `partial_derivative_frontier_universe` across repeated derivatives.
+- Build: Isabelle `Posix` and `BackRefPilot` PASS via
+  `agent_hunt_pipeline/scripts/isabelle_ci.ps1`
+
 ## blexer Definition and Correctness (2026-05-26)
 
 - Branch: `codex/backref-values`
