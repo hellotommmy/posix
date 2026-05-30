@@ -421,6 +421,13 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     sequence has four row-product alternatives under `rsimp5`. The helper
     `rfrontier_alt_rows_eq` is intentionally not a global simp rule; briefly
     marking it `[simp]` made unrelated proof lines run for tens of seconds.
+  - Added an alternate atom-continuation universe:
+    `rpath_atom_frontier_acc` and
+    `partial_derivative_path_atom_frontier_universe`. This uses
+    `rsimp4_SEQ_atom (rsimp4 r2) k` at sequence nodes, avoiding eager full
+    row-product expansion. Checked sanity lemmas show it contains both the old
+    distributed suffix example and the previously missed middle-alternative
+    opaque row.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
