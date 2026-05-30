@@ -725,6 +725,21 @@ qed
 definition rpd_der :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der c r = rsimp_ALTs (rdistinct (rflts (rpder_list c r)) {})"
 
+lemma rsize_rpd_der_le_rsizes_rpder_list:
+  "rsize (rpd_der c r) \<le> Suc (rsizes (rpder_list c r))"
+proof -
+  have "rsize (rpd_der c r) \<le>
+    rsize (RALTS (rdistinct (rflts (rpder_list c r)) {}))"
+    unfolding rpd_der_def by (rule rsimp_aalts_smaller)
+  also have "... = Suc (rsizes (rdistinct (rflts (rpder_list c r)) {}))"
+    by simp
+  also have "... \<le> Suc (rsizes (rflts (rpder_list c r)))"
+    using rdistinct_smaller[of "rflts (rpder_list c r)" "{}"] by simp
+  also have "... \<le> Suc (rsizes (rpder_list c r))"
+    using rflts_mono[of "rpder_list c r"] by simp
+  finally show ?thesis .
+qed
+
 fun rders_pder :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
   "rders_pder r [] = r"
 | "rders_pder r (c # s) = rders_pder (rpd_der c r) s"

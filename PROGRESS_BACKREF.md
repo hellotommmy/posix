@@ -47,6 +47,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     size-count discipline as the set model.
   - Added `rpd_der`, which packages `rpder_list` through the existing
     `rsimp_ALTs`/`rdistinct`/`rflts` normalization.
+  - Added `rsize_rpd_der_le_rsizes_rpder_list`, the first size-accounting
+    hook for the executable pipeline: normalizing a partial-derivative list
+    into a regex state costs at most one constructor over the list's total
+    structural size.
   - Added `rders_pder` and proved `legacy_rpd_der`, `legacy_rders_pder`,
     `RL_rpd_der`, and `RL_rders_pder`.
   - Design consequence: the next annotated `bsimp` candidate should mirror
