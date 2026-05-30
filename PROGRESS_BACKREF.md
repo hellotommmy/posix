@@ -158,6 +158,17 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     cases can reduce subterm-frontier obligations without unfolding the whole
     universe each time.
   - Local CI passed for both `Posix` and `BackRefPilot`.
+- Checked tenth implementation checkpoint:
+  - Added `self_rsubterm`, `rlinear_continuations_subterm_subset`, and
+    `partial_derivative_frontier_universe_subterm_mono`.
+  - Proved `rfrontier_linear_continuation_subset`: every reachable
+    continuation has its recursive frontier inside the parent quadratic
+    frontier universe.
+  - This discharges the extra continuation-frontier premise discovered by
+    `rfrontier_rsimp4_SEQ_atom_nonseq_subset`, and makes the next target
+    cleaner: row closure can now rely only on `p \<in> rsubterms r`,
+    `k \<in> rlinear_continuations r`, and `rnonseq p`.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

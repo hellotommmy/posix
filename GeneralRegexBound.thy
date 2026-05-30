@@ -113,6 +113,10 @@ lemma finite_rsubterms [simp]:
   "finite (rsubterms r)"
   by (induct r) auto
 
+lemma self_rsubterm [simp]:
+  "r \<in> rsubterms r"
+  by (induct r) auto
+
 lemma finite_rsubterms_list [simp]:
   "finite (\<Union> (set (map rsubterms rs)))"
   by (induct rs) auto
@@ -942,6 +946,205 @@ proof
     using rsubterms_trans[OF assms] by blast
   then show "x \<in> partial_derivative_frontier_universe r"
     by (rule partial_derivative_frontier_universe_subterm)
+qed
+
+lemma rlinear_continuations_subterm_subset:
+  assumes "q \<in> rsubterms r"
+  shows "rlinear_continuations q \<subseteq> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: q) fastforce+
+
+lemma partial_derivative_frontier_universe_subterm_mono:
+  assumes "q \<in> rsubterms r"
+  shows "partial_derivative_frontier_universe q \<subseteq> partial_derivative_frontier_universe r"
+proof
+  fix x
+  assume x: "x \<in> partial_derivative_frontier_universe q"
+  then consider
+      "x = RZERO"
+    | "x = RONE"
+    | "x \<in> rsubterms q"
+    | "x \<in> rlinear_continuations q"
+    | p k where "p \<in> rsubterms q" "k \<in> rlinear_continuations q" "x = RSEQ p k"
+    unfolding partial_derivative_frontier_universe_def by auto
+  then show "x \<in> partial_derivative_frontier_universe r"
+  proof cases
+    case 1
+    then show ?thesis by simp
+  next
+    case 2
+    then show ?thesis by simp
+  next
+    case 3
+    then have "x \<in> rsubterms r"
+      using rsubterms_trans[OF assms] by blast
+    then show ?thesis
+      by (rule partial_derivative_frontier_universe_subterm)
+  next
+    case 4
+    then have "x \<in> rlinear_continuations r"
+      using rlinear_continuations_subterm_subset[OF assms] by blast
+    then show ?thesis
+      by (rule partial_derivative_frontier_universe_continuation)
+  next
+    case (5 p k)
+    have "p \<in> rsubterms r"
+      using rsubterms_trans[OF assms 5(1)] .
+    moreover have "k \<in> rlinear_continuations r"
+      using rlinear_continuations_subterm_subset[OF assms] 5 by blast
+    ultimately show ?thesis
+      using 5 by (auto intro: partial_derivative_frontier_universe_seq)
+  qed
+qed
+
+lemma rfrontier_linear_continuation_subset:
+  assumes "k \<in> rlinear_continuations r"
+  shows "rfrontier k \<subseteq> partial_derivative_frontier_universe r"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "k \<in> rlinear_continuations q"
+    by auto
+  have "rfrontier k \<subseteq> partial_derivative_frontier_universe q"
+    using RALTS q by auto
+  also have "... \<subseteq> partial_derivative_frontier_universe (RALTS rs)"
+  proof -
+    have "q \<in> rsubterms (RALTS rs)"
+    proof -
+      have "q \<in> (\<Union> (set (map rsubterms rs)))"
+        using q(1) by force
+      then show ?thesis
+        by simp
+    qed
+    then show ?thesis
+      by (rule partial_derivative_frontier_universe_subterm_mono)
+  qed
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  then consider
+      "k = r2"
+    | "k \<in> rlinear_continuations r1"
+    | "k \<in> rlinear_continuations r2"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "r2 \<in> rsubterms (RSEQ r1 r2)"
+      by simp
+    then show ?thesis
+      using 1 rfrontier_subterm_subset by blast
+  next
+    case 2
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r1"
+      using RSEQ 2 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RSEQ r1 r2)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  next
+    case 3
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r2"
+      using RSEQ 3 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RSEQ r1 r2)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  qed
+next
+  case (RSTAR r)
+  then consider "k = RSTAR r" | "k \<in> rlinear_continuations r"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "RSTAR r \<in> rsubterms (RSTAR r)"
+      by simp
+    then show ?thesis
+      using 1 rfrontier_subterm_subset by blast
+  next
+    case 2
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r"
+      using RSTAR 2 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RSTAR r)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  qed
+next
+  case (RNTIMES r n)
+  then consider
+      m where "m \<le> n" "k = RNTIMES r m"
+    | "k \<in> rlinear_continuations r"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis
+      using partial_derivative_frontier_universe_continuation[of k "RNTIMES r n"] RNTIMES.prems
+      by auto
+  next
+    case 2
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r"
+      using RNTIMES 2 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RNTIMES r n)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then consider
+      "k \<in> rlinear_continuations r1"
+    | "k \<in> rlinear_continuations r2"
+    | "k \<in> rlinear_continuations r3"
+    | "k \<in> rlinear_continuations r4"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r1"
+      using RBACKREF4 1 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RBACKREF4 r1 r2 r3 r4 cs)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  next
+    case 2
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r2"
+      using RBACKREF4 2 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RBACKREF4 r1 r2 r3 r4 cs)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  next
+    case 3
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r3"
+      using RBACKREF4 3 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RBACKREF4 r1 r2 r3 r4 cs)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  next
+    case 4
+    have "rfrontier k \<subseteq> partial_derivative_frontier_universe r4"
+      using RBACKREF4 4 by auto
+    also have "... \<subseteq> partial_derivative_frontier_universe (RBACKREF4 r1 r2 r3 r4 cs)"
+      by (intro partial_derivative_frontier_universe_subterm_mono) auto
+    finally show ?thesis .
+  qed
+next
+  case (RHALF r cs rep)
+  have "rfrontier k \<subseteq> partial_derivative_frontier_universe r"
+    using RHALF by auto
+  also have "... \<subseteq> partial_derivative_frontier_universe (RHALF r cs rep)"
+    by (intro partial_derivative_frontier_universe_subterm_mono) auto
+  finally show ?case .
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
 qed
 
 lemma rfrontier_rsimp4_SEQ_atom_nonseq_subset:
