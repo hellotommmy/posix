@@ -2639,6 +2639,28 @@ proof
     by blast
 qed
 
+lemma rfrontier_rsimp4_SEQ_rder_RZERO_path_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c RZERO)) k) \<subseteq>
+    insert RZERO (rpath_frontier_acc RZERO k)"
+  by (simp add: rsimp4_SEQ_def)
+
+lemma rfrontier_rsimp4_SEQ_rder_RONE_path_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c RONE)) k) \<subseteq>
+    insert RZERO (rpath_frontier_acc RONE k)"
+  by (simp add: rsimp4_SEQ_def)
+
+lemma rfrontier_rsimp4_SEQ_rder_RCHAR_path_acc [simp]:
+  "rfrontier (rsimp4_SEQ (rsimp4 (rder c (RCHAR d))) k) \<subseteq>
+    insert RZERO (rpath_frontier_acc (RCHAR d) k)"
+proof (cases "c = d")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_def)
+qed
+
 lemma left_nested_atom_in_path_frontier_universe:
   assumes "a \<noteq> b"
   shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>

@@ -327,6 +327,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     normalize the mapped branch derivatives, extract a normalized frontier
     member, then transport it through
     `partial_derivative_path_frontier_universe_alt_child_mono`.
+  - Added carried-continuation base closure lemmas for
+    `rsimp4_SEQ (rsimp4 (rder c r)) k` on `RZERO`, `RONE`, and `RCHAR`.
+    These are the base cases needed before attacking `RSEQ`, `RSTAR`, and
+    `RNTIMES` with a generalized continuation theorem.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
