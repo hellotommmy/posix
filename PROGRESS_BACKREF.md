@@ -2,6 +2,44 @@
 
 Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 
+## Antimirov Partial-Derivative Checkpoint (2026-05-31)
+
+- Added a checked proof-only Antimirov layer in `GeneralRegexBound.thy`:
+  `rpder`, `rpder_set`, `rpders`, and `rpders1`.
+- `rpder` is deliberately restricted by theorem assumptions to the legacy
+  non-backref fragment. The backreference constructors return `{}` in the
+  raw definition, and the semantic/cardinality theorems require
+  `legacy_rrexp`, so no false boundedness claim is made for payload-carrying
+  states.
+- Proved the core one-step facts:
+  - `finite_rpder`
+  - `legacy_rpder`
+  - `card_rpder_le_rsize`
+  - `RLS_rpder`
+  - `RLS_rpder_rder`
+- Proved the word-level driver facts:
+  - `finite_rpder_set`
+  - `finite_rpders`
+  - `legacy_rpder_set`
+  - `legacy_rpders`
+  - `RLS_rpder_set`
+  - `Ders_Cons`
+  - `RLS_rpders`
+  - `RLS_rpders1`
+- Design consequence: the cubic-bound route can now use a checked
+  partial-derivative automaton as the reference model. The next `bsimp`
+  redesign should aim to erase to an ordered/list implementation of this
+  partial-derivative set, rather than expanding all sequence alternatives
+  by a global `rsimp5` row product.
+- Proof-performance note: the first drafts exposed exactly the bad pattern
+  Chengsong warned about. Broad `auto`/`blast` on the `legacy_rpder` sequence
+  and backreference cases caused 20-40 second proof commands and session
+  timeouts. The checked version splits membership cases explicitly and keeps
+  `Posix.GeneralRegexBound` replay around 18 seconds.
+- Local CI passed with no-cheat guard, bounty guard, admin role guard,
+  Isabelle `Posix` (about 27 seconds elapsed), and Isabelle `BackRefPilot`
+  (about 3 seconds elapsed).
+
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
 - Branch: `codex/backref-values` at `89b40aa` before this kickoff note.

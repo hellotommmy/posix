@@ -133,12 +133,18 @@ next
     by (cases r2) simp_all
 next
   case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(1) by simp
   then show ?case by simp
 next
   case (RHALF r cs rep)
+  have False
+    using RHALF.prems(1) by simp
   then show ?case by simp
 next
   case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(1) by simp
   then show ?case by simp
 qed
 
@@ -204,6 +210,414 @@ lemma legacy_rders_simp5:
   shows "legacy_rrexp (rders_simp5 r s)"
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp5 legacy_rder)
+
+fun rpder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rpder c RZERO = {}"
+| "rpder c RONE = {}"
+| "rpder c (RCHAR d) = (if c = d then {RONE} else {})"
+| "rpder c (RALTS rs) = (\<Union> (set (map (rpder c) rs)))"
+| "rpder c (RSEQ r1 r2) =
+    ((\<lambda>p. rsimp4_SEQ_atom p r2) ` rpder c r1 \<union>
+      (if rnullable r1 then rpder c r2 else {}))"
+| "rpder c (RSTAR r) = ((\<lambda>p. rsimp4_SEQ_atom p (RSTAR r)) ` rpder c r)"
+| "rpder c (RNTIMES r n) =
+    (if n = 0 then {} else
+      ((\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r (n - 1))) ` rpder c r))"
+| "rpder c (RBACKREF4 r1 r2 r3 r4 cs) = {}"
+| "rpder c (RHALF r cs rep) = {}"
+| "rpder c (RRESIDUE cs rep) = {}"
+
+definition RLS :: "rrexp set \<Rightarrow> string set" where
+  "RLS rs = (\<Union>r \<in> rs. RL r)"
+
+lemma finite_rpder [simp]:
+  "finite (rpder c r)"
+  by (induct r) auto
+
+lemma legacy_rpder:
+  assumes "legacy_rrexp r" "p \<in> rpder c r"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct r arbitrary: p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case
+    by (cases "c = d") simp_all
+next
+  case (RALTS rs)
+  then obtain r where r: "r \<in> set rs" "p \<in> rpder c r"
+    by auto
+  have "legacy_rrexp r"
+    using RALTS.prems r by simp
+  then show ?case
+    using RALTS.hyps[OF r(1)] r by blast
+next
+  case (RSEQ r1 r2)
+  have p_cases: "p \<in> (\<lambda>q. rsimp4_SEQ_atom q r2) ` rpder c r1 \<or>
+      p \<in> (if rnullable r1 then rpder c r2 else {})"
+    using RSEQ.prems by simp
+  then show ?case
+  proof
+    assume left: "p \<in> (\<lambda>q. rsimp4_SEQ_atom q r2) ` rpder c r1"
+    then obtain q where q: "q \<in> rpder c r1" "p = rsimp4_SEQ_atom q r2"
+      by blast
+    have q_legacy: "legacy_rrexp q"
+      by (rule RSEQ.hyps(1)) (use RSEQ.prems q in auto)
+    have r2_legacy: "legacy_rrexp r2"
+      using RSEQ.prems by simp
+    show ?thesis
+      using q q_legacy r2_legacy legacy_rsimp4_SEQ_atom by blast
+  next
+    assume right: "p \<in> (if rnullable r1 then rpder c r2 else {})"
+    then have p_r2: "p \<in> rpder c r2"
+      by (cases "rnullable r1") simp_all
+    show ?thesis
+      by (rule RSEQ.hyps(2)) (use RSEQ.prems p_r2 in auto)
+  qed
+next
+  case (RSTAR r)
+  then obtain q where q: "q \<in> rpder c r" "p = rsimp4_SEQ_atom q (RSTAR r)"
+    by auto
+  have q_legacy: "legacy_rrexp q"
+    by (rule RSTAR.hyps) (use RSTAR.prems q in auto)
+  have star_legacy: "legacy_rrexp (RSTAR r)"
+    using RSTAR.prems by simp
+  show ?case
+    using q q_legacy star_legacy legacy_rsimp4_SEQ_atom by blast
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case (Suc m)
+    then obtain q where q: "q \<in> rpder c r"
+      "p = rsimp4_SEQ_atom q (RNTIMES r m)"
+      using RNTIMES.prems by auto
+    have q_legacy: "legacy_rrexp q"
+      by (rule RNTIMES.hyps) (use RNTIMES.prems q in auto)
+    have ntimes_legacy: "legacy_rrexp (RNTIMES r m)"
+      using RNTIMES.prems by simp
+    show ?thesis
+      using q q_legacy ntimes_legacy legacy_rsimp4_SEQ_atom by blast
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(2) by simp
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  have False
+    using RHALF.prems(2) by simp
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(2) by simp
+  then show ?case by simp
+qed
+
+lemma card_rpder_list_le_rsizes:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> card (rpder c r) \<le> rsize r"
+  shows "card (\<Union> (set (map (rpder c) rs))) \<le> rsizes rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "card (rpder c r) \<le> rsize r"
+    by (rule Cons.prems) simp
+  have tail: "card (\<Union> (set (map (rpder c) rs))) \<le> rsizes rs"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "card (\<Union> (set (map (rpder c) (r # rs)))) \<le>
+    card (rpder c r) + card (\<Union> (set (map (rpder c) rs)))"
+    by (simp add: card_Un_le)
+  then show ?case
+    using head tail by simp
+qed
+
+lemma card_rpder_le_rsize:
+  assumes "legacy_rrexp r"
+  shows "card (rpder c r) \<le> rsize r"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have elems: "\<And>r. r \<in> set rs \<Longrightarrow> card (rpder c r) \<le> rsize r"
+    using RALTS by auto
+  have row_bound: "card (rpder c (RALTS rs)) \<le> rsizes rs"
+    using card_rpder_list_le_rsizes[OF elems] by simp
+  have "rsizes rs \<le> rsize (RALTS rs)"
+    by simp
+  show ?case
+    using row_bound \<open>rsizes rs \<le> rsize (RALTS rs)\<close> by linarith
+next
+  case (RSEQ r1 r2)
+  have left: "card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` rpder c r1) \<le>
+      card (rpder c r1)"
+    by (rule card_image_le) simp
+  have right: "card (if rnullable r1 then rpder c r2 else {}) \<le> rsize r2"
+    using RSEQ by simp
+  have "card (rpder c (RSEQ r1 r2)) \<le>
+      card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` rpder c r1) +
+        card (if rnullable r1 then rpder c r2 else {})"
+    by (simp add: card_Un_le)
+  also have "... \<le> rsize r1 + rsize r2"
+  proof -
+    have r1_bound: "card (rpder c r1) \<le> rsize r1"
+      by (rule RSEQ.hyps(1)) (use RSEQ.prems in simp)
+    have left_size:
+      "card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` rpder c r1) \<le> rsize r1"
+      using left r1_bound by linarith
+    show ?thesis
+      using left_size right by linarith
+  qed
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    by simp
+  finally show ?case .
+next
+  case (RSTAR r)
+  have "card (rpder c (RSTAR r)) \<le> card (rpder c r)"
+    by (simp add: card_image_le)
+  also have "... \<le> rsize r"
+    using RSTAR by simp
+  also have "... \<le> rsize (RSTAR r)"
+    by simp
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have "card (rpder c (RNTIMES r n)) \<le> card (rpder c r)"
+      using Suc by (simp add: card_image_le)
+    also have "... \<le> rsize r"
+      using RNTIMES by simp
+    also have "... \<le> rsize (RNTIMES r n)"
+      by simp
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma RLS_image_rsimp4_SEQ_atom:
+  "RLS ((\<lambda>p. rsimp4_SEQ_atom p k) ` ps) = RLS ps ;; RL k"
+  unfolding RLS_def
+  by (auto simp add: RL_rsimp4_SEQ_atom Sequ_def)
+
+lemma RLS_rpder:
+  assumes "legacy_rrexp r"
+  shows "RLS (rpder c r) = Der c (RL r)"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case
+    by (simp add: RLS_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: RLS_def)
+next
+  case (RCHAR d)
+  then show ?case
+    by (simp add: RLS_def)
+next
+  case (RALTS rs)
+  have "RLS (rpder c (RALTS rs)) =
+    (\<Union>r \<in> set rs. RLS (rpder c r))"
+    unfolding RLS_def by auto
+  also have "... = (\<Union>r \<in> set rs. Der c (RL r))"
+    using RALTS by auto
+  also have "... = Der c (RL (RALTS rs))"
+    by auto
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  have left: "RLS ((\<lambda>p. rsimp4_SEQ_atom p r2) ` rpder c r1) =
+      Der c (RL r1) ;; RL r2"
+    using RSEQ by (simp add: RLS_image_rsimp4_SEQ_atom)
+  show ?case
+  proof (cases "rnullable r1")
+    case True
+    then have "[] \<in> RL r1"
+      by (simp add: RL_rnullable)
+    then show ?thesis
+      using True left RSEQ by (simp add: RLS_def RLS_image_rsimp4_SEQ_atom)
+  next
+    case False
+    then have "[] \<notin> RL r1"
+      by (simp add: RL_rnullable)
+    then show ?thesis
+      using False left by (simp add: RLS_def RLS_image_rsimp4_SEQ_atom)
+  qed
+next
+  case (RSTAR r)
+  then show ?case
+    by (simp add: RLS_image_rsimp4_SEQ_atom)
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by (simp add: RLS_def)
+  next
+    case (Suc m)
+    have "RLS (rpder c (RNTIMES r n)) =
+      RLS ((\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r m)) ` rpder c r)"
+      using Suc by simp
+    also have "... = Der c (RL r) ;; RL (RNTIMES r m)"
+      using RNTIMES by (simp add: RLS_image_rsimp4_SEQ_atom)
+    also have "... = Der c (RL (RNTIMES r n))"
+    proof -
+      have "Der c (RL (RNTIMES r n)) =
+        Der c (RL r) ;; RL (RNTIMES r m)"
+      proof -
+        have "Der c (RL (RNTIMES r n)) = Der c ((RL r) ^^ Suc m)"
+          using Suc by simp
+        also have "... = Der c (RL r) ;; ((RL r) ^^ m)"
+          by (subst Der_pow) simp
+        also have "... = Der c (RL r) ;; RL (RNTIMES r m)"
+          by simp
+        finally show ?thesis .
+      qed
+      then show ?thesis by simp
+    qed
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma RLS_rpder_rder:
+  assumes "legacy_rrexp r"
+  shows "RLS (rpder c r) = RL (rder c r)"
+  using RLS_rpder[OF assms] RL_rder[of c r] by simp
+
+definition rpder_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp set" where
+  "rpder_set c rs = (\<Union>r \<in> rs. rpder c r)"
+
+fun rpders :: "rrexp set \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders rs [] = rs"
+| "rpders rs (c # s) = rpders (rpder_set c rs) s"
+
+definition rpders1 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders1 r s = rpders {r} s"
+
+lemma finite_rpder_set [simp]:
+  assumes "finite rs"
+  shows "finite (rpder_set c rs)"
+  using assms unfolding rpder_set_def by auto
+
+lemma finite_rpders [simp]:
+  assumes "finite rs"
+  shows "finite (rpders rs s)"
+  using assms by (induct s arbitrary: rs) auto
+
+lemma legacy_rpder_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpder_set c rs"
+  shows "legacy_rrexp p"
+  using assms unfolding rpder_set_def
+  by (auto intro: legacy_rpder)
+
+lemma legacy_rpders:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpders rs s"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_set c rs. legacy_rrexp r"
+    using Cons.prems(1) legacy_rpder_set by blast
+  have p_next: "p \<in> rpders (rpder_set c rs) s"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
+lemma RLS_rpder_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpder_set c rs) = Der c (RLS rs)"
+proof -
+  have "RLS (rpder_set c rs) = (\<Union>r \<in> rs. RLS (rpder c r))"
+    unfolding RLS_def rpder_set_def by auto
+  also have "... = (\<Union>r \<in> rs. Der c (RL r))"
+    using assms RLS_rpder by blast
+  also have "... = Der c (RLS rs)"
+    unfolding RLS_def Der_def by auto
+  finally show ?thesis .
+qed
+
+lemma Ders_Cons:
+  "Ders (c # s) A = Ders s (Der c A)"
+  unfolding Ders_def Der_def by auto
+
+lemma RLS_rpders:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpders rs s) = Ders s (RLS rs)"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_set c rs. legacy_rrexp r"
+    using Cons.prems legacy_rpder_set by blast
+  have "RLS (rpders rs (c # s)) =
+    Ders s (RLS (rpder_set c rs))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS rs))"
+    by (simp add: RLS_rpder_set[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS rs)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders1:
+  assumes "legacy_rrexp r"
+  shows "RLS (rpders1 r s) = Ders s (RL r)"
+  using RLS_rpders[of "{r}" s] assms
+  by (simp add: rpders1_def RLS_def)
 
 fun rsubterms :: "rrexp \<Rightarrow> rrexp set" where
   "rsubterms RZERO = {RZERO}"
