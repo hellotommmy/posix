@@ -2406,6 +2406,137 @@ lemma row_nf_rsimp5_seq_products:
   shows "\<forall>z \<in> set (rsimp5_seq_products xs ys). row_nf z \<or> z = RZERO"
   using assms row_nf_rsimp4_SEQ_atom by (induct xs) auto
 
+definition rows_nf :: "rrexp \<Rightarrow> bool" where
+  "rows_nf r = (\<forall>x \<in> set (rsimp5_alt_rows r). row_nf x)"
+
+lemma row_nf_alt_rows_self:
+  assumes "row_nf r"
+  shows "rsimp5_alt_rows r = [r]"
+  using assms by (cases r) auto
+
+lemma rows_nf_of_row_nf_or_zero:
+  assumes "row_nf r \<or> r = RZERO"
+  shows "rows_nf r"
+  using assms row_nf_alt_rows_self
+  by (auto simp add: rows_nf_def)
+
+lemma rows_nf_rflts:
+  assumes "\<forall>r \<in> set rs. rows_nf r"
+  shows "\<forall>x \<in> set (rflts rs). row_nf x"
+  using assms
+  by (induct rs rule: rflts.induct) (auto simp add: rows_nf_def)
+
+lemma rows_nf_rdistinct:
+  assumes "\<forall>x \<in> set rs. row_nf x"
+  shows "\<forall>x \<in> set (rdistinct rs acc). row_nf x"
+  using assms by (auto simp add: rdistinct_set_equality1)
+
+lemma rows_nf_rsimp_ALTs:
+  assumes "\<forall>x \<in> set rs. row_nf x"
+  shows "rows_nf (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by (simp add: rows_nf_def)
+next
+  case (Cons r rs')
+  note rs_outer = Cons
+  then show ?thesis
+  proof (cases rs')
+    case Nil
+    then have "row_nf r"
+      using Cons assms by simp
+    then show ?thesis
+      using Cons Nil row_nf_alt_rows_self
+      by (simp add: rows_nf_def)
+  next
+    case (Cons r' rs'')
+    then have rs_shape: "rs = r # r' # rs''"
+      using rs_outer by simp
+    then show ?thesis
+      using assms rs_shape by (simp add: rows_nf_def)
+  qed
+qed
+
+lemma rows_nf_normalize:
+  assumes "\<forall>r \<in> set rs. rows_nf r"
+  shows "rows_nf (rsimp_ALTs (rdistinct (rflts rs) {}))"
+proof -
+  have flat: "\<forall>x \<in> set (rflts rs). row_nf x"
+    by (rule rows_nf_rflts[OF assms])
+  have distinct: "\<forall>x \<in> set (rdistinct (rflts rs) {}). row_nf x"
+    by (rule rows_nf_rdistinct[OF flat])
+  show ?thesis
+    by (rule rows_nf_rsimp_ALTs[OF distinct])
+qed
+
+lemma rows_nf_rsimp5_SEQ:
+  assumes "rows_nf r1" "rows_nf r2"
+  shows "rows_nf (rsimp5_SEQ r1 r2)"
+proof -
+  have rows1: "\<forall>x \<in> set (rsimp5_alt_rows r1). row_nf x"
+    using assms(1) by (simp add: rows_nf_def)
+  have rows2: "\<forall>x \<in> set (rsimp5_alt_rows r2). row_nf x"
+    using assms(2) by (simp add: rows_nf_def)
+  have products: "\<forall>z \<in>
+      set (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)).
+      row_nf z \<or> z = RZERO"
+    by (rule row_nf_rsimp5_seq_products[OF rows1 rows2])
+  have products_rows: "\<forall>z \<in>
+      set (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)).
+      rows_nf z"
+    using products rows_nf_of_row_nf_or_zero by blast
+  show ?thesis
+    unfolding rsimp5_SEQ_def
+    by (rule rows_nf_normalize[OF products_rows])
+qed
+
+lemma rows_nf_rsimp5:
+  shows "rows_nf (rsimp5 r)"
+proof (induct r)
+  case RZERO
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    using rows_nf_rsimp5_SEQ by simp
+next
+  case (RALTS rs)
+  have "\<forall>r \<in> set (map rsimp5 rs). rows_nf r"
+    using RALTS by auto
+  then show ?case
+    using rows_nf_normalize by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: rows_nf_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: rows_nf_def)
+qed
+
 lemma card_rfrontier_row_nf_or_zero_le_one:
   assumes "row_nf r \<or> r = RZERO"
   shows "card (rfrontier r) \<le> 1"
@@ -2448,6 +2579,18 @@ proof -
   also have "... \<le> rsize r1 * rsize r2"
     by (rule length_rsimp5_seq_products_alt_rows_le)
   finally show ?thesis .
+qed
+
+lemma card_rfrontier_rsimp5_SEQ_le_size_product:
+  "card (rfrontier (rsimp5_SEQ (rsimp5 r1) (rsimp5 r2))) \<le>
+    rsize (rsimp5 r1) * rsize (rsimp5 r2)"
+proof -
+  have rows1: "\<forall>x \<in> set (rsimp5_alt_rows (rsimp5 r1)). row_nf x"
+    using rows_nf_rsimp5 by (simp add: rows_nf_def)
+  have rows2: "\<forall>x \<in> set (rsimp5_alt_rows (rsimp5 r2)). row_nf x"
+    using rows_nf_rsimp5 by (simp add: rows_nf_def)
+  show ?thesis
+    by (rule card_rfrontier_rsimp5_SEQ_le_size_product_if_row_nf[OF rows1 rows2])
 qed
 
 lemma rfrontier_nonzero_nonalt_self:

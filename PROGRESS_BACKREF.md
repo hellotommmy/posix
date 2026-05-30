@@ -411,6 +411,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     local bound
     `card_rfrontier_rsimp5_SEQ_le_size_product_if_row_nf`. The remaining local
     gap is now precise: show `rsimp5` outputs have `row_nf` alternative rows.
+  - Closed that local gap with `rows_nf`: normalization through `rflts`,
+    `rdistinct`, and `rsimp_ALTs` preserves row normal form; hence
+    `rows_nf_rsimp5` holds. This yields the unconditional local frontier bound
+    `card_rfrontier_rsimp5_SEQ_le_size_product` for simplified operands.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
