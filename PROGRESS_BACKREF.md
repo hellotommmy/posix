@@ -71,6 +71,19 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove every element of the quadratic frontier universe
   has size at most linear in `rsize r`, then prove `rsimp3`/`rders_simp3`
   frontier membership for the non-backref fragment.
+- Checked fourth implementation checkpoint:
+  - Proved `rsubterms_member_size_le_rsize` and
+    `rlinear_continuations_member_size_le_rsize`.
+  - Proved `partial_derivative_frontier_universe_member_size_linear`:
+    any atom in the quadratic frontier universe has structural size at most
+    `Suc (rsize r + rsize r)`.
+  - This establishes the two numeric ingredients for a cubic result:
+    quadratic many frontier atoms, each of linear size. The remaining proof
+    obligation is semantic/closure-shaped: show the actual `rsimp3` derivative
+    frontier is a subset of this universe for the non-backref fragment.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: define a small `rfrontier`/normal-form extractor and
+  prove closure lemmas for `rsimp3_SEQ`, then lift to one derivative step.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

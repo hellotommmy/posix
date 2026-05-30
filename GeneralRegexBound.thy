@@ -273,6 +273,146 @@ next
   then show ?case by simp
 qed
 
+lemma rsize_member_le_rsizes:
+  assumes "r \<in> set rs"
+  shows "rsize r \<le> rsizes rs"
+  using assms
+  by (induct rs) auto
+
+lemma rsubterms_member_size_le_rsize:
+  assumes "q \<in> rsubterms r"
+  shows "rsize q \<le> rsize r"
+  using assms
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then obtain r where r: "r \<in> set rs" "q \<in> rsubterms r"
+      using RALTS.prems by auto
+    have "rsize q \<le> rsize r"
+      using RALTS r by auto
+    also have "... \<le> rsizes rs"
+      using rsize_member_le_rsizes[OF r(1)] .
+    finally show ?thesis
+      by simp
+  qed
+next
+  case (RSEQ r1 r2)
+  then show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then consider "q \<in> rsubterms r1" | "q \<in> rsubterms r2"
+      using RSEQ.prems by auto
+    then show ?thesis
+    proof cases
+      case 1
+      then have "rsize q \<le> rsize r1"
+        using RSEQ by auto
+      then show ?thesis by simp
+    next
+      case 2
+      then have "rsize q \<le> rsize r2"
+        using RSEQ by auto
+      then show ?thesis by simp
+    qed
+  qed
+next
+  case (RSTAR r)
+  then show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "q \<in> rsubterms r"
+      using RSTAR.prems by auto
+    then have "rsize q \<le> rsize r"
+      using RSTAR by auto
+    then show ?thesis by simp
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases "q = RNTIMES r n")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "q \<in> rsubterms r"
+      using RNTIMES.prems by auto
+    then have "rsize q \<le> rsize r"
+      using RNTIMES by auto
+    then show ?thesis by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+  proof (cases "q = RBACKREF4 r1 r2 r3 r4 cs")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then consider "q \<in> rsubterms r1" | "q \<in> rsubterms r2" |
+      "q \<in> rsubterms r3" | "q \<in> rsubterms r4"
+      using RBACKREF4.prems by auto
+    then show ?thesis
+    proof cases
+      case 1
+      then have "rsize q \<le> rsize r1"
+        using RBACKREF4 by auto
+      then show ?thesis by simp
+    next
+      case 2
+      then have "rsize q \<le> rsize r2"
+        using RBACKREF4 by auto
+      then show ?thesis by simp
+    next
+      case 3
+      then have "rsize q \<le> rsize r3"
+        using RBACKREF4 by auto
+      then show ?thesis by simp
+    next
+      case 4
+      then have "rsize q \<le> rsize r4"
+        using RBACKREF4 by auto
+      then show ?thesis by simp
+    qed
+  qed
+next
+  case (RHALF r cs rep)
+  then show ?case
+  proof (cases "q = RHALF r cs rep")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "q \<in> rsubterms r"
+      using RHALF.prems by auto
+    then have "rsize q \<le> rsize r"
+      using RHALF by auto
+    then show ?thesis by simp
+  qed
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 definition rcontinuations :: "rrexp \<Rightarrow> rrexp set" where
   "rcontinuations r =
     rsubterms r \<union>
@@ -496,6 +636,126 @@ next
   then show ?case by simp
 qed
 
+lemma rlinear_continuations_member_size_le_rsize:
+  assumes "q \<in> rlinear_continuations r"
+  shows "rsize q \<le> rsize r"
+  using assms
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain r where r: "r \<in> set rs" "q \<in> rlinear_continuations r"
+    by auto
+  have "rsize q \<le> rsize r"
+    using RALTS r by auto
+  also have "... \<le> rsizes rs"
+    using rsize_member_le_rsizes[OF r(1)] .
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+  proof (cases "q = r2")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then consider "q \<in> rlinear_continuations r1" | "q \<in> rlinear_continuations r2"
+      using RSEQ.prems by auto
+    then show ?thesis
+    proof cases
+      case 1
+      then have "rsize q \<le> rsize r1"
+        using RSEQ by auto
+      then show ?thesis by simp
+    next
+      case 2
+      then have "rsize q \<le> rsize r2"
+        using RSEQ by auto
+      then show ?thesis by simp
+    qed
+  qed
+next
+  case (RSTAR r)
+  then show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "q \<in> rlinear_continuations r"
+      using RSTAR.prems by auto
+    then have "rsize q \<le> rsize r"
+      using RSTAR by auto
+    then show ?thesis by simp
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases "q \<in> ((\<lambda>k. RNTIMES r k) ` {..n})")
+    case True
+    then obtain k where k: "k \<le> n" "q = RNTIMES r k"
+      by auto
+    then show ?thesis
+      by simp
+  next
+    case False
+    then have "q \<in> rlinear_continuations r"
+      using RNTIMES.prems by auto
+    then have "rsize q \<le> rsize r"
+      using RNTIMES by auto
+    then show ?thesis
+      by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then consider "q \<in> rlinear_continuations r1" |
+    "q \<in> rlinear_continuations r2" |
+    "q \<in> rlinear_continuations r3" |
+    "q \<in> rlinear_continuations r4"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    then have "rsize q \<le> rsize r1"
+      using RBACKREF4 by auto
+    then show ?thesis by simp
+  next
+    case 2
+    then have "rsize q \<le> rsize r2"
+      using RBACKREF4 by auto
+    then show ?thesis by simp
+  next
+    case 3
+    then have "rsize q \<le> rsize r3"
+      using RBACKREF4 by auto
+    then show ?thesis by simp
+  next
+    case 4
+    then have "rsize q \<le> rsize r4"
+      using RBACKREF4 by auto
+    then show ?thesis by simp
+  qed
+next
+  case (RHALF r cs rep)
+  then have "q \<in> rlinear_continuations r"
+    by auto
+  then have "rsize q \<le> rsize r"
+    using RHALF by auto
+  then show ?case
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 definition partial_derivative_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
   "partial_derivative_frontier_universe r =
     insert RZERO
@@ -557,6 +817,49 @@ proof -
   also have "... \<le> (rsize r + 2) ^ 2"
     by (rule quadratic_padding_bound)
   finally show ?thesis .
+qed
+
+lemma partial_derivative_frontier_universe_member_size_linear:
+  assumes "q \<in> partial_derivative_frontier_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rlinear_continuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have q_cases: "q = RZERO \<or> q = RONE \<or> q \<in> ?A \<or> q \<in> ?P"
+    using assms unfolding partial_derivative_frontier_universe_def by auto
+  then show ?thesis
+  proof
+    assume "q = RZERO"
+    then show ?thesis by simp
+  next
+    assume rest1: "q = RONE \<or> q \<in> ?A \<or> q \<in> ?P"
+    then show ?thesis
+    proof
+      assume "q = RONE"
+      then show ?thesis by simp
+    next
+      assume rest2: "q \<in> ?A \<or> q \<in> ?P"
+      then show ?thesis
+      proof
+        assume "q \<in> ?A"
+        then have "rsize q \<le> rsize r"
+          using rsubterms_member_size_le_rsize by blast
+        then show ?thesis by simp
+      next
+        assume "q \<in> ?P"
+        then obtain p k where pk:
+          "p \<in> ?A" "k \<in> ?K" "q = RSEQ p k"
+          by auto
+        have p_size: "rsize p \<le> rsize r"
+          using pk rsubterms_member_size_le_rsize by blast
+        have k_size: "rsize k \<le> rsize r"
+          using pk rlinear_continuations_member_size_le_rsize by blast
+        show ?thesis
+          using pk p_size k_size by simp
+      qed
+    qed
+  qed
 qed
 
 definition RSEQ_set where
