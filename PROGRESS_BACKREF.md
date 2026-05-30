@@ -241,6 +241,22 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed for both `Posix` and `BackRefPilot`.
 - Next research target: connect `rfrontier (rsimp4 (rder c r))` to
   `rder_path_continuations c r` for the legacy/non-backref fragment.
+- Checked fifteenth implementation checkpoint:
+  - Added a checked counterexample showing that the path-continuation universe
+    is still not strong enough for full one-step `rsimp4` closure.
+  - Example: for `RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d))`,
+    differentiating by `a` and simplifying produces frontier atom
+    `RSEQ (RCHAR b) (RCHAR d)`.
+  - That atom is not in the current `partial_derivative_path_universe`.
+    Reason: the current path universe records the carried suffix, while
+    `rsimp4` also distributes a suffix whose left side is an alternative.
+  - Design consequence: the final cubic universe should not be just
+    path continuations. It must include the Antimirov frontier of simplified
+    carried suffixes, still with a linear/quadratic accounting discipline.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: replace `rpath_continuations` with a frontier-aware
+  path universe whose suffix component is `rfrontier (rsimp4 suffix)`, then
+  reprove the linear-count/quadratic-size accounting.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 

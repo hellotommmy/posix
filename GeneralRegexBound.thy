@@ -1990,6 +1990,20 @@ lemma rsimp4_derivative_needs_path_continuation:
   by (simp add: partial_derivative_path_universe_def
       rpath_continuations_def rsimp4_SEQ_def)
 
+lemma path_universe_misses_distributed_suffix_atom:
+  "RSEQ (RCHAR b) (RCHAR d) \<notin>
+    partial_derivative_path_universe
+      (RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d)))"
+  by (simp add: partial_derivative_path_universe_def rpath_continuations_def)
+
+lemma rsimp4_derivative_can_distribute_suffix_atom:
+  "RSEQ (RCHAR b) (RCHAR d) \<in>
+    rfrontier
+      (rsimp4
+        (rder a
+          (RSEQ (RCHAR a) (RSEQ (RALTS [RCHAR b, RCHAR c]) (RCHAR d)))))"
+  by (simp add: rsimp4_SEQ_def)
+
 fun rder_path_continuations_acc :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rder_path_continuations_acc c RZERO k = {}"
 | "rder_path_continuations_acc c RONE k = {}"
