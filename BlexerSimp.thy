@@ -359,19 +359,29 @@ fun bsimp4_ASEQ_atom :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Righ
 | "bsimp4_ASEQ_atom bs (ASEQ bs2 r1 r2) r3 =
     bsimp4_ASEQ_atom bs2 r1 (bsimp4_ASEQ_atom bs r2 r3)"
 | "bsimp4_ASEQ_atom bs (ACHAR bs2 c) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ACHAR bs2 c) (AONE bs3) = ACHAR bs2 c"
 | "bsimp4_ASEQ_atom bs (ACHAR bs2 c) r2 = ASEQ bs (ACHAR bs2 c) r2"
 | "bsimp4_ASEQ_atom bs (AALTs bs2 rs) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (AALTs bs2 rs) (AONE bs3) = AALTs bs2 rs"
 | "bsimp4_ASEQ_atom bs (AALTs bs2 rs) r2 = ASEQ bs (AALTs bs2 rs) r2"
 | "bsimp4_ASEQ_atom bs (ASTAR bs2 r) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ASTAR bs2 r) (AONE bs3) = ASTAR bs2 r"
 | "bsimp4_ASEQ_atom bs (ASTAR bs2 r) r2 = ASEQ bs (ASTAR bs2 r) r2"
 | "bsimp4_ASEQ_atom bs (ANTIMES bs2 r n) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ANTIMES bs2 r n) (AONE bs3) = ANTIMES bs2 r n"
 | "bsimp4_ASEQ_atom bs (ANTIMES bs2 r n) r2 = ASEQ bs (ANTIMES bs2 r n) r2"
 | "bsimp4_ASEQ_atom bs (ABACKREF4 bs2 r1 r2 r3 r4 s) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ABACKREF4 bs2 r1 r2 r3 r4 s) (AONE bs3) =
+    ABACKREF4 bs2 r1 r2 r3 r4 s"
 | "bsimp4_ASEQ_atom bs (ABACKREF4 bs2 r1 r2 r3 r4 s) r5 =
     ASEQ bs (ABACKREF4 bs2 r1 r2 r3 r4 s) r5"
 | "bsimp4_ASEQ_atom bs (AHALF bs2 r s rep) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (AHALF bs2 r s rep) (AONE bs3) =
+    AHALF bs2 r s rep"
 | "bsimp4_ASEQ_atom bs (AHALF bs2 r s rep) r2 = ASEQ bs (AHALF bs2 r s rep) r2"
 | "bsimp4_ASEQ_atom bs (ARESIDUE bs2 s rep) AZERO = AZERO"
+| "bsimp4_ASEQ_atom bs (ARESIDUE bs2 s rep) (AONE bs3) =
+    ARESIDUE bs2 s rep"
 | "bsimp4_ASEQ_atom bs (ARESIDUE bs2 s rep) r2 = ASEQ bs (ARESIDUE bs2 s rep) r2"
 
 fun bsimp4_seq_row :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp list" where

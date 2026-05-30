@@ -270,19 +270,27 @@ fun rsimp4_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
 | "rsimp4_SEQ_atom (RSEQ r1 r2) r3 =
     rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 r3)"
 | "rsimp4_SEQ_atom (RCHAR c) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RCHAR c) RONE = RCHAR c"
 | "rsimp4_SEQ_atom (RCHAR c) r2 = RSEQ (RCHAR c) r2"
 | "rsimp4_SEQ_atom (RALTS rs) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RALTS rs) RONE = RALTS rs"
 | "rsimp4_SEQ_atom (RALTS rs) r2 = RSEQ (RALTS rs) r2"
 | "rsimp4_SEQ_atom (RSTAR r) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RSTAR r) RONE = RSTAR r"
 | "rsimp4_SEQ_atom (RSTAR r) r2 = RSEQ (RSTAR r) r2"
 | "rsimp4_SEQ_atom (RNTIMES r n) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RNTIMES r n) RONE = RNTIMES r n"
 | "rsimp4_SEQ_atom (RNTIMES r n) r2 = RSEQ (RNTIMES r n) r2"
 | "rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) RONE =
+    RBACKREF4 r1 r2 r3 r4 cs"
 | "rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) r5 =
     RSEQ (RBACKREF4 r1 r2 r3 r4 cs) r5"
 | "rsimp4_SEQ_atom (RHALF r cs rep) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RHALF r cs rep) RONE = RHALF r cs rep"
 | "rsimp4_SEQ_atom (RHALF r cs rep) r2 = RSEQ (RHALF r cs rep) r2"
 | "rsimp4_SEQ_atom (RRESIDUE cs rep) RZERO = RZERO"
+| "rsimp4_SEQ_atom (RRESIDUE cs rep) RONE = RRESIDUE cs rep"
 | "rsimp4_SEQ_atom (RRESIDUE cs rep) r2 = RSEQ (RRESIDUE cs rep) r2"
 
 fun rsimp4_seq_row :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
@@ -1191,8 +1199,46 @@ next
     by simp
 next
   case (RALTS rs)
-  then show ?case
-    by (cases r2) (simp_all add: Sequ_def)
+  show ?case
+  proof (cases r2)
+    case RZERO
+    then show ?thesis by simp
+  next
+    case RONE
+    then show ?thesis by auto
+  next
+    case (RCHAR x)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RALTS xs)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RSTAR x)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RNTIMES x n)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RBACKREF4 x1 x2 x3 x4 xs)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RHALF x xs rep)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  next
+    case (RRESIDUE xs rep)
+    then show ?thesis
+      by (simp add: Sequ_def RL_RALTS_Sequ)
+  qed
 next
   case (RSTAR r)
   then show ?case

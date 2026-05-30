@@ -1171,8 +1171,51 @@ next
     using nonseq by simp
 next
   case (RALTS x5)
+  note p_RALTS = RALTS
   then show ?thesis
-    using p k by (cases k) (auto simp add: partial_derivative_frontier_universe_def)
+  proof (cases k)
+    case RONE
+    have "rfrontier p \<subseteq> partial_derivative_frontier_universe r"
+      by (rule rfrontier_subterm_subset[OF p])
+    then show ?thesis
+      using p_RALTS RONE by simp
+  next
+    case RZERO
+    then show ?thesis
+      using p_RALTS by simp
+  next
+    case (RCHAR x)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RALTS xs)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RSTAR x)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RNTIMES x n)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RBACKREF4 x1 x2 x3 x4 xs)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RHALF x xs rep)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  next
+    case (RRESIDUE xs rep)
+    then show ?thesis
+      using p k p_RALTS by (auto simp add: partial_derivative_frontier_universe_def)
+  qed
 next
   case (RSTAR x6)
   then show ?thesis
@@ -1919,6 +1962,107 @@ proof -
     qed
   qed
 qed
+
+lemma partial_derivative_path_universe_zero [simp]:
+  "RZERO \<in> partial_derivative_path_universe r"
+  by (simp add: partial_derivative_path_universe_def)
+
+lemma partial_derivative_path_universe_one [simp]:
+  "RONE \<in> partial_derivative_path_universe r"
+  by (simp add: partial_derivative_path_universe_def)
+
+lemma partial_derivative_path_universe_subterm:
+  assumes "p \<in> rsubterms r"
+  shows "p \<in> partial_derivative_path_universe r"
+  using assms by (auto simp add: partial_derivative_path_universe_def)
+
+lemma partial_derivative_path_universe_path_continuation:
+  assumes "p \<in> rpath_continuations r"
+  shows "p \<in> partial_derivative_path_universe r"
+  using assms by (auto simp add: partial_derivative_path_universe_def)
+
+lemma rsimp4_derivative_needs_path_continuation:
+  assumes "a \<noteq> b"
+  shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>
+    partial_derivative_path_universe
+      (RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR c))"
+  using assms
+  by (simp add: partial_derivative_path_universe_def
+      rpath_continuations_def rsimp4_SEQ_def)
+
+fun rder_path_continuations_acc :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rder_path_continuations_acc c RZERO k = {}"
+| "rder_path_continuations_acc c RONE k = {}"
+| "rder_path_continuations_acc c (RCHAR d) k = (if c = d then {k} else {})"
+| "rder_path_continuations_acc c (RALTS rs) k =
+    (\<Union> (set (map (\<lambda>r. rder_path_continuations_acc c r k) rs)))"
+| "rder_path_continuations_acc c (RSEQ r1 r2) k =
+    rder_path_continuations_acc c r1 (rsimp4_SEQ_atom r2 k) \<union>
+    (if rnullable r1 then rder_path_continuations_acc c r2 k else {})"
+| "rder_path_continuations_acc c (RSTAR r) k =
+    rder_path_continuations_acc c r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "rder_path_continuations_acc c (RNTIMES r n) k =
+    (if n = 0 then {} else
+      rder_path_continuations_acc c r (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k))"
+| "rder_path_continuations_acc c (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rder_path_continuations_acc c r1 k \<union> rder_path_continuations_acc c r2 k \<union>
+    rder_path_continuations_acc c r3 k \<union> rder_path_continuations_acc c r4 k"
+| "rder_path_continuations_acc c (RHALF r cs rep) k =
+    rder_path_continuations_acc c r k"
+| "rder_path_continuations_acc c (RRESIDUE cs rep) k = {}"
+
+definition rder_path_continuations :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rder_path_continuations c r = rder_path_continuations_acc c r RONE"
+
+lemma rder_path_continuations_acc_subset:
+  "rder_path_continuations_acc c r k \<subseteq> rpath_continuations_acc r k"
+proof (induct r arbitrary: k)
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof
+    fix x
+    assume "x \<in> rder_path_continuations_acc c (RBACKREF4 r1 r2 r3 r4 cs) k"
+    then consider
+        "x \<in> rder_path_continuations_acc c r1 k"
+      | "x \<in> rder_path_continuations_acc c r2 k"
+      | "x \<in> rder_path_continuations_acc c r3 k"
+      | "x \<in> rder_path_continuations_acc c r4 k"
+      by auto
+    then show "x \<in> rpath_continuations_acc (RBACKREF4 r1 r2 r3 r4 cs) k"
+    proof cases
+      case 1
+      then have "x \<in> rpath_continuations_acc r1 k"
+        using RBACKREF4.hyps(1) by auto
+      then show ?thesis by auto
+    next
+      case 2
+      then have "x \<in> rpath_continuations_acc r2 k"
+        using RBACKREF4.hyps(2) by auto
+      then show ?thesis by auto
+    next
+      case 3
+      then have "x \<in> rpath_continuations_acc r3 k"
+        using RBACKREF4.hyps(3) by auto
+      then show ?thesis by auto
+    next
+      case 4
+      then have "x \<in> rpath_continuations_acc r4 k"
+        using RBACKREF4.hyps(4) by auto
+      then show ?thesis by auto
+    qed
+  qed
+qed auto
+
+lemma rder_path_continuations_subset:
+  "rder_path_continuations c r \<subseteq> rpath_continuations r"
+  unfolding rder_path_continuations_def rpath_continuations_def
+  by (rule rder_path_continuations_acc_subset)
+
+lemma rder_path_continuations_universe_subset:
+  "rder_path_continuations c r \<subseteq> partial_derivative_path_universe r"
+  using rder_path_continuations_subset
+    partial_derivative_path_universe_path_continuation
+  by blast
 
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"

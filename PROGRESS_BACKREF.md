@@ -221,6 +221,26 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Next research target: prove that one `rsimp4 (rder c r)` frontier is a subset
   of `partial_derivative_path_universe r` for `legacy_rrexp r`, then lift from
   one step to `rders_simp4`.
+- Checked fourteenth implementation checkpoint:
+  - Strengthened the `rsimp4` sequence atom with right-unit simplification:
+    `rsimp4_SEQ_atom p RONE` now returns `p` for non-sequence atoms. The
+    annotated `bsimp4_ASEQ_atom` mirrors this on `AONE`, and the existing
+    `rerase` bridge remains checked.
+  - This change is not cosmetic. Without right-unit elimination, top-level
+    path continuations acquire artificial trailing `RONE` syntax, while the
+    actual normalized derivative does not. The new rule aligns the path
+    universe with the derivative shape and reduces residual size.
+  - Added `partial_derivative_path_universe_*` membership lemmas and the
+    checked nested-sequence sanity lemma
+    `rsimp4_derivative_needs_path_continuation`.
+  - Added `rder_path_continuations_acc` and proved
+    `rder_path_continuations_universe_subset`, a modular overapproximation of
+    one-symbol derivative positions. This isolates the next proof target:
+    show that the `rsimp4 (rder c r)` frontier is contained in this
+    path-derivative overapproximation.
+  - Local CI passed for both `Posix` and `BackRefPilot`.
+- Next research target: connect `rfrontier (rsimp4 (rder c r))` to
+  `rder_path_continuations c r` for the legacy/non-backref fragment.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
 
