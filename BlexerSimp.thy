@@ -410,6 +410,37 @@ where
   "bders_simp4 r [] = r"
 | "bders_simp4 r (c # s) = bders_simp4 (bsimp4 (bder c r)) s"
 
+fun bsimp5_alt_rows :: "arexp \<Rightarrow> arexp list" where
+  "bsimp5_alt_rows AZERO = []"
+| "bsimp5_alt_rows (AALTs bs rs) = rs"
+| "bsimp5_alt_rows r = [r]"
+
+fun bsimp5_seq_products :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bsimp5_seq_products bs [] ys = []"
+| "bsimp5_seq_products bs (x # xs) ys =
+    map (\<lambda>y. bsimp4_ASEQ_atom bs x y) ys @ bsimp5_seq_products bs xs ys"
+
+definition bsimp5_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp5_ASEQ bs r1 r2 =
+    bsimp_AALTs []
+      (distinctWith
+        (flts (bsimp5_seq_products bs (bsimp5_alt_rows r1) (bsimp5_alt_rows r2)))
+        eq1 {})"
+
+(* Annotated counterpart of rsimp5. It is kept separate from bsimp/bsimp4
+   while the cubic bound proof is still being designed. *)
+fun bsimp5 :: "arexp \<Rightarrow> arexp"
+where
+  "bsimp5 (ASEQ bs r1 r2) = bsimp5_ASEQ bs (bsimp5 r1) (bsimp5 r2)"
+| "bsimp5 (AALTs bs rs) = bsimp_AALTs bs (distinctWith (flts (map bsimp5 rs)) eq1 {})"
+| "bsimp5 r = r"
+
+fun
+  bders_simp5 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simp5 r [] = r"
+| "bders_simp5 r (c # s) = bders_simp5 (bsimp5 (bder c r)) s"
+
 
 fun 
   bders_simp :: "arexp \<Rightarrow> string \<Rightarrow> arexp"

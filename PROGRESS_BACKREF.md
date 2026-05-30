@@ -428,6 +428,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     row-product expansion. Checked sanity lemmas show it contains both the old
     distributed suffix example and the previously missed middle-alternative
     opaque row.
+  - Added annotated `bsimp5`/`bders_simp5` in `BlexerSimp.thy` and proved the
+    erasure bridge in `FBound.thy`: `bsimp5_rerase` and `rders_simp5_size`.
+    This gives the cubic prototype a checked path from `arexp` back to the
+    proof-level `rsimp5` skeleton.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

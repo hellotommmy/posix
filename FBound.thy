@@ -306,9 +306,64 @@ lemma bsimp4_rerase:
   using rerase_bsimp4_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same4 by fastforce
 
+lemma rerase_bsimp5_alt_rows:
+  "map rerase (bsimp5_alt_rows r) = rsimp5_alt_rows (rerase r)"
+  by (cases r) simp_all
+
+lemma rerase_bsimp5_seq_products:
+  "map rerase (bsimp5_seq_products bs xs ys) =
+    rsimp5_seq_products (map rerase xs) (map rerase ys)"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have "map rerase (map (\<lambda>y. bsimp4_ASEQ_atom bs x y) ys) =
+    map (\<lambda>y. rsimp4_SEQ_atom (rerase x) y) (map rerase ys)"
+    by (induct ys) (simp_all add: rerase_bsimp4_ASEQ_atom)
+  then show ?case
+    using Cons by simp
+qed
+
+lemma rerase_bsimp5_ASEQ:
+  shows "rerase (bsimp5_ASEQ bs a1 a2) =
+    rsimp5_SEQ (rerase a1) (rerase a2)"
+  by (simp add: bsimp5_ASEQ_def rsimp5_SEQ_def rerase_bsimp_AALTs
+      map_rerase_distinctWith_eq1 rerase_flts rerase_bsimp5_seq_products
+      rerase_bsimp5_alt_rows)
+
+lemma rerase_map_bsimp5:
+  assumes "\<And> r. r \<in> set rs \<Longrightarrow> rerase (bsimp5 r) = (rsimp5 \<circ> rerase) r"
+  shows "map rerase (map bsimp5 rs) =  map (rsimp5 \<circ> rerase) rs"
+  using assms
+  by (induct rs) simp_all
+
+lemma rerase_earlier_later_same5:
+  assumes " \<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp5 r) = rsimp5 (rerase r)"
+  shows " (map rerase (distinctBy (flts (map bsimp5 rs)) rerase {})) =
+          (rdistinct (rflts (map (rsimp5 \<circ> rerase) rs)) {})"
+  apply(subst rerase_dB)
+  apply(subst rerase_flts)
+  apply(subst rerase_map_bsimp5)
+  apply auto
+  using assms
+  apply simp
+  done
+
+lemma bsimp5_rerase:
+  shows "rerase (bsimp5 a) = rsimp5 (rerase a)"
+  apply(induct a rule: bsimp5.induct)
+  apply(auto)
+  using rerase_bsimp5_ASEQ apply presburger
+  using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same5 by fastforce
+
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])
+
+lemma rders_simp5_size:
+  shows "rders_simp5 (rerase r) s = rerase (bders_simp5 r s)"
+  by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp5_rerase[symmetric])
 
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
