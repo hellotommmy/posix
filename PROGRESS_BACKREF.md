@@ -331,6 +331,15 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     `rsimp4_SEQ (rsimp4 (rder c r)) k` on `RZERO`, `RONE`, and `RCHAR`.
     These are the base cases needed before attacking `RSEQ`, `RSTAR`, and
     `RNTIMES` with a generalized continuation theorem.
+  - Added frontier-normalization equality facts:
+    `rfrontiers_member_iff`, `rfrontiers_rdistinct_empty`,
+    `rfrontiers_rflts`, `rfrontier_rsimp_ALTs_eq`, and
+    `rfrontier_normalize_eq`. This upgrades earlier one-way normalization
+    subset reasoning into set equality for frontiers.
+  - Added `rfrontier_rsimp4_SEQ_memberE`, an eliminator that turns a member of
+    `rfrontier (rsimp4_SEQ r k)` into a concrete sequence source `x` with
+    `q in rfrontier (rsimp4_SEQ_atom x k)`. This is intended as the entry
+    point for the upcoming `RSEQ` carried-closure proof.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)

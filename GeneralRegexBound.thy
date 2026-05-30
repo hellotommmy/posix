@@ -1264,6 +1264,44 @@ lemma rfrontiers_append [simp]:
   "rfrontiers (rs1 @ rs2) = rfrontiers rs1 \<union> rfrontiers rs2"
   by (induct rs1) auto
 
+lemma rfrontiers_member_iff:
+  "q \<in> rfrontiers rs \<longleftrightarrow> (\<exists>r \<in> set rs. q \<in> rfrontier r)"
+  by (induct rs) auto
+
+lemma rfrontiers_rdistinct_empty [simp]:
+  "rfrontiers (rdistinct rs {}) = rfrontiers rs"
+  by (auto simp add: rfrontiers_member_iff rdistinct_set_equality)
+
+lemma rfrontiers_rflts [simp]:
+  "rfrontiers (rflts rs) = rfrontiers rs"
+  by (induct rs rule: rflts.induct) auto
+
+lemma rfrontier_rsimp_ALTs_eq [simp]:
+  "rfrontier (rsimp_ALTs rs) = rfrontiers rs"
+proof (cases rs)
+  case Nil
+  then show ?thesis by simp
+next
+  case (Cons r rs')
+  note rs_shape = Cons
+  then show ?thesis
+  proof (cases rs')
+    case Nil
+    then show ?thesis
+      using rs_shape by simp
+  next
+    case (Cons s ss)
+    then have "rs = r # s # ss"
+      using rs_shape by simp
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma rfrontier_normalize_eq [simp]:
+  "rfrontier (rsimp_ALTs (rdistinct (rflts rs) {})) = rfrontiers rs"
+  by simp
+
 lemma rfrontiers_subsetI:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow> rfrontier r \<subseteq> U"
   shows "rfrontiers rs \<subseteq> U"
@@ -1594,6 +1632,73 @@ next
     by (rule rfrontier_rsimp4_SEQ_single) (use assms RRESIDUE in auto)
   then show ?thesis
     by (simp add: RRESIDUE rsimp4_SEQ_def)
+qed
+
+lemma rfrontier_rsimp4_SEQ_memberE:
+  assumes "q \<in> rfrontier (rsimp4_SEQ r k)"
+  obtains x where "x \<in> rseq_sources r" "q \<in> rfrontier (rsimp4_SEQ_atom x k)"
+proof (cases r)
+  case (RALTS rs)
+  have "q \<in> rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))"
+    using assms RALTS by (simp add: rsimp4_SEQ_def)
+  then obtain x where x: "x \<in> set rs" "q \<in> rfrontier (rsimp4_SEQ_atom x k)"
+    by (induct rs) auto
+  then show ?thesis
+    using RALTS that by simp
+next
+  case RZERO
+  have "q \<in> rfrontier (rsimp4_SEQ_atom RZERO k)"
+    using assms RZERO by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RZERO that by simp
+next
+  case RONE
+  have "q \<in> rfrontier (rsimp4_SEQ_atom RONE k)"
+    using assms RONE by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RONE that by simp
+next
+  case (RCHAR c)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RCHAR c) k)"
+    using assms RCHAR by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RCHAR that by simp
+next
+  case (RSEQ r1 r2)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k)"
+    using assms RSEQ by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RSEQ that by simp
+next
+  case (RSTAR r)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RSTAR r) k)"
+    using assms RSTAR by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RSTAR that by simp
+next
+  case (RNTIMES r n)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RNTIMES r n) k)"
+    using assms RNTIMES by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RNTIMES that by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k)"
+    using assms RBACKREF4 by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RBACKREF4 that by simp
+next
+  case (RHALF r cs rep)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RHALF r cs rep) k)"
+    using assms RHALF by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RHALF that by simp
+next
+  case (RRESIDUE cs rep)
+  have "q \<in> rfrontier (rsimp4_SEQ_atom (RRESIDUE cs rep) k)"
+    using assms RRESIDUE by (simp add: rsimp4_SEQ_def)
+  then show ?thesis
+    using RRESIDUE that by simp
 qed
 
 lemma rfrontier_rsimp4_SEQ_nonseq_sources_subset:
