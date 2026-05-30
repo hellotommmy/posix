@@ -1991,6 +1991,164 @@ next
     by (cases k) (simp_all add: power2_eq_square)
 qed
 
+lemma rfrontier_normalize_memberE:
+  assumes "q \<in> rfrontier (rsimp_ALTs (rdistinct (rflts rs) {}))"
+  obtains r where "r \<in> set rs" "q \<in> rfrontier r"
+proof -
+  have sub: "rfrontier (rsimp_ALTs (rdistinct (rflts rs) {})) \<subseteq>
+    rfrontiers rs"
+    by (rule rfrontier_normalize_subset)
+      (induct rs, auto)
+  then have "q \<in> rfrontiers rs"
+    using assms by blast
+  then show ?thesis
+    using that by (induct rs) auto
+qed
+
+lemma rfrontier_member_in_rfrontiers:
+  assumes "r \<in> set rs" "q \<in> rfrontier r"
+  shows "q \<in> rfrontiers rs"
+  using assms by (induct rs) auto
+
+lemma rfrontiers_concat_rsimp4_seq_rows_memberE:
+  assumes "q \<in> rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))"
+  obtains r where "r \<in> set rs" "q \<in> rfrontier (rsimp4_SEQ_atom r k)"
+  using assms that
+  by (induct rs) auto
+
+lemma rfrontier_rsimp4_SEQ_single_member_size_quadratic:
+  assumes "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row r k)) {}))"
+  shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+proof -
+  obtain r' where r': "r' \<in> set (rsimp4_seq_row r k)" "q \<in> rfrontier r'"
+    using assms by (rule rfrontier_normalize_memberE)
+  then have "q \<in> rfrontier (rsimp4_SEQ_atom r k)"
+    by simp
+  then show ?thesis
+    by (rule rfrontier_rsimp4_SEQ_atom_member_size_quadratic)
+qed
+
+lemma rfrontier_rsimp4_SEQ_member_size_quadratic:
+  assumes "q \<in> rfrontier (rsimp4_SEQ r k)"
+  shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"
+  using assms
+proof (cases r)
+  case RZERO
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row RZERO k)) {}))"
+    using assms RZERO by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize RZERO + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RZERO by simp
+next
+  case RONE
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row RONE k)) {}))"
+    using assms RONE by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize RONE + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RONE by simp
+next
+  case (RCHAR x)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RCHAR x) k)) {}))"
+    using assms RCHAR by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RCHAR x) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RCHAR by simp
+next
+  case (RSEQ r1 r2)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RSEQ r1 r2) k)) {}))"
+    using assms RSEQ by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RSEQ by simp
+next
+  case (RALTS rs)
+  have q_rows: "q \<in> rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))"
+  proof -
+    have "q \<in> rfrontier
+      (rsimp_ALTs
+        (rdistinct (rflts (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))) {}))"
+      using assms RALTS by (simp add: rsimp4_SEQ_def)
+    then obtain row where row:
+        "row \<in> set (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))"
+        "q \<in> rfrontier row"
+      by (rule rfrontier_normalize_memberE)
+    then show ?thesis
+      by (rule rfrontier_member_in_rfrontiers)
+  qed
+  then obtain r' where r': "r' \<in> set rs"
+      "q \<in> rfrontier (rsimp4_SEQ_atom r' k)"
+    by (rule rfrontiers_concat_rsimp4_seq_rows_memberE)
+  have "rsize q \<le> rsize k + (rsize r' + 2)\<^sup>2"
+    using rfrontier_rsimp4_SEQ_atom_member_size_quadratic[OF r'(2)] .
+  also have "... \<le> rsize k + (rsize (RALTS rs) + 2)\<^sup>2"
+  proof -
+    have "rsize r' + 2 \<le> rsize (RALTS rs) + 2"
+      using rsize_member_le_rsizes[OF r'(1)] by simp
+    then have "(rsize r' + 2)\<^sup>2 \<le> (rsize (RALTS rs) + 2)\<^sup>2"
+      by (rule square_mono_nat)
+    then show ?thesis
+      by linarith
+  qed
+  finally show ?thesis
+    using RALTS by simp
+next
+  case (RSTAR r)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RSTAR r) k)) {}))"
+    using assms RSTAR by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RSTAR r) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RSTAR by simp
+next
+  case (RNTIMES r n)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RNTIMES r n) k)) {}))"
+    using assms RNTIMES by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RNTIMES by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "q \<in> rfrontier
+    (rsimp_ALTs
+      (rdistinct (rflts (rsimp4_seq_row (RBACKREF4 r1 r2 r3 r4 cs) k)) {}))"
+    using assms RBACKREF4 by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le>
+    rsize k + (rsize (RBACKREF4 r1 r2 r3 r4 cs) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RBACKREF4 by simp
+next
+  case (RHALF r cs rep)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RHALF r cs rep) k)) {}))"
+    using assms RHALF by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RHALF r cs rep) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RHALF by simp
+next
+  case (RRESIDUE cs rep)
+  have "q \<in> rfrontier
+    (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row (RRESIDUE cs rep) k)) {}))"
+    using assms RRESIDUE by (simp add: rsimp4_SEQ_def)
+  then have "rsize q \<le> rsize k + (rsize (RRESIDUE cs rep) + 2)\<^sup>2"
+    by (rule rfrontier_rsimp4_SEQ_single_member_size_quadratic)
+  then show ?thesis
+    using RRESIDUE by simp
+qed
+
 lemma rpath_continuations_acc_member_size_quadratic:
   assumes "q \<in> rpath_continuations_acc r k"
   shows "rsize q \<le> rsize k + (rsize r + 2)\<^sup>2"

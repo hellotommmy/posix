@@ -310,6 +310,15 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     rsize k + (rsize r + 2)^2`.
     The proof deliberately splits `RONE`, `RSEQ`, and `RALTS ... RONE`
     instead of relying on broad automation.
+  - Lifted that local estimate through normalization with
+    `rfrontier_normalize_memberE`,
+    `rfrontiers_concat_rsimp4_seq_rows_memberE`,
+    `rfrontier_rsimp4_SEQ_single_member_size_quadratic`, and
+    `rfrontier_rsimp4_SEQ_member_size_quadratic`.
+  - Performance note: an intermediate version using broad `blast` timed out the
+    full `Posix` build at 240 seconds. It was replaced by explicit
+    one-step instantiation of the member-size lemma; the checked build then
+    returned to normal timing.
   - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
     remaining cubic accounting problem to bounding `rpath_frontiers`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
