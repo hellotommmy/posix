@@ -1390,6 +1390,134 @@ next
     by (cases k) simp_all
 qed
 
+lemma card_rfrontier_normalize_le_rfrontiers:
+  "card (rfrontier (rsimp_ALTs (rdistinct (rflts rs) {}))) \<le>
+    card (rfrontiers rs)"
+proof -
+  have sub: "rfrontier (rsimp_ALTs (rdistinct (rflts rs) {})) \<subseteq>
+    rfrontiers rs"
+    by (rule rfrontier_normalize_subset)
+      (induct rs, auto)
+  show ?thesis
+    by (rule card_mono) (simp_all add: sub)
+qed
+
+lemma component_frontier_le_product:
+  fixes c :: nat
+  shows "rsize r + c \<le> rsize r * Suc c"
+proof -
+  have "c \<le> rsize r * c"
+    using size_geq1[of r] by (simp add: mult.commute)
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
+lemma card_rfrontiers_concat_rsimp4_seq_rows_le:
+  "card (rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))) \<le>
+    rsizes rs * Suc (card (rfrontier k))"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?c = "card (rfrontier k)"
+  have "card (rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) (r # rs)))) \<le>
+    card (rfrontier (rsimp4_SEQ_atom r k)) +
+    card (rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs)))"
+    by (simp add: card_Un_le)
+  also have "... \<le> (rsize r + ?c) + rsizes rs * Suc ?c"
+    using Cons.hyps card_rfrontier_rsimp4_SEQ_atom_le[of r k] by linarith
+  also have "... \<le> rsize r * Suc ?c + rsizes rs * Suc ?c"
+    using component_frontier_le_product[of r ?c] by linarith
+  also have "... = rsizes (r # rs) * Suc ?c"
+    by (simp add: algebra_simps)
+  finally show ?case .
+qed
+
+lemma card_rfrontier_rsimp4_SEQ_single_le:
+  "card (rfrontier
+      (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row r k)) {}))) \<le>
+    rsize r * Suc (card (rfrontier k))"
+proof -
+  have "card (rfrontier
+      (rsimp_ALTs (rdistinct (rflts (rsimp4_seq_row r k)) {}))) \<le>
+    card (rfrontier (rsimp4_SEQ_atom r k))"
+    using card_rfrontier_normalize_le_rfrontiers[of "rsimp4_seq_row r k"]
+    by simp
+  also have "... \<le> rsize r + card (rfrontier k)"
+    by (rule card_rfrontier_rsimp4_SEQ_atom_le)
+  also have "... \<le> rsize r * Suc (card (rfrontier k))"
+    by (rule component_frontier_le_product)
+  finally show ?thesis .
+qed
+
+lemma card_rfrontier_rsimp4_SEQ_le:
+  "card (rfrontier (rsimp4_SEQ r k)) \<le>
+    rsize r * Suc (card (rfrontier k))"
+proof (cases r)
+  case RZERO
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of RZERO k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case RONE
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of RONE k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RCHAR x)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RCHAR x" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RSEQ r1 r2)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RSEQ r1 r2" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RALTS rs)
+  have rows: "card
+      (rfrontier
+        (rsimp_ALTs
+          (rdistinct (rflts (concat (map (\<lambda>x. rsimp4_seq_row x k) rs))) {}))) \<le>
+    card (rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs)))"
+    by (rule card_rfrontier_normalize_le_rfrontiers)
+  have "card (rfrontier (rsimp4_SEQ (RALTS rs) k)) \<le>
+    card (rfrontiers (concat (map (\<lambda>x. rsimp4_seq_row x k) rs)))"
+    using rows by (simp add: rsimp4_SEQ_def)
+  also have "... \<le> rsizes rs * Suc (card (rfrontier k))"
+    by (rule card_rfrontiers_concat_rsimp4_seq_rows_le)
+  also have "... \<le> rsize (RALTS rs) * Suc (card (rfrontier k))"
+    by simp
+  finally show ?thesis
+    using RALTS by simp
+next
+  case (RSTAR r)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RSTAR r" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RNTIMES r n" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RBACKREF4 r1 r2 r3 r4 cs" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RHALF r cs rep" k]
+    by (simp add: rsimp4_SEQ_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    using card_rfrontier_rsimp4_SEQ_single_le[of "RRESIDUE cs rep" k]
+    by (simp add: rsimp4_SEQ_def)
+qed
+
 fun rseq_sources :: "rrexp \<Rightarrow> rrexp set" where
   "rseq_sources (RALTS rs) = set rs"
 | "rseq_sources r = {r}"

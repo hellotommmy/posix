@@ -295,6 +295,14 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
     continuation to a single sequence atom increases exposed frontier count by
     at most the size of that atom. The only nontrivial branch is
     `RALTS ... RONE`, discharged with `card_rfrontiers_le_rsizes`.
+  - Added `card_rfrontier_normalize_le_rfrontiers`,
+    `card_rfrontiers_concat_rsimp4_seq_rows_le`, and
+    `card_rfrontier_rsimp4_SEQ_le`. The last lemma gives a checked coarse
+    product bound:
+    `card (rfrontier (rsimp4_SEQ r k)) <=
+    rsize r * Suc (card (rfrontier k))`.
+    This is not the final cubic theorem, but it is a reusable accounting
+    interface for one layer of Antimirov-style sequence distribution.
   - Added `partial_derivative_path_frontier_universe_card_le`, reducing the
     remaining cubic accounting problem to bounding `rpath_frontiers`.
   - Local CI passed for both `Posix` and `BackRefPilot`.
