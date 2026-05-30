@@ -4141,10 +4141,13 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Branch: `codex/backref-values`
 - Agent: Codex
-- Files changed: `GeneralRegexBound.thy`
+- Files changed: `GeneralRegexBound.thy`, `BlexerSimp.thy`, `FBound.thy`
 - New checked lemmas:
   - `quadratic_times_linear_cubic_bound`
   - `rsizes_distinct_frontier_universe_cubic`
+  - `RLS_rpders_norm1_rows`
+  - `rsizes_rpders_norm1_rows_frontier_universe_cubic`
+  - `rpders_norm1_rows_rerase`
 - Design result:
   - The viable repeated-derivative invariant should be frontier/product based:
     `partial_derivative_frontier_universe` has quadratic cardinality and
@@ -4157,6 +4160,15 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - Next target: prove that the normalized Antimirov rows/frontier generated
     by `rpder_norm_list`/`rpd_der_norm` stay inside the original
     `partial_derivative_frontier_universe` across repeated derivatives.
+  - Added the explicit Antimirov state drivers:
+    `rpder_norm_set`/`rpders_norm1` for set semantics and
+    `rpder_norm_rows`/`rpders_norm1_rows` for executable distinct row lists.
+    The row-list driver is language-correct and has a conditional cubic hook:
+    once `set (rpders_norm1_rows r s)` is shown to stay in the original
+    frontier universe, `rsizes` is bounded by `3 * (rsize r + 2)^3`.
+  - Mirrored the row-list driver in the annotated layer with
+    `bpder_norm_rows`/`bpders_norm1_rows`, and proved erasure back to the
+    proof-level driver via `rpders_norm1_rows_rerase`.
 - Build: Isabelle `Posix` and `BackRefPilot` PASS via
   `agent_hunt_pipeline/scripts/isabelle_ci.ps1`
 
