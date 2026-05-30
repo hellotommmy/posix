@@ -101,6 +101,18 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 - Local CI passed with no-cheat guard, bounty guard, admin role guard,
   Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
   (about 3 seconds elapsed).
+- Follow-up checked candidate-simplifier transfer:
+  - Added `RL_rders_simp5` in `GeneralRegexBound.thy`, proving the word-level
+    language correctness of the stronger row-product simplifier loop.
+  - Added `asize_bders_simp5_rders_simp5`, `RL_rerase_bders_simp5`, and
+    `aders_simp5_finiteness` in `FBound.thy`, connecting the annotated
+    `bders_simp5` candidate back to proof-level semantics and size bounds.
+  - This makes `bsimp5` a real checked candidate for BR-032/BR-034 work, while
+    still not claiming the final cubic theorem until closure into the chosen
+    universe is proved.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 

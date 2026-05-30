@@ -433,6 +433,26 @@ lemma rders_simp5_size:
   shows "rders_simp5 (rerase r) s = rerase (bders_simp5 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp5_rerase[symmetric])
 
+lemma asize_bders_simp5_rders_simp5:
+  shows "asize (bders_simp5 r s) = rsize (rders_simp5 (rerase r) s)"
+  by (simp add: asize_rsize rders_simp5_size)
+
+lemma RL_rerase_bders_simp5:
+  shows "RL (rerase (bders_simp5 r s)) = Ders s (RL (rerase r))"
+  using RL_rders_simp5[of "rerase r" s] rders_simp5_size[of r s]
+  by simp
+
+corollary aders_simp5_finiteness:
+  assumes "\<exists>N. \<forall>s. rsize (rders_simp5 (rerase r) s) \<le> N"
+  shows "\<exists>N. \<forall>s. asize (bders_simp5 r s) \<le> N"
+proof -
+  from assms obtain N where "\<forall>s. rsize (rders_simp5 (rerase r) s) \<le> N"
+    by blast
+  then have "\<forall>s. asize (bders_simp5 r s) \<le> N"
+    by (simp add: asize_bders_simp5_rders_simp5)
+  then show ?thesis by blast
+qed
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])

@@ -591,6 +591,26 @@ lemma Ders_Cons:
   "Ders (c # s) A = Ders s (Der c A)"
   unfolding Ders_def Der_def by auto
 
+lemma RL_rders_simp5:
+  "RL (rders_simp5 r s) = Ders s (RL r)"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have "RL (rders_simp5 r (c # s)) =
+    Ders s (RL (rsimp5 (rder c r)))"
+    by (simp add: Cons.hyps)
+  also have "... = Ders s (RL (rder c r))"
+    by (simp add: RL_rsimp5[symmetric])
+  also have "... = Ders s (Der c (RL r))"
+    by (simp add: RL_rder)
+  also have "... = Ders (c # s) (RL r)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
 lemma RLS_rpders:
   assumes "\<forall>r \<in> rs. legacy_rrexp r"
   shows "RLS (rpders rs s) = Ders s (RLS rs)"
