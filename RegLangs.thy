@@ -319,6 +319,20 @@ where
   "ders [] r = r"
 | "ders (c # s) r = ders s (der c r)"
 
+lemma BACKREF4_der_same_shape_different_cs_counterexample:
+  fixes c :: char
+  shows
+    "der c
+      (ALT
+        (BACKREF4 (CH c) ONE ONE ONE [])
+        (BACKREF4 ONE (CH c) ONE ONE [])) =
+     ALT
+      (BACKREF4 ONE ONE ONE ONE [])
+      (ALT
+        (BACKREF4 ZERO (CH c) ONE ONE [])
+        (BACKREF4 ONE ONE ONE ONE [c]))"
+  by simp
+
 
 lemma pow_empty_iff:
   shows "[] \<in> (L r) ^^ n \<longleftrightarrow> (if n = 0 then True else [] \<in> (L r))"
