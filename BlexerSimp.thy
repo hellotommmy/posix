@@ -465,11 +465,25 @@ fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
 definition bp_der :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
   "bp_der c r = bsimp_AALTs [] (distinctWith (flts (bpder_list c r)) eq1 {})"
 
+definition bpder_norm_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bpder_norm_list c r =
+    map (\<lambda>p. bsimp4_ASEQ_atom [] p (AONE [])) (bpder_list c r)"
+
+definition bp_der_norm :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bp_der_norm c r =
+    bsimp_AALTs [] (distinctWith (flts (bpder_norm_list c r)) eq1 {})"
+
 fun
   bders_pder :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
 where
   "bders_pder r [] = r"
 | "bders_pder r (c # s) = bders_pder (bp_der c r) s"
+
+fun
+  bders_pder_norm :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_pder_norm r [] = r"
+| "bders_pder_norm r (c # s) = bders_pder_norm (bp_der_norm c r) s"
 
 
 fun 

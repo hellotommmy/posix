@@ -180,6 +180,22 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Local CI passed with no-cheat guard, bounty guard, admin role guard,
     Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
     (about 3 seconds elapsed).
+- Annotated normalized partial-derivative pipeline:
+  - Added `bpder_norm_list`, `bp_der_norm`, and `bders_pder_norm` in
+    `BlexerSimp.thy`. This mirrors `rpder_norm_list` by locally normalizing
+    each annotated partial-derivative row with `bsimp4_ASEQ_atom [] p (AONE [])`.
+  - Added `rerase_bpder_norm_list`, `bp_der_norm_rerase`,
+    `rders_pder_norm_size`, `RL_rerase_bders_pder_norm`, and exact annotated
+    size-transfer lemmas in `FBound.thy`.
+  - Added `asize_bp_der_norm_cubic`: one annotated normalized
+    partial-derivative step inherits the checked cubic one-step bound from
+    `rpd_der_norm` under the legacy/non-backref erasure invariant.
+  - The `rerase_bpder_norm_list` proof uses the existing map-congruence lemma
+    explicitly; a blind `simp` did not push `map rerase` through the local row
+    normalizer.
+  - Local CI passed with no-cheat guard, bounty guard, admin role guard,
+    Isabelle `Posix` (about 26 seconds elapsed), and Isabelle `BackRefPilot`
+    (about 3 seconds elapsed).
 
 ## Cubic Size-Bound Research Kickoff (2026-05-31)
 
