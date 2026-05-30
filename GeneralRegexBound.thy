@@ -2281,6 +2281,40 @@ next
   then show ?case by simp
 qed
 
+lemma length_rsimp5_seq_products [simp]:
+  "length (rsimp5_seq_products xs ys) = length xs * length ys"
+  by (induct xs) auto
+
+lemma length_rsimp5_alt_rows_le_rsize:
+  "length (rsimp5_alt_rows r) \<le> rsize r"
+proof (cases r)
+  case (RALTS rs)
+  have "length rs \<le> rsizes rs"
+  proof (induct rs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons a rs)
+    have "1 \<le> rsize a"
+      using size_geq1[of a] .
+    then show ?case
+      using Cons by simp
+  qed
+  then show ?thesis
+    using RALTS by simp
+qed simp_all
+
+lemma length_rsimp5_seq_products_alt_rows_le:
+  "length (rsimp5_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)) \<le>
+    rsize r1 * rsize r2"
+proof -
+  have "length (rsimp5_alt_rows r1) * length (rsimp5_alt_rows r2) \<le>
+    rsize r1 * rsize r2"
+    by (rule mult_mono)
+      (use length_rsimp5_alt_rows_le_rsize in auto)
+  then show ?thesis by simp
+qed
+
 lemma rfrontier_nonzero_nonalt_self:
   assumes "r \<noteq> RZERO" "nonalt r"
   shows "r \<in> rfrontier r"

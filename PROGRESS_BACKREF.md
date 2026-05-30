@@ -397,6 +397,15 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   - Proved `legacy_rsimp5_SEQ`, `legacy_rsimp5`, and `legacy_rders_simp5`.
     The candidate cubic simplifier therefore preserves the non-backref fragment
     required by the theorem statement.
+  - Added checked row-product length bounds: product row count is exactly the
+    product of the two row-list lengths, and the two `rsimp5_alt_rows` lengths
+    are bounded by the corresponding regex sizes. This is the first local
+    multiplicative counting lemma for the cubic argument.
+  - Important invariant note: `good` is still too weak for the final frontier
+    cardinality proof, because a `good` sequence can contain an internal
+    `RALTS`. The next proof layer should introduce a row-level alt-free/sequence
+    normal-form predicate before claiming that each product row has frontier
+    cardinality at most one.
   - Local CI passed for both `Posix` and `BackRefPilot`.
 
 ## Worker B Original Bitcoded/Simplifier Checkpoint (2026-05-27)
