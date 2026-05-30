@@ -4307,6 +4307,53 @@ proof -
   finally show ?thesis .
 qed
 
+lemma quadratic_times_linear_cubic_bound:
+  fixes n :: nat
+  shows "(n + 2) ^ 2 * Suc (n + n) \<le> 3 * (n + 2) ^ 3"
+proof -
+  have linear: "Suc (n + n) \<le> 3 * (n + 2)"
+    by simp
+  have "(n + 2) ^ 2 * Suc (n + n) \<le>
+      (n + 2) ^ 2 * (3 * (n + 2))"
+    by (rule mult_left_mono[OF linear]) simp
+  also have "... = 3 * ((n + 2) ^ 2 * (n + 2))"
+    by (simp add: algebra_simps)
+  also have "... = 3 * (n + 2) ^ 3"
+    by (simp add: power3_eq_cube power2_eq_square)
+  finally show ?thesis .
+qed
+
+lemma rsizes_distinct_frontier_universe_cubic:
+  assumes "set rs \<subseteq> partial_derivative_frontier_universe r"
+      and "distinct rs"
+  shows "rsizes rs \<le> 3 * (rsize r + 2) ^ 3"
+proof -
+  let ?U = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have member_bound: "\<And>x. x \<in> set rs \<Longrightarrow> rsize x \<le> ?M"
+    using assms(1) partial_derivative_frontier_universe_member_size_linear
+    by blast
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound[OF member_bound])
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use assms in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (rsize r + 2) ^ 2 * ?M"
+  proof -
+    have "card ?U \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 3 * (rsize r + 2) ^ 3"
+    by (rule quadratic_times_linear_cubic_bound)
+  finally show ?thesis .
+qed
+
 lemma partial_derivative_path_universe_zero [simp]:
   "RZERO \<in> partial_derivative_path_universe r"
   by (simp add: partial_derivative_path_universe_def)
