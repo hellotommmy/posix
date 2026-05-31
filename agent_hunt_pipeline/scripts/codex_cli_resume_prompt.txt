@@ -29,6 +29,13 @@ Primary assignment:
     `rpder_norm8_live_row_step_RZERO/RONE/RCHAR`,
     `rpder_norm8_live_row_step_RALTSI`, and
     `rpder_norm8_live_row_step_RALTS_selfI` are checked.
+  - `rpder_norm8_live_row_step_RSEQI`,
+    `rpder_norm8_live_row_step_RSTARI`, and
+    `rpder_norm8_live_row_step_RNTIMESI` are checked splitters for
+    carried-continuation obligations.
+  - `good_rsimp7_SEQ_atom`, `good_rsimp8`, `good_rpder_norm8_list`, and
+    `good_rflts_rpder_norm8_list` are checked; use them to control rows
+    exposed by `rflts (map rsimp8 ...)`.
 - Main remaining theorem shape:
   `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
   for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
@@ -37,8 +44,10 @@ Research tactics:
 - Do not start with broad `auto`. Split by the live-row universe cases:
   `RZERO`, `RONE`, root, path continuations, root frontier, and frontiers of path continuations.
 - The easy `RZERO`/`RONE`/`RCHAR` and alternative-row composition cases are
-  already checked. Focus next on modular helpers for `RSEQ`, `RSTAR`, and
-  `RNTIMES`, especially carried-continuation facts.
+  already checked. The `RSEQ`, `RSTAR`, and `RNTIMES` splitter lemmas are
+  also checked. Focus next on carried-continuation membership facts, especially
+  facts of the form: if a raw carried continuation normalizes by `rsimp8`, its
+  flattened frontier remains inside `partial_derivative_live_row_universe`.
 - Prefer small helper lemmas about `rpder_norm8_list`, `rpath_continuations_acc`, `rfrontier`, and `rsimp8` stability.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
