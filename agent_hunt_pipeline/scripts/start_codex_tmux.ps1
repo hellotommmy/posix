@@ -122,8 +122,7 @@ while true; do
     sleep $IntervalSeconds
     continue
   fi
-  prompt=`$(cat $promptQ)
-  timeout $RunTimeoutSeconds $CodexExecCommand "`$prompt" < /dev/null 2>&1 | tee -a $logQ
+  timeout $RunTimeoutSeconds $CodexExecCommand - < $promptQ 2>&1 | tee -a $logQ
   rc=`${PIPESTATUS[0]}
   done_ts=`$(date -Is)
   echo "[`$done_ts] Codex exec exit code: `$rc" | tee -a $logQ
