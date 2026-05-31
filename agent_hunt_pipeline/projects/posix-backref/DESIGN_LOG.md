@@ -37,6 +37,12 @@ to be read before continuing long-running agent work.
   `2 * (rsize r + 3)^3` bound. The remaining closure premise is now
   `set (rflts (rpder_norm7_list c q)) \<subseteq>
   partial_derivative_live_row_universe r` for reachable/live-row `q`.
+- The root must still be normalized. The checked lemma
+  `raw_live_row_universe_not_closed_under_norm7` shows the raw expression
+  `((0 + a)*)` reaches `a*`, outside its raw live-row universe, while `a*` is
+  inside the live-row universe of `rsimp7 ((0 + a)*)`. Future closure lemmas
+  should target `rpders_norm17_rows (rsimp7 r) s` or explicitly close under
+  normalized images.
 - The current 50k cubic-size bounty is for the non-backref fragment only.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex

@@ -6700,6 +6700,17 @@ lemma live_path_universe_misses_flattened_alt_row:
       partial_derivative_live_path_universe_def
       partial_derivative_live_row_universe_def rpath_continuations_def)
 
+lemma raw_live_row_universe_not_closed_under_norm7:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
+  defines "p \<equiv> RSTAR (RCHAR a)"
+  shows "p \<in> set (rflts (rpder_norm7_list a r))"
+    and "p \<notin> partial_derivative_live_row_universe r"
+    and "p \<in> partial_derivative_live_row_universe (rsimp7 r)"
+  by (simp_all add: r_def p_def rpder_norm7_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      rsimp7_SEQ_def rsimp7_seq_products_def rsimp7_SEQ_atom_def)
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"

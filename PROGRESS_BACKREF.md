@@ -37,6 +37,11 @@ Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
   `rsizes_rpders_norm17_rows_live_row_universe_cubicI'`. Thus the corrected
   live-row target still inherits the existing cubic path-universe accounting;
   the remaining BR-033 proof is the live-row one-step closure premise.
+- Added `raw_live_row_universe_not_closed_under_norm7`, confirming that the
+  final closure theorem should start from the normalized root `rsimp7 r` (or an
+  equivalent normalized-image universe). The raw root `((0 + a)*)` reaches
+  `a*`, which is not in its raw live-row universe but is in the live-row
+  universe of `rsimp7 ((0 + a)*)`.
 - Checked commits continue on `codex/backref-values`; older hash notes below
   are historical breadcrumbs rather than the current head.
 - Follow-up checked prototype through `462fd39` and the next local checkpoint:
