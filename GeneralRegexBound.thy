@@ -10783,6 +10783,30 @@ next
     using child lift by blast
 qed
 
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_directI:
+  assumes legacy_left: "legacy_rrexp r1"
+    and left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+        (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSEQ_parentI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI
+        [OF legacy_left left])
+  show "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule right)
+qed
+
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   assumes body:
     "set (rflts
@@ -10793,6 +10817,24 @@ lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq>
     partial_derivative_path9_atom_frontier_universe (RSTAR r)"
   by (rule rpder_norm9_live_row_step_RSTARI) (use body in auto)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSTAR_directI:
+  assumes legacy_body: "legacy_rrexp r"
+    and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RSTAR r) RONE) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+  shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSTAR_parentI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI
+        [OF legacy_body body])
+qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
   assumes body:
@@ -10805,6 +10847,27 @@ lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
   shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq>
     partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
   by (rule rpder_norm9_live_row_step_RNTIMESI) (use body in auto)
+
+lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_directI:
+  assumes legacy_body: "legacy_rrexp r"
+    and body: "\<And>p. n \<noteq> 0 \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RNTIMES r (n - 1)) RONE) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI)
+  assume n: "n \<noteq> 0"
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom
+          (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI
+        [OF legacy_body body[OF n]])
+qed
 
 lemma finite_rpath_dual_frontiers [simp]:
   "finite (rpath_dual_frontiers r)"

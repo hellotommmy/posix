@@ -522,3 +522,17 @@ to be read before continuing long-running agent work.
 - Tail-residue branches use `inj_residue (rev cs) (rev cs) c res`; the checked
   invariant is `rev cs = c # ds`, hence `cs = rev ds @ [c]`.
 - Tail4 is accepted only when `rev cs = []`.
+
+## 2026-05-31: Path9 carried-continuation proof shape
+
+- For the norm19/path9 cubic route, do not try to discharge
+  `RSEQ`/`RSTAR`/`RNTIMES` carried branches as whole `map`/`rflts` goals.
+- First reduce them to singleton continuation obligations
+  `set (rflts [rsimp9 p]) <= parent_universe` using the direct splitter
+  lemmas. This keeps each remaining proof tied to one raw
+  `rder_path_continuations_acc` member and avoids broad automation over the
+  row driver.
+- The checked splitters are
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_directI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_directI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_directI`.

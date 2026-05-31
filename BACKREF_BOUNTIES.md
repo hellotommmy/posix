@@ -94,7 +94,13 @@ immutability.
   derivative splitters are
   `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
   `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
-  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. The nullable
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. The direct carried
+  variants
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_directI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_directI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_directI` are also checked;
+  they reduce the remaining carried branch work to singleton
+  `set (rflts [rsimp9 p])` obligations. The nullable
   sequence right-branch lift is also checked:
   `rnullable_rsimp9`,
   `rsubterms_rsimp9_RSEQ_right_nullable_universe`,

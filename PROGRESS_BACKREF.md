@@ -259,6 +259,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   existing `rpder_norm9_live_row_step_*` splitters with the exact path9 parent
   universe, leaving only the carried branch subset obligations for the next
   proof layer.
+  Added the direct carried-continuation variants
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_directI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_directI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_directI`. These reduce the
+  remaining carried branches to singleton obligations of the form
+  `set (rflts [rsimp9 p]) <= parent_universe`, avoiding a repeat of the full
+  `map`/`rflts` proof state in each constructor.
   Added the checked nullable right-branch lift for sequence:
   `rnullable_rsimp9`,
   `rsubterms_rsimp4_SEQ_atom_nullable_right_subset`,
