@@ -164,6 +164,12 @@ to be read before continuing long-running agent work.
   `card (rpath_frontiers r) + card (rpath_atom_frontiers r)` is quadratic in
   `rsize r`, and prove linear member size for
   `partial_derivative_path_dual_frontier_universe r`.
+- That second obligation is checked-false for the current full dual universe:
+  `current_dual_frontier_universe_member_size_not_linear` exhibits a
+  left-nested sequence with five binary suffix alternatives and a dual-frontier
+  member larger than `Suc (rsize r + rsize r)`. The full frontier component is
+  too large for the intended cubic accounting; prefer atom-only frontiers or a
+  smaller reachable-row invariant.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

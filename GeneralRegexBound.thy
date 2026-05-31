@@ -10454,6 +10454,33 @@ proof -
         rpath_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
 qed
 
+lemma current_dual_frontier_universe_member_size_not_linear:
+  defines "s5 \<equiv> RALTS [RCHAR (CHR ''i''), RCHAR (CHR ''j'')]"
+  defines "s4 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''g'')) s5, RSEQ (RCHAR (CHR ''h'')) s5]"
+  defines "s3 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''e'')) s4, RSEQ (RCHAR (CHR ''f'')) s4]"
+  defines "s2 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''c'')) s3, RSEQ (RCHAR (CHR ''d'')) s3]"
+  defines "r \<equiv>
+    RSEQ
+      (RSEQ
+        (RSEQ
+          (RSEQ
+            (RSEQ (RCHAR (CHR ''x''))
+              (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b'')]))
+            (RALTS [RCHAR (CHR ''c''), RCHAR (CHR ''d'')]))
+          (RALTS [RCHAR (CHR ''e''), RCHAR (CHR ''f'')]))
+        (RALTS [RCHAR (CHR ''g''), RCHAR (CHR ''h'')]))
+      (RALTS [RCHAR (CHR ''i''), RCHAR (CHR ''j'')])"
+  defines "q \<equiv> RSEQ (RCHAR (CHR ''a'')) s2"
+  shows "q \<in> partial_derivative_path_dual_frontier_universe r"
+    and "Suc (rsize r + rsize r) < rsize q"
+  by (simp_all add: r_def q_def s2_def s3_def s4_def s5_def
+      partial_derivative_path_dual_frontier_universe_def
+      rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+      rpath_frontiers_def rpath_atom_frontiers_def rsimp4_SEQ_def)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 

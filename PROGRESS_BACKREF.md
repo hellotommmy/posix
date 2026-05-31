@@ -195,6 +195,12 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   says any distinct row list inside the dual frontier universe is cubic once
   two remaining local obligations are proved: the combined full/atom frontier
   set is quadratic, and each dual-universe member has linear size.
+  Added `current_dual_frontier_universe_member_size_not_linear`, a checked
+  counterexample to the second premise for the current dual universe: a
+  left-nested chain with five binary suffix alternatives produces a member of
+  `partial_derivative_path_dual_frontier_universe` whose size exceeds
+  `Suc (rsize r + rsize r)`. Do not pursue the full dual-frontier hook as-is;
+  switch to an atom-only or smaller reachable-row universe.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
