@@ -700,3 +700,16 @@ to be read before continuing long-running agent work.
   for future handoff proofs that naturally produce an `RSEQ parent RONE`
   budget. Next BR-036 step: prove the matching linear member-size theorem and
   then connect path9 closure to `rpder_norm9_list`.
+
+## 2026-05-31: Path9 cubic hook after cardinality
+
+- The checked theorem
+  `rsizes_distinct_path9_atom_frontier_universe_cubic_member_sizeI` packages
+  the new `card_rpath9_atom_frontiers_quadratic` result into the cubic
+  accounting theorem, so later work no longer needs to pass a cardinality
+  premise around.
+- The checked row interfaces
+  `rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic` and
+  `rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI` are the
+  intended BR-036 landing zone: prove path9 one-step closure and the linear
+  member-size premise, then instantiate this hook.

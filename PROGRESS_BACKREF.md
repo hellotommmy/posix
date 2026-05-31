@@ -414,6 +414,12 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   card-accounting TODO with a direct accumulator induction. Also added relaxed
   `RSEQ`/`RSTAR`/`RNTIMES` top-level quadratic interfaces with
   `RSEQ parent RONE` budgets for later handoff-based proofs.
+  Added cubic handoff interfaces that bake in the checked cardinality theorem:
+  `rsizes_distinct_path9_atom_frontier_universe_cubic_member_sizeI`,
+  `rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic`, and
+  `rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI`. The remaining
+  assumptions are exactly the next proof obligations: path9 linear member-size
+  and one-step `rpder_norm9_list` closure.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

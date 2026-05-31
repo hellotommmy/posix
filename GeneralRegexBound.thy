@@ -12099,6 +12099,49 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsizes_distinct_path9_atom_frontier_universe_cubic_member_sizeI:
+  assumes rows:
+      "set rs \<subseteq> partial_derivative_path9_atom_frontier_universe r"
+      "distinct rs"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes rs \<le> 6 * (rsize r + 2) ^ 3"
+  by (rule rsizes_distinct_path9_atom_frontier_universe_cubicI)
+    (use rows member_size card_rpath9_atom_frontiers_quadratic in auto)
+
+lemma rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic:
+  assumes rows:
+      "set (rpders_norm19_rows r s) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe root"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_path9_atom_frontier_universe root \<Longrightarrow>
+        rsize q \<le> Suc (rsize root + rsize root)"
+  shows "rsizes (rpders_norm19_rows r s) \<le>
+    6 * (rsize root + 2) ^ 3"
+  by (rule rsizes_distinct_path9_atom_frontier_universe_cubic_member_sizeI)
+    (use rows member_size in auto)
+
+lemma rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    6 * (rsize r + 2) ^ 3"
+proof -
+  have init: "rsimp9 r \<in> partial_derivative_path9_atom_frontier_universe r"
+    by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  have rows: "set (rpders_norm19_rows (rsimp9 r) s) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r"
+    by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic)
+      (rule member_size)
+qed
+
 lemma rsizes_distinct_path_dual_frontier_universe_cubicI:
   assumes rows:
       "set rs \<subseteq> partial_derivative_path_dual_frontier_universe r"

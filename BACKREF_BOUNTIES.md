@@ -214,6 +214,11 @@ immutability.
   `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadratic_seq_RONEI` are also
   checked. Remaining BR-036 proof debt is linear member-size for the path9
   frontier universe and one-step `rpder_norm9_list` closure.
+  The cubic interface now consumes the checked card theorem directly via
+  `rsizes_distinct_path9_atom_frontier_universe_cubic_member_sizeI`,
+  `rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic`, and
+  `rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI`; future work
+  only needs the linear member-size premise and the one-step path9 closure.
 
 ## Completed
 
