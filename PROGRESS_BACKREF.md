@@ -26,6 +26,15 @@ Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
   include controlled normalized star images, or the root simplifier must
   normalize nullable-left sequence bodies without allowing the general
   `(a+b)·(c+d)` size blow-up.
+- Added and checked the next row driver `norm18`: `rpder_norm8_list`,
+  `rpder_norm8_rows`, `rpders_norm18_rows`, and the language facts
+  `RLS_rpders_norm18_rows`/`RL_rders_pder_norm8`. Unlike `norm17`, this row
+  driver applies `rsimp8` at each step instead of full `rsimp7`.
+- Added the conditional cubic hook
+  `rsizes_rpders_norm18_rows_rsimp8_live_row_cubicI`. The remaining theorem is
+  now the cleaner closure premise
+  `set (rflts (rpder_norm8_list c q)) \<subseteq>
+  partial_derivative_live_row_universe (rsimp8 r)`.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
   25k new-definition bounty. It extends `rsimp6` with prefix star absorption
   `r* · (r* · k) = r* · k`, the repeated-row shape that appears once

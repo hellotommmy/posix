@@ -32,6 +32,14 @@ to be read before continuing long-running agent work.
   universe, or refine the root simplifier to normalize nullable-left sequence
   bodies while still avoiding general row-product expansion such as
   `(a+b)·(c+d)`.
+- The better immediate route is `norm18`, defined by applying `rsimp8` rather
+  than full `rsimp7` to each partial-derivative row. Small-model search found
+  no closure counterexample up to regex size 7 over a two-character alphabet,
+  and the checked artifacts `rpder_norm8_list`, `rpders_norm18_rows`,
+  `RLS_rpders_norm18_rows`, and
+  `rsizes_rpders_norm18_rows_rsimp8_live_row_cubicI` now make this a formal
+  proof target. This keeps Antimirov row lists while avoiding recursive
+  row-product expansion inside star bodies.
 - `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
   25k new-definition bounty. It keeps the Antimirov row-product/state-list
   pipeline and extends `rsimp6` with prefix star absorption:
