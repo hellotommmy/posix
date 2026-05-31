@@ -229,6 +229,16 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR` lemmas. A first
   attempt used broad `blast` and hit the performance warning; the final checked
   version is split into explicit membership/subset steps.
+  Extended the path9 `RALTS` plumbing with
+  `set_rflts_map_member_exists`, `set_rflts_map_memberE`,
+  `rflts_map_rsimp9_alt_path9_atom_subset`,
+  `rflts_map_rsimp9_rsimp_ALTs_path9_atom_subset`,
+  `rpath9_atom_frontiers_alt_child_subset`,
+  `rpath9_atom_frontiers_alt_child_universe`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. These deliberately
+  avoid the false-looking full child-universe monotonicity and only transport
+  flattened rows/frontier atoms into the parent target.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

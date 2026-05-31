@@ -73,7 +73,14 @@ immutability.
   `rflts_singleton_rsimp9_path9_atom_frontier`,
   `rflts_map_rsimp9_path9_atom_subsetI`,
   `rflts_rsimp9_alt_child_path9_atom_subset`, and
-  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`.
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`. The checked
+  `RALTS`/`rsimp_ALTs` layer adds `set_rflts_map_member_exists`,
+  `set_rflts_map_memberE`, `rflts_map_rsimp9_alt_path9_atom_subset`,
+  `rflts_map_rsimp9_rsimp_ALTs_path9_atom_subset`,
+  `rpath9_atom_frontiers_alt_child_subset`,
+  `rpath9_atom_frontiers_alt_child_universe`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`.
 
 ## Completed
 

@@ -199,6 +199,16 @@ to be read before continuing long-running agent work.
   `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`. Keep these proofs
   explicit: a broad singleton `blast` once ran past the proof-performance
   budget before being split.
+- The path9 `RALTS`/`rsimp_ALTs` layer now has parent-target closure plumbing:
+  `set_rflts_map_member_exists`, `set_rflts_map_memberE`,
+  `rflts_map_rsimp9_alt_path9_atom_subset`,
+  `rflts_map_rsimp9_rsimp_ALTs_path9_atom_subset`,
+  `rpath9_atom_frontiers_alt_child_subset`,
+  `rpath9_atom_frontiers_alt_child_universe`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. This is a
+  deliberately weaker replacement for full child-universe monotonicity, which
+  is suspicious because `rsimp9 (RALTS rs)` flattens child alternatives.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

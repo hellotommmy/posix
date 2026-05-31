@@ -175,7 +175,15 @@ Research tactics:
   `rflts_singleton_rsimp9_path9_atom_frontier`,
   `rflts_map_rsimp9_path9_atom_subsetI`,
   `rflts_rsimp9_alt_child_path9_atom_subset`, and
-  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`.
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`. The `RALTS` layer
+  is now checked via parent-target lemmas:
+  `set_rflts_map_member_exists`, `set_rflts_map_memberE`,
+  `rflts_map_rsimp9_alt_path9_atom_subset`,
+  `rflts_map_rsimp9_rsimp_ALTs_path9_atom_subset`,
+  `rpath9_atom_frontiers_alt_child_subset`,
+  `rpath9_atom_frontiers_alt_child_universe`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
