@@ -5582,6 +5582,19 @@ lemma rsimp6_collapses_cubic_counterexample_row:
   shows "rsimp6 p = RSTAR (RCHAR a)"
   by (simp add: p_def rsimp6_SEQ_def)
 
+lemma reachable_norm6_row_can_leave_current_cubic_universe:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
+  defines "p \<equiv> RSTAR (RCHAR a)"
+  shows "p \<in> set (rpders_norm16_rows r [a])"
+    and "p \<notin> partial_derivative_cubic_universe r"
+  by (simp_all add: r_def p_def rpders_norm16_rows_def
+      rpder_norm6_rows_def rpder_norm6_list_def rpder_norm_list_def
+      partial_derivative_cubic_universe_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rlinear_continuations.simps rsimp6_SEQ_def)
+
 lemma path_universe_misses_distributed_suffix_atom:
   "RSEQ (RCHAR b) (RCHAR d) \<notin>
     partial_derivative_path_universe

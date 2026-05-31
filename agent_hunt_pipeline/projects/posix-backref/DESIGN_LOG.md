@@ -28,6 +28,12 @@ to be read before continuing long-running agent work.
   annotated-mirror part of the new-definition work, but it is still not wired
   into `blexer_simp` because erasure/language preservation is weaker than the
   value/bitcode theorem needed for production POSIX matching.
+- Do not try to prove closure of `rpders_norm16_rows` inside the old syntactic
+  `partial_derivative_cubic_universe r`. The checked lemma
+  `reachable_norm6_row_can_leave_current_cubic_universe` refutes it:
+  `((0 + a)*) --a--> a*`, and `a*` is not in the old root universe. The next
+  closure theorem should be parameterized by `rsimp6 r` or by a universe closed
+  under normalized images of subterms and continuations.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current

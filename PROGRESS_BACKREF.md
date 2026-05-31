@@ -27,6 +27,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   `blexer_simp` yet: star absorption erasure correctness is checked, but
   value/bitcode preservation still needs a separate theorem before replacing
   the thesis-style simplifier.
+- Added `reachable_norm6_row_can_leave_current_cubic_universe`. This checked
+  counterexample shows that the current universe is too syntactic for
+  `rsimp6`: from `((0 + a)*)`, one normalized row step reaches `a*`, which is
+  language-equivalent but not a member of the old root's
+  `partial_derivative_cubic_universe`. The closure target must therefore use a
+  pre-normalized root or a normalized-image universe.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,
