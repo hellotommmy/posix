@@ -441,6 +441,32 @@ where
   "bders_simp5 r [] = r"
 | "bders_simp5 r (c # s) = bders_simp5 (bsimp5 (bder c r)) s"
 
+definition bsimp6_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp6_ASEQ bs r1 r2 =
+    (case (r1, r2) of
+      (ASTAR bs1 r, ASTAR bs2 s) \<Rightarrow>
+        if r ~1 s then ASTAR bs1 r else bsimp5_ASEQ bs r1 r2
+    | _ \<Rightarrow> bsimp5_ASEQ bs r1 r2)"
+
+(* Annotated counterpart of rsimp6. It is a bounds candidate, not yet wired into
+   the production lexer simplifier, because the star-absorption bit semantics
+   still need a value-level proof before replacing bsimp. *)
+fun bsimp6 :: "arexp \<Rightarrow> arexp"
+where
+  "bsimp6 (ASEQ bs r1 r2) = bsimp6_ASEQ bs (bsimp6 r1) (bsimp6 r2)"
+| "bsimp6 (AALTs bs rs) = bsimp_AALTs bs (distinctWith (flts (map bsimp6 rs)) eq1 {})"
+| "bsimp6 (ASTAR bs r) =
+    (case bsimp6 r of
+      ASTAR bs' s \<Rightarrow> ASTAR bs' s
+    | s \<Rightarrow> ASTAR bs s)"
+| "bsimp6 r = r"
+
+fun
+  bders_simp6 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simp6 r [] = r"
+| "bders_simp6 r (c # s) = bders_simp6 (bsimp6 (bder c r)) s"
+
 fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
   "bpder_list c AZERO = []"
 | "bpder_list c (AONE bs) = []"
@@ -473,9 +499,20 @@ definition bp_der_norm :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
   "bp_der_norm c r =
     bsimp_AALTs [] (distinctWith (flts (bpder_norm_list c r)) eq1 {})"
 
+definition bpder_norm6_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bpder_norm6_list c r = map bsimp6 (bpder_norm_list c r)"
+
+definition bp_der_norm6 :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bp_der_norm6 c r =
+    bsimp_AALTs [] (distinctWith (flts (bpder_norm6_list c r)) eq1 {})"
+
 definition bpder_norm_rows :: "char \<Rightarrow> arexp list \<Rightarrow> arexp list" where
   "bpder_norm_rows c rs =
     distinctWith (flts (concat (map (bpder_norm_list c) rs))) eq1 {}"
+
+definition bpder_norm6_rows :: "char \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bpder_norm6_rows c rs =
+    distinctWith (flts (concat (map (bpder_norm6_list c) rs))) eq1 {}"
 
 fun
   bders_pder :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
@@ -490,13 +527,28 @@ where
 | "bders_pder_norm r (c # s) = bders_pder_norm (bp_der_norm c r) s"
 
 fun
+  bders_pder_norm6 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_pder_norm6 r [] = r"
+| "bders_pder_norm6 r (c # s) = bders_pder_norm6 (bp_der_norm6 c r) s"
+
+fun
   bpders_norm_rows :: "arexp list \<Rightarrow> string \<Rightarrow> arexp list"
 where
   "bpders_norm_rows rs [] = rs"
 | "bpders_norm_rows rs (c # s) = bpders_norm_rows (bpder_norm_rows c rs) s"
 
+fun
+  bpders_norm6_rows :: "arexp list \<Rightarrow> string \<Rightarrow> arexp list"
+where
+  "bpders_norm6_rows rs [] = rs"
+| "bpders_norm6_rows rs (c # s) = bpders_norm6_rows (bpder_norm6_rows c rs) s"
+
 definition bpders_norm1_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
   "bpders_norm1_rows r s = bpders_norm_rows [r] s"
+
+definition bpders_norm16_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
+  "bpders_norm16_rows r s = bpders_norm6_rows [r] s"
 
 
 fun 

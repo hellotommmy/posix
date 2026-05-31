@@ -17,6 +17,16 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   obstruction (`a* · ((a*)* · a*)`) to `a*`. This does not close the global
   cubic theorem yet, but it gives a checked reason to pursue star absorption as
   the next simplifier design.
+- Mirrored the prototype into the annotated layer with `bsimp6`,
+  `bpder_norm6_list`, `bp_der_norm6`, `bpder_norm6_rows`,
+  `bders_pder_norm6`, and `bpders_norm16_rows`. `FBound.thy` now proves the
+  erasure transfer lemmas, including `bsimp6_rerase`,
+  `bp_der_norm6_rerase`, `rders_pder_norm6_size`,
+  `rpders_norm16_rows_rerase`, and `RL_rerase_bders_pder_norm6`.
+- The annotated prototype is deliberately not wired into the production
+  `blexer_simp` yet: star absorption erasure correctness is checked, but
+  value/bitcode preservation still needs a separate theorem before replacing
+  the thesis-style simplifier.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,

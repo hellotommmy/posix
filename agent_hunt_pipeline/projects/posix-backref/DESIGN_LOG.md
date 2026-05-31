@@ -22,6 +22,12 @@ to be read before continuing long-running agent work.
   bounty, mirror the normalizer into the annotated `bsimp`/`bders` layer and
   prove the erasure/size transfer facts, or prove the repeated-row cubic
   closure theorem directly for `rpders_norm16_rows`.
+- Annotated mirror status: `bsimp6`, `bpder_norm6_list`, `bp_der_norm6`,
+  `bpder_norm6_rows`, `bders_pder_norm6`, and `bpders_norm16_rows` now exist
+  with checked erasure transfer in `FBound.thy`. This satisfies the structural
+  annotated-mirror part of the new-definition work, but it is still not wired
+  into `blexer_simp` because erasure/language preservation is weaker than the
+  value/bitcode theorem needed for production POSIX matching.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current
