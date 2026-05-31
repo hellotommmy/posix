@@ -43,6 +43,14 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   `((b · b)*)`, the continuation `((b · b)*) · b` is in the universe, but its
   `b`-row exposes `b · (((b · b)*) · b)` outside it. The final proof needs a
   reachable-row invariant or a refined universe, not plain all-member closure.
+- Strengthened `rsimp6`/`bsimp6` with `0* = 1` and `1* = 1`; added the
+  language facts `Star_empty` and `Star_one`.
+- Added `partial_derivative_live_path_universe r =
+  {0, 1, r} \<union> rpath_continuations r`, plus
+  `rsizes_distinct_live_path_universe_cubic` and
+  `rsizes_rpders_norm16_rows_live_path_universe_cubicI`. This gives a smaller
+  cubic target (`2 * (rsize r + 3)^3`) once the live-path one-step closure for
+  `rpder_norm6_list` is proved.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,

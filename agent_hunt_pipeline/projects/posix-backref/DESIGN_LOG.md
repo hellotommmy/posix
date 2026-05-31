@@ -41,6 +41,14 @@ to be read before continuing long-running agent work.
   interface, but the final proof must strengthen the invariant with reachability
   information or refine the universe to include the specific carried
   continuation chains that reachable rows expose.
+- `rsimp6`/`bsimp6` now also absorb `0*` and `1*` to `1`. This removed the
+  small-model obstruction where a derivative row became `(1)*`.
+- Current sharper target: `partial_derivative_live_path_universe r =
+  {0, 1, r} \<union> rpath_continuations r`. The checked theorem
+  `rsizes_rpders_norm16_rows_live_path_universe_cubicI` gives a cubic row-size
+  bound with the path-universe constant once the live-path closure premise is
+  proved. Small-model search found no reachable counterexample up to size 7 and
+  depth 7 after the `0*/1*` absorption rule.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current

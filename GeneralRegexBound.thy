@@ -5013,9 +5013,23 @@ definition partial_derivative_path_universe :: "rrexp \<Rightarrow> rrexp set" w
   "partial_derivative_path_universe r =
     insert RZERO (insert RONE (rsubterms r \<union> rpath_continuations r))"
 
+definition partial_derivative_live_path_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_live_path_universe r =
+    insert RZERO (insert RONE (insert r (rpath_continuations r)))"
+
 lemma finite_partial_derivative_path_universe [simp]:
   "finite (partial_derivative_path_universe r)"
   by (simp add: partial_derivative_path_universe_def rpath_continuations_def)
+
+lemma finite_partial_derivative_live_path_universe [simp]:
+  "finite (partial_derivative_live_path_universe r)"
+  by (simp add: partial_derivative_live_path_universe_def rpath_continuations_def)
+
+lemma partial_derivative_live_path_universe_subset_path:
+  "partial_derivative_live_path_universe r \<subseteq>
+    partial_derivative_path_universe r"
+  by (auto simp add: partial_derivative_live_path_universe_def
+      partial_derivative_path_universe_def)
 
 lemma partial_derivative_path_universe_card_linear:
   "card (partial_derivative_path_universe r) \<le> 2 + 2 * rsize r"
@@ -5145,6 +5159,13 @@ proof -
     by (rule linear_times_quadratic_cubic_bound)
   finally show ?thesis .
 qed
+
+lemma rsizes_distinct_live_path_universe_cubic:
+  assumes "set rs \<subseteq> partial_derivative_live_path_universe r"
+      and "distinct rs"
+  shows "rsizes rs \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_path_universe_cubic)
+    (use assms partial_derivative_live_path_universe_subset_path in blast)+
 
 lemma quadratic_times_linear_cubic_bound:
   fixes n :: nat
@@ -5599,6 +5620,28 @@ lemma rsizes_rpders_norm16_rows_normalized_root_cubicI:
   shows "rsizes (rpders_norm16_rows (rsimp6 r) s) \<le>
     5 * (rsize (rsimp6 r) + 3) ^ 3"
   by (rule rsizes_rpders_norm16_rows_cubic_universe_cubicI[OF assms])
+
+lemma rsizes_rpders_norm16_rows_live_path_universe_cubic:
+  assumes "set (rpders_norm16_rows r s) \<subseteq>
+    partial_derivative_live_path_universe r"
+  shows "rsizes (rpders_norm16_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_live_path_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm16_rows_live_path_universe_cubicI:
+  assumes step: "\<And>q c p. q \<in> partial_derivative_live_path_universe r \<Longrightarrow>
+    p \<in> set (rpder_norm6_list c q) \<Longrightarrow>
+    rsubterms p \<subseteq> partial_derivative_live_path_universe r"
+  shows "rsizes (rpders_norm16_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_live_path_universe r"
+    by (simp add: partial_derivative_live_path_universe_def)
+  have "set (rpders_norm16_rows r s) \<subseteq>
+      partial_derivative_live_path_universe r"
+    by (rule rpders_norm16_rows_subterms_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm16_rows_live_path_universe_cubic)
+qed
 
 lemma partial_derivative_path_universe_zero [simp]:
   "RZERO \<in> partial_derivative_path_universe r"

@@ -457,7 +457,9 @@ where
 | "bsimp6 (AALTs bs rs) = bsimp_AALTs bs (distinctWith (flts (map bsimp6 rs)) eq1 {})"
 | "bsimp6 (ASTAR bs r) =
     (case bsimp6 r of
-      ASTAR bs' s \<Rightarrow> ASTAR bs' s
+      AZERO \<Rightarrow> AONE []
+    | AONE bs' \<Rightarrow> AONE []
+    | ASTAR bs' s \<Rightarrow> ASTAR bs' s
     | s \<Rightarrow> ASTAR bs s)"
 | "bsimp6 r = r"
 

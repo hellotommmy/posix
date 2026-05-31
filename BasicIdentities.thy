@@ -368,7 +368,9 @@ where
 | "rsimp6 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp6 rs)) {})"
 | "rsimp6 (RSTAR r) =
     (case rsimp6 r of
-      RSTAR s \<Rightarrow> RSTAR s
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
     | s \<Rightarrow> RSTAR s)"
 | "rsimp6 r = r"
 
@@ -1532,6 +1534,36 @@ next
     then show "s \<in> (A\<star>)\<star>"
       by simp
   qed
+qed
+
+lemma Star_empty [simp]:
+  "({}::string set)\<star> = {[]}"
+proof
+  show "({}::string set)\<star> \<subseteq> {[]}"
+  proof
+    fix s
+    assume "s \<in> ({}::string set)\<star>"
+    then show "s \<in> {[]}"
+      by (induct rule: Star.induct) auto
+  qed
+next
+  show "{[]} \<subseteq> ({}::string set)\<star>"
+    by auto
+qed
+
+lemma Star_one [simp]:
+  "({[]}::string set)\<star> = {[]}"
+proof
+  show "({[]}::string set)\<star> \<subseteq> {[]}"
+  proof
+    fix s
+    assume "s \<in> ({[]}::string set)\<star>"
+    then show "s \<in> {[]}"
+      by (induct rule: Star.induct) auto
+  qed
+next
+  show "{[]} \<subseteq> ({[]}::string set)\<star>"
+    by auto
 qed
 
 lemma RL_rsimp6_SEQ:
