@@ -184,6 +184,13 @@ to be read before continuing long-running agent work.
   right-nested binary suffix explosion is absent from this new universe. Next
   target: prove its cardinality/member-size bounds and then its one-step
   `rpder_norm9_list` closure.
+- The norm9 atom-frontier accounting interface is checked:
+  `partial_derivative_path9_atom_frontier_universe_card_le`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_boundI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_linearI`, and
+  `rsizes_distinct_path9_atom_frontier_universe_cubicI`. The cubic hook now
+  needs only local bounds on `rpath9_atom_frontiers r`: quadratic cardinality
+  and member size at most `Suc (rsize r + rsize r)`.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

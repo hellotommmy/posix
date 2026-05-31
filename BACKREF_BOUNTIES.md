@@ -60,9 +60,15 @@ immutability.
   `partial_derivative_path9_atom_frontier_universe`,
   `finite_rpath9_atom_frontier_acc`, `finite_rpath9_atom_frontiers`,
   `finite_partial_derivative_path9_atom_frontier_universe`, and
-  `path9_atom_frontier_avoids_old_atom_explosion`. This is progress evidence,
-  not a payout claim: remaining work is card/member-size bounds and one-step
-  `rpder_norm9_list` closure for the smaller universe.
+  `path9_atom_frontier_avoids_old_atom_explosion`. The checked accounting
+  interface adds
+  `partial_derivative_path9_atom_frontier_universe_card_le`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_boundI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_linearI`, and
+  `rsizes_distinct_path9_atom_frontier_universe_cubicI`. This is progress
+  evidence, not a payout claim: remaining work is local card/member-size
+  bounds for `rpath9_atom_frontiers` and one-step `rpder_norm9_list` closure
+  for the smaller universe.
 
 ## Completed
 

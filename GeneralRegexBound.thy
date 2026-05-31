@@ -9919,6 +9919,54 @@ proof -
   finally show ?thesis .
 qed
 
+lemma partial_derivative_path9_atom_frontier_universe_card_le:
+  "card (partial_derivative_path9_atom_frontier_universe r) \<le>
+    2 + rsize r + card (rpath9_atom_frontiers r)"
+proof -
+  have "card (partial_derivative_path9_atom_frontier_universe r) \<le>
+    2 + card (rsubterms (rsimp9 r)) + card (rpath9_atom_frontiers r)"
+    unfolding partial_derivative_path9_atom_frontier_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le>
+    2 + rsize (rsimp9 r) + card (rpath9_atom_frontiers r)"
+    using card_rsubterms_le_rsize[of "rsimp9 r"] by linarith
+  also have "... \<le> 2 + rsize r + card (rpath9_atom_frontiers r)"
+    using rsize_rsimp9_le[of r] by linarith
+  finally show ?thesis .
+qed
+
+lemma partial_derivative_path9_atom_frontier_universe_member_size_boundI:
+  assumes front: "\<And>q. q \<in> rpath9_atom_frontiers r \<Longrightarrow> rsize q \<le> N"
+    and root: "rsize r \<le> N"
+    and base: "1 \<le> N"
+    and q: "q \<in> partial_derivative_path9_atom_frontier_universe r"
+  shows "rsize q \<le> N"
+proof -
+  have sub: "\<And>p. p \<in> rsubterms (rsimp9 r) \<Longrightarrow> rsize p \<le> N"
+  proof -
+    fix p
+    assume p: "p \<in> rsubterms (rsimp9 r)"
+    have "rsize p \<le> rsize (rsimp9 r)"
+      using p rsubterms_member_size_le_rsize by blast
+    also have "... \<le> rsize r"
+      by (rule rsize_rsimp9_le)
+    also have "... \<le> N"
+      by (rule root)
+    finally show "rsize p \<le> N" .
+  qed
+  show ?thesis
+    using q front sub base
+    by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
+qed
+
+lemma partial_derivative_path9_atom_frontier_universe_member_size_linearI:
+  assumes front: "\<And>q. q \<in> rpath9_atom_frontiers r \<Longrightarrow>
+      rsize q \<le> Suc (rsize r + rsize r)"
+    and q: "q \<in> partial_derivative_path9_atom_frontier_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+  by (rule partial_derivative_path9_atom_frontier_universe_member_size_boundI)
+    (use assms in auto)
+
 lemma partial_derivative_path_dual_frontier_universe_card_le:
   "card (partial_derivative_path_dual_frontier_universe r) \<le>
     2 + rsize r + card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
@@ -9968,6 +10016,43 @@ proof -
     by (rule mult_mono[OF card linear]) simp_all
   also have "... = 6 * (n + 2) ^ 3"
     by (simp add: algebra_simps power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+lemma rsizes_distinct_path9_atom_frontier_universe_cubicI:
+  assumes rows:
+      "set rs \<subseteq> partial_derivative_path9_atom_frontier_universe r"
+      "distinct rs"
+    and frontiers:
+      "card (rpath9_atom_frontiers r) \<le> (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes rs \<le> 6 * (rsize r + 2) ^ 3"
+proof -
+  let ?U = "partial_derivative_path9_atom_frontier_universe r"
+  let ?C = "card (rpath9_atom_frontiers r)"
+  let ?M = "Suc (rsize r + rsize r)"
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound)
+      (use rows(1) member_size in blast)
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use rows in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + rsize r + ?C) * ?M"
+  proof -
+    have "card ?U \<le> 2 + rsize r + ?C"
+      using partial_derivative_path9_atom_frontier_universe_card_le[of r]
+      by simp
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 6 * (rsize r + 2) ^ 3"
+    by (rule quadratic_plus_linear_times_linear_cubic_bound[OF frontiers])
   finally show ?thesis .
 qed
 

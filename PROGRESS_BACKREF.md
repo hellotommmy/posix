@@ -214,6 +214,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   shows the previous right-nested binary suffix witness no longer enters the
   new universe, so the next proof target is card/member-size accounting plus
   one-step closure for this smaller invariant.
+  Added the first accounting interface for this smaller invariant:
+  `partial_derivative_path9_atom_frontier_universe_card_le`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_boundI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_linearI`, and
+  `rsizes_distinct_path9_atom_frontier_universe_cubicI`. This reduces the
+  cubic row-size target to two local facts about `rpath9_atom_frontiers`:
+  quadratic cardinality and linear member size.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
