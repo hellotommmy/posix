@@ -1,32 +1,57 @@
-This is an autonomous Codex CLI work iteration, not a read-only setup request. Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/DUAL_AGENT_COORDINATION.md, agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
+This is an autonomous Codex CLI work iteration, not a read-only setup request.
 
-You are Codex CLI, an admin/worker on the shared branch codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex. Opus is running in Cursor in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-opus on the same shared branch.
+Repository: C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex
+Branch: codex/backref-values
+Role: Codex, admin/worker on the shared branch.
 
-Current recovery note, 2026-05-26:
-BR-005, BR-011, BR-012, BR-013, and BR-014 have been pushed and checked on the shared branch. Remote HEAD includes the proof-performance budget and the Opus lock for BR-015. Opus owns BR-015 (POSIX value ordering / `BPosix_determ`) and may be editing `BackRefValues.thy`; do not compete for that file or that theorem line. Codex's primary lane is non-conflicting generalized-backreference blueprint work: BR-008 and then BR-016.
+Read these files first, in this order:
+1. agent_hunt_pipeline/projects/posix-backref/CLAUDE.md
+2. agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md
+3. PROGRESS_BACKREF.md
+4. BACKREF_BOUNTIES.md
+5. GeneralRegexBound.thy around the `rsimp8`, `rpder_norm8_list`, `rpders_norm18_rows`, and live-row universe sections.
 
 At the start of each iteration:
-1. Run git fetch origin codex/backref-values.
-2. Run git pull --rebase --autostash origin codex/backref-values.
-3. Run git status --short --branch and inspect recent commits.
+1. Run `git fetch origin codex/backref-values`.
+2. Run `git pull --rebase --autostash origin codex/backref-values`.
+3. Run `git status --short --branch` and inspect recent commits.
 
-Work with remote changes; do not revert or overwrite another agent's work. If Opus has pushed new proof work, inspect it before choosing your next step.
+Primary assignment:
+- Continue BR-036: prove the non-backref cubic route using `norm18 = map rsimp8`.
+- The current checked route is:
+  - `rsimp7_can_increase_root_size` shows full `rsimp7` is unsafe as a root normalizer.
+  - `rsimp8`/`bsimp8` is the root-safe simplifier; `rsize_rsimp8_le` is checked.
+  - `rsimp8_live_row_universe_not_closed` refutes the old `norm17 = map rsimp7` closure target.
+  - `rpder_norm8_list`, `rpder_norm8_rows`, `rpders_norm18_rows`, `RLS_rpders_norm18_rows`, and `rsizes_rpders_norm18_rows_rsimp8_live_row_cubicI` are checked.
+  - `norm18_closes_rsimp8_live_row_obstruction` confirms the concrete `(((1+a).a))*` obstruction is fixed.
+- Main remaining theorem shape:
+  `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
+  for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
 
-Primary assignment: follow the current state in PROGRESS_BACKREF.md and BACKREF_BOUNTIES.md. If the worktree is clean, work on the next smallest non-conflicting checked step for BR-008 or BR-016. Prefer a pilot-only blueprint theory/file or documentation that clarifies the generalized `backref_lang4` derivative/value story before datatype migration. Do not edit `BackRefValues.thy` while Opus owns BR-015 unless the remote branch already contains Opus's checked completion and the file is no longer actively owned. Do not create production lexer files or touch `Blexer.thy`, `BlexerSimp.thy`, bounds, closed-form theories, or frozen statements.
+Research tactics:
+- Do not start with broad `auto`. Split by the live-row universe cases:
+  `RZERO`, `RONE`, root, path continuations, root frontier, and frontiers of path continuations.
+- Prefer small helper lemmas about `rpder_norm8_list`, `rpath_continuations_acc`, `rfrontier`, and `rsimp8` stability.
+- If a proposed closure statement is false, add a checked counterexample lemma and update DESIGN_LOG.md/PROGRESS_BACKREF.md.
+- Keep proof commands under the performance budget: if a line takes more than 1-2 seconds, split it; if it runs past 10 seconds, stop and make a helper lemma.
 
-No-op rule: do not end an iteration after only reading files, fetching, and reporting status when an open permitted task exists. Do not claim that the user only asked you to read or set up; this prompt is the standing instruction to keep working. If no code/proof edit is possible, run the relevant guard/build to expose the current blocker and record the precise blocker in the final output. A no-op iteration is allowed only for a dirty/conflicting worktree, a semantic question that must go to Chengsong, a remote change that must be inspected first, or no permitted open task.
+Allowed files for this task:
+- GeneralRegexBound.thy
+- PROGRESS_BACKREF.md
+- BACKREF_BOUNTIES.md
+- agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md
+- FBound.thy and BlexerSimp.thy only for checked norm18 annotated-transfer work after the proof-level route is stable.
 
-Never introduce sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements. Do not touch Blexer.thy, BlexerSimp.thy, bounds, closed-form theories, or frozen statements unless CLAUDE.md explicitly authorizes the new pilot-only path and the files are disjoint.
-
-Proof performance budget: for these pilot files, a few-hundred-line check should normally finish in about 5-10 seconds. If one Isabelle command runs past 10 seconds, identify the command and source line; past 30 seconds, narrow the tactic or definition; past 120 seconds, interrupt or use the timeout wrapper; never accept a 200 second command as normal.
+Do not:
+- Introduce wrappers, sorry, oops, axiomatization, quick_and_dirty, oracle, admit, or weakened theorem statements.
+- Touch Blexer.thy, Lexer.thy, RegLangs.thy, PosixSpec.thy, or ClosedForms*.thy for this cubic task.
+- Claim BR-036 or BR-037 until the named checked theorem exists and full local CI passes.
 
 Before committing, run:
 python agent_hunt_pipeline/scripts/backref_bounty_guard.py
 python agent_hunt_pipeline/scripts/backref_no_cheat_guard.py
 python agent_hunt_pipeline/scripts/backref_statement_guard.py
 python agent_hunt_pipeline/scripts/backref_role_guard.py --role admin
-powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -PilotOnly -Role admin -NoCertificate
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240
 
-Commit small checked steps. Then pull --rebase --autostash, rerun the relevant guards, and push to origin codex/backref-values.
-
-Begin now: after reading and synchronizing, if BR-008 or BR-016 remains open and the worktree is clean, attempt one small checked non-conflicting blueprint step. Run the appropriate guards/build, commit, pull/rebase, rerun the relevant checks, and push if it checks.
+Commit small checked steps, then pull/rebase, rerun the relevant guards if needed, and push to origin/codex/backref-values.
