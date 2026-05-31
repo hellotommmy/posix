@@ -5242,6 +5242,22 @@ lemma frontier_universe_not_closed_under_rpder_norm_list:
       partial_derivative_path_universe_def
       rpath_continuations_def rsimp4_SEQ_def)
 
+lemma cubic_universe_not_closed_under_rpder_norm_list:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSTAR (RCHAR a))"
+  defines "q \<equiv> RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a))"
+  defines "p \<equiv>
+    RSEQ (RSTAR (RCHAR a))
+      (RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a)))"
+  shows "q \<in> partial_derivative_cubic_universe r"
+    and "p \<in> set (rpder_norm_list a q)"
+    and "p \<notin> partial_derivative_cubic_universe r"
+  by (simp_all add: r_def q_def p_def rpder_norm_list_def
+      partial_derivative_cubic_universe_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rsimp4_SEQ_def)
+
 lemma path_universe_misses_distributed_suffix_atom:
   "RSEQ (RCHAR b) (RCHAR d) \<notin>
     partial_derivative_path_universe
