@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (rsimp9 RNTIMES-body prototype)
+Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
@@ -108,13 +108,16 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES-body prototype)
   normalize repetition bodies/tails without reintroducing full root row-product
   expansion.
   Added and checked the proof-level prototype `rsimp9`, which is `rsimp8`
-  plus recursive `RNTIMES` body normalization and safe `0^n`/`1^n` collapse.
+  plus recursive `RNTIMES` body normalization, safe `0^n`/`1^n` collapse,
+  and the semantic zero-count collapse `RNTIMES r 0 = RONE`.
   Checked artifacts include `legacy_rsimp9`, `RL_rsimp9`,
   `rsize_rsimp9_le`, `rpder_norm9_list`, `rpd_der_norm9`,
   `rpder_norm9_rows`, their one-step language/legacy facts, and
-  `norm19_closes_RNTIMES_body_normalization_obstruction`. This does not yet
-  claim BR-036; it identifies a checked conservative redesign candidate for
-  the next `bsimp` migration.
+  `norm19_closes_RNTIMES_countdown_sanity`. The checked
+  `norm19_RNTIMES_body_normalization_obstruction_persists` shows the simple
+  countdown case is fixed but complex body normalization can still escape the
+  current live-row universe. This does not yet claim BR-036; it identifies a
+  checked conservative redesign candidate for the next `bsimp` migration.
   Added the checked norm19 row-driver runway:
   `rders_pder_norm9`, `rpders_norm9_set`, `rpders_norm19`,
   `rpders_norm9_rows`, `rpders_norm19_rows`, finite/distinct facts,

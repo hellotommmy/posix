@@ -401,10 +401,11 @@ where
     | RSTAR s \<Rightarrow> RSTAR s
     | s \<Rightarrow> RSTAR s)"
 | "rsimp9 (RNTIMES r n) =
-    (case rsimp9 r of
-      RZERO \<Rightarrow> (if n = 0 then RONE else RZERO)
-    | RONE \<Rightarrow> RONE
-    | s \<Rightarrow> RNTIMES s n)"
+    (if n = 0 then RONE else
+      (case rsimp9 r of
+        RZERO \<Rightarrow> RZERO
+      | RONE \<Rightarrow> RONE
+      | s \<Rightarrow> RNTIMES s n))"
 | "rsimp9 r = r"
 
 lemma legacy_rsimp9:
@@ -432,7 +433,7 @@ next
 next
   case (4 r n)
   then show ?case
-    by (cases "rsimp9 r") simp_all
+    by (cases n; cases "rsimp9 r") simp_all
 qed simp_all
 
 lemma lang_pow_empty:
@@ -8136,15 +8137,26 @@ lemma norm18_live_row_NTIMES_body_normalized_sanity:
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
 
-lemma norm19_closes_RNTIMES_body_normalization_obstruction:
+lemma norm19_RNTIMES_body_normalization_obstruction_persists:
   fixes b :: char
   defines "body \<equiv> RSTAR (RALTS [RZERO, RONE, RCHAR b])"
   defines "r \<equiv> RNTIMES body 1"
-  shows "set (rflts (rpder_norm9_list b (rsimp9 r))) \<subseteq>
-    partial_derivative_live_row_universe (rsimp9 r)"
-  by (simp add: body_def r_def rpder_norm9_list_def rpder_norm_list_def
+  defines "p \<equiv> rsimp9 body"
+  shows "p \<in> set (rflts (rpder_norm9_list b (rsimp9 r)))"
+    and "p \<notin> partial_derivative_live_row_universe (rsimp9 r)"
+  by (simp_all add: body_def r_def p_def rpder_norm9_list_def rpder_norm_list_def
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
+
+lemma norm19_closes_RNTIMES_countdown_sanity:
+  fixes b :: char
+  defines "r \<equiv> RNTIMES (RCHAR b) 2"
+  defines "q \<equiv> RNTIMES (RCHAR b) 1"
+  shows "q \<in> partial_derivative_live_row_universe (rsimp9 r)"
+    and "set (rflts (rpder_norm9_list b q)) \<subseteq>
+      partial_derivative_live_row_universe (rsimp9 r)"
+  by (simp_all add: r_def q_def rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def)
 
 lemma rpder_norm8_live_row_step_RZERO [simp]:
   "set (rflts (rpder_norm8_list c RZERO)) \<subseteq>

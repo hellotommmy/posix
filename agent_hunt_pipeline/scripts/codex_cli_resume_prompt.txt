@@ -95,7 +95,12 @@ Research tactics:
   reintroducing full root row-products.
 - `rsimp9` is now the checked proof-level prototype for that repair:
   `RL_rsimp9`, `rsize_rsimp9_le`, the `rpder_norm9_*` one-step language facts,
-  and `norm19_closes_RNTIMES_body_normalization_obstruction` are checked.
+  `norm19_closes_RNTIMES_countdown_sanity`, and
+  `norm19_RNTIMES_body_normalization_obstruction_persists` are checked.
+  `rsimp9` now collapses every `RNTIMES r 0` to `RONE`; do not enlarge the
+  universe just to carry `RNTIMES _ 0`. The remaining hard obstruction is that
+  complex body normalization can emit `rsimp9 body` while the current live-row
+  universe remembers an unnormalized carried continuation.
   The norm19 row-driver runway is also checked:
   `rpders_norm19_rows`, `RLS_rpders_norm19_rows`,
   `rpders_norm19_rows_rflts_subsetI`, and

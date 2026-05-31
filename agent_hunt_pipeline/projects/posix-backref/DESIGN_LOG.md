@@ -104,12 +104,17 @@ to be read before continuing long-running agent work.
   still avoiding full `rsimp7_SEQ` row-product expansion at roots.
 - The proof-level prototype `rsimp9` implements that repair locally:
   `RSEQ`, `RALTS`, and `RSTAR` follow `rsimp8`, while `RNTIMES r n`
-  recursively normalizes `r` and collapses normalized `RZERO`/`RONE` powers.
+  recursively normalizes `r`, collapses normalized `RZERO`/`RONE` powers,
+  and sends every zero-count repetition `RNTIMES r 0` to `RONE`.
   Checked facts `RL_rsimp9` and `rsize_rsimp9_le` show the prototype is
   language preserving and original-size safe. The checked
-  `norm19_closes_RNTIMES_body_normalization_obstruction` confirms that this
-  repair closes the concrete `RNTIMES` obstruction. Next work should lift the
-  one-step/row closure machinery from `rpder_norm8_list` to `rpder_norm9_list`,
+  `norm19_closes_RNTIMES_countdown_sanity` confirms that a simple counted-tail
+  decrement no longer leaks `RNTIMES _ 0`; do not expand the universe just to
+  carry that identity. The checked
+  `norm19_RNTIMES_body_normalization_obstruction_persists` shows the harder
+  body-normalization case is still open: derivatives may emit `rsimp9 body`
+  where the current live-row universe only remembers an unnormalized carried
+  continuation. Next work should refine that carried-continuation invariant,
   then migrate the corresponding annotated `bsimp` only after the proof-level
   closure target is stable.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
