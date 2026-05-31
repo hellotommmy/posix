@@ -178,6 +178,12 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpder_norm9_frontier_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These cover
   the same structured continuation interface as the path-universe lemmas, but
   target the countdown-aware frontier universe.
+  Added `norm19_frontier_universe_repairs_left_nested_seq_counterexample`:
+  the old `frontier_universe_not_closed_under_rpder_norm_list` witness
+  `((a*).b).d` is normalized by `rsimp9` to `a*.(b.d)`, and its `a`
+  derivative stays inside `partial_derivative_frontier_universe`. This is
+  evidence that the frontier route is repairing the known associativity leak,
+  not merely adding a larger universe.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

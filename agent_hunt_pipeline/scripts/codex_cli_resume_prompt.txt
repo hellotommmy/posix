@@ -142,6 +142,9 @@ Research tactics:
   use these splitters to prove the actual one-step closure premise for
   `partial_derivative_frontier_universe (rsimp9 r)`, or record a checked
   counterexample if that premise is still too broad.
+  Sanity check: `norm19_frontier_universe_repairs_left_nested_seq_counterexample`
+  is checked; it shows the old `((a*).b).d` frontier obstruction for
+  `rpder_norm_list` is repaired by `rsimp9`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

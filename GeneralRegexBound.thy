@@ -8173,6 +8173,21 @@ lemma frontier_universe_not_closed_under_rpder_norm_list:
       partial_derivative_path_universe_def
       rpath_continuations_def rsimp4_SEQ_def)
 
+lemma norm19_frontier_universe_repairs_left_nested_seq_counterexample:
+  fixes a b d :: char
+  assumes "a \<noteq> b"
+  defines "r \<equiv>
+    RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR d)"
+  defines "q \<equiv>
+    RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR d))"
+  shows "rsimp9 r = q"
+    and "q \<in> partial_derivative_frontier_universe (rsimp9 r)"
+    and "set (rflts (rpder_norm9_list a q)) \<subseteq>
+      partial_derivative_frontier_universe (rsimp9 r)"
+  using assms
+  by (simp_all add: r_def q_def rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_frontier_universe_def rsimp7_SEQ_atom_def)
+
 lemma cubic_universe_not_closed_under_rpder_norm_list:
   fixes a :: char
   defines "r \<equiv> RSTAR (RSTAR (RCHAR a))"

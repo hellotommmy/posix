@@ -148,6 +148,12 @@ to be read before continuing long-running agent work.
   `rflts_map_rsimp9_rpder_list_norm_tail_frontier_subsetI`, and
   `rpder_norm9_frontier_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These are the
   preferred entry points for the remaining one-step closure proof.
+- The old left-nested sequence obstruction for `rpder_norm_list` is now checked
+  repaired by `rsimp9`: `norm19_frontier_universe_repairs_left_nested_seq_counterexample`
+  shows `((a*).b).d` normalizes to `a*.(b.d)` and the corresponding `a`
+  derivative remains inside `partial_derivative_frontier_universe`. This keeps
+  the frontier route aligned with the intended stronger simplifier, rather than
+  masking the problem with a larger accounting set.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
