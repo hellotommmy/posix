@@ -227,6 +227,15 @@ to be read before continuing long-running agent work.
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. These do not claim
   closure by themselves; they factor the closure goal into carried left/body
   branch subset obligations plus the nullable right branch for sequence.
+- The sequence nullable-right branch now has a checked child-to-parent lift:
+  `rnullable_rsimp9`,
+  `rsubterms_rsimp4_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp7_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp9_RSEQ_right_nullable_universe`,
+  `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
+  and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`. Future
+  `RSEQ` path9 closure work should spend effort on the carried left branch,
+  not on re-proving the nullable right side.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

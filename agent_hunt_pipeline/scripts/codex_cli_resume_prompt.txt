@@ -198,8 +198,15 @@ Research tactics:
   first such parent-target splitters are checked:
   `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
   `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
-  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`; next work should
-  discharge their carried branch subset premises.
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. The nullable
+  sequence right-branch child-to-parent lift is checked:
+  `rnullable_rsimp9`,
+  `rsubterms_rsimp4_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp7_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp9_RSEQ_right_nullable_universe`,
+  `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
+  and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`; next work
+  should discharge the carried left/body branch subset premises.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

@@ -94,7 +94,12 @@ immutability.
   derivative splitters are
   `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
   `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
-  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`.
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. The nullable
+  sequence right-branch lift is also checked:
+  `rnullable_rsimp9`,
+  `rsubterms_rsimp9_RSEQ_right_nullable_universe`,
+  `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
+  and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`.
 
 ## Completed
 

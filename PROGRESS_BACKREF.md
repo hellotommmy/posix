@@ -259,6 +259,15 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   existing `rpder_norm9_live_row_step_*` splitters with the exact path9 parent
   universe, leaving only the carried branch subset obligations for the next
   proof layer.
+  Added the checked nullable right-branch lift for sequence:
+  `rnullable_rsimp9`,
+  `rsubterms_rsimp4_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp7_SEQ_atom_nullable_right_subset`,
+  `rsubterms_rsimp9_RSEQ_right_nullable_universe`,
+  `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
+  and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`. This removes
+  the `RSEQ` nullable-right child-to-parent universe obligation from the next
+  closure layer; the remaining hard part is the carried left/body branch.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

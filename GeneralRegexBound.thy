@@ -464,6 +464,11 @@ next
     by (cases "rsimp9 r") (simp_all add: lang_pow_empty lang_pow_epsilon)
 qed simp_all
 
+lemma rnullable_rsimp9:
+  "rnullable (rsimp9 r) = rnullable r"
+  using RL_rsimp9[of r] RL_rnullable[of r] RL_rnullable[of "rsimp9 r"]
+  by auto
+
 fun rpder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpder c RZERO = {}"
 | "rpder c RONE = {}"
@@ -10140,6 +10145,132 @@ lemma rpath9_atom_frontiers_seq_right_universe:
     rpath9_atom_frontiers_universe[of "RSEQ r1 r2"]
   by blast
 
+lemma rsubterms_rsimp4_SEQ_atom_nullable_right_subset:
+  assumes null: "rnullable p"
+    and x: "x \<in> rsubterms k"
+  shows "x \<in> insert RZERO (insert RONE (rsubterms (rsimp4_SEQ_atom p k)))"
+  using null x
+proof (induct p arbitrary: k x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ p1 p2)
+  have null1: "rnullable p1"
+    using RSEQ.prems by simp
+  have null2: "rnullable p2"
+    using RSEQ.prems by simp
+  have inner: "x \<in> insert RZERO
+      (insert RONE (rsubterms (rsimp4_SEQ_atom p2 k)))"
+    by (rule RSEQ.hyps(2)[OF null2 RSEQ.prems(2)])
+  then consider "x = RZERO" | "x = RONE" |
+      "x \<in> rsubterms (rsimp4_SEQ_atom p2 k)"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis by simp
+  next
+    case 2
+    then show ?thesis by simp
+  next
+    case 3
+    have outer: "x \<in> insert RZERO
+        (insert RONE (rsubterms (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))))"
+      by (rule RSEQ.hyps(1)[OF null1 3])
+    show ?thesis
+      using outer by simp
+  qed
+next
+  case (RSTAR p)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES p n)
+  then show ?case
+    by (cases k) auto
+next
+  case (RBACKREF4 p1 p2 p3 p4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF p cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+lemma rsubterms_rsimp7_SEQ_atom_nullable_right_subset:
+  assumes null: "rnullable p"
+    and x: "x \<in> rsubterms k"
+  shows "x \<in> insert RZERO (insert RONE (rsubterms (rsimp7_SEQ_atom p k)))"
+proof -
+  have fallback:
+    "x \<in> insert RZERO (insert RONE (rsubterms (rsimp4_SEQ_atom p k)))"
+    by (rule rsubterms_rsimp4_SEQ_atom_nullable_right_subset[OF assms])
+  show ?thesis
+    using assms fallback
+    by (cases p; cases k)
+      (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+qed
+
+lemma rsubterms_rsimp9_RSEQ_right_nullable_universe:
+  assumes null: "rnullable r1"
+    and x: "x \<in> rsubterms (rsimp9 r2)"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+proof -
+  have norm_null: "rnullable (rsimp9 r1)"
+    using null by (simp add: rnullable_rsimp9)
+  have "x \<in> insert RZERO
+      (insert RONE (rsubterms (rsimp7_SEQ_atom (rsimp9 r1) (rsimp9 r2))))"
+    by (rule rsubterms_rsimp7_SEQ_atom_nullable_right_subset[OF norm_null x])
+  then show ?thesis
+    by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
+qed
+
+lemma partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset:
+  assumes "rnullable r1"
+  shows "partial_derivative_path9_atom_frontier_universe r2 \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+proof
+  fix x
+  assume x: "x \<in> partial_derivative_path9_atom_frontier_universe r2"
+  then consider "x = RZERO" | "x = RONE" |
+      "x \<in> rsubterms (rsimp9 r2)" |
+      "x \<in> rpath9_atom_frontiers r2"
+    by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
+  then show "x \<in> partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  proof cases
+    case 1
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 2
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 3
+    then show ?thesis
+      by (rule rsubterms_rsimp9_RSEQ_right_nullable_universe[OF assms])
+  next
+    case 4
+    then show ?thesis
+      by (rule rpath9_atom_frontiers_seq_right_universe)
+  qed
+qed
+
 lemma rpath9_atom_frontiers_star_body_subset:
   "rpath9_atom_frontier_acc r
       (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE) \<subseteq>
@@ -10253,6 +10384,38 @@ lemma rpder_norm9_path9_atom_frontier_step_RSEQ_parentI:
   shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq>
     partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
   by (rule rpder_norm9_live_row_step_RSEQI) (use left right in auto)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI:
+  assumes left:
+    "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe r2"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSEQ_parentI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule left)
+next
+  assume nullable: "rnullable r1"
+  have child: "set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r2"
+    by (rule right[OF nullable])
+  have lift: "partial_derivative_path9_atom_frontier_universe r2 \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset[OF nullable])
+  show "set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    using child lift by blast
+qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   assumes body:
