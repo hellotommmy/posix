@@ -55,6 +55,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   `rsizes_rpders_norm16_rows_live_path_universe_cubicI`. This gives a smaller
   cubic target (`2 * (rsize r + 3)^3`) once the live-path one-step closure for
   `rpder_norm6_list` is proved.
+- Added the sharper rflts-based closure interface
+  `rpders_norm16_rows_rflts_subsetI` and
+  `rsizes_rpders_norm16_rows_live_path_universe_cubicI'`. This replaces the
+  earlier over-strong subterm-closure premise: live-path universes track rows
+  and carried continuations, so they need closure under `rflts` of generated
+  rows, not closure under every syntactic subterm.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,

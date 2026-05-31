@@ -54,6 +54,11 @@ to be read before continuing long-running agent work.
   bound with the path-universe constant once the live-path closure premise is
   proved. Small-model search found no reachable counterexample up to size 7 and
   depth 7 after the `0*/1*` absorption rule.
+- Prefer the rflts-based interface
+  `rsizes_rpders_norm16_rows_live_path_universe_cubicI'` over the older
+  subterm-based one. A live-path universe is intentionally not closed under all
+  syntactic subterms of a row; the exact operation performed by the row driver
+  is `rflts`, followed by `rdistinct`.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current
