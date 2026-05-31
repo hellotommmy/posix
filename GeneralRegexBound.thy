@@ -4621,11 +4621,72 @@ proof -
   finally show ?thesis .
 qed
 
+definition partial_derivative_cubic_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_cubic_universe r =
+    partial_derivative_path_universe r \<union> partial_derivative_frontier_universe r"
+
+lemma finite_partial_derivative_cubic_universe [simp]:
+  "finite (partial_derivative_cubic_universe r)"
+  by (simp add: partial_derivative_cubic_universe_def)
+
+lemma rsizes_filter_partition:
+  "rsizes rs =
+    rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
+  by (induct rs) auto
+
+lemma cube_mono_offset:
+  fixes n :: nat
+  shows "(n + 2) ^ 3 \<le> (n + 3) ^ 3"
+  by (rule power_mono) simp_all
+
+lemma rsizes_distinct_cubic_universe_cubic:
+  assumes "set rs \<subseteq> partial_derivative_cubic_universe r"
+      and "distinct rs"
+  shows "rsizes rs \<le> 5 * (rsize r + 3) ^ 3"
+proof -
+  let ?path = "partial_derivative_path_universe r"
+  let ?front = "partial_derivative_frontier_universe r"
+  let ?rs_path = "filter (\<lambda>x. x \<in> ?path) rs"
+  let ?rs_front = "filter (\<lambda>x. x \<notin> ?path) rs"
+  have path_subset: "set ?rs_path \<subseteq> ?path"
+    by auto
+  have front_subset: "set ?rs_front \<subseteq> ?front"
+    using assms(1)
+    by (auto simp add: partial_derivative_cubic_universe_def)
+  have path_cubic: "rsizes ?rs_path \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_distinct_path_universe_cubic)
+      (use assms path_subset in auto)
+  have front_cubic: "rsizes ?rs_front \<le> 3 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsizes ?rs_front \<le> 3 * (rsize r + 2) ^ 3"
+      by (rule rsizes_distinct_frontier_universe_cubic)
+        (use assms front_subset in auto)
+    also have "... \<le> 3 * (rsize r + 3) ^ 3"
+      using cube_mono_offset[of "rsize r"] by simp
+    finally show ?thesis .
+  qed
+  have "rsizes rs = rsizes ?rs_path + rsizes ?rs_front"
+    by (rule rsizes_filter_partition)
+  also have "... \<le>
+    2 * (rsize r + 3) ^ 3 + 3 * (rsize r + 3) ^ 3"
+    using path_cubic front_cubic by linarith
+  also have "... = 5 * (rsize r + 3) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
 lemma rsizes_rpders_norm1_rows_frontier_universe_cubic:
   assumes "set (rpders_norm1_rows r s) \<subseteq>
     partial_derivative_frontier_universe r"
   shows "rsizes (rpders_norm1_rows r s) \<le> 3 * (rsize r + 2) ^ 3"
   by (rule rsizes_distinct_frontier_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm1_rows_cubic_universe_cubic:
+  assumes "set (rpders_norm1_rows r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+  shows "rsizes (rpders_norm1_rows r s) \<le> 5 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_cubic_universe_cubic)
     (use assms in auto)
 
 lemma partial_derivative_path_universe_zero [simp]:
