@@ -644,3 +644,12 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size`, should be
   used as the base case when the carried collector sees one extra normalized
   sequence layer.
+
+## 2026-05-31: `RSEQ` normalized-tail handoff
+
+- The checked handoff lemmas are
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_productI` and
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI`.
+- Use them when the parent collector has tail `rsimp7_SEQ_atom (rsimp9 k) RONE`.
+  The left child receives the nested tail `rsimp9 r2 . (rsimp9 k . 1)`, while
+  the right child keeps the ordinary normalized tail for `k`.

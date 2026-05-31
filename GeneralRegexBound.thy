@@ -10417,6 +10417,59 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_productI:
+  assumes left: "card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE))) \<le>
+      rsize r1 * (rsize (RSEQ r2 k) + 2)"
+    and right: "card (rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+      rsize r2 * (rsize k + 2)"
+  shows "card (rpath9_atom_frontier_acc (RSEQ r1 r2)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+    rsize (RSEQ r1 r2) * (rsize (RSEQ r2 k) + 2)"
+proof (rule card_rpath9_atom_frontier_acc_RSEQ_productI)
+  show "card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE))) \<le>
+      rsize r1 * (rsize (RSEQ r2 k) + 2)"
+    by (rule left)
+  have "rsize k + 2 \<le> rsize (RSEQ r2 k) + 2"
+    by simp
+  then have "rsize r2 * (rsize k + 2) \<le>
+      rsize r2 * (rsize (RSEQ r2 k) + 2)"
+    by (rule mult_left_mono) simp
+  then show "card (rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+      rsize r2 * (rsize (RSEQ r2 k) + 2)"
+    using right by linarith
+qed
+
+lemma rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ r2 k)"
+    and right: "\<And>x. x \<in> rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE) \<Longrightarrow> rsize x \<le> rsize k"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+  shows "rsize x \<le> rsize (RSEQ r2 k)"
+proof (rule rpath9_atom_frontier_acc_RSEQ_member_sizeI[OF _ _ x])
+  show "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ r2 k)"
+    by (rule left)
+  fix x
+  assume x: "x \<in> rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+  have "rsize x \<le> rsize k"
+    by (rule right[OF x])
+  then show "rsize x \<le> rsize (RSEQ r2 k)"
+    by simp
+qed
+
 lemma card_rpath9_atom_frontier_acc_RSTAR_le:
   "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
     card (rpath9_atom_frontier_acc r

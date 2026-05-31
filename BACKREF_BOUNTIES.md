@@ -190,6 +190,9 @@ immutability.
   The corresponding `RCHAR` accumulator instances are checked:
   `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_product` and
   `rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size`.
+  The `RSEQ` normalized-tail handoff is checked:
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_productI` and
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI`.
 
 ## Completed
 

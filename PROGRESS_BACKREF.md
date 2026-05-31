@@ -387,6 +387,11 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size`. These close
   the character-leaf case that appears when the carried continuation has one
   extra normalized sequence layer.
+  Added checked `RSEQ` normalized-tail handoff lemmas:
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_productI` and
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI`. These split
+  `acc (RSEQ r1 r2) (rsimp9 k . 1)` into a left nested-tail obligation for
+  `r2 . k` and a right ordinary-tail obligation for `k`.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
