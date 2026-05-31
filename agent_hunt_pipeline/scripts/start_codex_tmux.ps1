@@ -99,13 +99,25 @@ try {
     $promptWsl = "$wslRepo/$($PromptFile -replace '\\', '/')"
     $logWsl = "$wslRepo/agent_hunt_pipeline/logs/codex_idle_watch.log"
     $runnerWsl = "$wslRepo/agent_hunt_pipeline/run/codex_exec_loop.generated.sh"
+    $runnerPsWin = Join-Path $repoRoot "agent_hunt_pipeline\run\codex_exec_once.generated.ps1"
     $killFlag = if ($KillExisting) { "1" } else { "0" }
 
     $repoQ = Quote-Bash $wslRepo
     $promptQ = Quote-Bash $promptWsl
     $logQ = Quote-Bash $logWsl
     $runnerQ = Quote-Bash $runnerWsl
+    $runnerPsWinQ = Quote-Bash $runnerPsWin
     $sessionQ = Quote-Bash $Session
+
+    $repoRootPs = $repoRoot.Replace("'", "''")
+    $promptPs = (Join-Path $repoRoot $PromptFile).Replace("'", "''")
+
+    $execOnceScript = @"
+`$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath '$repoRootPs'
+Get-Content -Raw -LiteralPath '$promptPs' | $CodexExecCommand -
+exit `$LASTEXITCODE
+"@
 
     $loopScript = @"
 #!/usr/bin/env bash
@@ -122,8 +134,8 @@ while true; do
     sleep $IntervalSeconds
     continue
   fi
-  cat $promptQ | timeout $RunTimeoutSeconds $CodexExecCommand - 2>&1 | tee -a $logQ
-  rc=`${PIPESTATUS[1]}
+  timeout $RunTimeoutSeconds powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runnerPsWinQ 2>&1 | tee -a $logQ
+  rc=`${PIPESTATUS[0]}
   done_ts=`$(date -Is)
   echo "[`$done_ts] Codex exec exit code: `$rc" | tee -a $logQ
   sleep $IntervalSeconds
@@ -159,6 +171,7 @@ echo "Log: $logWsl"
         $generatedLoop = Join-Path $repoRoot "agent_hunt_pipeline/run/codex_exec_loop.generated.sh"
         [System.IO.File]::WriteAllText($generatedScript, ($wslScript -replace "`r`n", "`n"), [System.Text.Encoding]::ASCII)
         [System.IO.File]::WriteAllText($generatedLoop, ($loopScript -replace "`r`n", "`n"), [System.Text.Encoding]::ASCII)
+        [System.IO.File]::WriteAllText($runnerPsWin, ($execOnceScript -replace "`r`n", "`n"), [System.Text.Encoding]::ASCII)
         $generatedScriptWsl = "$wslRepo/agent_hunt_pipeline/run/start_codex_tmux.generated.sh"
         wsl.exe -d $WslDistro -- bash $generatedScriptWsl
         Write-Host ""
