@@ -221,6 +221,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rsizes_distinct_path9_atom_frontier_universe_cubicI`. This reduces the
   cubic row-size target to two local facts about `rpath9_atom_frontiers`:
   quadratic cardinality and linear member size.
+  Added the first path9 closure plumbing:
+  `rsubterms_rsimp_ALTs_member`, `set_rflts_singleton_map_member`,
+  `rflts_singleton_rsimp9_path9_atom_frontier`,
+  `rflts_map_rsimp9_path9_atom_subsetI`,
+  `rflts_rsimp9_alt_child_path9_atom_subset`, and the base
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR` lemmas. A first
+  attempt used broad `blast` and hit the performance warning; the final checked
+  version is split into explicit membership/subset steps.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

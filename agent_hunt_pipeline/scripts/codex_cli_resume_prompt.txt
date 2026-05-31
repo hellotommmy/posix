@@ -169,7 +169,13 @@ Research tactics:
   `rsizes_distinct_path9_atom_frontier_universe_cubicI`. Next target: prove
   `card (rpath9_atom_frontiers r) <= (rsize r + 2)^2` and
   `q in rpath9_atom_frontiers r ==> rsize q <= Suc (rsize r + rsize r)`,
-  then one-step closure for `rpder_norm9_list`.
+  then one-step closure for `rpder_norm9_list`. Path9 closure base plumbing is
+  checked: `rsubterms_rsimp_ALTs_member`,
+  `set_rflts_singleton_map_member`,
+  `rflts_singleton_rsimp9_path9_atom_frontier`,
+  `rflts_map_rsimp9_path9_atom_subsetI`,
+  `rflts_rsimp9_alt_child_path9_atom_subset`, and
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

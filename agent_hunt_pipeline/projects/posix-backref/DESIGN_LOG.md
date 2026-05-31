@@ -191,6 +191,14 @@ to be read before continuing long-running agent work.
   `rsizes_distinct_path9_atom_frontier_universe_cubicI`. The cubic hook now
   needs only local bounds on `rpath9_atom_frontiers r`: quadratic cardinality
   and member size at most `Suc (rsize r + rsize r)`.
+- The path9 closure plumbing now has checked base facts:
+  `rsubterms_rsimp_ALTs_member`, `set_rflts_singleton_map_member`,
+  `rflts_singleton_rsimp9_path9_atom_frontier`,
+  `rflts_map_rsimp9_path9_atom_subsetI`,
+  `rflts_rsimp9_alt_child_path9_atom_subset`, and
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`. Keep these proofs
+  explicit: a broad singleton `blast` once ran past the proof-performance
+  budget before being split.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

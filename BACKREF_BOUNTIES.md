@@ -68,7 +68,12 @@ immutability.
   `rsizes_distinct_path9_atom_frontier_universe_cubicI`. This is progress
   evidence, not a payout claim: remaining work is local card/member-size
   bounds for `rpath9_atom_frontiers` and one-step `rpder_norm9_list` closure
-  for the smaller universe.
+  for the smaller universe. The first checked closure-plumbing facts are
+  `rsubterms_rsimp_ALTs_member`, `set_rflts_singleton_map_member`,
+  `rflts_singleton_rsimp9_path9_atom_frontier`,
+  `rflts_map_rsimp9_path9_atom_subsetI`,
+  `rflts_rsimp9_alt_child_path9_atom_subset`, and
+  `rpder_norm9_path9_atom_frontier_step_RZERO/RONE/RCHAR`.
 
 ## Completed
 

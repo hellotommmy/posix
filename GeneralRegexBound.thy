@@ -9898,6 +9898,156 @@ lemma finite_partial_derivative_path9_atom_frontier_universe [simp]:
   "finite (partial_derivative_path9_atom_frontier_universe r)"
   by (simp add: partial_derivative_path9_atom_frontier_universe_def)
 
+lemma rsubterms_rsimp_ALTs_member:
+  assumes "x \<in> set xs"
+  shows "x \<in> rsubterms (rsimp_ALTs xs)"
+proof (cases xs)
+  case Nil
+  then show ?thesis
+    using assms by simp
+next
+  case (Cons a ys)
+  note xs_cons = Cons
+  then show ?thesis
+  proof (cases ys)
+    case Nil
+    then show ?thesis
+      using assms Cons by simp
+  next
+    case (Cons b zs)
+    have xs_eq: "xs = a # b # zs"
+      using xs_cons \<open>ys = b # zs\<close> by simp
+    have "x \<in> (\<Union> (set (map rsubterms xs)))"
+    proof -
+      have "x \<in> rsubterms x"
+        by simp
+      moreover have "rsubterms x \<in> set (map rsubterms xs)"
+        using assms by simp
+      ultimately show ?thesis
+        by blast
+    qed
+    then show ?thesis
+      using xs_eq by simp
+  qed
+qed
+
+lemma set_rflts_singleton_map_member:
+  assumes "q \<in> set rs" "x \<in> set (rflts [f q])"
+  shows "x \<in> set (rflts (map f rs))"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  then show ?case
+  proof (cases "q = a")
+    case True
+    then have "x \<in> set (rflts [f a])"
+      using Cons.prems by simp
+    moreover have "rflts (map f (a # rs)) =
+        rflts [f a] @ rflts (map f rs)"
+      by (simp add: flts_append[symmetric])
+    then show ?thesis
+      using calculation by auto
+  next
+    case False
+    then have q_rs: "q \<in> set rs"
+      using Cons.prems by simp
+    have "x \<in> set (rflts (map f rs))"
+      by (rule Cons.hyps[OF q_rs Cons.prems(2)])
+    moreover have "rflts (map f (a # rs)) =
+        rflts [f a] @ rflts (map f rs)"
+      by (simp add: flts_append[symmetric])
+    then show ?thesis
+      using calculation by auto
+  qed
+qed
+
+lemma rflts_singleton_rsimp9_path9_atom_frontier:
+  "set (rflts [rsimp9 q]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe q"
+proof
+  fix x
+  assume x: "x \<in> set (rflts [rsimp9 q])"
+  have sub: "set (rflts [rsimp9 q]) \<subseteq>
+      (\<Union>r \<in> set [rsimp9 q]. rsubterms r)"
+    by (rule set_rflts_subset_rsubterms_list)
+  have "x \<in> (\<Union>r \<in> set [rsimp9 q]. rsubterms r)"
+    using x sub by blast
+  then have "x \<in> rsubterms (rsimp9 q)"
+    by simp
+  then show "x \<in> partial_derivative_path9_atom_frontier_universe q"
+    by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+qed
+
+lemma rflts_map_rsimp9_path9_atom_subsetI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow>
+    partial_derivative_path9_atom_frontier_universe q \<subseteq> U"
+  shows "set (rflts (map rsimp9 qs)) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [rsimp9 q]) \<subseteq> U"
+  proof -
+    have "set (rflts [rsimp9 q]) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe q"
+      by (rule rflts_singleton_rsimp9_path9_atom_frontier)
+    moreover have "partial_derivative_path9_atom_frontier_universe q \<subseteq> U"
+      using Cons.prems by simp
+    ultimately show ?thesis by blast
+  qed
+  have tail: "set (rflts (map rsimp9 qs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (map rsimp9 (q # qs)) =
+      rflts [rsimp9 q] @ rflts (map rsimp9 qs)"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
+lemma rflts_rsimp9_alt_child_path9_atom_subset:
+  assumes "q \<in> set rs"
+  shows "set (rflts [rsimp9 q]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+proof
+  fix x
+  assume x: "x \<in> set (rflts [rsimp9 q])"
+  have x_flat: "x \<in> set (rflts (map rsimp9 rs))"
+    by (rule set_rflts_singleton_map_member[where f=rsimp9, OF assms x])
+  let ?xs = "rdistinct (rflts (map rsimp9 rs)) {}"
+  have "x \<in> set ?xs"
+    using x_flat by (simp add: rdistinct_set_equality)
+  then have "x \<in> rsubterms (rsimp_ALTs ?xs)"
+    by (rule rsubterms_rsimp_ALTs_member)
+  then have "x \<in> rsubterms (rsimp9 (RALTS rs))"
+    by simp
+  then show "x \<in> partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+    by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RZERO [simp]:
+  "set (rflts (rpder_norm9_list c RZERO)) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_path9_atom_frontier_universe_def)
+
+lemma rpder_norm9_path9_atom_frontier_step_RONE [simp]:
+  "set (rflts (rpder_norm9_list c RONE)) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_path9_atom_frontier_universe_def)
+
+lemma rpder_norm9_path9_atom_frontier_step_RCHAR [simp]:
+  "set (rflts (rpder_norm9_list c (RCHAR d))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe r"
+  by (cases "c = d")
+    (simp_all add: rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_path9_atom_frontier_universe_def)
+
 lemma finite_rpath_dual_frontiers [simp]:
   "finite (rpath_dual_frontiers r)"
   by (simp add: rpath_dual_frontiers_def rpath_dual_frontier_acc_def)
