@@ -10105,6 +10105,10 @@ lemma component_product_le_square:
   shows "a * n \<le> n\<^sup>2"
   using assms by (simp add: power2_eq_square mult_right_mono)
 
+lemma sum_list_map_rsize_mult_right:
+  "sum_list (map (\<lambda>r. rsize r * n) rs) = rsizes rs * n"
+  by (induct rs) (simp_all add: algebra_simps)
+
 lemma card_rpath9_atom_frontier_acc_list_le:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow> card (rpath9_atom_frontier_acc r k) \<le> f r"
   shows "card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs))) \<le>
@@ -10263,6 +10267,98 @@ lemma rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size:
   shows "rsize x \<le> rsize r"
   using assms rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le[of x r]
   by simp
+
+lemma card_rpath9_atom_frontier_acc_RALTS_productI:
+  assumes child: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (rpath9_atom_frontier_acc q k) \<le> rsize q * n"
+  shows "card (rpath9_atom_frontier_acc (RALTS rs) k) \<le>
+    rsize (RALTS rs) * n"
+proof -
+  have raw: "card (\<Union> (set (map (\<lambda>q. rpath9_atom_frontier_acc q k) rs))) \<le>
+      sum_list (map (\<lambda>q. rsize q * n) rs)"
+    by (rule card_rpath9_atom_frontier_acc_list_le) (use child in simp)
+  have "card (rpath9_atom_frontier_acc (RALTS rs) k) \<le>
+      sum_list (map (\<lambda>q. rsize q * n) rs)"
+    using raw by simp
+  also have "... = rsizes rs * n"
+    by (rule sum_list_map_rsize_mult_right)
+  also have "... \<le> rsize (RALTS rs) * n"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpath9_atom_frontier_acc_RALTS_member_sizeI:
+  assumes child: "\<And>q x. q \<in> set rs \<Longrightarrow>
+      x \<in> rpath9_atom_frontier_acc q k \<Longrightarrow> rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RALTS rs) k"
+  shows "rsize x \<le> N"
+proof -
+  obtain q where q:
+      "q \<in> set rs"
+      "x \<in> rpath9_atom_frontier_acc q k"
+    using x by auto
+  show ?thesis
+    by (rule child[OF q])
+qed
+
+lemma card_rpath9_atom_frontier_acc_RSEQ_le:
+  "card (rpath9_atom_frontier_acc (RSEQ r1 r2) k) \<le>
+    card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) k)) +
+    card (rpath9_atom_frontier_acc r2 k)"
+  by (simp add: card_Un_le)
+
+lemma rpath9_atom_frontier_acc_RSEQ_member_sizeI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) k) \<Longrightarrow> rsize x \<le> N"
+    and right: "\<And>x. x \<in> rpath9_atom_frontier_acc r2 k \<Longrightarrow>
+      rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2) k"
+  shows "rsize x \<le> N"
+proof -
+  consider
+      "x \<in> rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) k)"
+    | "x \<in> rpath9_atom_frontier_acc r2 k"
+    using x by auto
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis by (rule left)
+  next
+    case 2
+    then show ?thesis by (rule right)
+  qed
+qed
+
+lemma card_rpath9_atom_frontier_acc_RSTAR_le:
+  "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
+    card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k))"
+  by simp
+
+lemma rpath9_atom_frontier_acc_RSTAR_member_sizeI:
+  assumes body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k) \<Longrightarrow> rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSTAR r) k"
+  shows "rsize x \<le> N"
+  using assms by simp
+
+lemma card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le:
+  assumes "n \<noteq> 0"
+  shows "card (rpath9_atom_frontier_acc (RNTIMES r n) k) \<le>
+    card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) k))"
+  using assms by simp
+
+lemma rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI:
+  assumes n: "n \<noteq> 0"
+    and body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) k) \<Longrightarrow>
+      rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RNTIMES r n) k"
+  shows "rsize x \<le> N"
+  using assms by simp
 
 lemma card_rpath9_atom_frontiers_RSEQ_le:
   "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>

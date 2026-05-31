@@ -352,6 +352,17 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size`. These close the
   zero/one/char base cases for a future induction over
   `rpath9_atom_frontier_acc`.
+  Added checked carried-collector constructor splitters:
+  `sum_list_map_rsize_mult_right`,
+  `card_rpath9_atom_frontier_acc_RALTS_productI`,
+  `rpath9_atom_frontier_acc_RALTS_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RSEQ_le`,
+  `rpath9_atom_frontier_acc_RSEQ_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RSTAR_le`,
+  `rpath9_atom_frontier_acc_RSTAR_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI`. These isolate the
+  future product-bound induction cases without monolithic proof search.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

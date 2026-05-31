@@ -163,6 +163,16 @@ immutability.
   `rpath9_atom_frontier_acc_RCHAR_member_size_le`,
   `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_product`, and
   `rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size`.
+  The carried-collector constructor splitters are checked:
+  `sum_list_map_rsize_mult_right`,
+  `card_rpath9_atom_frontier_acc_RALTS_productI`,
+  `rpath9_atom_frontier_acc_RALTS_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RSEQ_le`,
+  `rpath9_atom_frontier_acc_RSEQ_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RSTAR_le`,
+  `rpath9_atom_frontier_acc_RSTAR_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI`.
 
 ## Completed
 

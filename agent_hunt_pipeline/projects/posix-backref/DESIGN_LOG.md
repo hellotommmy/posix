@@ -597,3 +597,17 @@ to be read before continuing long-running agent work.
 - The `RCHAR` case reduces to `rfrontier k`; for normalized
   `rsimp9 _ . RONE` tails, use the already checked tail-frontier bounds to get
   both product cardinality and member-size bounds.
+
+## 2026-05-31: Carried collector constructor splitters
+
+- The product-bound route now has named local splitters for the carried
+  accumulator, not just the top-level `rpath9_atom_frontiers` wrapper.
+- `card_rpath9_atom_frontier_acc_RALTS_productI` reduces alternatives to a
+  per-child product hypothesis, with `sum_list_map_rsize_mult_right` handling
+  the arithmetic. This is the model for the future induction: expose the
+  constructor shape, then hand off arithmetic to small named lemmas.
+- `card_rpath9_atom_frontier_acc_RSEQ_le`,
+  `card_rpath9_atom_frontier_acc_RSTAR_le`, and
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le` record only the structural
+  card split. Their matching member-size lemmas carry an arbitrary bound `N`,
+  so later linear-size proofs can reuse them without unfolding the accumulator.
