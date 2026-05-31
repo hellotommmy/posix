@@ -6349,6 +6349,22 @@ lemma rsimp6_collapses_cubic_counterexample_row:
   by (simp add: p_def rsimp6_SEQ_def rsimp6_seq_products_def
       rsimp6_SEQ_atom_def)
 
+lemma rsimp6_misses_prefix_star_counterexample_row:
+  fixes a b :: char
+  defines "p \<equiv>
+    RSEQ (RSTAR (RCHAR a)) (RSEQ (RSTAR (RCHAR a)) (RCHAR b))"
+  shows "rsimp6 p = p"
+  by (simp add: p_def rsimp6_SEQ_def rsimp6_seq_products_def
+      rsimp6_SEQ_atom_def)
+
+lemma rsimp7_collapses_prefix_star_counterexample_row:
+  fixes a b :: char
+  defines "p \<equiv>
+    RSEQ (RSTAR (RCHAR a)) (RSEQ (RSTAR (RCHAR a)) (RCHAR b))"
+  shows "rsimp7 p = RSEQ (RSTAR (RCHAR a)) (RCHAR b)"
+  by (simp add: p_def rsimp7_SEQ_def rsimp7_seq_products_def
+      rsimp7_SEQ_atom_def)
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
