@@ -101,6 +101,12 @@ Last updated: 2026-05-31 (norm18 RNTIMES counterexample)
   repetition body. BR-036 now needs a refined normalized-tail/repetition-body
   invariant, or a revised root-safe simplifier design for `RNTIMES`, before
   the final closure theorem can be true.
+  Added the positive sanity check
+  `norm18_live_row_NTIMES_body_normalized_sanity`: the same counted-repetition
+  tail shape closes when the repeated body is already the normalized star form
+  emitted by the frontier. This favors a conservative `RNTIMES` repair:
+  normalize repetition bodies/tails without reintroducing full root row-product
+  expansion.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -97,6 +97,11 @@ to be read before continuing long-running agent work.
   `(1 + b)*` outside that universe. Future BR-036 work needs either a
   recursively normalized `RNTIMES` root/tail invariant or a larger
   norm18 universe that explicitly accounts for normalized repetition bodies.
+- The checked sanity lemma `norm18_live_row_NTIMES_body_normalized_sanity`
+  shows the same carried counted-repetition tail closes when the repeated body
+  is already in the normalized star form emitted by the frontier. This points
+  to a small `RNTIMES` repair: normalize counted-repetition bodies/tails while
+  still avoiding full `rsimp7_SEQ` row-product expansion at roots.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity

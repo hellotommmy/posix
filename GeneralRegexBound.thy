@@ -7538,6 +7538,19 @@ lemma rsimp8_rsimp4_SEQ_atom_RONE_counterexample:
   shows "rsimp8 (rsimp4_SEQ_atom r RONE) \<noteq> rsimp8 r"
   by (simp add: r_def rsimp7_SEQ_atom_def)
 
+lemma norm18_live_row_NTIMES_body_normalized_sanity:
+  fixes a :: char
+  defines "body \<equiv> RSTAR (RCHAR a)"
+  defines "r \<equiv> RNTIMES body 1"
+  defines "q \<equiv>
+    RSEQ body (RNTIMES body 0)"
+  shows "q \<in> partial_derivative_live_row_universe (rsimp8 r)"
+    and "set (rflts (rpder_norm8_list a q)) \<subseteq>
+      partial_derivative_live_row_universe (rsimp8 r)"
+  by (simp_all add: body_def r_def q_def rpder_norm8_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      rsimp7_SEQ_atom_def)
+
 lemma rpder_norm8_live_row_step_RZERO [simp]:
   "set (rflts (rpder_norm8_list c RZERO)) \<subseteq>
     partial_derivative_live_row_universe r"
