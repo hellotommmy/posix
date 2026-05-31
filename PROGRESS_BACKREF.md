@@ -405,6 +405,15 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`.
   These are closer to the future induction because they keep the right child
   and countdown parent on the same `RSEQ ... k` budget scale.
+  Added the checked top-level path9 frontier cardinality bound:
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RSTAR_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RNTIMES_le`,
+  `sum_list_rsize_times_rsize_plus_le`, `seq_frontier_acc_card_arith`,
+  `card_rpath9_atom_frontier_acc_le_size_frontier`, and
+  `card_rpath9_atom_frontiers_quadratic`. This replaces the remaining
+  card-accounting TODO with a direct accumulator induction. Also added relaxed
+  `RSEQ`/`RSTAR`/`RNTIMES` top-level quadratic interfaces with
+  `RSEQ parent RONE` budgets for later handoff-based proofs.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

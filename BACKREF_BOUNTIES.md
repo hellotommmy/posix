@@ -203,6 +203,17 @@ immutability.
   `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_member_sizeI`,
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI`,
   and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`.
+  The top-level path9 frontier cardinality bound is now checked:
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RSTAR_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RNTIMES_le`,
+  `sum_list_rsize_times_rsize_plus_le`, `seq_frontier_acc_card_arith`,
+  `card_rpath9_atom_frontier_acc_le_size_frontier`, and
+  `card_rpath9_atom_frontiers_quadratic`. The relaxed top-level interfaces
+  `card_rpath9_atom_frontiers_RSEQ_quadratic_seq_RONEI`,
+  `card_rpath9_atom_frontiers_RSTAR_quadratic_seq_RONEI`, and
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadratic_seq_RONEI` are also
+  checked. Remaining BR-036 proof debt is linear member-size for the path9
+  frontier universe and one-step `rpder_norm9_list` closure.
 
 ## Completed
 

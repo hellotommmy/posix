@@ -10148,6 +10148,24 @@ lemma component_product_le_square:
   shows "a * n \<le> n\<^sup>2"
   using assms by (simp add: power2_eq_square mult_right_mono)
 
+lemma seq_component_product_seq_RONE_plus_child_square_le:
+  fixes a b :: nat
+  shows "a * (a + b + 5) + (b + 2)\<^sup>2 \<le> (a + b + 3)\<^sup>2"
+  by (simp add: power2_eq_square algebra_simps)
+
+lemma component_product_seq_RONE_le_square:
+  fixes a :: nat
+  assumes "a \<le> rsize r"
+  shows "a * (rsize (RSEQ r RONE) + 2) \<le> (rsize r + 2)\<^sup>2"
+proof -
+  have "a * (rsize (RSEQ r RONE) + 2) \<le>
+      rsize r * (rsize (RSEQ r RONE) + 2)"
+    by (rule mult_right_mono[OF assms]) simp
+  also have "... \<le> (rsize r + 2)\<^sup>2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma sum_list_map_rsize_mult_right:
   "sum_list (map (\<lambda>r. rsize r * n) rs) = rsizes rs * n"
   by (induct rs) (simp_all add: algebra_simps)
@@ -10723,6 +10741,244 @@ lemma rpath9_atom_frontier_acc_RRESIDUE_member_size:
   shows "rsize x \<le> N"
   using assms by simp
 
+lemma card_rfrontier_rsimp7_SEQ_atom_rsimp9_RSTAR_le:
+  "card (rfrontier (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k)) \<le>
+    Suc (card (rfrontier k))"
+  by (cases "rsimp9 r"; cases k)
+    (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma card_rfrontier_rsimp7_SEQ_atom_rsimp9_RNTIMES_le:
+  "card (rfrontier (rsimp7_SEQ_atom (rsimp9 (RNTIMES r n)) k)) \<le>
+    Suc (card (rfrontier k))"
+  by (cases n; cases "rsimp9 r"; cases k)
+    (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma sum_list_rsize_times_rsize_plus_le:
+  "sum_list (map (\<lambda>r. rsize r * (rsize r + n)) rs) \<le>
+    rsizes rs * (rsizes rs + n)"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have "sum_list (map (\<lambda>r. rsize r * (rsize r + n)) (r # rs)) \<le>
+      rsize r * (rsize r + n) + rsizes rs * (rsizes rs + n)"
+    using Cons.hyps by simp
+  also have "... \<le> (rsize r + rsizes rs) * (rsize r + rsizes rs + n)"
+    by (simp add: algebra_simps)
+  finally show ?case
+    by simp
+qed
+
+lemma seq_frontier_acc_card_arith:
+  "a * (a + b + n) + b * (b + n) \<le>
+    Suc (a + b) * (Suc (a + b) + n)"
+  by (simp add: algebra_simps)
+
+lemma card_rpath9_atom_frontier_acc_le_size_frontier:
+  "card (rpath9_atom_frontier_acc r k) \<le>
+    rsize r * (rsize r + card (rfrontier k))"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  have "card (rpath9_atom_frontier_acc (RCHAR c) k) \<le>
+      card (rfrontier k)"
+    by simp
+  also have "... \<le> rsize (RCHAR c) * (rsize (RCHAR c) + card (rfrontier k))"
+    by simp
+  finally show ?case .
+next
+  case (RALTS rs)
+  have "card (rpath9_atom_frontier_acc (RALTS rs) k) =
+      card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs)))"
+    by simp
+  also have "... \<le> sum_list (map (\<lambda>r. card (rpath9_atom_frontier_acc r k)) rs)"
+    by (rule card_rpath9_atom_frontier_acc_list_le
+        [where f = "\<lambda>r. card (rpath9_atom_frontier_acc r k)"]) simp
+  also have "... \<le>
+      sum_list (map (\<lambda>r. rsize r * (rsize r + card (rfrontier k))) rs)"
+    using RALTS.hyps by (simp add: sum_list_mono)
+  also have "... \<le> rsizes rs * (rsizes rs + card (rfrontier k))"
+    by (rule sum_list_rsize_times_rsize_plus_le)
+  also have "... \<le>
+      rsize (RALTS rs) * (rsize (RALTS rs) + card (rfrontier k))"
+    by simp
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  let ?k1 = "rsimp7_SEQ_atom (rsimp9 r2) k"
+  let ?F = "card (rfrontier k)"
+  have k1_card: "card (rfrontier ?k1) \<le> rsize r2 + ?F"
+  proof -
+    have "card (rfrontier ?k1) \<le> rsize (rsimp9 r2) + ?F"
+      by (rule card_rfrontier_rsimp7_SEQ_atom_le)
+    also have "... \<le> rsize r2 + ?F"
+      using rsize_rsimp9_le[of r2] by simp
+    finally show ?thesis .
+  qed
+  have left: "card (rpath9_atom_frontier_acc r1 ?k1) \<le>
+      rsize r1 * (rsize r1 + rsize r2 + ?F)"
+  proof -
+    have "card (rpath9_atom_frontier_acc r1 ?k1) \<le>
+        rsize r1 * (rsize r1 + card (rfrontier ?k1))"
+      by (rule RSEQ.hyps(1))
+    also have "... \<le> rsize r1 * (rsize r1 + rsize r2 + ?F)"
+      using k1_card by (simp add: mult_left_mono)
+    finally show ?thesis .
+  qed
+  have right: "card (rpath9_atom_frontier_acc r2 k) \<le>
+      rsize r2 * (rsize r2 + ?F)"
+    by (rule RSEQ.hyps(2))
+  have "card (rpath9_atom_frontier_acc (RSEQ r1 r2) k) \<le>
+      card (rpath9_atom_frontier_acc r1 ?k1) +
+      card (rpath9_atom_frontier_acc r2 k)"
+    by (rule card_rpath9_atom_frontier_acc_RSEQ_le)
+  also have "... \<le>
+      rsize r1 * (rsize r1 + rsize r2 + ?F) +
+      rsize r2 * (rsize r2 + ?F)"
+    using left right by linarith
+  also have "... \<le>
+      Suc (rsize r1 + rsize r2) * (Suc (rsize r1 + rsize r2) + ?F)"
+    by (rule seq_frontier_acc_card_arith)
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  let ?k1 = "rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k"
+  let ?F = "card (rfrontier k)"
+  have k1_card: "card (rfrontier ?k1) \<le> Suc ?F"
+    by (rule card_rfrontier_rsimp7_SEQ_atom_rsimp9_RSTAR_le)
+  have "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
+      card (rpath9_atom_frontier_acc r ?k1)"
+    by (rule card_rpath9_atom_frontier_acc_RSTAR_le)
+  also have "... \<le> rsize r * (rsize r + card (rfrontier ?k1))"
+    by (rule RSTAR.hyps)
+  also have "... \<le> rsize r * (rsize r + Suc ?F)"
+  proof -
+    have "rsize r + card (rfrontier ?k1) \<le> rsize r + Suc ?F"
+      using k1_card by linarith
+    then show ?thesis
+      by (rule mult_left_mono) simp
+  qed
+  also have "... \<le> rsize (RSTAR r) * (rsize (RSTAR r) + ?F)"
+    by simp
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    let ?k1 = "rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) k"
+    let ?F = "card (rfrontier k)"
+    have k1_card: "card (rfrontier ?k1) \<le> Suc ?F"
+      by (rule card_rfrontier_rsimp7_SEQ_atom_rsimp9_RNTIMES_le)
+    have "card (rpath9_atom_frontier_acc (RNTIMES r n) k) \<le>
+        card (rpath9_atom_frontier_acc r ?k1)"
+      by (rule card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le)
+        (use Suc in simp)
+    also have "... \<le> rsize r * (rsize r + card (rfrontier ?k1))"
+      by (rule RNTIMES.hyps)
+    also have "... \<le> rsize r * (rsize r + Suc ?F)"
+    proof -
+      have "rsize r + card (rfrontier ?k1) \<le> rsize r + Suc ?F"
+        using k1_card by linarith
+      then show ?thesis
+        by (rule mult_left_mono) simp
+    qed
+    also have "... \<le> rsize (RNTIMES r n) *
+        (rsize (RNTIMES r n) + ?F)"
+    proof -
+      have left: "rsize r \<le> rsize (RNTIMES r n)"
+        using Suc by simp
+      have right: "rsize r + Suc ?F \<le> rsize (RNTIMES r n) + ?F"
+        using Suc by simp
+      show ?thesis
+        by (rule mult_mono[OF left right]) simp_all
+    qed
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  let ?F = "card (rfrontier k)"
+  have "card (rpath9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k) \<le>
+      card (rpath9_atom_frontier_acc r1 k) +
+      card (rpath9_atom_frontier_acc r2 k) +
+      card (rpath9_atom_frontier_acc r3 k) +
+      card (rpath9_atom_frontier_acc r4 k)"
+    using card_Un4_le[of "rpath9_atom_frontier_acc r1 k"
+      "rpath9_atom_frontier_acc r2 k"
+      "rpath9_atom_frontier_acc r3 k"
+      "rpath9_atom_frontier_acc r4 k"] by simp
+  also have "... \<le>
+      rsize r1 * (rsize r1 + ?F) +
+      rsize r2 * (rsize r2 + ?F) +
+      rsize r3 * (rsize r3 + ?F) +
+      rsize r4 * (rsize r4 + ?F)"
+  proof -
+    have r1: "card (rpath9_atom_frontier_acc r1 k) \<le>
+        rsize r1 * (rsize r1 + ?F)"
+      by (rule RBACKREF4.hyps(1))
+    have r2: "card (rpath9_atom_frontier_acc r2 k) \<le>
+        rsize r2 * (rsize r2 + ?F)"
+      by (rule RBACKREF4.hyps(2))
+    have r3: "card (rpath9_atom_frontier_acc r3 k) \<le>
+        rsize r3 * (rsize r3 + ?F)"
+      by (rule RBACKREF4.hyps(3))
+    have r4: "card (rpath9_atom_frontier_acc r4 k) \<le>
+        rsize r4 * (rsize r4 + ?F)"
+      by (rule RBACKREF4.hyps(4))
+    show ?thesis
+      using r1 r2 r3 r4 by linarith
+  qed
+  also have "... \<le>
+      (rsize r1 + rsize r2 + rsize r3 + rsize r4) *
+      (rsize r1 + rsize r2 + rsize r3 + rsize r4 + ?F)"
+    using sum_list_rsize_times_rsize_plus_le[
+      where rs = "[r1, r2, r3, r4]" and n = ?F]
+    by (simp add: algebra_simps)
+  also have "... \<le>
+      rsize (RBACKREF4 r1 r2 r3 r4 cs) *
+      (rsize (RBACKREF4 r1 r2 r3 r4 cs) + ?F)"
+    by simp
+  finally show ?case .
+next
+  case (RHALF r cs rep)
+  have "card (rpath9_atom_frontier_acc (RHALF r cs rep) k) =
+      card (rpath9_atom_frontier_acc r k)"
+    by simp
+  also have "... \<le>
+      rsize r * (rsize r + card (rfrontier k))"
+    by (rule RHALF.hyps)
+  also have "... \<le>
+      rsize (RHALF r cs rep) *
+      (rsize (RHALF r cs rep) + card (rfrontier k))"
+    by simp
+  finally show ?case .
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma card_rpath9_atom_frontiers_quadratic:
+  "card (rpath9_atom_frontiers r) \<le> (rsize r + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers r) \<le>
+      rsize r * (rsize r + card (rfrontier RONE))"
+    unfolding rpath9_atom_frontiers_def
+    by (rule card_rpath9_atom_frontier_acc_le_size_frontier)
+  also have "... \<le> (rsize r + 2)\<^sup>2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma card_rpath9_atom_frontiers_RSEQ_le:
   "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
     card (rpath9_atom_frontier_acc r1
@@ -10780,6 +11036,32 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_rpath9_atom_frontiers_RSEQ_quadratic_seq_RONEI:
+  assumes left:
+      "card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)) \<le>
+        rsize r1 * (rsize (RSEQ (RSEQ r1 r2) RONE) + 2)"
+    and right:
+      "card (rpath9_atom_frontiers r2) \<le> (rsize r2 + 2)\<^sup>2"
+  shows "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+    (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+      card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)) +
+      card (rpath9_atom_frontiers r2)"
+    by (rule card_rpath9_atom_frontiers_RSEQ_le)
+  also have "... \<le>
+      rsize r1 * (rsize (RSEQ (RSEQ r1 r2) RONE) + 2) +
+      (rsize r2 + 2)\<^sup>2"
+    using left right by linarith
+  also have "... \<le> (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+    using seq_component_product_seq_RONE_plus_child_square_le
+      [of "rsize r1" "rsize r2"]
+    by (simp add: algebra_simps power2_eq_square)
+  finally show ?thesis .
+qed
+
 lemma card_rpath9_atom_frontiers_RSTAR_quadraticI:
   assumes body: "card (rpath9_atom_frontier_acc r
       (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE)) \<le>
@@ -10795,6 +11077,24 @@ proof -
     by (rule body)
   also have "... \<le> (rsize (RSTAR r) + 2)\<^sup>2"
     by (rule component_product_le_square) simp
+  finally show ?thesis .
+qed
+
+lemma card_rpath9_atom_frontiers_RSTAR_quadratic_seq_RONEI:
+  assumes body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE)) \<le>
+      rsize r * (rsize (RSEQ (RSTAR r) RONE) + 2)"
+  shows "card (rpath9_atom_frontiers (RSTAR r)) \<le>
+    (rsize (RSTAR r) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RSTAR r)) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE))"
+    by (rule card_rpath9_atom_frontiers_RSTAR_le)
+  also have "... \<le> rsize r * (rsize (RSEQ (RSTAR r) RONE) + 2)"
+    by (rule body)
+  also have "... \<le> (rsize (RSTAR r) + 2)\<^sup>2"
+    by (rule component_product_seq_RONE_le_square) simp
   finally show ?thesis .
 qed
 
@@ -10814,6 +11114,26 @@ proof -
     by (rule body)
   also have "... \<le> (rsize (RNTIMES r n) + 2)\<^sup>2"
     by (rule component_product_le_square) simp
+  finally show ?thesis .
+qed
+
+lemma card_rpath9_atom_frontiers_RNTIMES_nonzero_quadratic_seq_RONEI:
+  assumes n: "n \<noteq> 0"
+    and body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE)) \<le>
+      rsize r * (rsize (RSEQ (RNTIMES r n) RONE) + 2)"
+  shows "card (rpath9_atom_frontiers (RNTIMES r n)) \<le>
+    (rsize (RNTIMES r n) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RNTIMES r n)) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE))"
+    by (rule card_rpath9_atom_frontiers_RNTIMES_nonzero_le[OF n])
+  also have "... \<le>
+      rsize r * (rsize (RSEQ (RNTIMES r n) RONE) + 2)"
+    by (rule body)
+  also have "... \<le> (rsize (RNTIMES r n) + 2)\<^sup>2"
+    by (rule component_product_seq_RONE_le_square) simp
   finally show ?thesis .
 qed
 

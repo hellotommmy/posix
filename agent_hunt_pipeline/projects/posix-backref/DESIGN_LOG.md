@@ -677,3 +677,26 @@ to be read before continuing long-running agent work.
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI`
   and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`
   lift the predecessor countdown budget to the current countdown parent.
+
+## 2026-05-31: Path9 frontier cardinality closed
+
+- The path9 frontier cardinality route now has a checked direct accumulator
+  induction:
+  `card_rpath9_atom_frontier_acc_le_size_frontier`.
+- The key design shift is to bound an accumulator by
+  `rsize r * (rsize r + card (rfrontier k))`, not by repeatedly trying to
+  normalize or syntactically compare the carried tail. This makes `RSTAR` and
+  nonzero `RNTIMES` manageable because the normalized star/countdown tail only
+  increases frontier cardinality by one:
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RSTAR_le` and
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RNTIMES_le`.
+- The resulting top-level theorem
+  `card_rpath9_atom_frontiers_quadratic` proves
+  `card (rpath9_atom_frontiers r) <= (rsize r + 2)^2`.
+- The relaxed constructor interfaces
+  `card_rpath9_atom_frontiers_RSEQ_quadratic_seq_RONEI`,
+  `card_rpath9_atom_frontiers_RSTAR_quadratic_seq_RONEI`, and
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadratic_seq_RONEI` are checked
+  for future handoff proofs that naturally produce an `RSEQ parent RONE`
+  budget. Next BR-036 step: prove the matching linear member-size theorem and
+  then connect path9 closure to `rpder_norm9_list`.
