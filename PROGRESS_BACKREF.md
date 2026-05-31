@@ -239,6 +239,19 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. These deliberately
   avoid the false-looking full child-universe monotonicity and only transport
   flattened rows/frontier atoms into the parent target.
+  Added carried-frontier parent inclusions for sequence, star, and counted
+  repetition:
+  `rpath9_atom_frontiers_universe`,
+  `rpath9_atom_frontiers_seq_left_subset`,
+  `rpath9_atom_frontiers_seq_left_universe`,
+  `rpath9_atom_frontiers_seq_right_subset`,
+  `rpath9_atom_frontiers_seq_right_universe`,
+  `rpath9_atom_frontiers_star_body_subset`,
+  `rpath9_atom_frontiers_star_body_universe`,
+  `rpath9_atom_frontiers_ntimes_body_subset`, and
+  `rpath9_atom_frontiers_ntimes_body_universe`. These are the checked parent
+  membership facts needed before turning `RSEQ/RSTAR/RNTIMES` derivative
+  splitters into path9 closure lemmas.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

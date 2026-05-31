@@ -80,7 +80,17 @@ immutability.
   `rpath9_atom_frontiers_alt_child_subset`,
   `rpath9_atom_frontiers_alt_child_universe`,
   `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
-  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`.
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. The carried
+  constructor parent-inclusion facts are
+  `rpath9_atom_frontiers_universe`,
+  `rpath9_atom_frontiers_seq_left_subset`,
+  `rpath9_atom_frontiers_seq_left_universe`,
+  `rpath9_atom_frontiers_seq_right_subset`,
+  `rpath9_atom_frontiers_seq_right_universe`,
+  `rpath9_atom_frontiers_star_body_subset`,
+  `rpath9_atom_frontiers_star_body_universe`,
+  `rpath9_atom_frontiers_ntimes_body_subset`, and
+  `rpath9_atom_frontiers_ntimes_body_universe`.
 
 ## Completed
 

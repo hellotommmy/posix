@@ -183,7 +183,18 @@ Research tactics:
   `rpath9_atom_frontiers_alt_child_subset`,
   `rpath9_atom_frontiers_alt_child_universe`,
   `rpder_norm9_path9_atom_frontier_step_RALTS_parentI`, and
-  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`.
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. Carried-frontier
+  parent inclusions are checked:
+  `rpath9_atom_frontiers_universe`,
+  `rpath9_atom_frontiers_seq_left_subset`,
+  `rpath9_atom_frontiers_seq_left_universe`,
+  `rpath9_atom_frontiers_seq_right_subset`,
+  `rpath9_atom_frontiers_seq_right_universe`,
+  `rpath9_atom_frontiers_star_body_subset`,
+  `rpath9_atom_frontiers_star_body_universe`,
+  `rpath9_atom_frontiers_ntimes_body_subset`, and
+  `rpath9_atom_frontiers_ntimes_body_universe`. Next target: connect these to
+  the existing `rpder_norm9_live_row_step_RSEQ/RSTAR/RNTIMES` splitters.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

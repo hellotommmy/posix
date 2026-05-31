@@ -10110,6 +10110,66 @@ lemma rpath9_atom_frontiers_alt_child_universe:
   using rpath9_atom_frontiers_alt_child_subset[OF assms(1)] assms(2)
   by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
 
+lemma rpath9_atom_frontiers_universe:
+  "rpath9_atom_frontiers r \<subseteq>
+    partial_derivative_path9_atom_frontier_universe r"
+  by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
+
+lemma rpath9_atom_frontiers_seq_left_subset:
+  "rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE) \<subseteq>
+    rpath9_atom_frontiers (RSEQ r1 r2)"
+  by (auto simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_seq_left_universe:
+  assumes "x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE)"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  using assms rpath9_atom_frontiers_seq_left_subset
+    rpath9_atom_frontiers_universe[of "RSEQ r1 r2"]
+  by blast
+
+lemma rpath9_atom_frontiers_seq_right_subset:
+  "rpath9_atom_frontiers r2 \<subseteq> rpath9_atom_frontiers (RSEQ r1 r2)"
+  by (auto simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_seq_right_universe:
+  assumes "x \<in> rpath9_atom_frontiers r2"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  using assms rpath9_atom_frontiers_seq_right_subset
+    rpath9_atom_frontiers_universe[of "RSEQ r1 r2"]
+  by blast
+
+lemma rpath9_atom_frontiers_star_body_subset:
+  "rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE) \<subseteq>
+    rpath9_atom_frontiers (RSTAR r)"
+  by (auto simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_star_body_universe:
+  assumes "x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE)"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+  using assms rpath9_atom_frontiers_star_body_subset
+    rpath9_atom_frontiers_universe[of "RSTAR r"]
+  by blast
+
+lemma rpath9_atom_frontiers_ntimes_body_subset:
+  assumes "n \<noteq> 0"
+  shows "rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE) \<subseteq>
+    rpath9_atom_frontiers (RNTIMES r n)"
+  using assms by (auto simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_ntimes_body_universe:
+  assumes "n \<noteq> 0"
+    and "x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE)"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+  using assms rpath9_atom_frontiers_ntimes_body_subset
+    rpath9_atom_frontiers_universe[of "RNTIMES r n"]
+  by blast
+
 lemma rpder_norm9_path9_atom_frontier_step_RZERO [simp]:
   "set (rflts (rpder_norm9_list c RZERO)) \<subseteq>
     partial_derivative_path9_atom_frontier_universe r"

@@ -209,6 +209,18 @@ to be read before continuing long-running agent work.
   `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI`. This is a
   deliberately weaker replacement for full child-universe monotonicity, which
   is suspicious because `rsimp9 (RALTS rs)` flattens child alternatives.
+- Carried-frontier parent inclusions are checked for the constructors that
+  matter next: `rpath9_atom_frontiers_universe`,
+  `rpath9_atom_frontiers_seq_left_subset`,
+  `rpath9_atom_frontiers_seq_left_universe`,
+  `rpath9_atom_frontiers_seq_right_subset`,
+  `rpath9_atom_frontiers_seq_right_universe`,
+  `rpath9_atom_frontiers_star_body_subset`,
+  `rpath9_atom_frontiers_star_body_universe`,
+  `rpath9_atom_frontiers_ntimes_body_subset`, and
+  `rpath9_atom_frontiers_ntimes_body_universe`. Next proof layer should connect
+  these parent inclusions to the existing `rpder_norm9_live_row_step_*`
+  splitters.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
