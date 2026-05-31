@@ -268,6 +268,16 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`. This removes
   the `RSEQ` nullable-right child-to-parent universe obligation from the next
   closure layer; the remaining hard part is the carried left/body branch.
+  Added the checked normalized-alternative child lifts
+  `partial_derivative_path9_atom_frontier_universe_RALTS_flat_child_subset`,
+  `rsubterms_nonalt_flattened_subterms`,
+  `rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset`,
+  `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`. The key point is
+  that a full child-universe lift for nested `RALTS` is too strong after
+  flattening; the checked version lifts the flattened rows and the nonalt
+  derivative rows actually produced by `rpder_norm9_list`.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

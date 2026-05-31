@@ -236,6 +236,16 @@ to be read before continuing long-running agent work.
   and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`. Future
   `RSEQ` path9 closure work should spend effort on the carried left branch,
   not on re-proving the nullable right side.
+- The `RALTS`/`rsimp_ALTs` child-to-parent lift must respect flattening. A
+  full `partial_derivative_path9_atom_frontier_universe q` subset is too strong
+  for nested alternatives, because parent normalization may flatten away the
+  child `RALTS` node. The checked facts instead lift the data that matters for
+  rows: `partial_derivative_path9_atom_frontier_universe_RALTS_flat_child_subset`,
+  `rsubterms_nonalt_flattened_subterms`,
+  `rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset`,
+  `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

@@ -207,6 +207,15 @@ Research tactics:
   `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
   and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`; next work
   should discharge the carried left/body branch subset premises.
+  The normalized-alternative child lifts are checked:
+  `partial_derivative_path9_atom_frontier_universe_RALTS_flat_child_subset`,
+  `rsubterms_nonalt_flattened_subterms`,
+  `rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset`,
+  `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`. Do not try to prove
+  full child-universe inclusion for nested `RALTS`; parent flattening can erase
+  that node, while derivative rows are nonalt and covered by the checked lifts.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

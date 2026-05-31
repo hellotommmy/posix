@@ -100,6 +100,13 @@ immutability.
   `rsubterms_rsimp9_RSEQ_right_nullable_universe`,
   `partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset`,
   and `rpder_norm9_path9_atom_frontier_step_RSEQ_parent_childI`.
+  The normalized-alternative child lifts are checked:
+  `partial_derivative_path9_atom_frontier_universe_RALTS_flat_child_subset`,
+  `rsubterms_nonalt_flattened_subterms`,
+  `rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset`,
+  `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
+  `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
+  `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`.
 
 ## Completed
 

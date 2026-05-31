@@ -10115,6 +10115,110 @@ lemma rpath9_atom_frontiers_alt_child_universe:
   using rpath9_atom_frontiers_alt_child_subset[OF assms(1)] assms(2)
   by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
 
+lemma partial_derivative_path9_atom_frontier_universe_RALTS_flat_child_subset:
+  assumes "q \<in> set rs"
+  shows "insert RZERO
+      (insert RONE (set (rflts [rsimp9 q]) \<union> rpath9_atom_frontiers q)) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+proof
+  fix x
+  assume x: "x \<in> insert RZERO
+      (insert RONE (set (rflts [rsimp9 q]) \<union> rpath9_atom_frontiers q))"
+  then consider "x = RZERO" | "x = RONE" |
+      "x \<in> set (rflts [rsimp9 q])" |
+      "x \<in> rpath9_atom_frontiers q"
+    by auto
+  then show "x \<in> partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+  proof cases
+    case 1
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 2
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 3
+    then show ?thesis
+      using rflts_rsimp9_alt_child_path9_atom_subset[OF assms] by blast
+  next
+    case 4
+    then show ?thesis
+      using rpath9_atom_frontiers_alt_child_universe[OF assms] by blast
+  qed
+qed
+
+lemma rsubterms_nonalt_flattened_subterms:
+  assumes "nonalt x" "x \<in> rsubterms r"
+  shows "x = RZERO \<or> (\<exists>y \<in> set (rflts [r]). x \<in> rsubterms y)"
+  using assms by (cases r) auto
+
+lemma rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset:
+  assumes q: "q \<in> set rs"
+    and nonalt: "nonalt x"
+    and x: "x \<in> rsubterms (rsimp9 q)"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+proof -
+  have flat_cases:
+    "x = RZERO \<or> (\<exists>y \<in> set (rflts [rsimp9 q]). x \<in> rsubterms y)"
+    by (rule rsubterms_nonalt_flattened_subterms[OF nonalt x])
+  then show ?thesis
+  proof
+    assume "x = RZERO"
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    assume "\<exists>y \<in> set (rflts [rsimp9 q]). x \<in> rsubterms y"
+    then obtain y where y:
+      "y \<in> set (rflts [rsimp9 q])"
+      "x \<in> rsubterms y"
+      by blast
+    have y_flat: "y \<in> set (rflts (map rsimp9 rs))"
+      by (rule set_rflts_singleton_map_member[where f=rsimp9, OF q y(1)])
+    let ?ys = "rdistinct (rflts (map rsimp9 rs)) {}"
+    have y_distinct: "y \<in> set ?ys"
+      using y_flat by (simp add: rdistinct_set_equality)
+    then have y_sub: "y \<in> rsubterms (rsimp_ALTs ?ys)"
+      by (rule rsubterms_rsimp_ALTs_member)
+    have "x \<in> rsubterms (rsimp_ALTs ?ys)"
+      using y(2) y_sub rsubterms_trans by blast
+    then have "x \<in> rsubterms (rsimp9 (RALTS rs))"
+      by simp
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  qed
+qed
+
+lemma partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member:
+  assumes q: "q \<in> set rs"
+    and nonalt: "nonalt x"
+    and x: "x \<in> partial_derivative_path9_atom_frontier_universe q"
+  shows "x \<in> partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+proof -
+  consider "x = RZERO" | "x = RONE" |
+      "x \<in> rsubterms (rsimp9 q)" |
+      "x \<in> rpath9_atom_frontiers q"
+    using x by (auto simp add: partial_derivative_path9_atom_frontier_universe_def)
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 2
+    then show ?thesis
+      by (simp add: partial_derivative_path9_atom_frontier_universe_def)
+  next
+    case 3
+    then show ?thesis
+      by (rule rsubterms_rsimp9_alt_child_nonalt_path9_atom_subset[OF q nonalt])
+  next
+    case 4
+    then show ?thesis
+      using rpath9_atom_frontiers_alt_child_universe[OF q] by blast
+  qed
+qed
+
 lemma rpath9_atom_frontiers_universe:
   "rpath9_atom_frontiers r \<subseteq>
     partial_derivative_path9_atom_frontier_universe r"
@@ -10328,6 +10432,30 @@ lemma rpder_norm9_path9_atom_frontier_step_RALTS_parentI:
     partial_derivative_path9_atom_frontier_universe (RALTS rs)"
   by (rule rpder_norm9_live_row_step_RALTSI) (use assms in auto)
 
+lemma rpder_norm9_path9_atom_frontier_step_RALTS_childI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe q"
+  shows "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RALTS_parentI)
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (rflts (rpder_norm9_list c q)) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+  proof
+    fix x
+    assume x: "x \<in> set (rflts (rpder_norm9_list c q))"
+    have child: "x \<in> partial_derivative_path9_atom_frontier_universe q"
+      using assms[OF q] x by blast
+    have nonalt: "nonalt x"
+      using good_rflts_rpder_norm9_list[of c q] x by blast
+    show "x \<in> partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+      by (rule partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member
+          [OF q nonalt child])
+  qed
+qed
+
 lemma rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI:
   assumes "\<And>q. q \<in> set rs \<Longrightarrow>
     set (rflts (rpder_norm9_list c q)) \<subseteq>
@@ -10368,6 +10496,36 @@ next
       by (rule rpder_norm9_path9_atom_frontier_step_RALTS_parentI[OF step_alt])
     show ?thesis
       using ralts alt by simp
+  qed
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe q"
+  shows "set (rflts (rpder_norm9_list c (rsimp_ALTs rs))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using Cons assms[of q] by simp
+  next
+    case (Cons q' qs')
+    have alt: "rsimp_ALTs rs = RALTS rs"
+      using rs_cons \<open>qs = q' # qs'\<close> by simp
+    have ralts: "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+      by (rule rpder_norm9_path9_atom_frontier_step_RALTS_childI[OF assms])
+    show ?thesis
+      using alt ralts by simp
   qed
 qed
 
