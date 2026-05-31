@@ -5005,6 +5005,42 @@ proof -
     by (simp add: rpder_norm_rows_def)
 qed
 
+lemma rpders_norm_rows_frontier_universe_subsetI:
+  assumes init: "set rs \<subseteq> partial_derivative_frontier_universe r"
+      and step: "\<And>q c. q \<in> partial_derivative_frontier_universe r \<Longrightarrow>
+        set (rpder_norm_list c q) \<subseteq> partial_derivative_frontier_universe r"
+  shows "set (rpders_norm_rows rs s) \<subseteq>
+    partial_derivative_frontier_universe r"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_subset: "set (rpder_norm_rows c rs) \<subseteq>
+    partial_derivative_frontier_universe r"
+    by (rule rpder_norm_rows_frontier_universe_subsetI)
+      (use Cons.prems step in auto)
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
+lemma rpders_norm1_rows_frontier_universe_subsetI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_frontier_universe r \<Longrightarrow>
+    set (rpder_norm_list c q) \<subseteq> partial_derivative_frontier_universe r"
+  shows "set (rpders_norm1_rows r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+proof -
+  have "set [r] \<subseteq> partial_derivative_frontier_universe r"
+    by (simp add: partial_derivative_frontier_universe_subterm)
+  then have "set (rpders_norm_rows [r] s) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule rpders_norm_rows_frontier_universe_subsetI)
+      (use step in auto)
+  then show ?thesis
+    by (simp add: rpders_norm1_rows_def)
+qed
+
 lemma rsizes_filter_partition:
   "rsizes rs =
     rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
