@@ -112,6 +112,13 @@ to be read before continuing long-running agent work.
   one-step/row closure machinery from `rpder_norm8_list` to `rpder_norm9_list`,
   then migrate the corresponding annotated `bsimp` only after the proof-level
   closure target is stable.
+- The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
+  `rpders_norm9_rows`, has finite/distinct support, preserves language through
+  `RLS_rpders_norm19_rows`, and has the conditional cubic theorem
+  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`. This deliberately keeps
+  the final hard obligation explicit: prove the one-step inclusion
+  `set (rflts (rpder_norm9_list c q)) <=
+  partial_derivative_live_row_universe (rsimp9 r)` for live-row states `q`.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity

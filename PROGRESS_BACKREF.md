@@ -115,6 +115,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES-body prototype)
   `norm19_closes_RNTIMES_body_normalization_obstruction`. This does not yet
   claim BR-036; it identifies a checked conservative redesign candidate for
   the next `bsimp` migration.
+  Added the checked norm19 row-driver runway:
+  `rders_pder_norm9`, `rpders_norm9_set`, `rpders_norm19`,
+  `rpders_norm9_rows`, `rpders_norm19_rows`, finite/distinct facts,
+  `RLS_rpders_norm19`, `RLS_rpders_norm19_rows`,
+  `RL_rders_pder_norm9`, the generic
+  `rpders_norm19_rows_rflts_subsetI`, and the conditional cubic hook
+  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`. The remaining proof
+  work is now the one-step live-row closure premise for `rpder_norm9_list`.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

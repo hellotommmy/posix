@@ -1112,6 +1112,10 @@ fun rders_pder_norm8 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
   "rders_pder_norm8 r [] = r"
 | "rders_pder_norm8 r (c # s) = rders_pder_norm8 (rpd_der_norm8 c r) s"
 
+fun rders_pder_norm9 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "rders_pder_norm9 r [] = r"
+| "rders_pder_norm9 r (c # s) = rders_pder_norm9 (rpd_der_norm9 c r) s"
+
 fun rpders_norm_set :: "rrexp set \<Rightarrow> string \<Rightarrow> rrexp set" where
   "rpders_norm_set rs [] = rs"
 | "rpders_norm_set rs (c # s) = rpders_norm_set (rpder_norm_set c rs) s"
@@ -1128,6 +1132,10 @@ fun rpders_norm8_set :: "rrexp set \<Rightarrow> string \<Rightarrow> rrexp set"
   "rpders_norm8_set rs [] = rs"
 | "rpders_norm8_set rs (c # s) = rpders_norm8_set (rpder_norm8_set c rs) s"
 
+fun rpders_norm9_set :: "rrexp set \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders_norm9_set rs [] = rs"
+| "rpders_norm9_set rs (c # s) = rpders_norm9_set (rpder_norm9_set c rs) s"
+
 definition rpders_norm1 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
   "rpders_norm1 r s = rpders_norm_set {r} s"
 
@@ -1139,6 +1147,9 @@ definition rpders_norm17 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set"
 
 definition rpders_norm18 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
   "rpders_norm18 r s = rpders_norm8_set {r} s"
+
+definition rpders_norm19 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "rpders_norm19 r s = rpders_norm9_set {r} s"
 
 fun rpders_norm_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_norm_rows rs [] = rs"
@@ -1156,6 +1167,10 @@ fun rpders_norm8_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp li
   "rpders_norm8_rows rs [] = rs"
 | "rpders_norm8_rows rs (c # s) = rpders_norm8_rows (rpder_norm8_rows c rs) s"
 
+fun rpders_norm9_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_norm9_rows rs [] = rs"
+| "rpders_norm9_rows rs (c # s) = rpders_norm9_rows (rpder_norm9_rows c rs) s"
+
 definition rpders_norm1_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_norm1_rows r s = rpders_norm_rows [r] s"
 
@@ -1167,6 +1182,9 @@ definition rpders_norm17_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp
 
 definition rpders_norm18_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_norm18_rows r s = rpders_norm8_rows [r] s"
+
+definition rpders_norm19_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_norm19_rows r s = rpders_norm9_rows [r] s"
 
 lemma finite_rpder_norm_set [simp]:
   assumes "finite rs"
@@ -1188,6 +1206,11 @@ lemma finite_rpder_norm8_set [simp]:
   shows "finite (rpder_norm8_set c rs)"
   using assms unfolding rpder_norm8_set_def by auto
 
+lemma finite_rpder_norm9_set [simp]:
+  assumes "finite rs"
+  shows "finite (rpder_norm9_set c rs)"
+  using assms unfolding rpder_norm9_set_def by auto
+
 lemma finite_rpders_norm_set [simp]:
   assumes "finite rs"
   shows "finite (rpders_norm_set rs s)"
@@ -1208,6 +1231,11 @@ lemma finite_rpders_norm8_set [simp]:
   shows "finite (rpders_norm8_set rs s)"
   using assms by (induct s arbitrary: rs) auto
 
+lemma finite_rpders_norm9_set [simp]:
+  assumes "finite rs"
+  shows "finite (rpders_norm9_set rs s)"
+  using assms by (induct s arbitrary: rs) auto
+
 lemma distinct_rpder_norm_rows [simp]:
   "distinct (rpder_norm_rows c rs)"
   by (simp add: rpder_norm_rows_def rdistinct_does_the_job)
@@ -1223,6 +1251,10 @@ lemma distinct_rpder_norm7_rows [simp]:
 lemma distinct_rpder_norm8_rows [simp]:
   "distinct (rpder_norm8_rows c rs)"
   by (simp add: rpder_norm8_rows_def rdistinct_does_the_job)
+
+lemma distinct_rpder_norm9_rows [simp]:
+  "distinct (rpder_norm9_rows c rs)"
+  by (simp add: rpder_norm9_rows_def rdistinct_does_the_job)
 
 lemma distinct_rpders_norm_rows:
   assumes "distinct rs"
@@ -1244,6 +1276,11 @@ lemma distinct_rpders_norm8_rows:
   shows "distinct (rpders_norm8_rows rs s)"
   using assms by (induct s arbitrary: rs) simp_all
 
+lemma distinct_rpders_norm9_rows:
+  assumes "distinct rs"
+  shows "distinct (rpders_norm9_rows rs s)"
+  using assms by (induct s arbitrary: rs) simp_all
+
 lemma distinct_rpders_norm1_rows [simp]:
   "distinct (rpders_norm1_rows r s)"
   by (simp add: rpders_norm1_rows_def distinct_rpders_norm_rows)
@@ -1259,6 +1296,10 @@ lemma distinct_rpders_norm17_rows [simp]:
 lemma distinct_rpders_norm18_rows [simp]:
   "distinct (rpders_norm18_rows r s)"
   by (simp add: rpders_norm18_rows_def distinct_rpders_norm8_rows)
+
+lemma distinct_rpders_norm19_rows [simp]:
+  "distinct (rpders_norm19_rows r s)"
+  by (simp add: rpders_norm19_rows_def distinct_rpders_norm9_rows)
 
 lemma legacy_rpd_der:
   assumes "legacy_rrexp r"
@@ -1556,6 +1597,12 @@ lemma legacy_rders_pder_norm8:
   using assms
   by (induct s arbitrary: r) (auto simp add: legacy_rpd_der_norm8)
 
+lemma legacy_rders_pder_norm9:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_pder_norm9 r s)"
+  using assms
+  by (induct s arbitrary: r) (auto simp add: legacy_rpd_der_norm9)
+
 lemma legacy_rpders_norm_set:
   assumes "\<forall>r \<in> rs. legacy_rrexp r"
       and "p \<in> rpders_norm_set rs s"
@@ -1628,6 +1675,24 @@ next
     by (rule Cons.hyps[OF next_legacy p_next])
 qed
 
+lemma legacy_rpders_norm9_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpders_norm9_set rs s"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_norm9_set c rs. legacy_rrexp r"
+    using Cons.prems(1) legacy_rpder_norm9_set by blast
+  have p_next: "p \<in> rpders_norm9_set (rpder_norm9_set c rs) s"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
 lemma legacy_rpders_norm_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
       and "p \<in> set (rpders_norm_rows rs s)"
@@ -1695,6 +1760,24 @@ next
   have next_legacy: "\<forall>r \<in> set (rpder_norm8_rows c rs). legacy_rrexp r"
     by (rule legacy_rpder_norm8_rows[OF Cons.prems(1)])
   have p_next: "p \<in> set (rpders_norm8_rows (rpder_norm8_rows c rs) s)"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
+lemma legacy_rpders_norm9_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+      and "p \<in> set (rpders_norm9_rows rs s)"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> set (rpder_norm9_rows c rs). legacy_rrexp r"
+    by (rule legacy_rpder_norm9_rows[OF Cons.prems(1)])
+  have p_next: "p \<in> set (rpders_norm9_rows (rpder_norm9_rows c rs) s)"
     using Cons.prems(2) by simp
   show ?case
     by (rule Cons.hyps[OF next_legacy p_next])
@@ -2115,6 +2198,28 @@ next
   finally show ?case .
 qed
 
+lemma RLS_rpders_norm9_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpders_norm9_set rs s) = Ders s (RLS rs)"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> rpder_norm9_set c rs. legacy_rrexp r"
+    using Cons.prems legacy_rpder_norm9_set by blast
+  have "RLS (rpders_norm9_set rs (c # s)) =
+    Ders s (RLS (rpder_norm9_set c rs))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS rs))"
+    by (simp add: RLS_rpder_norm9_set[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS rs)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
 lemma RLS_rpders_norm1:
   assumes "legacy_rrexp r"
   shows "RLS (rpders_norm1 r s) = Ders s (RL r)"
@@ -2138,6 +2243,12 @@ lemma RLS_rpders_norm18:
   shows "RLS (rpders_norm18 r s) = Ders s (RL r)"
   using RLS_rpders_norm8_set[of "{r}" s] assms
   by (simp add: rpders_norm18_def RLS_def)
+
+lemma RLS_rpders_norm19:
+  assumes "legacy_rrexp r"
+  shows "RLS (rpders_norm19 r s) = Ders s (RL r)"
+  using RLS_rpders_norm9_set[of "{r}" s] assms
+  by (simp add: rpders_norm19_def RLS_def)
 
 lemma RLS_rpders_norm_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
@@ -2227,6 +2338,28 @@ next
   finally show ?case .
 qed
 
+lemma RLS_rpders_norm9_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpders_norm9_rows rs s)) = Ders s (RLS (set rs))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> set (rpder_norm9_rows c rs). legacy_rrexp r"
+    by (rule legacy_rpder_norm9_rows[OF Cons.prems])
+  have "RLS (set (rpders_norm9_rows rs (c # s))) =
+    Ders s (RLS (set (rpder_norm9_rows c rs)))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS (set rs)))"
+    by (simp add: RLS_rpder_norm9_rows[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS (set rs))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
 lemma RLS_rpders_norm1_rows:
   assumes "legacy_rrexp r"
   shows "RLS (set (rpders_norm1_rows r s)) = Ders s (RL r)"
@@ -2250,6 +2383,12 @@ lemma RLS_rpders_norm18_rows:
   shows "RLS (set (rpders_norm18_rows r s)) = Ders s (RL r)"
   using RLS_rpders_norm8_rows[of "[r]" s] assms
   by (simp add: rpders_norm18_rows_def RLS_def)
+
+lemma RLS_rpders_norm19_rows:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (rpders_norm19_rows r s)) = Ders s (RL r)"
+  using RLS_rpders_norm9_rows[of "[r]" s] assms
+  by (simp add: rpders_norm19_rows_def RLS_def)
 
 lemma RL_rders_pder_norm:
   assumes "legacy_rrexp r"
@@ -2326,6 +2465,26 @@ next
     by (simp add: Cons.hyps[OF next_legacy])
   also have "... = Ders s (Der c (RL r))"
     by (simp add: RL_rpd_der_norm8[OF Cons.prems])
+  also have "... = Ders (c # s) (RL r)"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RL_rders_pder_norm9:
+  assumes "legacy_rrexp r"
+  shows "RL (rders_pder_norm9 r s) = Ders s (RL r)"
+  using assms
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "legacy_rrexp (rpd_der_norm9 c r)"
+    by (rule legacy_rpd_der_norm9[OF Cons.prems])
+  have "RL (rders_pder_norm9 r (c # s)) = Ders s (RL (rpd_der_norm9 c r))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RL r))"
+    by (simp add: RL_rpd_der_norm9[OF Cons.prems])
   also have "... = Ders (c # s) (RL r)"
     by (simp add: Ders_Cons)
   finally show ?case .
@@ -7055,6 +7214,27 @@ proof -
     by (simp add: rpder_norm8_rows_def)
 qed
 
+lemma rpder_norm9_rows_rflts_subsetI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow> set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+  shows "set (rpder_norm9_rows c rs) \<subseteq> U"
+proof -
+  have flat: "set (rflts (concat (map (rpder_norm9_list c) rs))) \<subseteq> U"
+  proof
+    fix p
+    assume p: "p \<in> set (rflts (concat (map (rpder_norm9_list c) rs)))"
+    have "set (rflts (concat (map (rpder_norm9_list c) rs))) \<subseteq>
+      (\<Union>q \<in> set rs. set (rflts (rpder_norm9_list c q)))"
+      by (induct rs) (auto simp add: flts_append)
+    then show "p \<in> U"
+      using p assms by blast
+  qed
+  have "set (rdistinct
+      (rflts (concat (map (rpder_norm9_list c) rs))) {}) \<subseteq> U"
+    by (rule set_rdistinct_subset[OF flat])
+  then show ?thesis
+    by (simp add: rpder_norm9_rows_def)
+qed
+
 lemma rpders_norm_rows_frontier_universe_subsetI:
   assumes init: "set rs \<subseteq> partial_derivative_frontier_universe r"
       and step: "\<And>q c. q \<in> partial_derivative_frontier_universe r \<Longrightarrow>
@@ -7294,6 +7474,29 @@ next
     by (simp add: Cons.hyps[OF next_subset])
 qed
 
+lemma rpders_norm9_rows_rflts_subsetI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+  shows "set (rpders_norm9_rows rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_subset: "set (rpder_norm9_rows c rs) \<subseteq> U"
+  proof (rule rpder_norm9_rows_rflts_subsetI)
+    fix q
+    assume q: "q \<in> set rs"
+    have "q \<in> U"
+      using Cons.prems q by blast
+    then show "set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+      by (rule step)
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
 lemma rpders_norm17_rows_rflts_subsetI:
   assumes init: "r \<in> U"
       and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm7_list c q)) \<subseteq> U"
@@ -7320,6 +7523,20 @@ proof -
       (use step in auto)
   then show ?thesis
     by (simp add: rpders_norm18_rows_def)
+qed
+
+lemma rpders_norm19_rows_rflts_subsetI:
+  assumes init: "r \<in> U"
+      and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+  shows "set (rpders_norm19_rows r s) \<subseteq> U"
+proof -
+  have "set [r] \<subseteq> U"
+    using init by simp
+  then have "set (rpders_norm9_rows [r] s) \<subseteq> U"
+    by (rule rpders_norm9_rows_rflts_subsetI)
+      (use step in auto)
+  then show ?thesis
+    by (simp add: rpders_norm19_rows_def)
 qed
 
 lemma rsizes_filter_partition:
@@ -7621,6 +7838,46 @@ proof -
   have size: "rsize (rsimp8 r) + 3 \<le> rsize r + 3"
     using rsize_rsimp8_le[of r] by simp
   have "2 * (rsize (rsimp8 r) + 3) ^ 3 \<le> 2 * (rsize r + 3) ^ 3"
+    using power_mono[OF size, of 3] by simp
+  then show ?thesis
+    using base by linarith
+qed
+
+lemma rsizes_rpders_norm19_rows_live_row_universe_cubic:
+  assumes "set (rpders_norm19_rows r s) \<subseteq>
+    partial_derivative_live_row_universe r"
+  shows "rsizes (rpders_norm19_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_live_row_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm19_rows_live_row_universe_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_live_row_universe r"
+  shows "rsizes (rpders_norm19_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_live_row_universe r"
+    by (simp add: partial_derivative_live_row_universe_def)
+  have "set (rpders_norm19_rows r s) \<subseteq>
+      partial_derivative_live_row_universe r"
+    by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm19_rows_live_row_universe_cubic)
+qed
+
+lemma rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe (rsimp9 r) \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_live_row_universe (rsimp9 r)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have base: "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+      2 * (rsize (rsimp9 r) + 3) ^ 3"
+    by (rule rsizes_rpders_norm19_rows_live_row_universe_cubicI[OF step])
+  have size: "rsize (rsimp9 r) + 3 \<le> rsize r + 3"
+    using rsize_rsimp9_le[of r] by simp
+  have "2 * (rsize (rsimp9 r) + 3) ^ 3 \<le> 2 * (rsize r + 3) ^ 3"
     using power_mono[OF size, of 3] by simp
   then show ?thesis
     using base by linarith
