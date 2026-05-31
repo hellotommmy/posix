@@ -123,6 +123,15 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES-body prototype)
   `rpders_norm19_rows_rflts_subsetI`, and the conditional cubic hook
   `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`. The remaining proof
   work is now the one-step live-row closure premise for `rpder_norm9_list`.
+  Added the checked `rpder_norm9` one-step closure infrastructure:
+  `good_rsimp9`, `good_rpder_norm9_list`,
+  `rflts_singleton_rsimp9_live_row_universe`,
+  `rflts_map_rsimp9_live_row_subsetI`,
+  `rflts_map_rsimp9_direct_subsetI`,
+  `rpder_norm9_live_row_step_RZERO/RONE/RCHAR/RALTSI`,
+  `RSEQI`, `RSTARI`, `RNTIMESI`, and the path/direct variants for
+  `RSEQ`, `RSTAR`, and `RNTIMES`. The hard theorem is now reduced to proving
+  the carried-continuation premises for the `rsimp9` normalized root.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

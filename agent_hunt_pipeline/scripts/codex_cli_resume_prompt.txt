@@ -100,9 +100,10 @@ Research tactics:
   `rpders_norm19_rows`, `RLS_rpders_norm19_rows`,
   `rpders_norm19_rows_rflts_subsetI`, and
   `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`.
-  Next target: prove the `rpder_norm9_live_row_step_*` one-step closure
-  lemmas, then migrate the annotated `bsimp` only after the proof-level target
-  is stable.
+  The `rpder_norm9_live_row_step_*` splitter layer and path/direct variants
+  are checked. Next target: use these splitters to prove the carried
+  continuation premises for the `rsimp9` normalized root, then migrate the
+  annotated `bsimp` only after the proof-level target is stable.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

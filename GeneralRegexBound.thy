@@ -4967,6 +4967,37 @@ lemma good_rflts_rpder_norm8_list:
   "\<forall>p \<in> set (rflts (rpder_norm8_list c r)). good p \<and> nonalt p"
   by (rule flts3_good_nonalt[OF good_rpder_norm8_list])
 
+lemma good_rsimp9:
+  shows "good (rsimp9 r) \<or> rsimp9 r = RZERO"
+proof (induction r rule: rsimp9.induct)
+  case (1 r1 r2)
+  then show ?case
+    using good_rsimp7_SEQ_atom by simp
+next
+  case (2 rs)
+  have elems: "\<forall>r \<in> set (map rsimp9 rs). good r \<or> r = RZERO"
+    using 2 by auto
+  show ?case
+    using good_rsimp_ALTs_rdistinct_rflts[OF elems] by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+next
+  case (4 r n)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+qed simp_all
+
+lemma good_rpder_norm9_list:
+  "\<forall>p \<in> set (rpder_norm9_list c r). good p \<or> p = RZERO"
+  unfolding rpder_norm9_list_def
+  using good_rsimp9 by auto
+
+lemma good_rflts_rpder_norm9_list:
+  "\<forall>p \<in> set (rflts (rpder_norm9_list c r)). good p \<and> nonalt p"
+  by (rule flts3_good_nonalt[OF good_rpder_norm9_list])
+
 lemma length_rsimp5_seq_products [simp]:
   "length (rsimp5_seq_products xs ys) = length xs * length ys"
   by (induct xs) auto
@@ -6406,6 +6437,58 @@ next
     by (rule Cons.hyps) (use Cons.prems in auto)
   have "rflts (map rsimp8 (q # qs)) =
       rflts [rsimp8 q] @ rflts (map rsimp8 qs)"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
+lemma rflts_singleton_rsimp9_live_row_universe:
+  "set (rflts [rsimp9 q]) \<subseteq> partial_derivative_live_row_universe (rsimp9 q)"
+  by (rule rflts_singleton_good_live_row_universe[OF good_rsimp9])
+
+lemma rflts_map_rsimp9_live_row_subsetI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow>
+    partial_derivative_live_row_universe (rsimp9 q) \<subseteq> U"
+  shows "set (rflts (map rsimp9 qs)) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [rsimp9 q]) \<subseteq> U"
+  proof -
+    have "set (rflts [rsimp9 q]) \<subseteq>
+        partial_derivative_live_row_universe (rsimp9 q)"
+      by (rule rflts_singleton_rsimp9_live_row_universe)
+    moreover have "partial_derivative_live_row_universe (rsimp9 q) \<subseteq> U"
+      using Cons.prems by simp
+    ultimately show ?thesis by blast
+  qed
+  have tail: "set (rflts (map rsimp9 qs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (map rsimp9 (q # qs)) =
+      rflts [rsimp9 q] @ rflts (map rsimp9 qs)"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
+lemma rflts_map_rsimp9_direct_subsetI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow> set (rflts [rsimp9 q]) \<subseteq> U"
+  shows "set (rflts (map rsimp9 qs)) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [rsimp9 q]) \<subseteq> U"
+    by (rule Cons.prems) simp
+  have tail: "set (rflts (map rsimp9 qs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (map rsimp9 (q # qs)) =
+      rflts [rsimp9 q] @ rflts (map rsimp9 qs)"
     by (simp add: flts_append[symmetric])
   then show ?case
     using head tail by auto
@@ -8207,6 +8290,150 @@ next
     by (simp add: rpder_norm8_list_def rpder_norm_list_def comp_def)
 qed
 
+lemma rpder_norm9_live_row_step_RZERO [simp]:
+  "set (rflts (rpder_norm9_list c RZERO)) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_live_row_step_RONE [simp]:
+  "set (rflts (rpder_norm9_list c RONE)) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_live_row_step_RCHAR [simp]:
+  "set (rflts (rpder_norm9_list c (RCHAR d))) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (cases "c = d") (simp_all add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_live_row_step_RALTSI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq> U"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+next
+  case (Cons q rs)
+  have head: "set (rflts (rpder_norm9_list c q)) \<subseteq> U"
+    by (rule Cons.prems) simp
+  have tail: "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using head tail
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def flts_append)
+qed
+
+lemma rpder_norm9_live_row_step_RALTS_selfI:
+  assumes nonalt: "\<And>q. q \<in> set rs \<Longrightarrow> nonalt q"
+      and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+        set (rflts (rpder_norm9_list c q)) \<subseteq>
+          partial_derivative_live_row_universe q"
+  shows "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+    partial_derivative_live_row_universe (RALTS rs)"
+proof (rule rpder_norm9_live_row_step_RALTSI)
+  fix q
+  assume q: "q \<in> set rs"
+  have "set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_live_row_universe q"
+    by (rule step[OF q])
+  moreover have "partial_derivative_live_row_universe q \<subseteq>
+      partial_derivative_live_row_universe (RALTS rs)"
+    by (rule partial_derivative_live_row_universe_alt_child_mono[OF q nonalt[OF q]])
+  ultimately show "set (rflts (rpder_norm9_list c q)) \<subseteq>
+    partial_derivative_live_row_universe (RALTS rs)"
+    by blast
+qed
+
+lemma rpder_norm9_live_row_step_rsimp_ALTsI:
+  assumes nonalt: "\<And>q. q \<in> set rs \<Longrightarrow> nonalt q"
+      and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+        set (rflts (rpder_norm9_list c q)) \<subseteq>
+          partial_derivative_live_row_universe q"
+  shows "set (rflts (rpder_norm9_list c (rsimp_ALTs rs))) \<subseteq>
+    partial_derivative_live_row_universe (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using Cons step[of q] by simp
+  next
+    case (Cons q' qs')
+    have "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+        partial_derivative_live_row_universe (RALTS rs)"
+      by (rule rpder_norm9_live_row_step_RALTS_selfI)
+        (use nonalt step in auto)
+    moreover have "rsimp_ALTs rs = RALTS rs"
+      using rs_cons \<open>qs = q' # qs'\<close> by simp
+    then show ?thesis
+      using calculation by simp
+  qed
+qed
+
+lemma rpder_norm9_live_row_step_RSEQI:
+  assumes left:
+    "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq> U"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq> U"
+proof (cases "rnullable r1")
+  case True
+  have "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) =
+      set (rflts
+        (map rsimp9
+          (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+            (rpder_list c r1)))) \<union>
+      set (rflts (rpder_norm9_list c r2))"
+    using True
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def flts_append comp_def)
+  then show ?thesis
+    using left right[OF True] by blast
+next
+  case False
+  then show ?thesis
+    using left
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def comp_def)
+qed
+
+lemma rpder_norm9_live_row_step_RSTARI:
+  assumes body:
+    "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq> U"
+  using body
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def comp_def)
+
+lemma rpder_norm9_live_row_step_RNTIMESI:
+  assumes body:
+    "n \<noteq> 0 \<Longrightarrow> set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq> U"
+proof (cases n)
+  case 0
+  then show ?thesis
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+next
+  case (Suc m)
+  then show ?thesis
+    using body
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def comp_def)
+qed
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
@@ -8571,6 +8798,174 @@ proof (rule rpder_norm8_live_row_step_RNTIMESI)
         (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
           (rpder_list c r)))) \<subseteq> U"
     by (rule rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI[OF legacy_body body])
+qed
+
+lemma rflts_map_rsimp9_rpder_list_path_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r k \<Longrightarrow>
+        partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp9 (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)))) \<subseteq> U"
+proof (rule rflts_map_rsimp9_live_row_subsetI)
+  fix p
+  assume p: "p \<in> set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r))"
+  have subset: "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)) \<subseteq>
+      rder_path_continuations_acc c r k"
+    by (rule rpder_list_path_continuations_acc_subset[OF legacy])
+  then have "p \<in> rder_path_continuations_acc c r k"
+    using p subset by blast
+  then show "partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+    by (rule cont)
+qed
+
+lemma rflts_map_rsimp9_rpder_list_path_direct_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r k \<Longrightarrow>
+        set (rflts [rsimp9 p]) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp9 (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)))) \<subseteq> U"
+proof (rule rflts_map_rsimp9_direct_subsetI)
+  fix p
+  assume p: "p \<in> set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r))"
+  have subset: "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)) \<subseteq>
+      rder_path_continuations_acc c r k"
+    by (rule rpder_list_path_continuations_acc_subset[OF legacy])
+  then have "p \<in> rder_path_continuations_acc c r k"
+    using p by blast
+  then show "set (rflts [rsimp9 p]) \<subseteq> U"
+    by (rule cont)
+qed
+
+lemma rflts_map_rsimp9_rpder_list_norm_tail_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom k RONE) \<Longrightarrow>
+        partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp9
+      (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p k) RONE)
+        (rpder_list c r)))) \<subseteq> U"
+proof -
+  have "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom p (rsimp4_SEQ_atom k RONE))
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_path_subsetI[OF legacy cont])
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_atom_assoc)
+qed
+
+lemma rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom k RONE) \<Longrightarrow>
+        set (rflts [rsimp9 p]) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp9
+      (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p k) RONE)
+        (rpder_list c r)))) \<subseteq> U"
+proof -
+  have "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom p (rsimp4_SEQ_atom k RONE))
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_path_direct_subsetI[OF legacy cont])
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_atom_assoc)
+qed
+
+lemma rpder_norm9_live_row_step_RSEQ_pathI:
+  assumes legacy_left: "legacy_rrexp r1"
+      and left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+          (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+        partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+      and right:
+        "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RSEQI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_subsetI[OF legacy_left left])
+  show "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq> U"
+    by (rule right)
+qed
+
+lemma rpder_norm9_live_row_step_RSEQ_path_directI:
+  assumes legacy_left: "legacy_rrexp r1"
+      and left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+          (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+        set (rflts [rsimp9 p]) \<subseteq> U"
+      and right:
+        "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RSEQI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI[OF legacy_left left])
+  show "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq> U"
+    by (rule right)
+qed
+
+lemma rpder_norm9_live_row_step_RSTAR_pathI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RSTAR r) RONE) \<Longrightarrow>
+        partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RSTARI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_subsetI[OF legacy_body body])
+qed
+
+lemma rpder_norm9_live_row_step_RSTAR_path_directI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RSTAR r) RONE) \<Longrightarrow>
+        set (rflts [rsimp9 p]) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RSTARI)
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI[OF legacy_body body])
+qed
+
+lemma rpder_norm9_live_row_step_RNTIMES_pathI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RNTIMES r (n - 1)) RONE) \<Longrightarrow>
+        partial_derivative_live_row_universe (rsimp9 p) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RNTIMESI)
+  assume "n \<noteq> 0"
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_subsetI[OF legacy_body body])
+qed
+
+lemma rpder_norm9_live_row_step_RNTIMES_path_directI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RNTIMES r (n - 1)) RONE) \<Longrightarrow>
+        set (rflts [rsimp9 p]) \<subseteq> U"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq> U"
+proof (rule rpder_norm9_live_row_step_RNTIMESI)
+  assume "n \<noteq> 0"
+  show "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI[OF legacy_body body])
 qed
 
 lemma rpder_list_path_universe_subset:
