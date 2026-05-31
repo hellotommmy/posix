@@ -6711,6 +6711,19 @@ lemma raw_live_row_universe_not_closed_under_norm7:
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_def rsimp7_seq_products_def rsimp7_SEQ_atom_def)
 
+lemma rsimp7_can_increase_root_size:
+  fixes a b c d :: char
+  defines "r \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RALTS [RCHAR c, RCHAR d])"
+  assumes "a \<noteq> b" "c \<noteq> d"
+  shows "rsize r < rsize (rsimp7 r)"
+proof -
+  have "b \<noteq> a" "d \<noteq> c"
+    using assms by auto
+  then show ?thesis
+    using assms by (simp add: r_def rsimp7_SEQ_def rsimp7_seq_products_def
+        rsimp7_SEQ_atom_def)
+qed
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
