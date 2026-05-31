@@ -143,9 +143,11 @@ to be read before continuing long-running agent work.
   `partial_derivative_frontier_universe_alt_child_mono`, and
   `rpder_norm9_frontier_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs`.
   It proves the base and alternation cases for the frontier route without
-  unfolding large derivative rows. Continue by adapting the existing
-  live-row/path `RSEQ`, `RSTAR`, and `RNTIMES` carried-continuation splitters
-  to target `partial_derivative_frontier_universe`.
+  unfolding large derivative rows. The carried-constructor layer is now also
+  checked: `rflts_map_rsimp9_rpder_list_frontier_subsetI`,
+  `rflts_map_rsimp9_rpder_list_norm_tail_frontier_subsetI`, and
+  `rpder_norm9_frontier_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These are the
+  preferred entry points for the remaining one-step closure proof.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

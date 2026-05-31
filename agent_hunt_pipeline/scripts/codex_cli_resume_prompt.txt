@@ -135,8 +135,13 @@ Research tactics:
   `rflts_map_rsimp9_frontier_subsetI`,
   `partial_derivative_frontier_universe_alt_child_mono`, and
   `rpder_norm9_frontier_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs`.
-  Next, adapt the existing live-row/path `RSEQ`, `RSTAR`, and `RNTIMES`
-  carried-continuation splitters to the frontier universe.
+  The carried-constructor frontier layer is also checked:
+  `rflts_map_rsimp9_rpder_list_frontier_subsetI`,
+  `rflts_map_rsimp9_rpder_list_norm_tail_frontier_subsetI`, and
+  `rpder_norm9_frontier_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. Next target:
+  use these splitters to prove the actual one-step closure premise for
+  `partial_derivative_frontier_universe (rsimp9 r)`, or record a checked
+  counterexample if that premise is still too broad.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
