@@ -128,15 +128,26 @@ to be read before continuing long-running agent work.
   sequenced continuation `(a){1}.b`. The final invariant should track reachable
   row/path-carried states, or explicitly add a countdown-aware closure, instead
   of quantifying over every path-universe subterm.
+- The existing `partial_derivative_frontier_universe` is the current
+  countdown-aware route. It already uses `rlinear_continuations`, which contains
+  all decrements `RNTIMES r k` for `k <= n`, has quadratic cardinality and
+  linear member-size bounds, and now has a checked norm19 cubic hook:
+  `rsizes_rpders_norm19_rows_frontier_universe_cubic`,
+  `rsizes_rpders_norm19_rows_frontier_universe_cubicI`, and
+  `rsizes_rpders_norm19_rows_rsimp9_frontier_cubicI`. The sanity lemma
+  `norm19_frontier_universe_repairs_RNTIMES_subterm_countdown` confirms it
+  repairs the `(a){2}.b` counted-tail counterexample.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
-  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI` and
-  `rsizes_rpders_norm19_rows_rsimp9_path_cubicI`. The path version keeps the
-  bound at `2 * (rsize r + 3)^3` because `partial_derivative_path_universe`
-  already has linear cardinality and quadratic member-size accounting. This
-  deliberately keeps the final hard obligation explicit, but it cannot be the
-  too-broad arbitrary-state path-universe closure refuted above.
+  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`,
+  `rsizes_rpders_norm19_rows_rsimp9_path_cubicI`, and
+  `rsizes_rpders_norm19_rows_rsimp9_frontier_cubicI`. The path version keeps
+  the bound at `2 * (rsize r + 3)^3`; the frontier version gives
+  `3 * (rsize r + 2)^3` and is currently more plausible because it carries
+  counted decrements. The remaining obligation is not arbitrary path-universe
+  closure, but one-step closure for this frontier universe or a smaller
+  reachable-row subuniverse.
 - The `rpder_norm9_live_row_step_*` splitter layer is checked, including
   base constructors, `RALTS`, `RSEQ`, `RSTAR`, `RNTIMES`, and path/direct
   carried-continuation interfaces. Future work should not unfold
@@ -149,10 +160,9 @@ to be read before continuing long-running agent work.
   `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`, and
   `partial_derivative_path_universe_alt_child_mono` plus
   `rpder_norm9_path_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs` and
-  `RSEQ/RSTAR/RNTIMES_pathI`. These avoid the false live-row target while
-  still feeding the same cubic theorem. The next real proof obligation is to
-  discharge the path-universe carried premise for states in
-  `partial_derivative_path_universe (rsimp9 r)`.
+  `RSEQ/RSTAR/RNTIMES_pathI`. These remain useful splitters, but do not target
+  the refuted arbitrary path-universe closure directly. Adapt them toward
+  `partial_derivative_frontier_universe (rsimp9 r)`.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity

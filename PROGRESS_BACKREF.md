@@ -158,6 +158,15 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   which is not in the root path universe. The next invariant must therefore be
   a reachable-row/path-carried subuniverse or a countdown-aware extension, not
   arbitrary full path-universe closure.
+  Reusing the existing countdown-aware `partial_derivative_frontier_universe`
+  is now checked as the next runway: `norm19_frontier_universe_repairs_RNTIMES_subterm_countdown`
+  shows the counted-tail counterexample lands there, and
+  `rsizes_rpders_norm19_rows_frontier_universe_cubic`,
+  `rsizes_rpders_norm19_rows_frontier_universe_cubicI`, and
+  `rsizes_rpders_norm19_rows_rsimp9_frontier_cubicI` give a conditional cubic
+  hook for `norm19`. The next concrete proof target is the one-step closure
+  premise for `partial_derivative_frontier_universe (rsimp9 r)`, preferably
+  via constructor splitters rather than unfolding `rpder_norm9_list`.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
