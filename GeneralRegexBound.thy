@@ -4964,6 +4964,30 @@ next
   qed (use Cons.hyps in auto)
 qed
 
+lemma set_rflts_frontier_universe_subset:
+  assumes "set rs \<subseteq> partial_derivative_frontier_universe r"
+  shows "set (rflts rs) \<subseteq> partial_derivative_frontier_universe r"
+proof
+  fix x
+  assume "x \<in> set (rflts rs)"
+  then have "x \<in> (\<Union>q \<in> set rs. rsubterms q)"
+    using set_rflts_subset_rsubterms_list[of rs] by blast
+  then obtain q where q: "q \<in> set rs" "x \<in> rsubterms q"
+    by blast
+  have "rsubterms q \<subseteq> partial_derivative_frontier_universe r"
+    by (rule rsubterms_frontier_universe_member_subset)
+      (use assms q in auto)
+  then show "x \<in> partial_derivative_frontier_universe r"
+    using q by blast
+qed
+
+lemma set_rdistinct_rflts_frontier_universe_subset:
+  assumes "set rs \<subseteq> partial_derivative_frontier_universe r"
+  shows "set (rdistinct (rflts rs) acc) \<subseteq>
+    partial_derivative_frontier_universe r"
+  by (rule set_rdistinct_subset)
+    (rule set_rflts_frontier_universe_subset[OF assms])
+
 lemma rsizes_filter_partition:
   "rsizes rs =
     rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
