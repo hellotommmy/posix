@@ -4988,6 +4988,23 @@ lemma set_rdistinct_rflts_frontier_universe_subset:
   by (rule set_rdistinct_subset)
     (rule set_rflts_frontier_universe_subset[OF assms])
 
+lemma rpder_norm_rows_frontier_universe_subsetI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rpder_norm_list c q) \<subseteq> partial_derivative_frontier_universe r"
+  shows "set (rpder_norm_rows c rs) \<subseteq>
+    partial_derivative_frontier_universe r"
+proof -
+  have "set (concat (map (rpder_norm_list c) rs)) \<subseteq>
+      partial_derivative_frontier_universe r"
+    using assms by auto
+  then have "set (rdistinct
+      (rflts (concat (map (rpder_norm_list c) rs))) {}) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule set_rdistinct_rflts_frontier_universe_subset)
+  then show ?thesis
+    by (simp add: rpder_norm_rows_def)
+qed
+
 lemma rsizes_filter_partition:
   "rsizes rs =
     rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
