@@ -5787,6 +5787,106 @@ lemma finite_partial_derivative_live_row_universe [simp]:
   "finite (partial_derivative_live_row_universe r)"
   by (simp add: partial_derivative_live_row_universe_def)
 
+lemma partial_derivative_live_row_universe_zero [simp]:
+  "RZERO \<in> partial_derivative_live_row_universe r"
+  by (simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_one [simp]:
+  "RONE \<in> partial_derivative_live_row_universe r"
+  by (simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_root [simp]:
+  "r \<in> partial_derivative_live_row_universe r"
+  by (simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_path:
+  assumes "q \<in> rpath_continuations r"
+  shows "q \<in> partial_derivative_live_row_universe r"
+  using assms by (auto simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_frontier:
+  assumes "q \<in> rfrontier r"
+  shows "q \<in> partial_derivative_live_row_universe r"
+  using assms by (auto simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_path_frontier:
+  assumes "k \<in> rpath_continuations r" "q \<in> rfrontier k"
+  shows "q \<in> partial_derivative_live_row_universe r"
+  using assms by (auto simp add: partial_derivative_live_row_universe_def)
+
+lemma partial_derivative_live_row_universe_alt_child_mono:
+  assumes "q \<in> set rs" "nonalt q"
+  shows "partial_derivative_live_row_universe q \<subseteq>
+    partial_derivative_live_row_universe (RALTS rs)"
+proof -
+  have q_front: "q \<noteq> RZERO \<Longrightarrow> q \<in> rfrontiers rs"
+    using assms rfrontier_nonzero_nonalt_self rfrontiers_member_iff by blast
+  have root: "q \<in> partial_derivative_live_row_universe (RALTS rs)"
+  proof (cases "q = RZERO")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then show ?thesis
+      using q_front
+      by (auto simp add: partial_derivative_live_row_universe_def)
+  qed
+  have paths: "rpath_continuations q \<subseteq> rpath_continuations (RALTS rs)"
+    using assms(1) unfolding rpath_continuations_def by auto
+  have fronts: "rfrontier q \<subseteq> partial_derivative_live_row_universe (RALTS rs)"
+  proof (cases "q = RZERO")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    have "rfrontier q = {q}"
+      by (rule rfrontier_nonzero_nonalt_eq[OF False assms(2)])
+    then show ?thesis
+      using root by auto
+  qed
+  show ?thesis
+  proof
+    fix x
+    assume x: "x \<in> partial_derivative_live_row_universe q"
+    then consider
+        "x = RZERO"
+      | "x = RONE"
+      | "x = q"
+      | "x \<in> rpath_continuations q"
+      | "x \<in> rfrontier q"
+      | k where "k \<in> rpath_continuations q" "x \<in> rfrontier k"
+      unfolding partial_derivative_live_row_universe_def by auto
+    then show "x \<in> partial_derivative_live_row_universe (RALTS rs)"
+    proof cases
+      case 1
+      then show ?thesis by simp
+    next
+      case 2
+      then show ?thesis by simp
+    next
+      case 3
+      then show ?thesis
+        using root by simp
+    next
+      case 4
+      then have "x \<in> rpath_continuations (RALTS rs)"
+        using paths by blast
+      then show ?thesis
+        by (rule partial_derivative_live_row_universe_path)
+    next
+      case 5
+      then show ?thesis
+        using fronts by blast
+    next
+      case (6 k)
+      have "k \<in> rpath_continuations (RALTS rs)"
+        using paths 6(1) by blast
+      then show ?thesis
+        using 6(2) by (rule partial_derivative_live_row_universe_path_frontier)
+    qed
+  qed
+qed
+
 lemma partial_derivative_live_path_universe_subset_path:
   "partial_derivative_live_path_universe r \<subseteq>
     partial_derivative_path_universe r"
@@ -7225,6 +7325,41 @@ lemma norm18_closes_rsimp8_live_row_obstruction:
   by (simp add: r_def rpder_norm8_list_def rpder_norm_list_def
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
+
+lemma rpder_norm8_live_row_step_RZERO [simp]:
+  "set (rflts (rpder_norm8_list c RZERO)) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (simp add: rpder_norm8_list_def rpder_norm_list_def)
+
+lemma rpder_norm8_live_row_step_RONE [simp]:
+  "set (rflts (rpder_norm8_list c RONE)) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (simp add: rpder_norm8_list_def rpder_norm_list_def)
+
+lemma rpder_norm8_live_row_step_RCHAR [simp]:
+  "set (rflts (rpder_norm8_list c (RCHAR d))) \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (cases "c = d") (simp_all add: rpder_norm8_list_def rpder_norm_list_def)
+
+lemma rpder_norm8_live_row_step_RALTSI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm8_list c q)) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RALTS rs))) \<subseteq> U"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def)
+next
+  case (Cons q rs)
+  have head: "set (rflts (rpder_norm8_list c q)) \<subseteq> U"
+    by (rule Cons.prems) simp
+  have tail: "set (rflts (rpder_norm8_list c (RALTS rs))) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using head tail
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def flts_append)
+qed
 
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char

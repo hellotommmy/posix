@@ -42,6 +42,18 @@ to be read before continuing long-running agent work.
   row-product expansion inside star bodies. The checked lemma
   `norm18_closes_rsimp8_live_row_obstruction` verifies that the concrete
   `(((1+a).a))*` failure of `norm17` is fixed by `norm18`.
+- Closure proof infrastructure is now being split by row shape. Checked
+  support includes named intro lemmas for `partial_derivative_live_row_universe`,
+  the non-alt `RALTS` child monotonicity lemma
+  `partial_derivative_live_row_universe_alt_child_mono`, base cases
+  `rpder_norm8_live_row_step_RZERO`/`RONE`/`RCHAR`, and the conditional list
+  decomposition lemma `rpder_norm8_live_row_step_RALTSI`. This deliberately
+  avoids a broad `auto` proof over the final closure statement.
+- Do not use a monolithic `rsimp8` idempotence proof as the next shortcut. A
+  naive induction over `rsimp8` timed out because the `RALTS` branch expands
+  `rsimp_ALTs`, `rdistinct`, and `rflts` together. If idempotence is needed,
+  first prove small list-normalization helper facts and keep each proof line
+  under the performance budget.
 - `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
   25k new-definition bounty. It keeps the Antimirov row-product/state-list
   pipeline and extends `rsimp6` with prefix star absorption:

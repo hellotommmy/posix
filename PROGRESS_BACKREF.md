@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
+Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
@@ -37,6 +37,14 @@ Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
   partial_derivative_live_row_universe (rsimp8 r)`.
 - Added `norm18_closes_rsimp8_live_row_obstruction`, confirming that the
   concrete `(((1+a).a))*` obstruction for `norm17` is repaired by `norm18`.
+- Added and checked first closure-infrastructure lemmas for BR-036:
+  named live-row universe introduction lemmas, a non-alt `RALTS` child
+  monotonicity lemma, the `RZERO`/`RONE`/`RCHAR` one-step closure base cases
+  for `rpder_norm8_list`, and the conditional `RALTS` row-composition lemma
+  `rpder_norm8_live_row_step_RALTSI`. Full local CI passed for `Posix` and
+  `BackRefPilot`. A too-broad attempted `rsimp8` idempotence proof was
+  discarded after hitting the timeout/performance rule; do not resurrect it
+  without splitting `rsimp_ALTs`/`rdistinct`/`rflts` helper facts first.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
   25k new-definition bounty. It extends `rsimp6` with prefix star absorption
   `r* · (r* · k) = r* · k`, the repeated-row shape that appears once
