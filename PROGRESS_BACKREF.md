@@ -37,8 +37,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   `rpders_norm16_rows_subterms_subsetI`,
   `rsizes_rpders_norm16_rows_cubic_universe_cubicI`, and
   `rsizes_rpders_norm16_rows_normalized_root_cubicI`. The remaining theorem is
-  now sharply reduced to one-step subterm closure for `rpder_norm6_list` inside
-  `partial_derivative_cubic_universe (rsimp6 r)`.
+  not the all-universe premise directly, because that premise is too strong.
+- Added `normalized_root_universe_not_all_q_closed_under_norm6`, showing even
+  a normalized root universe is not closed for every member `q`: for
+  `((b · b)*)`, the continuation `((b · b)*) · b` is in the universe, but its
+  `b`-row exposes `b · (((b · b)*) · b)` outside it. The final proof needs a
+  reachable-row invariant or a refined universe, not plain all-member closure.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,

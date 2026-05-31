@@ -5681,6 +5681,20 @@ lemma reachable_norm6_row_can_leave_current_cubic_universe:
       partial_derivative_path_universe_def
       rpath_continuations_def rlinear_continuations.simps rsimp6_SEQ_def)
 
+lemma normalized_root_universe_not_all_q_closed_under_norm6:
+  fixes b :: char
+  defines "r \<equiv> RSTAR (RSEQ (RCHAR b) (RCHAR b))"
+  defines "q \<equiv> RSEQ r (RCHAR b)"
+  defines "p \<equiv> RSEQ (RCHAR b) q"
+  shows "q \<in> partial_derivative_cubic_universe r"
+    and "p \<in> set (rpder_norm6_list b q)"
+    and "\<not> rsubterms p \<subseteq> partial_derivative_cubic_universe r"
+  by (simp_all add: r_def q_def p_def rpder_norm6_list_def
+      rpder_norm_list_def partial_derivative_cubic_universe_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rsimp6_SEQ_def rsimp5_SEQ_def)
+
 lemma path_universe_misses_distributed_suffix_atom:
   "RSEQ (RCHAR b) (RCHAR d) \<notin>
     partial_derivative_path_universe

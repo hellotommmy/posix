@@ -34,12 +34,13 @@ to be read before continuing long-running agent work.
   `((0 + a)*) --a--> a*`, and `a*` is not in the old root universe. The next
   closure theorem should be parameterized by `rsimp6 r` or by a universe closed
   under normalized images of subterms and continuations.
-- Current preferred target: prove the one-step premise of
-  `rsizes_rpders_norm16_rows_normalized_root_cubicI`. That theorem already
-  gives the cubic row-size bound for `rpders_norm16_rows (rsimp6 r) s` once
-  every `p \<in> set (rpder_norm6_list c q)` has
-  `rsubterms p \<subseteq> partial_derivative_cubic_universe (rsimp6 r)` for
-  reachable/universe member `q`.
+- Do not try to prove the all-member one-step premise of
+  `rsizes_rpders_norm16_rows_normalized_root_cubicI` either. The checked lemma
+  `normalized_root_universe_not_all_q_closed_under_norm6` refutes that stronger
+  premise for `((b · b)*)`. The conditional theorem remains useful as an
+  interface, but the final proof must strengthen the invariant with reachability
+  information or refine the universe to include the specific carried
+  continuation chains that reachable rows expose.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current
