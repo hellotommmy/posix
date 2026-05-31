@@ -53,6 +53,16 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   `good_rsimp7_SEQ_atom`, `good_rsimp8`,
   `good_rpder_norm8_list`, and `good_rflts_rpder_norm8_list`, so later
   carried-continuation proofs can treat flattened norm18 rows as good/non-alt.
+  Added the bridge lemmas
+  `rflts_singleton_good_live_row_universe`,
+  `rflts_singleton_rsimp8_live_row_universe`, and
+  `rflts_map_rsimp8_live_row_subsetI`: flattened `rsimp8` rows are now
+  discharged through the row's own live-row universe, reducing future
+  closure obligations to per-raw-continuation universe inclusion facts.
+  Also added `rpder_norm8_live_row_step_rsimp_ALTsI` for the
+  length-sensitive `rsimp_ALTs` wrapper case. When proving around this area,
+  explicitly save the outer list-shape equation before entering an inner
+  `cases`; otherwise the useful `rsimp_ALTs rs = RALTS rs` fact can be lost.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

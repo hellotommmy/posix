@@ -62,6 +62,19 @@ to be read before continuing long-running agent work.
   about children exposed by `rflts (map rsimp8 ...)`; do not re-open the
   simplifier by datatype induction unless a branch-specific lemma really
   needs it.
+- Flattened `rsimp8` rows now have a checked bridge through their own
+  live-row universe:
+  `rflts_singleton_good_live_row_universe`,
+  `rflts_singleton_rsimp8_live_row_universe`, and
+  `rflts_map_rsimp8_live_row_subsetI`. This changes the preferred next proof
+  shape: prove that each raw carried continuation's `rsimp8` live-row
+  universe is contained in the target root universe, then use the bridge to
+  discharge the flattened row. The normalized-alternative case is covered by
+  `rpder_norm8_live_row_step_rsimp_ALTsI`.
+- Proof-engineering note: `rsimp_ALTs` has length-sensitive equations
+  (`[]`, singleton, and two-or-more). In nested list cases, save the outer
+  shape equation with a named fact before entering an inner `cases`; relying
+  on a shadowed `Cons` case name caused a failed proof and is easy to repeat.
 - Do not use a monolithic `rsimp8` idempotence proof as the next shortcut. A
   naive induction over `rsimp8` timed out because the `RALTS` branch expands
   `rsimp_ALTs`, `rdistinct`, and `rflts` together. If idempotence is needed,

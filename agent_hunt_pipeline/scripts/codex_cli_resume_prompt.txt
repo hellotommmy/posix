@@ -36,6 +36,15 @@ Primary assignment:
   - `good_rsimp7_SEQ_atom`, `good_rsimp8`, `good_rpder_norm8_list`, and
     `good_rflts_rpder_norm8_list` are checked; use them to control rows
     exposed by `rflts (map rsimp8 ...)`.
+  - `rflts_singleton_good_live_row_universe`,
+    `rflts_singleton_rsimp8_live_row_universe`, and
+    `rflts_map_rsimp8_live_row_subsetI` are checked; use them to reduce
+    flattened `map rsimp8` rows to per-raw-continuation universe inclusion
+    obligations.
+  - `rpder_norm8_live_row_step_rsimp_ALTsI` is checked for the
+    length-sensitive `rsimp_ALTs` case. Save outer list-shape facts before
+    nested `cases`, so the two-or-more branch can rewrite
+    `rsimp_ALTs rs = RALTS rs`.
 - Main remaining theorem shape:
   `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
   for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
@@ -49,6 +58,10 @@ Research tactics:
   facts of the form: if a raw carried continuation normalizes by `rsimp8`, its
   flattened frontier remains inside `partial_derivative_live_row_universe`.
 - Prefer small helper lemmas about `rpder_norm8_list`, `rpath_continuations_acc`, `rfrontier`, and `rsimp8` stability.
+- Preferred next step: for the carried-continuation branches, prove small
+  inclusion facts of the form
+  `partial_derivative_live_row_universe (rsimp8 p) <= partial_derivative_live_row_universe (rsimp8 r)`
+  for each raw continuation `p`, then invoke `rflts_map_rsimp8_live_row_subsetI`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

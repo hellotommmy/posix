@@ -5895,6 +5895,98 @@ lemma partial_derivative_live_row_universe_path_frontier:
   shows "q \<in> partial_derivative_live_row_universe r"
   using assms by (auto simp add: partial_derivative_live_row_universe_def)
 
+lemma rflts_singleton_good_live_row_universe:
+  assumes "good q \<or> q = RZERO"
+  shows "set (rflts [q]) \<subseteq> partial_derivative_live_row_universe q"
+proof (cases q)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis by simp
+next
+  case (RCHAR c)
+  then show ?thesis by simp
+next
+  case (RALTS rs)
+  have elems: "\<And>x. x \<in> set rs \<Longrightarrow> x \<in> rfrontier (RALTS rs)"
+  proof -
+    fix x
+    assume x: "x \<in> set rs"
+    have good_alt: "good (RALTS rs)"
+      using assms RALTS by simp
+    then have x_good: "good x \<and> nonalt x"
+      using x by (rule good_RALTS_elem)
+    then have "x \<noteq> RZERO"
+      by (cases x) auto
+    then have x_front: "x \<in> rfrontier x"
+      by (rule rfrontier_nonzero_nonalt_self) (use x_good in simp)
+    have "x \<in> rfrontiers rs"
+      using x x_front by (induct rs) auto
+    then show "x \<in> rfrontier (RALTS rs)"
+      by simp
+  qed
+  show ?thesis
+  proof
+    fix x
+    assume "x \<in> set (rflts [q])"
+    then have "x \<in> rfrontier (RALTS rs)"
+      using RALTS elems by simp
+    then show "x \<in> partial_derivative_live_row_universe q"
+      using RALTS by (simp add: partial_derivative_live_row_universe_def)
+  qed
+next
+  case (RSEQ q1 q2)
+  then show ?thesis by simp
+next
+  case (RSTAR q)
+  then show ?thesis by simp
+next
+  case (RNTIMES q n)
+  then show ?thesis by simp
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?thesis by simp
+next
+  case (RHALF q cs rep)
+  then show ?thesis by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis by simp
+qed
+
+lemma rflts_singleton_rsimp8_live_row_universe:
+  "set (rflts [rsimp8 q]) \<subseteq> partial_derivative_live_row_universe (rsimp8 q)"
+  by (rule rflts_singleton_good_live_row_universe[OF good_rsimp8])
+
+lemma rflts_map_rsimp8_live_row_subsetI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow>
+    partial_derivative_live_row_universe (rsimp8 q) \<subseteq> U"
+  shows "set (rflts (map rsimp8 qs)) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [rsimp8 q]) \<subseteq> U"
+  proof -
+    have "set (rflts [rsimp8 q]) \<subseteq>
+        partial_derivative_live_row_universe (rsimp8 q)"
+      by (rule rflts_singleton_rsimp8_live_row_universe)
+    moreover have "partial_derivative_live_row_universe (rsimp8 q) \<subseteq> U"
+      using Cons.prems by simp
+    ultimately show ?thesis by blast
+  qed
+  have tail: "set (rflts (map rsimp8 qs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (map rsimp8 (q # qs)) =
+      rflts [rsimp8 q] @ rflts (map rsimp8 qs)"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
 lemma partial_derivative_live_row_universe_alt_child_mono:
   assumes "q \<in> set rs" "nonalt q"
   shows "partial_derivative_live_row_universe q \<subseteq>
@@ -7461,6 +7553,38 @@ proof (rule rpder_norm8_live_row_step_RALTSI)
   ultimately show "set (rflts (rpder_norm8_list c q)) \<subseteq>
     partial_derivative_live_row_universe (RALTS rs)"
     by blast
+qed
+
+lemma rpder_norm8_live_row_step_rsimp_ALTsI:
+  assumes nonalt: "\<And>q. q \<in> set rs \<Longrightarrow> nonalt q"
+      and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+        set (rflts (rpder_norm8_list c q)) \<subseteq>
+          partial_derivative_live_row_universe q"
+  shows "set (rflts (rpder_norm8_list c (rsimp_ALTs rs))) \<subseteq>
+    partial_derivative_live_row_universe (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using Cons step[of q] by simp
+  next
+    case (Cons q' qs')
+    have "set (rflts (rpder_norm8_list c (RALTS rs))) \<subseteq>
+        partial_derivative_live_row_universe (RALTS rs)"
+      by (rule rpder_norm8_live_row_step_RALTS_selfI)
+        (use nonalt step in auto)
+    moreover have "rsimp_ALTs rs = RALTS rs"
+      using rs_cons \<open>qs = q' # qs'\<close> by simp
+    then show ?thesis
+      using calculation by simp
+  qed
 qed
 
 lemma rpder_norm8_live_row_step_RSEQI:
