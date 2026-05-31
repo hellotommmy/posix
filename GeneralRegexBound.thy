@@ -9985,9 +9985,20 @@ next
       by (rule plus2_square_plus_plus3_square_le)
         (rule size_geq1, rule rs_nonempty)
     show ?thesis
-      using tail step by simp
+    using tail step by simp
   qed
 qed
+
+lemma seq_component_product_plus_child_square_le:
+  fixes a b :: nat
+  shows "a * (a + b + 3) + (b + 2)\<^sup>2 \<le> (a + b + 3)\<^sup>2"
+  by (simp add: power2_eq_square algebra_simps)
+
+lemma component_product_le_square:
+  fixes a n :: nat
+  assumes "a \<le> n"
+  shows "a * n \<le> n\<^sup>2"
+  using assms by (simp add: power2_eq_square mult_right_mono)
 
 lemma card_rpath9_atom_frontier_acc_list_le:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow> card (rpath9_atom_frontier_acc r k) \<le> f r"
@@ -10143,6 +10154,67 @@ lemma card_rpath9_atom_frontiers_RNTIMES_nonzero_le:
     card (rpath9_atom_frontier_acc r
       (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE))"
   using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma card_rpath9_atom_frontiers_RSEQ_quadraticI:
+  assumes left:
+      "card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)) \<le>
+        rsize r1 * (rsize (RSEQ r1 r2) + 2)"
+    and right:
+      "card (rpath9_atom_frontiers r2) \<le> (rsize r2 + 2)\<^sup>2"
+  shows "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+    (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+      card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)) +
+      card (rpath9_atom_frontiers r2)"
+    by (rule card_rpath9_atom_frontiers_RSEQ_le)
+  also have "... \<le>
+      rsize r1 * (rsize (RSEQ r1 r2) + 2) + (rsize r2 + 2)\<^sup>2"
+    using left right by linarith
+  also have "... \<le> (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+    using seq_component_product_plus_child_square_le[of "rsize r1" "rsize r2"]
+    by (simp add: algebra_simps power2_eq_square)
+  finally show ?thesis .
+qed
+
+lemma card_rpath9_atom_frontiers_RSTAR_quadraticI:
+  assumes body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE)) \<le>
+      rsize r * (rsize (RSTAR r) + 2)"
+  shows "card (rpath9_atom_frontiers (RSTAR r)) \<le>
+    (rsize (RSTAR r) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RSTAR r)) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE))"
+    by (rule card_rpath9_atom_frontiers_RSTAR_le)
+  also have "... \<le> rsize r * (rsize (RSTAR r) + 2)"
+    by (rule body)
+  also have "... \<le> (rsize (RSTAR r) + 2)\<^sup>2"
+    by (rule component_product_le_square) simp
+  finally show ?thesis .
+qed
+
+lemma card_rpath9_atom_frontiers_RNTIMES_nonzero_quadraticI:
+  assumes n: "n \<noteq> 0"
+    and body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE)) \<le>
+      rsize r * (rsize (RNTIMES r n) + 2)"
+  shows "card (rpath9_atom_frontiers (RNTIMES r n)) \<le>
+    (rsize (RNTIMES r n) + 2)\<^sup>2"
+proof -
+  have "card (rpath9_atom_frontiers (RNTIMES r n)) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE))"
+    by (rule card_rpath9_atom_frontiers_RNTIMES_nonzero_le[OF n])
+  also have "... \<le> rsize r * (rsize (RNTIMES r n) + 2)"
+    by (rule body)
+  also have "... \<le> (rsize (RNTIMES r n) + 2)\<^sup>2"
+    by (rule component_product_le_square) simp
+  finally show ?thesis .
+qed
 
 lemma rpath9_atom_frontiers_RSEQ_member_sizeI:
   assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1

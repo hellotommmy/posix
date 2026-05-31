@@ -553,3 +553,19 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_RSEQ_member_sizeI`,
   `rpath9_atom_frontiers_RSTAR_member_sizeI`, and
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI`.
+
+## 2026-05-31: Path9 quadratic card shape
+
+- The path9 frontier cardinality proof should reduce `RSEQ`, `RSTAR`, and
+  nonzero `RNTIMES` to a carried-collector product bound:
+  `card (rpath9_atom_frontier_acc body carried_k) <=
+   rsize body * (rsize parent + 2)`.
+- Once that product bound is available, the checked lemmas
+  `card_rpath9_atom_frontiers_RSEQ_quadraticI`,
+  `card_rpath9_atom_frontiers_RSTAR_quadraticI`, and
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadraticI` close the parent
+  quadratic inequality.
+- When instantiating the sequence arithmetic, use
+  `seq_component_product_plus_child_square_le` with
+  `algebra_simps`/`power2_eq_square`; plain `simp` does not normalize the
+  expanded `rsize (RSEQ _ _)` product enough.

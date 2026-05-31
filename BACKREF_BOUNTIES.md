@@ -141,6 +141,13 @@ immutability.
   `rpath9_atom_frontiers_RSEQ_member_sizeI`,
   `rpath9_atom_frontiers_RSTAR_member_sizeI`, and
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI`.
+  The conditional quadratic constructor layer is checked:
+  `seq_component_product_plus_child_square_le`,
+  `component_product_le_square`,
+  `card_rpath9_atom_frontiers_RSEQ_quadraticI`,
+  `card_rpath9_atom_frontiers_RSTAR_quadraticI`, and
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadraticI`; the remaining
+  cardinality obligation is the carried collector product bound.
 
 ## Completed
 

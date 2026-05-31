@@ -321,6 +321,17 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI`. These do not claim
   the full quadratic/linear facts yet; they isolate the remaining carried
   continuation branch from the already-handled child/root cases.
+  Added the conditional quadratic constructor layer:
+  `seq_component_product_plus_child_square_le`,
+  `component_product_le_square`,
+  `card_rpath9_atom_frontiers_RSEQ_quadraticI`,
+  `card_rpath9_atom_frontiers_RSTAR_quadraticI`, and
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadraticI`. The remaining
+  cardinality work for these constructors is now the product-shaped carried
+  collector bound
+  `card (rpath9_atom_frontier_acc body carried_k) <=
+   rsize body * (rsize parent + 2)`, rather than the full parent frontier
+  inequality.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
