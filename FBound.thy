@@ -424,6 +424,73 @@ next
     by (cases "bsimp6 r") (simp_all add: ih_sym)
 qed simp_all
 
+lemma rerase_bsimp7_ASEQ_atom:
+  shows "rerase (bsimp7_ASEQ_atom bs a1 a2) =
+    rsimp7_SEQ_atom (rerase a1) (rerase a2)"
+  by (cases a1; cases a2)
+    (simp_all add: bsimp7_ASEQ_atom_def rsimp7_SEQ_atom_def
+      rerase_bsimp4_ASEQ_atom eq1_rerase split: arexp.splits)
+
+lemma rerase_bsimp7_seq_products:
+  "map rerase (bsimp7_seq_products bs xs ys) =
+    rsimp7_seq_products (map rerase xs) (map rerase ys)"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: bsimp7_seq_products_def rsimp7_seq_products_def)
+next
+  case (Cons x xs)
+  have "map rerase (map (bsimp7_ASEQ_atom bs x) ys) =
+    map (rsimp7_SEQ_atom (rerase x)) (map rerase ys)"
+    by (induct ys) (simp_all add: rerase_bsimp7_ASEQ_atom)
+  then show ?case
+    using Cons by (simp add: bsimp7_seq_products_def rsimp7_seq_products_def)
+qed
+
+lemma rerase_bsimp7_ASEQ:
+  shows "rerase (bsimp7_ASEQ bs a1 a2) =
+    rsimp7_SEQ (rerase a1) (rerase a2)"
+  by (simp add: bsimp7_ASEQ_def rsimp7_SEQ_def rerase_bsimp_AALTs
+      map_rerase_distinctWith_eq1 rerase_flts rerase_bsimp7_seq_products
+      rerase_bsimp5_alt_rows)
+
+lemma rerase_map_bsimp7:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp7 r) = (rsimp7 \<circ> rerase) r"
+  shows "map rerase (map bsimp7 rs) = map (rsimp7 \<circ> rerase) rs"
+  using assms
+  by (induct rs) simp_all
+
+lemma rerase_earlier_later_same7:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp7 r) = rsimp7 (rerase r)"
+  shows "map rerase (distinctBy (flts (map bsimp7 rs)) rerase {}) =
+    rdistinct (rflts (map (rsimp7 \<circ> rerase) rs)) {}"
+  apply(subst rerase_dB)
+  apply(subst rerase_flts)
+  apply(subst rerase_map_bsimp7)
+  apply auto
+  using assms
+  apply simp
+  done
+
+lemma bsimp7_rerase:
+  shows "rerase (bsimp7 a) = rsimp7 (rerase a)"
+proof (induct a rule: bsimp7.induct)
+  case (1 bs r1 r2)
+  then show ?case
+    by (simp add: rerase_bsimp7_ASEQ)
+next
+  case (2 bs rs)
+  then show ?case
+    using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same7
+    by fastforce
+next
+  case (3 bs r)
+  have ih_sym: "rsimp7 (rerase r) = rerase (bsimp7 r)"
+    using 3 by simp
+  then show ?case
+    by (cases "bsimp7 r") (simp_all add: ih_sym)
+qed simp_all
+
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"
   by (induct rs) (simp_all add: rerase_fuse)
@@ -563,6 +630,45 @@ lemma bp_der_norm6_rerase:
   by (simp add: bp_der_norm6_def rpd_der_norm6_def rerase_bsimp_AALTs
       map_rerase_distinctWith_eq1 rerase_flts rerase_bpder_norm6_list)
 
+lemma map_rerase_bsimp7_list:
+  "map rerase (map bsimp7 xs) = map rsimp7 (map rerase xs)"
+  by (induct xs) (simp_all add: bsimp7_rerase)
+
+lemma rerase_bpder_norm7_list:
+  "map rerase (bpder_norm7_list c r) = rpder_norm7_list c (rerase r)"
+proof -
+  have rows: "map rerase (bpder_norm_list c r) = rpder_norm_list c (rerase r)"
+    by (rule rerase_bpder_norm_list)
+  have "map rerase (bpder_norm7_list c r) =
+    map (\<lambda>x. rerase (bsimp7 x)) (bpder_norm_list c r)"
+    by (simp add: bpder_norm7_list_def)
+  also have "... =
+    map (\<lambda>x. rsimp7 (rerase x)) (bpder_norm_list c r)"
+    by (simp add: bsimp7_rerase)
+  also have "... =
+    map rsimp7 (map rerase (bpder_norm_list c r))"
+    by (simp add: map_map comp_def)
+  also have "... = rpder_norm7_list c (rerase r)"
+    by (simp add: rows rpder_norm7_list_def)
+  finally show ?thesis .
+qed
+
+lemma rerase_concat_map_bpder_norm7_list:
+  "map rerase (concat (map (bpder_norm7_list c) rs)) =
+    concat (map (\<lambda>r. rpder_norm7_list c (rerase r)) rs)"
+  by (induct rs) (simp_all add: rerase_bpder_norm7_list)
+
+lemma rerase_bpder_norm7_rows:
+  "map rerase (bpder_norm7_rows c rs) = rpder_norm7_rows c (map rerase rs)"
+  by (simp add: bpder_norm7_rows_def rpder_norm7_rows_def
+      map_rerase_distinctWith_eq1 rerase_flts
+      rerase_concat_map_bpder_norm7_list map_map comp_def)
+
+lemma bp_der_norm7_rerase:
+  shows "rerase (bp_der_norm7 c r) = rpd_der_norm7 c (rerase r)"
+  by (simp add: bp_der_norm7_def rpd_der_norm7_def rerase_bsimp_AALTs
+      map_rerase_distinctWith_eq1 rerase_flts rerase_bpder_norm7_list)
+
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])
@@ -575,6 +681,10 @@ lemma rders_simp6_size:
   shows "rders_simp6 (rerase r) s = rerase (bders_simp6 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp6_rerase[symmetric])
 
+lemma rders_simp7_size:
+  shows "rders_simp7 (rerase r) s = rerase (bders_simp7 r s)"
+  by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp7_rerase[symmetric])
+
 lemma asize_bders_simp5_rders_simp5:
   shows "asize (bders_simp5 r s) = rsize (rders_simp5 (rerase r) s)"
   by (simp add: asize_rsize rders_simp5_size)
@@ -582,6 +692,10 @@ lemma asize_bders_simp5_rders_simp5:
 lemma asize_bders_simp6_rders_simp6:
   shows "asize (bders_simp6 r s) = rsize (rders_simp6 (rerase r) s)"
   by (simp add: asize_rsize rders_simp6_size)
+
+lemma asize_bders_simp7_rders_simp7:
+  shows "asize (bders_simp7 r s) = rsize (rders_simp7 (rerase r) s)"
+  by (simp add: asize_rsize rders_simp7_size)
 
 lemma RL_rerase_bders_simp5:
   shows "RL (rerase (bders_simp5 r s)) = Ders s (RL (rerase r))"
@@ -591,6 +705,11 @@ lemma RL_rerase_bders_simp5:
 lemma RL_rerase_bders_simp6:
   shows "RL (rerase (bders_simp6 r s)) = Ders s (RL (rerase r))"
   using RL_rders_simp6[of "rerase r" s] rders_simp6_size[of r s]
+  by simp
+
+lemma RL_rerase_bders_simp7:
+  shows "RL (rerase (bders_simp7 r s)) = Ders s (RL (rerase r))"
+  using RL_rders_simp7[of "rerase r" s] rders_simp7_size[of r s]
   by simp
 
 corollary aders_simp5_finiteness:
@@ -615,6 +734,17 @@ proof -
   then show ?thesis by blast
 qed
 
+corollary aders_simp7_finiteness:
+  assumes "\<exists>N. \<forall>s. rsize (rders_simp7 (rerase r) s) \<le> N"
+  shows "\<exists>N. \<forall>s. asize (bders_simp7 r s) \<le> N"
+proof -
+  from assms obtain N where "\<forall>s. rsize (rders_simp7 (rerase r) s) \<le> N"
+    by blast
+  then have "\<forall>s. asize (bders_simp7 r s) \<le> N"
+    by (simp add: asize_bders_simp7_rders_simp7)
+  then show ?thesis by blast
+qed
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])
@@ -630,6 +760,10 @@ lemma rders_pder_norm_size:
 lemma rders_pder_norm6_size:
   shows "rders_pder_norm6 (rerase r) s = rerase (bders_pder_norm6 r s)"
   by (induct s arbitrary: r) (simp_all add: bp_der_norm6_rerase[symmetric])
+
+lemma rders_pder_norm7_size:
+  shows "rders_pder_norm7 (rerase r) s = rerase (bders_pder_norm7 r s)"
+  by (induct s arbitrary: r) (simp_all add: bp_der_norm7_rerase[symmetric])
 
 lemma rpders_norm_rows_rerase:
   "rpders_norm_rows (map rerase rs) s =
@@ -683,6 +817,32 @@ lemma rpders_norm16_rows_rerase:
   using rpders_norm6_rows_rerase[of "[r]" s]
   by (simp add: rpders_norm16_rows_def bpders_norm16_rows_def)
 
+lemma rpders_norm7_rows_rerase:
+  "rpders_norm7_rows (map rerase rs) s =
+    map rerase (bpders_norm7_rows rs s)"
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have "rpders_norm7_rows (map rerase rs) (c # s) =
+    rpders_norm7_rows (rpder_norm7_rows c (map rerase rs)) s"
+    by simp
+  also have "... =
+    rpders_norm7_rows (map rerase (bpder_norm7_rows c rs)) s"
+    by (simp add: rerase_bpder_norm7_rows)
+  also have "... =
+    map rerase (bpders_norm7_rows (bpder_norm7_rows c rs) s)"
+    by (rule Cons.hyps)
+  finally show ?case by simp
+qed
+
+lemma rpders_norm17_rows_rerase:
+  "rpders_norm17_rows (rerase r) s =
+    map rerase (bpders_norm17_rows r s)"
+  using rpders_norm7_rows_rerase[of "[r]" s]
+  by (simp add: rpders_norm17_rows_def bpders_norm17_rows_def)
+
 lemma asize_bp_der_rpd_der:
   shows "asize (bp_der c r) = rsize (rpd_der c (rerase r))"
   by (simp add: asize_rsize bp_der_rerase[symmetric])
@@ -695,6 +855,10 @@ lemma asize_bp_der_norm6_rpd_der_norm6:
   shows "asize (bp_der_norm6 c r) = rsize (rpd_der_norm6 c (rerase r))"
   by (simp add: asize_rsize bp_der_norm6_rerase[symmetric])
 
+lemma asize_bp_der_norm7_rpd_der_norm7:
+  shows "asize (bp_der_norm7 c r) = rsize (rpd_der_norm7 c (rerase r))"
+  by (simp add: asize_rsize bp_der_norm7_rerase[symmetric])
+
 lemma asize_bders_pder_rders_pder:
   shows "asize (bders_pder r s) = rsize (rders_pder (rerase r) s)"
   by (simp add: asize_rsize rders_pder_size)
@@ -706,6 +870,10 @@ lemma asize_bders_pder_norm_rders_pder_norm:
 lemma asize_bders_pder_norm6_rders_pder_norm6:
   shows "asize (bders_pder_norm6 r s) = rsize (rders_pder_norm6 (rerase r) s)"
   by (simp add: asize_rsize rders_pder_norm6_size)
+
+lemma asize_bders_pder_norm7_rders_pder_norm7:
+  shows "asize (bders_pder_norm7 r s) = rsize (rders_pder_norm7 (rerase r) s)"
+  by (simp add: asize_rsize rders_pder_norm7_size)
 
 lemma asize_bp_der_norm_cubic:
   assumes "legacy_rrexp (rerase r)"
@@ -753,6 +921,12 @@ lemma legacy_rerase_bders_pder_norm6:
   using legacy_rders_pder_norm6[OF assms, of s] rders_pder_norm6_size[of r s]
   by simp
 
+lemma legacy_rerase_bders_pder_norm7:
+  assumes "legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bders_pder_norm7 r s))"
+  using legacy_rders_pder_norm7[OF assms, of s] rders_pder_norm7_size[of r s]
+  by simp
+
 lemma RL_rerase_bders_pder:
   assumes "legacy_rrexp (rerase r)"
   shows "RL (rerase (bders_pder r s)) = Ders s (RL (rerase r))"
@@ -769,6 +943,12 @@ lemma RL_rerase_bders_pder_norm6:
   assumes "legacy_rrexp (rerase r)"
   shows "RL (rerase (bders_pder_norm6 r s)) = Ders s (RL (rerase r))"
   using RL_rders_pder_norm6[OF assms, of s] rders_pder_norm6_size[of r s]
+  by simp
+
+lemma RL_rerase_bders_pder_norm7:
+  assumes "legacy_rrexp (rerase r)"
+  shows "RL (rerase (bders_pder_norm7 r s)) = Ders s (RL (rerase r))"
+  using RL_rders_pder_norm7[OF assms, of s] rders_pder_norm7_size[of r s]
   by simp
 
 (* BACKREF-MIGRATION-TODO (proof constructor-case extension):

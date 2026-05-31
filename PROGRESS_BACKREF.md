@@ -1,9 +1,24 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
+Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
+- Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
+  25k new-definition bounty. It extends `rsimp6` with prefix star absorption
+  `r* · (r* · k) = r* · k`, the repeated-row shape that appears once
+  Antimirov rows carry a continuation.
+- The checked artifacts include `RL_rsimp7`, `rders_simp7`,
+  `rpder_norm7_list`, `rpd_der_norm7`, `rpder_norm7_rows`,
+  `rpders_norm17_rows`, `RLS_rpders_norm17_rows`, and
+  `RL_rders_pder_norm7`.
+- The annotated mirror includes `bsimp7`, `bpder_norm7_list`,
+  `bp_der_norm7`, `bpder_norm7_rows`, `bders_pder_norm7`, and
+  `bpders_norm17_rows`, with erasure/language transfer facts
+  `bsimp7_rerase`, `bp_der_norm7_rerase`, `rpders_norm17_rows_rerase`, and
+  `RL_rerase_bders_pder_norm7`.
+- BR-032 is now marked DONE. The final repeated-row cubic closure theorem is
+  still open under BR-033/BR-034.
 - Pushed checked commits through `99d6e0b` on `codex/backref-values`.
 - Follow-up checked prototype through `462fd39` and the next local checkpoint:
   `rsimp6` adds star absorption on top of the normalized Antimirov row

@@ -5,6 +5,15 @@ to be read before continuing long-running agent work.
 
 ## 2026-05-31: Cubic non-backref size-bound direction
 
+- `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
+  25k new-definition bounty. It keeps the Antimirov row-product/state-list
+  pipeline and extends `rsimp6` with prefix star absorption:
+  `r* . (r* . k) = r* . k`. The proof-level language facts
+  `RL_rsimp7`, `RLS_rpders_norm17_rows`, and `RL_rders_pder_norm7`, plus the
+  annotated erasure facts `bsimp7_rerase`, `bp_der_norm7_rerase`,
+  `rpders_norm17_rows_rerase`, and `RL_rerase_bders_pder_norm7`, are checked.
+  This completes the algorithmic-definition milestone but not the final cubic
+  repeated-state closure theorem.
 - The current 50k cubic-size bounty is for the non-backref fragment only.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex

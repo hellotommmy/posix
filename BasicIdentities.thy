@@ -391,6 +391,48 @@ where
   "rders_simp6 r [] = r"
 | "rders_simp6 r (c#s) = rders_simp6 (rsimp6 (rder c r)) s"
 
+definition rsimp7_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp7_SEQ_atom r1 r2 =
+    (case (r1, r2) of
+      (RSTAR r, RSTAR s) \<Rightarrow>
+        if r = s then RSTAR r else rsimp4_SEQ_atom r1 r2
+    | (RSTAR r, RSEQ (RSTAR s) k) \<Rightarrow>
+        if r = s then RSEQ (RSTAR r) k else rsimp4_SEQ_atom r1 r2
+    | _ \<Rightarrow> rsimp4_SEQ_atom r1 r2)"
+
+definition rsimp7_seq_products :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimp7_seq_products xs ys =
+    concat (map (\<lambda>x. map (rsimp7_SEQ_atom x) ys) xs)"
+
+definition rsimp7_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp7_SEQ r1 r2 =
+    rsimp_ALTs
+      (rdistinct
+        (rflts (rsimp7_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)))
+        {})"
+
+(* Stronger cubic-bound redesign candidate:
+   rsimp7 extends rsimp6 with prefix star absorption
+   r* . (r* . k) = r* . k, targeting repeated Antimirov rows with a carried
+   continuation. *)
+fun rsimp7 :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimp7 (RSEQ r1 r2) = rsimp7_SEQ (rsimp7 r1) (rsimp7 r2)"
+| "rsimp7 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp7 rs)) {})"
+| "rsimp7 (RSTAR r) =
+    (case rsimp7 r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimp7 r = r"
+
+fun
+  rders_simp7 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp7 r [] = r"
+| "rders_simp7 r (c#s) = rders_simp7 (rsimp7 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -1524,6 +1566,16 @@ lemma Star_Sequ_idem:
   using Star_append_closed
   by auto
 
+lemma Star_Sequ_prefix_idem:
+  "A\<star> ;; (A\<star> ;; B) = A\<star> ;; B"
+proof -
+  have "A\<star> ;; (A\<star> ;; B) = (A\<star> ;; A\<star>) ;; B"
+    by (simp add: conc_assoc)
+  also have "... = A\<star> ;; B"
+    by (simp add: Star_Sequ_idem)
+  finally show ?thesis .
+qed
+
 lemma Star_idem:
   "(A\<star>)\<star> = A\<star>"
 proof
@@ -1680,6 +1732,100 @@ lemma RL_rders_simp6:
   shows "RL (rders_simp6 r s) = Ders s (RL r)"
   by (induction s arbitrary: r)
     (auto simp add: Ders_def Der_def RL_rder RL_rsimp6[symmetric])
+
+lemma RL_rsimp7_SEQ_atom:
+  "RL (rsimp7_SEQ_atom r1 r2) = RL r1 ;; RL r2"
+  by (cases r1; cases r2)
+    (auto simp add: rsimp7_SEQ_atom_def RL_rsimp4_SEQ_atom
+      Star_Sequ_idem Star_Sequ_prefix_idem conc_assoc
+      split: rrexp.splits)
+
+lemma RL_rsimp7_seq_product_row:
+  "(\<Union> (RL ` set (map (rsimp7_SEQ_atom x) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+proof (induct ys)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def)
+next
+  case (Cons y ys)
+  have "(\<Union> (RL ` set (map (rsimp7_SEQ_atom x) (y # ys)))) =
+    RL (rsimp7_SEQ_atom x y) \<union>
+      (\<Union> (RL ` set (map (rsimp7_SEQ_atom x) ys)))"
+    by simp
+  also have "... = (RL x ;; RL y) \<union> (RL x ;; (\<Union> (RL ` set ys)))"
+    using Cons by (simp add: RL_rsimp7_SEQ_atom)
+  also have "... = RL x ;; (RL y \<union> (\<Union> (RL ` set ys)))"
+    by (auto simp add: Sequ_def)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp7_seq_products:
+  "(\<Union> (RL ` set (rsimp7_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def rsimp7_seq_products_def)
+next
+  case (Cons x xs)
+  have row: "(\<Union> (RL ` set (map (rsimp7_SEQ_atom x) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+    by (rule RL_rsimp7_seq_product_row)
+  have tail: "(\<Union> (RL ` set (rsimp7_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+    by (rule Cons.hyps)
+  have "(\<Union> (RL ` set (rsimp7_seq_products (x # xs) ys))) =
+    (\<Union> (RL ` set (map (rsimp7_SEQ_atom x) ys))) \<union>
+      (\<Union> (RL ` set (rsimp7_seq_products xs ys)))"
+    by (simp add: rsimp7_seq_products_def)
+  also have "... =
+    (RL x ;; (\<Union> (RL ` set ys))) \<union>
+      ((\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys)))"
+    using row tail by simp
+  also have "... =
+    (RL x \<union> (\<Union> (RL ` set xs))) ;; (\<Union> (RL ` set ys))"
+    by (rule Sequ_Un_left2)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp7_SEQ:
+  "RL (rsimp7_SEQ r1 r2) = RL r1 ;; RL r2"
+proof -
+  have "RL (rsimp7_SEQ r1 r2) =
+    (\<Union> (RL ` set (rsimp7_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2))))"
+    by (simp add: rsimp7_SEQ_def RL_rsimp_ALTs_normalize)
+  also have "... =
+    (\<Union> (RL ` set (rsimp5_alt_rows r1))) ;;
+      (\<Union> (RL ` set (rsimp5_alt_rows r2)))"
+    by (rule RL_rsimp7_seq_products)
+  also have "... = RL r1 ;; RL r2"
+    by (simp add: RL_rsimp5_alt_rows)
+  finally show ?thesis .
+qed
+
+lemma RL_rsimp7:
+  shows "RL r = RL (rsimp7 r)"
+proof (induct r rule: rsimp7.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp7_SEQ)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp7 r") (simp_all add: Star_idem)
+qed simp_all
+
+lemma RL_rders_simp7:
+  shows "RL (rders_simp7 r s) = Ders s (RL r)"
+  by (induction s arbitrary: r)
+    (auto simp add: Ders_def Der_def RL_rder RL_rsimp7[symmetric])
 
   
 lemma qqq1:
