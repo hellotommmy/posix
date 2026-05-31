@@ -290,6 +290,21 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontiers_RALTS_member_sizeI`, so the `RALTS` case of
   `q in rpath9_atom_frontiers r ==> rsize q <= Suc (rsize r + rsize r)` also
   reduces to child hypotheses.
+  Added checked path9 accounting base cases for `RZERO`, `RONE`, `RCHAR`, and
+  zero-count `RNTIMES`: `card_rpath9_atom_frontiers_RZERO_quadratic`,
+  `card_rpath9_atom_frontiers_RONE_quadratic`,
+  `card_rpath9_atom_frontiers_RCHAR_quadratic`,
+  `rpath9_atom_frontiers_RZERO_member_size`,
+  `rpath9_atom_frontiers_RONE_member_size`,
+  `rpath9_atom_frontiers_RCHAR_member_size`,
+  `card_rpath9_atom_frontiers_RNTIMES_zero_quadratic`, and
+  `rpath9_atom_frontiers_RNTIMES_zero_member_size`.
+  Added checked helper facts for the next `RSEQ`/`RSTAR`/`RNTIMES` accounting
+  layer: `rfrontier_member_size_le_rsize`,
+  `card_rfrontier_rsimp7_SEQ_atom_le`, and
+  `rfrontier_rsimp7_SEQ_atom_member_size_le`. These bound the frontier
+  cardinality and member size of root-safe carried continuations without
+  reopening the row-driver definitions.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -3343,6 +3343,16 @@ lemma rfrontier_subset_rsubterms:
   "rfrontiers rs \<subseteq> (\<Union> (set (map rsubterms rs)))"
   by (induct r and rs rule: rfrontier_rfrontiers.induct) auto
 
+lemma rfrontier_member_size_le_rsize:
+  assumes "q \<in> rfrontier r"
+  shows "rsize q \<le> rsize r"
+proof -
+  have "q \<in> rsubterms r"
+    using assms rfrontier_subset_rsubterms by blast
+  then show ?thesis
+    using rsubterms_member_size_le_rsize by blast
+qed
+
 lemma rsubterms_trans:
   assumes "q \<in> rsubterms r" "p \<in> rsubterms q"
   shows "p \<in> rsubterms r"
@@ -4147,6 +4157,20 @@ next
   case (RRESIDUE cs rep)
   then show ?case
     by (cases k) simp_all
+qed
+
+lemma card_rfrontier_rsimp7_SEQ_atom_le:
+  "card (rfrontier (rsimp7_SEQ_atom r k)) \<le>
+    rsize r + card (rfrontier k)"
+proof -
+  have fallback:
+    "card (rfrontier (rsimp4_SEQ_atom r k)) \<le>
+      rsize r + card (rfrontier k)"
+    by (rule card_rfrontier_rsimp4_SEQ_atom_le)
+  show ?thesis
+    using fallback
+    by (cases r; cases k)
+      (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
 qed
 
 lemma rsimp4_SEQ_atom_assoc:
@@ -5686,6 +5710,17 @@ proof -
     using fallback
     by (cases r1; cases r2)
       (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+qed
+
+lemma rfrontier_rsimp7_SEQ_atom_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom r k)"
+  shows "rsize q \<le> Suc (rsize r + rsize k)"
+proof -
+  have "rsize q \<le> rsize (rsimp7_SEQ_atom r k)"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> Suc (rsize r + rsize k)"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  finally show ?thesis .
 qed
 
 lemma rsimp8_ALTs_size:
@@ -10012,6 +10047,44 @@ proof -
   finally show ?thesis
     .
 qed
+
+lemma card_rpath9_atom_frontiers_RZERO_quadratic:
+  "card (rpath9_atom_frontiers RZERO) \<le> (rsize RZERO + 2)\<^sup>2"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma card_rpath9_atom_frontiers_RONE_quadratic:
+  "card (rpath9_atom_frontiers RONE) \<le> (rsize RONE + 2)\<^sup>2"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma card_rpath9_atom_frontiers_RCHAR_quadratic:
+  "card (rpath9_atom_frontiers (RCHAR c)) \<le>
+    (rsize (RCHAR c) + 2)\<^sup>2"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RZERO_member_size:
+  assumes "x \<in> rpath9_atom_frontiers RZERO"
+  shows "rsize x \<le> Suc (rsize RZERO + rsize RZERO)"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RONE_member_size:
+  assumes "x \<in> rpath9_atom_frontiers RONE"
+  shows "rsize x \<le> Suc (rsize RONE + rsize RONE)"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RCHAR_member_size:
+  assumes "x \<in> rpath9_atom_frontiers (RCHAR c)"
+  shows "rsize x \<le> Suc (rsize (RCHAR c) + rsize (RCHAR c))"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma card_rpath9_atom_frontiers_RNTIMES_zero_quadratic:
+  "card (rpath9_atom_frontiers (RNTIMES r 0)) \<le>
+    (rsize (RNTIMES r 0) + 2)\<^sup>2"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RNTIMES_zero_member_size:
+  assumes "x \<in> rpath9_atom_frontiers (RNTIMES r 0)"
+  shows "rsize x \<le> Suc (rsize (RNTIMES r 0) + rsize (RNTIMES r 0))"
+  using assms by (simp add: rpath9_atom_frontiers_def)
 
 lemma rpath9_atom_frontiers_RALTS_member_sizeI:
   assumes child: "\<And>q x. q \<in> set rs \<Longrightarrow>

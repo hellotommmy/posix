@@ -115,6 +115,19 @@ immutability.
   `card_rpath9_atom_frontiers_RALTS_quadraticI`. The matching `RALTS`
   member-size split is checked as
   `rpath9_atom_frontiers_RALTS_member_sizeI`.
+  The base accounting facts for `RZERO`, `RONE`, `RCHAR`, and zero-count
+  `RNTIMES` are checked via
+  `card_rpath9_atom_frontiers_RZERO_quadratic`,
+  `card_rpath9_atom_frontiers_RONE_quadratic`,
+  `card_rpath9_atom_frontiers_RCHAR_quadratic`,
+  `rpath9_atom_frontiers_RZERO_member_size`,
+  `rpath9_atom_frontiers_RONE_member_size`,
+  `rpath9_atom_frontiers_RCHAR_member_size`,
+  `card_rpath9_atom_frontiers_RNTIMES_zero_quadratic`, and
+  `rpath9_atom_frontiers_RNTIMES_zero_member_size`.
+  The next carried-continuation accounting helpers are also checked:
+  `rfrontier_member_size_le_rsize`, `card_rfrontier_rsimp7_SEQ_atom_le`, and
+  `rfrontier_rsimp7_SEQ_atom_member_size_le`.
 
 ## Completed
 

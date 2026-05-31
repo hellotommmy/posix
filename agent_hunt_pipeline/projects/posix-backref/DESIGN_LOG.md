@@ -258,6 +258,20 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_RALTS_member_sizeI`. Together with the card split,
   the alternative branch of both path9 accounting premises now reduces to
   child hypotheses.
+- Path9 accounting base cases are checked for `RZERO`, `RONE`, `RCHAR`, and
+  zero-count `RNTIMES`: `card_rpath9_atom_frontiers_RZERO_quadratic`,
+  `card_rpath9_atom_frontiers_RONE_quadratic`,
+  `card_rpath9_atom_frontiers_RCHAR_quadratic`,
+  `rpath9_atom_frontiers_RZERO_member_size`,
+  `rpath9_atom_frontiers_RONE_member_size`,
+  `rpath9_atom_frontiers_RCHAR_member_size`,
+  `card_rpath9_atom_frontiers_RNTIMES_zero_quadratic`, and
+  `rpath9_atom_frontiers_RNTIMES_zero_member_size`.
+- The next path9 accounting layer has local carried-continuation bounds:
+  `rfrontier_member_size_le_rsize`, `card_rfrontier_rsimp7_SEQ_atom_le`, and
+  `rfrontier_rsimp7_SEQ_atom_member_size_le`. These are intended for the
+  `RSEQ`/`RSTAR`/`RNTIMES` cases, where the path9 accumulator carries
+  `rsimp7_SEQ_atom (rsimp9 suffix) k` rather than the older `rsimp4` tail.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
