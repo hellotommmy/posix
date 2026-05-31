@@ -140,6 +140,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `RSEQI`, `RSTARI`, `RNTIMESI`, and the path/direct variants for
   `RSEQ`, `RSTAR`, and `RNTIMES`. The hard theorem is now reduced to proving
   the carried-continuation premises for the `rsimp9` normalized root.
+  Added the corresponding path-universe helper layer:
+  `rflts_singleton_rsimp9_path_universe`,
+  `rflts_map_rsimp9_path_subsetI`,
+  `rflts_map_rsimp9_rpder_list_path_universe_subsetI`,
+  `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`, and
+  `rpder_norm9_path_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These are the
+  preferred splitters for the next BR-036 attempt because they target the
+  checked cubic path-universe hook directly.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
