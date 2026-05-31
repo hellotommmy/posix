@@ -193,6 +193,11 @@ immutability.
   The `RSEQ` normalized-tail handoff is checked:
   `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_productI` and
   `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI`.
+  The `RSTAR`/`RNTIMES` normalized-tail handoffs are checked:
+  `card_rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_productI`,
+  `rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI`.
 
 ## Completed
 

@@ -392,6 +392,12 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_member_sizeI`. These split
   `acc (RSEQ r1 r2) (rsimp9 k . 1)` into a left nested-tail obligation for
   `r2 . k` and a right ordinary-tail obligation for `k`.
+  Added checked `RSTAR`/`RNTIMES` normalized-tail handoff lemmas:
+  `card_rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_productI`,
+  `rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI`.
+  These expose the body obligation with the extra normalized carried tail.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

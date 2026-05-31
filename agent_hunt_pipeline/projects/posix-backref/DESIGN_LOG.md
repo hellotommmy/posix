@@ -653,3 +653,14 @@ to be read before continuing long-running agent work.
 - Use them when the parent collector has tail `rsimp7_SEQ_atom (rsimp9 k) RONE`.
   The left child receives the nested tail `rsimp9 r2 . (rsimp9 k . 1)`, while
   the right child keeps the ordinary normalized tail for `k`.
+
+## 2026-05-31: Star and countdown normalized-tail handoffs
+
+- The checked handoff lemmas are
+  `card_rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_productI`,
+  `rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI`.
+- Use these when a star/countdown parent has an already-normalized carried
+  tail. They expose the recursive body call with the extra nested tail and
+  leave only that body obligation to the future induction.
