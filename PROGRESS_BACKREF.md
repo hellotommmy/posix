@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
+Last updated: 2026-05-31 (norm18 normalized-tail counterexample)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
@@ -75,6 +75,14 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   It is false in the presence of the zero/one simplifications and
   reassociation that make `rsimp4_SEQ_atom` useful; a raw path-continuation
   transitivity proof based on that equation was rejected and removed.
+  Added the checked counterexample
+  `rsimp8_rsimp4_SEQ_atom_RONE_counterexample`, showing that even the
+  tempting normalized equality
+  `rsimp8 (rsimp4_SEQ_atom r RONE) = rsimp8 r` is false. The failing shape is
+  `((b . b*) . b*)`: pre-normalizing with `rsimp4_SEQ_atom _ RONE` exposes an
+  inner `b* . b*` absorption that direct root-safe `rsimp8` does not see.
+  Future closure work should use a normalized-tail invariant or a weaker
+  direct membership statement, not an equality shortcut.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -72,6 +72,11 @@ Research tactics:
   `rflts_map_rsimp8_live_row_subsetI`.
 - Do not assume `rsimp4_SEQ_atom r RONE = r`; it is false because the atom
   sequence simplifier removes zero/one structure and reassociates.
+- Do not assume `rsimp8 (rsimp4_SEQ_atom r RONE) = rsimp8 r` either. It is
+  checked false as `rsimp8_rsimp4_SEQ_atom_RONE_counterexample` on
+  `((b . b*) . b*)`: pre-normalizing the tail exposes `b* . b*` absorption
+  that direct root-safe `rsimp8` does not see. Use normalized-tail closure or
+  direct membership instead of an equality shortcut.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

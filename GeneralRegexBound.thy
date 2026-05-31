@@ -7499,6 +7499,12 @@ lemma norm18_closes_rsimp8_live_row_obstruction:
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
 
+lemma rsimp8_rsimp4_SEQ_atom_RONE_counterexample:
+  fixes b :: char
+  defines "r \<equiv> RSEQ (RSEQ (RCHAR b) (RSTAR (RCHAR b))) (RSTAR (RCHAR b))"
+  shows "rsimp8 (rsimp4_SEQ_atom r RONE) \<noteq> rsimp8 r"
+  by (simp add: r_def rsimp7_SEQ_atom_def)
+
 lemma rpder_norm8_live_row_step_RZERO [simp]:
   "set (rflts (rpder_norm8_list c RZERO)) \<subseteq>
     partial_derivative_live_row_universe r"

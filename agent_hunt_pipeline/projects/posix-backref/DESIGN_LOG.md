@@ -84,6 +84,14 @@ to be read before continuing long-running agent work.
   reassociates left-nested sequences. A raw path-continuation transitivity
   proof based on that equation failed; future work needs a normalized-tail
   invariant or a weaker monotonicity statement.
+- Rejected stronger shortcut: `rsimp8 (rsimp4_SEQ_atom r RONE) = rsimp8 r` is
+  also false. The checked lemma
+  `rsimp8_rsimp4_SEQ_atom_RONE_counterexample` uses the shape
+  `((b . b*) . b*)`; applying `rsimp4_SEQ_atom _ RONE` first exposes the inner
+  star absorption `b* . b*`, while direct root-safe `rsimp8` does not. Do not
+  base BR-036 on equality between normalized tails. Use a closure invariant
+  that accounts for these local tail normalizations, or prove direct
+  membership for the normalized carried branch.
 - Proof-engineering note: `rsimp_ALTs` has length-sensitive equations
   (`[]`, singleton, and two-or-more). In nested list cases, save the outer
   shape equation with a named fact before entering an inner `cases`; relying
