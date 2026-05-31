@@ -141,10 +141,12 @@ to be read before continuing long-running agent work.
   `rflts_map_rsimp9_path_subsetI`,
   `rflts_map_rsimp9_rpder_list_path_universe_subsetI`,
   `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`, and
-  `rpder_norm9_path_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These avoid the
-  false live-row target while still feeding the same cubic theorem. The next
-  real proof obligation is to discharge the path-universe carried premise for
-  states in `partial_derivative_path_universe (rsimp9 r)`.
+  `partial_derivative_path_universe_alt_child_mono` plus
+  `rpder_norm9_path_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs` and
+  `RSEQ/RSTAR/RNTIMES_pathI`. These avoid the false live-row target while
+  still feeding the same cubic theorem. The next real proof obligation is to
+  discharge the path-universe carried premise for states in
+  `partial_derivative_path_universe (rsimp9 r)`.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity

@@ -8062,6 +8062,13 @@ lemma partial_derivative_path_universe_path_continuation:
   shows "p \<in> partial_derivative_path_universe r"
   using assms by (auto simp add: partial_derivative_path_universe_def)
 
+lemma partial_derivative_path_universe_alt_child_mono:
+  assumes "q \<in> set rs"
+  shows "partial_derivative_path_universe q \<subseteq>
+    partial_derivative_path_universe (RALTS rs)"
+  using assms
+  by (auto simp add: partial_derivative_path_universe_def rpath_continuations_def)
+
 lemma rsimp4_derivative_needs_path_continuation:
   assumes "a \<noteq> b"
   shows "RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR c)) \<in>
@@ -8422,6 +8429,72 @@ next
   show ?case
     using head tail
     by (simp add: rpder_norm9_list_def rpder_norm_list_def flts_append)
+qed
+
+lemma rpder_norm9_path_universe_step_RZERO [simp]:
+  "set (rflts (rpder_norm9_list c RZERO)) \<subseteq>
+    partial_derivative_path_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_path_universe_step_RONE [simp]:
+  "set (rflts (rpder_norm9_list c RONE)) \<subseteq>
+    partial_derivative_path_universe r"
+  by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_path_universe_step_RCHAR [simp]:
+  "set (rflts (rpder_norm9_list c (RCHAR d))) \<subseteq>
+    partial_derivative_path_universe r"
+  by (cases "c = d") (simp_all add: rpder_norm9_list_def rpder_norm_list_def)
+
+lemma rpder_norm9_path_universe_step_RALTS_selfI:
+  assumes step: "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path_universe q"
+  shows "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+    partial_derivative_path_universe (RALTS rs)"
+proof (rule rpder_norm9_live_row_step_RALTSI)
+  fix q
+  assume q: "q \<in> set rs"
+  have "set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path_universe q"
+    by (rule step[OF q])
+  moreover have "partial_derivative_path_universe q \<subseteq>
+      partial_derivative_path_universe (RALTS rs)"
+    by (rule partial_derivative_path_universe_alt_child_mono[OF q])
+  ultimately show "set (rflts (rpder_norm9_list c q)) \<subseteq>
+    partial_derivative_path_universe (RALTS rs)"
+    by blast
+qed
+
+lemma rpder_norm9_path_universe_step_rsimp_ALTsI:
+  assumes step: "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path_universe q"
+  shows "set (rflts (rpder_norm9_list c (rsimp_ALTs rs))) \<subseteq>
+    partial_derivative_path_universe (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using Cons step[of q] by simp
+  next
+    case (Cons q' qs')
+    have "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+        partial_derivative_path_universe (RALTS rs)"
+      by (rule rpder_norm9_path_universe_step_RALTS_selfI)
+        (use step in auto)
+    moreover have "rsimp_ALTs rs = RALTS rs"
+      using rs_cons \<open>qs = q' # qs'\<close> by simp
+    then show ?thesis
+      using calculation by simp
+  qed
 qed
 
 lemma rpder_norm9_live_row_step_RALTS_selfI:

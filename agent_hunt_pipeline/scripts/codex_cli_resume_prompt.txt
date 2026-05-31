@@ -115,8 +115,10 @@ Research tactics:
   `rflts_singleton_rsimp9_path_universe`,
   `rflts_map_rsimp9_path_subsetI`,
   `rflts_map_rsimp9_rpder_list_path_universe_subsetI`,
-  `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`, and
-  `rpder_norm9_path_universe_step_RSEQ/RSTAR/RNTIMES_pathI`.
+  `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`,
+  `partial_derivative_path_universe_alt_child_mono`, and
+  `rpder_norm9_path_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs` plus
+  `RSEQ/RSTAR/RNTIMES_pathI`.
   Next target: use these splitters to prove one-step closure in
   `partial_derivative_path_universe (rsimp9 r)`, then migrate the annotated
   `bsimp` only after the proof-level target is stable.

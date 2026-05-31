@@ -145,9 +145,11 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rflts_map_rsimp9_path_subsetI`,
   `rflts_map_rsimp9_rpder_list_path_universe_subsetI`,
   `rflts_map_rsimp9_rpder_list_norm_tail_path_universe_subsetI`, and
-  `rpder_norm9_path_universe_step_RSEQ/RSTAR/RNTIMES_pathI`. These are the
-  preferred splitters for the next BR-036 attempt because they target the
-  checked cubic path-universe hook directly.
+  `partial_derivative_path_universe_alt_child_mono` plus
+  `rpder_norm9_path_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs` and
+  `RSEQ/RSTAR/RNTIMES_pathI`. These are the preferred splitters for the next
+  BR-036 attempt because they target the checked cubic path-universe hook
+  directly.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
