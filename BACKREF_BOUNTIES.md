@@ -134,6 +134,13 @@ immutability.
   The next carried-continuation accounting helpers are also checked:
   `rfrontier_member_size_le_rsize`, `card_rfrontier_rsimp7_SEQ_atom_le`, and
   `rfrontier_rsimp7_SEQ_atom_member_size_le`.
+  The first path9 accounting constructor splitters are checked:
+  `card_rpath9_atom_frontiers_RSEQ_le`,
+  `card_rpath9_atom_frontiers_RSTAR_le`,
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_le`,
+  `rpath9_atom_frontiers_RSEQ_member_sizeI`,
+  `rpath9_atom_frontiers_RSTAR_member_sizeI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI`.
 
 ## Completed
 

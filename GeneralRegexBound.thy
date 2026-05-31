@@ -10111,6 +10111,85 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_rpath9_atom_frontiers_RSEQ_le:
+  "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+    card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE)) +
+    card (rpath9_atom_frontiers r2)"
+proof -
+  have split: "rpath9_atom_frontiers (RSEQ r1 r2) =
+      rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE) \<union>
+      rpath9_atom_frontier_acc r2 RONE"
+    by (simp add: rpath9_atom_frontiers_def)
+  have "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
+      card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)) +
+      card (rpath9_atom_frontier_acc r2 RONE)"
+    by (simp add: split card_Un_le)
+  then show ?thesis
+    by (simp add: rpath9_atom_frontiers_def)
+qed
+
+lemma card_rpath9_atom_frontiers_RSTAR_le:
+  "card (rpath9_atom_frontiers (RSTAR r)) \<le>
+    card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE))"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma card_rpath9_atom_frontiers_RNTIMES_nonzero_le:
+  assumes "n \<noteq> 0"
+  shows "card (rpath9_atom_frontiers (RNTIMES r n)) \<le>
+    card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE))"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RSEQ_member_sizeI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+    and right: "\<And>x. x \<in> rpath9_atom_frontiers r2 \<Longrightarrow>
+      rsize x \<le> Suc (rsize r2 + rsize r2)"
+    and x: "x \<in> rpath9_atom_frontiers (RSEQ r1 r2)"
+  shows "rsize x \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+proof -
+  consider
+      "x \<in> rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) RONE)"
+    | "x \<in> rpath9_atom_frontiers r2"
+    using x unfolding rpath9_atom_frontiers_def by auto
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis
+      by (rule left)
+  next
+    case 2
+    have "rsize x \<le> Suc (rsize r2 + rsize r2)"
+      by (rule right[OF 2])
+    also have "... \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+      by simp
+    finally show ?thesis .
+  qed
+qed
+
+lemma rpath9_atom_frontiers_RSTAR_member_sizeI:
+  assumes body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+    and x: "x \<in> rpath9_atom_frontiers (RSTAR r)"
+  shows "rsize x \<le> Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
+lemma rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI:
+  assumes n: "n \<noteq> 0"
+    and body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+    and x: "x \<in> rpath9_atom_frontiers (RNTIMES r n)"
+  shows "rsize x \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+  using assms by (simp add: rpath9_atom_frontiers_def)
+
 lemma rsubterms_rsimp_ALTs_member:
   assumes "x \<in> set xs"
   shows "x \<in> rsubterms (rsimp_ALTs xs)"

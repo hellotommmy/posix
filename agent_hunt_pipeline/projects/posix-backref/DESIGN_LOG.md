@@ -536,3 +536,20 @@ to be read before continuing long-running agent work.
   `rpder_norm9_path9_atom_frontier_step_RSEQ_directI`,
   `rpder_norm9_path9_atom_frontier_step_RSTAR_directI`, and
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_directI`.
+
+## 2026-05-31: Path9 frontier accounting splitters
+
+- Keep path9 card/member-size accounting constructor-local. For
+  `RSEQ`, split the parent frontier into the left carried continuation
+  collector and the right child frontier before applying cardinality or size
+  bounds.
+- For `RSTAR` and nonzero `RNTIMES`, expose the body carried-continuation
+  collector directly. The remaining hard work is to bound that collector, not
+  to repeatedly unfold `rpath9_atom_frontiers`.
+- The checked accounting splitters are
+  `card_rpath9_atom_frontiers_RSEQ_le`,
+  `card_rpath9_atom_frontiers_RSTAR_le`,
+  `card_rpath9_atom_frontiers_RNTIMES_nonzero_le`,
+  `rpath9_atom_frontiers_RSEQ_member_sizeI`,
+  `rpath9_atom_frontiers_RSTAR_member_sizeI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI`.
