@@ -148,6 +148,9 @@ Research tactics:
   Sanity check: `norm19_frontier_universe_repairs_nested_star_counterexample`
   is checked; it shows the old nested-star cubic obstruction is normalized to
   `RSTAR a` and its normalized derivative row remains in the frontier universe.
+  Dual-frontier hook: `rsizes_distinct_path_dual_frontier_universe_cubicI` is
+  checked; finish its two premises by proving quadratic combined frontier card
+  and linear member size, or replace the universe with a checked smaller one.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

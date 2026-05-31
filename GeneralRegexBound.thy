@@ -9903,6 +9903,72 @@ proof -
   finally show ?thesis .
 qed
 
+lemma quadratic_plus_linear_padding_bound:
+  fixes n C :: nat
+  assumes "C \<le> (n + 2) ^ 2"
+  shows "2 + n + C \<le> 2 * (n + 2) ^ 2"
+proof -
+  have "2 + n \<le> (n + 2) ^ 2"
+    by (simp add: power2_eq_square)
+  then show ?thesis
+    using assms by linarith
+qed
+
+lemma quadratic_plus_linear_times_linear_cubic_bound:
+  fixes n C :: nat
+  assumes "C \<le> (n + 2) ^ 2"
+  shows "(2 + n + C) * Suc (n + n) \<le> 6 * (n + 2) ^ 3"
+proof -
+  have card: "2 + n + C \<le> 2 * (n + 2) ^ 2"
+    by (rule quadratic_plus_linear_padding_bound[OF assms])
+  have linear: "Suc (n + n) \<le> 3 * (n + 2)"
+    by simp
+  have "(2 + n + C) * Suc (n + n) \<le>
+      (2 * (n + 2) ^ 2) * (3 * (n + 2))"
+    by (rule mult_mono[OF card linear]) simp_all
+  also have "... = 6 * (n + 2) ^ 3"
+    by (simp add: algebra_simps power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+lemma rsizes_distinct_path_dual_frontier_universe_cubicI:
+  assumes rows:
+      "set rs \<subseteq> partial_derivative_path_dual_frontier_universe r"
+      "distinct rs"
+    and frontiers:
+      "card (rpath_frontiers r) + card (rpath_atom_frontiers r) \<le>
+        (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_path_dual_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes rs \<le> 6 * (rsize r + 2) ^ 3"
+proof -
+  let ?U = "partial_derivative_path_dual_frontier_universe r"
+  let ?C = "card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
+  let ?M = "Suc (rsize r + rsize r)"
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound)
+      (use rows(1) member_size in blast)
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use rows in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + rsize r + ?C) * ?M"
+  proof -
+    have "card ?U \<le> 2 + rsize r + ?C"
+      using partial_derivative_path_dual_frontier_universe_card_le[of r]
+      by simp
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 6 * (rsize r + 2) ^ 3"
+    by (rule quadratic_plus_linear_times_linear_cubic_bound[OF frontiers])
+  finally show ?thesis .
+qed
+
 lemma rpath_frontier_acc_subset_dual:
   "rpath_frontier_acc r k \<subseteq> rpath_dual_frontier_acc r k"
   by (simp add: rpath_dual_frontier_acc_def)

@@ -158,6 +158,12 @@ to be read before continuing long-running agent work.
   `norm19_frontier_universe_repairs_nested_star_counterexample` shows
   `RSTAR (RSTAR a)` normalizes to `RSTAR a`, and the normalized derivative row
   remains inside the same frontier universe.
+- The dual-frontier route now has a checked conditional cubic hook:
+  `rsizes_distinct_path_dual_frontier_universe_cubicI`. It reduces the
+  remaining arithmetic/accounting work to two local obligations: prove
+  `card (rpath_frontiers r) + card (rpath_atom_frontiers r)` is quadratic in
+  `rsize r`, and prove linear member size for
+  `partial_derivative_path_dual_frontier_universe r`.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

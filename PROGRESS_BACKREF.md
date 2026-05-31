@@ -188,6 +188,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   the older `RSTAR (RSTAR a)` cubic-universe obstruction is normalized to
   `RSTAR a`, and the normalized `a` derivative remains inside the same
   frontier universe.
+  Added the dual-frontier cubic hook:
+  `quadratic_plus_linear_padding_bound`,
+  `quadratic_plus_linear_times_linear_cubic_bound`, and
+  `rsizes_distinct_path_dual_frontier_universe_cubicI`. This checked theorem
+  says any distinct row list inside the dual frontier universe is cubic once
+  two remaining local obligations are proved: the combined full/atom frontier
+  set is quadratic, and each dual-universe member has linear size.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
