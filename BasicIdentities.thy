@@ -433,6 +433,27 @@ where
   "rders_simp7 r [] = r"
 | "rders_simp7 r (c#s) = rders_simp7 (rsimp7 (rder c r)) s"
 
+(* Bounds-oriented root normalizer.  It keeps the star cleanup and prefix-star
+   absorption of rsimp7, but deliberately avoids the row-product expansion in
+   rsimp7_SEQ. *)
+fun rsimp8 :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimp8 (RSEQ r1 r2) = rsimp7_SEQ_atom (rsimp8 r1) (rsimp8 r2)"
+| "rsimp8 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp8 rs)) {})"
+| "rsimp8 (RSTAR r) =
+    (case rsimp8 r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimp8 r = r"
+
+fun
+  rders_simp8 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp8 r [] = r"
+| "rders_simp8 r (c#s) = rders_simp8 (rsimp8 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -1826,6 +1847,27 @@ lemma RL_rders_simp7:
   shows "RL (rders_simp7 r s) = Ders s (RL r)"
   by (induction s arbitrary: r)
     (auto simp add: Ders_def Der_def RL_rder RL_rsimp7[symmetric])
+
+lemma RL_rsimp8:
+  shows "RL r = RL (rsimp8 r)"
+proof (induct r rule: rsimp8.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp7_SEQ_atom)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp8 r") (simp_all add: Star_idem)
+qed simp_all
+
+lemma RL_rders_simp8:
+  shows "RL (rders_simp8 r s) = Ders s (RL r)"
+  by (induction s arbitrary: r)
+    (auto simp add: Ders_def Der_def RL_rder RL_rsimp8[symmetric])
 
   
 lemma qqq1:

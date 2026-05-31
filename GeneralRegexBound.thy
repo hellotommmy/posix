@@ -354,6 +354,38 @@ lemma legacy_rders_simp7:
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp7 legacy_rder)
 
+lemma legacy_rsimp8:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimp8 r)"
+  using assms
+proof (induction r rule: rsimp8.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: legacy_rsimp7_SEQ_atom)
+next
+  case (2 rs)
+  have mapped: "\<forall>r \<in> set (map rsimp8 rs). legacy_rrexp r"
+    using 2 by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimp8 rs)). legacy_rrexp r"
+    using legacy_rflts[OF mapped] .
+  have distinct: "\<forall>r \<in> set (rdistinct (rflts (map rsimp8 rs)) {}). legacy_rrexp r"
+    using legacy_rdistinct[OF flat] .
+  show ?case
+    using legacy_rsimp_ALTs[OF distinct] by simp
+next
+  case (3 r)
+  have "legacy_rrexp (rsimp8 r)"
+    using 3 by simp
+  then show ?case
+    by (cases "rsimp8 r") simp_all
+qed simp_all
+
+lemma legacy_rders_simp8:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rders_simp8 r s)"
+  using assms
+  by (induction s arbitrary: r) (auto simp add: legacy_rsimp8 legacy_rder)
+
 fun rpder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpder c RZERO = {}"
 | "rpder c RONE = {}"
@@ -4893,6 +4925,63 @@ next
     by (cases r2) simp_all
 qed
 
+lemma rsize_rsimp7_SEQ_atom_le:
+  "rsize (rsimp7_SEQ_atom r1 r2) \<le> Suc (rsize r1 + rsize r2)"
+proof -
+  have fallback:
+    "rsize (rsimp4_SEQ_atom r1 r2) \<le> Suc (rsize r1 + rsize r2)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  show ?thesis
+    using fallback
+    by (cases r1; cases r2)
+      (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+qed
+
+lemma rsimp8_ALTs_size:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> rsize (rsimp8 x) \<le> rsize x"
+  shows "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp8 xs)) {})) \<le>
+    rsize (RALTS xs)"
+proof -
+  have "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp8 xs)) {})) \<le>
+      rsize (RALTS (rdistinct (rflts (map rsimp8 xs)) {}))"
+    by (rule rsimp_aalts_smaller)
+  also have "... \<le> Suc (rsizes (rdistinct (rflts (map rsimp8 xs)) {}))"
+    by (rule ralts_cap_mono)
+  also have "... \<le> Suc (rsizes (rflts (map rsimp8 xs)))"
+    using rdistinct_smaller[of "rflts (map rsimp8 xs)" "{}"] by simp
+  also have "... \<le> Suc (rsizes (map rsimp8 xs))"
+    using rflts_mono[of "map rsimp8 xs"] by simp
+  also have "... \<le> Suc (rsizes xs)"
+    using assms by (simp add: sum_list_mono)
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimp8_le:
+  "rsize (rsimp8 r) \<le> rsize r"
+proof (induct r rule: rsimp8.induct)
+  case (1 r1 r2)
+  have "rsize (rsimp8 (RSEQ r1 r2)) \<le>
+      rsize (RSEQ (rsimp8 r1) (rsimp8 r2))"
+    by (simp add: rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using 1 by simp
+  finally show ?case .
+next
+  case (2 rs)
+  have elems: "\<And>x. x \<in> set rs \<Longrightarrow> rsize (rsimp8 x) \<le> rsize x"
+    using 2 by auto
+  have "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp8 rs)) {})) \<le>
+      rsize (RALTS rs)"
+    by (rule rsimp8_ALTs_size[OF elems])
+  then show ?case
+    by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp8 r") simp_all
+qed simp_all
+
 lemma square_mono_nat:
   fixes m n :: nat
   assumes "m \<le> n"
@@ -6603,6 +6692,24 @@ proof -
     by (rule rpders_norm17_rows_rflts_subsetI[OF init step])
   then show ?thesis
     by (rule rsizes_rpders_norm17_rows_live_row_universe_cubic)
+qed
+
+lemma rsizes_rpders_norm17_rows_rsimp8_live_row_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe (rsimp8 r) \<Longrightarrow>
+    set (rflts (rpder_norm7_list c q)) \<subseteq>
+      partial_derivative_live_row_universe (rsimp8 r)"
+  shows "rsizes (rpders_norm17_rows (rsimp8 r) s) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have base: "rsizes (rpders_norm17_rows (rsimp8 r) s) \<le>
+      2 * (rsize (rsimp8 r) + 3) ^ 3"
+    by (rule rsizes_rpders_norm17_rows_live_row_universe_cubicI'[OF step])
+  have size: "rsize (rsimp8 r) + 3 \<le> rsize r + 3"
+    using rsize_rsimp8_le[of r] by simp
+  have "2 * (rsize (rsimp8 r) + 3) ^ 3 \<le> 2 * (rsize r + 3) ^ 3"
+    using power_mono[OF size, of 3] by simp
+  then show ?thesis
+    using base by linarith
 qed
 
 lemma partial_derivative_path_universe_zero [simp]:

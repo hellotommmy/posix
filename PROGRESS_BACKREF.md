@@ -1,9 +1,23 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
+Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
+- Added and checked the new root-safe simplifier layer `rsimp8`/`bsimp8`.
+  This is the next cubic-size design after discovering that eager `rsimp7`
+  can increase the root size by distributing `(a + b) · (c + d)` into a
+  product row. `rsimp8` keeps star cleanup and prefix-star absorption, but
+  uses only the atom-level sequence simplifier at roots.
+- Checked artifacts for this layer include `RL_rsimp8`, `RL_rders_simp8`,
+  `bsimp8_rerase`, `rders_simp8_size`, `RL_rerase_bders_simp8`,
+  `rsize_rsimp8_le`, and
+  `rsizes_rpders_norm17_rows_rsimp8_live_row_cubicI`. This gives a conditional
+  cubic interface whose bound is w.r.t. the original `rsize r`, not the
+  possibly inflated `rsize (rsimp7 r)`.
+- Added `rsimp7_can_increase_root_size`, a checked obstruction showing that
+  full `rsimp7` is not safe as the root normalizer for an original-regex-size
+  cubic theorem.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
   25k new-definition bounty. It extends `rsimp6` with prefix star absorption
   `r* · (r* · k) = r* · k`, the repeated-row shape that appears once

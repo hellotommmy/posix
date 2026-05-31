@@ -20,16 +20,16 @@ immutability.
 
 | Category | Amount |
 | --- | ---: |
-| Total pool | 100,000 |
-| Allocated (active + completed) | 85,090 |
-| Collected (paid out) | 49,970 |
+| Total pool | 150,000 |
+| Allocated (active + completed) | 135,090 |
+| Collected (paid out) | 74,970 |
 | Reserved (unallocated) | 14,910 |
 
 ## Agent Balances
 
 | Agent | Role | Balance | Notes |
 | --- | --- | ---: | --- |
-| Codex | Admin/Worker | 42,750 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-015 through BR-022, BR-032 |
+| Codex | Admin/Worker | 67,750 | Completed BR-001 through BR-004, BR-006 through BR-010, BR-015 through BR-022, BR-032, BR-035 |
 | Opus | Worker | 6,200 | Completed BR-005, BR-011, BR-012, BR-013, BR-014; BR-015 lock released when Cursor was retired |
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
@@ -50,6 +50,8 @@ immutability.
 | BR-031 | Cubic non-backref size-bound blueprint | 5,000 | 120 | 8 | 5,000 | OPEN | - | PROGRESS_BACKREF.md;BasicIdentities.thy;ClosedFormsBounds.thy;FBound.thy | AdminReview | State the cubic target, fragment invariant, and Antimirov-style frontier plan; no theorem payout for wrapper-only restatements |
 | BR-033 | Prove partial-derivative universe cubic bound | 12,000 | 300 | 10 | 12,000 | OPEN | - | GeneralRegexBound.thy:partial_derivative_path_universe,partial_derivative_live_row_universe,rfrontier_path_continuation_subset_path_universe,partial_derivative_live_row_universe_subset_path,rsizes_distinct_live_row_universe_cubic,rsizes_rpders_norm17_rows_live_row_universe_cubic,raw_live_row_universe_not_closed_under_norm7 | Isabelle:Posix | Replace `card(sizeNregex N)` reasoning with a finite universe generated from subterms/continuations of the original non-backref regex; corrected live-row accounting is checked and inherits the path-universe cubic bound; remaining work is the normalized-root live-row one-step closure for `rpder_norm7_list` |
 | BR-034 | Transfer cubic bound to annotated lexer states | 8,000 | 260 | 10 | 8,000 | OPEN | - | FBound.thy:asize_bp_der_norm_cubic,RL_rerase_bders_pder_norm,rpders_norm1_rows_rerase,annotated_size_bound_cubic_nonbackref | Isabelle:Posix | Final non-backref theorem for normalized row-list `bpders_norm1_rows`/future production `bsimp`; backref constructors explicitly excluded from the fragment |
+| BR-036 | Close rsimp8 live-row cubic closure | 15,000 | 320 | 10 | 15,000 | OPEN | - | GeneralRegexBound.thy:rpder_norm7_rsimp8_live_row_step,rsizes_rpders_norm17_rows_rsimp8_cubic | Isabelle:Posix | Prove the remaining one-step closure for `partial_derivative_live_row_universe (rsimp8 r)` and derive a cubic theorem w.r.t. original `rsize r`; non-backref fragment only |
+| BR-037 | Transfer root-safe cubic theorem to annotated lexer | 10,000 | 260 | 10 | 10,000 | OPEN | - | FBound.thy:bpders_norm17_rows_rsimp8_rerase,annotated_size_bound_rsimp8_cubic_nonbackref;BlexerSimp.thy:production_bsimp_cubic_fragment | Isabelle:Posix | Connect the checked root-safe cubic theorem to the annotated `bsimp`/partial-derivative lexer path without wrapper-only restatements; backrefs excluded |
 
 ## Completed
 
@@ -78,6 +80,7 @@ immutability.
 | BR-021 | Cursor/Opus loop startup kit | 140 | 15 | 4 | 140 | DONE | Codex | .cursor/hooks/posix_loop.ps1;.cursor/hooks/posix_loop.sh;agent_hunt_pipeline/projects/posix-backref/loop-config.cursor-opus.json;agent_hunt_pipeline/projects/posix-backref/SLEEP_RUNBOOK.md | CursorHook:posix-loop | Supplemental robust hook and sleep runbook |
 | BR-022 | Bounded-fragment statement blueprint | 1,200 | 60 | 7 | 1,200 | DONE | Codex | BackRefBoundedBlueprint.thy:bounded_GBACKREF4_finite_derivative_languages | Isabelle:BackRefPilot | Semantic bounded-language blueprint for finite derivative-language families; no production bounds or closed forms touched |
 | BR-032 | Define stronger cubic-bound simplifier | 25,000 | 260 | 10 | 25,000 | DONE | Codex | BasicIdentities.thy:rsimp7_SEQ_atom,rsimp7_SEQ,rsimp7,RL_rsimp7;BlexerSimp.thy:bsimp7_ASEQ_atom,bsimp7_ASEQ,bsimp7,bpder_norm7_list,bp_der_norm7,bpder_norm7_rows;GeneralRegexBound.thy:rpder_norm7_list,rpd_der_norm7,rpder_norm7_rows,rpders_norm17_rows,RLS_rpders_norm17_rows,RL_rders_pder_norm7;FBound.thy:bsimp7_rerase,bp_der_norm7_rerase,rpders_norm17_rows_rerase,RL_rerase_bders_pder_norm7 | Isabelle:Posix | Checked `rsimp7`/`bsimp7` adds prefix star absorption `r*.(r*.k)=r*.k` over Antimirov row lists; final repeated-row cubic closure remains BR-033 |
+| BR-035 | Define root-safe cubic simplifier | 25,000 | 260 | 10 | 25,000 | DONE | Codex | BasicIdentities.thy:rsimp8,rders_simp8,RL_rsimp8,RL_rders_simp8;BlexerSimp.thy:bsimp8,bders_simp8;FBound.thy:bsimp8_rerase,rders_simp8_size,RL_rerase_bders_simp8;GeneralRegexBound.thy:rsize_rsimp8_le,rsizes_rpders_norm17_rows_rsimp8_live_row_cubicI | Isabelle:Posix | New 50k cubic tranche: checked root normalizer preserves language and erasure while avoiding `rsimp7` root-size blow-up; conditional cubic interface is w.r.t. original `rsize r` |
 
 ## Effort Estimate Key
 
@@ -144,6 +147,7 @@ Estimates assume all previous results in the dependency chain are already proved
 | 2026-05-26T18:46:17Z | Codex | LOCK | BR-019 | 400 | 13,750 | Codex-A locks bounded-fragment theorem packaging |
 | 2026-05-26T18:46:18Z | Codex | COLLECT | BR-019 | 4,000 | 17,750 | `BackRefBoundedBlueprint.thy` constructor-specific derivative-family universe/card bounds; BackRefPilot passed |
 | 2026-05-31T02:35:36Z | Codex | COLLECT | BR-032 | 25,000 | 42,750 | `rsimp7`/`bsimp7` prefix-star absorption definitions plus norm7 row drivers and erasure/language transfer; Posix and BackRefPilot passed |
+| 2026-05-31T03:57:03Z | Codex | COLLECT | BR-035 | 25,000 | 67,750 | `rsimp8`/`bsimp8` root-safe simplifier, erasure/language bridge, size non-increase, and original-size conditional cubic interface; Posix and BackRefPilot passed |
 
 ## Sub-Bounty Rules
 

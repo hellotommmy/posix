@@ -5,6 +5,25 @@ to be read before continuing long-running agent work.
 
 ## 2026-05-31: Cubic non-backref size-bound direction
 
+- `rsimp7`/`bsimp7` is not safe as the root normalizer for an
+  original-regex-size cubic theorem. The checked lemma
+  `rsimp7_can_increase_root_size` exhibits `(a + b) · (c + d)`, where eager
+  row-product distribution increases `rsize`. This does not invalidate
+  `rsimp7` as a per-row normalizer, but the root used for the global cubic
+  accounting must not perform that expansion.
+- `rsimp8`/`bsimp8` is the new root-safe simplifier layer. It keeps the
+  language-changing obligations checked by `RL_rsimp8`/`bsimp8_rerase`, keeps
+  star cleanup and prefix-star absorption via `rsimp7_SEQ_atom`, but avoids
+  full `rsimp7_SEQ` row products at roots. The checked lemma
+  `rsize_rsimp8_le` is the reason the conditional interface
+  `rsizes_rpders_norm17_rows_rsimp8_live_row_cubicI` is stated w.r.t. the
+  original `rsize r`.
+- The next proof target is unchanged in shape but should use `rsimp8 r` as the
+  normalized root:
+  `set (rflts (rpder_norm7_list c q)) \<subseteq>
+   partial_derivative_live_row_universe (rsimp8 r)` for live-row states `q`.
+  If this closes, the numeric bound is already cubic in the original regex
+  size.
 - `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
   25k new-definition bounty. It keeps the Antimirov row-product/state-list
   pipeline and extends `rsimp6` with prefix star absorption:

@@ -520,6 +520,27 @@ where
   "bders_simp7 r [] = r"
 | "bders_simp7 r (c # s) = bders_simp7 (bsimp7 (bder c r)) s"
 
+(* Bounds-oriented root normalizer matching rsimp8.  It reuses the atom-level
+   rsimp7/bsimp7 star absorption but avoids the row-product expansion used by
+   bsimp7_ASEQ. *)
+fun bsimp8 :: "arexp \<Rightarrow> arexp"
+where
+  "bsimp8 (ASEQ bs r1 r2) = bsimp7_ASEQ_atom bs (bsimp8 r1) (bsimp8 r2)"
+| "bsimp8 (AALTs bs rs) = bsimp_AALTs bs (distinctWith (flts (map bsimp8 rs)) eq1 {})"
+| "bsimp8 (ASTAR bs r) =
+    (case bsimp8 r of
+      AZERO \<Rightarrow> AONE []
+    | AONE bs' \<Rightarrow> AONE []
+    | ASTAR bs' s \<Rightarrow> ASTAR bs' s
+    | s \<Rightarrow> ASTAR bs s)"
+| "bsimp8 r = r"
+
+fun
+  bders_simp8 :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simp8 r [] = r"
+| "bders_simp8 r (c # s) = bders_simp8 (bsimp8 (bder c r)) s"
+
 fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
   "bpder_list c AZERO = []"
 | "bpder_list c (AONE bs) = []"

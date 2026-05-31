@@ -491,6 +491,43 @@ next
     by (cases "bsimp7 r") (simp_all add: ih_sym)
 qed simp_all
 
+lemma rerase_map_bsimp8:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp8 r) = (rsimp8 \<circ> rerase) r"
+  shows "map rerase (map bsimp8 rs) = map (rsimp8 \<circ> rerase) rs"
+  using assms
+  by (induct rs) simp_all
+
+lemma rerase_earlier_later_same8:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp8 r) = rsimp8 (rerase r)"
+  shows "map rerase (distinctBy (flts (map bsimp8 rs)) rerase {}) =
+    rdistinct (rflts (map (rsimp8 \<circ> rerase) rs)) {}"
+  apply(subst rerase_dB)
+  apply(subst rerase_flts)
+  apply(subst rerase_map_bsimp8)
+  apply auto
+  using assms
+  apply simp
+  done
+
+lemma bsimp8_rerase:
+  shows "rerase (bsimp8 a) = rsimp8 (rerase a)"
+proof (induct a rule: bsimp8.induct)
+  case (1 bs r1 r2)
+  then show ?case
+    by (simp add: rerase_bsimp7_ASEQ_atom)
+next
+  case (2 bs rs)
+  then show ?case
+    using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same8
+    by fastforce
+next
+  case (3 bs r)
+  have ih_sym: "rsimp8 (rerase r) = rerase (bsimp8 r)"
+    using 3 by simp
+  then show ?case
+    by (cases "bsimp8 r") (simp_all add: ih_sym)
+qed simp_all
+
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"
   by (induct rs) (simp_all add: rerase_fuse)
@@ -685,6 +722,10 @@ lemma rders_simp7_size:
   shows "rders_simp7 (rerase r) s = rerase (bders_simp7 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp7_rerase[symmetric])
 
+lemma rders_simp8_size:
+  shows "rders_simp8 (rerase r) s = rerase (bders_simp8 r s)"
+  by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp8_rerase[symmetric])
+
 lemma asize_bders_simp5_rders_simp5:
   shows "asize (bders_simp5 r s) = rsize (rders_simp5 (rerase r) s)"
   by (simp add: asize_rsize rders_simp5_size)
@@ -696,6 +737,10 @@ lemma asize_bders_simp6_rders_simp6:
 lemma asize_bders_simp7_rders_simp7:
   shows "asize (bders_simp7 r s) = rsize (rders_simp7 (rerase r) s)"
   by (simp add: asize_rsize rders_simp7_size)
+
+lemma asize_bders_simp8_rders_simp8:
+  shows "asize (bders_simp8 r s) = rsize (rders_simp8 (rerase r) s)"
+  by (simp add: asize_rsize rders_simp8_size)
 
 lemma RL_rerase_bders_simp5:
   shows "RL (rerase (bders_simp5 r s)) = Ders s (RL (rerase r))"
@@ -710,6 +755,11 @@ lemma RL_rerase_bders_simp6:
 lemma RL_rerase_bders_simp7:
   shows "RL (rerase (bders_simp7 r s)) = Ders s (RL (rerase r))"
   using RL_rders_simp7[of "rerase r" s] rders_simp7_size[of r s]
+  by simp
+
+lemma RL_rerase_bders_simp8:
+  shows "RL (rerase (bders_simp8 r s)) = Ders s (RL (rerase r))"
+  using RL_rders_simp8[of "rerase r" s] rders_simp8_size[of r s]
   by simp
 
 corollary aders_simp5_finiteness:
@@ -742,6 +792,17 @@ proof -
     by blast
   then have "\<forall>s. asize (bders_simp7 r s) \<le> N"
     by (simp add: asize_bders_simp7_rders_simp7)
+  then show ?thesis by blast
+qed
+
+corollary aders_simp8_finiteness:
+  assumes "\<exists>N. \<forall>s. rsize (rders_simp8 (rerase r) s) \<le> N"
+  shows "\<exists>N. \<forall>s. asize (bders_simp8 r s) \<le> N"
+proof -
+  from assms obtain N where "\<forall>s. rsize (rders_simp8 (rerase r) s) \<le> N"
+    by blast
+  then have "\<forall>s. asize (bders_simp8 r s) \<le> N"
+    by (simp add: asize_bders_simp8_rders_simp8)
   then show ?thesis by blast
 qed
 

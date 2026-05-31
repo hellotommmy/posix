@@ -347,7 +347,7 @@ ask the admin before claiming it.
 
 ### Total Pool
 
-The total bounty pool is **50,000 simulated USD**. All bounty amounts are
+The total bounty pool is **150,000 simulated USD**. All bounty amounts are
 denominated in simulated USD. The pool cap is enforced by the guard script.
 
 ### Competitive-Collaborative Rules
