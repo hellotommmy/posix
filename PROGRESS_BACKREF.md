@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (norm18 RNTIMES counterexample)
+Last updated: 2026-05-31 (rsimp9 RNTIMES-body prototype)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
@@ -107,6 +107,14 @@ Last updated: 2026-05-31 (norm18 RNTIMES counterexample)
   emitted by the frontier. This favors a conservative `RNTIMES` repair:
   normalize repetition bodies/tails without reintroducing full root row-product
   expansion.
+  Added and checked the proof-level prototype `rsimp9`, which is `rsimp8`
+  plus recursive `RNTIMES` body normalization and safe `0^n`/`1^n` collapse.
+  Checked artifacts include `legacy_rsimp9`, `RL_rsimp9`,
+  `rsize_rsimp9_le`, `rpder_norm9_list`, `rpd_der_norm9`,
+  `rpder_norm9_rows`, their one-step language/legacy facts, and
+  `norm19_closes_RNTIMES_body_normalization_obstruction`. This does not yet
+  claim BR-036; it identifies a checked conservative redesign candidate for
+  the next `bsimp` migration.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

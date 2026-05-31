@@ -17,7 +17,9 @@ At the start of each iteration:
 3. Run `git status --short --branch` and inspect recent commits.
 
 Primary assignment:
-- Continue BR-036: prove the non-backref cubic route using `norm18 = map rsimp8`.
+- Continue BR-036: prove the non-backref cubic route. The current checked
+  path is `norm18 = map rsimp8` plus the proof-level `rsimp9` prototype for
+  conservative `RNTIMES` body normalization.
 - The current checked route is:
   - `rsimp7_can_increase_root_size` shows full `rsimp7` is unsafe as a root normalizer.
   - `rsimp8`/`bsimp8` is the root-safe simplifier; `rsize_rsimp8_le` is checked.
@@ -91,6 +93,11 @@ Research tactics:
 - `norm18_live_row_NTIMES_body_normalized_sanity` is checked; use it as a
   repair hint. Prefer conservative `RNTIMES` body/tail normalization over
   reintroducing full root row-products.
+- `rsimp9` is now the checked proof-level prototype for that repair:
+  `RL_rsimp9`, `rsize_rsimp9_le`, the `rpder_norm9_*` one-step language facts,
+  and `norm19_closes_RNTIMES_body_normalization_obstruction` are checked.
+  Next target: lift the `rpder_norm8_live_row_step_*` closure infrastructure
+  to `rpder_norm9_list` and only then migrate the annotated `bsimp`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

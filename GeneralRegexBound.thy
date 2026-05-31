@@ -386,6 +386,83 @@ lemma legacy_rders_simp8:
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp8 legacy_rder)
 
+(* BR-036 prototype: like rsimp8, but also normalizes counted-repetition
+   bodies.  This is deliberately conservative: it keeps root sequencing
+   root-safe, and only repairs the RNTIMES body/tail mismatch exposed by
+   rsimp8_live_row_universe_RNTIMES_not_closed. *)
+fun rsimp9 :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimp9 (RSEQ r1 r2) = rsimp7_SEQ_atom (rsimp9 r1) (rsimp9 r2)"
+| "rsimp9 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp9 rs)) {})"
+| "rsimp9 (RSTAR r) =
+    (case rsimp9 r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimp9 (RNTIMES r n) =
+    (case rsimp9 r of
+      RZERO \<Rightarrow> (if n = 0 then RONE else RZERO)
+    | RONE \<Rightarrow> RONE
+    | s \<Rightarrow> RNTIMES s n)"
+| "rsimp9 r = r"
+
+lemma legacy_rsimp9:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimp9 r)"
+  using assms
+proof (induction r rule: rsimp9.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: legacy_rsimp7_SEQ_atom)
+next
+  case (2 rs)
+  have mapped: "\<forall>r \<in> set (map rsimp9 rs). legacy_rrexp r"
+    using 2 by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimp9 rs)). legacy_rrexp r"
+    using legacy_rflts[OF mapped] .
+  have distinct: "\<forall>r \<in> set (rdistinct (rflts (map rsimp9 rs)) {}). legacy_rrexp r"
+    using legacy_rdistinct[OF flat] .
+  show ?case
+    using legacy_rsimp_ALTs[OF distinct] by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+next
+  case (4 r n)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+qed simp_all
+
+lemma lang_pow_empty:
+  "({} :: string set) ^^ n = (if n = 0 then {[]} else {})"
+  by (cases n) (auto simp add: Sequ_def)
+
+lemma lang_pow_epsilon:
+  "({[]} :: string set) ^^ n = {[]}"
+  by (induct n) (auto simp add: Sequ_def)
+
+lemma RL_rsimp9:
+  shows "RL r = RL (rsimp9 r)"
+proof (induction r rule: rsimp9.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp7_SEQ_atom)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp9 r") (simp_all add: Star_idem)
+next
+  case (4 r n)
+  then show ?case
+    by (cases "rsimp9 r") (simp_all add: lang_pow_empty lang_pow_epsilon)
+qed simp_all
+
 fun rpder :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpder c RZERO = {}"
 | "rpder c RONE = {}"
@@ -944,6 +1021,12 @@ definition rpder_norm8_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp lis
 definition rpd_der_norm8 :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der_norm8 c r = rsimp_ALTs (rdistinct (rflts (rpder_norm8_list c r)) {})"
 
+definition rpder_norm9_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rpder_norm9_list c r = map rsimp9 (rpder_norm_list c r)"
+
+definition rpd_der_norm9 :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rpd_der_norm9 c r = rsimp_ALTs (rdistinct (rflts (rpder_norm9_list c r)) {})"
+
 definition rpder_norm_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp set" where
   "rpder_norm_set c rs = (\<Union>r \<in> rs. set (rpder_norm_list c r))"
 
@@ -955,6 +1038,9 @@ definition rpder_norm7_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp 
 
 definition rpder_norm8_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp set" where
   "rpder_norm8_set c rs = (\<Union>r \<in> rs. set (rpder_norm8_list c r))"
+
+definition rpder_norm9_set :: "char \<Rightarrow> rrexp set \<Rightarrow> rrexp set" where
+  "rpder_norm9_set c rs = (\<Union>r \<in> rs. set (rpder_norm9_list c r))"
 
 definition rpder_norm_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
   "rpder_norm_rows c rs =
@@ -971,6 +1057,10 @@ definition rpder_norm7_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrex
 definition rpder_norm8_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
   "rpder_norm8_rows c rs =
     rdistinct (rflts (concat (map (rpder_norm8_list c) rs))) {}"
+
+definition rpder_norm9_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rpder_norm9_rows c rs =
+    rdistinct (rflts (concat (map (rpder_norm9_list c) rs))) {}"
 
 lemma rsize_rpd_der_le_rsizes_rpder_list:
   "rsize (rpd_der c r) \<le> Suc (rsizes (rpder_list c r))"
@@ -1290,6 +1380,32 @@ proof -
     unfolding rpd_der_norm8_def by (rule legacy_rsimp_ALTs[OF distinct])
 qed
 
+lemma legacy_rpder_norm9_list:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_norm9_list c r). legacy_rrexp p"
+proof -
+  have elems: "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  show ?thesis
+    unfolding rpder_norm9_list_def
+    using elems legacy_rsimp9 by auto
+qed
+
+lemma legacy_rpd_der_norm9:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rpd_der_norm9 c r)"
+proof -
+  have elems: "\<forall>p \<in> set (rpder_norm9_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm9_list[OF assms])
+  have flat: "\<forall>p \<in> set (rflts (rpder_norm9_list c r)). legacy_rrexp p"
+    by (rule legacy_rflts[OF elems])
+  have distinct:
+    "\<forall>p \<in> set (rdistinct (rflts (rpder_norm9_list c r)) {}). legacy_rrexp p"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rpd_der_norm9_def by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
 lemma legacy_rpder_norm_set:
   assumes "\<forall>r \<in> rs. legacy_rrexp r"
       and "p \<in> rpder_norm_set c rs"
@@ -1317,6 +1433,13 @@ lemma legacy_rpder_norm8_set:
   shows "legacy_rrexp p"
   using assms legacy_rpder_norm8_list
   unfolding rpder_norm8_set_def by blast
+
+lemma legacy_rpder_norm9_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+      and "p \<in> rpder_norm9_set c rs"
+  shows "legacy_rrexp p"
+  using assms legacy_rpder_norm9_list
+  unfolding rpder_norm9_set_def by blast
 
 lemma legacy_rpder_norm_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
@@ -1384,6 +1507,23 @@ proof -
     by (rule legacy_rdistinct[OF flat])
   then show ?thesis
     by (simp add: rpder_norm8_rows_def)
+qed
+
+lemma legacy_rpder_norm9_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_norm9_rows c rs). legacy_rrexp p"
+proof -
+  have elems:
+    "\<forall>p \<in> set (concat (map (rpder_norm9_list c) rs)). legacy_rrexp p"
+    using assms legacy_rpder_norm9_list by auto
+  have flat:
+    "\<forall>p \<in> set (rflts (concat (map (rpder_norm9_list c) rs))). legacy_rrexp p"
+    by (rule legacy_rflts[OF elems])
+  have distinct:
+    "\<forall>p \<in> set (rdistinct (rflts (concat (map (rpder_norm9_list c) rs))) {}). legacy_rrexp p"
+    by (rule legacy_rdistinct[OF flat])
+  then show ?thesis
+    by (simp add: rpder_norm9_rows_def)
 qed
 
 lemma legacy_rders_pder:
@@ -1602,6 +1742,12 @@ lemma RL_rpder_norm8_list:
   unfolding rpder_norm8_list_def
   by (auto simp add: RL_rsimp8[symmetric])
 
+lemma RL_rpder_norm9_list:
+  "(\<Union> (set (map RL (rpder_norm9_list c r)))) =
+    (\<Union> (set (map RL (rpder_norm_list c r))))"
+  unfolding rpder_norm9_list_def
+  by (auto simp add: RL_rsimp9[symmetric])
+
 lemma RL_rpd_der_norm:
   assumes "legacy_rrexp r"
   shows "RL (rpd_der_norm c r) = Der c (RL r)"
@@ -1655,6 +1801,20 @@ proof -
     unfolding rpd_der_norm8_def by (rule RL_rsimp_ALTs_normalize)
   also have "... = (\<Union> (set (map RL (rpder_norm_list c r))))"
     by (rule RL_rpder_norm8_list)
+  also have "... = Der c (RL r)"
+    by (simp add: RL_rpd_der_norm[OF assms, symmetric] rpd_der_norm_def RL_rsimp_ALTs_normalize)
+  finally show ?thesis .
+qed
+
+lemma RL_rpd_der_norm9:
+  assumes "legacy_rrexp r"
+  shows "RL (rpd_der_norm9 c r) = Der c (RL r)"
+proof -
+  have "RL (rpd_der_norm9 c r) =
+    (\<Union> (set (map RL (rpder_norm9_list c r))))"
+    unfolding rpd_der_norm9_def by (rule RL_rsimp_ALTs_normalize)
+  also have "... = (\<Union> (set (map RL (rpder_norm_list c r))))"
+    by (rule RL_rpder_norm9_list)
   also have "... = Der c (RL r)"
     by (simp add: RL_rpd_der_norm[OF assms, symmetric] rpd_der_norm_def RL_rsimp_ALTs_normalize)
   finally show ?thesis .
@@ -1729,6 +1889,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RLS_rpder_norm9_set:
+  assumes "\<forall>r \<in> rs. legacy_rrexp r"
+  shows "RLS (rpder_norm9_set c rs) = Der c (RLS rs)"
+proof -
+  have "RLS (rpder_norm9_set c rs) =
+    (\<Union>r \<in> rs. \<Union> (set (map RL (rpder_norm9_list c r))))"
+    unfolding RLS_def rpder_norm9_set_def by auto
+  also have "... =
+    (\<Union>r \<in> rs. \<Union> (set (map RL (rpder_norm_list c r))))"
+    using RL_rpder_norm9_list by simp
+  also have "... = RLS (rpder_norm_set c rs)"
+    unfolding RLS_def rpder_norm_set_def by auto
+  also have "... = Der c (RLS rs)"
+    by (rule RLS_rpder_norm_set[OF assms])
+  finally show ?thesis .
+qed
+
 lemma RLS_set_rdistinct_rflts:
   "RLS (set (rdistinct (rflts rs) {})) = RLS (set rs)"
   unfolding RLS_def
@@ -1754,6 +1931,11 @@ lemma RLS_set_concat_rpder_norm8_list:
   "RLS (set (concat (map (rpder_norm8_list c) rs))) =
     RLS (rpder_norm8_set c (set rs))"
   unfolding RLS_def rpder_norm8_set_def by auto
+
+lemma RLS_set_concat_rpder_norm9_list:
+  "RLS (set (concat (map (rpder_norm9_list c) rs))) =
+    RLS (rpder_norm9_set c (set rs))"
+  unfolding RLS_def rpder_norm9_set_def by auto
 
 lemma RLS_rpder_norm_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
@@ -1808,6 +1990,20 @@ proof -
     by (rule RLS_set_concat_rpder_norm8_list)
   also have "... = Der c (RLS (set rs))"
     by (rule RLS_rpder_norm8_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_norm9_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_norm9_rows c rs)) = Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_norm9_rows c rs)) =
+    RLS (set (concat (map (rpder_norm9_list c) rs)))"
+    unfolding rpder_norm9_rows_def by (rule RLS_set_rdistinct_rflts)
+  also have "... = RLS (rpder_norm9_set c (set rs))"
+    by (rule RLS_set_concat_rpder_norm9_list)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_norm9_set) (use assms in auto)
   finally show ?thesis .
 qed
 
@@ -5341,6 +5537,55 @@ next
     by (cases "rsimp8 r") simp_all
 qed simp_all
 
+lemma rsimp9_ALTs_size:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> rsize (rsimp9 x) \<le> rsize x"
+  shows "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp9 xs)) {})) \<le>
+    rsize (RALTS xs)"
+proof -
+  have "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp9 xs)) {})) \<le>
+      rsize (RALTS (rdistinct (rflts (map rsimp9 xs)) {}))"
+    by (rule rsimp_aalts_smaller)
+  also have "... \<le> Suc (rsizes (rdistinct (rflts (map rsimp9 xs)) {}))"
+    by (rule ralts_cap_mono)
+  also have "... \<le> Suc (rsizes (rflts (map rsimp9 xs)))"
+    using rdistinct_smaller[of "rflts (map rsimp9 xs)" "{}"] by simp
+  also have "... \<le> Suc (rsizes (map rsimp9 xs))"
+    using rflts_mono[of "map rsimp9 xs"] by simp
+  also have "... \<le> Suc (rsizes xs)"
+    using assms by (simp add: sum_list_mono)
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimp9_le:
+  "rsize (rsimp9 r) \<le> rsize r"
+proof (induct r rule: rsimp9.induct)
+  case (1 r1 r2)
+  have "rsize (rsimp9 (RSEQ r1 r2)) \<le>
+      rsize (RSEQ (rsimp9 r1) (rsimp9 r2))"
+    by (simp add: rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using 1 by simp
+  finally show ?case .
+next
+  case (2 rs)
+  have elems: "\<And>x. x \<in> set rs \<Longrightarrow> rsize (rsimp9 x) \<le> rsize x"
+    using 2 by auto
+  have "rsize (rsimp_ALTs (rdistinct (rflts (map rsimp9 rs)) {})) \<le>
+      rsize (RALTS rs)"
+    by (rule rsimp9_ALTs_size[OF elems])
+  then show ?case
+    by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+next
+  case (4 r n)
+  then show ?case
+    by (cases "rsimp9 r") (auto simp add: size_geq1)
+qed simp_all
+
 lemma square_mono_nat:
   fixes m n :: nat
   assumes "m \<le> n"
@@ -7548,6 +7793,16 @@ lemma norm18_live_row_NTIMES_body_normalized_sanity:
     and "set (rflts (rpder_norm8_list a q)) \<subseteq>
       partial_derivative_live_row_universe (rsimp8 r)"
   by (simp_all add: body_def r_def q_def rpder_norm8_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      rsimp7_SEQ_atom_def)
+
+lemma norm19_closes_RNTIMES_body_normalization_obstruction:
+  fixes b :: char
+  defines "body \<equiv> RSTAR (RALTS [RZERO, RONE, RCHAR b])"
+  defines "r \<equiv> RNTIMES body 1"
+  shows "set (rflts (rpder_norm9_list b (rsimp9 r))) \<subseteq>
+    partial_derivative_live_row_universe (rsimp9 r)"
+  by (simp add: body_def r_def rpder_norm9_list_def rpder_norm_list_def
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
 

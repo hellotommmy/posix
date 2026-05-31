@@ -102,6 +102,16 @@ to be read before continuing long-running agent work.
   is already in the normalized star form emitted by the frontier. This points
   to a small `RNTIMES` repair: normalize counted-repetition bodies/tails while
   still avoiding full `rsimp7_SEQ` row-product expansion at roots.
+- The proof-level prototype `rsimp9` implements that repair locally:
+  `RSEQ`, `RALTS`, and `RSTAR` follow `rsimp8`, while `RNTIMES r n`
+  recursively normalizes `r` and collapses normalized `RZERO`/`RONE` powers.
+  Checked facts `RL_rsimp9` and `rsize_rsimp9_le` show the prototype is
+  language preserving and original-size safe. The checked
+  `norm19_closes_RNTIMES_body_normalization_obstruction` confirms that this
+  repair closes the concrete `RNTIMES` obstruction. Next work should lift the
+  one-step/row closure machinery from `rpder_norm8_list` to `rpder_norm9_list`,
+  then migrate the corresponding annotated `bsimp` only after the proof-level
+  closure target is stable.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity
