@@ -49,6 +49,10 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   `rpder_norm8_live_row_step_RNTIMESI`; these isolate carried-continuation
   obligations from nullable-right obligations without unfolding the whole
   row derivative in later proofs.
+  Added checked normal-form support
+  `good_rsimp7_SEQ_atom`, `good_rsimp8`,
+  `good_rpder_norm8_list`, and `good_rflts_rpder_norm8_list`, so later
+  carried-continuation proofs can treat flattened norm18 rows as good/non-alt.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -4531,6 +4531,87 @@ next
   then show ?case by simp
 qed
 
+lemma good_rsimp7_SEQ_atom:
+  assumes "good r1 \<or> r1 = RZERO" "good r2 \<or> r2 = RZERO"
+  shows "good (rsimp7_SEQ_atom r1 r2) \<or> rsimp7_SEQ_atom r1 r2 = RZERO"
+proof -
+  have fallback:
+    "good (rsimp4_SEQ_atom r1 r2) \<or> rsimp4_SEQ_atom r1 r2 = RZERO"
+    by (rule good_rsimp4_SEQ_atom[OF assms])
+  show ?thesis
+  proof (cases r1)
+    case (RSTAR r)
+    note r1_star = RSTAR
+    show ?thesis
+    proof (cases r2)
+      case (RSTAR s)
+      note r2_star = RSTAR
+      show ?thesis
+      proof (cases "r = s")
+        case True
+        then show ?thesis
+          using r1_star r2_star by (simp add: rsimp7_SEQ_atom_def)
+      next
+        case False
+        then show ?thesis
+          using r1_star r2_star fallback by (simp add: rsimp7_SEQ_atom_def)
+      qed
+    next
+      case (RSEQ a b)
+      note r2_seq = RSEQ
+      show ?thesis
+      proof (cases a)
+        case (RSTAR s)
+        note a_star = RSTAR
+        show ?thesis
+        proof (cases "r = s")
+          case True
+          have "good b"
+            using assms r2_seq a_star by (cases b) simp_all
+          then show ?thesis
+            using r1_star r2_seq a_star True
+            by (cases b) (simp_all add: rsimp7_SEQ_atom_def)
+        next
+          case False
+          then show ?thesis
+            using r1_star r2_seq a_star fallback
+            by (simp add: rsimp7_SEQ_atom_def)
+        qed
+      qed (use r1_star r2_seq fallback in
+        \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+    qed (use r1_star fallback in
+      \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed (use fallback in
+    \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+qed
+
+lemma good_rsimp8:
+  shows "good (rsimp8 r) \<or> rsimp8 r = RZERO"
+proof (induction r rule: rsimp8.induct)
+  case (1 r1 r2)
+  then show ?case
+    using good_rsimp7_SEQ_atom by simp
+next
+  case (2 rs)
+  have elems: "\<forall>r \<in> set (map rsimp8 rs). good r \<or> r = RZERO"
+    using 2 by auto
+  show ?case
+    using good_rsimp_ALTs_rdistinct_rflts[OF elems] by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp8 r") simp_all
+qed simp_all
+
+lemma good_rpder_norm8_list:
+  "\<forall>p \<in> set (rpder_norm8_list c r). good p \<or> p = RZERO"
+  unfolding rpder_norm8_list_def
+  using good_rsimp8 by auto
+
+lemma good_rflts_rpder_norm8_list:
+  "\<forall>p \<in> set (rflts (rpder_norm8_list c r)). good p \<and> nonalt p"
+  by (rule flts3_good_nonalt[OF good_rpder_norm8_list])
+
 lemma length_rsimp5_seq_products [simp]:
   "length (rsimp5_seq_products xs ys) = length xs * length ys"
   by (induct xs) auto

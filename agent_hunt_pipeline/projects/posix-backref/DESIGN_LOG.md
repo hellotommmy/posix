@@ -56,6 +56,12 @@ to be read before continuing long-running agent work.
   carried-continuation membership rather than repeatedly unfolding
   `rpder_list`, `rpder_norm_list`, and `rflts`. This deliberately avoids a
   broad `auto` proof over the final closure statement.
+- Checked normal-form support now extends through the root-safe normalizer:
+  `good_rsimp7_SEQ_atom`, `good_rsimp8`, `good_rpder_norm8_list`, and
+  `good_rflts_rpder_norm8_list`. Use these facts when a proof needs to reason
+  about children exposed by `rflts (map rsimp8 ...)`; do not re-open the
+  simplifier by datatype induction unless a branch-specific lemma really
+  needs it.
 - Do not use a monolithic `rsimp8` idempotence proof as the next shortcut. A
   naive induction over `rsimp8` timed out because the `RALTS` branch expands
   `rsimp_ALTs`, `rdistinct`, and `rflts` together. If idempotence is needed,
