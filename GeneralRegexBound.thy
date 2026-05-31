@@ -5400,6 +5400,14 @@ definition partial_derivative_live_path_universe :: "rrexp \<Rightarrow> rrexp s
   "partial_derivative_live_path_universe r =
     insert RZERO (insert RONE (insert r (rpath_continuations r)))"
 
+definition partial_derivative_live_row_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_live_row_universe r =
+    insert RZERO
+      (insert RONE
+        (insert r
+          (rpath_continuations r \<union> rfrontier r \<union>
+            (\<Union>q \<in> rpath_continuations r. rfrontier q))))"
+
 lemma finite_partial_derivative_path_universe [simp]:
   "finite (partial_derivative_path_universe r)"
   by (simp add: partial_derivative_path_universe_def rpath_continuations_def)
@@ -5408,11 +5416,21 @@ lemma finite_partial_derivative_live_path_universe [simp]:
   "finite (partial_derivative_live_path_universe r)"
   by (simp add: partial_derivative_live_path_universe_def rpath_continuations_def)
 
+lemma finite_partial_derivative_live_row_universe [simp]:
+  "finite (partial_derivative_live_row_universe r)"
+  by (simp add: partial_derivative_live_row_universe_def)
+
 lemma partial_derivative_live_path_universe_subset_path:
   "partial_derivative_live_path_universe r \<subseteq>
     partial_derivative_path_universe r"
   by (auto simp add: partial_derivative_live_path_universe_def
       partial_derivative_path_universe_def)
+
+lemma partial_derivative_live_path_universe_subset_live_row:
+  "partial_derivative_live_path_universe r \<subseteq>
+    partial_derivative_live_row_universe r"
+  by (auto simp add: partial_derivative_live_path_universe_def
+      partial_derivative_live_row_universe_def)
 
 lemma partial_derivative_path_universe_card_linear:
   "card (partial_derivative_path_universe r) \<le> 2 + 2 * rsize r"
@@ -6364,6 +6382,16 @@ lemma rsimp7_collapses_prefix_star_counterexample_row:
   shows "rsimp7 p = RSEQ (RSTAR (RCHAR a)) (RCHAR b)"
   by (simp add: p_def rsimp7_SEQ_def rsimp7_seq_products_def
       rsimp7_SEQ_atom_def)
+
+lemma live_path_universe_misses_flattened_alt_row:
+  fixes a b c :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RALTS [RCHAR b, RCHAR c])"
+  shows "RCHAR b \<in> set (rflts (rpder_norm7_list a r))"
+    and "RCHAR b \<notin> partial_derivative_live_path_universe r"
+    and "RCHAR b \<in> partial_derivative_live_row_universe r"
+  by (simp_all add: r_def rpder_norm7_list_def rpder_norm_list_def
+      partial_derivative_live_path_universe_def
+      partial_derivative_live_row_universe_def rpath_continuations_def)
 
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char

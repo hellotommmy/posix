@@ -20,6 +20,14 @@ to be read before continuing long-running agent work.
   target is the one-step premise
   `set (rflts (rpder_norm7_list c q)) \<subseteq> partial_derivative_live_path_universe r`
   for reachable/live `q`.
+- Correction after a checked counterexample: the premise above is too narrow
+  for row lists that flatten alternatives. The lemma
+  `live_path_universe_misses_flattened_alt_row` shows that
+  `a · (b + c)` derives to a flattened row containing `b`, but the live-path
+  universe contains only the whole continuation `b + c`. The proof target
+  should use a row/frontier closure over live continuations, introduced as the
+  prototype `partial_derivative_live_row_universe`, rather than closing only
+  continuation terms.
 - The current 50k cubic-size bounty is for the non-backref fragment only.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex

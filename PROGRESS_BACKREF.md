@@ -24,7 +24,14 @@ Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
   `RL_rerase_bders_pder_norm7`.
 - BR-032 is now marked DONE. The final repeated-row cubic closure theorem is
   still open under BR-033/BR-034.
-- Pushed checked commits through `99d6e0b` on `codex/backref-values`.
+- Added `partial_derivative_live_row_universe` and the checked lemma
+  `live_path_universe_misses_flattened_alt_row`. This refutes the too-narrow
+  rflts/live-path target: for `a · (b + c)`, the `a` step flattens the row to
+  `b` and `c`, while `partial_derivative_live_path_universe` contains only the
+  whole continuation `b + c`. The next BR-033 invariant must therefore close
+  Antimirov frontier rows of live continuations, not only continuation terms.
+- Checked commits continue on `codex/backref-values`; older hash notes below
+  are historical breadcrumbs rather than the current head.
 - Follow-up checked prototype through `462fd39` and the next local checkpoint:
   `rsimp6` adds star absorption on top of the normalized Antimirov row
   pipeline. `rpder_norm6_list`, `rpd_der_norm6`, `rpder_norm6_rows`, and
