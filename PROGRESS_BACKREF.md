@@ -41,8 +41,10 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   named live-row universe introduction lemmas, a non-alt `RALTS` child
   monotonicity lemma, the `RZERO`/`RONE`/`RCHAR` one-step closure base cases
   for `rpder_norm8_list`, and the conditional `RALTS` row-composition lemma
-  `rpder_norm8_live_row_step_RALTSI`. Full local CI passed for `Posix` and
-  `BackRefPilot`. A too-broad attempted `rsimp8` idempotence proof was
+  `rpder_norm8_live_row_step_RALTSI`, followed by
+  `rpder_norm8_live_row_step_RALTS_selfI` for normalized non-alt children.
+  Full local CI passed for `Posix` and `BackRefPilot`.
+  A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
   without splitting `rsimp_ALTs`/`rdistinct`/`rflts` helper facts first.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the

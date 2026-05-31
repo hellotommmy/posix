@@ -7361,6 +7361,27 @@ next
     by (simp add: rpder_norm8_list_def rpder_norm_list_def flts_append)
 qed
 
+lemma rpder_norm8_live_row_step_RALTS_selfI:
+  assumes nonalt: "\<And>q. q \<in> set rs \<Longrightarrow> nonalt q"
+      and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+        set (rflts (rpder_norm8_list c q)) \<subseteq>
+          partial_derivative_live_row_universe q"
+  shows "set (rflts (rpder_norm8_list c (RALTS rs))) \<subseteq>
+    partial_derivative_live_row_universe (RALTS rs)"
+proof (rule rpder_norm8_live_row_step_RALTSI)
+  fix q
+  assume q: "q \<in> set rs"
+  have "set (rflts (rpder_norm8_list c q)) \<subseteq>
+      partial_derivative_live_row_universe q"
+    by (rule step[OF q])
+  moreover have "partial_derivative_live_row_universe q \<subseteq>
+      partial_derivative_live_row_universe (RALTS rs)"
+    by (rule partial_derivative_live_row_universe_alt_child_mono[OF q nonalt[OF q]])
+  ultimately show "set (rflts (rpder_norm8_list c q)) \<subseteq>
+    partial_derivative_live_row_universe (RALTS rs)"
+    by blast
+qed
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"

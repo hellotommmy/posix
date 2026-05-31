@@ -47,8 +47,10 @@ to be read before continuing long-running agent work.
   the non-alt `RALTS` child monotonicity lemma
   `partial_derivative_live_row_universe_alt_child_mono`, base cases
   `rpder_norm8_live_row_step_RZERO`/`RONE`/`RCHAR`, and the conditional list
-  decomposition lemma `rpder_norm8_live_row_step_RALTSI`. This deliberately
-  avoids a broad `auto` proof over the final closure statement.
+  decomposition lemma `rpder_norm8_live_row_step_RALTSI`, plus
+  `rpder_norm8_live_row_step_RALTS_selfI` for the normalized-alternative
+  case where every child is non-alt. This deliberately avoids a broad `auto`
+  proof over the final closure statement.
 - Do not use a monolithic `rsimp8` idempotence proof as the next shortcut. A
   naive induction over `rsimp8` timed out because the `RALTS` branch expands
   `rsimp_ALTs`, `rdistinct`, and `rflts` together. If idempotence is needed,
