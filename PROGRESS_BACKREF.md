@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 
+## Cubic Row-Universe Checkpoint (2026-05-31)
+
+- Pushed checked commits through `99d6e0b` on `codex/backref-values`.
+- Added helper lemmas for the current combined cubic universe:
+  `partial_derivative_path_universe_subset_cubic`,
+  `partial_derivative_frontier_universe_subset_cubic`,
+  `set_rdistinct_subset`, and `set_rflts_good_subset_rfrontiers`.
+- Added `set_rflts_subset_rsubterms_list` and
+  `rpder_norm_rows_single_path_subterms_subset`. This proves that one
+  normalized Antimirov row step is supported by subterms of the path universe,
+  rather than an arbitrary regex-size universe.
+- Added `rsubterms_subterm_subset_frontier`,
+  `rsubterms_linear_continuation_subset`, and
+  `rsubterms_frontier_universe_member_subset`. These close the quadratic
+  frontier universe under subterms, which is needed whenever `rflts` exposes
+  children of a normalized row.
+- Current hard gap: prove repeated `rpders_norm1_rows` stay inside the original
+  `partial_derivative_cubic_universe r`, or refine the row normalizer so this
+  invariant is direct. The numeric cubic accounting is checked; the remaining
+  problem is closure/invariance, not arithmetic.
+- Local CI passed after each checkpoint with no-cheat guard, bounty guard,
+  admin role guard, Isabelle `Posix`, and Isabelle `BackRefPilot`.
+
 ## Antimirov Partial-Derivative Checkpoint (2026-05-31)
 
 - Added a checked proof-only Antimirov layer in `GeneralRegexBound.thy`:

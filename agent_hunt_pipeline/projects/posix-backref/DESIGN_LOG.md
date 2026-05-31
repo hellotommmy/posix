@@ -3,6 +3,40 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-05-31: Cubic non-backref size-bound direction
+
+- The current 50k cubic-size bounty is for the non-backref fragment only.
+  `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
+  fragment because their payload strings can grow with input, not just regex
+  size.
+- The strongest checked candidate is no longer eager `rsimp5` row products.
+  `rsimp5` is language-correct, but checked counterexamples show that full
+  right-side row-product distribution wants a larger universe than the current
+  cubic accounting can justify.
+- The current preferred route is the normalized Antimirov row-list driver:
+  `rpder_norm_list`, `rpder_norm_rows`, and `rpders_norm1_rows`, mirrored by
+  `bpder_norm_rows` in the annotated layer and connected by erasure lemmas in
+  `FBound.thy`.
+- The accounting target is the combined universe
+  `partial_derivative_cubic_universe r =
+   partial_derivative_path_universe r union
+   partial_derivative_frontier_universe r`. The path side has linear
+  cardinality and quadratic member size; the frontier side has quadratic
+  cardinality and linear member size. The checked partition lemma avoids the
+  quartic bound that would come from multiplying the union cardinality by the
+  worst member size.
+- New checked closure support:
+  `set_rflts_subset_rsubterms_list`,
+  `rpder_norm_rows_single_path_subterms_subset`,
+  `rsubterms_linear_continuation_subset`, and
+  `rsubterms_frontier_universe_member_subset`. These lemmas show where the
+  real remaining theorem lives: repeated normalized rows must be shown to stay
+  in the original combined universe, or the simplifier must be redesigned so
+  that this invariant is structurally obvious.
+- Do not claim BR-032/BR-033 completion for wrappers or restatements. A valid
+  claim needs a checked new algorithmic definition or the repeated-state
+  closure theorem, plus the standard Isabelle/guard run.
+
 ## 2026-05-29: Structured proof-shape rule
 
 - Do not start difficult Isabelle proofs by throwing broad `auto` at the whole
