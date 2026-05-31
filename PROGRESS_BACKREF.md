@@ -35,6 +35,8 @@ Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
   now the cleaner closure premise
   `set (rflts (rpder_norm8_list c q)) \<subseteq>
   partial_derivative_live_row_universe (rsimp8 r)`.
+- Added `norm18_closes_rsimp8_live_row_obstruction`, confirming that the
+  concrete `(((1+a).a))*` obstruction for `norm17` is repaired by `norm18`.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
   25k new-definition bounty. It extends `rsimp6` with prefix star absorption
   `r* · (r* · k) = r* · k`, the repeated-row shape that appears once

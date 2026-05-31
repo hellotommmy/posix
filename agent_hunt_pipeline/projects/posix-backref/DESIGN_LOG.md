@@ -39,7 +39,9 @@ to be read before continuing long-running agent work.
   `RLS_rpders_norm18_rows`, and
   `rsizes_rpders_norm18_rows_rsimp8_live_row_cubicI` now make this a formal
   proof target. This keeps Antimirov row lists while avoiding recursive
-  row-product expansion inside star bodies.
+  row-product expansion inside star bodies. The checked lemma
+  `norm18_closes_rsimp8_live_row_obstruction` verifies that the concrete
+  `(((1+a).a))*` failure of `norm17` is fixed by `norm18`.
 - `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
   25k new-definition bounty. It keeps the Antimirov row-product/state-list
   pipeline and extends `rsimp6` with prefix star absorption:

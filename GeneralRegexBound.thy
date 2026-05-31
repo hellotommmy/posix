@@ -7217,6 +7217,15 @@ lemma rsimp8_live_row_universe_not_closed:
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_def rsimp7_seq_products_def rsimp7_SEQ_atom_def)
 
+lemma norm18_closes_rsimp8_live_row_obstruction:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSEQ (RALTS [RONE, RCHAR a]) (RCHAR a))"
+  shows "set (rflts (rpder_norm8_list a (rsimp8 r))) \<subseteq>
+    partial_derivative_live_row_universe (rsimp8 r)"
+  by (simp add: r_def rpder_norm8_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      rsimp7_SEQ_atom_def)
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"
