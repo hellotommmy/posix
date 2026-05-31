@@ -9835,6 +9835,34 @@ definition partial_derivative_path_atom_frontier_universe :: "rrexp \<Rightarrow
   "partial_derivative_path_atom_frontier_universe r =
     insert RZERO (insert RONE (rsubterms r \<union> rpath_atom_frontiers r))"
 
+fun rpath9_atom_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rpath9_atom_frontier_acc RZERO k = {}"
+| "rpath9_atom_frontier_acc RONE k = {}"
+| "rpath9_atom_frontier_acc (RCHAR c) k = rfrontier k"
+| "rpath9_atom_frontier_acc (RALTS rs) k =
+    (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs)))"
+| "rpath9_atom_frontier_acc (RSEQ r1 r2) k =
+    rpath9_atom_frontier_acc r1 (rsimp7_SEQ_atom (rsimp9 r2) k) \<union>
+    rpath9_atom_frontier_acc r2 k"
+| "rpath9_atom_frontier_acc (RSTAR r) k =
+    rpath9_atom_frontier_acc r (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k)"
+| "rpath9_atom_frontier_acc (RNTIMES r n) k =
+    (if n = 0 then {} else
+      rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) k))"
+| "rpath9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rpath9_atom_frontier_acc r1 k \<union> rpath9_atom_frontier_acc r2 k \<union>
+    rpath9_atom_frontier_acc r3 k \<union> rpath9_atom_frontier_acc r4 k"
+| "rpath9_atom_frontier_acc (RHALF r cs rep) k = rpath9_atom_frontier_acc r k"
+| "rpath9_atom_frontier_acc (RRESIDUE cs rep) k = {}"
+
+definition rpath9_atom_frontiers :: "rrexp \<Rightarrow> rrexp set" where
+  "rpath9_atom_frontiers r = rpath9_atom_frontier_acc r RONE"
+
+definition partial_derivative_path9_atom_frontier_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_path9_atom_frontier_universe r =
+    insert RZERO (insert RONE (rsubterms (rsimp9 r) \<union> rpath9_atom_frontiers r))"
+
 definition rpath_dual_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_dual_frontier_acc r k =
     rpath_frontier_acc r k \<union> rpath_atom_frontier_acc r k"
@@ -9857,6 +9885,18 @@ lemma finite_rpath_atom_frontiers [simp]:
 lemma finite_partial_derivative_path_atom_frontier_universe [simp]:
   "finite (partial_derivative_path_atom_frontier_universe r)"
   by (simp add: partial_derivative_path_atom_frontier_universe_def)
+
+lemma finite_rpath9_atom_frontier_acc [simp]:
+  "finite (rpath9_atom_frontier_acc r k)"
+  by (induct r arbitrary: k) auto
+
+lemma finite_rpath9_atom_frontiers [simp]:
+  "finite (rpath9_atom_frontiers r)"
+  by (simp add: rpath9_atom_frontiers_def)
+
+lemma finite_partial_derivative_path9_atom_frontier_universe [simp]:
+  "finite (partial_derivative_path9_atom_frontier_universe r)"
+  by (simp add: partial_derivative_path9_atom_frontier_universe_def)
 
 lemma finite_rpath_dual_frontiers [simp]:
   "finite (rpath_dual_frontiers r)"
@@ -10502,6 +10542,27 @@ lemma current_path_atom_frontier_universe_member_size_not_linear:
   by (simp_all add: r_def q_def s2_def s3_def s4_def s5_def
       partial_derivative_path_atom_frontier_universe_def
       rpath_atom_frontiers_def rsimp4_SEQ_def)
+
+lemma path9_atom_frontier_avoids_old_atom_explosion:
+  defines "s5 \<equiv> RALTS [RCHAR (CHR ''i''), RCHAR (CHR ''j'')]"
+  defines "s4 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''g'')) s5, RSEQ (RCHAR (CHR ''h'')) s5]"
+  defines "s3 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''e'')) s4, RSEQ (RCHAR (CHR ''f'')) s4]"
+  defines "s2 \<equiv>
+    RALTS [RSEQ (RCHAR (CHR ''c'')) s3, RSEQ (RCHAR (CHR ''d'')) s3]"
+  defines "r \<equiv>
+    RSEQ (RCHAR (CHR ''x''))
+      (RSEQ (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b'')])
+        (RSEQ (RALTS [RCHAR (CHR ''c''), RCHAR (CHR ''d'')])
+          (RSEQ (RALTS [RCHAR (CHR ''e''), RCHAR (CHR ''f'')])
+            (RSEQ (RALTS [RCHAR (CHR ''g''), RCHAR (CHR ''h'')])
+              (RALTS [RCHAR (CHR ''i''), RCHAR (CHR ''j'')])))))"
+  defines "q \<equiv> RSEQ (RCHAR (CHR ''a'')) s2"
+  shows "q \<notin> partial_derivative_path9_atom_frontier_universe r"
+  by (simp add: r_def q_def s2_def s3_def s4_def s5_def
+      partial_derivative_path9_atom_frontier_universe_def
+      rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"

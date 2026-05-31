@@ -176,6 +176,14 @@ to be read before continuing long-running agent work.
   binary suffix chain before it enters the atom frontier. A plausible next
   universe must be norm9-specific, carrying `rsimp9`/`rsimp7_SEQ_atom`
   continuations instead of the older `rsimp4` collector.
+- The first norm9-specific atom-frontier scaffold is now checked:
+  `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`, and
+  `partial_derivative_path9_atom_frontier_universe` use `rsimp9` plus
+  `rsimp7_SEQ_atom` carried continuations and have finite support. The sanity
+  lemma `path9_atom_frontier_avoids_old_atom_explosion` proves that the old
+  right-nested binary suffix explosion is absent from this new universe. Next
+  target: prove its cardinality/member-size bounds and then its one-step
+  `rpder_norm9_list` closure.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

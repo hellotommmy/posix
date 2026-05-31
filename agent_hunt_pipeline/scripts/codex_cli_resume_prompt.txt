@@ -156,8 +156,14 @@ Research tactics:
   that route as-is; try atom-only frontiers or a smaller reachable-row universe.
   Warning: `current_path_atom_frontier_universe_member_size_not_linear` refutes
   the old atom-only universe too, because it uses `rsimp4 r2` in sequence
-  continuations. Next candidate should be norm9-specific and use
-  `rsimp9`/`rsimp7_SEQ_atom` continuations.
+  continuations. The checked norm9-specific scaffold now exists:
+  `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
+  `partial_derivative_path9_atom_frontier_universe`,
+  `finite_rpath9_atom_frontier_acc`, `finite_rpath9_atom_frontiers`,
+  `finite_partial_derivative_path9_atom_frontier_universe`, and
+  `path9_atom_frontier_avoids_old_atom_explosion`. Next target: prove
+  card/member-size bounds for this smaller universe, then one-step closure for
+  `rpder_norm9_list`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

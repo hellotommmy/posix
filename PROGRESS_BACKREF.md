@@ -207,6 +207,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   is expanded before being placed in the atom frontier. The next viable route
   should be norm9-specific, using root-safe `rsimp9`/`rsimp7_SEQ_atom`
   continuations rather than the older `rsimp4` continuation collector.
+  Added that norm9-specific scaffold as `rpath9_atom_frontier_acc`,
+  `rpath9_atom_frontiers`, and
+  `partial_derivative_path9_atom_frontier_universe`, with checked finite
+  support. The sanity lemma `path9_atom_frontier_avoids_old_atom_explosion`
+  shows the previous right-nested binary suffix witness no longer enters the
+  new universe, so the next proof target is card/member-size accounting plus
+  one-step closure for this smaller invariant.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
