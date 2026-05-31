@@ -664,3 +664,16 @@ to be read before continuing long-running agent work.
 - Use these when a star/countdown parent has an already-normalized carried
   tail. They expose the recursive body call with the extra nested tail and
   leave only that body obligation to the future induction.
+
+## 2026-05-31: Budget-compatible handoffs
+
+- The checked variants
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_productI` and
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_member_sizeI` let the
+  right `RSEQ` child use the same `RSEQ r2 k` budget as the left nested-tail
+  obligation. This is closer to the desired induction than the earlier stronger
+  `rsize k` right-child requirement.
+- The checked variants
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI`
+  and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`
+  lift the predecessor countdown budget to the current countdown parent.

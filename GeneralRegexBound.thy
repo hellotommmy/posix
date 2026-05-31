@@ -10470,6 +10470,32 @@ proof (rule rpath9_atom_frontier_acc_RSEQ_member_sizeI[OF _ _ x])
     by simp
 qed
 
+lemma card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_productI:
+  assumes left: "card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE))) \<le>
+      rsize r1 * (rsize (RSEQ r2 k) + 2)"
+    and right: "card (rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+      rsize r2 * (rsize (RSEQ r2 k) + 2)"
+  shows "card (rpath9_atom_frontier_acc (RSEQ r1 r2)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+    rsize (RSEQ r1 r2) * (rsize (RSEQ r2 k) + 2)"
+  by (rule card_rpath9_atom_frontier_acc_RSEQ_productI[OF left right])
+
+lemma rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_member_sizeI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ r2 k)"
+    and right: "\<And>x. x \<in> rpath9_atom_frontier_acc r2
+      (rsimp7_SEQ_atom (rsimp9 k) RONE) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ r2 k)"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+  shows "rsize x \<le> rsize (RSEQ r2 k)"
+  by (rule rpath9_atom_frontier_acc_RSEQ_member_sizeI[OF left right x])
+
 lemma card_rpath9_atom_frontier_acc_RSTAR_le:
   "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
     card (rpath9_atom_frontier_acc r
@@ -10589,6 +10615,51 @@ lemma rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI:
       (rsimp7_SEQ_atom (rsimp9 k) RONE)"
   shows "rsize x \<le> rsize (RSEQ (RNTIMES r (m - 1)) k)"
   by (rule rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI[OF m body x])
+
+lemma card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI:
+  assumes m: "m \<noteq> 0"
+    and body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (m - 1)))
+        (rsimp7_SEQ_atom (rsimp9 k) RONE))) \<le>
+      rsize r * (rsize (RSEQ (RNTIMES r (m - 1)) k) + 2)"
+  shows "card (rpath9_atom_frontier_acc (RNTIMES r m)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+    rsize (RNTIMES r m) * (rsize (RSEQ (RNTIMES r m) k) + 2)"
+proof -
+  have step: "card (rpath9_atom_frontier_acc (RNTIMES r m)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<le>
+    rsize (RNTIMES r m) *
+      (rsize (RSEQ (RNTIMES r (m - 1)) k) + 2)"
+    by (rule card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI
+        [OF m body])
+  have "rsize (RSEQ (RNTIMES r (m - 1)) k) + 2 \<le>
+      rsize (RSEQ (RNTIMES r m) k) + 2"
+    by simp
+  then have "rsize (RNTIMES r m) *
+      (rsize (RSEQ (RNTIMES r (m - 1)) k) + 2) \<le>
+    rsize (RNTIMES r m) * (rsize (RSEQ (RNTIMES r m) k) + 2)"
+    by (rule mult_left_mono) simp
+  then show ?thesis
+    using step by linarith
+qed
+
+lemma rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI:
+  assumes m: "m \<noteq> 0"
+    and body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (m - 1)))
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ (RNTIMES r (m - 1)) k)"
+    and x: "x \<in> rpath9_atom_frontier_acc (RNTIMES r m)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+  shows "rsize x \<le> rsize (RSEQ (RNTIMES r m) k)"
+proof -
+  have "rsize x \<le> rsize (RSEQ (RNTIMES r (m - 1)) k)"
+    by (rule rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI
+        [OF m body x])
+  also have "... \<le> rsize (RSEQ (RNTIMES r m) k)"
+    by simp
+  finally show ?thesis .
+qed
 
 lemma card_rpath9_atom_frontier_acc_RBACKREF4_productI:
   assumes r1: "card (rpath9_atom_frontier_acc r1 k) \<le> rsize r1 * n"

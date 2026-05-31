@@ -198,6 +198,11 @@ immutability.
   `rpath9_atom_frontier_acc_RSTAR_rsimp9_RONE_member_sizeI`,
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI`, and
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI`.
+  The budget-compatible variants are checked:
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_productI`,
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI`,
+  and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`.
 
 ## Completed
 

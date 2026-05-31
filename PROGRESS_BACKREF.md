@@ -398,6 +398,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_productI`, and
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_member_sizeI`.
   These expose the body obligation with the extra normalized carried tail.
+  Added budget-compatible variants:
+  `card_rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_productI`,
+  `rpath9_atom_frontier_acc_RSEQ_rsimp9_RONE_balanced_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_productI`,
+  and `rpath9_atom_frontier_acc_RNTIMES_nonzero_rsimp9_RONE_outer_member_sizeI`.
+  These are closer to the future induction because they keep the right child
+  and countdown parent on the same `RSEQ ... k` budget scale.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
