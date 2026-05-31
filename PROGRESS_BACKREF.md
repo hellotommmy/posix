@@ -12,6 +12,11 @@ Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
   `rpder_norm7_list`, `rpd_der_norm7`, `rpder_norm7_rows`,
   `rpders_norm17_rows`, `RLS_rpders_norm17_rows`, and
   `RL_rders_pder_norm7`.
+- Added the `norm17` conditional cubic interfaces:
+  `rpders_norm17_rows_subterms_subsetI`,
+  `rpders_norm17_rows_rflts_subsetI`,
+  `rsizes_rpders_norm17_rows_cubic_universe_cubicI`, and
+  `rsizes_rpders_norm17_rows_live_path_universe_cubicI'`.
 - The annotated mirror includes `bsimp7`, `bpder_norm7_list`,
   `bp_der_norm7`, `bpder_norm7_rows`, `bders_pder_norm7`, and
   `bpders_norm17_rows`, with erasure/language transfer facts

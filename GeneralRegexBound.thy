@@ -5769,6 +5769,21 @@ proof -
     by (simp add: rpder_norm6_rows_def)
 qed
 
+lemma rpder_norm7_rows_subterms_subsetI:
+  assumes "\<And>q p. q \<in> set rs \<Longrightarrow> p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+    rsubterms p \<subseteq> U"
+  shows "set (rpder_norm7_rows c rs) \<subseteq> U"
+proof -
+  have flat: "set (rflts (concat (map (rpder_norm7_list c) rs))) \<subseteq> U"
+    by (rule set_rflts_subterms_subsetI)
+      (use assms in auto)
+  have "set (rdistinct
+      (rflts (concat (map (rpder_norm7_list c) rs))) {}) \<subseteq> U"
+    by (rule set_rdistinct_subset[OF flat])
+  then show ?thesis
+    by (simp add: rpder_norm7_rows_def)
+qed
+
 lemma rpder_norm6_rows_rflts_subsetI:
   assumes "\<And>q. q \<in> set rs \<Longrightarrow> set (rflts (rpder_norm6_list c q)) \<subseteq> U"
   shows "set (rpder_norm6_rows c rs) \<subseteq> U"
@@ -5788,6 +5803,27 @@ proof -
     by (rule set_rdistinct_subset[OF flat])
   then show ?thesis
     by (simp add: rpder_norm6_rows_def)
+qed
+
+lemma rpder_norm7_rows_rflts_subsetI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow> set (rflts (rpder_norm7_list c q)) \<subseteq> U"
+  shows "set (rpder_norm7_rows c rs) \<subseteq> U"
+proof -
+  have flat: "set (rflts (concat (map (rpder_norm7_list c) rs))) \<subseteq> U"
+  proof
+    fix p
+    assume p: "p \<in> set (rflts (concat (map (rpder_norm7_list c) rs)))"
+    have "set (rflts (concat (map (rpder_norm7_list c) rs))) \<subseteq>
+      (\<Union>q \<in> set rs. set (rflts (rpder_norm7_list c q)))"
+      by (induct rs) (auto simp add: flts_append)
+    then show "p \<in> U"
+      using p assms by blast
+  qed
+  have "set (rdistinct
+      (rflts (concat (map (rpder_norm7_list c) rs))) {}) \<subseteq> U"
+    by (rule set_rdistinct_subset[OF flat])
+  then show ?thesis
+    by (simp add: rpder_norm7_rows_def)
 qed
 
 lemma rpders_norm_rows_frontier_universe_subsetI:
@@ -5906,6 +5942,46 @@ proof -
     by (simp add: rpders_norm16_rows_def)
 qed
 
+lemma rpders_norm7_rows_subterms_subsetI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>q c p. q \<in> U \<Longrightarrow> p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+        rsubterms p \<subseteq> U"
+  shows "set (rpders_norm7_rows rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_subset: "set (rpder_norm7_rows c rs) \<subseteq> U"
+  proof (rule rpder_norm7_rows_subterms_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm7_list c q)"
+    have "q \<in> U"
+      using Cons.prems q by blast
+    then show "rsubterms p \<subseteq> U"
+      by (rule step[OF _ p])
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
+lemma rpders_norm17_rows_subterms_subsetI:
+  assumes init: "r \<in> U"
+      and step: "\<And>q c p. q \<in> U \<Longrightarrow> p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+        rsubterms p \<subseteq> U"
+  shows "set (rpders_norm17_rows r s) \<subseteq> U"
+proof -
+  have "set [r] \<subseteq> U"
+    using init by simp
+  then have "set (rpders_norm7_rows [r] s) \<subseteq> U"
+    by (rule rpders_norm7_rows_subterms_subsetI)
+      (use step in auto)
+  then show ?thesis
+    by (simp add: rpders_norm17_rows_def)
+qed
+
 lemma rpders_norm6_rows_rflts_subsetI:
   assumes init: "set rs \<subseteq> U"
       and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm6_list c q)) \<subseteq> U"
@@ -5941,6 +6017,43 @@ proof -
       (use step in auto)
   then show ?thesis
     by (simp add: rpders_norm16_rows_def)
+qed
+
+lemma rpders_norm7_rows_rflts_subsetI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm7_list c q)) \<subseteq> U"
+  shows "set (rpders_norm7_rows rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_subset: "set (rpder_norm7_rows c rs) \<subseteq> U"
+  proof (rule rpder_norm7_rows_rflts_subsetI)
+    fix q
+    assume q: "q \<in> set rs"
+    have "q \<in> U"
+      using Cons.prems q by blast
+    then show "set (rflts (rpder_norm7_list c q)) \<subseteq> U"
+      by (rule step)
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
+lemma rpders_norm17_rows_rflts_subsetI:
+  assumes init: "r \<in> U"
+      and step: "\<And>q c. q \<in> U \<Longrightarrow> set (rflts (rpder_norm7_list c q)) \<subseteq> U"
+  shows "set (rpders_norm17_rows r s) \<subseteq> U"
+proof -
+  have "set [r] \<subseteq> U"
+    using init by simp
+  then have "set (rpders_norm7_rows [r] s) \<subseteq> U"
+    by (rule rpders_norm7_rows_rflts_subsetI)
+      (use step in auto)
+  then show ?thesis
+    by (simp add: rpders_norm17_rows_def)
 qed
 
 lemma rsizes_filter_partition:
@@ -6054,6 +6167,29 @@ proof -
     by (rule rsizes_rpders_norm16_rows_cubic_universe_cubic)
 qed
 
+lemma rsizes_rpders_norm17_rows_cubic_universe_cubic:
+  assumes "set (rpders_norm17_rows r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 5 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_cubic_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm17_rows_cubic_universe_cubicI:
+  assumes step: "\<And>q c p. q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+    p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+    rsubterms p \<subseteq> partial_derivative_cubic_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 5 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_cubic_universe r"
+    by (simp add: partial_derivative_cubic_universe_def
+        partial_derivative_path_universe_def)
+  have "set (rpders_norm17_rows r s) \<subseteq>
+      partial_derivative_cubic_universe r"
+    by (rule rpders_norm17_rows_subterms_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm17_rows_cubic_universe_cubic)
+qed
+
 lemma rsizes_rpders_norm16_rows_normalized_root_cubicI:
   assumes step: "\<And>q c p. q \<in> partial_derivative_cubic_universe (rsimp6 r) \<Longrightarrow>
     p \<in> set (rpder_norm6_list c q) \<Longrightarrow>
@@ -6061,6 +6197,14 @@ lemma rsizes_rpders_norm16_rows_normalized_root_cubicI:
   shows "rsizes (rpders_norm16_rows (rsimp6 r) s) \<le>
     5 * (rsize (rsimp6 r) + 3) ^ 3"
   by (rule rsizes_rpders_norm16_rows_cubic_universe_cubicI[OF assms])
+
+lemma rsizes_rpders_norm17_rows_normalized_root_cubicI:
+  assumes step: "\<And>q c p. q \<in> partial_derivative_cubic_universe (rsimp7 r) \<Longrightarrow>
+    p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+    rsubterms p \<subseteq> partial_derivative_cubic_universe (rsimp7 r)"
+  shows "rsizes (rpders_norm17_rows (rsimp7 r) s) \<le>
+    5 * (rsize (rsimp7 r) + 3) ^ 3"
+  by (rule rsizes_rpders_norm17_rows_cubic_universe_cubicI[OF assms])
 
 lemma rsizes_rpders_norm16_rows_live_path_universe_cubic:
   assumes "set (rpders_norm16_rows r s) \<subseteq>
@@ -6097,6 +6241,43 @@ proof -
     by (rule rpders_norm16_rows_rflts_subsetI[OF init step])
   then show ?thesis
     by (rule rsizes_rpders_norm16_rows_live_path_universe_cubic)
+qed
+
+lemma rsizes_rpders_norm17_rows_live_path_universe_cubic:
+  assumes "set (rpders_norm17_rows r s) \<subseteq>
+    partial_derivative_live_path_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_live_path_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm17_rows_live_path_universe_cubicI:
+  assumes step: "\<And>q c p. q \<in> partial_derivative_live_path_universe r \<Longrightarrow>
+    p \<in> set (rpder_norm7_list c q) \<Longrightarrow>
+    rsubterms p \<subseteq> partial_derivative_live_path_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_live_path_universe r"
+    by (simp add: partial_derivative_live_path_universe_def)
+  have "set (rpders_norm17_rows r s) \<subseteq>
+      partial_derivative_live_path_universe r"
+    by (rule rpders_norm17_rows_subterms_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm17_rows_live_path_universe_cubic)
+qed
+
+lemma rsizes_rpders_norm17_rows_live_path_universe_cubicI':
+  assumes step: "\<And>q c. q \<in> partial_derivative_live_path_universe r \<Longrightarrow>
+    set (rflts (rpder_norm7_list c q)) \<subseteq>
+      partial_derivative_live_path_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_live_path_universe r"
+    by (simp add: partial_derivative_live_path_universe_def)
+  have "set (rpders_norm17_rows r s) \<subseteq>
+      partial_derivative_live_path_universe r"
+    by (rule rpders_norm17_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm17_rows_live_path_universe_cubic)
 qed
 
 lemma partial_derivative_path_universe_zero [simp]:

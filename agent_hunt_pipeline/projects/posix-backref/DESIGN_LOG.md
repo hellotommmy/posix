@@ -14,6 +14,12 @@ to be read before continuing long-running agent work.
   `rpders_norm17_rows_rerase`, and `RL_rerase_bders_pder_norm7`, are checked.
   This completes the algorithmic-definition milestone but not the final cubic
   repeated-state closure theorem.
+- `norm17` now has the same conditional cubic hooks as `norm16`, including the
+  rflts-based live-path interface
+  `rsizes_rpders_norm17_rows_live_path_universe_cubicI'`. The next proof
+  target is the one-step premise
+  `set (rflts (rpder_norm7_list c q)) \<subseteq> partial_derivative_live_path_universe r`
+  for reachable/live `q`.
 - The current 50k cubic-size bounty is for the non-backref fragment only.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex
