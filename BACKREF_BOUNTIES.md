@@ -183,6 +183,10 @@ immutability.
   `rpath9_atom_frontier_acc_RHALF_member_sizeI`,
   `card_rpath9_atom_frontier_acc_RRESIDUE_product`, and
   `rpath9_atom_frontier_acc_RRESIDUE_member_size`.
+  The normalized nested-tail budget facts are checked:
+  `rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`, and
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_member_size_le`.
 
 ## Completed
 

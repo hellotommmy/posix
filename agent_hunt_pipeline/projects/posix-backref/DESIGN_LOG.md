@@ -626,3 +626,16 @@ to be read before continuing long-running agent work.
   they remove constructor arithmetic from the later induction.
 - Natural-number product goals such as `a*n + b*n <= n + (a+b)*n` need
   `algebra_simps`; keep that explicit rather than relying on plain `simp`.
+
+## 2026-05-31: Normalized nested-tail budget, not associativity
+
+- Do not try to prove syntactic associativity for `rsimp7_SEQ_atom`; even the
+  RONE-tail version leaves constructor-specific obligations because `rsimp7`
+  may simplify while reassociating.
+- The checked facts to use instead are
+  `rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`, and
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_member_size_le`.
+- These facts are the budget version of the desired reassociation: the nested
+  carried tail `rsimp9 r . (rsimp9 s . 1)` is controlled by the structural size
+  of `RSEQ r s`, without requiring the expressions to be syntactically equal.

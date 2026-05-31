@@ -5922,6 +5922,49 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le:
+  "rsize (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE)) \<le> rsize (RSEQ r s)"
+proof -
+  have "rsize (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE)) \<le>
+    Suc (rsize (rsimp9 r) + rsize (rsimp7_SEQ_atom (rsimp9 s) RONE))"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r + rsize s)"
+    using rsize_rsimp9_le[of r]
+      rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of s]
+    by linarith
+  finally show ?thesis
+    by simp
+qed
+
+lemma card_rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_le:
+  "card (rfrontier (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE))) \<le> rsize (RSEQ r s)"
+proof -
+  have "card (rfrontier (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE))) \<le>
+    rsize (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE))"
+    by (rule card_rfrontier_le_rsize)
+  also have "... \<le> rsize (RSEQ r s)"
+    by (rule rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le)
+  finally show ?thesis .
+qed
+
+lemma rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE))"
+  shows "rsize q \<le> rsize (RSEQ r s)"
+proof -
+  have "rsize q \<le> rsize (rsimp7_SEQ_atom (rsimp9 r)
+      (rsimp7_SEQ_atom (rsimp9 s) RONE))"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> rsize (RSEQ r s)"
+    by (rule rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le)
+  finally show ?thesis .
+qed
+
 lemma square_mono_nat:
   fixes m n :: nat
   assumes "m \<le> n"

@@ -375,6 +375,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontier_acc_RRESIDUE_member_size`. The arithmetic steps use
   explicit `algebra_simps`, after a first CI run showed plain `simp` leaves
   residual natural-number product goals.
+  Added checked normalized nested-tail budget facts:
+  `rsize_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_le`, and
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_member_size_le`. A direct
+  syntactic associativity lemma for `rsimp7_SEQ_atom` was rejected as too
+  strong; the useful invariant is budget control for the nested normalized
+  carried tail.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
