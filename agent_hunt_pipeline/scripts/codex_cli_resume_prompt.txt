@@ -52,6 +52,15 @@ Primary assignment:
     `rpder_norm8_live_row_step_RNTIMES_pathI` are checked; use them to turn
     carried branches into explicit `rder_path_continuations_acc` inclusion
     obligations.
+  - Direct-frontier variants are also checked:
+    `rflts_map_rsimp8_direct_subsetI`,
+    `rflts_map_rsimp8_rpder_list_path_direct_subsetI`,
+    `rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI`,
+    `rpder_norm8_live_row_step_RSEQ_path_directI`,
+    `rpder_norm8_live_row_step_RSTAR_path_directI`, and
+    `rpder_norm8_live_row_step_RNTIMES_path_directI`. Prefer these if the
+    whole-universe premise is too strong; they ask only for
+    `set (rflts [rsimp8 p]) <= U`.
 - Main remaining theorem shape:
   `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
   for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
@@ -66,10 +75,12 @@ Research tactics:
   flattened frontier remains inside `partial_derivative_live_row_universe`.
 - Prefer small helper lemmas about `rpder_norm8_list`, `rpath_continuations_acc`, `rfrontier`, and `rsimp8` stability.
 - Preferred next step: for the carried-continuation branches, prove small
-  inclusion facts of the form
+  inclusion facts of the direct-frontier form
+  `set (rflts [rsimp8 p]) <= partial_derivative_live_row_universe (rsimp8 r)`
+  for each carried continuation `p`. If a branch really has a monotone
+  whole-universe fact, it may still use
   `partial_derivative_live_row_universe (rsimp8 p) <= partial_derivative_live_row_universe (rsimp8 r)`
-  for each raw continuation `p`, then invoke the path reducers above and
-  `rflts_map_rsimp8_live_row_subsetI`.
+  and then invoke the older path reducers plus `rflts_map_rsimp8_live_row_subsetI`.
 - Do not assume `rsimp4_SEQ_atom r RONE = r`; it is false because the atom
   sequence simplifier removes zero/one structure and reassociates.
 - Do not assume `rsimp8 (rsimp4_SEQ_atom r RONE) = rsimp8 r` either. It is

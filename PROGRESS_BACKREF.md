@@ -71,6 +71,15 @@ Last updated: 2026-05-31 (norm18 normalized-tail counterexample)
   `rpder_norm8_live_row_step_RNTIMES_pathI`. These turn carried branches into
   explicit `rder_path_continuations_acc` inclusion obligations, avoiding
   repeated unfolding of `rpder_list` and `rpder_norm8_list`.
+  Added the weaker direct-frontier variants
+  `rflts_map_rsimp8_direct_subsetI`,
+  `rflts_map_rsimp8_rpder_list_path_direct_subsetI`,
+  `rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI`, and
+  `rpder_norm8_live_row_step_RSEQ_path_directI`/`RSTAR_path_directI`/
+  `RNTIMES_path_directI`. These avoid the too-strong requirement
+  `partial_derivative_live_row_universe (rsimp8 p) \<subseteq> U`; future closure
+  attempts may instead prove only the actually produced frontier
+  `set (rflts [rsimp8 p]) \<subseteq> U`.
   Important failed shortcut: do not assume `rsimp4_SEQ_atom r RONE = r`.
   It is false in the presence of the zero/one simplifications and
   reassociation that make `rsimp4_SEQ_atom` useful; a raw path-continuation

@@ -5987,6 +5987,26 @@ next
     using head tail by auto
 qed
 
+lemma rflts_map_rsimp8_direct_subsetI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow> set (rflts [rsimp8 q]) \<subseteq> U"
+  shows "set (rflts (map rsimp8 qs)) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [rsimp8 q]) \<subseteq> U"
+    by (rule Cons.prems) simp
+  have tail: "set (rflts (map rsimp8 qs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (map rsimp8 (q # qs)) =
+      rflts [rsimp8 q] @ rflts (map rsimp8 qs)"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
 lemma partial_derivative_live_row_universe_alt_child_mono:
   assumes "q \<in> set rs" "nonalt q"
   shows "partial_derivative_live_row_universe q \<subseteq>
@@ -7865,6 +7885,24 @@ proof (rule rflts_map_rsimp8_live_row_subsetI)
     by (rule cont)
 qed
 
+lemma rflts_map_rsimp8_rpder_list_path_direct_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r k \<Longrightarrow>
+        set (rflts [rsimp8 p]) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp8 (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)))) \<subseteq> U"
+proof (rule rflts_map_rsimp8_direct_subsetI)
+  fix p
+  assume p: "p \<in> set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r))"
+  have subset: "set (map (\<lambda>p. rsimp4_SEQ_atom p k) (rpder_list c r)) \<subseteq>
+      rder_path_continuations_acc c r k"
+    by (rule rpder_list_path_continuations_acc_subset[OF legacy])
+  then have "p \<in> rder_path_continuations_acc c r k"
+    using p by blast
+  then show "set (rflts [rsimp8 p]) \<subseteq> U"
+    by (rule cont)
+qed
+
 lemma rflts_map_rsimp8_rpder_list_norm_tail_subsetI:
   assumes legacy: "legacy_rrexp r"
       and cont: "\<And>p. p \<in> rder_path_continuations_acc c r
@@ -7880,6 +7918,25 @@ proof -
         (map (\<lambda>p. rsimp4_SEQ_atom p (rsimp4_SEQ_atom k RONE))
           (rpder_list c r)))) \<subseteq> U"
     by (rule rflts_map_rsimp8_rpder_list_path_subsetI[OF legacy cont])
+  then show ?thesis
+    by (simp add: rsimp4_SEQ_atom_assoc)
+qed
+
+lemma rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI:
+  assumes legacy: "legacy_rrexp r"
+      and cont: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom k RONE) \<Longrightarrow>
+        set (rflts [rsimp8 p]) \<subseteq> U"
+  shows "set (rflts
+    (map rsimp8
+      (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p k) RONE)
+        (rpder_list c r)))) \<subseteq> U"
+proof -
+  have "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom p (rsimp4_SEQ_atom k RONE))
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp8_rpder_list_path_direct_subsetI[OF legacy cont])
   then show ?thesis
     by (simp add: rsimp4_SEQ_atom_assoc)
 qed
@@ -7902,6 +7959,24 @@ proof (rule rpder_norm8_live_row_step_RSEQI)
     by (rule right)
 qed
 
+lemma rpder_norm8_live_row_step_RSEQ_path_directI:
+  assumes legacy_left: "legacy_rrexp r1"
+      and left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+          (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+        set (rflts [rsimp8 p]) \<subseteq> U"
+      and right:
+        "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm8_list c r2)) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RSEQ r1 r2))) \<subseteq> U"
+proof (rule rpder_norm8_live_row_step_RSEQI)
+  show "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq> U"
+    by (rule rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI[OF legacy_left left])
+  show "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm8_list c r2)) \<subseteq> U"
+    by (rule right)
+qed
+
 lemma rpder_norm8_live_row_step_RSTAR_pathI:
   assumes legacy_body: "legacy_rrexp r"
       and body: "\<And>p. p \<in> rder_path_continuations_acc c r
@@ -7914,6 +7989,20 @@ proof (rule rpder_norm8_live_row_step_RSTARI)
         (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
           (rpder_list c r)))) \<subseteq> U"
     by (rule rflts_map_rsimp8_rpder_list_norm_tail_subsetI[OF legacy_body body])
+qed
+
+lemma rpder_norm8_live_row_step_RSTAR_path_directI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RSTAR r) RONE) \<Longrightarrow>
+        set (rflts [rsimp8 p]) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RSTAR r))) \<subseteq> U"
+proof (rule rpder_norm8_live_row_step_RSTARI)
+  show "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI[OF legacy_body body])
 qed
 
 lemma rpder_norm8_live_row_step_RNTIMES_pathI:
@@ -7929,6 +8018,21 @@ proof (rule rpder_norm8_live_row_step_RNTIMESI)
         (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
           (rpder_list c r)))) \<subseteq> U"
     by (rule rflts_map_rsimp8_rpder_list_norm_tail_subsetI[OF legacy_body body])
+qed
+
+lemma rpder_norm8_live_row_step_RNTIMES_path_directI:
+  assumes legacy_body: "legacy_rrexp r"
+      and body: "\<And>p. p \<in> rder_path_continuations_acc c r
+          (rsimp4_SEQ_atom (RNTIMES r (n - 1)) RONE) \<Longrightarrow>
+        set (rflts [rsimp8 p]) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RNTIMES r n))) \<subseteq> U"
+proof (rule rpder_norm8_live_row_step_RNTIMESI)
+  assume "n \<noteq> 0"
+  show "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+    by (rule rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI[OF legacy_body body])
 qed
 
 lemma rpder_list_path_universe_subset:

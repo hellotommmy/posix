@@ -79,6 +79,16 @@ to be read before continuing long-running agent work.
   `rpder_norm8_live_row_step_RSTAR_pathI`, and
   `rpder_norm8_live_row_step_RNTIMES_pathI`. Use these instead of unfolding
   the nested `map rsimp8 (map ... (rpder_list ...))` goals by hand.
+- A weaker direct-frontier interface is now checked:
+  `rflts_map_rsimp8_direct_subsetI`,
+  `rflts_map_rsimp8_rpder_list_path_direct_subsetI`,
+  `rflts_map_rsimp8_rpder_list_norm_tail_direct_subsetI`, and the direct
+  `RSEQ`/`RSTAR`/`RNTIMES` path-step lemmas. This is the preferred interface
+  after the normalized-tail counterexample: instead of proving the whole
+  universe inclusion
+  `partial_derivative_live_row_universe (rsimp8 p) \<subseteq> U`, prove the smaller
+  obligation `set (rflts [rsimp8 p]) \<subseteq> U` for the carried continuation that
+  is actually emitted by the row step.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity
