@@ -5140,6 +5140,23 @@ lemma rsimp4_derivative_needs_path_continuation:
   by (simp add: partial_derivative_path_universe_def
       rpath_continuations_def rsimp4_SEQ_def)
 
+lemma frontier_universe_not_closed_under_rpder_norm_list:
+  fixes a b d :: char
+  assumes "a \<noteq> b"
+  defines "r \<equiv>
+    RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR d)"
+  defines "x \<equiv>
+    RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR d))"
+  shows "r \<in> partial_derivative_frontier_universe r"
+    and "x \<in> set (rpder_norm_list a r)"
+    and "x \<notin> partial_derivative_frontier_universe r"
+    and "x \<in> partial_derivative_path_universe r"
+  using assms
+  by (simp_all add: r_def x_def rpder_norm_list_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rsimp4_SEQ_def)
+
 lemma path_universe_misses_distributed_suffix_atom:
   "RSEQ (RCHAR b) (RCHAR d) \<notin>
     partial_derivative_path_universe
