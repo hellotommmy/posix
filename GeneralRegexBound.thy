@@ -8213,6 +8213,17 @@ lemma rsimp6_collapses_cubic_counterexample_row:
   by (simp add: p_def rsimp6_SEQ_def rsimp6_seq_products_def
       rsimp6_SEQ_atom_def)
 
+lemma norm19_frontier_universe_repairs_nested_star_counterexample:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSTAR (RCHAR a))"
+  defines "q \<equiv> RSTAR (RCHAR a)"
+  shows "rsimp9 r = q"
+    and "q \<in> partial_derivative_frontier_universe (rsimp9 r)"
+    and "set (rflts (rpder_norm9_list a q)) \<subseteq>
+      partial_derivative_frontier_universe (rsimp9 r)"
+  by (simp_all add: r_def q_def rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_frontier_universe_def)
+
 lemma rsimp6_misses_prefix_star_counterexample_row:
   fixes a b :: char
   defines "p \<equiv>

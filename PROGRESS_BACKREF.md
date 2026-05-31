@@ -184,6 +184,10 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   derivative stays inside `partial_derivative_frontier_universe`. This is
   evidence that the frontier route is repairing the known associativity leak,
   not merely adding a larger universe.
+  Added `norm19_frontier_universe_repairs_nested_star_counterexample`:
+  the older `RSTAR (RSTAR a)` cubic-universe obstruction is normalized to
+  `RSTAR a`, and the normalized `a` derivative remains inside the same
+  frontier universe.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

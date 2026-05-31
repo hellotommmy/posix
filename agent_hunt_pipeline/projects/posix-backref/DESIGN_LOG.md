@@ -154,6 +154,10 @@ to be read before continuing long-running agent work.
   derivative remains inside `partial_derivative_frontier_universe`. This keeps
   the frontier route aligned with the intended stronger simplifier, rather than
   masking the problem with a larger accounting set.
+- The older nested-star cubic obstruction is also checked repaired by `rsimp9`:
+  `norm19_frontier_universe_repairs_nested_star_counterexample` shows
+  `RSTAR (RSTAR a)` normalizes to `RSTAR a`, and the normalized derivative row
+  remains inside the same frontier universe.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

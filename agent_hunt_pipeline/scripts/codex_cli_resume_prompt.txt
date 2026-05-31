@@ -145,6 +145,9 @@ Research tactics:
   Sanity check: `norm19_frontier_universe_repairs_left_nested_seq_counterexample`
   is checked; it shows the old `((a*).b).d` frontier obstruction for
   `rpder_norm_list` is repaired by `rsimp9`.
+  Sanity check: `norm19_frontier_universe_repairs_nested_star_counterexample`
+  is checked; it shows the old nested-star cubic obstruction is normalized to
+  `RSTAR a` and its normalized derivative row remains in the frontier universe.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
