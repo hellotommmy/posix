@@ -43,6 +43,12 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   for `rpder_norm8_list`, and the conditional `RALTS` row-composition lemma
   `rpder_norm8_live_row_step_RALTSI`, followed by
   `rpder_norm8_live_row_step_RALTS_selfI` for normalized non-alt children.
+  Added checked structural splitters
+  `rpder_norm8_live_row_step_RSEQI`,
+  `rpder_norm8_live_row_step_RSTARI`, and
+  `rpder_norm8_live_row_step_RNTIMESI`; these isolate carried-continuation
+  obligations from nullable-right obligations without unfolding the whole
+  row derivative in later proofs.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

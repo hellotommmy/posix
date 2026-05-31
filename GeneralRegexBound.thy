@@ -7382,6 +7382,62 @@ proof (rule rpder_norm8_live_row_step_RALTSI)
     by blast
 qed
 
+lemma rpder_norm8_live_row_step_RSEQI:
+  assumes left:
+    "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq> U"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm8_list c r2)) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RSEQ r1 r2))) \<subseteq> U"
+proof (cases "rnullable r1")
+  case True
+  have "set (rflts (rpder_norm8_list c (RSEQ r1 r2))) =
+      set (rflts
+        (map rsimp8
+          (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+            (rpder_list c r1)))) \<union>
+      set (rflts (rpder_norm8_list c r2))"
+    using True
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def flts_append comp_def)
+  then show ?thesis
+    using left right[OF True] by blast
+next
+  case False
+  then show ?thesis
+    using left
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def comp_def)
+qed
+
+lemma rpder_norm8_live_row_step_RSTARI:
+  assumes body:
+    "set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RSTAR r))) \<subseteq> U"
+  using body
+  by (simp add: rpder_norm8_list_def rpder_norm_list_def comp_def)
+
+lemma rpder_norm8_live_row_step_RNTIMESI:
+  assumes body:
+    "n \<noteq> 0 \<Longrightarrow> set (rflts
+      (map rsimp8
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq> U"
+  shows "set (rflts (rpder_norm8_list c (RNTIMES r n))) \<subseteq> U"
+proof (cases n)
+  case 0
+  then show ?thesis
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def)
+next
+  case (Suc m)
+  then show ?thesis
+    using body
+    by (simp add: rpder_norm8_list_def rpder_norm_list_def comp_def)
+qed
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"

@@ -49,8 +49,13 @@ to be read before continuing long-running agent work.
   `rpder_norm8_live_row_step_RZERO`/`RONE`/`RCHAR`, and the conditional list
   decomposition lemma `rpder_norm8_live_row_step_RALTSI`, plus
   `rpder_norm8_live_row_step_RALTS_selfI` for the normalized-alternative
-  case where every child is non-alt. This deliberately avoids a broad `auto`
-  proof over the final closure statement.
+  case where every child is non-alt. The sequence/star/ntimes branches are
+  now split by `rpder_norm8_live_row_step_RSEQI`,
+  `rpder_norm8_live_row_step_RSTARI`, and
+  `rpder_norm8_live_row_step_RNTIMESI`, so the remaining work can focus on
+  carried-continuation membership rather than repeatedly unfolding
+  `rpder_list`, `rpder_norm_list`, and `rflts`. This deliberately avoids a
+  broad `auto` proof over the final closure statement.
 - Do not use a monolithic `rsimp8` idempotence proof as the next shortcut. A
   naive induction over `rsimp8` timed out because the `RALTS` branch expands
   `rsimp_ALTs`, `rdistinct`, and `rflts` together. If idempotence is needed,
