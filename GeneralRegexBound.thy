@@ -4629,6 +4629,64 @@ lemma finite_partial_derivative_cubic_universe [simp]:
   "finite (partial_derivative_cubic_universe r)"
   by (simp add: partial_derivative_cubic_universe_def)
 
+lemma partial_derivative_path_universe_subset_cubic:
+  "partial_derivative_path_universe r \<subseteq>
+    partial_derivative_cubic_universe r"
+  by (simp add: partial_derivative_cubic_universe_def)
+
+lemma partial_derivative_frontier_universe_subset_cubic:
+  "partial_derivative_frontier_universe r \<subseteq>
+    partial_derivative_cubic_universe r"
+  by (simp add: partial_derivative_cubic_universe_def)
+
+lemma set_rdistinct_subset:
+  assumes "set rs \<subseteq> U"
+  shows "set (rdistinct rs acc) \<subseteq> U"
+  using assms
+  by (induct rs arbitrary: acc) auto
+
+lemma set_rflts_good_subset_rfrontiers:
+  assumes "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+  shows "set (rflts rs) \<subseteq> insert RZERO (rfrontiers rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  have tail_good: "\<forall>r \<in> set rs. good r \<or> r = RZERO"
+    using Cons.prems by simp
+  have tail_subset: "set (rflts rs) \<subseteq> insert RZERO (rfrontiers rs)"
+    by (rule Cons.hyps[OF tail_good])
+  show ?case
+  proof (cases a)
+    case RZERO
+    then show ?thesis
+      using tail_subset by simp
+  next
+    case (RALTS rs1)
+    have good_alt: "good (RALTS rs1)"
+      using Cons.prems RALTS by simp
+    have elems_good: "\<forall>r \<in> set rs1. good r \<and> nonalt r"
+      using good_alt good_RALTS_elem by blast
+    have head_subset: "set rs1 \<subseteq> rfrontiers rs1"
+    proof
+      fix x
+      assume x: "x \<in> set rs1"
+      have "x \<noteq> RZERO"
+        using elems_good x good_not_RZERO by blast
+      moreover have "nonalt x"
+        using elems_good x by blast
+      ultimately have "x \<in> rfrontier x"
+        by (rule rfrontier_nonzero_nonalt_self)
+      then show "x \<in> rfrontiers rs1"
+        using x rfrontiers_member_iff by blast
+    qed
+    show ?thesis
+      using RALTS head_subset tail_subset by auto
+  qed (use tail_subset in auto)
+qed
+
 lemma rsizes_filter_partition:
   "rsizes rs =
     rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
