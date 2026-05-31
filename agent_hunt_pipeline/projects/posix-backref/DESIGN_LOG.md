@@ -9,6 +9,19 @@ to be read before continuing long-running agent work.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex
   size.
+- `rsimp6` is now the first checked star-absorbing redesign prototype. It
+  preserves `rsimp5`'s row-product behavior but adds `r* · r* = r*` and
+  `(r*)* = r*`, then threads that normalizer through `rpder_norm6_list`,
+  `rpd_der_norm6`, `rpder_norm6_rows`, and `rpders_norm16_rows`.
+- The immediate motivation is the checked repeated-row counterexample for
+  `(a*)*`: without star absorption, `a* · ((a*)* · a*)` escapes the current
+  cubic universe. The checked lemma
+  `rsimp6_collapses_cubic_counterexample_row` proves that the new normalizer
+  collapses precisely that obstruction to `a*`.
+- This is still a proof-level prototype. Before claiming the 25k new-definition
+  bounty, mirror the normalizer into the annotated `bsimp`/`bders` layer and
+  prove the erasure/size transfer facts, or prove the repeated-row cubic
+  closure theorem directly for `rpders_norm16_rows`.
 - The strongest checked candidate is no longer eager `rsimp5` row products.
   `rsimp5` is language-correct, but checked counterexamples show that full
   right-side row-product distribution wants a larger universe than the current

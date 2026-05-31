@@ -5,6 +5,18 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
 - Pushed checked commits through `99d6e0b` on `codex/backref-values`.
+- Follow-up checked prototype through `462fd39` and the next local checkpoint:
+  `rsimp6` adds star absorption on top of the normalized Antimirov row
+  pipeline. `rpder_norm6_list`, `rpd_der_norm6`, `rpder_norm6_rows`, and
+  `rpders_norm16_rows` are now defined in `GeneralRegexBound.thy` with
+  legacy preservation, distinctness, and language-correctness lemmas. This is
+  still a proof-level prototype, not yet the final annotated `bsimp`
+  replacement.
+- Added `rsimp6_collapses_cubic_counterexample_row`, showing the new
+  normalizer directly collapses the previously checked `(a*)*` repeated-row
+  obstruction (`a* · ((a*)* · a*)`) to `a*`. This does not close the global
+  cubic theorem yet, but it gives a checked reason to pursue star absorption as
+  the next simplifier design.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,
