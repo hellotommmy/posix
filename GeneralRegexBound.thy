@@ -9903,6 +9903,116 @@ lemma finite_partial_derivative_path9_atom_frontier_universe [simp]:
   "finite (partial_derivative_path9_atom_frontier_universe r)"
   by (simp add: partial_derivative_path9_atom_frontier_universe_def)
 
+lemma plus2_square_plus_plus3_square_le:
+  fixes a s :: nat
+  assumes "1 \<le> a" "1 \<le> s"
+  shows "(a + 2)\<^sup>2 + (s + 3)\<^sup>2 \<le> (a + s + 3)\<^sup>2"
+proof -
+  have a2: "2 \<le> a * 2"
+    using assms(1) by simp
+  have as2: "2 \<le> a * (s * 2)"
+  proof -
+    have "1 * (1 * 2) \<le> a * (s * 2)"
+      by (rule mult_le_mono) (use assms in auto)
+    then show ?thesis
+      by simp
+  qed
+  have "4 \<le> a * 2 + a * (s * 2)"
+    using a2 as2 by linarith
+  then show ?thesis
+    by (simp add: power2_eq_square algebra_simps)
+qed
+
+lemma sum_list_rsize_plus2_square_le_rsizes_plus3_square:
+  "sum_list (map (\<lambda>r. (rsize r + 2)\<^sup>2) rs) \<le> (rsizes rs + 3)\<^sup>2"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    have "(rsize r + 2)\<^sup>2 \<le> (rsize r + 3)\<^sup>2"
+      by (rule square_mono_nat) simp
+    then show ?thesis
+      using Nil by simp
+  next
+    case (Cons r' rs')
+    have tail: "sum_list (map (\<lambda>r. (rsize r + 2)\<^sup>2) rs) \<le>
+        (rsizes rs + 3)\<^sup>2"
+      by (rule Cons.hyps)
+    have rs_nonempty: "1 \<le> rsizes rs"
+      using Cons size_geq1[of r'] by simp
+    have step: "(rsize r + 2)\<^sup>2 + (rsizes rs + 3)\<^sup>2 \<le>
+        (rsize r + rsizes rs + 3)\<^sup>2"
+      by (rule plus2_square_plus_plus3_square_le)
+        (rule size_geq1, rule rs_nonempty)
+    show ?thesis
+      using tail step by simp
+  qed
+qed
+
+lemma card_rpath9_atom_frontier_acc_list_le:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> card (rpath9_atom_frontier_acc r k) \<le> f r"
+  shows "card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs))) \<le>
+    sum_list (map f rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have "card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) (r # rs)))) \<le>
+      card (rpath9_atom_frontier_acc r k) +
+      card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs)))"
+    by (simp add: card_Un_le)
+  also have "... \<le> f r + sum_list (map f rs)"
+  proof -
+    have head: "card (rpath9_atom_frontier_acc r k) \<le> f r"
+      by (rule Cons.prems) simp
+    have tail: "card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r k) rs))) \<le>
+        sum_list (map f rs)"
+      by (rule Cons.hyps) (use Cons.prems in auto)
+    show ?thesis
+      using head tail by linarith
+  qed
+  finally show ?case
+    by simp
+qed
+
+lemma card_rpath9_atom_frontiers_RALTS_le:
+  "card (rpath9_atom_frontiers (RALTS rs)) \<le>
+    sum_list (map (\<lambda>r. card (rpath9_atom_frontiers r)) rs)"
+proof -
+  have "card (\<Union> (set (map (\<lambda>r. rpath9_atom_frontier_acc r RONE) rs))) \<le>
+      sum_list (map (\<lambda>r. card (rpath9_atom_frontier_acc r RONE)) rs)"
+    by (rule card_rpath9_atom_frontier_acc_list_le) simp
+  then show ?thesis
+    by (simp add: rpath9_atom_frontiers_def)
+qed
+
+lemma card_rpath9_atom_frontiers_RALTS_quadraticI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (rpath9_atom_frontiers q) \<le> (rsize q + 2)\<^sup>2"
+  shows "card (rpath9_atom_frontiers (RALTS rs)) \<le>
+    (rsize (RALTS rs) + 2)\<^sup>2"
+proof -
+  have card_le: "card (rpath9_atom_frontiers (RALTS rs)) \<le>
+      sum_list (map (\<lambda>r. card (rpath9_atom_frontiers r)) rs)"
+    by (rule card_rpath9_atom_frontiers_RALTS_le)
+  also have "... \<le> sum_list (map (\<lambda>r. (rsize r + 2)\<^sup>2) rs)"
+    using assms by (simp add: sum_list_mono)
+  also have "... \<le> (rsizes rs + 3)\<^sup>2"
+    by (rule sum_list_rsize_plus2_square_le_rsizes_plus3_square)
+  also have "... = (rsize (RALTS rs) + 2)\<^sup>2"
+    by simp
+  finally show ?thesis
+    .
+qed
+
 lemma rsubterms_rsimp_ALTs_member:
   assumes "x \<in> set xs"
   shows "x \<in> rsubterms (rsimp_ALTs xs)"

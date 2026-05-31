@@ -278,6 +278,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   that a full child-universe lift for nested `RALTS` is too strong after
   flattening; the checked version lifts the flattened rows and the nonalt
   derivative rows actually produced by `rpder_norm9_list`.
+  Added the first direct quadratic-card accounting split for
+  `rpath9_atom_frontiers`: `plus2_square_plus_plus3_square_le`,
+  `sum_list_rsize_plus2_square_le_rsizes_plus3_square`,
+  `card_rpath9_atom_frontier_acc_list_le`,
+  `card_rpath9_atom_frontiers_RALTS_le`, and
+  `card_rpath9_atom_frontiers_RALTS_quadraticI`. The `RALTS` case of the
+  target `card (rpath9_atom_frontiers r) <= (rsize r + 2)^2` can now be
+  discharged from the child quadratic hypotheses.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -246,6 +246,14 @@ to be read before continuing long-running agent work.
   `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
   `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
   `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`.
+- The first `rpath9_atom_frontiers` card-accounting split is checked:
+  `plus2_square_plus_plus3_square_le`,
+  `sum_list_rsize_plus2_square_le_rsizes_plus3_square`,
+  `card_rpath9_atom_frontier_acc_list_le`,
+  `card_rpath9_atom_frontiers_RALTS_le`, and
+  `card_rpath9_atom_frontiers_RALTS_quadraticI`. This closes the alternative
+  branch of the desired quadratic-card proof from child hypotheses; remaining
+  accounting work is `RSEQ/RSTAR/RNTIMES` and member-size.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

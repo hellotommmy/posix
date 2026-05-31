@@ -107,6 +107,12 @@ immutability.
   `partial_derivative_path9_atom_frontier_universe_RALTS_nonalt_child_member`,
   `rpder_norm9_path9_atom_frontier_step_RALTS_childI`, and
   `rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_childI`.
+  The first direct accounting split for `rpath9_atom_frontiers` is checked:
+  `plus2_square_plus_plus3_square_le`,
+  `sum_list_rsize_plus2_square_le_rsizes_plus3_square`,
+  `card_rpath9_atom_frontier_acc_list_le`,
+  `card_rpath9_atom_frontiers_RALTS_le`, and
+  `card_rpath9_atom_frontiers_RALTS_quadraticI`.
 
 ## Completed
 
