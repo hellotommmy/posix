@@ -33,6 +33,12 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   language-equivalent but not a member of the old root's
   `partial_derivative_cubic_universe`. The closure target must therefore use a
   pre-normalized root or a normalized-image universe.
+- Added the checked conditional route for the pre-normalized root:
+  `rpders_norm16_rows_subterms_subsetI`,
+  `rsizes_rpders_norm16_rows_cubic_universe_cubicI`, and
+  `rsizes_rpders_norm16_rows_normalized_root_cubicI`. The remaining theorem is
+  now sharply reduced to one-step subterm closure for `rpder_norm6_list` inside
+  `partial_derivative_cubic_universe (rsimp6 r)`.
 - Added helper lemmas for the current combined cubic universe:
   `partial_derivative_path_universe_subset_cubic`,
   `partial_derivative_frontier_universe_subset_cubic`,
