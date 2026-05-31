@@ -114,16 +114,23 @@ to be read before continuing long-running agent work.
   `norm19_RNTIMES_body_normalization_obstruction_persists` shows the harder
   body-normalization case is still open: derivatives may emit `rsimp9 body`
   where the current live-row universe only remembers an unnormalized carried
-  continuation. Next work should refine that carried-continuation invariant,
-  then migrate the corresponding annotated `bsimp` only after the proof-level
-  closure target is stable.
+  continuation. The checked
+  `norm19_RNTIMES_body_normalization_obstruction_in_path_universe` shows that
+  the same witness is not outside the existing cubic accounting: it lands in
+  `partial_derivative_path_universe (rsimp9 r)` as a subterm of the normalized
+  root. Prefer the new path-universe hook over further ad hoc live-row
+  enlargement.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
-  `RLS_rpders_norm19_rows`, and has the conditional cubic theorem
-  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`. This deliberately keeps
-  the final hard obligation explicit: prove the one-step inclusion
+  `RLS_rpders_norm19_rows`, and has conditional cubic theorems
+  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI` and
+  `rsizes_rpders_norm19_rows_rsimp9_path_cubicI`. The path version keeps the
+  bound at `2 * (rsize r + 3)^3` because `partial_derivative_path_universe`
+  already has linear cardinality and quadratic member-size accounting. This
+  deliberately keeps the final hard obligation explicit: prove the one-step
+  inclusion, preferably in the path universe,
   `set (rflts (rpder_norm9_list c q)) <=
-  partial_derivative_live_row_universe (rsimp9 r)` for live-row states `q`.
+  partial_derivative_path_universe (rsimp9 r)` for path-universe states `q`.
 - The `rpder_norm9_live_row_step_*` splitter layer is checked, including
   base constructors, `RALTS`, `RSEQ`, `RSTAR`, `RNTIMES`, and path/direct
   carried-continuation interfaces. Future work should not unfold

@@ -123,9 +123,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpders_norm9_rows`, `rpders_norm19_rows`, finite/distinct facts,
   `RLS_rpders_norm19`, `RLS_rpders_norm19_rows`,
   `RL_rders_pder_norm9`, the generic
-  `rpders_norm19_rows_rflts_subsetI`, and the conditional cubic hook
-  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI`. The remaining proof
-  work is now the one-step live-row closure premise for `rpder_norm9_list`.
+  `rpders_norm19_rows_rflts_subsetI`, and the conditional cubic hooks
+  `rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI` and
+  `rsizes_rpders_norm19_rows_rsimp9_path_cubicI`. The latter keeps the same
+  cubic bound while allowing the full `partial_derivative_path_universe`.
+  The checked `norm19_RNTIMES_body_normalization_obstruction_in_path_universe`
+  shows why this is the more plausible next invariant: the known complex
+  `RNTIMES` body-normalization witness escapes live-row but lands in the
+  path universe of the normalized root.
   Added the checked `rpder_norm9` one-step closure infrastructure:
   `good_rsimp9`, `good_rpder_norm9_list`,
   `rflts_singleton_rsimp9_live_row_universe`,

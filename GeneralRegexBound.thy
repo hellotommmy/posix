@@ -7934,6 +7934,13 @@ lemma rsizes_rpders_norm19_rows_live_row_universe_cubic:
   by (rule rsizes_distinct_live_row_universe_cubic)
     (use assms in auto)
 
+lemma rsizes_rpders_norm19_rows_path_universe_cubic:
+  assumes "set (rpders_norm19_rows r s) \<subseteq>
+    partial_derivative_path_universe r"
+  shows "rsizes (rpders_norm19_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_path_universe_cubic)
+    (use assms in auto)
+
 lemma rsizes_rpders_norm19_rows_live_row_universe_cubicI:
   assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe r \<Longrightarrow>
     set (rflts (rpder_norm9_list c q)) \<subseteq>
@@ -7949,6 +7956,21 @@ proof -
     by (rule rsizes_rpders_norm19_rows_live_row_universe_cubic)
 qed
 
+lemma rsizes_rpders_norm19_rows_path_universe_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_path_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path_universe r"
+  shows "rsizes (rpders_norm19_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_path_universe r"
+    by (simp add: partial_derivative_path_universe_def)
+  have "set (rpders_norm19_rows r s) \<subseteq>
+      partial_derivative_path_universe r"
+    by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm19_rows_path_universe_cubic)
+qed
+
 lemma rsizes_rpders_norm19_rows_rsimp9_live_row_cubicI:
   assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe (rsimp9 r) \<Longrightarrow>
     set (rflts (rpder_norm9_list c q)) \<subseteq>
@@ -7959,6 +7981,24 @@ proof -
   have base: "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
       2 * (rsize (rsimp9 r) + 3) ^ 3"
     by (rule rsizes_rpders_norm19_rows_live_row_universe_cubicI[OF step])
+  have size: "rsize (rsimp9 r) + 3 \<le> rsize r + 3"
+    using rsize_rsimp9_le[of r] by simp
+  have "2 * (rsize (rsimp9 r) + 3) ^ 3 \<le> 2 * (rsize r + 3) ^ 3"
+    using power_mono[OF size, of 3] by simp
+  then show ?thesis
+    using base by linarith
+qed
+
+lemma rsizes_rpders_norm19_rows_rsimp9_path_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_path_universe (rsimp9 r) \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path_universe (rsimp9 r)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have base: "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+      2 * (rsize (rsimp9 r) + 3) ^ 3"
+    by (rule rsizes_rpders_norm19_rows_path_universe_cubicI[OF step])
   have size: "rsize (rsimp9 r) + 3 \<le> rsize r + 3"
     using rsize_rsimp9_le[of r] by simp
   have "2 * (rsize (rsimp9 r) + 3) ^ 3 \<le> 2 * (rsize r + 3) ^ 3"
@@ -8147,6 +8187,16 @@ lemma norm19_RNTIMES_body_normalization_obstruction_persists:
   by (simp_all add: body_def r_def p_def rpder_norm9_list_def rpder_norm_list_def
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
+
+lemma norm19_RNTIMES_body_normalization_obstruction_in_path_universe:
+  fixes b :: char
+  defines "body \<equiv> RSTAR (RALTS [RZERO, RONE, RCHAR b])"
+  defines "r \<equiv> RNTIMES body 1"
+  defines "p \<equiv> rsimp9 body"
+  shows "p \<in> set (rflts (rpder_norm9_list b (rsimp9 r)))"
+    and "p \<in> partial_derivative_path_universe (rsimp9 r)"
+  by (simp_all add: body_def r_def p_def rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_path_universe_def rsimp7_SEQ_atom_def)
 
 lemma norm19_closes_RNTIMES_countdown_sanity:
   fixes b :: char
