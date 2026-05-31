@@ -24,6 +24,11 @@ Primary assignment:
   - `rsimp8_live_row_universe_not_closed` refutes the old `norm17 = map rsimp7` closure target.
   - `rpder_norm8_list`, `rpder_norm8_rows`, `rpders_norm18_rows`, `RLS_rpders_norm18_rows`, and `rsizes_rpders_norm18_rows_rsimp8_live_row_cubicI` are checked.
   - `norm18_closes_rsimp8_live_row_obstruction` confirms the concrete `(((1+a).a))*` obstruction is fixed.
+  - `partial_derivative_live_row_universe_zero/one/root/path/frontier/path_frontier`,
+    `partial_derivative_live_row_universe_alt_child_mono`,
+    `rpder_norm8_live_row_step_RZERO/RONE/RCHAR`,
+    `rpder_norm8_live_row_step_RALTSI`, and
+    `rpder_norm8_live_row_step_RALTS_selfI` are checked.
 - Main remaining theorem shape:
   `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
   for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
@@ -31,7 +36,13 @@ Primary assignment:
 Research tactics:
 - Do not start with broad `auto`. Split by the live-row universe cases:
   `RZERO`, `RONE`, root, path continuations, root frontier, and frontiers of path continuations.
+- The easy `RZERO`/`RONE`/`RCHAR` and alternative-row composition cases are
+  already checked. Focus next on modular helpers for `RSEQ`, `RSTAR`, and
+  `RNTIMES`, especially carried-continuation facts.
 - Prefer small helper lemmas about `rpder_norm8_list`, `rpath_continuations_acc`, `rfrontier`, and `rsimp8` stability.
+- Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
+  out in the `RALTS` branch; if idempotence is needed, first split
+  `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
 - If a proposed closure statement is false, add a checked counterexample lemma and update DESIGN_LOG.md/PROGRESS_BACKREF.md.
 - Keep proof commands under the performance budget: if a line takes more than 1-2 seconds, split it; if it runs past 10 seconds, stop and make a helper lemma.
 
