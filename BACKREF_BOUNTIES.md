@@ -173,6 +173,16 @@ immutability.
   `rpath9_atom_frontier_acc_RSTAR_member_sizeI`,
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le`, and
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI`.
+  The product-introduction layer is also checked:
+  `card_rpath9_atom_frontier_acc_RSEQ_productI`,
+  `card_rpath9_atom_frontier_acc_RSTAR_productI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_productI`,
+  `card_rpath9_atom_frontier_acc_RBACKREF4_productI`,
+  `rpath9_atom_frontier_acc_RBACKREF4_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RHALF_productI`,
+  `rpath9_atom_frontier_acc_RHALF_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RRESIDUE_product`, and
+  `rpath9_atom_frontier_acc_RRESIDUE_member_size`.
 
 ## Completed
 

@@ -363,6 +363,18 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le`, and
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI`. These isolate the
   future product-bound induction cases without monolithic proof search.
+  Added checked product-introduction lemmas for the remaining accumulator
+  constructors: `card_rpath9_atom_frontier_acc_RSEQ_productI`,
+  `card_rpath9_atom_frontier_acc_RSTAR_productI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_productI`,
+  `card_rpath9_atom_frontier_acc_RBACKREF4_productI`,
+  `rpath9_atom_frontier_acc_RBACKREF4_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RHALF_productI`,
+  `rpath9_atom_frontier_acc_RHALF_member_sizeI`,
+  `card_rpath9_atom_frontier_acc_RRESIDUE_product`, and
+  `rpath9_atom_frontier_acc_RRESIDUE_member_size`. The arithmetic steps use
+  explicit `algebra_simps`, after a first CI run showed plain `simp` leaves
+  residual natural-number product goals.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -611,3 +611,18 @@ to be read before continuing long-running agent work.
   `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le` record only the structural
   card split. Their matching member-size lemmas carry an arbitrary bound `N`,
   so later linear-size proofs can reuse them without unfolding the accumulator.
+
+## 2026-05-31: Product-introduction layer for carried collector
+
+- The constructor splitters now have checked product-introduction companions:
+  `card_rpath9_atom_frontier_acc_RSEQ_productI`,
+  `card_rpath9_atom_frontier_acc_RSTAR_productI`,
+  `card_rpath9_atom_frontier_acc_RNTIMES_nonzero_productI`,
+  `card_rpath9_atom_frontier_acc_RBACKREF4_productI`,
+  `card_rpath9_atom_frontier_acc_RHALF_productI`, and
+  `card_rpath9_atom_frontier_acc_RRESIDUE_product`.
+- These lemmas deliberately assume the recursive carried calls already fit the
+  same budget `n`. They do not solve the hard budget-selection problem, but
+  they remove constructor arithmetic from the later induction.
+- Natural-number product goals such as `a*n + b*n <= n + (a+b)*n` need
+  `algebra_simps`; keep that explicit rather than relying on plain `simp`.

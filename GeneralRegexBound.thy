@@ -10331,6 +10331,25 @@ proof -
   qed
 qed
 
+lemma card_rpath9_atom_frontier_acc_RSEQ_productI:
+  assumes left: "card (rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) k)) \<le> rsize r1 * n"
+    and right: "card (rpath9_atom_frontier_acc r2 k) \<le> rsize r2 * n"
+  shows "card (rpath9_atom_frontier_acc (RSEQ r1 r2) k) \<le>
+    rsize (RSEQ r1 r2) * n"
+proof -
+  have "card (rpath9_atom_frontier_acc (RSEQ r1 r2) k) \<le>
+      card (rpath9_atom_frontier_acc r1
+        (rsimp7_SEQ_atom (rsimp9 r2) k)) +
+      card (rpath9_atom_frontier_acc r2 k)"
+    by (rule card_rpath9_atom_frontier_acc_RSEQ_le)
+  also have "... \<le> rsize r1 * n + rsize r2 * n"
+    using left right by linarith
+  also have "... \<le> rsize (RSEQ r1 r2) * n"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma card_rpath9_atom_frontier_acc_RSTAR_le:
   "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
     card (rpath9_atom_frontier_acc r
@@ -10343,6 +10362,23 @@ lemma rpath9_atom_frontier_acc_RSTAR_member_sizeI:
     and x: "x \<in> rpath9_atom_frontier_acc (RSTAR r) k"
   shows "rsize x \<le> N"
   using assms by simp
+
+lemma card_rpath9_atom_frontier_acc_RSTAR_productI:
+  assumes body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k)) \<le> rsize r * n"
+  shows "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
+    rsize (RSTAR r) * n"
+proof -
+  have "card (rpath9_atom_frontier_acc (RSTAR r) k) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) k))"
+    by (rule card_rpath9_atom_frontier_acc_RSTAR_le)
+  also have "... \<le> rsize r * n"
+    by (rule body)
+  also have "... \<le> rsize (RSTAR r) * n"
+    by simp
+  finally show ?thesis .
+qed
 
 lemma card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le:
   assumes "n \<noteq> 0"
@@ -10357,6 +10393,87 @@ lemma rpath9_atom_frontier_acc_RNTIMES_nonzero_member_sizeI:
       (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) k) \<Longrightarrow>
       rsize x \<le> N"
     and x: "x \<in> rpath9_atom_frontier_acc (RNTIMES r n) k"
+  shows "rsize x \<le> N"
+  using assms by simp
+
+lemma card_rpath9_atom_frontier_acc_RNTIMES_nonzero_productI:
+  assumes m: "m \<noteq> 0"
+    and body: "card (rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (m - 1))) k)) \<le>
+      rsize r * n"
+  shows "card (rpath9_atom_frontier_acc (RNTIMES r m) k) \<le>
+    rsize (RNTIMES r m) * n"
+proof -
+  have "card (rpath9_atom_frontier_acc (RNTIMES r m) k) \<le>
+      card (rpath9_atom_frontier_acc r
+        (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (m - 1))) k))"
+    by (rule card_rpath9_atom_frontier_acc_RNTIMES_nonzero_le[OF m])
+  also have "... \<le> rsize r * n"
+    by (rule body)
+  also have "... \<le> rsize (RNTIMES r m) * n"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma card_rpath9_atom_frontier_acc_RBACKREF4_productI:
+  assumes r1: "card (rpath9_atom_frontier_acc r1 k) \<le> rsize r1 * n"
+    and r2: "card (rpath9_atom_frontier_acc r2 k) \<le> rsize r2 * n"
+    and r3: "card (rpath9_atom_frontier_acc r3 k) \<le> rsize r3 * n"
+    and r4: "card (rpath9_atom_frontier_acc r4 k) \<le> rsize r4 * n"
+  shows "card (rpath9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k) \<le>
+    rsize (RBACKREF4 r1 r2 r3 r4 cs) * n"
+proof -
+  have "card (rpath9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k) \<le>
+      card (rpath9_atom_frontier_acc r1 k) +
+      card (rpath9_atom_frontier_acc r2 k) +
+      card (rpath9_atom_frontier_acc r3 k) +
+      card (rpath9_atom_frontier_acc r4 k)"
+    using card_Un4_le[of "rpath9_atom_frontier_acc r1 k"
+      "rpath9_atom_frontier_acc r2 k"
+      "rpath9_atom_frontier_acc r3 k"
+      "rpath9_atom_frontier_acc r4 k"] by simp
+  also have "... \<le> rsize r1 * n + rsize r2 * n +
+      rsize r3 * n + rsize r4 * n"
+    using r1 r2 r3 r4 by linarith
+  also have "... \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs) * n"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma rpath9_atom_frontier_acc_RBACKREF4_member_sizeI:
+  assumes r1: "\<And>x. x \<in> rpath9_atom_frontier_acc r1 k \<Longrightarrow> rsize x \<le> N"
+    and r2: "\<And>x. x \<in> rpath9_atom_frontier_acc r2 k \<Longrightarrow> rsize x \<le> N"
+    and r3: "\<And>x. x \<in> rpath9_atom_frontier_acc r3 k \<Longrightarrow> rsize x \<le> N"
+    and r4: "\<And>x. x \<in> rpath9_atom_frontier_acc r4 k \<Longrightarrow> rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k"
+  shows "rsize x \<le> N"
+  using assms by auto
+
+lemma card_rpath9_atom_frontier_acc_RHALF_productI:
+  assumes body: "card (rpath9_atom_frontier_acc r k) \<le> rsize r * n"
+  shows "card (rpath9_atom_frontier_acc (RHALF r cs rep) k) \<le>
+    rsize (RHALF r cs rep) * n"
+proof -
+  have "card (rpath9_atom_frontier_acc (RHALF r cs rep) k) \<le> rsize r * n"
+    using body by simp
+  also have "... \<le> rsize (RHALF r cs rep) * n"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpath9_atom_frontier_acc_RHALF_member_sizeI:
+  assumes body: "\<And>x. x \<in> rpath9_atom_frontier_acc r k \<Longrightarrow> rsize x \<le> N"
+    and x: "x \<in> rpath9_atom_frontier_acc (RHALF r cs rep) k"
+  shows "rsize x \<le> N"
+  using assms by simp
+
+lemma card_rpath9_atom_frontier_acc_RRESIDUE_product [simp]:
+  "card (rpath9_atom_frontier_acc (RRESIDUE cs rep) k) \<le>
+    rsize (RRESIDUE cs rep) * n"
+  by simp
+
+lemma rpath9_atom_frontier_acc_RRESIDUE_member_size:
+  assumes "x \<in> rpath9_atom_frontier_acc (RRESIDUE cs rep) k"
   shows "rsize x \<le> N"
   using assms by simp
 
