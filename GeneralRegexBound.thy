@@ -211,11 +211,44 @@ lemma legacy_rders_simp5:
   using assms
   by (induction s arbitrary: r) (auto simp add: legacy_rsimp5 legacy_rder)
 
+lemma legacy_rsimp6_SEQ_atom:
+  assumes "legacy_rrexp r1" "legacy_rrexp r2"
+  shows "legacy_rrexp (rsimp6_SEQ_atom r1 r2)"
+  using assms
+  by (cases r1; cases r2; auto simp add: rsimp6_SEQ_atom_def legacy_rsimp4_SEQ_atom)
+
+lemma legacy_rsimp6_seq_products:
+  assumes "\<forall>x \<in> set xs. legacy_rrexp x"
+      and "\<forall>y \<in> set ys. legacy_rrexp y"
+  shows "\<forall>z \<in> set (rsimp6_seq_products xs ys). legacy_rrexp z"
+  using assms legacy_rsimp6_SEQ_atom
+  unfolding rsimp6_seq_products_def by auto
+
 lemma legacy_rsimp6_SEQ:
   assumes "legacy_rrexp r1" "legacy_rrexp r2"
   shows "legacy_rrexp (rsimp6_SEQ r1 r2)"
-  using assms
-  by (cases r1; cases r2; auto simp add: rsimp6_SEQ_def legacy_rsimp5_SEQ)
+proof -
+  have rows1: "\<forall>x \<in> set (rsimp5_alt_rows r1). legacy_rrexp x"
+    by (rule legacy_rsimp5_alt_rows[OF assms(1)])
+  have rows2: "\<forall>x \<in> set (rsimp5_alt_rows r2). legacy_rrexp x"
+    by (rule legacy_rsimp5_alt_rows[OF assms(2)])
+  have products: "\<forall>z \<in>
+      set (rsimp6_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)).
+      legacy_rrexp z"
+    by (rule legacy_rsimp6_seq_products[OF rows1 rows2])
+  have flat: "\<forall>z \<in>
+      set (rflts (rsimp6_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2))).
+      legacy_rrexp z"
+    by (rule legacy_rflts[OF products])
+  have distinct: "\<forall>z \<in>
+      set (rdistinct
+        (rflts (rsimp6_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)))
+        {}). legacy_rrexp z"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rsimp6_SEQ_def
+    by (rule legacy_rsimp_ALTs[OF distinct])
+qed
 
 lemma legacy_rsimp6:
   assumes "legacy_rrexp r"
@@ -5709,7 +5742,8 @@ lemma rsimp6_collapses_cubic_counterexample_row:
     RSEQ (RSTAR (RCHAR a))
       (RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a)))"
   shows "rsimp6 p = RSTAR (RCHAR a)"
-  by (simp add: p_def rsimp6_SEQ_def)
+  by (simp add: p_def rsimp6_SEQ_def rsimp6_seq_products_def
+      rsimp6_SEQ_atom_def)
 
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
@@ -5722,7 +5756,8 @@ lemma reachable_norm6_row_can_leave_current_cubic_universe:
       partial_derivative_cubic_universe_def
       partial_derivative_frontier_universe_def
       partial_derivative_path_universe_def
-      rpath_continuations_def rlinear_continuations.simps rsimp6_SEQ_def)
+      rpath_continuations_def rlinear_continuations.simps
+      rsimp6_SEQ_def rsimp6_seq_products_def rsimp6_SEQ_atom_def)
 
 lemma normalized_root_universe_not_all_q_closed_under_norm6:
   fixes b :: char
@@ -5736,7 +5771,8 @@ lemma normalized_root_universe_not_all_q_closed_under_norm6:
       rpder_norm_list_def partial_derivative_cubic_universe_def
       partial_derivative_frontier_universe_def
       partial_derivative_path_universe_def
-      rpath_continuations_def rsimp6_SEQ_def rsimp5_SEQ_def)
+      rpath_continuations_def rsimp6_SEQ_def rsimp6_seq_products_def
+      rsimp6_SEQ_atom_def rsimp5_SEQ_def)
 
 lemma path_universe_misses_distributed_suffix_atom:
   "RSEQ (RCHAR b) (RCHAR d) \<notin>

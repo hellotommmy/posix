@@ -357,11 +357,35 @@ lemma bsimp5_rerase:
   using rerase_bsimp5_ASEQ apply presburger
   using distinctBy_distinctWith2 rerase_bsimp_AALTs rerase_earlier_later_same5 by fastforce
 
+lemma rerase_bsimp6_ASEQ_atom:
+  shows "rerase (bsimp6_ASEQ_atom bs a1 a2) =
+    rsimp6_SEQ_atom (rerase a1) (rerase a2)"
+  by (cases a1; cases a2)
+    (simp_all add: bsimp6_ASEQ_atom_def rsimp6_SEQ_atom_def
+      rerase_bsimp4_ASEQ_atom eq1_rerase)
+
+lemma rerase_bsimp6_seq_products:
+  "map rerase (bsimp6_seq_products bs xs ys) =
+    rsimp6_seq_products (map rerase xs) (map rerase ys)"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: bsimp6_seq_products_def rsimp6_seq_products_def)
+next
+  case (Cons x xs)
+  have "map rerase (map (bsimp6_ASEQ_atom bs x) ys) =
+    map (rsimp6_SEQ_atom (rerase x)) (map rerase ys)"
+    by (induct ys) (simp_all add: rerase_bsimp6_ASEQ_atom)
+  then show ?case
+    using Cons by (simp add: bsimp6_seq_products_def rsimp6_seq_products_def)
+qed
+
 lemma rerase_bsimp6_ASEQ:
   shows "rerase (bsimp6_ASEQ bs a1 a2) =
     rsimp6_SEQ (rerase a1) (rerase a2)"
-  by (cases a1; cases a2)
-    (simp_all add: bsimp6_ASEQ_def rsimp6_SEQ_def rerase_bsimp5_ASEQ eq1_rerase)
+  by (simp add: bsimp6_ASEQ_def rsimp6_SEQ_def rerase_bsimp_AALTs
+      map_rerase_distinctWith_eq1 rerase_flts rerase_bsimp6_seq_products
+      rerase_bsimp5_alt_rows)
 
 lemma rerase_map_bsimp6:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow> rerase (bsimp6 r) = (rsimp6 \<circ> rerase) r"

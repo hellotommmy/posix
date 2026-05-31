@@ -441,12 +441,23 @@ where
   "bders_simp5 r [] = r"
 | "bders_simp5 r (c # s) = bders_simp5 (bsimp5 (bder c r)) s"
 
-definition bsimp6_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
-  "bsimp6_ASEQ bs r1 r2 =
+definition bsimp6_ASEQ_atom :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp6_ASEQ_atom bs r1 r2 =
     (case (r1, r2) of
       (ASTAR bs1 r, ASTAR bs2 s) \<Rightarrow>
-        if r ~1 s then ASTAR bs1 r else bsimp5_ASEQ bs r1 r2
-    | _ \<Rightarrow> bsimp5_ASEQ bs r1 r2)"
+        if r ~1 s then ASTAR bs1 r else bsimp4_ASEQ_atom bs r1 r2
+    | _ \<Rightarrow> bsimp4_ASEQ_atom bs r1 r2)"
+
+definition bsimp6_seq_products :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bsimp6_seq_products bs xs ys =
+    concat (map (\<lambda>x. map (bsimp6_ASEQ_atom bs x) ys) xs)"
+
+definition bsimp6_ASEQ :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimp6_ASEQ bs r1 r2 =
+    bsimp_AALTs []
+      (distinctWith
+        (flts (bsimp6_seq_products bs (bsimp5_alt_rows r1) (bsimp5_alt_rows r2)))
+        eq1 {})"
 
 (* Annotated counterpart of rsimp6. It is a bounds candidate, not yet wired into
    the production lexer simplifier, because the star-absorption bit semantics

@@ -43,6 +43,11 @@ to be read before continuing long-running agent work.
   continuation chains that reachable rows expose.
 - `rsimp6`/`bsimp6` now also absorb `0*` and `1*` to `1`. This removed the
   small-model obstruction where a derivative row became `(1)*`.
+- Star absorption is now product-local, not just top-level. `rsimp6_SEQ` uses
+  `rsimp6_SEQ_atom` inside `rsimp6_seq_products`, and the annotated mirror uses
+  `bsimp6_ASEQ_atom` inside `bsimp6_seq_products`. This matters because
+  alternative distribution can create an internal `r* · r*` product even when
+  the whole sequence is not syntactically two stars.
 - Current sharper target: `partial_derivative_live_path_universe r =
   {0, 1, r} \<union> rpath_continuations r`. The checked theorem
   `rsizes_rpders_norm16_rows_live_path_universe_cubicI` gives a cubic row-size

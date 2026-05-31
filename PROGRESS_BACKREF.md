@@ -45,6 +45,10 @@ Last updated: 2026-05-31 (cubic partial-derivative universe checkpoint)
   reachable-row invariant or a refined universe, not plain all-member closure.
 - Strengthened `rsimp6`/`bsimp6` with `0* = 1` and `1* = 1`; added the
   language facts `Star_empty` and `Star_one`.
+- Strengthened `rsimp6_SEQ`/`bsimp6_ASEQ` again so star absorption is applied
+  inside each distributed sequence product via `rsimp6_SEQ_atom` and
+  `bsimp6_ASEQ_atom`. This fixes the case where `(b* + a) · b*` generated an
+  internal `b* · b*` product that the previous top-level-only rule missed.
 - Added `partial_derivative_live_path_universe r =
   {0, 1, r} \<union> rpath_continuations r`, plus
   `rsizes_distinct_live_path_universe_cubic` and

@@ -353,11 +353,22 @@ where
   "rders_simp5 r [] = r"
 | "rders_simp5 r (c#s) = rders_simp5 (rsimp5 (rder c r)) s"
 
+definition rsimp6_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp6_SEQ_atom r1 r2 =
+    (case (r1, r2) of
+      (RSTAR r, RSTAR s) \<Rightarrow> if r = s then RSTAR r else rsimp4_SEQ_atom r1 r2
+    | _ \<Rightarrow> rsimp4_SEQ_atom r1 r2)"
+
+definition rsimp6_seq_products :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimp6_seq_products xs ys =
+    concat (map (\<lambda>x. map (rsimp6_SEQ_atom x) ys) xs)"
+
 definition rsimp6_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rsimp6_SEQ r1 r2 =
-    (case (r1, r2) of
-      (RSTAR r, RSTAR s) \<Rightarrow> if r = s then RSTAR r else rsimp5_SEQ r1 r2
-    | _ \<Rightarrow> rsimp5_SEQ r1 r2)"
+    rsimp_ALTs
+      (rdistinct
+        (rflts (rsimp6_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2)))
+        {})"
 
 (* Cubic-bound redesign candidate:
    rsimp6 keeps the Antimirov row-product behavior of rsimp5, but adds the
@@ -1566,8 +1577,8 @@ next
     by auto
 qed
 
-lemma RL_rsimp6_SEQ:
-  "RL (rsimp6_SEQ r1 r2) = RL r1 ;; RL r2"
+lemma RL_rsimp6_SEQ_atom:
+  "RL (rsimp6_SEQ_atom r1 r2) = RL r1 ;; RL r2"
 proof (cases r1; cases r2)
   fix r s
   assume r1: "r1 = RSTAR r" and r2: "r2 = RSTAR s"
@@ -1575,13 +1586,79 @@ proof (cases r1; cases r2)
   proof (cases "r = s")
     case True
     then show ?thesis
-      using r1 r2 by (simp add: rsimp6_SEQ_def Star_Sequ_idem)
+      using r1 r2 by (simp add: rsimp6_SEQ_atom_def Star_Sequ_idem)
   next
     case False
     then show ?thesis
-      using r1 r2 by (simp add: rsimp6_SEQ_def RL_rsimp5_SEQ)
+      using r1 r2 by (simp add: rsimp6_SEQ_atom_def RL_rsimp4_SEQ_atom)
   qed
-qed (simp_all add: rsimp6_SEQ_def RL_rsimp5_SEQ)
+qed (simp_all add: rsimp6_SEQ_atom_def RL_rsimp4_SEQ_atom conc_assoc)
+
+lemma RL_rsimp6_seq_product_row:
+  "(\<Union> (RL ` set (map (rsimp6_SEQ_atom x) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+proof (induct ys)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def)
+next
+  case (Cons y ys)
+  have "(\<Union> (RL ` set (map (rsimp6_SEQ_atom x) (y # ys)))) =
+    RL (rsimp6_SEQ_atom x y) \<union>
+      (\<Union> (RL ` set (map (rsimp6_SEQ_atom x) ys)))"
+    by simp
+  also have "... = (RL x ;; RL y) \<union> (RL x ;; (\<Union> (RL ` set ys)))"
+    using Cons by (simp add: RL_rsimp6_SEQ_atom)
+  also have "... = RL x ;; (RL y \<union> (\<Union> (RL ` set ys)))"
+    by (auto simp add: Sequ_def)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp6_seq_products:
+  "(\<Union> (RL ` set (rsimp6_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: Sequ_def rsimp6_seq_products_def)
+next
+  case (Cons x xs)
+  have row: "(\<Union> (RL ` set (map (rsimp6_SEQ_atom x) ys))) =
+    RL x ;; (\<Union> (RL ` set ys))"
+    by (rule RL_rsimp6_seq_product_row)
+  have tail: "(\<Union> (RL ` set (rsimp6_seq_products xs ys))) =
+    (\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys))"
+    by (rule Cons.hyps)
+  have "(\<Union> (RL ` set (rsimp6_seq_products (x # xs) ys))) =
+    (\<Union> (RL ` set (map (rsimp6_SEQ_atom x) ys))) \<union>
+      (\<Union> (RL ` set (rsimp6_seq_products xs ys)))"
+    by (simp add: rsimp6_seq_products_def)
+  also have "... =
+    (RL x ;; (\<Union> (RL ` set ys))) \<union>
+      ((\<Union> (RL ` set xs)) ;; (\<Union> (RL ` set ys)))"
+    using row tail by simp
+  also have "... =
+    (RL x \<union> (\<Union> (RL ` set xs))) ;; (\<Union> (RL ` set ys))"
+    by (rule Sequ_Un_left2)
+  finally show ?case
+    by simp
+qed
+
+lemma RL_rsimp6_SEQ:
+  "RL (rsimp6_SEQ r1 r2) = RL r1 ;; RL r2"
+proof -
+  have "RL (rsimp6_SEQ r1 r2) =
+    (\<Union> (RL ` set (rsimp6_seq_products (rsimp5_alt_rows r1) (rsimp5_alt_rows r2))))"
+    by (simp add: rsimp6_SEQ_def RL_rsimp_ALTs_normalize)
+  also have "... =
+    (\<Union> (RL ` set (rsimp5_alt_rows r1))) ;;
+      (\<Union> (RL ` set (rsimp5_alt_rows r2)))"
+    by (rule RL_rsimp6_seq_products)
+  also have "... = RL r1 ;; RL r2"
+    by (simp add: RL_rsimp5_alt_rows)
+  finally show ?thesis .
+qed
 
 lemma RL_rsimp6:
   shows "RL r = RL (rsimp6 r)"
