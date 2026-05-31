@@ -226,6 +226,16 @@ Research tactics:
   `RSEQ/RSTAR/RNTIMES` accounting or the carried left/body closure premises.
   The matching `RALTS` member-size split is checked as
   `rpath9_atom_frontiers_RALTS_member_sizeI`.
+  Path9 accounting base cases are checked for `RZERO`, `RONE`, `RCHAR`, and
+  zero-count `RNTIMES`:
+  `card_rpath9_atom_frontiers_RZERO_quadratic`,
+  `card_rpath9_atom_frontiers_RONE_quadratic`,
+  `card_rpath9_atom_frontiers_RCHAR_quadratic`,
+  `rpath9_atom_frontiers_RZERO_member_size`,
+  `rpath9_atom_frontiers_RONE_member_size`,
+  `rpath9_atom_frontiers_RCHAR_member_size`,
+  `card_rpath9_atom_frontiers_RNTIMES_zero_quadratic`, and
+  `rpath9_atom_frontiers_RNTIMES_zero_member_size`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
