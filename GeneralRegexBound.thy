@@ -10240,6 +10240,43 @@ next
   qed
 qed
 
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_parentI:
+  assumes left:
+    "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p r2) RONE)
+          (rpder_list c r1)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+  by (rule rpder_norm9_live_row_step_RSEQI) (use left right in auto)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
+  assumes body:
+    "set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom (rsimp4_SEQ_atom p (RSTAR r)) RONE)
+          (rpder_list c r)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+  shows "set (rflts (rpder_norm9_list c (RSTAR r))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+  by (rule rpder_norm9_live_row_step_RSTARI) (use body in auto)
+
+lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
+  assumes body:
+    "n \<noteq> 0 \<Longrightarrow> set (rflts
+      (map rsimp9
+        (map (\<lambda>p. rsimp4_SEQ_atom
+          (rsimp4_SEQ_atom p (RNTIMES r (n - 1))) RONE)
+          (rpder_list c r)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES r n))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+  by (rule rpder_norm9_live_row_step_RNTIMESI) (use body in auto)
+
 lemma finite_rpath_dual_frontiers [simp]:
   "finite (rpath_dual_frontiers r)"
   by (simp add: rpath_dual_frontiers_def rpath_dual_frontier_acc_def)

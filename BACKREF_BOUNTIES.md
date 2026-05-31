@@ -90,7 +90,11 @@ immutability.
   `rpath9_atom_frontiers_star_body_subset`,
   `rpath9_atom_frontiers_star_body_universe`,
   `rpath9_atom_frontiers_ntimes_body_subset`, and
-  `rpath9_atom_frontiers_ntimes_body_universe`.
+  `rpath9_atom_frontiers_ntimes_body_universe`. The checked parent-target
+  derivative splitters are
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`.
 
 ## Completed
 

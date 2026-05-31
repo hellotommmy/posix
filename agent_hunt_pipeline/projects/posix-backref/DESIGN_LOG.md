@@ -221,6 +221,12 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_ntimes_body_universe`. Next proof layer should connect
   these parent inclusions to the existing `rpder_norm9_live_row_step_*`
   splitters.
+- The parent-target derivative splitters are now checked:
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. These do not claim
+  closure by themselves; they factor the closure goal into carried left/body
+  branch subset obligations plus the nullable right branch for sequence.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

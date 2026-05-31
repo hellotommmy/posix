@@ -252,6 +252,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `rpath9_atom_frontiers_ntimes_body_universe`. These are the checked parent
   membership facts needed before turning `RSEQ/RSTAR/RNTIMES` derivative
   splitters into path9 closure lemmas.
+  Added the parent-target derivative splitters
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_parentI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_parentI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI`. They instantiate the
+  existing `rpder_norm9_live_row_step_*` splitters with the exact path9 parent
+  universe, leaving only the carried branch subset obligations for the next
+  proof layer.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
