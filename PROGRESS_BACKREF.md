@@ -286,6 +286,10 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `card_rpath9_atom_frontiers_RALTS_quadraticI`. The `RALTS` case of the
   target `card (rpath9_atom_frontiers r) <= (rsize r + 2)^2` can now be
   discharged from the child quadratic hypotheses.
+  Added the matching checked member-size split
+  `rpath9_atom_frontiers_RALTS_member_sizeI`, so the `RALTS` case of
+  `q in rpath9_atom_frontiers r ==> rsize q <= Suc (rsize r + rsize r)` also
+  reduces to child hypotheses.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

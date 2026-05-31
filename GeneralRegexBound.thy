@@ -10013,6 +10013,31 @@ proof -
     .
 qed
 
+lemma rpath9_atom_frontiers_RALTS_member_sizeI:
+  assumes child: "\<And>q x. q \<in> set rs \<Longrightarrow>
+      x \<in> rpath9_atom_frontiers q \<Longrightarrow>
+      rsize x \<le> Suc (rsize q + rsize q)"
+    and x: "x \<in> rpath9_atom_frontiers (RALTS rs)"
+  shows "rsize x \<le> Suc (rsize (RALTS rs) + rsize (RALTS rs))"
+proof -
+  obtain q where q:
+      "q \<in> set rs"
+      "x \<in> rpath9_atom_frontier_acc q RONE"
+    using x unfolding rpath9_atom_frontiers_def by auto
+  then have xq: "x \<in> rpath9_atom_frontiers q"
+    unfolding rpath9_atom_frontiers_def by simp
+  have "rsize x \<le> Suc (rsize q + rsize q)"
+    by (rule child[OF q(1) xq])
+  also have "... \<le> Suc (rsize (RALTS rs) + rsize (RALTS rs))"
+  proof -
+    have "rsize q \<le> rsize (RALTS rs)"
+      using rsize_member_le_rsizes[OF q(1)] by simp
+    then show ?thesis
+      by linarith
+  qed
+  finally show ?thesis .
+qed
+
 lemma rsubterms_rsimp_ALTs_member:
   assumes "x \<in> set xs"
   shows "x \<in> rsubterms (rsimp_ALTs xs)"

@@ -112,7 +112,9 @@ immutability.
   `sum_list_rsize_plus2_square_le_rsizes_plus3_square`,
   `card_rpath9_atom_frontier_acc_list_le`,
   `card_rpath9_atom_frontiers_RALTS_le`, and
-  `card_rpath9_atom_frontiers_RALTS_quadraticI`.
+  `card_rpath9_atom_frontiers_RALTS_quadraticI`. The matching `RALTS`
+  member-size split is checked as
+  `rpath9_atom_frontiers_RALTS_member_sizeI`.
 
 ## Completed
 

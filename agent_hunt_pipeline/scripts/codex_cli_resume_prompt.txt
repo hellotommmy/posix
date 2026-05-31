@@ -224,6 +224,8 @@ Research tactics:
   `card_rpath9_atom_frontiers_RALTS_quadraticI`. The alternative case of the
   quadratic-card proof now reduces to child hypotheses; continue with
   `RSEQ/RSTAR/RNTIMES` accounting or the carried left/body closure premises.
+  The matching `RALTS` member-size split is checked as
+  `rpath9_atom_frontiers_RALTS_member_sizeI`.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

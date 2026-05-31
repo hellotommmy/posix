@@ -254,6 +254,10 @@ to be read before continuing long-running agent work.
   `card_rpath9_atom_frontiers_RALTS_quadraticI`. This closes the alternative
   branch of the desired quadratic-card proof from child hypotheses; remaining
   accounting work is `RSEQ/RSTAR/RNTIMES` and member-size.
+- The `RALTS` member-size split is also checked:
+  `rpath9_atom_frontiers_RALTS_member_sizeI`. Together with the card split,
+  the alternative branch of both path9 accounting premises now reduces to
+  child hypotheses.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
