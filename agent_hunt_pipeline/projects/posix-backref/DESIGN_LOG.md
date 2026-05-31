@@ -28,6 +28,15 @@ to be read before continuing long-running agent work.
   should use a row/frontier closure over live continuations, introduced as the
   prototype `partial_derivative_live_row_universe`, rather than closing only
   continuation terms.
+- The corrected row universe is not a larger accounting burden: checked lemmas
+  `rfrontier_path_continuation_subset_path_universe` and
+  `partial_derivative_live_row_universe_subset_path` show it is still contained
+  in `partial_derivative_path_universe`. Consequently
+  `rsizes_distinct_live_row_universe_cubic` and
+  `rsizes_rpders_norm17_rows_live_row_universe_cubicI'` reuse the existing
+  `2 * (rsize r + 3)^3` bound. The remaining closure premise is now
+  `set (rflts (rpder_norm7_list c q)) \<subseteq>
+  partial_derivative_live_row_universe r` for reachable/live-row `q`.
 - The current 50k cubic-size bounty is for the non-backref fragment only.
   `RBACKREF4`, `RHALF`, and `RRESIDUE` remain excluded from the bounded
   fragment because their payload strings can grow with input, not just regex

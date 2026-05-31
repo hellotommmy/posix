@@ -30,6 +30,13 @@ Last updated: 2026-05-31 (rsimp7 cubic simplifier checkpoint)
   `b` and `c`, while `partial_derivative_live_path_universe` contains only the
   whole continuation `b + c`. The next BR-033 invariant must therefore close
   Antimirov frontier rows of live continuations, not only continuation terms.
+- Strengthened that correction with checked bridge lemmas:
+  `rfrontier_path_continuation_subset_path_universe`,
+  `partial_derivative_live_row_universe_subset_path`,
+  `rsizes_distinct_live_row_universe_cubic`, and
+  `rsizes_rpders_norm17_rows_live_row_universe_cubicI'`. Thus the corrected
+  live-row target still inherits the existing cubic path-universe accounting;
+  the remaining BR-033 proof is the live-row one-step closure premise.
 - Checked commits continue on `codex/backref-values`; older hash notes below
   are historical breadcrumbs rather than the current head.
 - Follow-up checked prototype through `462fd39` and the next local checkpoint:

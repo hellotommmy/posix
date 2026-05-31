@@ -5432,6 +5432,284 @@ lemma partial_derivative_live_path_universe_subset_live_row:
   by (auto simp add: partial_derivative_live_path_universe_def
       partial_derivative_live_row_universe_def)
 
+lemma rsubterms_rsimp4_SEQ_atom_alt_subset:
+  assumes "q \<in> rsubterms (rsimp4_SEQ_atom r k)" "q = RALTS rs"
+  shows "q \<in> rsubterms r \<union> rsubterms k"
+  using assms
+proof (induct r arbitrary: k q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ r1 r2)
+  have inner: "q \<in> rsubterms r1 \<union> rsubterms (rsimp4_SEQ_atom r2 k)"
+    by (rule RSEQ.hyps(1)[OF _ RSEQ.prems(2)])
+      (use RSEQ.prems(1) in simp)
+  then show ?case
+  proof
+    assume "q \<in> rsubterms r1"
+    then show ?thesis by simp
+  next
+    assume q_seq: "q \<in> rsubterms (rsimp4_SEQ_atom r2 k)"
+    have "q \<in> rsubterms r2 \<union> rsubterms k"
+      by (rule RSEQ.hyps(2)[OF q_seq RSEQ.prems(2)])
+    then show ?thesis by auto
+  qed
+next
+  case (RALTS rs')
+  then show ?case
+    by (cases k) auto
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) auto
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+lemma rpath_continuations_acc_alt_subterm:
+  assumes "q \<in> rpath_continuations_acc r k" "q = RALTS rs"
+  shows "q \<in> rsubterms r \<union> rsubterms k"
+  using assms
+proof (induct r arbitrary: k q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS xs)
+  then obtain x where x: "x \<in> set xs" "q \<in> rpath_continuations_acc x k"
+    by auto
+  have "q \<in> rsubterms x \<union> rsubterms k"
+    by (rule RALTS.hyps[OF x RALTS.prems(2)])
+  then show ?case
+    using x by auto
+next
+  case (RSEQ r1 r2)
+  then consider
+      "q \<in> rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k)"
+    | "q \<in> rpath_continuations_acc r2 k"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have q_inner: "q \<in> rsubterms r1 \<union> rsubterms (rsimp4_SEQ_atom r2 k)"
+      by (rule RSEQ.hyps(1)[OF 1 RSEQ.prems(2)])
+    then show ?thesis
+    proof
+      assume "q \<in> rsubterms r1"
+      then show ?thesis by simp
+    next
+      assume q_seq: "q \<in> rsubterms (rsimp4_SEQ_atom r2 k)"
+      have "q \<in> rsubterms r2 \<union> rsubterms k"
+        by (rule rsubterms_rsimp4_SEQ_atom_alt_subset[OF q_seq RSEQ.prems(2)])
+      then show ?thesis by auto
+    qed
+  next
+    case 2
+    have "q \<in> rsubterms r2 \<union> rsubterms k"
+      by (rule RSEQ.hyps(2)[OF 2 RSEQ.prems(2)])
+    then show ?thesis by auto
+  qed
+next
+  case (RSTAR r)
+  have q_in: "q \<in> rpath_continuations_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    using RSTAR.prems(1) by simp
+  have q_inner:
+    "q \<in> rsubterms r \<union> rsubterms (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule RSTAR.hyps[OF q_in RSTAR.prems(2)])
+  then show ?case
+  proof
+    assume "q \<in> rsubterms r"
+    then show ?thesis by simp
+  next
+    assume q_seq: "q \<in> rsubterms (rsimp4_SEQ_atom (RSTAR r) k)"
+    have "q \<in> rsubterms (RSTAR r) \<union> rsubterms k"
+      by (rule rsubterms_rsimp4_SEQ_atom_alt_subset[OF q_seq RSTAR.prems(2)])
+    then show ?thesis by auto
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case (Suc m)
+    have q_in:
+      "q \<in> rpath_continuations_acc r (rsimp4_SEQ_atom (RNTIMES r m) k)"
+      using Suc RNTIMES.prems(1) by simp
+    have q_inner:
+      "q \<in> rsubterms r \<union> rsubterms (rsimp4_SEQ_atom (RNTIMES r m) k)"
+      by (rule RNTIMES.hyps[OF q_in RNTIMES.prems(2)])
+    then show ?thesis
+    proof
+      assume "q \<in> rsubterms r"
+      then show ?thesis by simp
+    next
+      assume q_seq: "q \<in> rsubterms (rsimp4_SEQ_atom (RNTIMES r m) k)"
+      have "q \<in> rsubterms (RNTIMES r m) \<union> rsubterms k"
+        by (rule rsubterms_rsimp4_SEQ_atom_alt_subset[OF q_seq RNTIMES.prems(2)])
+      then show ?thesis
+        using Suc RNTIMES.prems(2) by auto
+    qed
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then consider
+      "q \<in> rpath_continuations_acc r1 k"
+    | "q \<in> rpath_continuations_acc r2 k"
+    | "q \<in> rpath_continuations_acc r3 k"
+    | "q \<in> rpath_continuations_acc r4 k"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "q \<in> rsubterms r1 \<union> rsubterms k"
+      by (rule RBACKREF4.hyps(1)[OF 1 RBACKREF4.prems(2)])
+    then show ?thesis by auto
+  next
+    case 2
+    have "q \<in> rsubterms r2 \<union> rsubterms k"
+      by (rule RBACKREF4.hyps(2)[OF 2 RBACKREF4.prems(2)])
+    then show ?thesis by auto
+  next
+    case 3
+    have "q \<in> rsubterms r3 \<union> rsubterms k"
+      by (rule RBACKREF4.hyps(3)[OF 3 RBACKREF4.prems(2)])
+    then show ?thesis by auto
+  next
+    case 4
+    have "q \<in> rsubterms r4 \<union> rsubterms k"
+      by (rule RBACKREF4.hyps(4)[OF 4 RBACKREF4.prems(2)])
+    then show ?thesis by auto
+  qed
+next
+  case (RHALF r cs rep)
+  have q_in: "q \<in> rpath_continuations_acc r k"
+    using RHALF.prems(1) by simp
+  have "q \<in> rsubterms r \<union> rsubterms k"
+    by (rule RHALF.hyps[OF q_in RHALF.prems(2)])
+  then show ?case by auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rpath_continuations_alt_subterm:
+  assumes "q \<in> rpath_continuations r" "q = RALTS rs"
+  shows "q \<in> rsubterms r"
+proof -
+  have "q \<in> rsubterms r \<union> rsubterms RONE"
+    using assms unfolding rpath_continuations_def
+    by (rule rpath_continuations_acc_alt_subterm)
+  then show ?thesis
+    using assms by simp
+qed
+
+lemma rfrontier_path_continuation_subset_path_universe:
+  assumes "q \<in> rpath_continuations r"
+  shows "rfrontier q \<subseteq> partial_derivative_path_universe r"
+proof
+  fix x
+  assume x: "x \<in> rfrontier q"
+  show "x \<in> partial_derivative_path_universe r"
+  proof (cases q)
+    case RZERO
+    then show ?thesis
+      using x by (simp add: partial_derivative_path_universe_def)
+  next
+    case RONE
+    then show ?thesis
+      using x by (simp add: partial_derivative_path_universe_def)
+  next
+    case (RALTS rs)
+    have q_sub: "q \<in> rsubterms r"
+      by (rule rpath_continuations_alt_subterm[OF assms RALTS])
+    have "x \<in> rsubterms q"
+      using x rfrontier_subset_rsubterms by blast
+    then have "x \<in> rsubterms r"
+      using rsubterms_trans[OF q_sub] by blast
+    then show ?thesis
+      by (auto simp add: partial_derivative_path_universe_def)
+  next
+    case (RSEQ r1 r2)
+    then have "x = q"
+      using x by simp
+    then show ?thesis
+      using assms by (auto simp add: partial_derivative_path_universe_def)
+  qed (use x assms in \<open>auto simp add: partial_derivative_path_universe_def\<close>)
+qed
+
+lemma partial_derivative_live_row_universe_subset_path:
+  "partial_derivative_live_row_universe r \<subseteq>
+    partial_derivative_path_universe r"
+proof
+  fix x
+  assume x: "x \<in> partial_derivative_live_row_universe r"
+  then consider
+      "x = RZERO"
+    | "x = RONE"
+    | "x = r"
+    | "x \<in> rpath_continuations r"
+    | "x \<in> rfrontier r"
+    | q where "q \<in> rpath_continuations r" "x \<in> rfrontier q"
+    unfolding partial_derivative_live_row_universe_def by auto
+  then show "x \<in> partial_derivative_path_universe r"
+  proof cases
+    case 1
+    then show ?thesis
+      by (simp add: partial_derivative_path_universe_def)
+  next
+    case 2
+    then show ?thesis
+      by (simp add: partial_derivative_path_universe_def)
+  next
+    case 3
+    then show ?thesis
+      by (simp add: partial_derivative_path_universe_def)
+  next
+    case 4
+    then show ?thesis
+      by (auto simp add: partial_derivative_path_universe_def)
+  next
+    case 5
+    then have "x \<in> rsubterms r"
+      using rfrontier_subset_rsubterms by blast
+    then show ?thesis
+      by (auto simp add: partial_derivative_path_universe_def)
+  next
+    case 6
+    then show ?thesis
+      using rfrontier_path_continuation_subset_path_universe by blast
+  qed
+qed
+
 lemma partial_derivative_path_universe_card_linear:
   "card (partial_derivative_path_universe r) \<le> 2 + 2 * rsize r"
 proof -
@@ -5567,6 +5845,13 @@ lemma rsizes_distinct_live_path_universe_cubic:
   shows "rsizes rs \<le> 2 * (rsize r + 3) ^ 3"
   by (rule rsizes_distinct_path_universe_cubic)
     (use assms partial_derivative_live_path_universe_subset_path in blast)+
+
+lemma rsizes_distinct_live_row_universe_cubic:
+  assumes "set rs \<subseteq> partial_derivative_live_row_universe r"
+      and "distinct rs"
+  shows "rsizes rs \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_path_universe_cubic)
+    (use assms partial_derivative_live_row_universe_subset_path in blast)+
 
 lemma quadratic_times_linear_cubic_bound:
   fixes n :: nat
@@ -6296,6 +6581,28 @@ proof -
     by (rule rpders_norm17_rows_rflts_subsetI[OF init step])
   then show ?thesis
     by (rule rsizes_rpders_norm17_rows_live_path_universe_cubic)
+qed
+
+lemma rsizes_rpders_norm17_rows_live_row_universe_cubic:
+  assumes "set (rpders_norm17_rows r s) \<subseteq>
+    partial_derivative_live_row_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule rsizes_distinct_live_row_universe_cubic)
+    (use assms in auto)
+
+lemma rsizes_rpders_norm17_rows_live_row_universe_cubicI':
+  assumes step: "\<And>q c. q \<in> partial_derivative_live_row_universe r \<Longrightarrow>
+    set (rflts (rpder_norm7_list c q)) \<subseteq>
+      partial_derivative_live_row_universe r"
+  shows "rsizes (rpders_norm17_rows r s) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have init: "r \<in> partial_derivative_live_row_universe r"
+    by (simp add: partial_derivative_live_row_universe_def)
+  have "set (rpders_norm17_rows r s) \<subseteq>
+      partial_derivative_live_row_universe r"
+    by (rule rpders_norm17_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm17_rows_live_row_universe_cubic)
 qed
 
 lemma partial_derivative_path_universe_zero [simp]:
