@@ -332,6 +332,17 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `card (rpath9_atom_frontier_acc body carried_k) <=
    rsize body * (rsize parent + 2)`, rather than the full parent frontier
   inequality.
+  Added checked tail-normalization support for that carried product route:
+  `rsize_rsimp4_SEQ_atom_RONE_le`,
+  `rsize_rsimp7_SEQ_atom_RONE_le`,
+  `rsize_rsimp7_SEQ_atom_rsimp9_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_le`,
+  `rfrontier_rsimp7_SEQ_atom_RONE_member_size_le`, and
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le`. These facts record
+  the important nuance that `rsimp7_SEQ_atom r RONE` need not equal `r`, but
+  it does not increase size and its frontier is still controlled by the
+  original tail size.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

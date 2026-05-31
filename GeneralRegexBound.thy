@@ -5712,6 +5712,68 @@ proof -
       (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
 qed
 
+lemma rsize_rsimp4_SEQ_atom_RONE_le:
+  "rsize (rsimp4_SEQ_atom r RONE) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have "rsize (rsimp4_SEQ_atom (RSEQ r1 r2) RONE) =
+      rsize (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 RONE))"
+    by simp
+  also have "... \<le> Suc (rsize r1 + rsize (rsimp4_SEQ_atom r2 RONE))"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r1 + rsize r2)"
+    using RSEQ.hyps(2) by simp
+  finally show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rsize_rsimp7_SEQ_atom_RONE_le:
+  "rsize (rsimp7_SEQ_atom r RONE) \<le> rsize r"
+proof -
+  have fallback: "rsize (rsimp4_SEQ_atom r RONE) \<le> rsize r"
+    by (rule rsize_rsimp4_SEQ_atom_RONE_le)
+  show ?thesis
+    using fallback by (cases r) (simp_all add: rsimp7_SEQ_atom_def)
+qed
+
+lemma card_rfrontier_rsimp7_SEQ_atom_RONE_le:
+  "card (rfrontier (rsimp7_SEQ_atom r RONE)) \<le> rsize r"
+proof -
+  have "card (rfrontier (rsimp7_SEQ_atom r RONE)) \<le>
+      rsize (rsimp7_SEQ_atom r RONE)"
+    by (rule card_rfrontier_le_rsize)
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimp7_SEQ_atom_RONE_le)
+  finally show ?thesis .
+qed
+
 lemma rfrontier_rsimp7_SEQ_atom_member_size_le:
   assumes "q \<in> rfrontier (rsimp7_SEQ_atom r k)"
   shows "rsize q \<le> Suc (rsize r + rsize k)"
@@ -5720,6 +5782,17 @@ proof -
     by (rule rfrontier_member_size_le_rsize[OF assms])
   also have "... \<le> Suc (rsize r + rsize k)"
     by (rule rsize_rsimp7_SEQ_atom_le)
+  finally show ?thesis .
+qed
+
+lemma rfrontier_rsimp7_SEQ_atom_RONE_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom r RONE)"
+  shows "rsize q \<le> rsize r"
+proof -
+  have "rsize q \<le> rsize (rsimp7_SEQ_atom r RONE)"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimp7_SEQ_atom_RONE_le)
   finally show ?thesis .
 qed
 
@@ -5816,6 +5889,38 @@ next
   then show ?case
     by (cases "rsimp9 r") (auto simp add: size_geq1)
 qed simp_all
+
+lemma rsize_rsimp7_SEQ_atom_rsimp9_RONE_le:
+  "rsize (rsimp7_SEQ_atom (rsimp9 r) RONE) \<le> rsize r"
+proof -
+  have "rsize (rsimp7_SEQ_atom (rsimp9 r) RONE) \<le> rsize (rsimp9 r)"
+    by (rule rsize_rsimp7_SEQ_atom_RONE_le)
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimp9_le)
+  finally show ?thesis .
+qed
+
+lemma card_rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_le:
+  "card (rfrontier (rsimp7_SEQ_atom (rsimp9 r) RONE)) \<le> rsize r"
+proof -
+  have "card (rfrontier (rsimp7_SEQ_atom (rsimp9 r) RONE)) \<le>
+      rsize (rsimp7_SEQ_atom (rsimp9 r) RONE)"
+    by (rule card_rfrontier_le_rsize)
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimp7_SEQ_atom_rsimp9_RONE_le)
+  finally show ?thesis .
+qed
+
+lemma rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 r) RONE)"
+  shows "rsize q \<le> rsize r"
+proof -
+  have "rsize q \<le> rsize (rsimp7_SEQ_atom (rsimp9 r) RONE)"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimp7_SEQ_atom_rsimp9_RONE_le)
+  finally show ?thesis .
+qed
 
 lemma square_mono_nat:
   fixes m n :: nat

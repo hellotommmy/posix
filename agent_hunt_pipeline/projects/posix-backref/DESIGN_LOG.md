@@ -569,3 +569,16 @@ to be read before continuing long-running agent work.
   `seq_component_product_plus_child_square_le` with
   `algebra_simps`/`power2_eq_square`; plain `simp` does not normalize the
   expanded `rsize (RSEQ _ _)` product enough.
+
+## 2026-05-31: Tail normalization with `RONE`
+
+- Do not use or try to prove the false equality
+  `rsimp7_SEQ_atom r RONE = r`.  The useful checked fact is weaker:
+  `rsize (rsimp7_SEQ_atom r RONE) <= rsize r`.
+- For norm19/path9 carried collectors, the normalized tail form
+  `rsimp7_SEQ_atom (rsimp9 r) RONE` is also size-bounded by the original
+  `rsize r`. Its frontier cardinality and each frontier member's size are
+  bounded by `rsize r`.
+- These lemmas should be used when a carried continuation ends in `RONE`;
+  they avoid equality shortcuts while still giving the product-bound inputs
+  needed by the cubic route.

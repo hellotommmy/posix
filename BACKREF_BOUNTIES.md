@@ -148,6 +148,14 @@ immutability.
   `card_rpath9_atom_frontiers_RSTAR_quadraticI`, and
   `card_rpath9_atom_frontiers_RNTIMES_nonzero_quadraticI`; the remaining
   cardinality obligation is the carried collector product bound.
+  Tail-normalization frontier bounds are checked:
+  `rsize_rsimp4_SEQ_atom_RONE_le`,
+  `rsize_rsimp7_SEQ_atom_RONE_le`,
+  `rsize_rsimp7_SEQ_atom_rsimp9_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_RONE_le`,
+  `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_le`,
+  `rfrontier_rsimp7_SEQ_atom_RONE_member_size_le`, and
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le`.
 
 ## Completed
 
