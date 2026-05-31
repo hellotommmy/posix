@@ -6831,6 +6831,16 @@ proof -
         rsimp7_SEQ_atom_def)
 qed
 
+lemma rsimp8_live_row_universe_not_closed:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSEQ (RALTS [RONE, RCHAR a]) (RCHAR a))"
+  defines "p \<equiv> RSTAR (RALTS [RCHAR a, RSEQ (RCHAR a) (RCHAR a)])"
+  shows "p \<in> set (rflts (rpder_norm7_list a (rsimp8 r)))"
+    and "p \<notin> partial_derivative_live_row_universe (rsimp8 r)"
+  by (simp_all add: r_def p_def rpder_norm7_list_def rpder_norm_list_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      rsimp7_SEQ_def rsimp7_seq_products_def rsimp7_SEQ_atom_def)
+
 lemma reachable_norm6_row_can_leave_current_cubic_universe:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RZERO, RCHAR a])"

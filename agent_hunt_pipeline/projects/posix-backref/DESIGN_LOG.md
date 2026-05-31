@@ -24,6 +24,14 @@ to be read before continuing long-running agent work.
    partial_derivative_live_row_universe (rsimp8 r)` for live-row states `q`.
   If this closes, the numeric bound is already cubic in the original regex
   size.
+- This target is now known to be too narrow as stated. The checked lemma
+  `rsimp8_live_row_universe_not_closed` gives the obstruction
+  `(((1+a).a))* --a--> ((a+(a.a)))*`; the target universe for `rsimp8 r`
+  contains the raw star body but not this normalized star image. The next
+  design should either add a controlled normalized-star-image component to the
+  universe, or refine the root simplifier to normalize nullable-left sequence
+  bodies while still avoiding general row-product expansion such as
+  `(a+b)·(c+d)`.
 - `rsimp7`/`bsimp7` is now the checked stronger simplifier definition for the
   25k new-definition bounty. It keeps the Antimirov row-product/state-list
   pipeline and extends `rsimp6` with prefix star absorption:

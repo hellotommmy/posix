@@ -18,6 +18,14 @@ Last updated: 2026-05-31 (rsimp8 root-safe cubic simplifier checkpoint)
 - Added `rsimp7_can_increase_root_size`, a checked obstruction showing that
   full `rsimp7` is not safe as the root normalizer for an original-regex-size
   cubic theorem.
+- Added `rsimp8_live_row_universe_not_closed`, a checked obstruction showing
+  that the first root-safe interface is still too narrow: for
+  `(((1+a).a))*`, a normalized derivative row contains
+  `((a+(a.a)))*`, which is outside
+  `partial_derivative_live_row_universe (rsimp8 r)`. The next invariant must
+  include controlled normalized star images, or the root simplifier must
+  normalize nullable-left sequence bodies without allowing the general
+  `(a+b)·(c+d)` size blow-up.
 - Added and checked the stronger `rsimp7`/`bsimp7` simplifier layer for the
   25k new-definition bounty. It extends `rsimp6` with prefix star absorption
   `r* · (r* · k) = r* · k`, the repeated-row shape that appears once
