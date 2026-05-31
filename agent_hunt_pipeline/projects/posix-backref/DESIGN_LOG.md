@@ -89,6 +89,14 @@ to be read before continuing long-running agent work.
   `partial_derivative_live_row_universe (rsimp8 p) \<subseteq> U`, prove the smaller
   obligation `set (rflts [rsimp8 p]) \<subseteq> U` for the carried continuation that
   is actually emitted by the row step.
+- The plain `norm18` closure target is now also refuted for `RNTIMES`. The
+  checked lemma `rsimp8_live_row_universe_RNTIMES_not_closed` uses
+  `(((0 + 1) + b)*){1}`: because `rsimp8` does not recurse under
+  `RNTIMES`, the live-row universe contains a carried tail with
+  `((0 + 1) + b)*`, while the `b` step emits the normalized frontier
+  `(1 + b)*` outside that universe. Future BR-036 work needs either a
+  recursively normalized `RNTIMES` root/tail invariant or a larger
+  norm18 universe that explicitly accounts for normalized repetition bodies.
 - Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
   `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
   reassociates left-nested sequences. A raw path-continuation transitivity

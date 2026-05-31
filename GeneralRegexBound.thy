@@ -7519,6 +7519,19 @@ lemma norm18_closes_rsimp8_live_row_obstruction:
       partial_derivative_live_row_universe_def rpath_continuations_def
       rsimp7_SEQ_atom_def)
 
+lemma rsimp8_live_row_universe_RNTIMES_not_closed:
+  fixes b :: char
+  defines "body \<equiv> RSTAR (RALTS [RZERO, RONE, RCHAR b])"
+  defines "r \<equiv> RNTIMES body 1"
+  defines "q \<equiv> RSEQ body (RNTIMES body 0)"
+  defines "p \<equiv> RSEQ (RSTAR (RALTS [RONE, RCHAR b])) (RNTIMES body 0)"
+  shows "q \<in> partial_derivative_live_row_universe (rsimp8 r)"
+    and "p \<in> set (rflts (rpder_norm8_list b q))"
+    and "p \<notin> partial_derivative_live_row_universe (rsimp8 r)"
+  by (simp_all add: body_def r_def q_def p_def rpder_norm8_list_def
+      rpder_norm_list_def partial_derivative_live_row_universe_def
+      rpath_continuations_def rsimp7_SEQ_atom_def)
+
 lemma rsimp8_rsimp4_SEQ_atom_RONE_counterexample:
   fixes b :: char
   defines "r \<equiv> RSEQ (RSEQ (RCHAR b) (RSTAR (RCHAR b))) (RSTAR (RCHAR b))"

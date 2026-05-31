@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (norm18 normalized-tail counterexample)
+Last updated: 2026-05-31 (norm18 RNTIMES counterexample)
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 
@@ -92,6 +92,15 @@ Last updated: 2026-05-31 (norm18 normalized-tail counterexample)
   inner `b* . b*` absorption that direct root-safe `rsimp8` does not see.
   Future closure work should use a normalized-tail invariant or a weaker
   direct membership statement, not an equality shortcut.
+  Added the checked counterexample
+  `rsimp8_live_row_universe_RNTIMES_not_closed`, refuting the plain norm18
+  live-row closure target for `RNTIMES`. The expression
+  `(((0 + 1) + b)*){1}` reaches a carried continuation whose emitted
+  `rsimp8` frontier contains `(1 + b)* . (((0 + 1) + b)*){0}`, outside the
+  live-row universe of the root because `rsimp8` does not recurse under the
+  repetition body. BR-036 now needs a refined normalized-tail/repetition-body
+  invariant, or a revised root-safe simplifier design for `RNTIMES`, before
+  the final closure theorem can be true.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
