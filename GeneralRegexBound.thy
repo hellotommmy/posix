@@ -5094,6 +5094,18 @@ lemma rsizes_rpders_norm1_rows_frontier_universe_cubic:
   by (rule rsizes_distinct_frontier_universe_cubic)
     (use assms in auto)
 
+lemma rsizes_rpders_norm1_rows_frontier_universe_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_frontier_universe r \<Longrightarrow>
+    set (rpder_norm_list c q) \<subseteq> partial_derivative_frontier_universe r"
+  shows "rsizes (rpders_norm1_rows r s) \<le> 3 * (rsize r + 2) ^ 3"
+proof -
+  have "set (rpders_norm1_rows r s) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule rpders_norm1_rows_frontier_universe_subsetI[OF step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm1_rows_frontier_universe_cubic)
+qed
+
 lemma rsizes_rpders_norm1_rows_cubic_universe_cubic:
   assumes "set (rpders_norm1_rows r s) \<subseteq>
     partial_derivative_cubic_universe r"
