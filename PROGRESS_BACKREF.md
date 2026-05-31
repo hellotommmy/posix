@@ -167,6 +167,13 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   hook for `norm19`. The next concrete proof target is the one-step closure
   premise for `partial_derivative_frontier_universe (rsimp9 r)`, preferably
   via constructor splitters rather than unfolding `rpder_norm9_list`.
+  Added the first checked frontier splitter layer:
+  `rflts_singleton_rsimp9_frontier_universe`,
+  `rflts_map_rsimp9_frontier_subsetI`,
+  `partial_derivative_frontier_universe_alt_child_mono`, and
+  `rpder_norm9_frontier_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs`.
+  These cover the base and alternation cases for the frontier route; continue
+  with structured `RSEQ`, `RSTAR`, and `RNTIMES` splitters.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

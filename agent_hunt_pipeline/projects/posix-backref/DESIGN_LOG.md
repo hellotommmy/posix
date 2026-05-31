@@ -137,6 +137,15 @@ to be read before continuing long-running agent work.
   `rsizes_rpders_norm19_rows_rsimp9_frontier_cubicI`. The sanity lemma
   `norm19_frontier_universe_repairs_RNTIMES_subterm_countdown` confirms it
   repairs the `(a){2}.b` counted-tail counterexample.
+- The first frontier splitter layer is checked:
+  `rflts_singleton_rsimp9_frontier_universe`,
+  `rflts_map_rsimp9_frontier_subsetI`,
+  `partial_derivative_frontier_universe_alt_child_mono`, and
+  `rpder_norm9_frontier_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs`.
+  It proves the base and alternation cases for the frontier route without
+  unfolding large derivative rows. Continue by adapting the existing
+  live-row/path `RSEQ`, `RSTAR`, and `RNTIMES` carried-continuation splitters
+  to target `partial_derivative_frontier_universe`.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
