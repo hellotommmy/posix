@@ -119,9 +119,12 @@ Research tactics:
   `partial_derivative_path_universe_alt_child_mono`, and
   `rpder_norm9_path_universe_step_RZERO/RONE/RCHAR/RALTS/rsimp_ALTs` plus
   `RSEQ/RSTAR/RNTIMES_pathI`.
-  Next target: use these splitters to prove one-step closure in
-  `partial_derivative_path_universe (rsimp9 r)`, then migrate the annotated
-  `bsimp` only after the proof-level target is stable.
+  Do not try to prove one-step closure for every arbitrary state in
+  `partial_derivative_path_universe (rsimp9 r)`: it is refuted by the checked
+  `norm19_path_universe_RNTIMES_subterm_not_closed` counterexample. Next target:
+  formulate and prove a reachable-row/path-carried subuniverse, or a
+  countdown-aware extension, then migrate the annotated `bsimp` only after the
+  proof-level target is stable.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

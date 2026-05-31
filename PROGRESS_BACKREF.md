@@ -150,6 +150,14 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `RSEQ/RSTAR/RNTIMES_pathI`. These are the preferred splitters for the next
   BR-036 attempt because they target the checked cubic path-universe hook
   directly.
+  Important correction: full one-step closure for every state in
+  `partial_derivative_path_universe (rsimp9 r)` is checked-false. The lemma
+  `norm19_path_universe_RNTIMES_subterm_not_closed` gives a small counted-tail
+  counterexample where the original root contains `(a){2}.b`, the bare subterm
+  `(a){2}` is in the path universe, and one derivative emits bare `(a){1}`,
+  which is not in the root path universe. The next invariant must therefore be
+  a reachable-row/path-carried subuniverse or a countdown-aware extension, not
+  arbitrary full path-universe closure.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

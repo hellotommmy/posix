@@ -8242,6 +8242,18 @@ lemma norm19_RNTIMES_body_normalization_obstruction_in_path_universe:
   by (simp_all add: body_def r_def p_def rpder_norm9_list_def rpder_norm_list_def
       partial_derivative_path_universe_def rsimp7_SEQ_atom_def)
 
+lemma norm19_path_universe_RNTIMES_subterm_not_closed:
+  fixes a b :: char
+  defines "r \<equiv> RSEQ (RNTIMES (RCHAR a) 2) (RCHAR b)"
+  defines "q \<equiv> RNTIMES (RCHAR a) 2"
+  defines "p \<equiv> RNTIMES (RCHAR a) 1"
+  shows "q \<in> partial_derivative_path_universe (rsimp9 r)"
+    and "p \<in> set (rflts (rpder_norm9_list a q))"
+    and "p \<notin> partial_derivative_path_universe (rsimp9 r)"
+  by (simp_all add: r_def q_def p_def rpder_norm9_list_def rpder_norm_list_def
+      partial_derivative_path_universe_def rpath_continuations_def
+      rsimp7_SEQ_atom_def)
+
 lemma norm19_closes_RNTIMES_countdown_sanity:
   fixes b :: char
   defines "r \<equiv> RNTIMES (RCHAR b) 2"

@@ -120,6 +120,14 @@ to be read before continuing long-running agent work.
   `partial_derivative_path_universe (rsimp9 r)` as a subterm of the normalized
   root. Prefer the new path-universe hook over further ad hoc live-row
   enlargement.
+- Full one-step closure for arbitrary states in
+  `partial_derivative_path_universe (rsimp9 r)` is checked-false. The lemma
+  `norm19_path_universe_RNTIMES_subterm_not_closed` uses root `(a){2}.b`:
+  the bare counted subterm `(a){2}` is in the root path universe, but its
+  derivative emits bare `(a){1}`, while the root universe only carries the
+  sequenced continuation `(a){1}.b`. The final invariant should track reachable
+  row/path-carried states, or explicitly add a countdown-aware closure, instead
+  of quantifying over every path-universe subterm.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems
@@ -127,10 +135,8 @@ to be read before continuing long-running agent work.
   `rsizes_rpders_norm19_rows_rsimp9_path_cubicI`. The path version keeps the
   bound at `2 * (rsize r + 3)^3` because `partial_derivative_path_universe`
   already has linear cardinality and quadratic member-size accounting. This
-  deliberately keeps the final hard obligation explicit: prove the one-step
-  inclusion, preferably in the path universe,
-  `set (rflts (rpder_norm9_list c q)) <=
-  partial_derivative_path_universe (rsimp9 r)` for path-universe states `q`.
+  deliberately keeps the final hard obligation explicit, but it cannot be the
+  too-broad arbitrary-state path-universe closure refuted above.
 - The `rpder_norm9_live_row_step_*` splitter layer is checked, including
   base constructors, `RALTS`, `RSEQ`, `RSTAR`, `RNTIMES`, and path/direct
   carried-continuation interfaces. Future work should not unfold
