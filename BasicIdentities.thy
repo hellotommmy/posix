@@ -353,6 +353,31 @@ where
   "rders_simp5 r [] = r"
 | "rders_simp5 r (c#s) = rders_simp5 (rsimp5 (rder c r)) s"
 
+definition rsimp6_SEQ :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimp6_SEQ r1 r2 =
+    (case (r1, r2) of
+      (RSTAR r, RSTAR s) \<Rightarrow> if r = s then RSTAR r else rsimp5_SEQ r1 r2
+    | _ \<Rightarrow> rsimp5_SEQ r1 r2)"
+
+(* Cubic-bound redesign candidate:
+   rsimp6 keeps the Antimirov row-product behavior of rsimp5, but adds the
+   first star absorption rules needed by the repeated-row counterexamples. *)
+fun rsimp6 :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimp6 (RSEQ r1 r2) = rsimp6_SEQ (rsimp6 r1) (rsimp6 r2)"
+| "rsimp6 (RALTS rs) = rsimp_ALTs (rdistinct (rflts (map rsimp6 rs)) {})"
+| "rsimp6 (RSTAR r) =
+    (case rsimp6 r of
+      RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimp6 r = r"
+
+fun
+  rders_simp6 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
+where
+  "rders_simp6 r [] = r"
+| "rders_simp6 r (c#s) = rders_simp6 (rsimp6 (rder c r)) s"
+
 
 fun 
   rders_simp :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp"
@@ -1462,6 +1487,90 @@ next
   then show ?case
     by (auto simp add: RL_rsimp_ALTs_normalize)
 qed simp_all
+
+lemma Star_append_closed:
+  assumes "u \<in> A\<star>" "v \<in> A\<star>"
+  shows "u @ v \<in> A\<star>"
+  using assms
+proof (induct arbitrary: v rule: Star.induct)
+  case start
+  then show ?case by simp
+next
+  case (step s1 s2)
+  have "s2 @ v \<in> A\<star>"
+    by (rule step.hyps(3)) (rule step.prems)
+  then have "s1 @ (s2 @ v) \<in> A\<star>"
+    by (rule Star.step[OF step.hyps(1)])
+  then show ?case
+    by (simp add: append_assoc)
+qed
+
+lemma Star_Sequ_idem:
+  "A\<star> ;; A\<star> = A\<star>"
+  unfolding Sequ_def
+  using Star_append_closed
+  by auto
+
+lemma Star_idem:
+  "(A\<star>)\<star> = A\<star>"
+proof
+  show "(A\<star>)\<star> \<subseteq> A\<star>"
+  proof
+    fix s
+    assume "s \<in> (A\<star>)\<star>"
+    then show "s \<in> A\<star>"
+      by (induct rule: Star.induct)
+        (auto intro: Star_append_closed)
+  qed
+next
+  show "A\<star> \<subseteq> (A\<star>)\<star>"
+  proof
+    fix s
+    assume "s \<in> A\<star>"
+    then have "s @ [] \<in> (A\<star>)\<star>"
+      by (intro Star.step Star.start)
+    then show "s \<in> (A\<star>)\<star>"
+      by simp
+  qed
+qed
+
+lemma RL_rsimp6_SEQ:
+  "RL (rsimp6_SEQ r1 r2) = RL r1 ;; RL r2"
+proof (cases r1; cases r2)
+  fix r s
+  assume r1: "r1 = RSTAR r" and r2: "r2 = RSTAR s"
+  show ?thesis
+  proof (cases "r = s")
+    case True
+    then show ?thesis
+      using r1 r2 by (simp add: rsimp6_SEQ_def Star_Sequ_idem)
+  next
+    case False
+    then show ?thesis
+      using r1 r2 by (simp add: rsimp6_SEQ_def RL_rsimp5_SEQ)
+  qed
+qed (simp_all add: rsimp6_SEQ_def RL_rsimp5_SEQ)
+
+lemma RL_rsimp6:
+  shows "RL r = RL (rsimp6 r)"
+proof (induct r rule: rsimp6.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp6_SEQ)
+next
+  case (2 rs)
+  then show ?case
+    by (auto simp add: RL_rsimp_ALTs_normalize)
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp6 r") (simp_all add: Star_idem)
+qed simp_all
+
+lemma RL_rders_simp6:
+  shows "RL (rders_simp6 r s) = Ders s (RL r)"
+  by (induction s arbitrary: r)
+    (auto simp add: Ders_def Der_def RL_rder RL_rsimp6[symmetric])
 
   
 lemma qqq1:
