@@ -582,3 +582,18 @@ to be read before continuing long-running agent work.
 - These lemmas should be used when a carried continuation ends in `RONE`;
   they avoid equality shortcuts while still giving the product-bound inputs
   needed by the cubic route.
+
+## 2026-05-31: Carried collector base cases
+
+- The future product-bound induction over `rpath9_atom_frontier_acc` should not
+  unfold the zero/one/char cases repeatedly. Keep the base cases as named facts
+  and use them directly.
+- The checked base facts are `card_rpath9_atom_frontier_acc_RZERO_product`,
+  `card_rpath9_atom_frontier_acc_RONE_product`,
+  `card_rpath9_atom_frontier_acc_RCHAR_le`,
+  `rpath9_atom_frontier_acc_RCHAR_member_size_le`,
+  `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_product`, and
+  `rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size`.
+- The `RCHAR` case reduces to `rfrontier k`; for normalized
+  `rsimp9 _ . RONE` tails, use the already checked tail-frontier bounds to get
+  both product cardinality and member-size bounds.

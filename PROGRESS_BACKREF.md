@@ -343,6 +343,15 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   the important nuance that `rsimp7_SEQ_atom r RONE` need not equal `r`, but
   it does not increase size and its frontier is still controlled by the
   original tail size.
+  Added checked base facts for the carried collector itself:
+  `card_rpath9_atom_frontier_acc_RZERO_product`,
+  `card_rpath9_atom_frontier_acc_RONE_product`,
+  `card_rpath9_atom_frontier_acc_RCHAR_le`,
+  `rpath9_atom_frontier_acc_RCHAR_member_size_le`,
+  `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_product`, and
+  `rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size`. These close the
+  zero/one/char base cases for a future induction over
+  `rpath9_atom_frontier_acc`.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

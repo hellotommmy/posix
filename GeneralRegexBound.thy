@@ -10227,6 +10227,43 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_rpath9_atom_frontier_acc_RZERO_product [simp]:
+  "card (rpath9_atom_frontier_acc RZERO k) \<le> rsize RZERO * n"
+  by simp
+
+lemma card_rpath9_atom_frontier_acc_RONE_product [simp]:
+  "card (rpath9_atom_frontier_acc RONE k) \<le> rsize RONE * n"
+  by simp
+
+lemma card_rpath9_atom_frontier_acc_RCHAR_le:
+  "card (rpath9_atom_frontier_acc (RCHAR c) k) \<le> rsize k"
+  using card_rfrontier_le_rsize[of k] by simp
+
+lemma rpath9_atom_frontier_acc_RCHAR_member_size_le:
+  assumes "x \<in> rpath9_atom_frontier_acc (RCHAR c) k"
+  shows "rsize x \<le> rsize k"
+  using assms rfrontier_member_size_le_rsize[of x k] by simp
+
+lemma card_rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_product:
+  "card (rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r) RONE)) \<le>
+    rsize (RCHAR c) * (rsize r + 2)"
+proof -
+  have "card (rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r) RONE)) \<le> rsize r"
+    using card_rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_le[of r] by simp
+  also have "... \<le> rsize (RCHAR c) * (rsize r + 2)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size:
+  assumes "x \<in> rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r) RONE)"
+  shows "rsize x \<le> rsize r"
+  using assms rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le[of x r]
+  by simp
+
 lemma card_rpath9_atom_frontiers_RSEQ_le:
   "card (rpath9_atom_frontiers (RSEQ r1 r2)) \<le>
     card (rpath9_atom_frontier_acc r1

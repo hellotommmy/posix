@@ -156,6 +156,13 @@ immutability.
   `card_rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_le`,
   `rfrontier_rsimp7_SEQ_atom_RONE_member_size_le`, and
   `rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le`.
+  The carried-collector base cases are checked:
+  `card_rpath9_atom_frontier_acc_RZERO_product`,
+  `card_rpath9_atom_frontier_acc_RONE_product`,
+  `card_rpath9_atom_frontier_acc_RCHAR_le`,
+  `rpath9_atom_frontier_acc_RCHAR_member_size_le`,
+  `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_product`, and
+  `rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size`.
 
 ## Completed
 
