@@ -382,6 +382,11 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   syntactic associativity lemma for `rsimp7_SEQ_atom` was rejected as too
   strong; the useful invariant is budget control for the nested normalized
   carried tail.
+  Added checked `RCHAR` accumulator instances for that nested-tail budget:
+  `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_product` and
+  `rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size`. These close
+  the character-leaf case that appears when the carried continuation has one
+  extra normalized sequence layer.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -10311,6 +10311,30 @@ lemma rpath9_atom_frontier_acc_RCHAR_rsimp9_RONE_member_size:
   using assms rfrontier_rsimp7_SEQ_atom_rsimp9_RONE_member_size_le[of x r]
   by simp
 
+lemma card_rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_product:
+  "card (rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r)
+        (rsimp7_SEQ_atom (rsimp9 s) RONE))) \<le>
+    rsize (RCHAR c) * (rsize (RSEQ r s) + 2)"
+proof -
+  have "card (rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r)
+        (rsimp7_SEQ_atom (rsimp9 s) RONE))) \<le> rsize (RSEQ r s)"
+    using card_rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_le[of r s]
+    by simp
+  also have "... \<le> rsize (RCHAR c) * (rsize (RSEQ r s) + 2)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size:
+  assumes "x \<in> rpath9_atom_frontier_acc (RCHAR c)
+      (rsimp7_SEQ_atom (rsimp9 r)
+        (rsimp7_SEQ_atom (rsimp9 s) RONE))"
+  shows "rsize x \<le> rsize (RSEQ r s)"
+  using assms rfrontier_rsimp7_SEQ_atom_rsimp9_nested_RONE_member_size_le[of x r s]
+  by simp
+
 lemma card_rpath9_atom_frontier_acc_RALTS_productI:
   assumes child: "\<And>q. q \<in> set rs \<Longrightarrow>
       card (rpath9_atom_frontier_acc q k) \<le> rsize q * n"

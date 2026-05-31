@@ -639,3 +639,8 @@ to be read before continuing long-running agent work.
 - These facts are the budget version of the desired reassociation: the nested
   carried tail `rsimp9 r . (rsimp9 s . 1)` is controlled by the structural size
   of `RSEQ r s`, without requiring the expressions to be syntactically equal.
+- The checked `RCHAR` accumulator instances,
+  `card_rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_product` and
+  `rpath9_atom_frontier_acc_RCHAR_rsimp9_nested_RONE_member_size`, should be
+  used as the base case when the carried collector sees one extra normalized
+  sequence layer.
