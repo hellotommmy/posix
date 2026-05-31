@@ -4687,6 +4687,27 @@ next
   qed (use tail_subset in auto)
 qed
 
+lemma set_rflts_subset_rsubterms_list:
+  "set (rflts rs) \<subseteq> (\<Union>r \<in> set rs. rsubterms r)"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  show ?case
+  proof (cases a)
+    case RZERO
+    then show ?thesis
+      using Cons.hyps by auto
+  next
+    case (RALTS rs1)
+    have "set rs1 \<subseteq> rsubterms (RALTS rs1)"
+      using self_rsubterm by auto
+    then show ?thesis
+      using Cons.hyps RALTS by auto
+  qed (use Cons.hyps in auto)
+qed
+
 lemma rsizes_filter_partition:
   "rsizes rs =
     rsizes (filter P rs) + rsizes (filter (\<lambda>x. \<not> P x) rs)"
@@ -4954,6 +4975,33 @@ proof -
     by (rule rpder_list_path_continuations_acc_subset[OF assms])
   then show ?thesis
     using rder_path_continuations_universe_subset[of c r] by auto
+qed
+
+lemma rpder_norm_list_path_universe_subset:
+  assumes "legacy_rrexp r"
+  shows "set (rpder_norm_list c r) \<subseteq> partial_derivative_path_universe r"
+  unfolding rpder_norm_list_def
+  by (rule rpder_list_path_universe_subset[OF assms])
+
+lemma rpder_norm_rows_single_path_subterms_subset:
+  assumes "legacy_rrexp r"
+  shows "set (rpder_norm_rows c [r]) \<subseteq>
+    (\<Union>q \<in> partial_derivative_path_universe r. rsubterms q)"
+proof -
+  have norm_subset: "set (rpder_norm_list c r) \<subseteq>
+      partial_derivative_path_universe r"
+    by (rule rpder_norm_list_path_universe_subset[OF assms])
+  have flat_subset: "set (rflts (rpder_norm_list c r)) \<subseteq>
+      (\<Union>q \<in> set (rpder_norm_list c r). rsubterms q)"
+    by (rule set_rflts_subset_rsubterms_list)
+  have "set (rdistinct (rflts (rpder_norm_list c r)) {}) \<subseteq>
+      set (rflts (rpder_norm_list c r))"
+    by (rule set_rdistinct_subset) simp
+  also have "... \<subseteq>
+      (\<Union>q \<in> partial_derivative_path_universe r. rsubterms q)"
+    using flat_subset norm_subset by blast
+  finally show ?thesis
+    by (simp add: rpder_norm_rows_def)
 qed
 
 lemma rsizes_rpder_list_RONE_cubic:
