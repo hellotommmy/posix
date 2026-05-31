@@ -154,6 +154,10 @@ Research tactics:
   Warning: `current_dual_frontier_universe_member_size_not_linear` refutes the
   linear member-size premise for the current full dual universe. Do not pursue
   that route as-is; try atom-only frontiers or a smaller reachable-row universe.
+  Warning: `current_path_atom_frontier_universe_member_size_not_linear` refutes
+  the old atom-only universe too, because it uses `rsimp4 r2` in sequence
+  continuations. Next candidate should be norm9-specific and use
+  `rsimp9`/`rsimp7_SEQ_atom` continuations.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.

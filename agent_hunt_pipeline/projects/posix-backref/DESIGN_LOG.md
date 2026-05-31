@@ -170,6 +170,12 @@ to be read before continuing long-running agent work.
   member larger than `Suc (rsize r + rsize r)`. The full frontier component is
   too large for the intended cubic accounting; prefer atom-only frontiers or a
   smaller reachable-row invariant.
+- The old atom-only universe is also checked too broad:
+  `current_path_atom_frontier_universe_member_size_not_linear` shows that
+  sequence continuations using `rsimp4 r2` can eagerly expand a right-nested
+  binary suffix chain before it enters the atom frontier. A plausible next
+  universe must be norm9-specific, carrying `rsimp9`/`rsimp7_SEQ_atom`
+  continuations instead of the older `rsimp4` collector.
 - The norm19 row-driver runway is checked: `rpders_norm19_rows` is backed by
   `rpders_norm9_rows`, has finite/distinct support, preserves language through
   `RLS_rpders_norm19_rows`, and has conditional cubic theorems

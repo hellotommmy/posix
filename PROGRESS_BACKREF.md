@@ -201,6 +201,12 @@ Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
   `partial_derivative_path_dual_frontier_universe` whose size exceeds
   `Suc (rsize r + rsize r)`. Do not pursue the full dual-frontier hook as-is;
   switch to an atom-only or smaller reachable-row universe.
+  Added `current_path_atom_frontier_universe_member_size_not_linear`, showing
+  that the old atom-only universe is also too broad when it uses
+  `rsimp4 r2` inside sequence continuations: a right-nested binary suffix chain
+  is expanded before being placed in the atom frontier. The next viable route
+  should be norm9-specific, using root-safe `rsimp9`/`rsimp7_SEQ_atom`
+  continuations rather than the older `rsimp4` continuation collector.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it
