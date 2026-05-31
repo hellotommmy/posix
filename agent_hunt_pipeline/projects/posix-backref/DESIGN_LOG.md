@@ -71,6 +71,19 @@ to be read before continuing long-running agent work.
   universe is contained in the target root universe, then use the bridge to
   discharge the flattened row. The normalized-alternative case is covered by
   `rpder_norm8_live_row_step_rsimp_ALTsI`.
+- Carried `RSEQ`/`RSTAR`/`RNTIMES` branches now have path-continuation
+  reducers:
+  `rflts_map_rsimp8_rpder_list_path_subsetI`,
+  `rflts_map_rsimp8_rpder_list_norm_tail_subsetI`,
+  `rpder_norm8_live_row_step_RSEQ_pathI`,
+  `rpder_norm8_live_row_step_RSTAR_pathI`, and
+  `rpder_norm8_live_row_step_RNTIMES_pathI`. Use these instead of unfolding
+  the nested `map rsimp8 (map ... (rpder_list ...))` goals by hand.
+- Rejected shortcut: `rsimp4_SEQ_atom r RONE = r` is false in general because
+  `rsimp4_SEQ_atom` deliberately removes zero/one sequence structure and
+  reassociates left-nested sequences. A raw path-continuation transitivity
+  proof based on that equation failed; future work needs a normalized-tail
+  invariant or a weaker monotonicity statement.
 - Proof-engineering note: `rsimp_ALTs` has length-sensitive equations
   (`[]`, singleton, and two-or-more). In nested list cases, save the outer
   shape equation with a named fact before entering an inner `cases`; relying

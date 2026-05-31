@@ -63,6 +63,18 @@ Last updated: 2026-05-31 (norm18 live-row closure infrastructure)
   length-sensitive `rsimp_ALTs` wrapper case. When proving around this area,
   explicitly save the outer list-shape equation before entering an inner
   `cases`; otherwise the useful `rsimp_ALTs rs = RALTS rs` fact can be lost.
+  Added checked path-continuation reduction lemmas
+  `rflts_map_rsimp8_rpder_list_path_subsetI`,
+  `rflts_map_rsimp8_rpder_list_norm_tail_subsetI`,
+  `rpder_norm8_live_row_step_RSEQ_pathI`,
+  `rpder_norm8_live_row_step_RSTAR_pathI`, and
+  `rpder_norm8_live_row_step_RNTIMES_pathI`. These turn carried branches into
+  explicit `rder_path_continuations_acc` inclusion obligations, avoiding
+  repeated unfolding of `rpder_list` and `rpder_norm8_list`.
+  Important failed shortcut: do not assume `rsimp4_SEQ_atom r RONE = r`.
+  It is false in the presence of the zero/one simplifications and
+  reassociation that make `rsimp4_SEQ_atom` useful; a raw path-continuation
+  transitivity proof based on that equation was rejected and removed.
   Full local CI passed for `Posix` and `BackRefPilot`.
   A too-broad attempted `rsimp8` idempotence proof was
   discarded after hitting the timeout/performance rule; do not resurrect it

@@ -45,6 +45,13 @@ Primary assignment:
     length-sensitive `rsimp_ALTs` case. Save outer list-shape facts before
     nested `cases`, so the two-or-more branch can rewrite
     `rsimp_ALTs rs = RALTS rs`.
+  - `rflts_map_rsimp8_rpder_list_path_subsetI`,
+    `rflts_map_rsimp8_rpder_list_norm_tail_subsetI`,
+    `rpder_norm8_live_row_step_RSEQ_pathI`,
+    `rpder_norm8_live_row_step_RSTAR_pathI`, and
+    `rpder_norm8_live_row_step_RNTIMES_pathI` are checked; use them to turn
+    carried branches into explicit `rder_path_continuations_acc` inclusion
+    obligations.
 - Main remaining theorem shape:
   `set (rflts (rpder_norm8_list c q)) <= partial_derivative_live_row_universe (rsimp8 r)`
   for `q` in `partial_derivative_live_row_universe (rsimp8 r)`, non-backref/legacy fragment only.
@@ -61,7 +68,10 @@ Research tactics:
 - Preferred next step: for the carried-continuation branches, prove small
   inclusion facts of the form
   `partial_derivative_live_row_universe (rsimp8 p) <= partial_derivative_live_row_universe (rsimp8 r)`
-  for each raw continuation `p`, then invoke `rflts_map_rsimp8_live_row_subsetI`.
+  for each raw continuation `p`, then invoke the path reducers above and
+  `rflts_map_rsimp8_live_row_subsetI`.
+- Do not assume `rsimp4_SEQ_atom r RONE = r`; it is false because the atom
+  sequence simplifier removes zero/one structure and reassociates.
 - Do not try a monolithic `rsimp8` idempotence proof. A naive induction timed
   out in the `RALTS` branch; if idempotence is needed, first split
   `rsimp_ALTs`/`rdistinct`/`rflts` helper lemmas.
