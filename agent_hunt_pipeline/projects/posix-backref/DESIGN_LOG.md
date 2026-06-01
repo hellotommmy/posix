@@ -754,6 +754,13 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI`, and
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
   for the remaining top-level member-size proof instead.
+- Checked `path9_frontiers_not_subset_norm9_frontier_universe` and
+  `path9_frontiers_not_subset_original_frontier_universe`. The first refutes
+  dropping unreachable prefixes by normalizing the root (`0.(a.b)` still
+  contributes the over-approximation frontier `b`), while the second refutes
+  using the original frontier universe after `rsimp9` has normalized a loop
+  body (`(1.a)*` contributes `a*`). So the path9 member-size proof must stay
+  within the dedicated path9 accounting layer.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

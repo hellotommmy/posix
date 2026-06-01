@@ -88,6 +88,10 @@ immutability.
   `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI`, and
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
   are the intended next interface for the remaining linear member-size proof.
+  The checked counterexamples
+  `path9_frontiers_not_subset_norm9_frontier_universe` and
+  `path9_frontiers_not_subset_original_frontier_universe` rule out reusing the
+  old frontier universe as a direct superset of path9 frontiers.
   The
   checked accounting
   interface adds

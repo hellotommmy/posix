@@ -43,6 +43,12 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
   are now checked and should be the route for the remaining linear
   member-size proof.
+- Added checked route-blocking counterexamples
+  `path9_frontiers_not_subset_norm9_frontier_universe` and
+  `path9_frontiers_not_subset_original_frontier_universe`. These rule out two
+  tempting shortcuts: embedding `rpath9_atom_frontiers r` directly into the
+  old frontier universe of either `rsimp9 r` or the original `r`. The remaining
+  route must use the dedicated path9 universe/member-size accounting.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

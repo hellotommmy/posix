@@ -11426,6 +11426,22 @@ lemma rpath9_tail_prefix_continuation_bound_counterexample:
     rsize (RSEQ (RCHAR b) (RSEQ (RCHAR c) (RCHAR d)))"
   by (simp_all add: rsimp7_SEQ_atom_def)
 
+lemma path9_frontiers_not_subset_norm9_frontier_universe:
+  "RCHAR b \<in>
+    rpath9_atom_frontiers (RSEQ RZERO (RSEQ (RCHAR a) (RCHAR b)))"
+  "RCHAR b \<notin> partial_derivative_frontier_universe
+    (rsimp9 (RSEQ RZERO (RSEQ (RCHAR a) (RCHAR b))))"
+  by (simp_all add: rpath9_atom_frontiers_def
+      partial_derivative_frontier_universe_def rsimp7_SEQ_atom_def)
+
+lemma path9_frontiers_not_subset_original_frontier_universe:
+  "RSTAR (RCHAR a) \<in>
+    rpath9_atom_frontiers (RSTAR (RSEQ RONE (RCHAR a)))"
+  "RSTAR (RCHAR a) \<notin> partial_derivative_frontier_universe
+    (RSTAR (RSEQ RONE (RCHAR a)))"
+  by (simp_all add: rpath9_atom_frontiers_def
+      partial_derivative_frontier_universe_def rsimp7_SEQ_atom_def)
+
 lemma rpath9_atom_frontiers_RSEQ_member_size_rpath9_tail_parentI:
   assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
       (rpath9_tail (RSEQ r2 RONE)) \<Longrightarrow>
