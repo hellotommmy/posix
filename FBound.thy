@@ -1961,6 +1961,170 @@ next
   qed (use ih in simp_all)
 qed simp_all
 
+lemma asizes_map_bsimpStrong_le:
+  "asizes (map bsimpStrong rs) \<le> asizes rs"
+  using asize_bsimpStrong_le
+  by (simp add: asizes_def sum_list_mono)
+
+lemma asizes_bpder_strong_list_le:
+  "asizes (bpder_strong_list c r) \<le> asizes (bpder_norm_list c r)"
+  unfolding bpder_strong_list_def
+  by (rule asizes_map_bsimpStrong_le)
+
+lemma asizes_concat_map_bpder_strong_list_le:
+  "asizes (concat (map (bpder_strong_list c) rs)) \<le>
+    asizes (concat (map (bpder_norm_list c) rs))"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have head: "asizes (bpder_strong_list c r) \<le> asizes (bpder_norm_list c r)"
+    by (rule asizes_bpder_strong_list_le)
+  have tail:
+    "asizes (concat (map (bpder_strong_list c) rs)) \<le>
+      asizes (concat (map (bpder_norm_list c) rs))"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by simp
+qed
+
+lemma asizes_bpder_strong_rows_le:
+  "asizes (bpder_strong_rows c rs) \<le>
+    asizes (concat (map (bpder_norm_list c) rs))"
+proof -
+  let ?strong = "concat (map (bpder_strong_list c) rs)"
+  have "asizes (bpder_strong_rows c rs) \<le>
+      asizes (flts (bsimpStrong_prune_rows (flts ?strong)))"
+    unfolding bpder_strong_rows_def
+    by (rule asizes_distinctWith_le)
+  also have "... \<le> asizes (bsimpStrong_prune_rows (flts ?strong))"
+    by (rule asizes_flts_le)
+  also have "... \<le> asizes (flts ?strong)"
+    by (rule asizes_bsimpStrong_prune_rows_le)
+  also have "... \<le> asizes ?strong"
+    by (rule asizes_flts_le)
+  also have "... \<le> asizes (concat (map (bpder_norm_list c) rs))"
+    by (rule asizes_concat_map_bpder_strong_list_le)
+  finally show ?thesis .
+qed
+
+lemma asize_bp_der_strong_le_asizes:
+  "asize (bp_der_strong c r) \<le> Suc (asizes (bpder_norm_list c r))"
+proof -
+  have "asize (bp_der_strong c r) \<le>
+      Suc (asizes (bpder_strong_rows c [r]))"
+    unfolding bp_der_strong_def by (rule asize_bsimp_AALTs_le)
+  also have "... \<le> Suc (asizes (concat (map (bpder_norm_list c) [r])))"
+    using asizes_bpder_strong_rows_le[of c "[r]"] by simp
+  also have "... = Suc (asizes (bpder_norm_list c r))"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma distinct_map_rerase_distinctWith_eq1:
+  "distinct (map rerase (distinctWith rs eq1 {}))"
+  by (simp add: map_rerase_distinctWith_eq1 rdistinct_does_the_job)
+
+lemma distinct_map_rerase_bpder_strong_rows [simp]:
+  "distinct (map rerase (bpder_strong_rows c rs))"
+  unfolding bpder_strong_rows_def
+  by (rule distinct_map_rerase_distinctWith_eq1)
+
+lemma distinct_map_rerase_bpders_strong_rows:
+  assumes "distinct (map rerase rs)"
+  shows "distinct (map rerase (bpders_strong_rows rs s))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  show ?case
+    by (simp add: Cons.hyps)
+qed
+
+lemma map_rerase_bpders_strong_rows_subsetI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+  shows "set (map rerase (bpders_strong_rows rs s)) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have rows: "set (map rerase (bpder_strong_rows c rs)) \<subseteq> U"
+    by (rule step[OF Cons.prems])
+  have tail:
+    "set (map rerase (bpders_strong_rows (bpder_strong_rows c rs) s))
+      \<subseteq> U"
+    by (rule Cons.hyps[OF rows])
+  show ?case
+    using tail by simp
+qed
+
+lemma asizes_rsizes_rerase:
+  "rsizes (map rerase rs) = asizes rs"
+  by (induct rs) (simp_all add: asizes_def asize_rsize)
+
+lemma asizes_distinct_rerase_finite_universe_bound:
+  assumes finite: "finite U"
+      and rows: "set (map rerase rs) \<subseteq> U"
+      and distinct: "distinct (map rerase rs)"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "asizes rs \<le> card U * M"
+proof -
+  have "rsizes (map rerase rs) \<le> card U * M"
+    by (rule rsizes_distinct_finite_universe_bound
+        [OF finite rows distinct member_size])
+  then show ?thesis
+    by (simp add: asizes_def asize_rsize comp_def)
+qed
+
+lemma asizes_bpders_strong_rows_finite_universe_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and distinct: "distinct (map rerase rs)"
+  shows "asizes (bpders_strong_rows rs s) \<le> card U * M"
+proof -
+  have rows:
+    "set (map rerase (bpders_strong_rows rs s)) \<subseteq> U"
+    by (rule map_rerase_bpders_strong_rows_subsetI[OF init step])
+  have dist:
+    "distinct (map rerase (bpders_strong_rows rs s))"
+    by (rule distinct_map_rerase_bpders_strong_rows[OF distinct])
+  show ?thesis
+    by (rule asizes_distinct_rerase_finite_universe_bound
+        [OF finite rows dist member_size])
+qed
+
+lemma asizes_bpders_strong1_rows_finite_universe_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "asizes (bpders_strong1_rows r s) \<le> card U * M"
+proof -
+  have rows: "set (map rerase [r]) \<subseteq> U"
+    using init by simp
+  have distinct_rows: "distinct (map rerase [r])"
+    by simp
+  have "asizes (bpders_strong_rows [r] s) \<le> card U * M"
+    by (rule asizes_bpders_strong_rows_finite_universe_boundI
+        [OF rows step finite member_size distinct_rows])
+  then show ?thesis
+    by (simp add: bpders_strong1_rows_def)
+qed
+
 lemma thesis_ch7_evil5_bders_simp_size_16:
   "asize (bders_simp (intern (thesis_ch7_evil 5))
       (replicate 16 thesis_ch7_a)) = 14876"

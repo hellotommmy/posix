@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong row pipeline)
+Last updated: 2026-06-02 (annotated strong finite-universe interface)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -27,6 +27,29 @@ Last updated: 2026-06-02 (annotated strong row pipeline)
   old `partial_derivative_path_frontier_universe` is not closed under
   `rfrontier (rsimp4 (rder a root))`. Future closure work should not target
   that universe directly; use the later `path9`, `carry9`, or strong-row route.
+
+## Annotated Strong-Row Cubic Interface (2026-06-02)
+
+- Added and checked the annotated counterpart of the finite-universe
+  bookkeeping layer for the executable strong-row pipeline:
+  `distinct_map_rerase_bpder_strong_rows`,
+  `distinct_map_rerase_bpders_strong_rows`,
+  `map_rerase_bpders_strong_rows_subsetI`,
+  `asizes_rsizes_rerase`,
+  `asizes_distinct_rerase_finite_universe_bound`,
+  `asizes_bpders_strong_rows_finite_universe_boundI`, and
+  `asizes_bpders_strong1_rows_finite_universe_boundI`.
+- Added checked one-step size-control facts for the executable annotated
+  route: `asizes_bpder_strong_list_le`,
+  `asizes_concat_map_bpder_strong_list_le`,
+  `asizes_bpder_strong_rows_le`, and
+  `asize_bp_der_strong_le_asizes`.
+- Design result: future annotated bounds can now reuse the same row-list
+  finite-universe discipline as the proof-level `rrexp` pipeline, but with
+  an explicit `rerase` bridge. The closure premise is still intentionally
+  conditional:
+  `set (map rerase ars) <= U ==> set (map rerase (bpder_strong_rows c ars)) <= U`.
+  This is not the final cubic theorem and no bounty is claimed.
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 

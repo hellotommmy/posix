@@ -1126,3 +1126,11 @@ to be read before continuing long-running agent work.
   universe/cubic closure problem, but it means future annotated bounds can
   target a real row pipeline rather than only the direct `bders_simpStrong`
   loop or the proof-only `rpders_strong_rows` model.
+- The annotated strong-row route now also has the finite-universe bookkeeping
+  needed for future cubic statements. The new `FBound.thy` lemmas prove that
+  `bpder_strong_rows` and its iterated form remain `distinct` after erasure,
+  propagate any row-list closure premise over `map rerase`, and transfer the
+  proof-level `rsizes_distinct_finite_universe_bound` into an annotated
+  `asizes` bound. This keeps the pipeline honest: the hard theorem is still
+  the root-owned closure of the chosen universe, but later work no longer has
+  to redo the erasure/distinct/cardinality accounting.
