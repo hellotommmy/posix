@@ -1057,3 +1057,12 @@ to be read before continuing long-running agent work.
   Chapter-7 pruning into the partial-derivative pipeline. The next proof target
   should be a repeated-row closure/cubic interface for `rpders_strong_rows`,
   followed by the annotated `arexp` POSIX/bitcode preservation analogue.
+- The repeated-row correctness part of that target is now checked.
+  `rpders_strong_rows` iterates `rpder_strong_rows` over an input string, and
+  `RLS_rpders_strong_rows` proves it computes `Ders` for legacy/non-backref
+  row lists. The necessary preservation lemmas (`legacy_rsimpStrong`,
+  `legacy_rpder_strong_rows`, and `legacy_rpders_strong_rows`) show the route
+  stays inside the non-backref fragment. The remaining cubic work is now more
+  sharply isolated: prove a finite strong-row universe/closure and a polynomial
+  row-size bound for `rpders_strong_rows`, then transfer the design to annotated
+  `arexp` with POSIX/bitcode preservation.

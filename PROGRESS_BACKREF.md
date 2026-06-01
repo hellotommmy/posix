@@ -5178,15 +5178,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - `rpder_strong_list`
   - `rpder_strong_rows`
   - `rpd_der_strong`
+  - `rpders_strong_rows`
+  - `rpders_strong1_rows`
   - `RLS_set_rflts`
   - `RLS_set_rsimpStrong_prune_rows`
   - `RLS_set_concat_rpder_strong_list`
   - `RLS_rpder_strong_rows`
   - `RL_rpd_der_strong`
+  - `legacy_rprune_eq_against`
+  - `legacy_rsimpStrong_prune_pair`
+  - `legacy_rsimpStrong_prune_against_rows`
+  - `legacy_rsimpStrong_prune_rows_acc`
+  - `legacy_rsimpStrong_prune_rows`
+  - `legacy_rsimpStrong_ALTs`
+  - `legacy_rsimpStrong`
+  - `legacy_rpder_strong_list`
+  - `legacy_rpder_strong_rows`
+  - `legacy_rpders_strong_rows`
   - `rsizes_rpder_strong_list_le`
   - `rsizes_concat_rpder_strong_list_le`
   - `rsizes_rpder_strong_rows_le`
   - `rsize_rpd_der_strong_le_rsizes`
+  - `RLS_rpders_strong_rows`
+  - `RLS_rpders_strong1_rows`
 - New checked Chapter-7 regression facts:
   - `thesis_ch7_rstrong_prunes_overlap`
   - `thesis_ch7_rstrong_overlap_same_language`
@@ -5215,6 +5229,11 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `RLS_rpder_strong_rows` proves the row set still denotes the derivative,
     and `rsizes_rpder_strong_rows_le` proves its row-size budget is no larger
     than the pre-strong normalized row budget.
+  - The one-step route is now lifted to repeated input strings:
+    `rpders_strong_rows` iterates the strong row step, while
+    `RLS_rpders_strong_rows` proves the repeated row set denotes `Ders` for
+    any legacy/non-backref start rows. The accompanying legacy lemmas ensure
+    the repeated pipeline stays inside the non-backref fragment.
   - This directly checks the core Chapter-7 pattern behind
     `(a+b)c + (a+d)c -> (a+b)c + dc` when `d` is fresh with respect to
     `a,b`. If `d` is already covered, the later row correctly collapses

@@ -16370,6 +16370,192 @@ next
   then show ?case by simp
 qed
 
+lemma legacy_rprune_eq_against:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rprune_eq_against covered rs). legacy_rrexp r"
+  using assms by (induct rs) auto
+
+lemma legacy_rsimpStrong_prune_pair:
+  assumes "legacy_rrexp later"
+  shows "legacy_rrexp (rsimpStrong_prune_pair earlier later)"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have rows: "\<forall>r \<in> set rrs. legacy_rrexp r"
+      using assms shared by simp
+    have k: "legacy_rrexp k"
+      using assms shared by simp
+    have pruned: "\<forall>r \<in> set (rprune_eq_against lrs rrs). legacy_rrexp r"
+      by (rule legacy_rprune_eq_against[OF rows])
+    have flat: "\<forall>r \<in> set (rflts (rprune_eq_against lrs rrs)). legacy_rrexp r"
+      by (rule legacy_rflts[OF pruned])
+    have distinct:
+      "\<forall>r \<in> set (rdistinct (rflts (rprune_eq_against lrs rrs)) {}). legacy_rrexp r"
+      by (rule legacy_rdistinct[OF flat])
+    have alt: "legacy_rrexp
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))"
+      by (rule legacy_rsimp_ALTs[OF distinct])
+    show ?thesis
+      using shared alt k
+      by (simp add: rsimpStrong_prune_pair_def legacy_rsimp7_SEQ_atom)
+  next
+    case other
+    have "rsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma legacy_rsimpStrong_prune_against_rows:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong_prune_against_rows seen r)"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  have nxt: "legacy_rrexp (rsimpStrong_prune_pair x r)"
+    by (rule legacy_rsimpStrong_prune_pair[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF nxt])
+qed
+
+lemma legacy_rsimpStrong_prune_rows_acc:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rsimpStrong_prune_rows_acc seen rs). legacy_rrexp r"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows seen r"
+  have head: "legacy_rrexp ?r'"
+    by (rule legacy_rsimpStrong_prune_against_rows) (use Cons.prems in simp)
+  have tail: "\<forall>q \<in> set (rsimpStrong_prune_rows_acc (?r' # seen) rs).
+      legacy_rrexp q"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma legacy_rsimpStrong_prune_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rsimpStrong_prune_rows rs). legacy_rrexp r"
+  using legacy_rsimpStrong_prune_rows_acc[OF assms, of "[]"]
+  by (simp add: rsimpStrong_prune_rows_def)
+
+lemma legacy_rsimpStrong_ALTs:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong_ALTs rs)"
+proof -
+  have rows: "\<forall>r \<in> set (rsimpStrong_prune_rows rs). legacy_rrexp r"
+    by (rule legacy_rsimpStrong_prune_rows[OF assms])
+  have flat: "\<forall>r \<in> set (rflts (rsimpStrong_prune_rows rs)). legacy_rrexp r"
+    by (rule legacy_rflts[OF rows])
+  have distinct:
+    "\<forall>r \<in> set (rdistinct (rflts (rsimpStrong_prune_rows rs)) {}). legacy_rrexp r"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rsimpStrong_ALTs_def by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
+lemma legacy_rsimpStrong:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong r)"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (simp add: legacy_rsimp7_SEQ_atom)
+next
+  case (RALTS rs)
+  have mapped: "\<forall>r \<in> set (map rsimpStrong rs). legacy_rrexp r"
+    using RALTS by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimpStrong rs)). legacy_rrexp r"
+    by (rule legacy_rflts[OF mapped])
+  show ?case
+    by (simp add: legacy_rsimpStrong_ALTs[OF flat])
+next
+  case (RSTAR r)
+  note outer = RSTAR
+  show ?case
+  proof (cases "rsimpStrong r")
+    case RZERO
+    then show ?thesis by simp
+  next
+    case RONE
+    then show ?thesis by simp
+  next
+    case (RCHAR x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RALTS x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSTAR x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RNTIMES x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RHALF x1 x2 x3)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RRESIDUE x1 x2)
+    then show ?thesis
+      using outer by simp
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 x5)
+  then show ?case by simp
+next
+  case (RHALF r x2 x3)
+  then show ?case by simp
+next
+  case (RRESIDUE x1 x2)
+  then show ?case by simp
+qed
+
 definition rpder_strong_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
   "rpder_strong_list c r = map rsimpStrong (rpder_norm_list c r)"
 
@@ -16382,6 +16568,80 @@ definition rpder_strong_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rre
 
 definition rpd_der_strong :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der_strong c r = rsimp_ALTs (rpder_strong_rows c [r])"
+
+fun rpders_strong_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong_rows rs [] = rs"
+| "rpders_strong_rows rs (c # s) =
+    rpders_strong_rows (rpder_strong_rows c rs) s"
+
+definition rpders_strong1_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong1_rows r s = rpders_strong_rows [r] s"
+
+lemma distinct_rpder_strong_rows [simp]:
+  "distinct (rpder_strong_rows c rs)"
+  by (simp add: rpder_strong_rows_def rdistinct_does_the_job)
+
+lemma distinct_rpders_strong_rows:
+  assumes "distinct rs"
+  shows "distinct (rpders_strong_rows rs s)"
+  using assms by (induct s arbitrary: rs) simp_all
+
+lemma distinct_rpders_strong1_rows [simp]:
+  "distinct (rpders_strong1_rows r s)"
+  by (simp add: rpders_strong1_rows_def distinct_rpders_strong_rows)
+
+lemma legacy_rpder_strong_list:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_list c r). legacy_rrexp p"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  show ?thesis
+    unfolding rpder_strong_list_def
+    using rows legacy_rsimpStrong by auto
+qed
+
+lemma legacy_rpder_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows c rs). legacy_rrexp p"
+proof -
+  have mapped:
+    "\<forall>p \<in> set (concat (map (rpder_strong_list c) rs)). legacy_rrexp p"
+    using assms legacy_rpder_strong_list by auto
+  have flat1:
+    "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list c) rs))). legacy_rrexp p"
+    by (rule legacy_rflts[OF mapped])
+  have pruned:
+    "\<forall>p \<in> set (rsimpStrong_prune_rows
+      (rflts (concat (map (rpder_strong_list c) rs)))). legacy_rrexp p"
+    by (rule legacy_rsimpStrong_prune_rows[OF flat1])
+  have flat2:
+    "\<forall>p \<in> set (rflts (rsimpStrong_prune_rows
+      (rflts (concat (map (rpder_strong_list c) rs))))). legacy_rrexp p"
+    by (rule legacy_rflts[OF pruned])
+  show ?thesis
+    unfolding rpder_strong_rows_def
+    by (rule legacy_rdistinct[OF flat2])
+qed
+
+lemma legacy_rpders_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+      and "p \<in> set (rpders_strong_rows rs s)"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> set (rpder_strong_rows c rs). legacy_rrexp r"
+    by (rule legacy_rpder_strong_rows[OF Cons.prems(1)])
+  have p_next: "p \<in> set (rpders_strong_rows (rpder_strong_rows c rs) s)"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
 
 lemma RLS_set_rflts:
   "RLS (set (rflts rs)) = RLS (set rs)"
@@ -16493,6 +16753,34 @@ proof -
     using rsizes_rpder_strong_rows_le[of c "[r]"] by simp
   finally show ?thesis .
 qed
+
+lemma RLS_rpders_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpders_strong_rows rs s)) = Ders s (RLS (set rs))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> set (rpder_strong_rows c rs). legacy_rrexp r"
+    by (rule legacy_rpder_strong_rows[OF Cons.prems])
+  have "RLS (set (rpders_strong_rows rs (c # s))) =
+      Ders s (RLS (set (rpder_strong_rows c rs)))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS (set rs)))"
+    by (simp add: RLS_rpder_strong_rows[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS (set rs))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders_strong1_rows:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (rpders_strong1_rows r s)) = Ders s (RL r)"
+  using RLS_rpders_strong_rows[of "[r]" s] assms
+  by (simp add: rpders_strong1_rows_def RLS_def)
 
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"
