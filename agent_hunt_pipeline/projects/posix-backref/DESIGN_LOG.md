@@ -158,6 +158,20 @@ to be read before continuing long-running agent work.
   `norm19_frontier_universe_repairs_nested_star_counterexample` shows
   `RSTAR (RSTAR a)` normalizes to `RSTAR a`, and the normalized derivative row
   remains inside the same frontier universe.
+- The thesis cubic-bound examples are now represented as checked regression
+  sanity lemmas. `thesis_cubic_evil3_aaa_norm19_rows_cubic` exercises the
+  Chapter 6 evil shape `(a* + (aa)* + (aaa)*)*` after the input `aaa`; the
+  smaller `thesis_cubic_small_alt3_aaa_norm19_rows_cubic` remains only as a
+  cheap non-starred contrast. The
+  `thesis_cubic_ntimes_countdown_norm9_no_zero_counter` plus
+  `thesis_cubic_ntimes_countdown_norm19_rows_cubic` exercise the `(a){3}`
+  countdown. These examples are evidence for the `rsimp9` route and should be
+  kept fast; they are not a final cubic theorem.
+- The thesis Chapter 7 stronger-simplification idea has not yet been
+  implemented as a real checked simplifier. The current `rsimp9/path9` line is
+  a proof-level normalization/accounting route, not the `distinctWith`/pruning
+  route. If the path9 linear-size proof remains brittle, the next serious
+  simplifier should implement that Chapter 7 pruning rule directly.
 - The dual-frontier route now has a checked conditional cubic hook:
   `rsizes_distinct_path_dual_frontier_universe_cubicI`. It reduces the
   remaining arithmetic/accounting work to two local obligations: prove

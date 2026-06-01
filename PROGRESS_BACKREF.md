@@ -307,6 +307,18 @@ Last updated: 2026-06-01 (path9 stable-tail helper layer)
   the older `RSTAR (RSTAR a)` cubic-universe obstruction is normalized to
   `RSTAR a`, and the normalized `a` derivative remains inside the same
   frontier universe.
+  Added explicit checked regression lemmas for the thesis cubic-bound examples:
+  `thesis_cubic_evil3_aaa_norm19_rows_cubic` checks the concrete Chapter 6
+  evil shape `(a* + (aa)* + (aaa)*)*` after reading `aaa`. The smaller
+  `thesis_cubic_small_alt3_aaa_norm19_rows_cubic` remains only as a cheap
+  non-starred sanity contrast. The
+  `thesis_cubic_ntimes_countdown_norm9_no_zero_counter` and
+  `thesis_cubic_ntimes_countdown_norm19_rows_cubic` check the counted
+  `(a){3}` countdown shape. These are sanity tests for the route, not a
+  BR-036 payout.
+  The Chapter 7 stronger simplification/pruning route is not yet implemented
+  as a real simplifier; it remains the main design gap if `rsimp9/path9`
+  accounting is too weak.
   Added the dual-frontier cubic hook:
   `quadratic_plus_linear_padding_bound`,
   `quadratic_plus_linear_times_linear_cubic_bound`, and

@@ -8578,6 +8578,82 @@ lemma norm19_closes_RNTIMES_countdown_sanity:
   by (simp_all add: r_def q_def rpder_norm9_list_def rpder_norm_list_def
       partial_derivative_live_row_universe_def rpath_continuations_def)
 
+(* Regression sanity checks for the thesis Chapter 6 cubic-bound examples. *)
+
+definition thesis_cubic_a :: char where
+  "thesis_cubic_a = CHR ''a''"
+
+definition thesis_cubic_aa :: rrexp where
+  "thesis_cubic_aa =
+    RSEQ (RCHAR thesis_cubic_a) (RCHAR thesis_cubic_a)"
+
+definition thesis_cubic_aaa :: rrexp where
+  "thesis_cubic_aaa =
+    RSEQ (RCHAR thesis_cubic_a)
+      (RSEQ (RCHAR thesis_cubic_a) (RCHAR thesis_cubic_a))"
+
+definition thesis_cubic_evil3 :: rrexp where
+  "thesis_cubic_evil3 =
+    RSTAR (RALTS [RSTAR (RCHAR thesis_cubic_a),
+      RSTAR thesis_cubic_aa,
+      RSTAR thesis_cubic_aaa])"
+
+lemma thesis_cubic_evil3_norm9_good:
+  "good (rsimp9 thesis_cubic_evil3)"
+  by (simp add: thesis_cubic_a_def thesis_cubic_aa_def
+      thesis_cubic_aaa_def thesis_cubic_evil3_def rsimp7_SEQ_atom_def)
+
+lemma thesis_cubic_evil3_aaa_norm19_rows_cubic:
+  "rsizes (rpders_norm19_rows (rsimp9 thesis_cubic_evil3)
+      [thesis_cubic_a, thesis_cubic_a, thesis_cubic_a]) \<le>
+    3 * (rsize thesis_cubic_evil3 + 2) ^ 3"
+  by (simp add: thesis_cubic_a_def thesis_cubic_aa_def
+      thesis_cubic_aaa_def thesis_cubic_evil3_def rpders_norm19_rows_def
+      rpder_norm9_rows_def rpder_norm9_list_def rpder_norm_list_def
+      rsimp7_SEQ_atom_def rpd_der_norm9_def power2_eq_square
+      power3_eq_cube)
+
+definition thesis_cubic_small_alt3 :: rrexp where
+  "thesis_cubic_small_alt3 =
+    RSTAR (RALTS [RCHAR thesis_cubic_a,
+      thesis_cubic_aa,
+      RSEQ (RCHAR thesis_cubic_a)
+        (RSEQ (RCHAR thesis_cubic_a) (RCHAR thesis_cubic_a))])"
+
+lemma thesis_cubic_small_alt3_norm9_good:
+  "good (rsimp9 thesis_cubic_small_alt3)"
+  by (simp add: thesis_cubic_a_def thesis_cubic_aa_def
+      thesis_cubic_small_alt3_def
+      rsimp7_SEQ_atom_def)
+
+lemma thesis_cubic_small_alt3_aaa_norm19_rows_cubic:
+  "rsizes (rpders_norm19_rows (rsimp9 thesis_cubic_small_alt3)
+      [thesis_cubic_a, thesis_cubic_a, thesis_cubic_a]) \<le>
+    3 * (rsize thesis_cubic_small_alt3 + 2) ^ 3"
+  by (simp add: thesis_cubic_a_def thesis_cubic_aa_def
+      thesis_cubic_small_alt3_def
+      rpders_norm19_rows_def rpder_norm9_rows_def rpder_norm9_list_def
+      rpder_norm_list_def rsimp7_SEQ_atom_def rpd_der_norm9_def
+      power2_eq_square power3_eq_cube)
+
+lemma thesis_cubic_ntimes_countdown_norm9_no_zero_counter:
+  "RNTIMES (RCHAR thesis_cubic_a) 0 \<notin>
+    set (rpders_norm19_rows
+      (rsimp9 (RNTIMES (RCHAR thesis_cubic_a) 3))
+      [thesis_cubic_a, thesis_cubic_a, thesis_cubic_a, thesis_cubic_a])"
+  by (simp add: thesis_cubic_a_def rpders_norm19_rows_def
+      rpder_norm9_rows_def rpder_norm9_list_def rpder_norm_list_def
+      rsimp7_SEQ_atom_def)
+
+lemma thesis_cubic_ntimes_countdown_norm19_rows_cubic:
+  "rsizes (rpders_norm19_rows
+      (rsimp9 (RNTIMES (RCHAR thesis_cubic_a) 3))
+      [thesis_cubic_a, thesis_cubic_a, thesis_cubic_a, thesis_cubic_a]) \<le>
+    3 * (rsize (RNTIMES (RCHAR thesis_cubic_a) 3) + 2) ^ 3"
+  by (simp add: thesis_cubic_a_def rpders_norm19_rows_def
+      rpder_norm9_rows_def rpder_norm9_list_def rpder_norm_list_def
+      rsimp7_SEQ_atom_def power2_eq_square power3_eq_cube)
+
 lemma rpder_norm8_live_row_step_RZERO [simp]:
   "set (rflts (rpder_norm8_list c RZERO)) \<subseteq>
     partial_derivative_live_row_universe r"

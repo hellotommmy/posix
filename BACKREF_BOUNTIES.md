@@ -55,6 +55,16 @@ immutability.
 
 ## Open Artifact Notes
 
+- BR-036 now has explicit checked regression sanity lemmas for the thesis
+  cubic-bound examples: `thesis_cubic_evil3_aaa_norm19_rows_cubic` for the
+  Chapter 6 evil shape `(a* + (aa)* + (aaa)*)*` after `aaa`, with
+  `thesis_cubic_small_alt3_aaa_norm19_rows_cubic` retained only as a cheap
+  contrast for the non-starred variant, and
+  `thesis_cubic_ntimes_countdown_norm9_no_zero_counter` plus
+  `thesis_cubic_ntimes_countdown_norm19_rows_cubic` for the `(a){3}`
+  countdown. These confirm the candidate route on the motivating examples but
+  do not settle BR-036. The thesis Chapter 7 stronger simplification/pruning
+  idea is not yet a checked production simplifier and remains a design gap.
 - BR-036 now also has the checked norm9-specific scaffold
   `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
   `partial_derivative_path9_atom_frontier_universe`,
