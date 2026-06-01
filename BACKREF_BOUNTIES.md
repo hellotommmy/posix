@@ -366,6 +366,13 @@ immutability.
   `rsimp4_SEQ_atom_RONE_stable_rdistinct`. These do not collect BR-036, but
   they are the next modular interface for closing `RALTS`/nested-`RSEQ`
   carried-tail cases without broad slow automation.
+  The stable-tail left bridge now also has a checked `RALTS`-of-`RCHAR`
+  package: `rpath9_atom_frontiers_seq_alt_left_subset`,
+  `rpath9_atom_frontiers_seq_alt_left_universe`,
+  `rder_path_continuations_acc_RALTS_RCHARs_left_path9_stable`, and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable` with
+  `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances. This is
+  checked progress toward one-step closure, not a BR-036 payout claim.
 
 ## Completed
 

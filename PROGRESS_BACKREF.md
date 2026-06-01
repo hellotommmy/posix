@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 RCHAR one-step leaves)
+Last updated: 2026-06-02 (path9 RALTS-of-chars left bridge)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -138,6 +138,14 @@ Last updated: 2026-06-02 (path9 RCHAR one-step leaves)
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_RCHAR`. The counted case uses
   the path9 frontier of the predecessor count directly, not a false
   universe-subset shortcut between different counts.
+- Added and checked the RALTS-of-characters left bridge for the same stable
+  right-tail lane: `rpath9_atom_frontiers_seq_alt_left_subset`,
+  `rpath9_atom_frontiers_seq_alt_left_universe`,
+  `rder_path_continuations_acc_RALTS_RCHARs_left_path9_stable`, and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable` with
+  `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances. This packages
+  a useful one-step closure case for character alternatives under `RSEQ`;
+  general `RALTS` and nested-`RSEQ` carried tails remain open.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

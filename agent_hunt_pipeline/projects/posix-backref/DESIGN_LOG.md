@@ -892,6 +892,13 @@ to be read before continuing long-running agent work.
   `RNTIMES (RCHAR _) n`. In the counted case, the proof explicitly routes
   through the predecessor-count path9 frontier; do not replace it with a broad
   claim that the whole predecessor universe embeds into the successor universe.
+- The `RSEQ` carried-left lane now also covers alternatives whose children are
+  all character leaves. The checked bridge lifts
+  `rder_path_continuations_acc c (RALTS rs) (rsimp4_SEQ_atom r2 RONE)` into
+  the parent path9 universe under the same stable right-tail invariant, and
+  packages the `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances.
+  This is useful for the thesis-style left-nested character-alternative cases,
+  but general `RALTS` and nested-`RSEQ` carried-left closures are still open.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
