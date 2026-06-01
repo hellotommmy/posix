@@ -114,9 +114,14 @@ immutability.
   `partial_derivative_path9_atom_frontier_universe_member_size_boundI`,
   `partial_derivative_path9_atom_frontier_universe_member_size_linearI`, and
   `rsizes_distinct_path9_atom_frontier_universe_cubicI`. This is progress
-  evidence, not a payout claim: remaining work is local card/member-size
-  bounds for `rpath9_atom_frontiers` and one-step `rpder_norm9_list` closure
-  for the smaller universe. The first checked closure-plumbing facts are
+  evidence, not a payout claim. The newer tight-budget bridge
+  `rpath9_atom_frontiers_tight_member_budget_linearI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI`,
+  and `rsizes_rpders_norm19_rows_rsimp9_path9_tight_budget_cubicI` reduces
+  the remaining member-size premise to the single top-level tight-budget
+  inequality, while preserving the separate one-step `rpder_norm9_list`
+  closure obligation for the smaller universe. The first checked
+  closure-plumbing facts are
   `rsubterms_rsimp_ALTs_member`, `set_rflts_singleton_map_member`,
   `rflts_singleton_rsimp9_path9_atom_frontier`,
   `rflts_map_rsimp9_path9_atom_subsetI`,

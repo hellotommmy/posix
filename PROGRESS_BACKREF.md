@@ -72,6 +72,13 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   top-level estimate
   `rpath9_tight_member_budget r RONE <= Suc (rsize r + rsize r)`, or a
   slightly larger linear bound with an updated cubic constant.
+- Added the checked bridge from that remaining budget inequality to the
+  existing path9 cubic hook:
+  `rpath9_atom_frontiers_tight_member_budget_linearI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI`,
+  and `rsizes_rpders_norm19_rows_rsimp9_path9_tight_budget_cubicI`. This
+  reduces the remaining cubic member-size premise to the single tight-budget
+  estimate plus the already-separate one-step closure premise.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

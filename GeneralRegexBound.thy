@@ -12733,6 +12733,33 @@ lemma partial_derivative_path9_atom_frontier_universe_member_size_linearI:
   by (rule partial_derivative_path9_atom_frontier_universe_member_size_boundI)
     (use assms in auto)
 
+lemma rpath9_atom_frontiers_tight_member_budget_linearI:
+  assumes budget:
+      "rpath9_tight_member_budget r RONE \<le> Suc (rsize r + rsize r)"
+    and q: "q \<in> rpath9_atom_frontiers r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have "rsize q \<le> rpath9_tight_member_budget r RONE"
+    by (rule rpath9_atom_frontiers_tight_member_budget[OF q])
+  also have "... \<le> Suc (rsize r + rsize r)"
+    by (rule budget)
+  finally show ?thesis .
+qed
+
+lemma partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI:
+  assumes budget:
+      "rpath9_tight_member_budget r RONE \<le> Suc (rsize r + rsize r)"
+    and q: "q \<in> partial_derivative_path9_atom_frontier_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have front: "\<And>p. p \<in> rpath9_atom_frontiers r \<Longrightarrow>
+      rsize p \<le> Suc (rsize r + rsize r)"
+    by (rule rpath9_atom_frontiers_tight_member_budget_linearI[OF budget])
+  show ?thesis
+    by (rule partial_derivative_path9_atom_frontier_universe_member_size_linearI
+        [OF front q])
+qed
+
 lemma partial_derivative_path_dual_frontier_universe_card_le:
   "card (partial_derivative_path_dual_frontier_universe r) \<le>
     2 + rsize r + card (rpath_frontiers r) + card (rpath_atom_frontiers r)"
@@ -12863,6 +12890,26 @@ proof -
   then show ?thesis
     by (rule rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic)
       (rule member_size)
+qed
+
+lemma rsizes_rpders_norm19_rows_rsimp9_path9_tight_budget_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r"
+    and budget:
+      "rpath9_tight_member_budget r RONE \<le> Suc (rsize r + rsize r)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    6 * (rsize r + 2) ^ 3"
+proof (rule rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI)
+  show "\<And>q c. q \<in> partial_derivative_path9_atom_frontier_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r"
+    by (rule step)
+  fix q
+  assume q: "q \<in> partial_derivative_path9_atom_frontier_universe r"
+  show "rsize q \<le> Suc (rsize r + rsize r)"
+    by (rule partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI
+        [OF budget q])
 qed
 
 lemma rsizes_distinct_path_dual_frontier_universe_cubicI:

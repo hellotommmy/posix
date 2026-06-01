@@ -782,6 +782,13 @@ to be read before continuing long-running agent work.
   `rpath9_tight_member_budget_nested_star_less_raw` records that this
   strengthening is strict on the nested-star obstruction that defeated the raw
   budget.
+- The cubic hook now has a direct tight-budget entry point:
+  `rpath9_atom_frontiers_tight_member_budget_linearI`,
+  `partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI`,
+  and `rsizes_rpders_norm19_rows_rsimp9_path9_tight_budget_cubicI`. Once the
+  single inequality `rpath9_tight_member_budget r RONE <=
+  Suc (rsize r + rsize r)` is checked, the path9 universe member-size premise
+  for the norm19 cubic row theorem no longer needs to be supplied separately.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
