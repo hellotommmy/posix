@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row finite-universe interface)
+Last updated: 2026-06-02 (annotated strong loop legacy closure)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -5322,6 +5322,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - Together with `asize_bsimpStrong_le`, this gives the annotated prototype
     both semantic and size-control evidence needed before attempting POSIX/
     bitcode preservation or a full cubic closure theorem. No bounty is claimed.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+
+## Cubic Bound Research Checkpoint: Annotated Strong Loop Legacy Closure (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked theorem added in `FBound.thy`:
+  - `legacy_rerase_bders_simpStrong`
+- Supporting legacy-preservation lemmas:
+  - `legacy_rerase_flts`
+  - `legacy_rerase_distinctWith`
+  - `legacy_rerase_prune_eq1_against`
+  - `legacy_rerase_bsimp_AALTs`
+  - `legacy_rerase_bsimpStrong_prune_pair`
+  - `legacy_rerase_bsimpStrong_prune_against_rows`
+  - `legacy_rerase_bsimpStrong_prune_rows_acc`
+  - `legacy_rerase_bsimpStrong_prune_rows`
+  - `legacy_rerase_bsimpStrong_AALTs`
+  - `legacy_rerase_bsimpStrong`
+- Design result:
+  - The executable annotated strong simplifier and its derivative loop now stay
+    inside the proof-level legacy/non-backref fragment whenever the initial
+    annotated regex erases to that fragment.
+  - This closes an important invariant gap for the cubic-bound route: future
+    bounds for `bders_simpStrong` can state the non-backref premise as
+    `legacy_rrexp (rerase r)` and know that all recursive states remain in the
+    fragment where finite-universe accounting is meaningful.
+  - This is not POSIX/bitcode preservation and not a full cubic theorem; no
+    bounty is claimed.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 
 ## Governance Upgrade (2026-05-25)

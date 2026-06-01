@@ -954,6 +954,213 @@ next
   finally show ?case .
 qed
 
+lemma legacy_rerase_flts:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>r \<in> set (flts rs). legacy_rrexp (rerase r)"
+  using assms
+  by (induct rs rule: flts.induct) (auto simp add: rerase_fuse)
+
+lemma legacy_rerase_distinctWith:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>r \<in> set (distinctWith rs eq acc). legacy_rrexp (rerase r)"
+  using assms
+  by (induct rs arbitrary: acc) auto
+
+lemma legacy_rerase_prune_eq1_against:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>r \<in> set (prune_eq1_against covered rs). legacy_rrexp (rerase r)"
+  using assms
+  by (induct rs) auto
+
+lemma legacy_rerase_bsimp_AALTs:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bsimp_AALTs bs rs))"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons r rest)
+  have rs_def: "rs = r # rest"
+    using Cons by simp
+  show ?thesis
+  proof (cases rest)
+    case Nil
+    then show ?thesis
+      using rs_def assms by (simp add: rerase_fuse)
+  next
+    case (Cons q qs)
+    then show ?thesis
+      using rs_def assms by simp
+  qed
+qed
+
+lemma legacy_rerase_bsimpStrong_prune_pair:
+  assumes "legacy_rrexp (rerase later)"
+  shows "legacy_rrexp (rerase (bsimpStrong_prune_pair earlier later))"
+proof -
+  consider
+    (shared) bs1 lbs lrs k1 bs2 rbs rrs k2 where
+      "earlier = ASEQ bs1 (AALTs lbs lrs) k1"
+      "later = ASEQ bs2 (AALTs rbs rrs) k2"
+      "k1 ~1 k2"
+  | (other) "\<not> (\<exists>bs1 lbs lrs k1 bs2 rbs rrs k2.
+      earlier = ASEQ bs1 (AALTs lbs lrs) k1 \<and>
+      later = ASEQ bs2 (AALTs rbs rrs) k2 \<and> k1 ~1 k2)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared bs1 lbs lrs k1 bs2 rbs rrs k2)
+    have rows: "\<forall>r \<in> set rrs. legacy_rrexp (rerase r)"
+      using assms shared by simp
+    have tail: "legacy_rrexp (rerase k2)"
+      using assms shared by simp
+    have pruned:
+      "\<forall>r \<in> set (prune_eq1_against lrs rrs). legacy_rrexp (rerase r)"
+      by (rule legacy_rerase_prune_eq1_against[OF rows])
+    have left:
+      "legacy_rrexp (rerase (bsimp_AALTs rbs (prune_eq1_against lrs rrs)))"
+      by (rule legacy_rerase_bsimp_AALTs[OF pruned])
+    show ?thesis
+      using shared left tail
+      by (simp add: bsimpStrong_prune_pair_def
+          rerase_bsimp7_ASEQ_atom legacy_rsimp7_SEQ_atom)
+  next
+    case other
+    have "bsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding bsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: arexp.splits)
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma legacy_rerase_bsimpStrong_prune_against_rows:
+  assumes "legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bsimpStrong_prune_against_rows seen r))"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  have nxt: "legacy_rrexp (rerase (bsimpStrong_prune_pair x r))"
+    by (rule legacy_rerase_bsimpStrong_prune_pair[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF nxt])
+qed
+
+lemma legacy_rerase_bsimpStrong_prune_rows_acc:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>r \<in> set (bsimpStrong_prune_rows_acc seen rs).
+    legacy_rrexp (rerase r)"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpStrong_prune_against_rows seen r"
+  have head: "legacy_rrexp (rerase ?r')"
+    by (rule legacy_rerase_bsimpStrong_prune_against_rows) (use Cons.prems in simp)
+  have tail:
+    "\<forall>q \<in> set (bsimpStrong_prune_rows_acc (?r' # seen) rs).
+      legacy_rrexp (rerase q)"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma legacy_rerase_bsimpStrong_prune_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>r \<in> set (bsimpStrong_prune_rows rs). legacy_rrexp (rerase r)"
+  using legacy_rerase_bsimpStrong_prune_rows_acc[OF assms, of "[]"]
+  by (simp add: bsimpStrong_prune_rows_def)
+
+lemma legacy_rerase_bsimpStrong_AALTs:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bsimpStrong_AALTs bs rs))"
+proof -
+  have rows: "\<forall>r \<in> set (bsimpStrong_prune_rows rs). legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_bsimpStrong_prune_rows[OF assms])
+  have flat:
+    "\<forall>r \<in> set (flts (bsimpStrong_prune_rows rs)).
+      legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_flts[OF rows])
+  have distinct:
+    "\<forall>r \<in> set (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {}).
+      legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_distinctWith[OF flat])
+  show ?thesis
+    unfolding bsimpStrong_AALTs_def
+    by (rule legacy_rerase_bsimp_AALTs[OF distinct])
+qed
+
+lemma legacy_rerase_bsimpStrong:
+  assumes "legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bsimpStrong r))"
+  using assms
+proof (induct r)
+  case AZERO
+  then show ?case by simp
+next
+  case (AONE x)
+  then show ?case by simp
+next
+  case (ACHAR x1 x2)
+  then show ?case by simp
+next
+  case (ASEQ bs r1 r2)
+  have left: "legacy_rrexp (rerase (bsimpStrong r1))"
+    by (rule ASEQ.hyps(1)) (use ASEQ.prems in simp)
+  have right: "legacy_rrexp (rerase (bsimpStrong r2))"
+    by (rule ASEQ.hyps(2)) (use ASEQ.prems in simp)
+  show ?case
+    using left right
+    by (simp add: rerase_bsimp7_ASEQ_atom legacy_rsimp7_SEQ_atom)
+next
+  case (AALTs bs rs)
+  have mapped:
+    "\<forall>r \<in> set (map bsimpStrong rs). legacy_rrexp (rerase r)"
+    using AALTs by auto
+  have flat: "\<forall>r \<in> set (flts (map bsimpStrong rs)).
+      legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_flts[OF mapped])
+  have alts:
+    "legacy_rrexp (rerase (bsimpStrong_AALTs bs (flts (map bsimpStrong rs))))"
+    by (rule legacy_rerase_bsimpStrong_AALTs[OF flat])
+  show ?case
+    using alts by simp
+next
+  case (ASTAR bs r)
+  have body: "legacy_rrexp (rerase (bsimpStrong r))"
+    by (rule ASTAR.hyps) (use ASTAR.prems in simp)
+  show ?case
+    using body by (cases "bsimpStrong r") simp_all
+qed simp_all
+
+lemma legacy_rerase_bders_simpStrong:
+  assumes "legacy_rrexp (rerase r)"
+  shows "legacy_rrexp (rerase (bders_simpStrong r s))"
+  using assms
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have der: "legacy_rrexp (rerase (bder c r))"
+    using legacy_rder[OF Cons.prems, of c] rder_bder_rerase[of c r]
+    by simp
+  have step: "legacy_rrexp (rerase (bsimpStrong (bder c r)))"
+    by (rule legacy_rerase_bsimpStrong[OF der])
+  show ?case
+    by (simp add: Cons.hyps[OF step])
+qed
+
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"
   by (induct rs) (simp_all add: rerase_fuse)

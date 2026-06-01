@@ -1106,3 +1106,12 @@ to be read before continuing long-running agent work.
   with `rders_simpStrong`: proof-level pruning performs `rflts/rdistinct`
   inside `rsimpStrong_prune_pair`, whereas the annotated executable version
   leaves the equivalent cleanup to the enclosing `bsimpStrong_AALTs`.
+- The annotated strong loop also now preserves the legacy/non-backref fragment.
+  The theorem `legacy_rerase_bders_simpStrong` says that if the initial
+  annotated expression erases to a legacy `rrexp`, every state produced by
+  `bders_simpStrong` does too. The proof is intentionally modular: first
+  preserve legacy through `flts`, `distinctWith`, `prune_eq1_against`, and
+  `bsimp_AALTs`; then through pairwise and row-wise `bsimpStrong` pruning; then
+  through the recursive simplifier and derivative loop. This gives future
+  cubic-bound statements a stable fragment invariant instead of relying on an
+  informal "non-backref only" side condition.
