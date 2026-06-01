@@ -910,6 +910,13 @@ to be read before continuing long-running agent work.
   `rsimp9`. The proofs deliberately split the empty, singleton, and
   many-alternative cases; this keeps the normalizer bridge local and avoids a
   broad theorem about arbitrary `rsimp_ALTs` output.
+- The bridge has also been pushed one step deeper to the literal
+  `rsimp9 (RALTS rs)` expression. For character-only alternatives,
+  `map rsimp9`, `rflts`, and `rdistinct` preserve the all-character property,
+  so the existing `rsimp_ALTs` packages can be reused on the exact list that
+  `rsimp9` constructs. This is the shape later closure proofs should prefer
+  when a normalized alternative body appears under `RSEQ`, `RSTAR`, or
+  `RNTIMES`.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

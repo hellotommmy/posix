@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 rsimp_ALTs character bridges)
+Last updated: 2026-06-02 (path9 rsimp9-RALTS character bridges)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -162,6 +162,15 @@ Last updated: 2026-06-02 (path9 rsimp_ALTs character bridges)
   `rsimp_ALTs` result into empty, singleton, and genuine-`RALTS` cases. This
   removes a small but recurring proof gap between normalized alternatives and
   the raw `RALTS` bridge lemmas.
+- Added the next bridge to the literal `rsimp9 (RALTS rs)` output. The helper
+  lemmas `rflts_RCHARs_eq`, `RCHARs_rflts`, `RCHARs_rflts_map_rsimp9`,
+  `RCHARs_rdistinct`, and `RCHARs_rdistinct_rflts_map_rsimp9` show that a
+  character-only alternative list remains character-only after
+  `map rsimp9`, `rflts`, and `rdistinct`. The checked closure packages
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_stable`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp9_RALTS_RCHARs`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp9_RALTS_RCHARs` now apply
+  directly to `rsimp9 (RALTS rs)` in the character-alternative case.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

@@ -13305,6 +13305,80 @@ lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_RNTIMES:
   by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable)
     (use chars in \<open>simp_all split: rrexp.splits\<close>)
 
+lemma rflts_RCHARs_eq:
+  assumes chars: "\<And>q. q \<in> set xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "rflts xs = xs"
+  using chars
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  obtain d where a_eq: "a = RCHAR d"
+    using Cons.prems by auto
+  have xs_chars: "\<And>q. q \<in> set xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    using Cons.prems by auto
+  have tail_eq: "rflts xs = xs"
+    by (rule Cons.hyps[OF xs_chars])
+  show ?case
+    using a_eq tail_eq by simp
+qed
+
+lemma RCHARs_rflts:
+  assumes chars: "\<And>q. q \<in> set xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and x: "x \<in> set (rflts xs)"
+  shows "\<exists>d. x = RCHAR d"
+proof -
+  have "rflts xs = xs"
+    by (rule rflts_RCHARs_eq[OF chars])
+  then have "x \<in> set xs"
+    using x by simp
+  then show ?thesis
+    by (rule chars)
+qed
+
+lemma RCHARs_rflts_map_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and x: "x \<in> set (rflts (map rsimp9 rs))"
+  shows "\<exists>d. x = RCHAR d"
+proof -
+  have mapped_chars: "\<And>q. q \<in> set (map rsimp9 rs) \<Longrightarrow> \<exists>d. q = RCHAR d"
+  proof -
+    fix q
+    assume q: "q \<in> set (map rsimp9 rs)"
+    obtain r where r: "r \<in> set rs" and q_eq: "q = rsimp9 r"
+      using q by auto
+    obtain d where r_eq: "r = RCHAR d"
+      using chars[OF r] by blast
+    show "\<exists>d. q = RCHAR d"
+      using q_eq r_eq by simp
+  qed
+  show ?thesis
+    by (rule RCHARs_rflts[OF mapped_chars x])
+qed
+
+lemma RCHARs_rdistinct:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and x: "x \<in> set (rdistinct rs acc)"
+  shows "\<exists>d. x = RCHAR d"
+proof -
+  have "x \<in> set rs"
+    using x rdistinct_set_equality1[of rs acc] by auto
+  then show ?thesis
+    by (rule chars)
+qed
+
+lemma RCHARs_rdistinct_rflts_map_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and x: "x \<in> set (rdistinct (rflts (map rsimp9 rs)) acc)"
+  shows "\<exists>d. x = RCHAR d"
+proof -
+  have x_flat: "x \<in> set (rflts (map rsimp9 rs))"
+    using x rdistinct_set_equality1[of "rflts (map rsimp9 rs)" acc] by auto
+  show ?thesis
+    by (rule RCHARs_rflts_map_rsimp9[OF chars x_flat])
+qed
+
 lemma rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable:
   assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
     and norm_tail:
@@ -13346,6 +13420,28 @@ next
     show ?thesis
       using alt step by simp
   qed
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_stable:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and norm_tail:
+      "rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2"
+    and stable:
+      "rsimp4_SEQ_atom (rsimp9 r2) RONE = rsimp9 r2"
+  shows "set (rflts (rpder_norm9_list c (RSEQ (rsimp9 (RALTS rs)) r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (rsimp9 (RALTS rs)) r2)"
+proof -
+  let ?xs = "rdistinct (rflts (map rsimp9 rs)) {}"
+  have xs_chars: "\<And>q. q \<in> set ?xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    by (rule RCHARs_rdistinct_rflts_map_rsimp9[OF chars])
+  have "set (rflts (rpder_norm9_list c (RSEQ (rsimp_ALTs ?xs) r2))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe
+        (RSEQ (rsimp_ALTs ?xs) r2)"
+    by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable
+        [OF xs_chars norm_tail stable])
+  then show ?thesis
+    by simp
 qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
@@ -13477,6 +13573,23 @@ next
     show ?thesis
       using alt step by simp
   qed
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp9_RALTS_RCHARs:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c (RSTAR (rsimp9 (RALTS rs))))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSTAR (rsimp9 (RALTS rs)))"
+proof -
+  let ?xs = "rdistinct (rflts (map rsimp9 rs)) {}"
+  have xs_chars: "\<And>q. q \<in> set ?xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    by (rule RCHARs_rdistinct_rflts_map_rsimp9[OF chars])
+  have "set (rflts (rpder_norm9_list c (RSTAR (rsimp_ALTs ?xs)))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSTAR (rsimp_ALTs ?xs))"
+    by (rule rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp_ALTs_RCHARs
+        [OF xs_chars])
+  then show ?thesis
+    by simp
 qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
@@ -13714,6 +13827,25 @@ next
     show ?thesis
       using alt step by simp
   qed
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp9_RALTS_RCHARs:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c
+      (RNTIMES (rsimp9 (RALTS rs)) n))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RNTIMES (rsimp9 (RALTS rs)) n)"
+proof -
+  let ?xs = "rdistinct (rflts (map rsimp9 rs)) {}"
+  have xs_chars: "\<And>q. q \<in> set ?xs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    by (rule RCHARs_rdistinct_rflts_map_rsimp9[OF chars])
+  have "set (rflts (rpder_norm9_list c (RNTIMES (rsimp_ALTs ?xs) n))) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe
+        (RNTIMES (rsimp_ALTs ?xs) n)"
+    by (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp_ALTs_RCHARs
+        [OF xs_chars])
+  then show ?thesis
+    by simp
 qed
 
 lemma finite_rpath_dual_frontiers [simp]:

@@ -387,6 +387,14 @@ immutability.
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp_ALTs_RCHARs`, which
   split `rsimp_ALTs` into empty, singleton-character, and genuine-`RALTS`
   cases. This is still only checked progress toward BR-036.
+  Character-only alternatives now survive the literal `rsimp9 (RALTS rs)`
+  normalizer path via `rflts_RCHARs_eq`, `RCHARs_rflts`,
+  `RCHARs_rflts_map_rsimp9`, `RCHARs_rdistinct`, and
+  `RCHARs_rdistinct_rflts_map_rsimp9`. The direct closure packages
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_stable`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp9_RALTS_RCHARs`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp9_RALTS_RCHARs` are
+  checked for that exact normalized shape.
 
 ## Completed
 
