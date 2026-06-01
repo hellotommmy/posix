@@ -96,9 +96,14 @@ immutability.
   `rpath9_member_budget`, `rpath9_member_budget_list`,
   `rpath9_atom_frontier_acc_rpath9_tail_member_budget`, and
   `rpath9_atom_frontiers_member_budget` now packages the accumulator
-  member-size recursion. Remaining work is to bound that budget linearly at
-  the top level and feed it into
-  `partial_derivative_path9_atom_frontier_universe_member_size_linearI`.
+  member-size recursion, but
+  `rpath9_member_budget_nested_star_not_linear` shows this raw budget is too
+  coarse for the final linear bound. The tighter checked layer
+  `rpath9_tight_member_budget`, `rpath9_tight_member_budget_list`,
+  `rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget`,
+  `rpath9_atom_frontiers_tight_member_budget`, and
+  `rpath9_tight_member_budget_nested_star_linear_sanity` is the current route
+  for the remaining linear member-size premise.
   The
   checked accounting
   interface adds

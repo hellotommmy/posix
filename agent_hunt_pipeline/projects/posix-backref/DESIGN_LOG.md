@@ -767,6 +767,15 @@ to be read before continuing long-running agent work.
   recursion case-by-case, and `rpath9_atom_frontiers_member_budget` exposes the
   top-level `RONE` instance. This is the current bridge between raw-tail
   membership and a later linear arithmetic bound on the budget.
+- The raw budget is sound but not tight enough: the checked
+  `rpath9_member_budget_nested_star_not_linear` witness shows nested stars
+  make it count the raw tail before `rsimp9`/`rsimp7` absorption. The tighter
+  budget `rpath9_tight_member_budget` uses `rsize (rpath9_tail k)` at character
+  leaves, preserving normalized-tail absorption. Its soundness is checked by
+  `rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget` and
+  `rpath9_atom_frontiers_tight_member_budget`; the sanity lemma
+  `rpath9_tight_member_budget_nested_star_linear_sanity` confirms the nested
+  star obstruction is repaired by the tight budget.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

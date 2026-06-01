@@ -54,8 +54,18 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   `rpath9_atom_frontier_acc_rpath9_tail_member_budget` plus
   `rpath9_atom_frontiers_member_budget`. This gives a controlled induction
   target matching the `rpath9_atom_frontier_acc` recursion, instead of trying
-  to prove the final linear bound in one monolithic pass. Next step: prove the
-  top-level estimate `rpath9_member_budget r RONE <= Suc (rsize r + rsize r)`.
+  to prove the final linear bound in one monolithic pass.
+- Checked `rpath9_member_budget_nested_star_not_linear`, which shows that the
+  raw budget is still too coarse for the final linear bound: nested stars make
+  it count an unnormalized carried tail. Added the tighter budget layer
+  `rpath9_tight_member_budget`/`rpath9_tight_member_budget_list`, the checked
+  soundness theorem
+  `rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget`, the top-level
+  interface `rpath9_atom_frontiers_tight_member_budget`, and the sanity fact
+  `rpath9_tight_member_budget_nested_star_linear_sanity`. Next step: prove the
+  top-level estimate
+  `rpath9_tight_member_budget r RONE <= Suc (rsize r + rsize r)`, or a
+  slightly larger linear bound with an updated cubic constant.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

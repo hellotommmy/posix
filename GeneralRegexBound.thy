@@ -11649,6 +11649,175 @@ proof -
     by (rule rpath9_atom_frontier_acc_rpath9_tail_member_budget)
 qed
 
+lemma rpath9_member_budget_nested_star_not_linear:
+  "Suc (rsize (RSTAR (RSTAR (RCHAR a))) +
+      rsize (RSTAR (RSTAR (RCHAR a)))) <
+    rpath9_member_budget (RSTAR (RSTAR (RCHAR a))) RONE"
+  by simp
+
+fun rpath9_tight_member_budget :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat"
+  and rpath9_tight_member_budget_list :: "rrexp list \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "rpath9_tight_member_budget RZERO k = 0"
+| "rpath9_tight_member_budget RONE k = 0"
+| "rpath9_tight_member_budget (RCHAR c) k = rsize (rpath9_tail k)"
+| "rpath9_tight_member_budget (RALTS rs) k =
+    rpath9_tight_member_budget_list rs k"
+| "rpath9_tight_member_budget (RSEQ r1 r2) k =
+    max (rpath9_tight_member_budget r1 (RSEQ r2 k))
+      (rpath9_tight_member_budget r2 k)"
+| "rpath9_tight_member_budget (RSTAR r) k =
+    rpath9_tight_member_budget r (RSEQ (RSTAR r) k)"
+| "rpath9_tight_member_budget (RNTIMES r n) k =
+    (if n = 0 then 0 else
+      rpath9_tight_member_budget r (RSEQ (RNTIMES r (n - 1)) k))"
+| "rpath9_tight_member_budget (RBACKREF4 r1 r2 r3 r4 cs) k =
+    max (rpath9_tight_member_budget r1 k)
+      (max (rpath9_tight_member_budget r2 k)
+        (max (rpath9_tight_member_budget r3 k)
+          (rpath9_tight_member_budget r4 k)))"
+| "rpath9_tight_member_budget (RHALF r cs rep) k =
+    rpath9_tight_member_budget r k"
+| "rpath9_tight_member_budget (RRESIDUE cs rep) k = 0"
+| "rpath9_tight_member_budget_list [] k = 0"
+| "rpath9_tight_member_budget_list (r # rs) k =
+    max (rpath9_tight_member_budget r k)
+      (rpath9_tight_member_budget_list rs k)"
+
+lemma rpath9_tight_member_budget_list_member_le:
+  assumes "r \<in> set rs"
+  shows "rpath9_tight_member_budget r k \<le>
+    rpath9_tight_member_budget_list rs k"
+  using assms by (induct rs) auto
+
+lemma rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget:
+  assumes "x \<in> rpath9_atom_frontier_acc r (rpath9_tail k)"
+  shows "rsize x \<le> rpath9_tight_member_budget r k"
+  using assms
+proof (induct r arbitrary: k x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  have "rsize x \<le> rsize (rpath9_tail k)"
+    using RCHAR.prems rfrontier_member_size_le_rsize by simp
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain r where r:
+      "r \<in> set rs"
+      "x \<in> rpath9_atom_frontier_acc r (rpath9_tail k)"
+    by auto
+  have "rsize x \<le> rpath9_tight_member_budget r k"
+    using RALTS.hyps[OF r(1) r(2)] .
+  also have "... \<le> rpath9_tight_member_budget_list rs k"
+    by (rule rpath9_tight_member_budget_list_member_le[OF r(1)])
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  then consider
+      "x \<in> rpath9_atom_frontier_acc r1
+        (rpath9_tail (RSEQ r2 k))"
+    | "x \<in> rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have "rsize x \<le> rpath9_tight_member_budget r1 (RSEQ r2 k)"
+      by (rule RSEQ.hyps(1)[OF 1])
+    then show ?thesis
+      by simp
+  next
+    case 2
+    have "rsize x \<le> rpath9_tight_member_budget r2 k"
+      by (rule RSEQ.hyps(2)[OF 2])
+    then show ?thesis
+      by simp
+  qed
+next
+  case (RSTAR r)
+  have x: "x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RSTAR r) k))"
+    using RSTAR.prems by simp
+  have "rsize x \<le> rpath9_tight_member_budget r (RSEQ (RSTAR r) k)"
+    by (rule RSTAR.hyps[OF x])
+  then show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case (Suc m)
+    have x: "x \<in> rpath9_atom_frontier_acc r
+        (rpath9_tail (RSEQ (RNTIMES r (n - 1)) k))"
+      using RNTIMES.prems Suc by simp
+    have "rsize x \<le> rpath9_tight_member_budget r
+        (RSEQ (RNTIMES r (n - 1)) k)"
+      by (rule RNTIMES.hyps[OF x])
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then consider
+      "x \<in> rpath9_atom_frontier_acc r1 (rpath9_tail k)"
+    | "x \<in> rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+    | "x \<in> rpath9_atom_frontier_acc r3 (rpath9_tail k)"
+    | "x \<in> rpath9_atom_frontier_acc r4 (rpath9_tail k)"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    then have "rsize x \<le> rpath9_tight_member_budget r1 k"
+      by (rule RBACKREF4.hyps(1))
+    then show ?thesis by simp
+  next
+    case 2
+    then have "rsize x \<le> rpath9_tight_member_budget r2 k"
+      by (rule RBACKREF4.hyps(2))
+    then show ?thesis by simp
+  next
+    case 3
+    then have "rsize x \<le> rpath9_tight_member_budget r3 k"
+      by (rule RBACKREF4.hyps(3))
+    then show ?thesis by simp
+  next
+    case 4
+    then have "rsize x \<le> rpath9_tight_member_budget r4 k"
+      by (rule RBACKREF4.hyps(4))
+    then show ?thesis by simp
+  qed
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rpath9_atom_frontiers_tight_member_budget:
+  assumes "x \<in> rpath9_atom_frontiers r"
+  shows "rsize x \<le> rpath9_tight_member_budget r RONE"
+proof -
+  have "x \<in> rpath9_atom_frontier_acc r (rpath9_tail RONE)"
+    using assms by (simp add: rpath9_atom_frontiers_def)
+  then show ?thesis
+    by (rule rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget)
+qed
+
+lemma rpath9_tight_member_budget_nested_star_linear_sanity:
+  "rpath9_tight_member_budget (RSTAR (RSTAR (RCHAR a))) RONE \<le>
+    Suc (rsize (RSTAR (RSTAR (RCHAR a))) +
+      rsize (RSTAR (RSTAR (RCHAR a))))"
+  by (simp add: rsimp7_SEQ_atom_def)
+
 lemma rsubterms_rsimp_ALTs_member:
   assumes "x \<in> set xs"
   shows "x \<in> rsubterms (rsimp_ALTs xs)"
