@@ -332,6 +332,18 @@ Last updated: 2026-06-01 (path9 stable-tail helper layer)
   current `bsimp` cannot prune the shared component in the
   `(a + b + d).c + (a + c + e).c` shape, even though the pruned erasure has the
   same language and smaller annotated size.
+  Added the first executable `bsimpStrong` prototype in `BlexerSimp.thy`.
+  It scans flattened alternative rows left-to-right and, for later rows of
+  the form `(X + Y).k` with the same continuation as an earlier
+  `(X + Z).k`, removes from the later left alternative the entries already
+  covered by the earlier row. The generic support lemma
+  `L_prune_eq1_against_AALTs` checks the erasure-language basis of this
+  deletion. The regression facts `thesis_ch7_bsimpStrong_prunes_overlap`,
+  `thesis_ch7_bsimpStrong_overlap_smaller`, and
+  `thesis_ch7_bsimpStrong_overlap_same_language` show that this prototype
+  performs the Chapter 7 overlap prune on `(a + b + d).c + (a + c + e).c`.
+  This is still not a BR-036 payout: production use needs a POSIX/bitcode
+  preservation theorem and derivative-size tests on the full evil family.
   Added the dual-frontier cubic hook:
   `quadratic_plus_linear_padding_bound`,
   `quadratic_plus_linear_times_linear_cubic_bound`, and

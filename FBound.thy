@@ -892,6 +892,23 @@ lemma thesis_ch7_overlap_pruned_same_language:
       thesis_ch7_a_def thesis_ch7_b_def thesis_ch7_c_def thesis_ch7_d_def
       thesis_ch7_e_def Sequ_def)
 
+lemma thesis_ch7_bsimpStrong_prunes_overlap:
+  "bsimpStrong thesis_ch7_overlap = thesis_ch7_overlap_pruned"
+  by (simp add: thesis_ch7_overlap_def thesis_ch7_overlap_pruned_def
+      thesis_ch7_a_def thesis_ch7_b_def thesis_ch7_c_def thesis_ch7_d_def
+      thesis_ch7_e_def bsimpStrong_AALTs_def bsimpStrong_prune_rows_def
+      bsimpStrong_prune_pair_def bsimp7_ASEQ_atom_def)
+
+lemma thesis_ch7_bsimpStrong_overlap_smaller:
+  "asize (bsimpStrong thesis_ch7_overlap) < asize thesis_ch7_overlap"
+  by (simp add: thesis_ch7_bsimpStrong_prunes_overlap
+      thesis_ch7_overlap_pruned_smaller)
+
+lemma thesis_ch7_bsimpStrong_overlap_same_language:
+  "L (erase (bsimpStrong thesis_ch7_overlap)) = L (erase thesis_ch7_overlap)"
+  by (simp add: thesis_ch7_bsimpStrong_prunes_overlap
+      thesis_ch7_overlap_pruned_same_language)
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])

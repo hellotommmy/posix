@@ -541,6 +541,138 @@ where
   "bders_simp8 r [] = r"
 | "bders_simp8 r (c # s) = bders_simp8 (bsimp8 (bder c r)) s"
 
+fun eq1_member :: "arexp \<Rightarrow> arexp list \<Rightarrow> bool" where
+  "eq1_member r [] = False"
+| "eq1_member r (x # xs) = (if r ~1 x then True else eq1_member r xs)"
+
+fun prune_eq1_against :: "arexp list \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "prune_eq1_against covered [] = []"
+| "prune_eq1_against covered (r # rs) =
+    (if eq1_member r covered then prune_eq1_against covered rs
+     else r # prune_eq1_against covered rs)"
+
+lemma eq1_member_set:
+  assumes "eq1_member r rs"
+  shows "\<exists>s \<in> set rs. r ~1 s"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "r ~1 x")
+    case True
+    then show ?thesis by simp
+  next
+    case False
+    then have "eq1_member r xs"
+      using Cons.prems by simp
+    then show ?thesis
+      using Cons.hyps by auto
+  qed
+qed
+
+lemma L_erase_AALTs_set:
+  "L (erase (AALTs bs rs)) = (\<Union>r \<in> set rs. L (erase r))"
+proof (induct rs arbitrary: bs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis by simp
+  next
+    case (Cons s ss)
+    have tail: "L (erase (AALTs bs rs)) = (\<Union>q \<in> set rs. L (erase q))"
+      using Cons.hyps by blast
+    show ?thesis
+      using Cons tail by auto
+  qed
+qed
+
+lemma prune_eq1_against_cover_UN:
+  "(\<Union>r \<in> set (covered @ prune_eq1_against covered rs). L (erase r)) =
+    (\<Union>r \<in> set (covered @ rs). L (erase r))"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "eq1_member r covered")
+    case True
+    then obtain s where s: "s \<in> set covered" "r ~1 s"
+      using eq1_member_set by blast
+    have covered: "L (erase r) \<subseteq>
+        (\<Union>q \<in> set covered. L (erase q))"
+      using s eq1_L by blast
+    show ?thesis
+      using Cons.hyps covered by auto
+  next
+    case False
+    then show ?thesis
+      using Cons.hyps by auto
+  qed
+qed
+
+lemma L_prune_eq1_against_AALTs:
+  "L (erase (AALTs bs (covered @ prune_eq1_against covered rs))) =
+    L (erase (AALTs bs (covered @ rs)))"
+  using prune_eq1_against_cover_UN[of covered rs]
+  by (simp add: L_erase_AALTs_set)
+
+definition bsimpStrong_prune_pair :: "arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimpStrong_prune_pair earlier later =
+    (case (earlier, later) of
+      (ASEQ bs1 (AALTs lbs lrs) k1, ASEQ bs2 (AALTs rbs rrs) k2) \<Rightarrow>
+        if k1 ~1 k2
+        then bsimp7_ASEQ_atom bs2
+          (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2
+        else later
+    | _ \<Rightarrow> later)"
+
+fun bsimpStrong_prune_against_rows :: "arexp list \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimpStrong_prune_against_rows [] r = r"
+| "bsimpStrong_prune_against_rows (x # xs) r =
+    bsimpStrong_prune_against_rows xs (bsimpStrong_prune_pair x r)"
+
+fun bsimpStrong_prune_rows_acc :: "arexp list \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bsimpStrong_prune_rows_acc seen [] = []"
+| "bsimpStrong_prune_rows_acc seen (r # rs) =
+    (let r' = bsimpStrong_prune_against_rows seen r
+     in r' # bsimpStrong_prune_rows_acc (r' # seen) rs)"
+
+definition bsimpStrong_prune_rows :: "arexp list \<Rightarrow> arexp list" where
+  "bsimpStrong_prune_rows rs = bsimpStrong_prune_rows_acc [] rs"
+
+definition bsimpStrong_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp" where
+  "bsimpStrong_AALTs bs rs =
+    bsimp_AALTs bs (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {})"
+
+fun bsimpStrong :: "arexp \<Rightarrow> arexp"
+where
+  "bsimpStrong (ASEQ bs r1 r2) =
+    bsimp7_ASEQ_atom bs (bsimpStrong r1) (bsimpStrong r2)"
+| "bsimpStrong (AALTs bs rs) =
+    bsimpStrong_AALTs bs (flts (map bsimpStrong rs))"
+| "bsimpStrong (ASTAR bs r) =
+    (case bsimpStrong r of
+      AZERO \<Rightarrow> AONE []
+    | AONE bs' \<Rightarrow> AONE []
+    | ASTAR bs' s \<Rightarrow> ASTAR bs' s
+    | s \<Rightarrow> ASTAR bs s)"
+| "bsimpStrong r = r"
+
+fun
+  bders_simpStrong :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simpStrong r [] = r"
+| "bders_simpStrong r (c # s) =
+    bders_simpStrong (bsimpStrong (bder c r)) s"
+
 fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
   "bpder_list c AZERO = []"
 | "bpder_list c (AONE bs) = []"

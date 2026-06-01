@@ -77,6 +77,19 @@ immutability.
   `bsimpStrong`/`prune` design is still needed: current `bsimp` leaves the
   `(a + b + d).c + (a + c + e).c` overlap untouched, while the pruned erasure
   is language-equivalent and smaller. This is not a bounty payout.
+- BR-037 has a first checked executable prototype, not a payout:
+  `bsimpStrong`, `bsimpStrong_prune_rows`, and
+  `bders_simpStrong` now live in `BlexerSimp.thy` on the original `arexp`
+  datatype. The generic lemma `L_prune_eq1_against_AALTs` checks the
+  erasure-language basis for deleting later alternatives covered by earlier
+  alternatives under `eq1`. The concrete Chapter 7 facts
+  `thesis_ch7_bsimpStrong_prunes_overlap`,
+  `thesis_ch7_bsimpStrong_overlap_smaller`, and
+  `thesis_ch7_bsimpStrong_overlap_same_language` show that the prototype
+  performs the missing `(a + b + d).c + (a + c + e).c` prune. Remaining
+  bounty requirements: POSIX/bitcode preservation, derivative-size regression
+  on the full evil family, and integration without weakening existing lexer
+  theorems.
 - BR-036 now also has the checked norm9-specific scaffold
   `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
   `partial_derivative_path9_atom_frontier_universe`,

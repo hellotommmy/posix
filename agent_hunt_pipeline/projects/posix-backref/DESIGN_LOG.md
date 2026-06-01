@@ -190,6 +190,20 @@ to be read before continuing long-running agent work.
   `thesis_ch7_overlap_pruned_same_language`). This is only an erasure-level
   safety sanity check; POSIX/bitcode preservation still needs a rewrite or
   retrieve/decode proof before this can become production `bsimpStrong`.
+- `BlexerSimp.thy` now contains the first executable `bsimpStrong` prototype
+  on the original `arexp` datatype. The core deletion is
+  `prune_eq1_against`: later alternatives are removed only when `eq1` matches
+  an earlier covered alternative. `L_prune_eq1_against_AALTs` is the generic
+  erasure-language safety lemma for that deletion. `bsimpStrong_prune_pair`
+  uses it in the Chapter 7 shape: if two sequence rows share the same
+  continuation under `eq1`, prune the later row's left alternative by the
+  earlier row's left alternative. The checked regression
+  `thesis_ch7_bsimpStrong_prunes_overlap` confirms that the prototype reduces
+  `(a + b + d).c + (a + c + e).c` to
+  `(a + b + d).c + (c + e).c`, with checked smaller size and same erasure
+  language. Do not mark this as production yet; the next design step is a
+  POSIX/bitcode preservation theorem and size tests against the full
+  `((a*) + ((aa)*) + ...)^**` evil family.
 - The dual-frontier route now has a checked conditional cubic hook:
   `rsizes_distinct_path_dual_frontier_universe_cubicI`. It reduces the
   remaining arithmetic/accounting work to two local obligations: prove
