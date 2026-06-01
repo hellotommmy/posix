@@ -75,7 +75,12 @@ immutability.
   `rpath9_atom_frontier_acc_RSEQ_rpath9_tail_member_sizeI`,
   `rpath9_atom_frontier_acc_RSTAR_rpath9_tail_member_sizeI`, and
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI` are also
-  checked. The
+  checked. The top-level raw-tail member-size interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tailI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tailI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tailI` are also
+  checked, exposing the `RSEQ ... RONE` outer frontier cases through
+  `rpath9_tail`. The
   checked accounting
   interface adds
   `partial_derivative_path9_atom_frontier_universe_card_le`,

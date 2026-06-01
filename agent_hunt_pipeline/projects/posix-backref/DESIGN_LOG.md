@@ -739,6 +739,12 @@ to be read before continuing long-running agent work.
   purpose is to keep the recursive member-size induction in raw-continuation
   syntax; `rpath9_tail (RSEQ p k)` is the named form of the expanded
   normalized tail.
+- Added the matching top-level raw-tail interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tailI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tailI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tailI`. These
+  facts bridge the public `rpath9_atom_frontiers` constructors to the raw-tail
+  induction premises, including the outer `RSEQ ... RONE` continuation shape.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-01 (path9 raw-tail size bridge)
+Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -26,6 +26,13 @@ Last updated: 2026-06-01 (path9 raw-tail size bridge)
   `rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI`. These
   expose the recursive obligations using `rpath9_tail (RSEQ ... k)` instead
   of the expanded `rsimp7_SEQ_atom (rsimp9 ...) (rpath9_tail k)` form.
+- Added checked top-level member-size interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tailI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tailI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tailI`. These let
+  the outer `rpath9_atom_frontiers` cases consume the raw-tail obligations
+  directly, rather than asking later proofs to re-expand the top-level
+  `RONE` continuation.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 
