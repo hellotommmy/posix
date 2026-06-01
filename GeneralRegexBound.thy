@@ -12601,6 +12601,237 @@ proof -
     by (rule assms[OF y_src])
 qed
 
+fun rtail_nf :: "rrexp \<Rightarrow> bool" where
+  "rtail_nf RZERO = True"
+| "rtail_nf RONE = True"
+| "rtail_nf (RCHAR c) = True"
+| "rtail_nf (RSEQ r1 r2) =
+    (rtail_nf r1 \<and> rnonseq r1 \<and> r1 \<noteq> RZERO \<and> r1 \<noteq> RONE \<and>
+     rtail_nf r2 \<and> r2 \<noteq> RZERO \<and> r2 \<noteq> RONE)"
+| "rtail_nf (RALTS rs) =
+    (\<forall>r \<in> set rs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO)"
+| "rtail_nf (RSTAR r) = True"
+| "rtail_nf (RNTIMES r n) = True"
+| "rtail_nf (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "rtail_nf (RHALF r cs rep) = True"
+| "rtail_nf (RRESIDUE cs rep) = True"
+
+lemma rtail_nf_RONE_stable:
+  assumes "rtail_nf r"
+  shows "rsimp4_SEQ_atom r RONE = r"
+  using assms
+proof (induction r)
+  case (RSEQ r1 r2)
+  have tail: "rsimp4_SEQ_atom r2 RONE = r2"
+    by (rule RSEQ.IH(2)) (use RSEQ.prems in simp)
+  show ?case
+    using RSEQ.prems tail
+    by (cases r1; cases r2) simp_all
+qed simp_all
+
+lemma rtail_nf_flat_member_props:
+  assumes nf: "rtail_nf r"
+    and y: "y \<in> set (rflts [r])"
+  shows "rtail_nf y \<and> nonalt y \<and> y \<noteq> RZERO"
+  using nf y by (cases r) auto
+
+lemma rtail_nf_flat_RONE_stable:
+  assumes nf: "rtail_nf r"
+    and y: "y \<in> set (rflts [r])"
+  shows "rsimp4_SEQ_atom y RONE = y"
+proof -
+  have "rtail_nf y"
+    using rtail_nf_flat_member_props[OF nf y] by blast
+  then show ?thesis
+    by (rule rtail_nf_RONE_stable)
+qed
+
+lemma rtail_nf_rsimp_ALTs:
+  assumes elems: "\<And>x. x \<in> set xs \<Longrightarrow>
+      rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  shows "rtail_nf (rsimp_ALTs xs)"
+proof (cases xs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons x ys)
+  then show ?thesis
+  proof (cases ys)
+    case Nil
+    then show ?thesis
+      using Cons elems[of x] by simp
+  next
+    case (Cons z zs)
+    have "xs = x # z # zs"
+      using \<open>xs = x # ys\<close> Cons by simp
+    then show ?thesis
+      using elems by simp
+  qed
+qed
+
+lemma rtail_nf_rsimp4_SEQ_atom:
+  assumes a: "rtail_nf a"
+    and b: "rtail_nf b"
+  shows "rtail_nf (rsimp4_SEQ_atom a b)"
+  using a b
+proof (induction a arbitrary: b)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RSEQ a1 a2)
+  have a1_nf: "rtail_nf a1"
+    using RSEQ.prems by simp
+  have a2_nf: "rtail_nf a2"
+    using RSEQ.prems by simp
+  have cont_nf: "rtail_nf (rsimp4_SEQ_atom a2 b)"
+    by (rule RSEQ.IH(2)[OF a2_nf RSEQ.prems(2)])
+  have a1_stable: "rsimp4_SEQ_atom a1 RONE = a1"
+    by (rule rtail_nf_RONE_stable[OF a1_nf])
+  show ?case
+    using RSEQ.prems cont_nf a1_stable
+    by (cases "rsimp4_SEQ_atom a2 b"; cases a1) simp_all
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases b) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases b) simp_all
+qed
+
+lemma rtail_nf_rsimp7_SEQ_atom:
+  assumes a: "rtail_nf a"
+    and b: "rtail_nf b"
+  shows "rtail_nf (rsimp7_SEQ_atom a b)"
+proof -
+  have fallback: "rtail_nf (rsimp4_SEQ_atom a b)"
+    by (rule rtail_nf_rsimp4_SEQ_atom[OF a b])
+  show ?thesis
+    using a b fallback
+    by (cases a; cases b)
+      (auto simp add: rsimp7_SEQ_atom_def split: if_splits rrexp.splits)
+qed
+
+lemma rtail_nf_rflts_map_rsimp9:
+  assumes ih: "\<And>q. q \<in> set rs \<Longrightarrow> rtail_nf (rsimp9 q)"
+    and x: "x \<in> set (rflts (map rsimp9 rs))"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  obtain q where q: "q \<in> set rs" "x \<in> set (rflts [rsimp9 q])"
+    using x by (rule set_rflts_map_memberE)
+  show ?thesis
+    by (rule rtail_nf_flat_member_props[OF ih[OF q(1)] q(2)])
+qed
+
+lemma rtail_nf_rsimp9:
+  "rtail_nf (rsimp9 r)"
+proof (induction r rule: rsimp9.induct)
+  case (1 r1 r2)
+  have nf1: "rtail_nf (rsimp9 r1)"
+    using 1 by blast
+  have nf2: "rtail_nf (rsimp9 r2)"
+    using 1 by blast
+  show ?case
+    by (simp add: rtail_nf_rsimp7_SEQ_atom[OF nf1 nf2])
+next
+  case (2 rs)
+  let ?flat = "rflts (map rsimp9 rs)"
+  let ?xs = "rdistinct ?flat {}"
+  have flat_props:
+    "\<And>x. x \<in> set ?flat \<Longrightarrow>
+      rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    by (rule rtail_nf_rflts_map_rsimp9) (use 2 in auto)
+  have xs_props:
+    "\<And>x. x \<in> set ?xs \<Longrightarrow>
+      rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  proof -
+    fix x
+    assume x: "x \<in> set ?xs"
+    have "x \<in> set ?flat"
+      using x rdistinct_set_equality1[of ?flat "{}"] by auto
+    then show "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+      by (rule flat_props)
+  qed
+  show ?case
+    by (simp add: rtail_nf_rsimp_ALTs[OF xs_props])
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimp9 r") simp_all
+next
+  case (4 r n)
+  then show ?case
+    by (cases n; cases "rsimp9 r") simp_all
+qed simp_all
+
+lemma rsimp4_SEQ_atom_RONE_stable_rsimp9_pair:
+  "rsimp4_SEQ_atom (rsimp9 r) RONE = rsimp9 r \<and>
+   (\<forall>y \<in> set (rflts [rsimp9 r]). rsimp4_SEQ_atom y RONE = y)"
+proof
+  show "rsimp4_SEQ_atom (rsimp9 r) RONE = rsimp9 r"
+    by (rule rtail_nf_RONE_stable[OF rtail_nf_rsimp9])
+  show "\<forall>y \<in> set (rflts [rsimp9 r]).
+      rsimp4_SEQ_atom y RONE = y"
+  proof
+    fix y
+    assume "y \<in> set (rflts [rsimp9 r])"
+    then show "rsimp4_SEQ_atom y RONE = y"
+      by (rule rtail_nf_flat_RONE_stable[OF rtail_nf_rsimp9])
+  qed
+qed
+
+lemma rsimp4_SEQ_atom_RONE_stable_rflts_map_rsimp9:
+  assumes y: "y \<in> set (rflts (map rsimp9 xs))"
+  shows "rsimp4_SEQ_atom y RONE = y"
+proof -
+  obtain q where q: "q \<in> set xs" "y \<in> set (rflts [rsimp9 q])"
+    using y by (rule set_rflts_map_memberE)
+  have "\<forall>x \<in> set (rflts [rsimp9 q]). rsimp4_SEQ_atom x RONE = x"
+    using rsimp4_SEQ_atom_RONE_stable_rsimp9_pair by blast
+  show ?thesis
+    using q(2) \<open>\<forall>x \<in> set (rflts [rsimp9 q]). rsimp4_SEQ_atom x RONE = x\<close>
+    by blast
+qed
+
+lemma rsimp4_SEQ_atom_RONE_stable_rflts_rsimp9:
+  assumes "y \<in> set (rflts [rsimp9 r])"
+  shows "rsimp4_SEQ_atom y RONE = y"
+  using rsimp4_SEQ_atom_RONE_stable_rflts_map_rsimp9[of y "[r]"]
+    assms by simp
+
+lemma rsimp4_SEQ_atom_RONE_stable_rsimp9:
+  "rsimp4_SEQ_atom (rsimp9 r) RONE = rsimp9 r"
+  using rsimp4_SEQ_atom_RONE_stable_rsimp9_pair by blast
+
+lemma rsimp9_rsimp4_SEQ_atom_rsimp9_RONE:
+  "rsimp9 (rsimp4_SEQ_atom (rsimp9 r) RONE) = rsimp9 (rsimp9 r)"
+  by (simp add: rsimp4_SEQ_atom_RONE_stable_rsimp9)
+
 lemma rflts_good_singleton_frontier:
   assumes "good r \<or> r = RZERO"
   shows "set (rflts [r]) \<subseteq> rfrontier r"

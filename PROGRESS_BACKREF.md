@@ -4964,6 +4964,41 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   because `BPrf.intros(7)` pattern `BStars (vs1 @ vs2)` does not unify with
   `BStars (v # ws1 @ ws2)` (Cons vs append).
 
+## Cubic Bound Research: rsimp9 RONE Stability (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex heartbeat lane
+- Files changed: `GeneralRegexBound.thy`, `PROGRESS_BACKREF.md`,
+  `agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md`
+- New checked invariant:
+  - `rtail_nf`: proof-only right-tail normal form for the `rrexp` bound layer.
+    It rules out the sequence shapes that `rsimp4_SEQ_atom _ RONE` would still
+    reassociate or erase.
+- New checked lemmas:
+  - `rtail_nf_RONE_stable`
+  - `rtail_nf_flat_member_props`
+  - `rtail_nf_flat_RONE_stable`
+  - `rtail_nf_rsimp_ALTs`
+  - `rtail_nf_rsimp4_SEQ_atom`
+  - `rtail_nf_rsimp7_SEQ_atom`
+  - `rtail_nf_rflts_map_rsimp9`
+  - `rtail_nf_rsimp9`
+  - `rsimp4_SEQ_atom_RONE_stable_rsimp9_pair`
+  - `rsimp4_SEQ_atom_RONE_stable_rflts_map_rsimp9`
+  - `rsimp4_SEQ_atom_RONE_stable_rflts_rsimp9`
+  - `rsimp4_SEQ_atom_RONE_stable_rsimp9`
+  - `rsimp9_rsimp4_SEQ_atom_rsimp9_RONE`
+- Design result:
+  - The earlier tempting lemma "if a list is stable then `rflts` of the list is
+    stable" is false: flattening can expose unstable sequence payloads hidden
+    under an alternative. The checked replacement proves stability through the
+    exact normal-form invariant produced by `rsimp9`.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
+  300s guard.
+- Next step: use `rsimp4_SEQ_atom_RONE_stable_rsimp9` and the flat-member
+  variant to close the carried-continuation bridge for general `RSEQ`, then
+  reuse it for `RSTAR` and nonzero `RNTIMES`.
+
 ## Governance Upgrade (2026-05-25)
 
 - Branch: `codex/backref-values`

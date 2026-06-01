@@ -922,3 +922,13 @@ to be read before continuing long-running agent work.
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
   continuation. That should discharge the remaining linear member-size premise
   for the path9 cubic hook.
+- The first general `rsimp9` right-tail stability layer is checked. The useful
+  invariant is not merely `good`/`nonalt`: a non-alt sequence such as a hidden
+  `RSEQ RONE r` can still be changed by `rsimp4_SEQ_atom _ RONE`. The new
+  proof-only predicate `rtail_nf` records the exact right-associated,
+  no-trailing-one normal form preserved by `rsimp4_SEQ_atom`,
+  `rsimp7_SEQ_atom`, `rsimp_ALTs`, and `rsimp9`. From it we now have both
+  top-level stability
+  `rsimp4_SEQ_atom (rsimp9 r) RONE = rsimp9 r` and the corresponding
+  `rflts [rsimp9 r]` member stability. This replaces the false generic
+  "stable list implies stable flattened list" attempt.
