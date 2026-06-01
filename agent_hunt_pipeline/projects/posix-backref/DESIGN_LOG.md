@@ -776,6 +776,12 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_tight_member_budget`; the sanity lemma
   `rpath9_tight_member_budget_nested_star_linear_sanity` confirms the nested
   star obstruction is repaired by the tight budget.
+- The tight budget has now been related back to the raw budget by
+  `rpath9_tight_member_budget_le_member_budget` (and the list helper), so it is
+  a verified strengthening of the prior sound budget. The checked witness
+  `rpath9_tight_member_budget_nested_star_less_raw` records that this
+  strengthening is strict on the nested-star obstruction that defeated the raw
+  budget.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

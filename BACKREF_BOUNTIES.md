@@ -100,10 +100,13 @@ immutability.
   `rpath9_member_budget_nested_star_not_linear` shows this raw budget is too
   coarse for the final linear bound. The tighter checked layer
   `rpath9_tight_member_budget`, `rpath9_tight_member_budget_list`,
+  `rpath9_tight_member_budget_le_member_budget`,
   `rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget`,
   `rpath9_atom_frontiers_tight_member_budget`, and
   `rpath9_tight_member_budget_nested_star_linear_sanity` is the current route
-  for the remaining linear member-size premise.
+  for the remaining linear member-size premise. The checked
+  `rpath9_tight_member_budget_nested_star_less_raw` witness records that the
+  tight budget strictly improves the raw budget on the nested-star obstruction.
   The
   checked accounting
   interface adds

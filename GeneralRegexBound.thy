@@ -11689,6 +11689,89 @@ lemma rpath9_tight_member_budget_list_member_le:
     rpath9_tight_member_budget_list rs k"
   using assms by (induct rs) auto
 
+lemma rpath9_tight_member_budget_list_le_member_budget:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow>
+    rpath9_tight_member_budget r k \<le> rpath9_member_budget r k"
+  shows "rpath9_tight_member_budget_list rs k \<le>
+    rpath9_member_budget_list rs k"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "rpath9_tight_member_budget r k \<le>
+      rpath9_member_budget r k"
+    using Cons.prems by simp
+  have tail: "rpath9_tight_member_budget_list rs k \<le>
+      rpath9_member_budget_list rs k"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using max.mono[OF head tail] by simp
+qed
+
+lemma rpath9_tight_member_budget_le_member_budget:
+  "rpath9_tight_member_budget r k \<le> rpath9_member_budget r k"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: rsize_rpath9_tail_le)
+next
+  case (RALTS rs)
+  then show ?case
+    by (simp add: rpath9_tight_member_budget_list_le_member_budget)
+next
+  case (RSEQ r1 r2)
+  have left: "rpath9_tight_member_budget r1 (RSEQ r2 k) \<le>
+      rpath9_member_budget r1 (RSEQ r2 k)"
+    by (rule RSEQ.hyps(1))
+  have right: "rpath9_tight_member_budget r2 k \<le>
+      rpath9_member_budget r2 k"
+    by (rule RSEQ.hyps(2))
+  show ?case
+    using max.mono[OF left right] by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have r1: "rpath9_tight_member_budget r1 k \<le> rpath9_member_budget r1 k"
+    by (rule RBACKREF4.hyps(1))
+  have r2: "rpath9_tight_member_budget r2 k \<le> rpath9_member_budget r2 k"
+    by (rule RBACKREF4.hyps(2))
+  have r3: "rpath9_tight_member_budget r3 k \<le> rpath9_member_budget r3 k"
+    by (rule RBACKREF4.hyps(3))
+  have r4: "rpath9_tight_member_budget r4 k \<le> rpath9_member_budget r4 k"
+    by (rule RBACKREF4.hyps(4))
+  have inner: "max (rpath9_tight_member_budget r3 k)
+      (rpath9_tight_member_budget r4 k) \<le>
+    max (rpath9_member_budget r3 k) (rpath9_member_budget r4 k)"
+    by (rule max.mono[OF r3 r4])
+  have mid: "max (rpath9_tight_member_budget r2 k)
+      (max (rpath9_tight_member_budget r3 k)
+        (rpath9_tight_member_budget r4 k)) \<le>
+    max (rpath9_member_budget r2 k)
+      (max (rpath9_member_budget r3 k) (rpath9_member_budget r4 k))"
+    by (rule max.mono[OF r2 inner])
+  show ?case
+    using max.mono[OF r1 mid] by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget:
   assumes "x \<in> rpath9_atom_frontier_acc r (rpath9_tail k)"
   shows "rsize x \<le> rpath9_tight_member_budget r k"
@@ -11816,6 +11899,11 @@ lemma rpath9_tight_member_budget_nested_star_linear_sanity:
   "rpath9_tight_member_budget (RSTAR (RSTAR (RCHAR a))) RONE \<le>
     Suc (rsize (RSTAR (RSTAR (RCHAR a))) +
       rsize (RSTAR (RSTAR (RCHAR a))))"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma rpath9_tight_member_budget_nested_star_less_raw:
+  "rpath9_tight_member_budget (RSTAR (RSTAR (RCHAR a))) RONE <
+    rpath9_member_budget (RSTAR (RSTAR (RCHAR a))) RONE"
   by (simp add: rsimp7_SEQ_atom_def)
 
 lemma rsubterms_rsimp_ALTs_member:

@@ -62,7 +62,13 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   soundness theorem
   `rpath9_atom_frontier_acc_rpath9_tail_tight_member_budget`, the top-level
   interface `rpath9_atom_frontiers_tight_member_budget`, and the sanity fact
-  `rpath9_tight_member_budget_nested_star_linear_sanity`. Next step: prove the
+  `rpath9_tight_member_budget_nested_star_linear_sanity`.
+- Checked `rpath9_tight_member_budget_le_member_budget` and its list helper,
+  proving the tight layer is a monotone strengthening of the raw budget rather
+  than a different over-approximation. The witness
+  `rpath9_tight_member_budget_nested_star_less_raw` also confirms the tight
+  layer strictly improves the exact nested-star case where the raw budget
+  exceeded the intended linear bound. Next step: prove the
   top-level estimate
   `rpath9_tight_member_budget r RONE <= Suc (rsize r + rsize r)`, or a
   slightly larger linear bound with an updated cubic constant.
