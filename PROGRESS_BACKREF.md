@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 rsimp9-RALTS character bridges)
+Last updated: 2026-06-02 (path9 normalized-tail RSEQ bridges)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -171,6 +171,26 @@ Last updated: 2026-06-02 (path9 rsimp9-RALTS character bridges)
   `rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp9_RALTS_RCHARs`, and
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp9_RALTS_RCHARs` now apply
   directly to `rsimp9 (RALTS rs)` in the character-alternative case.
+- Added checked normalized-tail RSEQ bridges:
+  `rder_path_continuations_acc_RCHAR_left_path9_rsimp9`,
+  `rder_path_continuations_acc_RCHAR_alt_left_path9_rsimp9`,
+  `rder_path_continuations_acc_RALTS_RCHARs_left_path9_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_rsimp9`, and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_rsimp9`.
+  These instantiate the new `rsimp9` right-tail stability invariant for
+  arbitrary normalized right tails `rsimp9 r2`, replacing the older
+  constructor-by-constructor RZERO/RONE/RCHAR/RSTAR/RNTIMES packages in this
+  character-left lane.
+- Build: full local CI PASS with no certificate via
+  `powershell -NoProfile -ExecutionPolicy Bypass -File
+  agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate
+  -Role admin -SessionTimeoutSeconds 240`.
+- Next smallest safe step: generalize the carried-left closure beyond
+  character-only alternatives, especially the nested `RSEQ` left branch, using
+  the normalized-tail bridges rather than adding more right-tail constructor
+  cases.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

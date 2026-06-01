@@ -13076,6 +13076,15 @@ lemma rder_path_continuations_acc_RCHAR_left_path9_RNTIMES:
   by (rule rder_path_continuations_acc_RCHAR_left_path9_stable)
     (use assms in \<open>simp_all split: rrexp.splits\<close>)
 
+lemma rder_path_continuations_acc_RCHAR_left_path9_rsimp9:
+  assumes "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (rsimp9 r2) RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) (rsimp9 r2))"
+  by (rule rder_path_continuations_acc_RCHAR_left_path9_stable)
+    (use assms rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9 in simp_all)
+
 lemma rpath9_atom_frontiers_seq_alt_left_subset:
   assumes "q \<in> set rs"
   shows "rpath9_atom_frontier_acc q
@@ -13159,6 +13168,28 @@ proof (rule rder_path_continuations_acc_RALTS_carriedI[OF _ p])
     by (rule rder_path_continuations_acc_RCHAR_alt_left_path9_stable
         [OF q_char norm_tail stable p_char])
 qed
+
+lemma rder_path_continuations_acc_RCHAR_alt_left_path9_rsimp9:
+  assumes q: "RCHAR d \<in> set rs"
+    and p: "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (rsimp9 r2) RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RALTS rs) (rsimp9 r2))"
+  by (rule rder_path_continuations_acc_RCHAR_alt_left_path9_stable)
+    (use q p rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9 in simp_all)
+
+lemma rder_path_continuations_acc_RALTS_RCHARs_left_path9_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and p: "p \<in> rder_path_continuations_acc c (RALTS rs)
+      (rsimp4_SEQ_atom (rsimp9 r2) RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RALTS rs) (rsimp9 r2))"
+  by (rule rder_path_continuations_acc_RALTS_RCHARs_left_path9_stable)
+    (use chars p rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9 in simp_all)
 
 lemma rpder_norm9_path9_atom_frontier_step_RZERO [simp]:
   "set (rflts (rpder_norm9_list c RZERO)) \<subseteq>
@@ -13452,6 +13483,14 @@ lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RNTIMES:
   by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
     (simp_all split: rrexp.splits)
 
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_rsimp9:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) (rsimp9 r2)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RCHAR d) (rsimp9 r2))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    (simp_all add: rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9)
+
 lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable:
   assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
     and norm_tail:
@@ -13535,6 +13574,16 @@ lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_RNTIMES:
       (RSEQ (RALTS rs) (RNTIMES r n))"
   by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable)
     (use chars in \<open>simp_all split: rrexp.splits\<close>)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c
+      (RSEQ (RALTS rs) (rsimp9 r2)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RALTS rs) (rsimp9 r2))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable)
+    (use chars rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9 in simp_all)
 
 lemma rflts_RCHARs_eq:
   assumes chars: "\<And>q. q \<in> set xs \<Longrightarrow> \<exists>d. q = RCHAR d"
@@ -13674,6 +13723,26 @@ proof -
   then show ?thesis
     by simp
 qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c
+      (RSEQ (rsimp_ALTs rs) (rsimp9 r2)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (rsimp_ALTs rs) (rsimp9 r2))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable)
+    (use chars in \<open>simp_all add: rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9\<close>)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_rsimp9:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c
+      (RSEQ (rsimp9 (RALTS rs)) (rsimp9 r2)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (rsimp9 (RALTS rs)) (rsimp9 r2))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_stable)
+    (use chars in \<open>simp_all add: rsimp9_rsimp4_SEQ_atom_rsimp9_RONE
+      rsimp4_SEQ_atom_RONE_stable_rsimp9\<close>)
 
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   assumes body:

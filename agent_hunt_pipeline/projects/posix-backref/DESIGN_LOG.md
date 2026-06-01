@@ -932,3 +932,15 @@ to be read before continuing long-running agent work.
   `rsimp4_SEQ_atom (rsimp9 r) RONE = rsimp9 r` and the corresponding
   `rflts [rsimp9 r]` member stability. This replaces the false generic
   "stable list implies stable flattened list" attempt.
+- The right-tail stability layer now feeds the path9 RSEQ closure lane for
+  arbitrary normalized right tails. Checked bridges include
+  `rder_path_continuations_acc_RCHAR_left_path9_rsimp9`,
+  `rder_path_continuations_acc_RCHAR_alt_left_path9_rsimp9`,
+  `rder_path_continuations_acc_RALTS_RCHARs_left_path9_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_rsimp9`,
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_rsimp9`, and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp9_RALTS_RCHARs_rsimp9`.
+  This removes the need for separate RZERO/RONE/RCHAR/RSTAR/RNTIMES right-tail
+  packages in the character-left and character-alternative RSEQ lane. General
+  alternatives and nested `RSEQ` left branches remain the next closure target.
