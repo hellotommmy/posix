@@ -1025,3 +1025,16 @@ to be read before continuing long-running agent work.
   production simplifier theorem or bounty payout, but it is the first checked
   bound-layer bridge from the carry9 obstruction toward the stronger
   simplifier route.
+- The proof-level hook has been extended from one pair to a real multi-row
+  simplifier: `rsimpStrong_prune_against_rows`,
+  `rsimpStrong_prune_rows_acc`, `rsimpStrong_prune_rows`,
+  `rsimpStrong_ALTs`, and `rsimpStrong`. The proof avoids a monolithic
+  search step by using small `RALTS` set/order congruence lemmas and explicit
+  star cases. `RL_rsimpStrong` proves the simplifier preserves plain
+  language, and `RL_rders_simpStrong` proves the derivative loop with
+  interleaved `rsimpStrong` still computes `Ders`. The size regression
+  `thesis_ch7_rsimpStrong_ALTs_overlap_smaller` confirms the multi-row
+  version strictly shrinks the Chapter-7 overlap example. Remaining production
+  work is still substantial: integrate the idea with annotated `arexp`
+  POSIX/bitcode preservation and prove a general cubic bound rather than only
+  language preservation and a local shrink regression.

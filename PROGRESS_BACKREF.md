@@ -5146,23 +5146,46 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - New checked definitions:
   - `rprune_eq_against`
   - `rsimpStrong_prune_pair`
+  - `rsimpStrong_prune_against_rows`
+  - `rsimpStrong_prune_rows_acc`
+  - `rsimpStrong_prune_rows`
+  - `rsimpStrong_ALTs`
+  - `rsimpStrong`
+  - `rders_simpStrong`
 - New checked language facts:
   - `set_append_rprune_eq_against`
   - `RL_rprune_eq_against_cover_UN`
   - `RL_rprune_eq_against_shared_suffix`
   - `RL_rsimpStrong_prune_pair_shared_suffix`
+  - `RL_rsimpStrong_prune_pair_with_earlier`
+  - `RL_rsimpStrong_prune_against_rows`
+  - `RL_rsimpStrong_prune_rows_acc`
+  - `RL_rsimpStrong_prune_rows`
+  - `RL_rsimpStrong_ALTs`
+  - `RL_rsimpStrong`
+  - `RL_rders_simpStrong`
 - New checked Chapter-7 regression facts:
   - `thesis_ch7_rstrong_prunes_overlap`
   - `thesis_ch7_rstrong_overlap_same_language`
+  - `thesis_ch7_rsimpStrong_ALTs_prunes_overlap`
+  - `thesis_ch7_rsimpStrong_ALTs_overlap_smaller`
+  - `thesis_ch7_rsimpStrong_same_language`
 - Design result:
   - The bound layer now has a small proof-level analogue of the `bsimpStrong`
     shared-suffix deletion: for two rows `RSEQ (RALTS lrs) k` and
     `RSEQ (RALTS rrs) k`, the later row may remove left alternatives already
     covered by the earlier row while preserving erased language.
+  - The pair rule is now lifted to a full left-to-right row scanner and an
+    `rsimpStrong` proof-level simplifier. The checked theorem
+    `RL_rsimpStrong` proves it preserves `RL`, and `RL_rders_simpStrong`
+    proves repeated derivatives interleaved with this simplifier still compute
+    `Ders`.
   - This directly checks the core Chapter-7 pattern behind
     `(a+b)c + (a+d)c -> (a+b)c + dc` when `d` is fresh with respect to
     `a,b`. If `d` is already covered, the later row correctly collapses
-    further instead of producing `dc`.
+    further instead of producing `dc`. The checked size regression
+    `thesis_ch7_rsimpStrong_ALTs_overlap_smaller` proves the multi-row
+    simplifier strictly shrinks that overlap example.
   - This is deliberately not a production `bsimpStrong` payout: it is an
     `rrexp`/language-only prototype for the cubic-bound route. POSIX/bitcode
     preservation and the full repeated-derivative cubic theorem are still open.

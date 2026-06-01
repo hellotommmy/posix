@@ -15856,6 +15856,321 @@ lemma thesis_ch7_rstrong_overlap_same_language:
        RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)])"
   by (rule RL_rsimpStrong_prune_pair_shared_suffix)
 
+lemma RL_rsimpStrong_prune_pair_with_earlier:
+  "RL earlier \<union> RL (rsimpStrong_prune_pair earlier later) =
+    RL earlier \<union> RL later"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    show ?thesis
+      using RL_rsimpStrong_prune_pair_shared_suffix[of lrs k rrs] shared
+      by simp
+  next
+    case other
+    have "rsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      by simp
+  qed
+qed
+
+fun rsimpStrong_prune_against_rows :: "rrexp list \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpStrong_prune_against_rows [] r = r"
+| "rsimpStrong_prune_against_rows (x # xs) r =
+    rsimpStrong_prune_against_rows xs (rsimpStrong_prune_pair x r)"
+
+fun rsimpStrong_prune_rows_acc :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimpStrong_prune_rows_acc seen [] = []"
+| "rsimpStrong_prune_rows_acc seen (r # rs) =
+    (let r' = rsimpStrong_prune_against_rows seen r
+     in r' # rsimpStrong_prune_rows_acc (r' # seen) rs)"
+
+definition rsimpStrong_prune_rows :: "rrexp list \<Rightarrow> rrexp list" where
+  "rsimpStrong_prune_rows rs = rsimpStrong_prune_rows_acc [] rs"
+
+definition rsimpStrong_ALTs :: "rrexp list \<Rightarrow> rrexp" where
+  "rsimpStrong_ALTs rs =
+    rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows rs)) {})"
+
+lemma RL_rsimpStrong_prune_against_rows:
+  "RL (RALTS (seen @ [rsimpStrong_prune_against_rows seen r])) =
+    RL (RALTS (seen @ [r]))"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair x r"
+  have tail:
+    "RL (RALTS (xs @ [rsimpStrong_prune_against_rows xs ?p])) =
+      RL (RALTS (xs @ [?p]))"
+    by (rule Cons.hyps)
+  have pair: "RL x \<union> RL ?p = RL x \<union> RL r"
+    by (rule RL_rsimpStrong_prune_pair_with_earlier)
+  show ?case
+    using tail pair by auto
+qed
+
+lemma RL_RALTS_set_eq:
+  assumes "set xs = set ys"
+  shows "RL (RALTS xs) = RL (RALTS ys)"
+  using assms by auto
+
+lemma RL_RALTS_append_cong:
+  assumes "RL (RALTS xs) = RL (RALTS ys)"
+  shows "RL (RALTS (xs @ zs)) = RL (RALTS (ys @ zs))"
+  using assms by auto
+
+lemma RL_rsimpStrong_prune_rows_acc:
+  "RL (RALTS (seen @ rsimpStrong_prune_rows_acc seen rs)) =
+    RL (RALTS (seen @ rs))"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows seen r"
+  have tail:
+    "RL (RALTS ((?r' # seen) @ rsimpStrong_prune_rows_acc (?r' # seen) rs)) =
+      RL (RALTS ((?r' # seen) @ rs))"
+    by (rule Cons.hyps)
+  have head: "RL (RALTS (seen @ [?r'])) = RL (RALTS (seen @ [r]))"
+    by (rule RL_rsimpStrong_prune_against_rows)
+  have tail_seen:
+    "RL (RALTS (seen @ ?r' #
+        rsimpStrong_prune_rows_acc (?r' # seen) rs)) =
+      RL (RALTS (seen @ ?r' # rs))"
+  proof -
+    have left:
+      "set (seen @ ?r' # rsimpStrong_prune_rows_acc (?r' # seen) rs) =
+        set ((?r' # seen) @ rsimpStrong_prune_rows_acc (?r' # seen) rs)"
+      by auto
+    have right: "set (seen @ ?r' # rs) = set ((?r' # seen) @ rs)"
+      by auto
+    show ?thesis
+      using tail RL_RALTS_set_eq[OF left] RL_RALTS_set_eq[OF right]
+      by simp
+  qed
+  have head_tail:
+    "RL (RALTS (seen @ ?r' # rs)) = RL (RALTS (seen @ r # rs))"
+  proof -
+    have "RL (RALTS ((seen @ [?r']) @ rs)) =
+        RL (RALTS ((seen @ [r]) @ rs))"
+      by (rule RL_RALTS_append_cong[OF head])
+    then show ?thesis
+      by simp
+  qed
+  show ?case
+  proof -
+    have start_set:
+      "set (seen @ rsimpStrong_prune_rows_acc seen (r # rs)) =
+        set (seen @ ?r' # rsimpStrong_prune_rows_acc (?r' # seen) rs)"
+      by (simp add: Let_def)
+    have "RL (RALTS (seen @ rsimpStrong_prune_rows_acc seen (r # rs))) =
+        RL (RALTS (seen @ ?r' #
+          rsimpStrong_prune_rows_acc (?r' # seen) rs))"
+      by (rule RL_RALTS_set_eq[OF start_set])
+    also have "... = RL (RALTS (seen @ ?r' # rs))"
+      by (rule tail_seen)
+    also have "... = RL (RALTS (seen @ r # rs))"
+      by (rule head_tail)
+    finally show ?thesis
+      by simp
+  qed
+qed
+
+lemma RL_rsimpStrong_prune_rows:
+  "RL (RALTS (rsimpStrong_prune_rows rs)) = RL (RALTS rs)"
+  using RL_rsimpStrong_prune_rows_acc[of "[]" rs]
+  by (simp add: rsimpStrong_prune_rows_def)
+
+lemma RL_rsimpStrong_ALTs:
+  "RL (rsimpStrong_ALTs rs) = RL (RALTS rs)"
+proof -
+  have "RL (rsimpStrong_ALTs rs) =
+      RL (RALTS (rsimpStrong_prune_rows rs))"
+    by (simp add: rsimpStrong_ALTs_def RL_rsimp_ALTs_normalize)
+  also have "... = RL (RALTS rs)"
+    by (rule RL_rsimpStrong_prune_rows)
+  finally show ?thesis .
+qed
+
+fun rsimpStrong :: "rrexp \<Rightarrow> rrexp" where
+  "rsimpStrong RZERO = RZERO"
+| "rsimpStrong RONE = RONE"
+| "rsimpStrong (RCHAR c) = RCHAR c"
+| "rsimpStrong (RSEQ r1 r2) =
+    rsimp7_SEQ_atom (rsimpStrong r1) (rsimpStrong r2)"
+| "rsimpStrong (RALTS rs) =
+    rsimpStrong_ALTs (rflts (map rsimpStrong rs))"
+| "rsimpStrong (RSTAR r) =
+    (case rsimpStrong r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimpStrong (RNTIMES r n) = RNTIMES r n"
+| "rsimpStrong (RBACKREF4 r1 r2 r3 r4 cs) = RBACKREF4 r1 r2 r3 r4 cs"
+| "rsimpStrong (RHALF r cs rep) = RHALF r cs rep"
+| "rsimpStrong (RRESIDUE cs rep) = RRESIDUE cs rep"
+
+lemma RL_rsimpStrong:
+  "RL (rsimpStrong r) = RL r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (simp add: RL_rsimp7_SEQ_atom)
+next
+  case (RALTS rs)
+  have "RL (rsimpStrong (RALTS rs)) =
+      RL (RALTS (rflts (map rsimpStrong rs)))"
+    by (simp add: RL_rsimpStrong_ALTs)
+  also have "... = RL (RALTS (map rsimpStrong rs))"
+    using RL_rsimp_rflts[of "map rsimpStrong rs"] by simp
+  also have "... = RL (RALTS rs)"
+    using RALTS by auto
+  finally show ?case .
+next
+  case (RSTAR r)
+  note outer = RSTAR
+  show ?case
+  proof (cases "rsimpStrong r")
+    case RZERO
+    then show ?thesis
+      using outer by simp
+  next
+    case RONE
+    then have "RL r = {[]}"
+      using outer by simp
+    then show ?thesis
+      using RONE by simp
+  next
+    case (RCHAR x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RALTS x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSTAR x)
+    then have "RL r = (RL x)\<star>"
+      using outer by simp
+    then show ?thesis
+      using RSTAR by (simp add: Star_idem)
+  next
+    case (RNTIMES x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RHALF x1 x2 x3)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RRESIDUE x1 x2)
+    then show ?thesis
+      using outer by simp
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 x5)
+  then show ?case by simp
+next
+  case (RHALF r x2 x3)
+  then show ?case by simp
+next
+  case (RRESIDUE x1 x2)
+  then show ?case by simp
+qed
+
+fun rders_simpStrong :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "rders_simpStrong r [] = r"
+| "rders_simpStrong r (c # s) =
+    rders_simpStrong (rsimpStrong (rder c r)) s"
+
+lemma RL_rders_simpStrong:
+  "RL (rders_simpStrong r s) = Ders s (RL r)"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have "RL (rders_simpStrong r (c # s)) =
+      RL (rders_simpStrong (rsimpStrong (rder c r)) s)"
+    by simp
+  also have "... = Ders s (RL (rsimpStrong (rder c r)))"
+    by (rule Cons.hyps)
+  also have "... = Ders s (RL (rder c r))"
+    by (simp add: RL_rsimpStrong)
+  also have "... = Ders (c # s) (RL r)"
+    by (simp add: Ders_def Der_def RL_rder)
+  finally show ?case .
+qed
+
+lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
+  assumes "d \<noteq> a" "d \<noteq> b"
+  shows
+    "rsimpStrong_ALTs
+      [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+       RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)] =
+    RALTS
+      [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+       RSEQ (RCHAR d) (RCHAR c)]"
+  using assms
+  by (simp add: rsimpStrong_ALTs_def rsimpStrong_prune_rows_def
+      rsimpStrong_prune_pair_def rsimp7_SEQ_atom_def)
+
+lemma thesis_ch7_rsimpStrong_ALTs_overlap_smaller:
+  assumes "d \<noteq> a" "d \<noteq> b"
+  shows
+    "rsize
+      (rsimpStrong_ALTs
+        [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+         RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)])
+      <
+     rsize
+      (RALTS
+        [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+         RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)])"
+  using assms
+  by (simp add: thesis_ch7_rsimpStrong_ALTs_prunes_overlap)
+
+lemma thesis_ch7_rsimpStrong_same_language:
+  "RL (rsimpStrong r) = RL r"
+  by (rule RL_rsimpStrong)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
