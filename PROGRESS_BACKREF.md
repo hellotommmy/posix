@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (bsimpStrong erasure-language checkpoint)
+Last updated: 2026-06-02 (carried-continuation splitter checkpoint)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -118,6 +118,16 @@ Last updated: 2026-06-02 (bsimpStrong erasure-language checkpoint)
   local and constructor-guided; they avoid the slow global associativity proof
   shape seen in scratch, and are intended to close the remaining `RALTS` and
   nested-sequence right-tail stability cases for the `RSEQ` bridge.
+- Added the checked carried-continuation splitter layer
+  `rflts_singleton_rsimp9_frontier`,
+  `rder_path_continuations_acc_RCHAR_frontierI`,
+  `rder_path_continuations_acc_RALTS_carriedI`,
+  `rder_path_continuations_acc_RSEQ_carriedI`,
+  `rder_path_continuations_acc_RSTAR_carriedI`, and
+  `rder_path_continuations_acc_RNTIMES_carriedI`. These are intentionally
+  universe-parametric: later path9 closure proofs can decompose the derivative
+  path structurally and discharge the actual target universe locally, instead
+  of unfolding the whole derivative and simplifier at once.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

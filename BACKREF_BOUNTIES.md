@@ -180,6 +180,14 @@ immutability.
   `rder_path_continuations_acc_RCHAR_left_path9_RNTIMES`. These facts expose
   the exact norm-tail stability assumptions needed for `RALTS` and nested
   `RSEQ`; they are progress evidence only and do not close BR-036.
+  The carried-continuation splitter layer now also includes
+  `rder_path_continuations_acc_RCHAR_frontierI`,
+  `rder_path_continuations_acc_RALTS_carriedI`,
+  `rder_path_continuations_acc_RSEQ_carriedI`,
+  `rder_path_continuations_acc_RSTAR_carriedI`, and
+  `rder_path_continuations_acc_RNTIMES_carriedI`. These are
+  universe-parametric scaffold facts for the path9 one-step closure and are
+  not a payout claim.
   The
   checked accounting
   interface adds

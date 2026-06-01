@@ -882,6 +882,11 @@ to be read before continuing long-running agent work.
   helper lemmas for pruning, flattening, distinctness, and star cases; avoid
   replacing it with broad `auto`/datatype-split commands. This supports the
   stronger-simplification route but is not a POSIX/bitcode proof.
+- The path9 closure lane now has universe-parametric carried-continuation
+  splitters for `RCHAR`, `RALTS`, `RSEQ`, `RSTAR`, and nonzero `RNTIMES`.
+  They are deliberately weaker than the final theorem: each recursive branch
+  accepts a local target-universe premise, so future proofs can close the
+  root-owned path9 universe case-by-case without a monolithic `auto`.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

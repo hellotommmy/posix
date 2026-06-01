@@ -12631,6 +12631,106 @@ proof
   qed (use assms x in auto)
 qed
 
+lemma rflts_singleton_rsimp9_frontier:
+  "set (rflts [rsimp9 r]) \<subseteq> rfrontier (rsimp9 r)"
+  by (rule rflts_good_singleton_frontier) (rule good_rsimp9)
+
+lemma rder_path_continuations_acc_RCHAR_frontierI:
+  assumes front: "rfrontier (rsimp9 k) \<subseteq> U"
+    and p: "p \<in> rder_path_continuations_acc c (RCHAR d) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> U"
+proof (cases "c = d")
+  case True
+  then have "p = k"
+    using p by simp
+  then show ?thesis
+    using front rflts_singleton_rsimp9_frontier[of k] by blast
+next
+  case False
+  then show ?thesis
+    using p by simp
+qed
+
+lemma rder_path_continuations_acc_RALTS_carriedI:
+  assumes child: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c q k \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq> U"
+    and p: "p \<in> rder_path_continuations_acc c (RALTS rs) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> U"
+proof -
+  obtain q where q: "q \<in> set rs" "p \<in> rder_path_continuations_acc c q k"
+    using p by auto
+  show ?thesis
+    by (rule child[OF q])
+qed
+
+lemma rder_path_continuations_acc_RSEQ_carriedI:
+  assumes left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+        (rsimp4_SEQ_atom r2 k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq> U"
+    and right: "\<And>p. rnullable r1 \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c r2 k \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq> U"
+    and p: "p \<in> rder_path_continuations_acc c (RSEQ r1 r2) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> U"
+proof (cases "p \<in> rder_path_continuations_acc c r1
+    (rsimp4_SEQ_atom r2 k)")
+  case True
+  then show ?thesis
+    by (rule left)
+next
+  case False
+  note not_left = False
+  show ?thesis
+  proof (cases "rnullable r1")
+    case True
+    have "p \<in> rder_path_continuations_acc c r2 k"
+      using p not_left True by auto
+    then show ?thesis
+      by (rule right[OF True])
+  next
+    case False
+    then have False
+      using p not_left by auto
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma rder_path_continuations_acc_RSTAR_carriedI:
+  assumes body: "\<And>p. p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RSTAR r) k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq> U"
+    and p: "p \<in> rder_path_continuations_acc c (RSTAR r) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> U"
+proof -
+  have "p \<in> rder_path_continuations_acc c r
+      (rsimp4_SEQ_atom (RSTAR r) k)"
+    using p by simp
+  then show ?thesis
+    by (rule body)
+qed
+
+lemma rder_path_continuations_acc_RNTIMES_carriedI:
+  assumes body: "\<And>p. n \<noteq> 0 \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq> U"
+    and p: "p \<in> rder_path_continuations_acc c (RNTIMES r n) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> U"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    using p by simp
+next
+  case False
+  then have "p \<in> rder_path_continuations_acc c r
+      (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k)"
+    using p by simp
+  then show ?thesis
+    by (rule body[OF False])
+qed
+
 lemma rder_path_continuations_acc_RCHAR_left_path9_stable:
   assumes norm_tail:
       "rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2"
