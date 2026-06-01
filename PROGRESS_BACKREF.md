@@ -92,6 +92,14 @@ Last updated: 2026-06-01 (path9 tight-budget splitters)
   continuation linear invariant are too coarse for `RSTAR`. The remaining
   proof should use a root-owned/carried-continuation invariant and discharge
   these constructor obligations locally.
+- Added the first path9 one-step self interfaces:
+  `rpder_norm9_path9_atom_frontier_step_RALTS_selfI` closes the alternative
+  case directly from child self-closure, and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_selfI` packages the nullable
+  right-child lift into the parent universe. The `RSEQ` theorem now leaves
+  only the genuinely hard left-continuation bridge as an explicit premise:
+  rows produced from `rder_path_continuations_acc c r1
+  (rsimp4_SEQ_atom r2 RONE)` must be lifted into the current path9 universe.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

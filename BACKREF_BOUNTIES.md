@@ -116,6 +116,11 @@ immutability.
   `rpath9_tight_member_budget_RNTIMES_nonzero_boundI` is progress toward that
   premise only; it isolates the constructor obligations for the required
   root-owned/carried-continuation induction and is not a BR-036 payout claim.
+  The one-step closure interface now also includes
+  `rpder_norm9_path9_atom_frontier_step_RALTS_selfI` and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_selfI`; the latter packages the
+  nullable right-child lift and leaves only the left carried-continuation
+  bridge as the explicit `RSEQ` blocker.
   The
   checked accounting
   interface adds

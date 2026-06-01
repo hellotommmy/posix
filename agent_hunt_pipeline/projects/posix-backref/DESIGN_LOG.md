@@ -801,6 +801,15 @@ to be read before continuing long-running agent work.
   arbitrary-continuation linear invariant double-counts `RSTAR` bodies. The
   next invariant should be root-owned: continuations must be known to come
   from the same path9 root rather than from an arbitrary `k`.
+- The first one-step closure self interfaces are checked:
+  `rpder_norm9_path9_atom_frontier_step_RALTS_selfI` and
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_selfI`. These are not final
+  BR-036 closure theorems, but they remove boilerplate from the global
+  induction: alternatives close by child self-closure, and `RSEQ` now handles
+  nullable right-child lifting internally. The remaining `RSEQ` blocker is the
+  left carried-continuation bridge from
+  `rder_path_continuations_acc c r1 (rsimp4_SEQ_atom r2 RONE)` into the
+  parent path9 universe.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

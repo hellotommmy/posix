@@ -12501,6 +12501,14 @@ proof (rule rpder_norm9_path9_atom_frontier_step_RALTS_parentI)
   qed
 qed
 
+lemma rpder_norm9_path9_atom_frontier_step_RALTS_selfI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe q"
+  shows "set (rflts (rpder_norm9_list c (RALTS rs))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RALTS rs)"
+  by (rule rpder_norm9_path9_atom_frontier_step_RALTS_childI[OF assms])
+
 lemma rpder_norm9_path9_atom_frontier_step_rsimp_ALTs_parentI:
   assumes "\<And>q. q \<in> set rs \<Longrightarrow>
     set (rflts (rpder_norm9_list c q)) \<subseteq>
@@ -12642,6 +12650,40 @@ proof (rule rpder_norm9_path9_atom_frontier_step_RSEQ_parentI)
   show "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
       partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
     by (rule right)
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_selfI:
+  assumes legacy_left: "legacy_rrexp r1"
+    and left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+        (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    and right:
+      "rnullable r1 \<Longrightarrow> set (rflts (rpder_norm9_list c r2)) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe r2"
+  shows "set (rflts (rpder_norm9_list c (RSEQ r1 r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSEQ_directI)
+  show "legacy_rrexp r1"
+    by (rule legacy_left)
+next
+  show "\<And>p. p \<in> rder_path_continuations_acc c r1
+      (rsimp4_SEQ_atom r2 RONE) \<Longrightarrow>
+    set (rflts [rsimp9 p]) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule left)
+next
+  assume nullable: "rnullable r1"
+  have child: "set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe r2"
+    by (rule right[OF nullable])
+  have lift: "partial_derivative_path9_atom_frontier_universe r2 \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    by (rule partial_derivative_path9_atom_frontier_universe_RSEQ_right_nullable_subset
+        [OF nullable])
+  show "set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ r1 r2)"
+    using child lift by blast
 qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
