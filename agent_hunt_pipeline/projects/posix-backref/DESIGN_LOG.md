@@ -971,3 +971,13 @@ to be read before continuing long-running agent work.
   This removes the need for separate RZERO/RONE/RCHAR/RSTAR/RNTIMES right-tail
   packages in the character-left and character-alternative RSEQ lane. General
   alternatives and nested `RSEQ` left branches remain the next closure target.
+- A checked obstruction now rules out the naive raw-spine path9 bridge for
+  general carried continuations. For `(a · a*) · a*`, the carried expression
+  `rsimp9 (rsimp4_SEQ_atom (a · a*) a*)` exposes `a · a*`, but the raw parent
+  `RSEQ d ((a · a*) · a*)` accounts for `a · (a* · a*)` instead. The checked
+  lemmas are `rpath9_tail_rsimp4_SEQ_atom_not_subset_raw_spine` and
+  `path9_raw_spine_parent_misses_rsimp7_star_absorption`. Future closure
+  attempts should either enlarge the universe with normalized carried tails or
+  move to a stronger state simplifier; do not try to prove a plain subset from
+  `rpath9_tail (rsimp4_SEQ_atom body tail)` into
+  `rpath9_tail (RSEQ body tail)`.

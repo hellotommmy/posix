@@ -5046,6 +5046,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   variant to close the carried-continuation bridge for general `RSEQ`, then
   reuse it for `RSTAR` and nonzero `RNTIMES`.
 
+## Cubic Bound Research: path9 Raw-Spine Obstruction (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex heartbeat lane
+- Files changed: `GeneralRegexBound.thy`, `PROGRESS_BACKREF.md`,
+  `agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md`
+- New checked counterexamples:
+  - `rpath9_tail_rsimp4_SEQ_atom_not_subset_raw_spine`
+  - `path9_raw_spine_parent_misses_rsimp7_star_absorption`
+- Design result:
+  - The tempting generalized carried-continuation bridge from
+    `rsimp4_SEQ_atom body tail` into the parent raw-spine path9 universe is
+    false. In the concrete pattern `(a · a*) · a*`, the carried simplifier plus
+    `rsimp9`/`rsimp7` exposes `a · a*`, while the parent raw spine records
+    `a · (a* · a*)`. Therefore the next cubic-bound universe cannot be just
+    the current path9 atom frontier of the raw parent; it must include a
+    checked account of normalized carried tails or use a stronger state-space
+    simplification.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
+  300s guard.
+- Next step: prototype the refined universe/continuation relation that
+  explicitly admits `rsimp9 (rsimp4_SEQ_atom body tail)` members, then retry
+  the `RSEQ`/`RSTAR`/`RNTIMES` carried closure.
+
 ## Governance Upgrade (2026-05-25)
 
 - Branch: `codex/backref-values`

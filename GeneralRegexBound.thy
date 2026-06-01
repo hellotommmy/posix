@@ -15236,6 +15236,33 @@ lemma path9_atom_frontier_avoids_old_atom_explosion:
       partial_derivative_path9_atom_frontier_universe_def
       rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
+lemma rpath9_tail_rsimp4_SEQ_atom_not_subset_raw_spine:
+  assumes "a \<noteq> d"
+  defines "a_star \<equiv> RSTAR (RCHAR a)"
+  defines "body \<equiv> RSEQ (RCHAR a) a_star"
+  defines "tail \<equiv> a_star"
+  defines "q \<equiv> RSEQ (RCHAR a) a_star"
+  shows "q \<in> rpath9_atom_frontier_acc (RCHAR d)
+      (rpath9_tail (rsimp4_SEQ_atom body tail))"
+    and "q \<notin> rpath9_atom_frontier_acc (RCHAR d)
+      (rpath9_tail (RSEQ body tail))"
+  using assms
+  by (simp_all add: a_star_def body_def tail_def q_def rsimp7_SEQ_atom_def)
+
+lemma path9_raw_spine_parent_misses_rsimp7_star_absorption:
+  assumes "a \<noteq> d"
+  defines "a_star \<equiv> RSTAR (RCHAR a)"
+  defines "body \<equiv> RSEQ (RCHAR a) a_star"
+  defines "tail \<equiv> a_star"
+  defines "q \<equiv> RSEQ (RCHAR a) a_star"
+  defines "root \<equiv> RSEQ (RCHAR d) (RSEQ body tail)"
+  shows "q \<in> set (rflts [rsimp9 (rsimp4_SEQ_atom body tail)])"
+    and "q \<notin> partial_derivative_path9_atom_frontier_universe root"
+  using assms
+  by (simp_all add: a_star_def body_def tail_def q_def root_def
+      partial_derivative_path9_atom_frontier_universe_def
+      rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
