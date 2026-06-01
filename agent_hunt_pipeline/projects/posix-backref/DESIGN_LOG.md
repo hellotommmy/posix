@@ -1038,3 +1038,12 @@ to be read before continuing long-running agent work.
   work is still substantial: integrate the idea with annotated `arexp`
   POSIX/bitcode preservation and prove a general cubic bound rather than only
   language preservation and a local shrink regression.
+- The same proof-level simplifier now has checked size control. The key theorem
+  is `rsize_rsimpStrong_le`: applying `rsimpStrong` never increases `rsize`.
+  Supporting row lemmas (`rsize_rsimpStrong_prune_pair_le`,
+  `rsize_rsimpStrong_prune_against_rows_le`,
+  `rsizes_rsimpStrong_prune_rows_acc_le`,
+  `rsize_rsimpStrong_ALTs_le`) isolate the accounting for pruning, flattened
+  alternatives, and duplicate removal. This is a useful cubic-bound checkpoint:
+  future derivative-size arguments may state their polynomial in the original
+  regex size rather than a potentially inflated strong-normalized size.

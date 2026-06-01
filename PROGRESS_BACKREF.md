@@ -5164,6 +5164,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - `RL_rsimpStrong_ALTs`
   - `RL_rsimpStrong`
   - `RL_rders_simpStrong`
+- New checked size-control facts:
+  - `rsizes_rprune_eq_against_le`
+  - `rsize_rsimp_ALTs_le`
+  - `rsize_rsimpStrong_pruned_ALTs_le`
+  - `rsize_rsimpStrong_prune_pair_le`
+  - `rsize_rsimpStrong_prune_against_rows_le`
+  - `rsizes_rsimpStrong_prune_rows_acc_le`
+  - `rsizes_rsimpStrong_prune_rows_le`
+  - `rsize_rsimpStrong_ALTs_le`
+  - `rsize_rsimpStrong_le`
 - New checked Chapter-7 regression facts:
   - `thesis_ch7_rstrong_prunes_overlap`
   - `thesis_ch7_rstrong_overlap_same_language`
@@ -5180,6 +5190,12 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `RL_rsimpStrong` proves it preserves `RL`, and `RL_rders_simpStrong`
     proves repeated derivatives interleaved with this simplifier still compute
     `Ders`.
+  - The scanner and recursive simplifier are now size-safe:
+    `rsize_rsimpStrong_le` proves the full proof-level simplifier never
+    increases `rsize`, while the row-level lemmas show pruning, flattening, and
+    duplicate removal stay within the original row budget. This is necessary
+    evidence for a future cubic theorem because bounds can remain stated in
+    terms of the original regex size.
   - This directly checks the core Chapter-7 pattern behind
     `(a+b)c + (a+d)c -> (a+b)c + dc` when `d` is fresh with respect to
     `a,b`. If `d` is already covered, the later row correctly collapses

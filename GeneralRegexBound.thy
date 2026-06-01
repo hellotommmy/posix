@@ -16139,6 +16139,237 @@ next
   finally show ?case .
 qed
 
+lemma rsizes_rprune_eq_against_le:
+  "rsizes (rprune_eq_against covered rs) \<le> rsizes rs"
+  by (induct rs) simp_all
+
+lemma rsize_rsimp_ALTs_le:
+  "rsize (rsimp_ALTs rs) \<le> Suc (rsizes rs)"
+proof -
+  have "rsize (rsimp_ALTs rs) \<le> rsize (RALTS rs)"
+    by (rule rsimp_aalts_smaller)
+  also have "... \<le> Suc (rsizes rs)"
+    by (rule ralts_cap_mono)
+  finally show ?thesis .
+qed
+
+lemma rsize_rsimpStrong_pruned_ALTs_le:
+  "rsize (rsimp_ALTs
+      (rdistinct (rflts (rprune_eq_against covered rs)) {})) \<le>
+    rsize (RALTS rs)"
+proof -
+  have "rsize (rsimp_ALTs
+      (rdistinct (rflts (rprune_eq_against covered rs)) {})) \<le>
+      rsize (RALTS
+        (rdistinct (rflts (rprune_eq_against covered rs)) {}))"
+    by (rule rsimp_aalts_smaller)
+  also have "... \<le> Suc (rsizes
+      (rdistinct (rflts (rprune_eq_against covered rs)) {}))"
+    by (rule ralts_cap_mono)
+  also have "... \<le> Suc (rsizes (rflts (rprune_eq_against covered rs)))"
+    using rdistinct_smaller[of "rflts (rprune_eq_against covered rs)" "{}"]
+    by simp
+  also have "... \<le> Suc (rsizes (rprune_eq_against covered rs))"
+    using rflts_mono[of "rprune_eq_against covered rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using rsizes_rprune_eq_against_le[of covered rs] by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimpStrong_prune_pair_le:
+  "rsize (rsimpStrong_prune_pair earlier later) \<le> rsize later"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have "rsize (rsimpStrong_prune_pair earlier later) =
+        rsize (rsimp7_SEQ_atom
+          (rsimp_ALTs
+            (rdistinct (rflts (rprune_eq_against lrs rrs)) {})) k)"
+      using shared by (simp add: rsimpStrong_prune_pair_def)
+    also have "... \<le> Suc
+        (rsize (rsimp_ALTs
+          (rdistinct (rflts (rprune_eq_against lrs rrs)) {})) + rsize k)"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    also have "... \<le> Suc (rsize (RALTS rrs) + rsize k)"
+      using rsize_rsimpStrong_pruned_ALTs_le[of lrs rrs] by simp
+    also have "... = rsize later"
+      using shared by simp
+    finally show ?thesis .
+  next
+    case other
+    have "rsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma rsize_rsimpStrong_prune_against_rows_le:
+  "rsize (rsimpStrong_prune_against_rows seen r) \<le> rsize r"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair x r"
+  have "rsize (rsimpStrong_prune_against_rows (x # xs) r) =
+      rsize (rsimpStrong_prune_against_rows xs ?p)"
+    by simp
+  also have "... \<le> rsize ?p"
+    by (rule Cons.hyps)
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimpStrong_prune_pair_le)
+  finally show ?case .
+qed
+
+lemma rsizes_rsimpStrong_prune_rows_acc_le:
+  "rsizes (rsimpStrong_prune_rows_acc seen rs) \<le> rsizes rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows seen r"
+  have head: "rsize ?r' \<le> rsize r"
+    by (rule rsize_rsimpStrong_prune_against_rows_le)
+  have tail:
+    "rsizes (rsimpStrong_prune_rows_acc (?r' # seen) rs) \<le> rsizes rs"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma rsizes_rsimpStrong_prune_rows_le:
+  "rsizes (rsimpStrong_prune_rows rs) \<le> rsizes rs"
+  using rsizes_rsimpStrong_prune_rows_acc_le[of "[]" rs]
+  by (simp add: rsimpStrong_prune_rows_def)
+
+lemma rsize_rsimpStrong_ALTs_le:
+  "rsize (rsimpStrong_ALTs rs) \<le> rsize (RALTS rs)"
+proof -
+  have "rsize (rsimpStrong_ALTs rs) \<le>
+      Suc (rsizes
+        (rdistinct (rflts (rsimpStrong_prune_rows rs)) {}))"
+    by (simp add: rsimpStrong_ALTs_def rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes (rflts (rsimpStrong_prune_rows rs)))"
+    using rdistinct_smaller[of "rflts (rsimpStrong_prune_rows rs)" "{}"]
+    by simp
+  also have "... \<le> Suc (rsizes (rsimpStrong_prune_rows rs))"
+    using rflts_mono[of "rsimpStrong_prune_rows rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using rsizes_rsimpStrong_prune_rows_le[of rs] by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimpStrong_le:
+  "rsize (rsimpStrong r) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have "rsize (rsimpStrong (RSEQ r1 r2)) \<le>
+      Suc (rsize (rsimpStrong r1) + rsize (rsimpStrong r2))"
+    by (simp add: rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using RSEQ by simp
+  finally show ?case .
+next
+  case (RALTS rs)
+  have elems: "\<And>x. x \<in> set rs \<Longrightarrow> rsize (rsimpStrong x) \<le> rsize x"
+    using RALTS by auto
+  have "rsize (rsimpStrong (RALTS rs)) =
+      rsize (rsimpStrong_ALTs (rflts (map rsimpStrong rs)))"
+    by simp
+  also have "... \<le> rsize (RALTS (rflts (map rsimpStrong rs)))"
+    by (rule rsize_rsimpStrong_ALTs_le)
+  also have "... \<le> Suc (rsizes (rflts (map rsimpStrong rs)))"
+    by simp
+  also have "... \<le> Suc (rsizes (map rsimpStrong rs))"
+    using rflts_mono[of "map rsimpStrong rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using elems by (simp add: sum_list_mono)
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  note outer = RSTAR
+  show ?case
+  proof (cases "rsimpStrong r")
+    case RZERO
+    then show ?thesis
+      by simp
+  next
+    case RONE
+    then show ?thesis
+      by simp
+  next
+    case (RCHAR x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RALTS x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RSTAR x)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RNTIMES x1 x2)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RHALF x1 x2 x3)
+    then show ?thesis
+      using outer by simp
+  next
+    case (RRESIDUE x1 x2)
+    then show ?thesis
+      using outer by simp
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 x5)
+  then show ?case by simp
+next
+  case (RHALF r x2 x3)
+  then show ?case by simp
+next
+  case (RRESIDUE x1 x2)
+  then show ?case by simp
+qed
+
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"
   shows
