@@ -21,6 +21,12 @@ Last updated: 2026-06-02 (strong-row finite-universe interface)
   The next proof task remains instantiating the finite universe and one-step
   closure, especially the carried-continuation cases for `RSEQ`, `RSTAR`, and
   nonzero `RNTIMES`.
+- Added the checked direct no-go corollary
+  `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
+  packages the existing middle-alternative witness into the statement that
+  old `partial_derivative_path_frontier_universe` is not closed under
+  `rfrontier (rsimp4 (rder a root))`. Future closure work should not target
+  that universe directly; use the later `path9`, `carry9`, or strong-row route.
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 

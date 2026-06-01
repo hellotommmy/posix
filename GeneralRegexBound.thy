@@ -15474,6 +15474,31 @@ proof -
       rpath_frontiers_def rsimp4_SEQ_def)
 qed
 
+lemma current_path_frontier_universe_not_closed_under_rsimp4_derivative:
+  fixes a b c d e :: char
+  assumes cd: "c \<noteq> d"
+  defines "root \<equiv>
+    RSEQ
+      (RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RALTS [RCHAR c, RCHAR d]))
+      (RCHAR e)"
+  defines "q \<equiv> RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e))"
+  shows "\<not> rfrontier (rsimp4 (rder a root)) \<subseteq>
+    partial_derivative_path_frontier_universe root"
+proof
+  assume closed: "rfrontier (rsimp4 (rder a root)) \<subseteq>
+    partial_derivative_path_frontier_universe root"
+  have q_front: "q \<in> rfrontier (rsimp4 (rder a root))"
+    unfolding root_def q_def
+    by (rule rsimp4_derivative_keeps_middle_alt_opaque[OF cd])
+  have q_miss: "q \<notin> partial_derivative_path_frontier_universe root"
+    unfolding root_def q_def
+    by (rule current_path_frontier_universe_misses_middle_alt_opaque[OF cd])
+  have "q \<in> partial_derivative_path_frontier_universe root"
+    using closed q_front by blast
+  then show False
+    using q_miss by blast
+qed
+
 lemma middle_alt_opaque_in_path_atom_frontier_universe:
   assumes "c \<noteq> d"
   shows "RSEQ (RCHAR b) (RSEQ (RALTS [RCHAR c, RCHAR d]) (RCHAR e)) \<in>

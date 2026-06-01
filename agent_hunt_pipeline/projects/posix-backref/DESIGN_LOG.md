@@ -1079,3 +1079,11 @@ to be read before continuing long-running agent work.
   conditional interfaces: the remaining work is still to instantiate a
   finite root-owned universe and prove the hard one-step closure, especially
   the carried-continuation cases for `RSEQ`, `RSTAR`, and nonzero `RNTIMES`.
+- The old `partial_derivative_path_frontier_universe` route is now explicitly
+  marked as a no-go for one-step `rsimp4` derivative closure:
+  `current_path_frontier_universe_not_closed_under_rsimp4_derivative` packages
+  the middle-alternative witness into a direct non-subset theorem. This is a
+  route-management checkpoint, not a negative result about the whole project:
+  it says future closure proofs should instantiate the later `path9`,
+  `carry9`, or strong-row universes rather than trying to repair the original
+  path/frontier universe with a monolithic carried-continuation proof.
