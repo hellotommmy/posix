@@ -745,6 +745,15 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tailI`. These
   facts bridge the public `rpath9_atom_frontiers` constructors to the raw-tail
   induction premises, including the outer `RSEQ ... RONE` continuation shape.
+- The checked counterexample
+  `rpath9_tail_prefix_continuation_bound_counterexample` shows why the
+  continuation-only raw-tail budget cannot be the global induction target:
+  a long prefix can leave an internal suffix plus the carried continuation.
+  Use the checked parent-budget interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tail_parentI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
+  for the remaining top-level member-size proof instead.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

@@ -33,6 +33,16 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   the outer `rpath9_atom_frontiers` cases consume the raw-tail obligations
   directly, rather than asking later proofs to re-expand the top-level
   `RONE` continuation.
+- Added `rpath9_tail_prefix_continuation_bound_counterexample`, which shows
+  that a continuation-only member-size budget is too strong for long prefixes:
+  consuming the first atom of `a.(b.c)` under a carried `d` tail can expose
+  `b.(c.d)`, larger than the carried `d.1` continuation. The follow-up
+  parent-budget interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tail_parentI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
+  are now checked and should be the route for the remaining linear
+  member-size proof.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

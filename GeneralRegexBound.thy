@@ -11417,6 +11417,68 @@ proof (rule rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI[OF n _ x])
   finally show "rsize y \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))" .
 qed
 
+lemma rpath9_tail_prefix_continuation_bound_counterexample:
+  "RSEQ (RCHAR b) (RSEQ (RCHAR c) (RCHAR d)) \<in>
+    rpath9_atom_frontier_acc
+      (RSEQ (RCHAR a) (RSEQ (RCHAR b) (RCHAR c)))
+      (rpath9_tail (RSEQ (RCHAR d) RONE))"
+  "rsize (RSEQ (RCHAR d) RONE) <
+    rsize (RSEQ (RCHAR b) (RSEQ (RCHAR c) (RCHAR d)))"
+  by (simp_all add: rsimp7_SEQ_atom_def)
+
+lemma rpath9_atom_frontiers_RSEQ_member_size_rpath9_tail_parentI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rpath9_tail (RSEQ r2 RONE)) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+    and right: "\<And>x. x \<in> rpath9_atom_frontiers r2 \<Longrightarrow>
+      rsize x \<le> Suc (rsize r2 + rsize r2)"
+    and x: "x \<in> rpath9_atom_frontiers (RSEQ r1 r2)"
+  shows "rsize x \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+proof (rule rpath9_atom_frontiers_RSEQ_member_sizeI[OF _ right x])
+  fix y
+  assume y: "y \<in> rpath9_atom_frontier_acc r1
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE)"
+  have "y \<in> rpath9_atom_frontier_acc r1 (rpath9_tail (RSEQ r2 RONE))"
+    using y by simp
+  then show "rsize y \<le> Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+    by (rule left)
+qed
+
+lemma rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI:
+  assumes body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RSTAR r) RONE)) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+    and x: "x \<in> rpath9_atom_frontiers (RSTAR r)"
+  shows "rsize x \<le> Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+proof (rule rpath9_atom_frontiers_RSTAR_member_sizeI[OF _ x])
+  fix y
+  assume y: "y \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RSTAR r)) RONE)"
+  have "y \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RSTAR r) RONE))"
+    using y by simp
+  then show "rsize y \<le> Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+    by (rule body)
+qed
+
+lemma rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI:
+  assumes n: "n \<noteq> 0"
+    and body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RNTIMES r (n - 1)) RONE)) \<Longrightarrow>
+      rsize x \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+    and x: "x \<in> rpath9_atom_frontiers (RNTIMES r n)"
+  shows "rsize x \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+proof (rule rpath9_atom_frontiers_RNTIMES_nonzero_member_sizeI[OF n _ x])
+  fix y
+  assume y: "y \<in> rpath9_atom_frontier_acc r
+      (rsimp7_SEQ_atom (rsimp9 (RNTIMES r (n - 1))) RONE)"
+  have "y \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RNTIMES r (n - 1)) RONE))"
+    using y by simp
+  then show "rsize y \<le> Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+    by (rule body)
+qed
+
 lemma rsubterms_rsimp_ALTs_member:
   assumes "x \<in> set xs"
   shows "x \<in> rsubterms (rsimp_ALTs xs)"

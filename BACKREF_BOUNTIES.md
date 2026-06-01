@@ -80,7 +80,15 @@ immutability.
   `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tailI`, and
   `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tailI` are also
   checked, exposing the `RSEQ ... RONE` outer frontier cases through
-  `rpath9_tail`. The
+  `rpath9_tail`. The checked counterexample
+  `rpath9_tail_prefix_continuation_bound_counterexample` rules out using a
+  continuation-only budget for long prefixes; the checked parent-budget
+  interfaces
+  `rpath9_atom_frontiers_RSEQ_member_size_rpath9_tail_parentI`,
+  `rpath9_atom_frontiers_RSTAR_member_size_rpath9_tail_parentI`, and
+  `rpath9_atom_frontiers_RNTIMES_nonzero_member_size_rpath9_tail_parentI`
+  are the intended next interface for the remaining linear member-size proof.
+  The
   checked accounting
   interface adds
   `partial_derivative_path9_atom_frontier_universe_card_le`,
