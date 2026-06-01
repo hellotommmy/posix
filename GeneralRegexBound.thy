@@ -12882,6 +12882,36 @@ next
     using p by simp
 qed
 
+lemma rder_path_continuations_acc_RCHAR_path9_tail:
+  assumes p: "p \<in> rder_path_continuations_acc c (RCHAR d) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RCHAR d)
+      (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+proof (rule rder_path_continuations_acc_RCHAR_frontierI[OF _ p])
+  have tail: "rsimp7_SEQ_atom (rsimp9 k) RONE = rsimp9 k"
+    by (simp add: rsimp7_SEQ_atom_RONE_eq_rsimp4
+      rsimp4_SEQ_atom_RONE_stable_rsimp9)
+  show "rfrontier (rsimp9 k) \<subseteq>
+      rpath9_atom_frontier_acc (RCHAR d)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+    using tail by simp
+qed
+
+lemma rder_path_continuations_acc_RCHAR_raw_left_path9:
+  assumes p: "p \<in> rder_path_continuations_acc c (RCHAR d) r2"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) r2)"
+proof
+  fix x
+  assume x: "x \<in> set (rflts [rsimp9 p])"
+  have x_acc: "x \<in> rpath9_atom_frontier_acc (RCHAR d)
+      (rsimp7_SEQ_atom (rsimp9 r2) RONE)"
+    using rder_path_continuations_acc_RCHAR_path9_tail[OF p] x by blast
+  then show "x \<in> partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RCHAR d) r2)"
+    by (rule rpath9_atom_frontiers_seq_left_universe)
+qed
+
 lemma rder_path_continuations_acc_RCHAR_root_path9_stable:
   assumes norm_tail: "rsimp9 (rsimp4_SEQ_atom root RONE) = rsimp9 root"
     and p: "p \<in> rder_path_continuations_acc c (RCHAR d)

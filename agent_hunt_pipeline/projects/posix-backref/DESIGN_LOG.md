@@ -887,6 +887,18 @@ to be read before continuing long-running agent work.
   They are deliberately weaker than the final theorem: each recursive branch
   accepts a local target-universe premise, so future proofs can close the
   root-owned path9 universe case-by-case without a monolithic `auto`.
+- The raw `RCHAR` leaf now has a checked path9-tail bridge:
+  `rder_path_continuations_acc_RCHAR_path9_tail` sends a raw derivative
+  continuation `k` into the normalized frontier tail
+  `rsimp7_SEQ_atom (rsimp9 k) RONE`, and
+  `rder_path_continuations_acc_RCHAR_raw_left_path9` lifts that base case into
+  the parent `RSEQ (RCHAR _) k` universe. This is the right base case for the
+  next carried-continuation induction. A scratch nested-`RSEQ` direct theorem
+  left dozens of subgoals because the target was too narrow: after
+  `rsimp9 (rsimp4_SEQ_atom r k)`, members may be accounted for by the child
+  `rpath9_atom_frontier_acc r ...`, not only by the single frontier of
+  `rsimp7_SEQ_atom (rsimp9 r) ...`. Future work should generalize to a
+  carried set/accumulator theorem rather than forcing one frontier equality.
 - The first one-step leaves using those splitters are checked:
   `RSEQ (RCHAR _) _` under stable right tails, `RSTAR (RCHAR _)`, and
   `RNTIMES (RCHAR _) n`. In the counted case, the proof explicitly routes

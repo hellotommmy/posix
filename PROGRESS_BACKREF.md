@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 normalized-tail RSEQ bridges)
+Last updated: 2026-06-02 (path9 raw RCHAR tail bridge)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -128,6 +128,17 @@ Last updated: 2026-06-02 (path9 normalized-tail RSEQ bridges)
   universe-parametric: later path9 closure proofs can decompose the derivative
   path structurally and discharge the actual target universe locally, instead
   of unfolding the whole derivative and simplifier at once.
+- Added the checked raw-to-path9 `RCHAR` tail bridge:
+  `rder_path_continuations_acc_RCHAR_path9_tail` and
+  `rder_path_continuations_acc_RCHAR_raw_left_path9`. These show that a raw
+  `rsimp4` continuation emitted at a character leaf, after `rsimp9` and
+  flattening, lands in the normalized `rsimp7_SEQ_atom (rsimp9 k) RONE` tail
+  used by `rpath9_atom_frontier_acc`, and therefore in the corresponding
+  `RSEQ (RCHAR _) k` parent universe. This is the base case needed for a
+  future carried-continuation set induction. A direct nested-`RSEQ` attempt
+  exposed that the continuation target cannot be compressed to a single
+  frontier: recursive simplification can expose child frontier members, so the
+  next theorem needs a carried set/accumulator statement.
 - Added the first checked one-step path9 leaves over that layer:
   `rder_path_continuations_acc_RCHAR_root_path9_stable` plus the `RSTAR` and
   `RNTIMES` root leaves, the stable package
