@@ -296,6 +296,12 @@ immutability.
   `rsizes_rpders_norm19_rows_path9_atom_frontier_universe_cubic`, and
   `rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI`; future work
   only needs the linear member-size premise and the one-step path9 closure.
+  The current left-continuation bridge has a checked stable-tail helper layer:
+  `rsimp4_SEQ_atom_RONE_stable_rsimp7_SEQ_atom`,
+  `rsimp4_SEQ_atom_RONE_stable_rsimp_ALTs`, and
+  `rsimp4_SEQ_atom_RONE_stable_rdistinct`. These do not collect BR-036, but
+  they are the next modular interface for closing `RALTS`/nested-`RSEQ`
+  carried-tail cases without broad slow automation.
 
 ## Completed
 

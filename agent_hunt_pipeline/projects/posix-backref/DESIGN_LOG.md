@@ -820,6 +820,13 @@ to be read before continuing long-running agent work.
   that a broad associativity lemma for `rsimp7_SEQ_atom` and `rsimp4_SEQ_atom`
   can explode if proved by global `auto`; keep the remaining `RALTS`/nested
   `RSEQ` proof modular and prove only the exact stability facts needed.
+- The first reusable stability facts are now checked:
+  `rsimp4_SEQ_atom_RONE_stable_rsimp7_SEQ_atom`,
+  `rsimp4_SEQ_atom_RONE_stable_rsimp_ALTs`, and
+  `rsimp4_SEQ_atom_RONE_stable_rdistinct`. They preserve the invariant
+  `rsimp4_SEQ_atom x RONE = x` through the exact constructors used by
+  `rsimp9`; this is the next bridge toward proving all normalized right tails
+  stable without unfolding the whole simplifier in one proof command.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-01 (path9 stable-tail RCHAR bridge)
+Last updated: 2026-06-01 (path9 stable-tail helper layer)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -111,6 +111,13 @@ Last updated: 2026-06-01 (path9 stable-tail RCHAR bridge)
   only, not a BR-036 payout claim; the remaining hard work is to prove the
   stability interface for `RALTS` and nested `RSEQ` without a slow global
   `auto`.
+- Added the first reusable norm-tail stability helper layer:
+  `rsimp4_SEQ_atom_RONE_stable_rsimp7_SEQ_atom`,
+  `rsimp4_SEQ_atom_RONE_stable_rsimp_ALTs`, and
+  `rsimp4_SEQ_atom_RONE_stable_rdistinct`. These facts are deliberately
+  local and constructor-guided; they avoid the slow global associativity proof
+  shape seen in scratch, and are intended to close the remaining `RALTS` and
+  nested-sequence right-tail stability cases for the `RSEQ` bridge.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

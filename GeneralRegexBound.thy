@@ -12454,6 +12454,77 @@ lemma rsimp7_SEQ_atom_RONE_eq_rsimp4:
   "rsimp7_SEQ_atom r RONE = rsimp4_SEQ_atom r RONE"
   by (cases r) (simp_all add: rsimp7_SEQ_atom_def)
 
+lemma rsimp4_SEQ_atom_RONE_stable_rsimp7_SEQ_atom:
+  assumes a: "rsimp4_SEQ_atom a RONE = a"
+    and b: "rsimp4_SEQ_atom b RONE = b"
+  shows "rsimp4_SEQ_atom (rsimp7_SEQ_atom a b) RONE =
+    rsimp7_SEQ_atom a b"
+proof -
+  have fallback: "rsimp4_SEQ_atom (rsimp4_SEQ_atom a b) RONE =
+      rsimp4_SEQ_atom a b"
+    using b by (simp add: rsimp4_SEQ_atom_assoc)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR ra)
+    note a_star = RSTAR
+    show ?thesis
+    proof (cases b)
+      case (RSEQ b1 b2)
+      then show ?thesis
+      proof (cases b1)
+        case (RSTAR rb)
+        then show ?thesis
+        proof (cases "ra = rb")
+          case True
+          have "rsimp4_SEQ_atom (RSTAR rb) (rsimp4_SEQ_atom b2 RONE) =
+              RSEQ (RSTAR rb) b2"
+            using b RSEQ RSTAR by simp
+          then show ?thesis
+            using a_star RSEQ \<open>b1 = RSTAR rb\<close> True
+            by (simp add: rsimp7_SEQ_atom_def)
+        next
+          case False
+          then show ?thesis
+            using a_star RSEQ \<open>b1 = RSTAR rb\<close> fallback
+            by (simp add: rsimp7_SEQ_atom_def)
+        qed
+      qed (use a_star RSEQ fallback in
+        \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+    next
+      case (RSTAR rb)
+      then show ?thesis
+        using a_star fallback
+        by (cases "ra = rb") (simp_all add: rsimp7_SEQ_atom_def)
+    qed (use a_star fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed (use fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+qed
+
+lemma rsimp4_SEQ_atom_RONE_stable_rsimp_ALTs:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> rsimp4_SEQ_atom x RONE = x"
+  shows "rsimp4_SEQ_atom (rsimp_ALTs xs) RONE = rsimp_ALTs xs"
+  using assms
+  apply (cases xs)
+   apply simp
+  subgoal for x ys
+    apply (cases ys)
+     apply simp
+    apply simp
+    done
+  done
+
+lemma rsimp4_SEQ_atom_RONE_stable_rdistinct:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> rsimp4_SEQ_atom x RONE = x"
+  shows "\<And>y. y \<in> set (rdistinct xs acc) \<Longrightarrow>
+    rsimp4_SEQ_atom y RONE = y"
+proof -
+  fix y
+  assume y: "y \<in> set (rdistinct xs acc)"
+  have y_src: "y \<in> set xs"
+    using y rdistinct_set_equality1[of xs acc] by auto
+  show "rsimp4_SEQ_atom y RONE = y"
+    by (rule assms[OF y_src])
+qed
+
 lemma rflts_good_singleton_frontier:
   assumes "good r \<or> r = RZERO"
   shows "set (rflts [r]) \<subseteq> rfrontier r"
