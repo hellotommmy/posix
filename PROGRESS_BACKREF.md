@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong finite-universe interface)
+Last updated: 2026-06-02 (strong-row closure splitters)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -21,6 +21,14 @@ Last updated: 2026-06-02 (annotated strong finite-universe interface)
   The next proof task remains instantiating the finite universe and one-step
   closure, especially the carried-continuation cases for `RSEQ`, `RSTAR`, and
   nonzero `RNTIMES`.
+- Added checked local closure splitters for the proof-level strong row step:
+  `rflts_rpder_strong_list_subsetI`,
+  `rflts_concat_map_rpder_strong_list_subsetI`,
+  `rpder_strong_rows_local_subsetI`, and
+  `rpder_strong_rows_norm_prune_subsetI`. These reduce the strong one-step
+  closure premise to two local obligations: each normalized partial derivative
+  member must stay in the chosen universe after `rsimpStrong` and flattening,
+  and the shared-suffix row-prune pass must preserve that universe.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

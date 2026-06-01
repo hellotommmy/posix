@@ -1142,3 +1142,11 @@ to be read before continuing long-running agent work.
   shape deliberately keeps the closure premise explicit; the next real
   research step is still to instantiate a root-owned universe closed under the
   strong row step.
+- The proof-level strong-row one-step closure premise is now factored into
+  smaller named obligations. `rpder_strong_rows_norm_prune_subsetI` says a
+  universe is closed under `rpder_strong_rows` if it covers every
+  `rsimpStrong`-normalized member of the underlying `rpder_norm_list` after
+  flattening, and if it is preserved by the shared-suffix
+  `rsimpStrong_prune_rows` pass. This gives the next root-owned closure proof
+  a usable structure: attack normalized derivative members and row pruning
+  separately instead of unfolding the whole row pipeline.

@@ -16838,6 +16838,71 @@ proof -
     by (rule rpders_strong_rows_subsetI[OF rows step])
 qed
 
+lemma rflts_rpder_strong_list_subsetI:
+  assumes "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+    set (rflts [rsimpStrong p]) \<subseteq> U"
+  shows "set (rflts (rpder_strong_list c q)) \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> set (rflts (rpder_strong_list c q))"
+  have x_map: "x \<in> set (rflts (map rsimpStrong (rpder_norm_list c q)))"
+    using x by (simp add: rpder_strong_list_def)
+  obtain p where p: "p \<in> set (rpder_norm_list c q)"
+      and x_p: "x \<in> set (rflts [rsimpStrong p])"
+    by (rule set_rflts_map_memberE[OF x_map])
+  have "set (rflts [rsimpStrong p]) \<subseteq> U"
+    by (rule assms[OF p])
+  then show "x \<in> U"
+    using x_p by blast
+qed
+
+lemma rflts_concat_map_rpder_strong_list_subsetI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (rflts (rpder_strong_list c q)) \<subseteq> U"
+  shows "set (rflts (concat (map (rpder_strong_list c) rs))) \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> set (rflts (concat (map (rpder_strong_list c) rs)))"
+  have "set (rflts (concat (map (rpder_strong_list c) rs))) \<subseteq>
+      (\<Union>q \<in> set rs. set (rflts (rpder_strong_list c q)))"
+    by (induct rs) (auto simp add: flts_append)
+  then show "x \<in> U"
+    using x assms by blast
+qed
+
+lemma rpder_strong_rows_local_subsetI:
+  assumes lists: "\<And>q. q \<in> set rs \<Longrightarrow>
+      set (rflts (rpder_strong_list c q)) \<subseteq> U"
+    and prune: "\<And>xs. set xs \<subseteq> U \<Longrightarrow>
+      set (rflts (rsimpStrong_prune_rows xs)) \<subseteq> U"
+  shows "set (rpder_strong_rows c rs) \<subseteq> U"
+proof -
+  let ?rows = "rflts (concat (map (rpder_strong_list c) rs))"
+  have flat: "set ?rows \<subseteq> U"
+    by (rule rflts_concat_map_rpder_strong_list_subsetI[OF lists])
+  have pruned: "set (rflts (rsimpStrong_prune_rows ?rows)) \<subseteq> U"
+    by (rule prune[OF flat])
+  have "set (rdistinct (rflts (rsimpStrong_prune_rows ?rows)) {}) \<subseteq> U"
+    by (rule set_rdistinct_subset[OF pruned])
+  then show ?thesis
+    by (simp add: rpder_strong_rows_def)
+qed
+
+lemma rpder_strong_rows_norm_prune_subsetI:
+  assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and prune: "\<And>xs. set xs \<subseteq> U \<Longrightarrow>
+      set (rflts (rsimpStrong_prune_rows xs)) \<subseteq> U"
+  shows "set (rpder_strong_rows c rs) \<subseteq> U"
+proof (rule rpder_strong_rows_local_subsetI[OF _ prune])
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (rflts (rpder_strong_list c q)) \<subseteq> U"
+    by (rule rflts_rpder_strong_list_subsetI)
+      (use norm[OF q] in blast)
+qed
+
 lemma rsizes_distinct_finite_universe_bound:
   assumes finite: "finite U"
       and rows: "set rs \<subseteq> U"
