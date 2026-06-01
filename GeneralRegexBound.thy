@@ -5890,6 +5890,17 @@ next
     by (cases "rsimp9 r") (auto simp add: size_geq1)
 qed simp_all
 
+lemma rfrontier_rsimp7_SEQ_atom_rsimp9_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 p) k)"
+  shows "rsize q \<le> Suc (rsize p + rsize k)"
+proof -
+  have "rsize q \<le> Suc (rsize (rsimp9 p) + rsize k)"
+    by (rule rfrontier_rsimp7_SEQ_atom_member_size_le[OF assms])
+  also have "... \<le> Suc (rsize p + rsize k)"
+    using rsize_rsimp9_le[of p] by linarith
+  finally show ?thesis .
+qed
+
 lemma rsize_rsimp7_SEQ_atom_rsimp9_RONE_le:
   "rsize (rsimp7_SEQ_atom (rsimp9 r) RONE) \<le> rsize r"
 proof -
@@ -10119,12 +10130,10 @@ lemma rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le:
   assumes "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 p) (rpath9_tail k))"
   shows "rsize q \<le> rsize (RSEQ p k)"
 proof -
-  have "rsize q \<le> rsize (rsimp7_SEQ_atom (rsimp9 p) (rpath9_tail k))"
-    by (rule rfrontier_member_size_le_rsize[OF assms])
-  also have "... \<le> Suc (rsize (rsimp9 p) + rsize (rpath9_tail k))"
-    by (rule rsize_rsimp7_SEQ_atom_le)
+  have "rsize q \<le> Suc (rsize p + rsize (rpath9_tail k))"
+    by (rule rfrontier_rsimp7_SEQ_atom_rsimp9_member_size_le[OF assms])
   also have "... \<le> Suc (rsize p + rsize k)"
-    using rsize_rsimp9_le[of p] rsize_rpath9_tail_le[of k] by linarith
+    using rsize_rpath9_tail_le[of k] by linarith
   finally show ?thesis
     by simp
 qed
@@ -10137,6 +10146,21 @@ proof -
     using assms by simp
   then show ?thesis
     by (rule rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le)
+qed
+
+lemma rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le:
+  assumes "q \<in> rpath9_atom_frontier_acc (RCHAR c) (rpath9_tail k)"
+  shows "rsize q \<le> rsize k"
+  using assms by (simp add: rfrontier_rpath9_tail_member_size_le)
+
+lemma rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le:
+  assumes "q \<in> rpath9_atom_frontier_acc (RCHAR c) (rpath9_tail (RSEQ p k))"
+  shows "rsize q \<le> rsize (RSEQ p k)"
+proof -
+  have "q \<in> rfrontier (rpath9_tail (RSEQ p k))"
+    using assms by simp
+  then show ?thesis
+    by (rule rfrontier_rpath9_tail_RSEQ_member_size_le)
 qed
 
 definition rpath_dual_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where

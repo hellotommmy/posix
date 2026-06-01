@@ -66,6 +66,11 @@ immutability.
   `rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le`, and
   `rfrontier_rpath9_tail_RSEQ_member_size_le` is also checked; it is progress
   toward the remaining linear member-size premise, not a payout claim. The
+  generic frontier helper `rfrontier_rsimp7_SEQ_atom_rsimp9_member_size_le`
+  and the `RCHAR` raw-tail base cases
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le` and
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le` are
+  checked as the first leaves for that induction. The
   checked accounting
   interface adds
   `partial_derivative_path9_atom_frontier_universe_card_le`,

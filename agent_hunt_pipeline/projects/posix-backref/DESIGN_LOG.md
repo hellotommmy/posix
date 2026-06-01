@@ -726,6 +726,12 @@ to be read before continuing long-running agent work.
   `rfrontier_rpath9_tail_RSEQ_member_size_le` show that normalized tails and
   their frontier members are bounded by the corresponding raw continuation
   size.
+- Added `rfrontier_rsimp7_SEQ_atom_rsimp9_member_size_le` as the generic
+  frontier estimate for a normalized left component, plus the `RCHAR` leaves
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le` and
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le`. These are
+  intentionally small: they give the next induction a clean base case without
+  unfolding `rsimp9` or `rpath9_atom_frontier_acc`.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

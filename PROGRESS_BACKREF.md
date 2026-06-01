@@ -14,6 +14,12 @@ Last updated: 2026-06-01 (path9 raw-tail size bridge)
   tail and its frontier members remain bounded by the raw continuation size,
   so the remaining BR-036 member-size proof can reason about raw continuation
   structure instead of repeatedly unfolding the normalized accumulator.
+- Added the generic frontier helper
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_member_size_le` and the `RCHAR` raw-tail
+  base cases
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le` and
+  `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le`. These are
+  the base leaves for the next carried-continuation induction.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 
