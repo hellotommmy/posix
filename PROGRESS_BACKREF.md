@@ -5094,6 +5094,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - `rsizes_distinct_carry9_atom_frontier_universe_cubicI`
   - `rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_cubic`
   - `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_cubicI`
+  - `quadratic_plus_linear_times_param_linear_cubic_bound`
+  - `rsizes_distinct_carry9_atom_frontier_universe_param_cubicI`
+  - `rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_param_cubic`
+  - `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_param_cubicI`
 - Design result:
   - `carry9` aligns the proof-only frontier recursion with
     `rder_path_continuations_acc`: sequence/star/countdown tails are carried
@@ -5108,11 +5112,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Remaining obligations for a carry9 cubic theorem:
   - prove `card (rcarry9_atom_frontiers r) <= (rsize r + 2)^2`;
   - prove every member of `partial_derivative_carry9_atom_frontier_universe r`
-    has size at most `Suc (rsize r + rsize r)`, or adjust the constant with a
-    checked linear bound;
+    has size at most `K * (rsize r + 2)` for some fixed constant `K`;
   - prove root-owned closure:
     if `q` is in the root carry9 universe, then
     `set (rflts (rpder_norm9_list c q))` is also in that same root universe.
+- Checked obstruction:
+  - `carry9_member_size_two_bound_counterexample` shows the earlier
+    `Suc (rsize r + rsize r)` member-size premise is too optimistic for
+    carry9. A small star/sequence regex has a carry9 member larger than that
+    bound. Therefore the viable cubic interface is the parameterized one
+    above, not the fixed-2 member-size hook.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
   300s guard.
 

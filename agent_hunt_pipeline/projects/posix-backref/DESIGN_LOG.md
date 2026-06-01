@@ -994,3 +994,10 @@ to be read before continuing long-running agent work.
   `partial_derivative_carry9_atom_frontier_universe r` must step back into the
   same root universe, plus the quadratic cardinal and linear member-size
   bounds needed by `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_cubicI`.
+- The fixed `Suc (rsize r + rsize r)` member-size premise for carry9 is now
+  known false. `carry9_member_size_two_bound_counterexample` gives a checked
+  small star/sequence regex whose carried frontier member exceeds that bound.
+  Keep the older fixed-2 hook only as a conditional reference; future carry9
+  work should use the parameterized linear-constant interface
+  `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_param_cubicI` and
+  prove a concrete constant `K` for member size.

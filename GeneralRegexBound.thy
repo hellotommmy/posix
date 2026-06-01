@@ -14801,6 +14801,21 @@ proof -
   finally show ?thesis .
 qed
 
+lemma quadratic_plus_linear_times_param_linear_cubic_bound:
+  fixes n C K :: nat
+  assumes "C \<le> (n + 2) ^ 2"
+  shows "(2 + n + C) * (K * (n + 2)) \<le> 2 * K * (n + 2) ^ 3"
+proof -
+  have card: "2 + n + C \<le> 2 * (n + 2) ^ 2"
+    by (rule quadratic_plus_linear_padding_bound[OF assms])
+  have "(2 + n + C) * (K * (n + 2)) \<le>
+      (2 * (n + 2) ^ 2) * (K * (n + 2))"
+    by (rule mult_right_mono[OF card]) simp
+  also have "... = 2 * K * (n + 2) ^ 3"
+    by (simp add: algebra_simps power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
 lemma rsizes_distinct_path9_atom_frontier_universe_cubicI:
   assumes rows:
       "set rs \<subseteq> partial_derivative_path9_atom_frontier_universe r"
@@ -14971,6 +14986,79 @@ proof -
     by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
   then show ?thesis
     by (rule rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_cubic)
+      (use frontiers member_size in auto)
+qed
+
+lemma rsizes_distinct_carry9_atom_frontier_universe_param_cubicI:
+  assumes rows:
+      "set rs \<subseteq> partial_derivative_carry9_atom_frontier_universe r"
+      "distinct rs"
+    and frontiers:
+      "card (rcarry9_atom_frontiers r) \<le> (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> K * (rsize r + 2)"
+  shows "rsizes rs \<le> 2 * K * (rsize r + 2) ^ 3"
+proof -
+  let ?U = "partial_derivative_carry9_atom_frontier_universe r"
+  let ?C = "card (rcarry9_atom_frontiers r)"
+  let ?M = "K * (rsize r + 2)"
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound)
+      (use rows(1) member_size in blast)
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use rows in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + rsize r + ?C) * ?M"
+  proof -
+    have "card ?U \<le> 2 + rsize r + ?C"
+      using partial_derivative_carry9_atom_frontier_universe_card_le[of r]
+      by simp
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 2 * K * (rsize r + 2) ^ 3"
+    by (rule quadratic_plus_linear_times_param_linear_cubic_bound[OF frontiers])
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_param_cubic:
+  assumes rows:
+      "set (rpders_norm19_rows r s) \<subseteq>
+        partial_derivative_carry9_atom_frontier_universe root"
+    and frontiers:
+      "card (rcarry9_atom_frontiers root) \<le> (rsize root + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe root \<Longrightarrow>
+        rsize q \<le> K * (rsize root + 2)"
+  shows "rsizes (rpders_norm19_rows r s) \<le>
+    2 * K * (rsize root + 2) ^ 3"
+  by (rule rsizes_distinct_carry9_atom_frontier_universe_param_cubicI)
+    (use rows frontiers member_size in auto)
+
+lemma rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_param_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_carry9_atom_frontier_universe r"
+    and frontiers:
+      "card (rcarry9_atom_frontiers r) \<le> (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> K * (rsize r + 2)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    2 * K * (rsize r + 2) ^ 3"
+proof -
+  have init: "rsimp9 r \<in> partial_derivative_carry9_atom_frontier_universe r"
+    by (simp add: partial_derivative_carry9_atom_frontier_universe_def)
+  have rows: "set (rpders_norm19_rows (rsimp9 r) s) \<subseteq>
+      partial_derivative_carry9_atom_frontier_universe r"
+    by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_param_cubic)
       (use frontiers member_size in auto)
 qed
 
@@ -15604,6 +15692,23 @@ lemma carry9_raw_spine_parent_covers_rsimp7_star_absorption:
   shows "q \<in> partial_derivative_carry9_atom_frontier_universe root"
   using assms
   by (simp add: a_star_def body_def tail_def q_def root_def
+      partial_derivative_carry9_atom_frontier_universe_def
+      rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+lemma carry9_member_size_two_bound_counterexample:
+  fixes a :: char
+  defines "a_star \<equiv> RSTAR (RCHAR a)"
+  defines "inner \<equiv> RSEQ (RCHAR a) a_star"
+  defines "inner_star \<equiv> RSTAR inner"
+  defines "body \<equiv> RSEQ inner_star (RCHAR a)"
+  defines "root \<equiv> RSTAR body"
+  defines "q \<equiv>
+    RSEQ a_star
+      (RSEQ inner_star
+        (RSEQ (RCHAR a) root))"
+  shows "q \<in> partial_derivative_carry9_atom_frontier_universe root"
+    and "Suc (rsize root + rsize root) < rsize q"
+  by (simp_all add: a_star_def inner_def inner_star_def body_def root_def q_def
       partial_derivative_carry9_atom_frontier_universe_def
       rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
