@@ -1011,3 +1011,17 @@ to be read before continuing long-running agent work.
   tune a small constant. The next route should either add a stronger
   simplifier that collapses this family, or represent carried tails in a
   compact/quotiented way instead of materializing the growing sequence.
+- The first proof-level stronger-simplification hook is now checked in
+  `GeneralRegexBound.thy`. `rprune_eq_against` and
+  `rsimpStrong_prune_pair` mirror the core `bsimpStrong` idea on plain
+  `rrexp`: when two rows share an identical continuation
+  `RSEQ (RALTS lrs) k` and `RSEQ (RALTS rrs) k`, delete from the later
+  row the left alternatives already covered by the earlier row. The language
+  theorem `RL_rsimpStrong_prune_pair_shared_suffix` checks this deletion
+  without invoking annotated bitcode. The concrete regression
+  `thesis_ch7_rstrong_prunes_overlap` captures the Chapter-7 shape
+  `(a+b)c + (a+d)c -> (a+b)c + dc` under freshness of `d`; without freshness,
+  the later row may correctly collapse even further. This is not yet a
+  production simplifier theorem or bounty payout, but it is the first checked
+  bound-layer bridge from the carry9 obstruction toward the stronger
+  simplifier route.

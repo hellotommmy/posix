@@ -5137,6 +5137,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
   300s guard.
 
+## Cubic Bound Research: rStrong Shared-Suffix Prototype (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex heartbeat lane
+- Files changed: `GeneralRegexBound.thy`, `PROGRESS_BACKREF.md`,
+  `agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md`
+- New checked definitions:
+  - `rprune_eq_against`
+  - `rsimpStrong_prune_pair`
+- New checked language facts:
+  - `set_append_rprune_eq_against`
+  - `RL_rprune_eq_against_cover_UN`
+  - `RL_rprune_eq_against_shared_suffix`
+  - `RL_rsimpStrong_prune_pair_shared_suffix`
+- New checked Chapter-7 regression facts:
+  - `thesis_ch7_rstrong_prunes_overlap`
+  - `thesis_ch7_rstrong_overlap_same_language`
+- Design result:
+  - The bound layer now has a small proof-level analogue of the `bsimpStrong`
+    shared-suffix deletion: for two rows `RSEQ (RALTS lrs) k` and
+    `RSEQ (RALTS rrs) k`, the later row may remove left alternatives already
+    covered by the earlier row while preserving erased language.
+  - This directly checks the core Chapter-7 pattern behind
+    `(a+b)c + (a+d)c -> (a+b)c + dc` when `d` is fresh with respect to
+    `a,b`. If `d` is already covered, the later row correctly collapses
+    further instead of producing `dc`.
+  - This is deliberately not a production `bsimpStrong` payout: it is an
+    `rrexp`/language-only prototype for the cubic-bound route. POSIX/bitcode
+    preservation and the full repeated-derivative cubic theorem are still open.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
+  300s guard.
+
 ## Governance Upgrade (2026-05-25)
 
 - Branch: `codex/backref-values`

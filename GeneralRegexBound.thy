@@ -15748,6 +15748,114 @@ lemma carry9_member_size_eight_bound_counterexample:
       partial_derivative_carry9_atom_frontier_universe_def
       rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
+fun rprune_eq_against :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rprune_eq_against covered [] = []"
+| "rprune_eq_against covered (r # rs) =
+    (if r \<in> set covered
+     then rprune_eq_against covered rs
+     else r # rprune_eq_against covered rs)"
+
+definition rsimpStrong_prune_pair :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpStrong_prune_pair earlier later =
+    (case (earlier, later) of
+      (RSEQ (RALTS lrs) k1, RSEQ (RALTS rrs) k2) \<Rightarrow>
+        if k1 = k2
+        then rsimp7_SEQ_atom
+          (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {})) k2
+        else later
+    | _ \<Rightarrow> later)"
+
+lemma set_append_rprune_eq_against:
+  "set (covered @ rprune_eq_against covered rs) = set (covered @ rs)"
+  by (induct rs) auto
+
+lemma RL_rprune_eq_against_cover_UN:
+  "(\<Union>r \<in> set (covered @ rprune_eq_against covered rs). RL r) =
+    (\<Union>r \<in> set (covered @ rs). RL r)"
+proof -
+  have "set covered \<union> set (rprune_eq_against covered rs) =
+      set covered \<union> set rs"
+    using set_append_rprune_eq_against[of covered rs] by simp
+  then show ?thesis
+    by auto
+qed
+
+lemma RL_rprune_eq_against_shared_suffix:
+  "(RL (RALTS covered) ;; K) \<union>
+      ((\<Union>r \<in> set (rprune_eq_against covered rs). RL r) ;; K) =
+    (RL (RALTS covered) ;; K) \<union> (RL (RALTS rs) ;; K)"
+proof -
+  have cover:
+    "RL (RALTS covered) \<union>
+        (\<Union>r \<in> set (rprune_eq_against covered rs). RL r) =
+      RL (RALTS covered) \<union> RL (RALTS rs)"
+  proof -
+    have "set covered \<union> set (rprune_eq_against covered rs) =
+        set covered \<union> set rs"
+      using set_append_rprune_eq_against[of covered rs] by simp
+    then show ?thesis
+      by auto
+  qed
+  show ?thesis
+  proof -
+    have "(RL (RALTS covered) ;; K) \<union>
+        ((\<Union>r \<in> set (rprune_eq_against covered rs). RL r) ;; K) =
+      (RL (RALTS covered) \<union>
+        (\<Union>r \<in> set (rprune_eq_against covered rs). RL r)) ;; K"
+      by (rule Sequ_Un_left2)
+    also have "... = (RL (RALTS covered) \<union> RL (RALTS rs)) ;; K"
+      using cover by simp
+    also have "... =
+      (RL (RALTS covered) ;; K) \<union> (RL (RALTS rs) ;; K)"
+      by (rule Sequ_Un_left2[symmetric])
+    finally show ?thesis .
+  qed
+qed
+
+lemma RL_rsimpStrong_prune_pair_shared_suffix:
+  "RL (RALTS [RSEQ (RALTS lrs) k,
+      rsimpStrong_prune_pair (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k)]) =
+    RL (RALTS [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k])"
+proof -
+  let ?pruned = "rprune_eq_against lrs rrs"
+  have "RL (RALTS [RSEQ (RALTS lrs) k,
+      rsimpStrong_prune_pair (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k)]) =
+    (RL (RALTS lrs) ;; RL k) \<union>
+      (RL (rsimp_ALTs (rdistinct (rflts ?pruned) {})) ;; RL k)"
+    by (simp add: rsimpStrong_prune_pair_def RL_rsimp7_SEQ_atom)
+  also have "... =
+    (RL (RALTS lrs) ;; RL k) \<union>
+      ((\<Union>r \<in> set ?pruned. RL r) ;; RL k)"
+    by (simp add: RL_rsimp_ALTs_normalize)
+  also have "... =
+    (RL (RALTS lrs) ;; RL k) \<union> (RL (RALTS rrs) ;; RL k)"
+    by (rule RL_rprune_eq_against_shared_suffix)
+  also have "... =
+    RL (RALTS [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k])"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma thesis_ch7_rstrong_prunes_overlap:
+  assumes "d \<noteq> a" "d \<noteq> b"
+  shows
+  "rsimpStrong_prune_pair
+      (RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c))
+      (RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)) =
+    RSEQ (RCHAR d) (RCHAR c)"
+  using assms by (simp add: rsimpStrong_prune_pair_def rsimp7_SEQ_atom_def)
+
+lemma thesis_ch7_rstrong_overlap_same_language:
+  "RL (RALTS
+      [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+       rsimpStrong_prune_pair
+        (RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c))
+        (RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c))]) =
+    RL (RALTS
+      [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
+       RSEQ (RALTS [RCHAR a, RCHAR d]) (RCHAR c)])"
+  by (rule RL_rsimpStrong_prune_pair_shared_suffix)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
