@@ -319,6 +319,19 @@ Last updated: 2026-06-01 (path9 stable-tail helper layer)
   The Chapter 7 stronger simplification/pruning route is not yet implemented
   as a real simplifier; it remains the main design gap if `rsimp9/path9`
   accounting is too weak.
+  Added checked FBound regression facts for that exact Chapter 7 gap:
+  `thesis_ch7_evil5_bders_simp_size_16` shows the production-style
+  `bders_simp` state for `((a* + (aa)* + ... + (aaaaa)*)*)*` already reaches
+  size `14876` after `a^16`, while `thesis_ch7_evil5_bders_simp8_size_16`
+  records that root-safe `bsimp8` is much smaller (`1308`) but still not the
+  non-invasive prune rule. The row-list route has the corresponding checked
+  `thesis_ch7_evil5_bpders_norm17_row_size_16 = 645`. The overlap-prune
+  lemmas `thesis_ch7_bsimp_misses_overlap_prune`,
+  `thesis_ch7_overlap_pruned_smaller`, and
+  `thesis_ch7_overlap_pruned_same_language` pin down the missing rule:
+  current `bsimp` cannot prune the shared component in the
+  `(a + b + d).c + (a + c + e).c` shape, even though the pruned erasure has the
+  same language and smaller annotated size.
   Added the dual-frontier cubic hook:
   `quadratic_plus_linear_padding_bound`,
   `quadratic_plus_linear_times_linear_cubic_bound`, and

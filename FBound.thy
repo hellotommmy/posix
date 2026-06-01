@@ -806,6 +806,92 @@ proof -
   then show ?thesis by blast
 qed
 
+section \<open>Chapter 7 Strong-Pruning Regression Tests\<close>
+
+definition thesis_ch7_a :: char where
+  "thesis_ch7_a = CHR ''a''"
+
+definition thesis_ch7_b :: char where
+  "thesis_ch7_b = CHR ''b''"
+
+definition thesis_ch7_c :: char where
+  "thesis_ch7_c = CHR ''c''"
+
+definition thesis_ch7_d :: char where
+  "thesis_ch7_d = CHR ''d''"
+
+definition thesis_ch7_e :: char where
+  "thesis_ch7_e = CHR ''e''"
+
+fun thesis_ch7_rexp_char_power :: "char \<Rightarrow> nat \<Rightarrow> rexp" where
+  "thesis_ch7_rexp_char_power c 0 = ONE"
+| "thesis_ch7_rexp_char_power c (Suc n) =
+    SEQ (CH c) (thesis_ch7_rexp_char_power c n)"
+
+fun thesis_ch7_rexp_alt_list :: "rexp list \<Rightarrow> rexp" where
+  "thesis_ch7_rexp_alt_list [] = ZERO"
+| "thesis_ch7_rexp_alt_list [r] = r"
+| "thesis_ch7_rexp_alt_list (r # rs) =
+    ALT r (thesis_ch7_rexp_alt_list rs)"
+
+definition thesis_ch7_evil_body :: "nat \<Rightarrow> rexp" where
+  "thesis_ch7_evil_body k =
+    thesis_ch7_rexp_alt_list
+      (map (\<lambda>n. STAR (thesis_ch7_rexp_char_power thesis_ch7_a n))
+        [1..<Suc k])"
+
+definition thesis_ch7_evil :: "nat \<Rightarrow> rexp" where
+  "thesis_ch7_evil k = STAR (STAR (thesis_ch7_evil_body k))"
+
+definition asizes :: "arexp list \<Rightarrow> nat" where
+  "asizes rs = sum_list (map asize rs)"
+
+lemma thesis_ch7_evil5_bders_simp_size_16:
+  "asize (bders_simp (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) = 14876"
+  by eval
+
+lemma thesis_ch7_evil5_bders_simp8_size_16:
+  "asize (bders_simp8 (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) = 1308"
+  by eval
+
+lemma thesis_ch7_evil5_bpders_norm17_row_size_16:
+  "asizes (bpders_norm17_rows (bsimp7 (intern (thesis_ch7_evil 5)))
+      (replicate 16 thesis_ch7_a)) = 645"
+  by eval
+
+definition thesis_ch7_overlap :: arexp where
+  "thesis_ch7_overlap =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+          ACHAR [] thesis_ch7_d]) (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_c,
+          ACHAR [] thesis_ch7_e]) (ACHAR [] thesis_ch7_c)]"
+
+definition thesis_ch7_overlap_pruned :: arexp where
+  "thesis_ch7_overlap_pruned =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+          ACHAR [] thesis_ch7_d]) (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_c, ACHAR [] thesis_ch7_e])
+          (ACHAR [] thesis_ch7_c)]"
+
+lemma thesis_ch7_bsimp_misses_overlap_prune:
+  "bsimp thesis_ch7_overlap = thesis_ch7_overlap"
+  by (simp add: thesis_ch7_overlap_def thesis_ch7_a_def thesis_ch7_b_def
+      thesis_ch7_c_def thesis_ch7_d_def thesis_ch7_e_def bsimp_ASEQ_def)
+
+lemma thesis_ch7_overlap_pruned_smaller:
+  "asize thesis_ch7_overlap_pruned < asize thesis_ch7_overlap"
+  by (simp add: thesis_ch7_overlap_def thesis_ch7_overlap_pruned_def)
+
+lemma thesis_ch7_overlap_pruned_same_language:
+  "L (erase thesis_ch7_overlap) = L (erase thesis_ch7_overlap_pruned)"
+  by (auto simp add: thesis_ch7_overlap_def thesis_ch7_overlap_pruned_def
+      thesis_ch7_a_def thesis_ch7_b_def thesis_ch7_c_def thesis_ch7_d_def
+      thesis_ch7_e_def Sequ_def)
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])

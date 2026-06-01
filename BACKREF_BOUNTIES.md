@@ -65,6 +65,18 @@ immutability.
   countdown. These confirm the candidate route on the motivating examples but
   do not settle BR-036. The thesis Chapter 7 stronger simplification/pruning
   idea is not yet a checked production simplifier and remains a design gap.
+- BR-036/BR-037 now have checked negative/diagnostic evidence in `FBound.thy`
+  for the Chapter 7 example: `thesis_ch7_evil5_bders_simp_size_16` records
+  production `bders_simp` size `14876` on `a^16`, while
+  `thesis_ch7_evil5_bders_simp8_size_16` records `1308` for the root-safe
+  `bsimp8` variant and `thesis_ch7_evil5_bpders_norm17_row_size_16` records
+  `645` for the row-list route. The checked overlap-prune facts
+  `thesis_ch7_bsimp_misses_overlap_prune`,
+  `thesis_ch7_overlap_pruned_smaller`, and
+  `thesis_ch7_overlap_pruned_same_language` show why a real
+  `bsimpStrong`/`prune` design is still needed: current `bsimp` leaves the
+  `(a + b + d).c + (a + c + e).c` overlap untouched, while the pruned erasure
+  is language-equivalent and smaller. This is not a bounty payout.
 - BR-036 now also has the checked norm9-specific scaffold
   `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
   `partial_derivative_path9_atom_frontier_universe`,

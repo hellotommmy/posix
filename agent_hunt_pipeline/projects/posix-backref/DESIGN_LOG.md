@@ -172,6 +172,24 @@ to be read before continuing long-running agent work.
   a proof-level normalization/accounting route, not the `distinctWith`/pruning
   route. If the path9 linear-size proof remains brittle, the next serious
   simplifier should implement that Chapter 7 pruning rule directly.
+- The exact Chapter 7 diagnostic is now checked in `FBound.thy`.
+  `thesis_ch7_evil5_bders_simp_size_16` fixes the production `bders_simp`
+  size for `((a* + (aa)* + ... + (aaaaa)*)*)*` after `a^16` at `14876`.
+  The root-safe `bsimp8` variant is far smaller but still not the Chapter 7
+  prune rule: `thesis_ch7_evil5_bders_simp8_size_16 = 1308`. The
+  partial-derivative row route is smaller again:
+  `thesis_ch7_evil5_bpders_norm17_row_size_16 = 645`. This supports the
+  current conclusion: a cubic production path should either transfer the row
+  route to the annotated lexer, or implement `bsimpStrong` with non-invasive
+  pruning rather than relying on old `bsimp`.
+- The overlap-prune target is also checked. Current `bsimp` leaves
+  `(a + b + d).c + (a + c + e).c` unchanged
+  (`thesis_ch7_bsimp_misses_overlap_prune`), while the hand-pruned expression
+  is strictly smaller and language-equivalent after erasure
+  (`thesis_ch7_overlap_pruned_smaller`,
+  `thesis_ch7_overlap_pruned_same_language`). This is only an erasure-level
+  safety sanity check; POSIX/bitcode preservation still needs a rewrite or
+  retrieve/decode proof before this can become production `bsimpStrong`.
 - The dual-frontier route now has a checked conditional cubic hook:
   `rsizes_distinct_path_dual_frontier_universe_cubicI`. It reduces the
   remaining arithmetic/accounting work to two local obligations: prove
