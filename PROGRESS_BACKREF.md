@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (carry9 frontier prototype)
+Last updated: 2026-06-02 (strong-row finite-universe interface)
+
+## Strong-Row Cubic Interface (2026-06-02)
+
+- Added and checked the conditional finite-universe interface for the
+  proof-level strong row pipeline:
+  `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,
+  `rsizes_distinct_finite_universe_bound`,
+  `rsizes_rpders_strong_rows_finite_universe_boundI`,
+  `rsizes_rpders_strong1_rows_finite_universe_boundI`,
+  `rsizes_rpders_strong_rows_cubic_universe_boundI`, and
+  `rsizes_rpders_strong1_rows_cubic_universe_boundI`.
+- The key design point is that the closure premise is row-list based:
+  `set xs <= U ==> set (rpder_strong_rows c xs) <= U`. This is necessary
+  because `rsimpStrong_prune_rows` performs cross-row pruning after all
+  one-step rows are collected; a per-expression closure premise would hide
+  exactly the interaction the Chapter-7 simplifier is meant to exploit.
+- This is only a checked interface, not a bounty claim for the cubic theorem.
+  The next proof task remains instantiating the finite universe and one-step
+  closure, especially the carried-continuation cases for `RSEQ`, `RSTAR`, and
+  nonzero `RNTIMES`.
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 

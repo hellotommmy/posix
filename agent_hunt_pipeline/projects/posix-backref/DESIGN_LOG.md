@@ -1066,3 +1066,16 @@ to be read before continuing long-running agent work.
   sharply isolated: prove a finite strong-row universe/closure and a polynomial
   row-size bound for `rpders_strong_rows`, then transfer the design to annotated
   `arexp` with POSIX/bitcode preservation.
+- The repeated strong-row route now has that conditional finite-universe
+  interface checked. `rpders_strong_rows_subsetI` and
+  `rsizes_rpders_strong_rows_finite_universe_boundI` deliberately use a
+  row-list one-step closure premise
+  `set xs <= U ==> set (rpder_strong_rows c xs) <= U`, because
+  `rpder_strong_rows` collects all one-step rows before applying
+  cross-row pruning. Treating it as a pointwise derivative closure would be
+  too weak and would miss the Chapter-7 shared-suffix deletion. The cubic
+  hooks `rsizes_rpders_strong_rows_cubic_universe_boundI` and
+  `rsizes_rpders_strong1_rows_cubic_universe_boundI` are therefore honest
+  conditional interfaces: the remaining work is still to instantiate a
+  finite root-owned universe and prove the hard one-step closure, especially
+  the carried-continuation cases for `RSEQ`, `RSTAR`, and nonzero `RNTIMES`.

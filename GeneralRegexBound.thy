@@ -16782,6 +16782,134 @@ lemma RLS_rpders_strong1_rows:
   using RLS_rpders_strong_rows[of "[r]" s] assms
   by (simp add: rpders_strong1_rows_def RLS_def)
 
+lemma rpders_strong_rows_subsetI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+  shows "set (rpders_strong_rows rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_rows: "set (rpder_strong_rows c rs) \<subseteq> U"
+    by (rule step[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF next_rows])
+qed
+
+lemma rpders_strong1_rows_subsetI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+  shows "set (rpders_strong1_rows r s) \<subseteq> U"
+proof -
+  have rows: "set [r] \<subseteq> U"
+    using init by simp
+  show ?thesis
+    unfolding rpders_strong1_rows_def
+    by (rule rpders_strong_rows_subsetI[OF rows step])
+qed
+
+lemma rsizes_distinct_finite_universe_bound:
+  assumes finite: "finite U"
+      and rows: "set rs \<subseteq> U"
+      and distinct: "distinct rs"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsizes rs \<le> card U * M"
+proof -
+  have "rsizes rs \<le> length rs * M"
+    by (rule rsizes_le_length_times_bound) (use rows member_size in blast)
+  also have "... \<le> card U * M"
+  proof -
+    have "length rs \<le> card U"
+      by (rule length_distinct_subset_card[OF finite rows distinct])
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_strong_rows_finite_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and distinct: "distinct rs"
+  shows "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+proof -
+  have rows: "set (rpders_strong_rows rs s) \<subseteq> U"
+    by (rule rpders_strong_rows_subsetI[OF init step])
+  have dist: "distinct (rpders_strong_rows rs s)"
+    by (rule distinct_rpders_strong_rows[OF distinct])
+  show ?thesis
+    by (rule rsizes_distinct_finite_universe_bound
+        [OF finite rows dist member_size])
+qed
+
+lemma rsizes_rpders_strong1_rows_finite_universe_boundI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsizes (rpders_strong1_rows r s) \<le> card U * M"
+proof -
+  have rows: "set [r] \<subseteq> U"
+    using init by simp
+  have distinct_rows: "distinct [r]"
+    by simp
+  have "rsizes (rpders_strong_rows [r] s) \<le> card U * M"
+    by (rule rsizes_rpders_strong_rows_finite_universe_boundI
+        [OF rows step finite member_size distinct_rows])
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_def)
+qed
+
+lemma rsizes_rpders_strong_rows_cubic_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and distinct: "distinct rs"
+      and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong_rows rs s) \<le> B"
+proof -
+  have "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+    by (rule rsizes_rpders_strong_rows_finite_universe_boundI
+        [OF init step finite member_size distinct])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_strong1_rows_cubic_universe_boundI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong1_rows r s) \<le> B"
+proof -
+  have "rsizes (rpders_strong1_rows r s) \<le> card U * M"
+    by (rule rsizes_rpders_strong1_rows_finite_universe_boundI
+        [OF init step finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"
   shows
