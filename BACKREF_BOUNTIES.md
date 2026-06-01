@@ -373,6 +373,14 @@ immutability.
   `rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable` with
   `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances. This is
   checked progress toward one-step closure, not a BR-036 payout claim.
+  The same character-alternative body shape is now checked for `RSTAR` and
+  `RNTIMES` via
+  `rder_path_continuations_acc_RALTS_RCHARs_root_path9_RSTAR`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_RALTS_RCHARs`,
+  `rder_path_continuations_acc_RALTS_RCHARs_root_path9_RNTIMES`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_RALTS_RCHARs`. The counted
+  proof explicitly splits the zero-predecessor case, where `RONE` is admitted
+  by the universe rather than by a body-frontier inclusion.
 
 ## Completed
 

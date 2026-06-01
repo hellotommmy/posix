@@ -899,6 +899,12 @@ to be read before continuing long-running agent work.
   packages the `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances.
   This is useful for the thesis-style left-nested character-alternative cases,
   but general `RALTS` and nested-`RSEQ` carried-left closures are still open.
+- The same `RALTS`-of-characters splitter now feeds the loop-body closure
+  lane for `RSTAR` and `RNTIMES`. The counted case is slightly different from
+  the star case: when the predecessor count is zero, the derivative row is
+  `RONE`, so route it through `partial_derivative_path9_atom_frontier_universe`
+  directly instead of pretending it came from
+  `rpath9_atom_frontier_acc (RALTS rs) ...`.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
