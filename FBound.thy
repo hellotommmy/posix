@@ -1206,6 +1206,276 @@ definition thesis_ch7_evil :: "nat \<Rightarrow> rexp" where
 definition asizes :: "arexp list \<Rightarrow> nat" where
   "asizes rs = sum_list (map asize rs)"
 
+lemma asizes_append [simp]:
+  "asizes (xs @ ys) = asizes xs + asizes ys"
+  by (simp add: asizes_def)
+
+lemma asizes_cons [simp]:
+  "asizes (x # xs) = asize x + asizes xs"
+  by (simp add: asizes_def)
+
+lemma asize_fuse [simp]:
+  "asize (fuse bs r) = asize r"
+  by (cases r) simp_all
+
+lemma asizes_map_fuse [simp]:
+  "asizes (map (fuse bs) rs) = asizes rs"
+  by (induct rs) (simp_all add: asizes_def)
+
+lemma sum_list_map_asize_fuse [simp]:
+  "sum_list (map (asize \<circ> fuse bs) rs) = sum_list (map asize rs)"
+  by (induct rs) simp_all
+
+lemma asizes_flts_le:
+  "asizes (flts rs) \<le> asizes rs"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  then show ?case
+    by (cases r) (simp_all add: asizes_def)
+qed
+
+lemma asizes_distinctWith_le:
+  "asizes (distinctWith rs eq acc) \<le> asizes rs"
+proof (induct rs arbitrary: acc)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "\<exists>y \<in> acc. eq r y")
+    case True
+    have "asizes (distinctWith rs eq acc) \<le> asizes rs"
+      by (rule Cons.hyps)
+    then show ?thesis
+      using True by (simp add: asizes_def)
+  next
+    case False
+    have "asizes (distinctWith rs eq ({r} \<union> acc)) \<le> asizes rs"
+      by (rule Cons.hyps)
+    then show ?thesis
+      using False by (simp add: asizes_def)
+  qed
+qed
+
+lemma asizes_prune_eq1_against_le:
+  "asizes (prune_eq1_against covered rs) \<le> asizes rs"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "eq1_member r covered")
+    case True
+    then show ?thesis
+      using Cons.hyps by (simp add: asizes_def)
+  next
+    case False
+    then show ?thesis
+      using Cons.hyps by (simp add: asizes_def)
+  qed
+qed
+
+lemma asize_bsimp_AALTs_le:
+  "asize (bsimp_AALTs bs rs) \<le> Suc (asizes rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons r rest)
+  have rs_def: "rs = r # rest"
+    using Cons by simp
+  show ?thesis
+  proof (cases rest)
+    case Nil
+    then show ?thesis
+      using rs_def by (simp add: asizes_def)
+  next
+    case (Cons s ss)
+    then show ?thesis
+      using rs_def by (simp add: asizes_def)
+  qed
+qed
+
+lemma asize_bsimp7_ASEQ_atom_le:
+  "asize (bsimp7_ASEQ_atom bs r1 r2) \<le> Suc (asize r1 + asize r2)"
+proof -
+  have "asize (bsimp7_ASEQ_atom bs r1 r2) =
+      rsize (rerase (bsimp7_ASEQ_atom bs r1 r2))"
+    by (simp add: asize_rsize)
+  also have "... =
+      rsize (rsimp7_SEQ_atom (rerase r1) (rerase r2))"
+    by (simp add: rerase_bsimp7_ASEQ_atom)
+  also have "... \<le> Suc (rsize (rerase r1) + rsize (rerase r2))"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... = Suc (asize r1 + asize r2)"
+    by (simp add: asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma asize_bsimpStrong_pruned_AALTs_le:
+  "asize (bsimp_AALTs bs (prune_eq1_against covered rs)) \<le>
+    asize (AALTs bs rs)"
+proof -
+  have "asize (bsimp_AALTs bs (prune_eq1_against covered rs)) \<le>
+      Suc (asizes (prune_eq1_against covered rs))"
+    by (rule asize_bsimp_AALTs_le)
+  also have "... \<le> Suc (asizes rs)"
+    using asizes_prune_eq1_against_le[of covered rs] by simp
+  finally show ?thesis
+    by (simp add: asizes_def)
+qed
+
+lemma asize_bsimpStrong_prune_pair_le:
+  "asize (bsimpStrong_prune_pair earlier later) \<le> asize later"
+proof -
+  consider
+    (shared) bs1 lbs lrs k1 bs2 rbs rrs k2 where
+      "earlier = ASEQ bs1 (AALTs lbs lrs) k1"
+      "later = ASEQ bs2 (AALTs rbs rrs) k2"
+      "k1 ~1 k2"
+  | (other) "\<not> (\<exists>bs1 lbs lrs k1 bs2 rbs rrs k2.
+      earlier = ASEQ bs1 (AALTs lbs lrs) k1 \<and>
+      later = ASEQ bs2 (AALTs rbs rrs) k2 \<and> k1 ~1 k2)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared bs1 lbs lrs k1 bs2 rbs rrs k2)
+    have "asize (bsimpStrong_prune_pair earlier later) =
+        asize (bsimp7_ASEQ_atom bs2
+          (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2)"
+      using shared by (simp add: bsimpStrong_prune_pair_def)
+    also have "... \<le> Suc
+        (asize (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) + asize k2)"
+      by (rule asize_bsimp7_ASEQ_atom_le)
+    also have "... \<le> Suc (asize (AALTs rbs rrs) + asize k2)"
+      using asize_bsimpStrong_pruned_AALTs_le[of rbs lrs rrs] by simp
+    also have "... = asize later"
+      using shared by simp
+    finally show ?thesis .
+  next
+    case other
+    have "bsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding bsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: arexp.splits)
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma asize_bsimpStrong_prune_against_rows_le:
+  "asize (bsimpStrong_prune_against_rows seen r) \<le> asize r"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "bsimpStrong_prune_pair x r"
+  have "asize (bsimpStrong_prune_against_rows (x # xs) r) =
+      asize (bsimpStrong_prune_against_rows xs ?p)"
+    by simp
+  also have "... \<le> asize ?p"
+    by (rule Cons.hyps)
+  also have "... \<le> asize r"
+    by (rule asize_bsimpStrong_prune_pair_le)
+  finally show ?case .
+qed
+
+lemma asizes_bsimpStrong_prune_rows_acc_le:
+  "asizes (bsimpStrong_prune_rows_acc seen rs) \<le> asizes rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpStrong_prune_against_rows seen r"
+  have head: "asize ?r' \<le> asize r"
+    by (rule asize_bsimpStrong_prune_against_rows_le)
+  have tail:
+    "asizes (bsimpStrong_prune_rows_acc (?r' # seen) rs) \<le> asizes rs"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by (simp add: Let_def asizes_def)
+qed
+
+lemma asizes_bsimpStrong_prune_rows_le:
+  "asizes (bsimpStrong_prune_rows rs) \<le> asizes rs"
+  using asizes_bsimpStrong_prune_rows_acc_le[of "[]" rs]
+  by (simp add: bsimpStrong_prune_rows_def)
+
+lemma asize_bsimpStrong_AALTs_le:
+  "asize (bsimpStrong_AALTs bs rs) \<le> asize (AALTs bs rs)"
+proof -
+  have "asize (bsimpStrong_AALTs bs rs) \<le>
+      Suc (asizes (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {}))"
+    by (simp add: bsimpStrong_AALTs_def asize_bsimp_AALTs_le)
+  also have "... \<le> Suc (asizes (flts (bsimpStrong_prune_rows rs)))"
+    using asizes_distinctWith_le[of "flts (bsimpStrong_prune_rows rs)" eq1 "{}"]
+    by simp
+  also have "... \<le> Suc (asizes (bsimpStrong_prune_rows rs))"
+    using asizes_flts_le[of "bsimpStrong_prune_rows rs"] by simp
+  also have "... \<le> Suc (asizes rs)"
+    using asizes_bsimpStrong_prune_rows_le[of rs] by simp
+  finally show ?thesis
+    by (simp add: asizes_def)
+qed
+
+lemma asize_bsimpStrong_le:
+  "asize (bsimpStrong r) \<le> asize r"
+proof (induct r rule: bsimpStrong.induct)
+  case (1 bs r1 r2)
+  have "asize (bsimpStrong (ASEQ bs r1 r2)) \<le>
+      Suc (asize (bsimpStrong r1) + asize (bsimpStrong r2))"
+    by (simp add: asize_bsimp7_ASEQ_atom_le)
+  also have "... \<le> asize (ASEQ bs r1 r2)"
+    using 1 by simp
+  finally show ?case .
+next
+  case (2 bs rs)
+  have elems: "\<And>x. x \<in> set rs \<Longrightarrow> asize (bsimpStrong x) \<le> asize x"
+    using 2 by auto
+  have mapped: "asizes (map bsimpStrong rs) \<le> asizes rs"
+    using elems by (simp add: asizes_def sum_list_mono)
+  have "asize (bsimpStrong (AALTs bs rs)) =
+      asize (bsimpStrong_AALTs bs (flts (map bsimpStrong rs)))"
+    by simp
+  also have "... \<le> asize (AALTs bs (flts (map bsimpStrong rs)))"
+    by (rule asize_bsimpStrong_AALTs_le)
+  also have "... \<le> Suc (asizes (map bsimpStrong rs))"
+    using asizes_flts_le[of "map bsimpStrong rs"] by (simp add: asizes_def)
+  also have "... \<le> Suc (asizes rs)"
+    using mapped by simp
+  finally show ?case
+    by (simp add: asizes_def)
+next
+  case (3 bs r)
+  note ih = 3
+  show ?case
+  proof (cases "bsimpStrong r")
+    case AZERO
+    then show ?thesis by simp
+  next
+    case (AONE x2)
+    then show ?thesis by simp
+  next
+    case (ASTAR x61 x62)
+    have "asize (ASTAR x61 x62) \<le> asize r"
+      using ih ASTAR by simp
+    then show ?thesis
+      using ASTAR by simp
+  qed (use ih in simp_all)
+qed simp_all
+
 lemma thesis_ch7_evil5_bders_simp_size_16:
   "asize (bders_simp (intern (thesis_ch7_evil 5))
       (replicate 16 thesis_ch7_a)) = 14876"

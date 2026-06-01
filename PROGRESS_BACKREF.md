@@ -5272,6 +5272,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
   300s guard.
 
+## Cubic Bound Research Checkpoint: Annotated Strong Simplifier Size (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked theorem added in `FBound.thy`:
+  - `asize_bsimpStrong_le`
+- Supporting size lemmas:
+  - `asizes_flts_le`
+  - `asizes_distinctWith_le`
+  - `asizes_prune_eq1_against_le`
+  - `asize_bsimp_AALTs_le`
+  - `asize_bsimp7_ASEQ_atom_le`
+  - `asize_bsimpStrong_prune_pair_le`
+  - `asize_bsimpStrong_prune_against_rows_le`
+  - `asizes_bsimpStrong_prune_rows_acc_le`
+  - `asizes_bsimpStrong_prune_rows_le`
+  - `asize_bsimpStrong_AALTs_le`
+- Design result:
+  - The executable annotated `bsimpStrong` prototype now has checked size
+    control: simplification, row pruning, duplicate removal, and alternative
+    flattening do not increase `asize`.
+  - This is the annotated counterpart of the earlier proof-level
+    `rsize_rsimpStrong_le` checkpoint. It makes the Chapter-7 shared-suffix
+    pruning route usable for future `arexp` bounds without hiding the work in a
+    wrapper.
+  - POSIX/bitcode preservation for the stronger simplifier and the full cubic
+    theorem are still open; no bounty is claimed from this checkpoint.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+
 ## Governance Upgrade (2026-05-25)
 
 - Branch: `codex/backref-values`

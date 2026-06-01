@@ -1087,3 +1087,13 @@ to be read before continuing long-running agent work.
   it says future closure proofs should instantiate the later `path9`,
   `carry9`, or strong-row universes rather than trying to repair the original
   path/frontier universe with a monolithic carried-continuation proof.
+- The executable annotated `bsimpStrong` route now has checked size control in
+  `FBound.thy`. The key theorem `asize_bsimpStrong_le` proves that the stronger
+  annotated simplifier never increases `asize`; helper lemmas isolate the
+  accounting for `flts`, `distinctWith`, `prune_eq1_against`, pairwise
+  shared-suffix pruning, and the left-to-right row scanner. This is important
+  because the earlier `rsize_rsimpStrong_le` result lived in the proof-level
+  `rrexp` layer only. The new theorem does not yet prove POSIX/bitcode
+  preservation or cubic closure, but it means future annotated transfer work
+  can use the stronger Chapter-7 simplifier without paying a hidden size
+  increase.
