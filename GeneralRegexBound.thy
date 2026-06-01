@@ -10138,6 +10138,54 @@ definition partial_derivative_path9_atom_frontier_universe :: "rrexp \<Rightarro
   "partial_derivative_path9_atom_frontier_universe r =
     insert RZERO (insert RONE (rsubterms (rsimp9 r) \<union> rpath9_atom_frontiers r))"
 
+fun rcarry9_atom_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rcarry9_atom_frontier_acc RZERO k = {}"
+| "rcarry9_atom_frontier_acc RONE k = {}"
+| "rcarry9_atom_frontier_acc (RCHAR c) k = rfrontier (rsimp9 k)"
+| "rcarry9_atom_frontier_acc (RALTS rs) k =
+    (\<Union> (set (map (\<lambda>r. rcarry9_atom_frontier_acc r k) rs)))"
+| "rcarry9_atom_frontier_acc (RSEQ r1 r2) k =
+    rcarry9_atom_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    rcarry9_atom_frontier_acc r2 k"
+| "rcarry9_atom_frontier_acc (RSTAR r) k =
+    rcarry9_atom_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "rcarry9_atom_frontier_acc (RNTIMES r n) k =
+    (if n = 0 then {} else
+      rcarry9_atom_frontier_acc r
+        (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k))"
+| "rcarry9_atom_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rcarry9_atom_frontier_acc r1 k \<union> rcarry9_atom_frontier_acc r2 k \<union>
+    rcarry9_atom_frontier_acc r3 k \<union> rcarry9_atom_frontier_acc r4 k"
+| "rcarry9_atom_frontier_acc (RHALF r cs rep) k =
+    rcarry9_atom_frontier_acc r k"
+| "rcarry9_atom_frontier_acc (RRESIDUE cs rep) k = {}"
+
+definition rcarry9_atom_frontiers :: "rrexp \<Rightarrow> rrexp set" where
+  "rcarry9_atom_frontiers r = rcarry9_atom_frontier_acc r RONE"
+
+definition partial_derivative_carry9_atom_frontier_universe ::
+  "rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_carry9_atom_frontier_universe r =
+    insert RZERO (insert RONE (rsubterms (rsimp9 r) \<union> rcarry9_atom_frontiers r))"
+
+lemma finite_rcarry9_atom_frontier_acc [simp]:
+  "finite (rcarry9_atom_frontier_acc r k)"
+  by (induct r arbitrary: k) simp_all
+
+lemma finite_rcarry9_atom_frontiers [simp]:
+  "finite (rcarry9_atom_frontiers r)"
+  by (simp add: rcarry9_atom_frontiers_def)
+
+lemma finite_partial_derivative_carry9_atom_frontier_universe [simp]:
+  "finite (partial_derivative_carry9_atom_frontier_universe r)"
+  by (simp add: partial_derivative_carry9_atom_frontier_universe_def)
+
+lemma rcarry9_atom_frontiers_universe:
+  assumes "x \<in> rcarry9_atom_frontiers r"
+  shows "x \<in> partial_derivative_carry9_atom_frontier_universe r"
+  using assms
+  by (simp add: partial_derivative_carry9_atom_frontier_universe_def)
+
 fun rpath9_tail :: "rrexp \<Rightarrow> rrexp" where
   "rpath9_tail (RSEQ r k) = rsimp7_SEQ_atom (rsimp9 r) (rpath9_tail k)"
 | "rpath9_tail k = rsimp7_SEQ_atom (rsimp9 k) RONE"
@@ -12955,6 +13003,200 @@ lemma rflts_singleton_rsimp9_frontier:
   "set (rflts [rsimp9 r]) \<subseteq> rfrontier (rsimp9 r)"
   by (rule rflts_good_singleton_frontier) (rule good_rsimp9)
 
+lemma rder_path_continuations_acc_rcarry9_frontier:
+  assumes p: "p \<in> rder_path_continuations_acc c r k"
+  shows "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r k"
+  using p
+proof (induct r arbitrary: k p)
+  case RZERO
+  then show ?case
+    by simp
+next
+  case RONE
+  then show ?case
+    by simp
+next
+  case (RCHAR d)
+  show ?case
+  proof (cases "c = d")
+    case True
+    then have p_eq: "p = k"
+      using RCHAR.prems by simp
+    show ?thesis
+      using p_eq rflts_singleton_rsimp9_frontier[of k] by simp
+  next
+    case False
+    then show ?thesis
+      using RCHAR.prems by simp
+  qed
+next
+  case (RALTS rs)
+  show ?case
+  proof
+    fix x
+    assume x: "x \<in> set (rflts [rsimp9 p])"
+    obtain q where q: "q \<in> set rs" "p \<in> rder_path_continuations_acc c q k"
+      using RALTS.prems by auto
+    have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc q k"
+      by (rule RALTS.hyps[OF q])
+    then have "x \<in> rcarry9_atom_frontier_acc q k"
+      using x by blast
+    then show "x \<in> rcarry9_atom_frontier_acc (RALTS rs) k"
+      using q(1) by auto
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "p \<in> rder_path_continuations_acc c r1
+      (rsimp4_SEQ_atom r2 k)")
+    case True
+    have "set (rflts [rsimp9 p]) \<subseteq>
+        rcarry9_atom_frontier_acc r1 (rsimp4_SEQ_atom r2 k)"
+      by (rule RSEQ.hyps(1)[OF True])
+    then show ?thesis
+      by auto
+  next
+    case False
+    show ?thesis
+    proof (cases "rnullable r1")
+      case True
+      have right: "p \<in> rder_path_continuations_acc c r2 k"
+        using RSEQ.prems False True by auto
+      have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r2 k"
+        by (rule RSEQ.hyps(2)[OF right])
+      then show ?thesis
+        by auto
+    next
+      case False_nullable: False
+      have False
+        using RSEQ.prems False False_nullable by auto
+      then show ?thesis
+        by simp
+    qed
+  qed
+next
+  case (RSTAR r)
+  have body: "p \<in> rder_path_continuations_acc c r
+      (rsimp4_SEQ_atom (RSTAR r) k)"
+    using RSTAR.prems by simp
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rcarry9_atom_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule RSTAR.hyps[OF body])
+  show ?case
+    using \<open>set (rflts [rsimp9 p]) \<subseteq>
+      rcarry9_atom_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)\<close>
+    by simp
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases "n = 0")
+    case True
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case False
+    obtain m where n_eq: "n = Suc m"
+      using False by (cases n) auto
+    have body: "p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k)"
+      using RNTIMES.prems False by simp
+    have "set (rflts [rsimp9 p]) \<subseteq>
+        rcarry9_atom_frontier_acc r
+          (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k)"
+      by (rule RNTIMES.hyps[OF body])
+    show ?thesis
+      using False n_eq \<open>set (rflts [rsimp9 p]) \<subseteq>
+        rcarry9_atom_frontier_acc r
+          (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k)\<close>
+      by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof (cases "p \<in> rder_path_continuations_acc c r1 k")
+    case True
+    have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r1 k"
+      by (rule RBACKREF4.hyps(1)[OF True])
+    then show ?thesis
+      by auto
+  next
+    case not1: False
+    show ?thesis
+    proof (cases "p \<in> rder_path_continuations_acc c r2 k")
+      case True
+      have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r2 k"
+        by (rule RBACKREF4.hyps(2)[OF True])
+      then show ?thesis
+        by auto
+    next
+      case not2: False
+      show ?thesis
+      proof (cases "p \<in> rder_path_continuations_acc c r3 k")
+        case True
+        have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r3 k"
+          by (rule RBACKREF4.hyps(3)[OF True])
+        then show ?thesis
+          by auto
+      next
+        case not3: False
+        have right: "p \<in> rder_path_continuations_acc c r4 k"
+          using RBACKREF4.prems not1 not2 not3 by auto
+        have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r4 k"
+          by (rule RBACKREF4.hyps(4)[OF right])
+        then show ?thesis
+          by auto
+      qed
+    qed
+  qed
+next
+  case (RHALF r cs rep)
+  have body: "p \<in> rder_path_continuations_acc c r k"
+    using RHALF.prems by simp
+  have "set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r k"
+    by (rule RHALF.hyps[OF body])
+  show ?case
+    using \<open>set (rflts [rsimp9 p]) \<subseteq> rcarry9_atom_frontier_acc r k\<close>
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by simp
+qed
+
+lemma rder_path_continuations_acc_rcarry9_universe:
+  assumes p: "p \<in> rder_path_continuations_acc c r RONE"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_carry9_atom_frontier_universe r"
+proof
+  fix x
+  assume x: "x \<in> set (rflts [rsimp9 p])"
+  have x_acc: "x \<in> rcarry9_atom_frontier_acc r RONE"
+    using rder_path_continuations_acc_rcarry9_frontier[OF p] x by blast
+  have x_frontier: "x \<in> rcarry9_atom_frontiers r"
+    using x_acc by (simp add: rcarry9_atom_frontiers_def)
+  show "x \<in> partial_derivative_carry9_atom_frontier_universe r"
+    by (rule rcarry9_atom_frontiers_universe[OF x_frontier])
+qed
+
+lemma rpder_norm9_carry9_atom_frontier_step:
+  assumes legacy: "legacy_rrexp r"
+  shows "set (rflts (rpder_norm9_list c r)) \<subseteq>
+    partial_derivative_carry9_atom_frontier_universe r"
+proof -
+  have rows: "set (rflts
+      (map rsimp9 (map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c r)))) \<subseteq>
+      partial_derivative_carry9_atom_frontier_universe r"
+  proof (rule rflts_map_rsimp9_rpder_list_path_direct_subsetI[OF legacy])
+    fix p
+    assume p: "p \<in> rder_path_continuations_acc c r RONE"
+    show "set (rflts [rsimp9 p]) \<subseteq>
+        partial_derivative_carry9_atom_frontier_universe r"
+      by (rule rder_path_continuations_acc_rcarry9_universe[OF p])
+  qed
+  show ?thesis
+    using rows by (simp add: rpder_norm9_list_def rpder_norm_list_def)
+qed
+
 lemma rder_path_continuations_acc_RCHAR_frontierI:
   assumes front: "rfrontier (rsimp9 k) \<subseteq> U"
     and p: "p \<in> rder_path_continuations_acc c (RCHAR d) k"
@@ -14432,6 +14674,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma partial_derivative_carry9_atom_frontier_universe_card_le:
+  "card (partial_derivative_carry9_atom_frontier_universe r) \<le>
+    2 + rsize r + card (rcarry9_atom_frontiers r)"
+proof -
+  have "card (partial_derivative_carry9_atom_frontier_universe r) \<le>
+    2 + card (rsubterms (rsimp9 r)) + card (rcarry9_atom_frontiers r)"
+    unfolding partial_derivative_carry9_atom_frontier_universe_def
+    by (rule card_insert2_Un_le) simp_all
+  also have "... \<le>
+    2 + rsize (rsimp9 r) + card (rcarry9_atom_frontiers r)"
+    using card_rsubterms_le_rsize[of "rsimp9 r"] by linarith
+  also have "... \<le> 2 + rsize r + card (rcarry9_atom_frontiers r)"
+    using rsize_rsimp9_le[of r] by linarith
+  finally show ?thesis .
+qed
+
 lemma partial_derivative_path9_atom_frontier_universe_member_size_boundI:
   assumes front: "\<And>q. q \<in> rpath9_atom_frontiers r \<Longrightarrow> rsize q \<le> N"
     and root: "rsize r \<le> N"
@@ -14641,6 +14899,79 @@ proof (rule rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI)
   show "rsize q \<le> Suc (rsize r + rsize r)"
     by (rule partial_derivative_path9_atom_frontier_universe_member_size_tight_budgetI
         [OF budget q])
+qed
+
+lemma rsizes_distinct_carry9_atom_frontier_universe_cubicI:
+  assumes rows:
+      "set rs \<subseteq> partial_derivative_carry9_atom_frontier_universe r"
+      "distinct rs"
+    and frontiers:
+      "card (rcarry9_atom_frontiers r) \<le> (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes rs \<le> 6 * (rsize r + 2) ^ 3"
+proof -
+  let ?U = "partial_derivative_carry9_atom_frontier_universe r"
+  let ?C = "card (rcarry9_atom_frontiers r)"
+  let ?M = "Suc (rsize r + rsize r)"
+  have "rsizes rs \<le> length rs * ?M"
+    by (rule rsizes_le_length_times_bound)
+      (use rows(1) member_size in blast)
+  also have "... \<le> card ?U * ?M"
+  proof -
+    have "length rs \<le> card ?U"
+      by (rule length_distinct_subset_card) (use rows in auto)
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> (2 + rsize r + ?C) * ?M"
+  proof -
+    have "card ?U \<le> 2 + rsize r + ?C"
+      using partial_derivative_carry9_atom_frontier_universe_card_le[of r]
+      by simp
+    then show ?thesis
+      by (rule mult_right_mono) simp
+  qed
+  also have "... \<le> 6 * (rsize r + 2) ^ 3"
+    by (rule quadratic_plus_linear_times_linear_cubic_bound[OF frontiers])
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_cubic:
+  assumes rows:
+      "set (rpders_norm19_rows r s) \<subseteq>
+        partial_derivative_carry9_atom_frontier_universe root"
+    and frontiers:
+      "card (rcarry9_atom_frontiers root) \<le> (rsize root + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe root \<Longrightarrow>
+        rsize q \<le> Suc (rsize root + rsize root)"
+  shows "rsizes (rpders_norm19_rows r s) \<le>
+    6 * (rsize root + 2) ^ 3"
+  by (rule rsizes_distinct_carry9_atom_frontier_universe_cubicI)
+    (use rows frontiers member_size in auto)
+
+lemma rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_cubicI:
+  assumes step: "\<And>q c. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+    set (rflts (rpder_norm9_list c q)) \<subseteq>
+      partial_derivative_carry9_atom_frontier_universe r"
+    and frontiers:
+      "card (rcarry9_atom_frontiers r) \<le> (rsize r + 2) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> partial_derivative_carry9_atom_frontier_universe r \<Longrightarrow>
+        rsize q \<le> Suc (rsize r + rsize r)"
+  shows "rsizes (rpders_norm19_rows (rsimp9 r) s) \<le>
+    6 * (rsize r + 2) ^ 3"
+proof -
+  have init: "rsimp9 r \<in> partial_derivative_carry9_atom_frontier_universe r"
+    by (simp add: partial_derivative_carry9_atom_frontier_universe_def)
+  have rows: "set (rpders_norm19_rows (rsimp9 r) s) \<subseteq>
+      partial_derivative_carry9_atom_frontier_universe r"
+    by (rule rpders_norm19_rows_rflts_subsetI[OF init step])
+  then show ?thesis
+    by (rule rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_cubic)
+      (use frontiers member_size in auto)
 qed
 
 lemma rsizes_distinct_path_dual_frontier_universe_cubicI:
@@ -15262,6 +15593,19 @@ lemma path9_raw_spine_parent_misses_rsimp7_star_absorption:
   by (simp_all add: a_star_def body_def tail_def q_def root_def
       partial_derivative_path9_atom_frontier_universe_def
       rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+lemma carry9_raw_spine_parent_covers_rsimp7_star_absorption:
+  assumes "a \<noteq> d"
+  defines "a_star \<equiv> RSTAR (RCHAR a)"
+  defines "body \<equiv> RSEQ (RCHAR a) a_star"
+  defines "tail \<equiv> a_star"
+  defines "q \<equiv> RSEQ (RCHAR a) a_star"
+  defines "root \<equiv> RSEQ (RCHAR d) (RSEQ body tail)"
+  shows "q \<in> partial_derivative_carry9_atom_frontier_universe root"
+  using assms
+  by (simp add: a_star_def body_def tail_def q_def root_def
+      partial_derivative_carry9_atom_frontier_universe_def
+      rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"

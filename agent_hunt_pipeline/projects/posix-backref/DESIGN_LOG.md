@@ -981,3 +981,16 @@ to be read before continuing long-running agent work.
   move to a stronger state simplifier; do not try to prove a plain subset from
   `rpath9_tail (rsimp4_SEQ_atom body tail)` into
   `rpath9_tail (RSEQ body tail)`.
+- The first refined carried-tail universe is now checked as `carry9`.
+  `rcarry9_atom_frontier_acc` follows `rder_path_continuations_acc` exactly:
+  `RSEQ`, `RSTAR`, and nonzero `RNTIMES` use `rsimp4_SEQ_atom` to carry the
+  continuation, while `RCHAR` leaves expose `rfrontier (rsimp9 k)`. This gives
+  the generic self-step `rpder_norm9_carry9_atom_frontier_step`, so one-step
+  normalized partial derivatives of any `legacy_rrexp` land in that regex's
+  own carried universe. It also checks
+  `carry9_raw_spine_parent_covers_rsimp7_star_absorption`, the positive
+  counterpart to the raw-spine obstruction. The remaining work is not another
+  one-step bridge but the root-owned theorem: every `q` already in a root
+  `partial_derivative_carry9_atom_frontier_universe r` must step back into the
+  same root universe, plus the quadratic cardinal and linear member-size
+  bounds needed by `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_cubicI`.

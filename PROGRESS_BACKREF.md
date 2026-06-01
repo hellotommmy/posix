@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 carried-tail splitter layer)
+Last updated: 2026-06-02 (carry9 frontier prototype)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -5069,6 +5069,52 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Next step: prototype the refined universe/continuation relation that
   explicitly admits `rsimp9 (rsimp4_SEQ_atom body tail)` members, then retry
   the `RSEQ`/`RSTAR`/`RNTIMES` carried closure.
+
+## Cubic Bound Research: carry9 Frontier Prototype (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex heartbeat lane
+- Files changed: `GeneralRegexBound.thy`, `PROGRESS_BACKREF.md`,
+  `agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md`
+- New checked definitions:
+  - `rcarry9_atom_frontier_acc`
+  - `rcarry9_atom_frontiers`
+  - `partial_derivative_carry9_atom_frontier_universe`
+- New checked closure/core facts:
+  - `finite_rcarry9_atom_frontier_acc`
+  - `finite_rcarry9_atom_frontiers`
+  - `finite_partial_derivative_carry9_atom_frontier_universe`
+  - `rcarry9_atom_frontiers_universe`
+  - `rder_path_continuations_acc_rcarry9_frontier`
+  - `rder_path_continuations_acc_rcarry9_universe`
+  - `rpder_norm9_carry9_atom_frontier_step`
+  - `carry9_raw_spine_parent_covers_rsimp7_star_absorption`
+- New checked cubic interface:
+  - `partial_derivative_carry9_atom_frontier_universe_card_le`
+  - `rsizes_distinct_carry9_atom_frontier_universe_cubicI`
+  - `rsizes_rpders_norm19_rows_carry9_atom_frontier_universe_cubic`
+  - `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_cubicI`
+- Design result:
+  - `carry9` aligns the proof-only frontier recursion with
+    `rder_path_continuations_acc`: sequence/star/countdown tails are carried
+    with `rsimp4_SEQ_atom`, and only character leaves take the `rsimp9`
+    frontier. This repairs the checked `(a · a*) · a*` obstruction that the
+    raw path9 spine missed.
+  - The checked one-step theorem is a self-step:
+    `rpder_norm9_list c r` lands in the carried universe of `r` for every
+    `legacy_rrexp r`. This is progress toward the cubic route, not a final
+    bound: repeated derivatives still need root-owned closure for every
+    member of the root universe.
+- Remaining obligations for a carry9 cubic theorem:
+  - prove `card (rcarry9_atom_frontiers r) <= (rsize r + 2)^2`;
+  - prove every member of `partial_derivative_carry9_atom_frontier_universe r`
+    has size at most `Suc (rsize r + rsize r)`, or adjust the constant with a
+    checked linear bound;
+  - prove root-owned closure:
+    if `q` is in the root carry9 universe, then
+    `set (rflts (rpder_norm9_list c q))` is also in that same root universe.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
+  300s guard.
 
 ## Governance Upgrade (2026-05-25)
 
