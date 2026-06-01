@@ -16370,6 +16370,130 @@ next
   then show ?case by simp
 qed
 
+definition rpder_strong_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rpder_strong_list c r = map rsimpStrong (rpder_norm_list c r)"
+
+definition rpder_strong_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rpder_strong_rows c rs =
+    rdistinct
+      (rflts
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs))))) {}"
+
+definition rpd_der_strong :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rpd_der_strong c r = rsimp_ALTs (rpder_strong_rows c [r])"
+
+lemma RLS_set_rflts:
+  "RLS (set (rflts rs)) = RLS (set rs)"
+  unfolding RLS_def
+  using RL_rsimp_rflts[of rs] by simp
+
+lemma RLS_set_rsimpStrong_prune_rows:
+  "RLS (set (rsimpStrong_prune_rows rs)) = RLS (set rs)"
+  using RL_rsimpStrong_prune_rows[of rs]
+  by (simp add: RLS_def)
+
+lemma RLS_set_concat_rpder_strong_list:
+  "RLS (set (concat (map (rpder_strong_list c) rs))) =
+    RLS (rpder_norm_set c (set rs))"
+  unfolding RLS_def rpder_strong_list_def rpder_norm_set_def
+  by (auto simp add: RL_rsimpStrong)
+
+lemma RLS_rpder_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows c rs)) = Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_strong_rows c rs)) =
+      RLS (set (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs)))))"
+    unfolding rpder_strong_rows_def by (rule RLS_set_rdistinct_rflts)
+  also have "... = RLS (set (rflts (concat (map (rpder_strong_list c) rs))))"
+    by (rule RLS_set_rsimpStrong_prune_rows)
+  also have "... = RLS (set (concat (map (rpder_strong_list c) rs)))"
+    by (rule RLS_set_rflts)
+  also have "... = RLS (rpder_norm_set c (set rs))"
+    by (rule RLS_set_concat_rpder_strong_list)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_norm_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RL_rpd_der_strong:
+  assumes "legacy_rrexp r"
+  shows "RL (rpd_der_strong c r) = Der c (RL r)"
+proof -
+  have "RL (rpd_der_strong c r) = RLS (set (rpder_strong_rows c [r]))"
+    by (simp add: rpd_der_strong_def RLS_def RL_rsimp_RALTS)
+  also have "... = Der c (RLS (set [r]))"
+    by (rule RLS_rpder_strong_rows) (use assms in auto)
+  also have "... = Der c (RL r)"
+    by (simp add: RLS_def)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_list_le:
+  "rsizes (rpder_strong_list c r) \<le> rsizes (rpder_norm_list c r)"
+  unfolding rpder_strong_list_def
+  using rsize_rsimpStrong_le by (simp add: sum_list_mono)
+
+lemma rsizes_concat_rpder_strong_list_le:
+  "rsizes (concat (map (rpder_strong_list c) rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have head: "rsizes (rpder_strong_list c r) \<le> rsizes (rpder_norm_list c r)"
+    by (rule rsizes_rpder_strong_list_le)
+  have tail:
+    "rsizes (concat (map (rpder_strong_list c) rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by simp
+qed
+
+lemma rsizes_rpder_strong_rows_le:
+  "rsizes (rpder_strong_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rsizes (rpder_strong_rows c rs) \<le>
+      rsizes (rflts
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs)))))"
+    unfolding rpder_strong_rows_def
+    using rdistinct_smaller[of
+      "rflts (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs))))" "{}"]
+    by simp
+  also have "... \<le> rsizes
+      (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs))))"
+    using rflts_mono[of
+      "rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs)))"] by simp
+  also have "... \<le> rsizes (rflts (concat (map (rpder_strong_list c) rs)))"
+    by (rule rsizes_rsimpStrong_prune_rows_le)
+  also have "... \<le> rsizes (concat (map (rpder_strong_list c) rs))"
+    using rflts_mono[of "concat (map (rpder_strong_list c) rs)"] by simp
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_concat_rpder_strong_list_le)
+  finally show ?thesis .
+qed
+
+lemma rsize_rpd_der_strong_le_rsizes:
+  "rsize (rpd_der_strong c r) \<le> Suc (rsizes (rpder_norm_list c r))"
+proof -
+  have "rsize (rpd_der_strong c r) \<le>
+      Suc (rsizes (rpder_strong_rows c [r]))"
+    by (simp add: rpd_der_strong_def rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes (rpder_norm_list c r))"
+    using rsizes_rpder_strong_rows_le[of c "[r]"] by simp
+  finally show ?thesis .
+qed
+
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"
   shows

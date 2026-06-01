@@ -1047,3 +1047,13 @@ to be read before continuing long-running agent work.
   alternatives, and duplicate removal. This is a useful cubic-bound checkpoint:
   future derivative-size arguments may state their polynomial in the original
   regex size rather than a potentially inflated strong-normalized size.
+- The proof-level strong simplifier is now wired into a one-step
+  Antimirov-style row route. `rpder_strong_list` maps `rsimpStrong` over the
+  existing `rpder_norm_list`; `rpder_strong_rows` then flattens, prunes
+  shared-suffix rows, and removes duplicates. `RLS_rpder_strong_rows` proves
+  this one-step row set denotes the derivative, and
+  `rsizes_rpder_strong_rows_le` proves its row-size budget is no larger than
+  the old normalized row budget. This is the first checked bridge from
+  Chapter-7 pruning into the partial-derivative pipeline. The next proof target
+  should be a repeated-row closure/cubic interface for `rpders_strong_rows`,
+  followed by the annotated `arexp` POSIX/bitcode preservation analogue.

@@ -5174,6 +5174,19 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   - `rsizes_rsimpStrong_prune_rows_le`
   - `rsize_rsimpStrong_ALTs_le`
   - `rsize_rsimpStrong_le`
+- New checked partial-derivative route facts:
+  - `rpder_strong_list`
+  - `rpder_strong_rows`
+  - `rpd_der_strong`
+  - `RLS_set_rflts`
+  - `RLS_set_rsimpStrong_prune_rows`
+  - `RLS_set_concat_rpder_strong_list`
+  - `RLS_rpder_strong_rows`
+  - `RL_rpd_der_strong`
+  - `rsizes_rpder_strong_list_le`
+  - `rsizes_concat_rpder_strong_list_le`
+  - `rsizes_rpder_strong_rows_le`
+  - `rsize_rpd_der_strong_le_rsizes`
 - New checked Chapter-7 regression facts:
   - `thesis_ch7_rstrong_prunes_overlap`
   - `thesis_ch7_rstrong_overlap_same_language`
@@ -5196,6 +5209,12 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     duplicate removal stay within the original row budget. This is necessary
     evidence for a future cubic theorem because bounds can remain stated in
     terms of the original regex size.
+  - The strong simplifier is now connected to the Antimirov-style row pipeline:
+    `rpder_strong_rows` takes the existing normalized partial-derivative rows,
+    applies `rsimpStrong`, then performs the Chapter-7 shared-suffix row prune.
+    `RLS_rpder_strong_rows` proves the row set still denotes the derivative,
+    and `rsizes_rpder_strong_rows_le` proves its row-size budget is no larger
+    than the pre-strong normalized row budget.
   - This directly checks the core Chapter-7 pattern behind
     `(a+b)c + (a+d)c -> (a+b)c + dc` when `d` is fresh with respect to
     `a,b`. If `d` is already covered, the later row correctly collapses
