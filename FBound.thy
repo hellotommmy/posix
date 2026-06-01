@@ -528,6 +528,366 @@ next
     by (cases "bsimp8 r") (simp_all add: ih_sym)
 qed simp_all
 
+lemma L_bsimp_AALTs:
+  "L (erase (bsimp_AALTs bs rs)) = L (erase (AALTs bs rs))"
+  by (cases rs; cases "tl rs") (simp_all add: erase_fuse)
+
+lemma L_bsimp4_ASEQ_atom:
+  "L (erase (bsimp4_ASEQ_atom bs r1 r2)) =
+    L (erase (ASEQ bs r1 r2))"
+  by (induct bs r1 r2 rule: bsimp4_ASEQ_atom.induct)
+    (simp_all add: erase_fuse conc_assoc)
+
+lemma L_bsimp7_ASEQ_atom:
+  "L (erase (bsimp7_ASEQ_atom bs r1 r2)) =
+    L (erase (ASEQ bs r1 r2))"
+proof (cases r1)
+  case (ASTAR bs1 r)
+  note r1_ASTAR = ASTAR
+  show ?thesis
+  proof (cases r2)
+    case (ASTAR bs2 s)
+    note r2_ASTAR = ASTAR
+    show ?thesis
+    proof (cases "r ~1 s")
+      case True
+      have same: "L (erase s) = L (erase r)"
+        using True eq1_L by blast
+      show ?thesis
+        using r1_ASTAR r2_ASTAR same
+        by (simp add: bsimp7_ASEQ_atom_def Star_Sequ_idem)
+    next
+      case False
+      then show ?thesis
+        using r1_ASTAR r2_ASTAR
+        by (simp add: bsimp7_ASEQ_atom_def L_bsimp4_ASEQ_atom)
+    qed
+  next
+    case (ASEQ bs2 q k)
+    note r2_ASEQ = ASEQ
+    show ?thesis
+    proof (cases q)
+      case (ASTAR bs3 s)
+      note q_ASTAR = ASTAR
+      show ?thesis
+      proof (cases "r ~1 s")
+        case True
+        have same: "L (erase s) = L (erase r)"
+          using True eq1_L by blast
+        show ?thesis
+          using r1_ASTAR r2_ASEQ q_ASTAR same
+          by (simp add: bsimp7_ASEQ_atom_def Star_Sequ_prefix_idem)
+      next
+        case False
+        then show ?thesis
+          using r1_ASTAR r2_ASEQ q_ASTAR
+          by (simp add: bsimp7_ASEQ_atom_def L_bsimp4_ASEQ_atom)
+      qed
+    qed (insert r1_ASTAR r2_ASEQ, simp_all add: bsimp7_ASEQ_atom_def
+      L_bsimp4_ASEQ_atom erase_fuse conc_assoc)
+  qed (insert r1_ASTAR, simp_all add: bsimp7_ASEQ_atom_def
+    L_bsimp4_ASEQ_atom erase_fuse conc_assoc)
+qed (simp_all add: bsimp7_ASEQ_atom_def L_bsimp4_ASEQ_atom erase_fuse
+    conc_assoc)
+
+lemma flts_L_UN:
+  "(\<Union>r \<in> set (flts rs). L (erase r)) =
+    (\<Union>r \<in> set rs. L (erase r))"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rs)
+  show ?case
+  proof (cases a)
+    case AZERO
+    then show ?thesis
+      using Cons.hyps by simp
+  next
+    case (AALTs bs rs1)
+    have mapped: "(\<Union>r \<in> set (map (fuse bs) rs1). L (erase r)) =
+        (\<Union>r \<in> set rs1. L (erase r))"
+      by (auto simp add: erase_fuse)
+    have alt: "L (erase (AALTs bs rs1)) =
+        (\<Union>r \<in> set rs1. L (erase r))"
+      by (simp add: L_erase_AALTs_set)
+    show ?thesis
+      using Cons.hyps AALTs mapped alt by auto
+  qed (use Cons.hyps in simp_all)
+qed
+
+lemma L_flts_AALTs:
+  "L (erase (AALTs bs (flts rs))) = L (erase (AALTs bs rs))"
+  by (simp add: L_erase_AALTs_set flts_L_UN)
+
+lemma distinctWith_eq1_L_UN_acc:
+  "(\<Union>r \<in> set (distinctWith rs eq1 acc). L (erase r)) \<union>
+    (\<Union>r \<in> acc. L (erase r)) =
+    (\<Union>r \<in> set rs. L (erase r)) \<union>
+    (\<Union>r \<in> acc. L (erase r))"
+proof (induct rs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "\<exists>y \<in> acc. r ~1 y")
+    case True
+    then obtain y where y: "y \<in> acc" "r ~1 y"
+      by blast
+    have "L (erase r) \<subseteq> (\<Union>q \<in> acc. L (erase q))"
+      using y eq1_L by blast
+    then show ?thesis
+      using Cons.hyps[of acc] True by auto
+  next
+    case False
+    have ih: "(\<Union>x \<in> set (distinctWith rs eq1 ({r} \<union> acc)). L (erase x)) \<union>
+        (\<Union>x \<in> {r} \<union> acc. L (erase x)) =
+        (\<Union>x \<in> set rs. L (erase x)) \<union>
+        (\<Union>x \<in> {r} \<union> acc. L (erase x))"
+      by (rule Cons.hyps)
+    show ?thesis
+      using False ih by auto
+  qed
+qed
+
+lemma L_distinctWith_eq1_AALTs:
+  "L (erase (AALTs bs (distinctWith rs eq1 {}))) =
+    L (erase (AALTs bs rs))"
+  using distinctWith_eq1_L_UN_acc[of rs "{}"]
+  by (simp add: L_erase_AALTs_set)
+
+lemma L_prune_eq1_against_AALTs_union:
+  "L (erase (AALTs lbs covered)) \<union>
+    L (erase (AALTs rbs (prune_eq1_against covered rs))) =
+    L (erase (AALTs lbs covered)) \<union>
+    L (erase (AALTs rbs rs))"
+  using prune_eq1_against_cover_UN[of covered rs]
+  by (simp add: L_erase_AALTs_set)
+
+lemma Sequ_union_right_cong:
+  assumes "A \<union> B = A \<union> C"
+  shows "A ;; K \<union> B ;; K = A ;; K \<union> C ;; K"
+proof -
+  have "A ;; K \<union> B ;; K = (A \<union> B) ;; K"
+    by (auto simp add: Sequ_def)
+  also have "... = (A \<union> C) ;; K"
+    using assms by simp
+  also have "... = A ;; K \<union> C ;; K"
+    by (auto simp add: Sequ_def)
+  finally show ?thesis .
+qed
+
+lemma L_bsimpStrong_prune_pair_cover:
+  "L (erase earlier) \<union>
+    L (erase (bsimpStrong_prune_pair earlier later)) =
+    L (erase earlier) \<union> L (erase later)"
+proof (cases earlier)
+  case (ASEQ x41 x42 x43)
+  note earlier_ASEQ = ASEQ
+  show ?thesis
+  proof (cases later)
+    case (ASEQ x41a x42a x43a)
+    note later_ASEQ = ASEQ
+    show ?thesis
+    proof (cases x42)
+      case (AALTs x51 x52)
+      note earlier_left_AALTs = AALTs
+      show ?thesis
+      proof (cases x42a)
+        case (AALTs x51a x52a)
+        note later_left_AALTs = AALTs
+        show ?thesis
+        proof (cases "x43 ~1 x43a")
+          case True
+          have suffix: "L (erase x43) = L (erase x43a)"
+            using True eq1_L by blast
+          have left_union:
+            "L (erase (AALTs x51 x52)) \<union>
+              L (erase (bsimp_AALTs x51a (prune_eq1_against x52 x52a))) =
+              L (erase (AALTs x51 x52)) \<union>
+              L (erase (AALTs x51a x52a))"
+            using L_prune_eq1_against_AALTs_union[of x51 x52 x51a x52a]
+              L_bsimp_AALTs[of x51a "prune_eq1_against x52 x52a"]
+            by simp
+          let ?A = "L (erase (AALTs x51 x52))"
+          let ?B = "L (erase (bsimp_AALTs x51a
+            (prune_eq1_against x52 x52a)))"
+          let ?C = "L (erase (AALTs x51a x52a))"
+          let ?K = "L (erase x43a)"
+          have earlier_eq: "earlier = ASEQ x41 (AALTs x51 x52) x43"
+            using earlier_ASEQ earlier_left_AALTs by simp
+          have earlier_lang: "L (erase earlier) = ?A ;; ?K"
+            using earlier_eq suffix by simp
+          have pair_eval:
+            "bsimpStrong_prune_pair earlier later =
+              bsimp7_ASEQ_atom x41a
+                (bsimp_AALTs x51a (prune_eq1_against x52 x52a)) x43a"
+            using earlier_ASEQ later_ASEQ
+              earlier_left_AALTs later_left_AALTs True
+            by (simp add: bsimpStrong_prune_pair_def)
+          have pair_lang:
+            "L (erase (bsimpStrong_prune_pair earlier later)) = ?B ;; ?K"
+            using pair_eval L_bsimp7_ASEQ_atom[
+              of x41a "bsimp_AALTs x51a (prune_eq1_against x52 x52a)" x43a]
+            by simp
+          have later_lang: "L (erase later) = ?C ;; ?K"
+            using later_ASEQ later_left_AALTs
+            by simp
+          have seq_union: "?A ;; ?K \<union> ?B ;; ?K = ?A ;; ?K \<union> ?C ;; ?K"
+            by (rule Sequ_union_right_cong[OF left_union])
+          show ?thesis
+            using earlier_lang pair_lang later_lang seq_union by simp
+        next
+          case False
+          then show ?thesis
+            using earlier_ASEQ later_ASEQ
+              earlier_left_AALTs later_left_AALTs
+            by (simp add: bsimpStrong_prune_pair_def)
+        qed
+      qed (insert earlier_ASEQ later_ASEQ earlier_left_AALTs,
+        simp_all add: bsimpStrong_prune_pair_def)
+    qed (insert earlier_ASEQ later_ASEQ,
+      simp_all add: bsimpStrong_prune_pair_def)
+  qed (insert earlier_ASEQ,
+    simp_all add: bsimpStrong_prune_pair_def split: arexp.splits)
+qed (simp_all add: bsimpStrong_prune_pair_def)
+
+lemma L_bsimpStrong_prune_against_rows_cover:
+  "(\<Union>x \<in> set seen. L (erase x)) \<union>
+    L (erase (bsimpStrong_prune_against_rows seen r)) =
+    (\<Union>x \<in> set seen. L (erase x)) \<union> L (erase r)"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have tail:
+    "(\<Union>y \<in> set xs. L (erase y)) \<union>
+      L (erase (bsimpStrong_prune_against_rows xs
+        (bsimpStrong_prune_pair x r))) =
+      (\<Union>y \<in> set xs. L (erase y)) \<union>
+      L (erase (bsimpStrong_prune_pair x r))"
+    by (rule Cons.hyps)
+  have pair:
+    "L (erase x) \<union> L (erase (bsimpStrong_prune_pair x r)) =
+      L (erase x) \<union> L (erase r)"
+    by (rule L_bsimpStrong_prune_pair_cover)
+  show ?case
+    using tail pair by auto
+qed
+
+lemma L_bsimpStrong_prune_rows_acc_cover:
+  "(\<Union>x \<in> set seen. L (erase x)) \<union>
+    (\<Union>x \<in> set (bsimpStrong_prune_rows_acc seen rs). L (erase x)) =
+    (\<Union>x \<in> set seen. L (erase x)) \<union>
+    (\<Union>x \<in> set rs. L (erase x))"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpStrong_prune_against_rows seen r"
+  have head:
+    "(\<Union>x \<in> set seen. L (erase x)) \<union> L (erase ?r') =
+      (\<Union>x \<in> set seen. L (erase x)) \<union> L (erase r)"
+    by (rule L_bsimpStrong_prune_against_rows_cover)
+  have tail:
+    "(\<Union>x \<in> set (?r' # seen). L (erase x)) \<union>
+      (\<Union>x \<in> set (bsimpStrong_prune_rows_acc (?r' # seen) rs).
+        L (erase x)) =
+      (\<Union>x \<in> set (?r' # seen). L (erase x)) \<union>
+      (\<Union>x \<in> set rs. L (erase x))"
+    by (rule Cons.hyps)
+  let ?S = "(\<Union>x \<in> set seen. L (erase x))"
+  let ?R = "L (erase r)"
+  let ?R' = "L (erase ?r')"
+  let ?T = "(\<Union>x \<in> set (bsimpStrong_prune_rows_acc (?r' # seen) rs).
+    L (erase x))"
+  let ?U = "(\<Union>x \<in> set rs. L (erase x))"
+  have tail': "(?S \<union> ?R') \<union> ?T = (?S \<union> ?R') \<union> ?U"
+    using tail by (simp add: Un_assoc Un_commute Un_left_commute)
+  have head': "?S \<union> ?R' = ?S \<union> ?R"
+    by (rule head)
+  have "?S \<union> (?R' \<union> ?T) = (?S \<union> ?R') \<union> ?T"
+    by (simp add: Un_assoc)
+  also have "... = (?S \<union> ?R') \<union> ?U"
+    by (rule tail')
+  also have "... = (?S \<union> ?R) \<union> ?U"
+    using head' by simp
+  also have "... = ?S \<union> (?R \<union> ?U)"
+    by (simp add: Un_assoc)
+  finally have union_step: "?S \<union> (?R' \<union> ?T) = ?S \<union> (?R \<union> ?U)" .
+  show ?case
+    using union_step by (simp add: Let_def Un_assoc)
+qed
+
+lemma L_bsimpStrong_prune_rows:
+  "L (erase (AALTs bs (bsimpStrong_prune_rows rs))) =
+    L (erase (AALTs bs rs))"
+  using L_bsimpStrong_prune_rows_acc_cover[of "[]" rs]
+  by (simp add: bsimpStrong_prune_rows_def L_erase_AALTs_set)
+
+lemma L_bsimpStrong_AALTs:
+  "L (erase (bsimpStrong_AALTs bs rs)) =
+    L (erase (AALTs bs rs))"
+  by (simp add: bsimpStrong_AALTs_def L_bsimp_AALTs
+      L_distinctWith_eq1_AALTs L_flts_AALTs L_bsimpStrong_prune_rows)
+
+lemma Star_epsilon [simp]:
+  "({[]} :: string set)\<star> = {[]}"
+proof
+  show "({[]} :: string set)\<star> \<subseteq> {[]}"
+  proof
+    fix s
+    assume "s \<in> ({[]} :: string set)\<star>"
+    then show "s \<in> {[]}"
+      by (induct rule: Star.induct) auto
+  qed
+next
+  show "{[]} \<subseteq> ({[]} :: string set)\<star>"
+    by auto
+qed
+
+lemma L_bsimpStrong:
+  "L (erase (bsimpStrong r)) = L (erase r)"
+proof (induct r rule: bsimpStrong.induct)
+  case (1 bs r1 r2)
+  then show ?case
+    by (simp add: L_bsimp7_ASEQ_atom)
+next
+  case (2 bs rs)
+  have rows:
+    "L (erase (AALTs bs (map bsimpStrong rs))) =
+      L (erase (AALTs bs rs))"
+    using 2 by (auto simp add: L_erase_AALTs_set)
+  show ?case
+    by (simp add: L_bsimpStrong_AALTs L_flts_AALTs rows)
+next
+  case (3 bs r)
+  note ih = 3
+  show ?case
+  proof (cases "bsimpStrong r")
+    case AZERO
+    have body: "L (erase r) = {}"
+      using ih AZERO by simp
+    then show ?thesis
+      using AZERO body by simp
+  next
+    case (AONE x2)
+    have body: "L (erase r) = {[]}"
+      using ih AONE by simp
+    then show ?thesis
+      using AONE body by simp
+  next
+    case (ASTAR x61 x62)
+    have body: "L (erase r) = (L (erase x62))\<star>"
+      using ih ASTAR by simp
+    then show ?thesis
+      using ASTAR body by (simp add: Star_idem)
+  qed (use ih in simp_all)
+qed simp_all
+
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"
   by (induct rs) (simp_all add: rerase_fuse)

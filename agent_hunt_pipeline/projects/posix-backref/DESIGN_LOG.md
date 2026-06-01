@@ -877,6 +877,11 @@ to be read before continuing long-running agent work.
   `rsimp4_SEQ_atom x RONE = x` through the exact constructors used by
   `rsimp9`; this is the next bridge toward proving all normalized right tails
   stable without unfolding the whole simplifier in one proof command.
+- The executable Chapter 7 prototype now has the checked erased-language
+  theorem `L_bsimpStrong`. The proof was deliberately split through small
+  helper lemmas for pruning, flattening, distinctness, and star cases; avoid
+  replacing it with broad `auto`/datatype-split commands. This supports the
+  stronger-simplification route but is not a POSIX/bitcode proof.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

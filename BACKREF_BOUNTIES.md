@@ -99,6 +99,11 @@ immutability.
   the toy overlap, but it is still only progress:
   row-list normalization remains smaller (`645`), and no general cubic theorem
   or POSIX/bitcode preservation theorem has been awarded.
+- BR-037 also has the checked erasure-language theorem `L_bsimpStrong`,
+  proving the executable prototype preserves the language after erasure. This
+  is still only a support theorem: a bounty payout needs the POSIX/bitcode
+  preservation route and production integration, not erased-language safety
+  alone.
 - BR-036 now also has the checked norm9-specific scaffold
   `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
   `partial_derivative_path9_atom_frontier_universe`,

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-01 (path9 stable-tail helper layer)
+Last updated: 2026-06-02 (bsimpStrong erasure-language checkpoint)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -350,6 +350,11 @@ Last updated: 2026-06-01 (path9 stable-tail helper layer)
   `thesis_ch7_evil5_bders_simpStrong_size_16_not_under_812` gives a checked
   lower-bound sanity check. It improves over `bsimp8 = 1308` and vastly over old
   `bders_simp = 14876`, but still not matching the row-list route (`645`).
+  Added the checked erasure-language theorem `L_bsimpStrong`. This upgrades
+  the prototype from example-only evidence to a general language-preserving
+  annotated simplifier at the erased-language level. It is deliberately not a
+  BR-037 payout claim yet: POSIX/bitcode preservation and a general cubic
+  theorem are still open.
   This is still not a BR-036 payout: production use needs a POSIX/bitcode
   preservation theorem and a general cubic proof.
   Added the dual-frontier cubic hook:
