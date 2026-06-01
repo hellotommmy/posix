@@ -5301,6 +5301,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     theorem are still open; no bounty is claimed from this checkpoint.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 
+## Cubic Bound Research Checkpoint: Annotated Strong Loop Semantics (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked theorem added in `FBound.thy`:
+  - `RL_rerase_bders_simpStrong`
+- Supporting semantic bridge lemmas:
+  - `RL_rerase_AALTs`
+  - `RL_rerase`
+  - `RL_rerase_bsimpStrong`
+- Design result:
+  - The executable annotated strong loop now has a direct erased-language
+    correctness theorem:
+    `RL (rerase (bders_simpStrong r s)) = Ders s (RL (rerase r))`.
+  - This deliberately avoids claiming syntactic equality with
+    `rders_simpStrong`; the proof-level strong pair prune normalizes
+    `rflts/rdistinct` immediately, while the annotated implementation
+    performs that cleanup through `bsimpStrong_AALTs`.
+  - Together with `asize_bsimpStrong_le`, this gives the annotated prototype
+    both semantic and size-control evidence needed before attempting POSIX/
+    bitcode preservation or a full cubic closure theorem. No bounty is claimed.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+
 ## Governance Upgrade (2026-05-25)
 
 - Branch: `codex/backref-values`

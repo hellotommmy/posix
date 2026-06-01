@@ -1097,3 +1097,12 @@ to be read before continuing long-running agent work.
   preservation or cubic closure, but it means future annotated transfer work
   can use the stronger Chapter-7 simplifier without paying a hidden size
   increase.
+- The annotated strong loop now has erased-language correctness. `RL_rerase`
+  first names the basic bridge between annotated erasure and the proof-level
+  language skeleton, including a separate `AALTs` helper because `erase` uses a
+  binary `ALT` spine while `rerase` uses `RALTS`. The theorem
+  `RL_rerase_bders_simpStrong` then proves that `bders_simpStrong` computes
+  `Ders` after `rerase`. We intentionally did not force a syntactic equality
+  with `rders_simpStrong`: proof-level pruning performs `rflts/rdistinct`
+  inside `rsimpStrong_prune_pair`, whereas the annotated executable version
+  leaves the equivalent cleanup to the enclosing `bsimpStrong_AALTs`.

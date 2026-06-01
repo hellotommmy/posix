@@ -888,6 +888,72 @@ next
   qed (use ih in simp_all)
 qed simp_all
 
+lemma RL_rerase_AALTs:
+  assumes "\<And>r. r \<in> set rs \<Longrightarrow> RL (rerase r) = L (erase r)"
+  shows "RL (RALTS (map rerase rs)) = L (erase (AALTs bs rs))"
+using assms
+proof (induct rs arbitrary: bs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using Cons.prems by simp
+  next
+    case (Cons q qs)
+    have "RL (RALTS (map rerase (r # rs))) =
+        RL (rerase r) \<union> RL (RALTS (map rerase rs))"
+      by simp
+    also have "... = L (erase r) \<union> L (erase (AALTs bs rs))"
+      using Cons.hyps Cons.prems by simp
+    also have "... = L (erase (AALTs bs (r # rs)))"
+      using Cons by simp
+    finally show ?thesis .
+  qed
+qed
+
+lemma RL_rerase:
+  "RL (rerase r) = L (erase r)"
+proof (induct r)
+  case (AALTs bs rs)
+  have elems: "\<And>r. r \<in> set rs \<Longrightarrow> RL (rerase r) = L (erase r)"
+    using AALTs by auto
+  have alts: "RL (RALTS (map rerase rs)) = L (erase (AALTs bs rs))"
+    by (rule RL_rerase_AALTs) (rule elems)
+  show ?case
+    using alts by simp
+qed simp_all
+
+lemma RL_rerase_bsimpStrong:
+  "RL (rerase (bsimpStrong r)) = RL (rerase r)"
+  by (simp add: RL_rerase L_bsimpStrong)
+
+lemma RL_rerase_bders_simpStrong:
+  "RL (rerase (bders_simpStrong r s)) = Ders s (RL (rerase r))"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have "RL (rerase (bders_simpStrong r (c # s))) =
+      RL (rerase (bders_simpStrong (bsimpStrong (bder c r)) s))"
+    by simp
+  also have "... = Ders s (RL (rerase (bsimpStrong (bder c r))))"
+    by (rule Cons.hyps)
+  also have "... = Ders s (RL (rerase (bder c r)))"
+    by (simp add: RL_rerase_bsimpStrong)
+  also have "... = Ders s (Der c (RL (rerase r)))"
+    by (simp add: rder_bder_rerase[symmetric] RL_rder)
+  also have "... = Ders (c # s) (RL (rerase r))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"
   by (induct rs) (simp_all add: rerase_fuse)
