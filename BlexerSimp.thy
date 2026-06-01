@@ -731,6 +731,19 @@ definition bpder_norm7_rows :: "char \<Rightarrow> arexp list \<Rightarrow> arex
   "bpder_norm7_rows c rs =
     distinctWith (flts (concat (map (bpder_norm7_list c) rs))) eq1 {}"
 
+definition bpder_strong_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
+  "bpder_strong_list c r = map bsimpStrong (bpder_norm_list c r)"
+
+definition bpder_strong_rows :: "char \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bpder_strong_rows c rs =
+    distinctWith
+      (flts
+        (bsimpStrong_prune_rows
+          (flts (concat (map (bpder_strong_list c) rs))))) eq1 {}"
+
+definition bp_der_strong :: "char \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bp_der_strong c r = bsimp_AALTs [] (bpder_strong_rows c [r])"
+
 fun
   bders_pder :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
 where
@@ -773,6 +786,12 @@ where
   "bpders_norm7_rows rs [] = rs"
 | "bpders_norm7_rows rs (c # s) = bpders_norm7_rows (bpder_norm7_rows c rs) s"
 
+fun
+  bpders_strong_rows :: "arexp list \<Rightarrow> string \<Rightarrow> arexp list"
+where
+  "bpders_strong_rows rs [] = rs"
+| "bpders_strong_rows rs (c # s) = bpders_strong_rows (bpder_strong_rows c rs) s"
+
 definition bpders_norm1_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
   "bpders_norm1_rows r s = bpders_norm_rows [r] s"
 
@@ -781,6 +800,9 @@ definition bpders_norm16_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp
 
 definition bpders_norm17_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
   "bpders_norm17_rows r s = bpders_norm7_rows [r] s"
+
+definition bpders_strong1_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
+  "bpders_strong1_rows r s = bpders_strong_rows [r] s"
 
 
 fun 

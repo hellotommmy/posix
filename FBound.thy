@@ -928,6 +928,15 @@ proof (induct r)
     using alts by simp
 qed simp_all
 
+lemma RLS_set_map_rerase_AALTs:
+  "RLS (set (map rerase rs)) = L (erase (AALTs bs rs))"
+proof -
+  have "RL (RALTS (map rerase rs)) = L (erase (AALTs bs rs))"
+    by (rule RL_rerase_AALTs) (rule RL_rerase)
+  then show ?thesis
+    by (simp add: RLS_def)
+qed
+
 lemma RL_rerase_bsimpStrong:
   "RL (rerase (bsimpStrong r)) = RL (rerase r)"
   by (simp add: RL_rerase L_bsimpStrong)
@@ -1338,6 +1347,209 @@ lemma bp_der_norm7_rerase:
   shows "rerase (bp_der_norm7 c r) = rpd_der_norm7 c (rerase r)"
   by (simp add: bp_der_norm7_def rpd_der_norm7_def rerase_bsimp_AALTs
       map_rerase_distinctWith_eq1 rerase_flts rerase_bpder_norm7_list)
+
+lemma RLS_set_map_rerase_strong_rows_cleanup:
+  "RLS (set (map rerase
+      (distinctWith (flts (bsimpStrong_prune_rows (flts xs))) eq1 {}))) =
+    RLS (set (map rerase xs))"
+proof -
+  have "RLS (set (map rerase
+      (distinctWith (flts (bsimpStrong_prune_rows (flts xs))) eq1 {}))) =
+      L (erase (AALTs []
+        (distinctWith (flts (bsimpStrong_prune_rows (flts xs))) eq1 {})))"
+    by (rule RLS_set_map_rerase_AALTs)
+  also have "... =
+      L (erase (AALTs [] (flts (bsimpStrong_prune_rows (flts xs)))))"
+    by (rule L_distinctWith_eq1_AALTs)
+  also have "... = L (erase (AALTs [] (bsimpStrong_prune_rows (flts xs))))"
+    by (rule L_flts_AALTs)
+  also have "... = L (erase (AALTs [] (flts xs)))"
+    by (rule L_bsimpStrong_prune_rows)
+  also have "... = L (erase (AALTs [] xs))"
+    by (rule L_flts_AALTs)
+  also have "... = RLS (set (map rerase xs))"
+    using RLS_set_map_rerase_AALTs[of xs "[]"] by simp
+  finally show ?thesis .
+qed
+
+lemma RLS_set_map_rerase_bpder_strong_list:
+  "RLS (set (map rerase (bpder_strong_list c r))) =
+    RLS (set (map rerase (bpder_norm_list c r)))"
+  by (auto simp add: RLS_def bpder_strong_list_def RL_rerase_bsimpStrong)
+
+lemma RLS_set_map_rerase_concat_bpder_strong_list:
+  "RLS (set (map rerase (concat (map (bpder_strong_list c) rs)))) =
+    RLS (set (map rerase (concat (map (bpder_norm_list c) rs))))"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have head:
+    "RLS (set (map rerase (bpder_strong_list c r))) =
+      RLS (set (map rerase (bpder_norm_list c r)))"
+    by (rule RLS_set_map_rerase_bpder_strong_list)
+  have tail:
+    "RLS (set (map rerase (concat (map (bpder_strong_list c) rs)))) =
+      RLS (set (map rerase (concat (map (bpder_norm_list c) rs))))"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by (auto simp add: RLS_def)
+qed
+
+lemma RLS_set_map_rerase_bpder_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "RLS (set (map rerase (bpder_strong_rows c rs))) =
+    Der c (RLS (set (map rerase rs)))"
+proof -
+  have "RLS (set (map rerase (bpder_strong_rows c rs))) =
+      RLS (set (map rerase (concat (map (bpder_strong_list c) rs))))"
+    unfolding bpder_strong_rows_def
+    by (rule RLS_set_map_rerase_strong_rows_cleanup)
+  also have "... =
+      RLS (set (map rerase (concat (map (bpder_norm_list c) rs))))"
+    by (rule RLS_set_map_rerase_concat_bpder_strong_list)
+  also have "... =
+      RLS (set (concat (map (rpder_norm_list c) (map rerase rs))))"
+    by (simp add: rerase_concat_map_bpder_norm_list map_map comp_def)
+  also have "... = RLS (rpder_norm_set c (set (map rerase rs)))"
+    by (rule RLS_set_concat_rpder_norm_list)
+  also have "... = Der c (RLS (set (map rerase rs)))"
+    by (rule RLS_rpder_norm_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RLS_rerase_bp_der_strong:
+  assumes "legacy_rrexp (rerase r)"
+  shows "RL (rerase (bp_der_strong c r)) = Der c (RL (rerase r))"
+proof -
+  have "RL (rerase (bp_der_strong c r)) =
+      RLS (set (map rerase (bpder_strong_rows c [r])))"
+    by (simp add: bp_der_strong_def rerase_bsimp_AALTs RLS_def RL_rsimp_RALTS)
+  also have "... = Der c (RLS (set (map rerase [r])))"
+    by (rule RLS_set_map_rerase_bpder_strong_rows) (use assms in simp)
+  also have "... = Der c (RL (rerase r))"
+    by (simp add: RLS_def)
+  finally show ?thesis .
+qed
+
+lemma legacy_rerase_bpder_norm_list:
+  assumes "legacy_rrexp (rerase r)"
+  shows "\<forall>p \<in> set (bpder_norm_list c r). legacy_rrexp (rerase p)"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_norm_list c (rerase r)). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  show ?thesis
+  proof
+    fix p
+    assume p: "p \<in> set (bpder_norm_list c r)"
+    have "rerase p \<in> set (map rerase (bpder_norm_list c r))"
+      using p by simp
+    also have "... = set (rpder_norm_list c (rerase r))"
+      using rerase_bpder_norm_list[of c r] by simp
+    finally show "legacy_rrexp (rerase p)"
+      using rows by simp
+  qed
+qed
+
+lemma legacy_rerase_bpder_strong_list:
+  assumes "legacy_rrexp (rerase r)"
+  shows "\<forall>p \<in> set (bpder_strong_list c r). legacy_rrexp (rerase p)"
+proof -
+  have norm: "\<forall>p \<in> set (bpder_norm_list c r). legacy_rrexp (rerase p)"
+    by (rule legacy_rerase_bpder_norm_list[OF assms])
+  show ?thesis
+    unfolding bpder_strong_list_def
+    using norm legacy_rerase_bsimpStrong by auto
+qed
+
+lemma legacy_rerase_bpder_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "\<forall>p \<in> set (bpder_strong_rows c rs). legacy_rrexp (rerase p)"
+proof -
+  have strong:
+    "\<forall>p \<in> set (concat (map (bpder_strong_list c) rs)).
+      legacy_rrexp (rerase p)"
+    using assms legacy_rerase_bpder_strong_list by auto
+  have flat1:
+    "\<forall>p \<in> set (flts (concat (map (bpder_strong_list c) rs))).
+      legacy_rrexp (rerase p)"
+    by (rule legacy_rerase_flts[OF strong])
+  have pruned:
+    "\<forall>p \<in> set (bsimpStrong_prune_rows
+        (flts (concat (map (bpder_strong_list c) rs)))).
+      legacy_rrexp (rerase p)"
+    by (rule legacy_rerase_bsimpStrong_prune_rows[OF flat1])
+  have flat2:
+    "\<forall>p \<in> set (flts (bsimpStrong_prune_rows
+        (flts (concat (map (bpder_strong_list c) rs))))).
+      legacy_rrexp (rerase p)"
+    by (rule legacy_rerase_flts[OF pruned])
+  show ?thesis
+    unfolding bpder_strong_rows_def
+    by (rule legacy_rerase_distinctWith[OF flat2])
+qed
+
+lemma legacy_rerase_bpders_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+    and "p \<in> set (bpders_strong_rows rs s)"
+  shows "legacy_rrexp (rerase p)"
+  using assms
+proof (induct s arbitrary: rs p)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_legacy:
+    "\<forall>r \<in> set (bpder_strong_rows c rs). legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_bpder_strong_rows[OF Cons.prems(1)])
+  have p_next: "p \<in> set (bpders_strong_rows (bpder_strong_rows c rs) s)"
+    using Cons.prems by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
+lemma RLS_set_map_rerase_bpders_strong_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+  shows "RLS (set (map rerase (bpders_strong_rows rs s))) =
+    Ders s (RLS (set (map rerase rs)))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy:
+    "\<forall>r \<in> set (bpder_strong_rows c rs). legacy_rrexp (rerase r)"
+    by (rule legacy_rerase_bpder_strong_rows[OF Cons.prems])
+  have ih:
+    "RLS (set (map rerase
+        (bpders_strong_rows (bpder_strong_rows c rs) s))) =
+      Ders s (RLS (set (map rerase (bpder_strong_rows c rs))))"
+    by (rule Cons.hyps[OF next_legacy])
+  have step:
+    "RLS (set (map rerase (bpder_strong_rows c rs))) =
+      Der c (RLS (set (map rerase rs)))"
+    by (rule RLS_set_map_rerase_bpder_strong_rows[OF Cons.prems])
+  have "RLS (set (map rerase (bpders_strong_rows rs (c # s)))) =
+      Ders s (RLS (set (map rerase (bpder_strong_rows c rs))))"
+    using ih by simp
+  also have "... = Ders s (Der c (RLS (set (map rerase rs))))"
+    using step by simp
+  also have "... = Ders (c # s) (RLS (set (map rerase rs)))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_set_map_rerase_bpders_strong1_rows:
+  assumes "legacy_rrexp (rerase r)"
+  shows "RLS (set (map rerase (bpders_strong1_rows r s))) =
+    Ders s (RL (rerase r))"
+  using RLS_set_map_rerase_bpders_strong_rows[of "[r]" s] assms
+  by (simp add: bpders_strong1_rows_def RLS_def)
 
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"

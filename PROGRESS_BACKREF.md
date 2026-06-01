@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong loop legacy closure)
+Last updated: 2026-06-02 (annotated strong row pipeline)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -5351,6 +5351,37 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     fragment where finite-universe accounting is meaningful.
   - This is not POSIX/bitcode preservation and not a full cubic theorem; no
     bounty is claimed.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+
+## Cubic Bound Research Checkpoint: Annotated Strong Row Pipeline (2026-06-02)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Added executable annotated row definitions in `BlexerSimp.thy`:
+  - `bpder_strong_list`
+  - `bpder_strong_rows`
+  - `bp_der_strong`
+  - `bpders_strong_rows`
+  - `bpders_strong1_rows`
+- Checked semantic/fragment bridge lemmas in `FBound.thy`:
+  - `RLS_set_map_rerase_bpder_strong_rows`
+  - `RLS_rerase_bp_der_strong`
+  - `legacy_rerase_bpder_strong_rows`
+  - `legacy_rerase_bpders_strong_rows`
+  - `RLS_set_map_rerase_bpders_strong_rows`
+  - `RLS_set_map_rerase_bpders_strong1_rows`
+- Design result:
+  - The proof-level `rpder_strong_rows` route now has an annotated executable
+    counterpart that performs the same staged idea: normalized partial
+    derivative rows, strong recursive simplification, cross-row shared-suffix
+    pruning, flattening, and duplicate removal.
+  - The checked theorem
+    `RLS_set_map_rerase_bpders_strong_rows` proves that repeated annotated
+    strong-row derivatives compute `Ders` after `rerase`, assuming the start
+    rows are in the legacy/non-backref fragment.
+  - This still does not prove POSIX/bitcode preservation or the final cubic
+    closure theorem, but it closes the main executable/proof-level gap for the
+    strong-row prototype.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 
 ## Governance Upgrade (2026-05-25)

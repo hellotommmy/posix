@@ -1115,3 +1115,14 @@ to be read before continuing long-running agent work.
   through the recursive simplifier and derivative loop. This gives future
   cubic-bound statements a stable fragment invariant instead of relying on an
   informal "non-backref only" side condition.
+- The proof-level strong-row route now has an annotated executable counterpart.
+  `BlexerSimp.thy` defines `bpder_strong_list`, `bpder_strong_rows`,
+  `bp_der_strong`, `bpders_strong_rows`, and `bpders_strong1_rows`. The row
+  definition mirrors the intended staged pipeline: normalized partial
+  derivative rows, `bsimpStrong`, row collection, shared-suffix pruning,
+  flattening, and `eq1` duplicate removal. `FBound.thy` proves the key
+  semantic bridge `RLS_set_map_rerase_bpders_strong_rows`, plus the one-step
+  bridge and legacy preservation lemmas. This does not solve the finite
+  universe/cubic closure problem, but it means future annotated bounds can
+  target a real row pipeline rather than only the direct `bders_simpStrong`
+  loop or the proof-only `rpders_strong_rows` model.
