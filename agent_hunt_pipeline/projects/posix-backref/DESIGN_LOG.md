@@ -810,6 +810,16 @@ to be read before continuing long-running agent work.
   left carried-continuation bridge from
   `rder_path_continuations_acc c r1 (rsimp4_SEQ_atom r2 RONE)` into the
   parent path9 universe.
+- The first checked slice of that bridge is
+  `rder_path_continuations_acc_RCHAR_left_path9_stable`. It says the `RCHAR`
+  left leaf is closed as soon as the carried right tail is norm-tail stable:
+  `rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2` and
+  `rsimp4_SEQ_atom (rsimp9 r2) RONE = rsimp9 r2`. The checked leaves
+  `..._RZERO`, `..._RONE`, `..._RCHAR`, `..._RSTAR`, and `..._RNTIMES`
+  discharge the obvious stable constructor cases. Scratch attempts showed
+  that a broad associativity lemma for `rsimp7_SEQ_atom` and `rsimp4_SEQ_atom`
+  can explode if proved by global `auto`; keep the remaining `RALTS`/nested
+  `RSEQ` proof modular and prove only the exact stability facts needed.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

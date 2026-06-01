@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-01 (path9 tight-budget splitters)
+Last updated: 2026-06-01 (path9 stable-tail RCHAR bridge)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -100,6 +100,17 @@ Last updated: 2026-06-01 (path9 tight-budget splitters)
   only the genuinely hard left-continuation bridge as an explicit premise:
   rows produced from `rder_path_continuations_acc c r1
   (rsimp4_SEQ_atom r2 RONE)` must be lifted into the current path9 universe.
+- Added the first checked left-continuation bridge slice for that `RSEQ`
+  blocker. The helper `rder_path_continuations_acc_RCHAR_left_path9_stable`
+  proves the `RCHAR`-left bridge whenever the right continuation is already
+  norm-tail stable:
+  `rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2` and
+  `rsimp4_SEQ_atom (rsimp9 r2) RONE = rsimp9 r2`. The checked constructor
+  leaves `rder_path_continuations_acc_RCHAR_left_path9_RZERO/RONE/RCHAR/
+  RSTAR/RNTIMES` close the obvious stable right-tail cases. This is progress
+  only, not a BR-036 payout claim; the remaining hard work is to prove the
+  stability interface for `RALTS` and nested `RSEQ` without a slow global
+  `auto`.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

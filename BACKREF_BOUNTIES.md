@@ -121,6 +121,16 @@ immutability.
   `rpder_norm9_path9_atom_frontier_step_RSEQ_selfI`; the latter packages the
   nullable right-child lift and leaves only the left carried-continuation
   bridge as the explicit `RSEQ` blocker.
+  The first checked slice of that blocker is now
+  `rder_path_continuations_acc_RCHAR_left_path9_stable`, with checked stable
+  right-tail constructor leaves
+  `rder_path_continuations_acc_RCHAR_left_path9_RZERO`,
+  `rder_path_continuations_acc_RCHAR_left_path9_RONE`,
+  `rder_path_continuations_acc_RCHAR_left_path9_RCHAR`,
+  `rder_path_continuations_acc_RCHAR_left_path9_RSTAR`, and
+  `rder_path_continuations_acc_RCHAR_left_path9_RNTIMES`. These facts expose
+  the exact norm-tail stability assumptions needed for `RALTS` and nested
+  `RSEQ`; they are progress evidence only and do not close BR-036.
   The
   checked accounting
   interface adds
