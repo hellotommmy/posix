@@ -107,6 +107,15 @@ immutability.
   for the remaining linear member-size premise. The checked
   `rpath9_tight_member_budget_nested_star_less_raw` witness records that the
   tight budget strictly improves the raw budget on the nested-star obstruction.
+  The checked splitter layer
+  `rpath9_tail_RSEQ_size_le`,
+  `rpath9_tight_member_budget_list_boundI`,
+  `rpath9_tight_member_budget_RALTS_boundI`,
+  `rpath9_tight_member_budget_RSEQ_boundI`,
+  `rpath9_tight_member_budget_RSTAR_boundI`, and
+  `rpath9_tight_member_budget_RNTIMES_nonzero_boundI` is progress toward that
+  premise only; it isolates the constructor obligations for the required
+  root-owned/carried-continuation induction and is not a BR-036 payout claim.
   The
   checked accounting
   interface adds

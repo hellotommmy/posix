@@ -10123,6 +10123,18 @@ next
     using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RRESIDUE cs rep"] by simp
 qed
 
+lemma rpath9_tail_RSEQ_size_le:
+  "rsize (rpath9_tail (RSEQ r k)) \<le>
+    Suc (rsize r + rsize (rpath9_tail k))"
+proof -
+  have "rsize (rpath9_tail (RSEQ r k)) \<le>
+      Suc (rsize (rsimp9 r) + rsize (rpath9_tail k))"
+    by (simp add: rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r + rsize (rpath9_tail k))"
+    using rsize_rsimp9_le[of r] by linarith
+  finally show ?thesis .
+qed
+
 lemma rfrontier_rpath9_tail_member_size_le:
   assumes "q \<in> rfrontier (rpath9_tail k)"
   shows "rsize q \<le> rsize k"
@@ -11688,6 +11700,36 @@ lemma rpath9_tight_member_budget_list_member_le:
   shows "rpath9_tight_member_budget r k \<le>
     rpath9_tight_member_budget_list rs k"
   using assms by (induct rs) auto
+
+lemma rpath9_tight_member_budget_list_boundI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    rpath9_tight_member_budget q k \<le> N"
+  shows "rpath9_tight_member_budget_list rs k \<le> N"
+  using assms by (induct rs) auto
+
+lemma rpath9_tight_member_budget_RALTS_boundI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    rpath9_tight_member_budget q k \<le> N"
+  shows "rpath9_tight_member_budget (RALTS rs) k \<le> N"
+  using rpath9_tight_member_budget_list_boundI[OF assms] by simp
+
+lemma rpath9_tight_member_budget_RSEQ_boundI:
+  assumes left: "rpath9_tight_member_budget r1 (RSEQ r2 k) \<le> N"
+    and right: "rpath9_tight_member_budget r2 k \<le> N"
+  shows "rpath9_tight_member_budget (RSEQ r1 r2) k \<le> N"
+  using assms by simp
+
+lemma rpath9_tight_member_budget_RSTAR_boundI:
+  assumes body: "rpath9_tight_member_budget r (RSEQ (RSTAR r) k) \<le> N"
+  shows "rpath9_tight_member_budget (RSTAR r) k \<le> N"
+  using body by simp
+
+lemma rpath9_tight_member_budget_RNTIMES_nonzero_boundI:
+  assumes n: "n \<noteq> 0"
+    and body: "rpath9_tight_member_budget r
+      (RSEQ (RNTIMES r (n - 1)) k) \<le> N"
+  shows "rpath9_tight_member_budget (RNTIMES r n) k \<le> N"
+  using assms by simp
 
 lemma rpath9_tight_member_budget_list_le_member_budget:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow>

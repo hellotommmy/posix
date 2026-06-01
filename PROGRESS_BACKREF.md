@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
+Last updated: 2026-06-01 (path9 tight-budget splitters)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -79,6 +79,19 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   and `rsizes_rpders_norm19_rows_rsimp9_path9_tight_budget_cubicI`. This
   reduces the remaining cubic member-size premise to the single tight-budget
   estimate plus the already-separate one-step closure premise.
+- Added the local tail-size bridge
+  `rpath9_tail_RSEQ_size_le`, and checked the first tight-budget constructor
+  interfaces:
+  `rpath9_tight_member_budget_list_boundI`,
+  `rpath9_tight_member_budget_RALTS_boundI`,
+  `rpath9_tight_member_budget_RSEQ_boundI`,
+  `rpath9_tight_member_budget_RSTAR_boundI`, and
+  `rpath9_tight_member_budget_RNTIMES_nonzero_boundI`. These do not close
+  BR-036 by themselves; they record the right proof shape after scratch
+  testing showed that both a bare top-level induction and an arbitrary
+  continuation linear invariant are too coarse for `RSTAR`. The remaining
+  proof should use a root-owned/carried-continuation invariant and discharge
+  these constructor obligations locally.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

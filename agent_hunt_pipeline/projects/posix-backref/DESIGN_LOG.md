@@ -789,6 +789,18 @@ to be read before continuing long-running agent work.
   single inequality `rpath9_tight_member_budget r RONE <=
   Suc (rsize r + rsize r)` is checked, the path9 universe member-size premise
   for the norm19 cubic row theorem no longer needs to be supplied separately.
+- The first tight-budget constructor interfaces are now checked:
+  `rpath9_tail_RSEQ_size_le`,
+  `rpath9_tight_member_budget_list_boundI`,
+  `rpath9_tight_member_budget_RALTS_boundI`,
+  `rpath9_tight_member_budget_RSEQ_boundI`,
+  `rpath9_tight_member_budget_RSTAR_boundI`, and
+  `rpath9_tight_member_budget_RNTIMES_nonzero_boundI`.
+  Scratch attempts ruled out two naive proof shapes: direct induction on the
+  top-level `RONE` budget leaves carried-continuation cases, while a global
+  arbitrary-continuation linear invariant double-counts `RSTAR` bodies. The
+  next invariant should be root-owned: continuations must be known to come
+  from the same path9 root rather than from an arbitrary `k`.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
