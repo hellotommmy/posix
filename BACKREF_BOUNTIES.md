@@ -188,6 +188,13 @@ immutability.
   `rder_path_continuations_acc_RNTIMES_carriedI`. These are
   universe-parametric scaffold facts for the path9 one-step closure and are
   not a payout claim.
+  The first checked one-step leaves built on this layer are
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable` with
+  `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances, plus
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_RCHAR` and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_RCHAR`. These close the
+  character-body base leaves for the path9 induction; the general
+  `RALTS`/nested-`RSEQ` cases remain open.
   The
   checked accounting
   interface adds

@@ -12651,6 +12651,43 @@ next
     using p by simp
 qed
 
+lemma rder_path_continuations_acc_RCHAR_root_path9_stable:
+  assumes norm_tail: "rsimp9 (rsimp4_SEQ_atom root RONE) = rsimp9 root"
+    and p: "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom root RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe root"
+proof (cases "c = d")
+  case True
+  have p_eq: "p = rsimp4_SEQ_atom root RONE"
+    using p True by simp
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      set (rflts [rsimp9 root])"
+    using p_eq norm_tail by simp
+  then show ?thesis
+    using rflts_singleton_rsimp9_path9_atom_frontier[of root] by blast
+next
+  case False
+  then show ?thesis
+    using p by simp
+qed
+
+lemma rder_path_continuations_acc_RCHAR_root_path9_RSTAR:
+  assumes "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (RSTAR r) RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSTAR r)"
+  by (rule rder_path_continuations_acc_RCHAR_root_path9_stable)
+    (use assms in simp_all)
+
+lemma rder_path_continuations_acc_RCHAR_root_path9_RNTIMES:
+  assumes "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (RNTIMES r n) RONE)"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
+  by (rule rder_path_continuations_acc_RCHAR_root_path9_stable)
+    (use assms in simp_all)
+
 lemma rder_path_continuations_acc_RALTS_carriedI:
   assumes child: "\<And>q p. q \<in> set rs \<Longrightarrow>
       p \<in> rder_path_continuations_acc c q k \<Longrightarrow>
@@ -13044,6 +13081,62 @@ next
     using child lift by blast
 qed
 
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable:
+  assumes norm_tail:
+      "rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2"
+    and stable:
+      "rsimp4_SEQ_atom (rsimp9 r2) RONE = rsimp9 r2"
+  shows "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) r2)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSEQ_directI)
+  show "legacy_rrexp (RCHAR d)"
+    by simp
+next
+  fix p
+  assume p: "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom r2 RONE)"
+  show "set (rflts [rsimp9 p]) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) r2)"
+    by (rule rder_path_continuations_acc_RCHAR_left_path9_stable
+        [OF norm_tail stable p])
+next
+  assume "rnullable (RCHAR d)"
+  then show "set (rflts (rpder_norm9_list c r2)) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) r2)"
+    by simp
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RZERO:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) RZERO))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) RZERO)"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    simp_all
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RONE:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) RONE))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) RONE)"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    simp_all
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RCHAR:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) (RCHAR e)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) (RCHAR e))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    simp_all
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RSTAR:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) (RSTAR r)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) (RSTAR r))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    (simp_all split: rrexp.splits)
+
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_RNTIMES:
+  "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) (RNTIMES r n)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (RCHAR d) (RNTIMES r n))"
+  by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable)
+    (simp_all split: rrexp.splits)
+
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   assumes body:
     "set (rflts
@@ -13071,6 +13164,21 @@ proof (rule rpder_norm9_path9_atom_frontier_step_RSTAR_parentI)
       partial_derivative_path9_atom_frontier_universe (RSTAR r)"
     by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI
         [OF legacy_body body])
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSTAR_RCHAR:
+  "set (rflts (rpder_norm9_list c (RSTAR (RCHAR d)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSTAR (RCHAR d))"
+proof (rule rpder_norm9_path9_atom_frontier_step_RSTAR_directI)
+  show "legacy_rrexp (RCHAR d)"
+    by simp
+next
+  fix p
+  assume p: "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (RSTAR (RCHAR d)) RONE)"
+  show "set (rflts [rsimp9 p]) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RSTAR (RCHAR d))"
+    by (rule rder_path_continuations_acc_RCHAR_root_path9_RSTAR[OF p])
 qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
@@ -13104,6 +13212,60 @@ proof (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI)
       partial_derivative_path9_atom_frontier_universe (RNTIMES r n)"
     by (rule rflts_map_rsimp9_rpder_list_norm_tail_direct_subsetI
         [OF legacy_body body[OF n]])
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_RCHAR:
+  "set (rflts (rpder_norm9_list c (RNTIMES (RCHAR d) n))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RNTIMES (RCHAR d) n)"
+proof (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_directI)
+  show "legacy_rrexp (RCHAR d)"
+    by simp
+next
+  fix p
+  assume n: "n \<noteq> 0"
+    and p: "p \<in> rder_path_continuations_acc c (RCHAR d)
+      (rsimp4_SEQ_atom (RNTIMES (RCHAR d) (n - 1)) RONE)"
+  show "set (rflts [rsimp9 p]) \<subseteq>
+      partial_derivative_path9_atom_frontier_universe (RNTIMES (RCHAR d) n)"
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using n by simp
+  next
+    case (Suc m)
+    show ?thesis
+    proof (cases "c = d")
+      case True
+      have p_eq: "p = RNTIMES (RCHAR d) m"
+        using p Suc True by simp
+      show ?thesis
+      proof
+        fix x
+        assume x: "x \<in> set (rflts [rsimp9 p])"
+        have x_front: "x \<in> rfrontier (rsimp9 (RNTIMES (RCHAR d) m))"
+          using x p_eq rflts_singleton_rsimp9_frontier[of "RNTIMES (RCHAR d) m"]
+          by blast
+        have tail_eq:
+          "rsimp7_SEQ_atom (rsimp9 (RNTIMES (RCHAR d) m)) RONE =
+            rsimp9 (RNTIMES (RCHAR d) m)"
+          by (cases m) (simp_all add: rsimp7_SEQ_atom_def)
+        then have x_acc: "x \<in> rpath9_atom_frontier_acc (RCHAR d)
+            (rsimp7_SEQ_atom (rsimp9 (RNTIMES (RCHAR d) m)) RONE)"
+          using x_front by simp
+        have x_acc_n: "x \<in> rpath9_atom_frontier_acc (RCHAR d)
+            (rsimp7_SEQ_atom
+              (rsimp9 (RNTIMES (RCHAR d) (n - 1))) RONE)"
+          using x_acc Suc by simp
+        show "x \<in> partial_derivative_path9_atom_frontier_universe
+            (RNTIMES (RCHAR d) n)"
+          by (rule rpath9_atom_frontiers_ntimes_body_universe[OF n x_acc_n])
+      qed
+    next
+      case False
+      then show ?thesis
+        using p Suc by simp
+    qed
+  qed
 qed
 
 lemma finite_rpath_dual_frontiers [simp]:

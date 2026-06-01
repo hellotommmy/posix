@@ -887,6 +887,11 @@ to be read before continuing long-running agent work.
   They are deliberately weaker than the final theorem: each recursive branch
   accepts a local target-universe premise, so future proofs can close the
   root-owned path9 universe case-by-case without a monolithic `auto`.
+- The first one-step leaves using those splitters are checked:
+  `RSEQ (RCHAR _) _` under stable right tails, `RSTAR (RCHAR _)`, and
+  `RNTIMES (RCHAR _) n`. In the counted case, the proof explicitly routes
+  through the predecessor-count path9 frontier; do not replace it with a broad
+  claim that the whole predecessor universe embeds into the successor universe.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

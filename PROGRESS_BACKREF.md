@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (carried-continuation splitter checkpoint)
+Last updated: 2026-06-02 (path9 RCHAR one-step leaves)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -128,6 +128,16 @@ Last updated: 2026-06-02 (carried-continuation splitter checkpoint)
   universe-parametric: later path9 closure proofs can decompose the derivative
   path structurally and discharge the actual target universe locally, instead
   of unfolding the whole derivative and simplifier at once.
+- Added the first checked one-step path9 leaves over that layer:
+  `rder_path_continuations_acc_RCHAR_root_path9_stable` plus the `RSTAR` and
+  `RNTIMES` root leaves, the stable package
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable` with
+  `RZERO`/`RONE`/`RCHAR`/`RSTAR`/`RNTIMES` right-tail instances, and the
+  character-body base cases
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_RCHAR` and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_RCHAR`. The counted case uses
+  the path9 frontier of the predecessor count directly, not a false
+  universe-subset shortcut between different counts.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 
