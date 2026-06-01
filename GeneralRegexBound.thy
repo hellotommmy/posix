@@ -13305,6 +13305,49 @@ lemma rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_RNTIMES:
   by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable)
     (use chars in \<open>simp_all split: rrexp.splits\<close>)
 
+lemma rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+    and norm_tail:
+      "rsimp9 (rsimp4_SEQ_atom r2 RONE) = rsimp9 r2"
+    and stable:
+      "rsimp4_SEQ_atom (rsimp9 r2) RONE = rsimp9 r2"
+  shows "set (rflts (rpder_norm9_list c (RSEQ (rsimp_ALTs rs) r2))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RSEQ (rsimp_ALTs rs) r2)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def
+        partial_derivative_path9_atom_frontier_universe_def)
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    have q_mem: "q \<in> set rs"
+      using Cons by simp
+    obtain d where q_eq: "q = RCHAR d"
+      using chars[OF q_mem] by blast
+    have step: "set (rflts (rpder_norm9_list c (RSEQ (RCHAR d) r2))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ (RCHAR d) r2)"
+      by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RCHAR_stable
+          [OF norm_tail stable])
+    show ?thesis
+      using Cons Nil q_eq step by simp
+  next
+    case (Cons q' qs')
+    have alt: "rsimp_ALTs rs = RALTS rs"
+      using rs_cons Cons by simp
+    have step: "set (rflts (rpder_norm9_list c (RSEQ (RALTS rs) r2))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSEQ (RALTS rs) r2)"
+      by (rule rpder_norm9_path9_atom_frontier_step_RSEQ_RALTS_RCHARs_stable
+          [OF chars norm_tail stable])
+    show ?thesis
+      using alt step by simp
+  qed
+qed
+
 lemma rpder_norm9_path9_atom_frontier_step_RSTAR_parentI:
   assumes body:
     "set (rflts
@@ -13397,6 +13440,43 @@ next
       partial_derivative_path9_atom_frontier_universe (RSTAR (RALTS rs))"
     by (rule rder_path_continuations_acc_RALTS_RCHARs_root_path9_RSTAR
         [OF chars p])
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp_ALTs_RCHARs:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c (RSTAR (rsimp_ALTs rs)))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe (RSTAR (rsimp_ALTs rs))"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def
+        partial_derivative_path9_atom_frontier_universe_def)
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    have q_mem: "q \<in> set rs"
+      using Cons by simp
+    obtain d where q_eq: "q = RCHAR d"
+      using chars[OF q_mem] by blast
+    have step: "set (rflts (rpder_norm9_list c (RSTAR (RCHAR d)))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSTAR (RCHAR d))"
+      by (rule rpder_norm9_path9_atom_frontier_step_RSTAR_RCHAR)
+    show ?thesis
+      using Cons Nil q_eq step by simp
+  next
+    case (Cons q' qs')
+    have alt: "rsimp_ALTs rs = RALTS rs"
+      using rs_cons Cons by simp
+    have step: "set (rflts (rpder_norm9_list c (RSTAR (RALTS rs)))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RSTAR (RALTS rs))"
+      by (rule rpder_norm9_path9_atom_frontier_step_RSTAR_RALTS_RCHARs
+          [OF chars])
+    show ?thesis
+      using alt step by simp
+  qed
 qed
 
 lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_parentI:
@@ -13596,6 +13676,44 @@ next
       partial_derivative_path9_atom_frontier_universe (RNTIMES (RALTS rs) n)"
     by (rule rder_path_continuations_acc_RALTS_RCHARs_root_path9_RNTIMES
         [OF chars n p])
+qed
+
+lemma rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp_ALTs_RCHARs:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "set (rflts (rpder_norm9_list c (RNTIMES (rsimp_ALTs rs) n))) \<subseteq>
+    partial_derivative_path9_atom_frontier_universe
+      (RNTIMES (rsimp_ALTs rs) n)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by (simp add: rpder_norm9_list_def rpder_norm_list_def
+        partial_derivative_path9_atom_frontier_universe_def)
+next
+  case (Cons q qs)
+  note rs_cons = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    have q_mem: "q \<in> set rs"
+      using Cons by simp
+    obtain d where q_eq: "q = RCHAR d"
+      using chars[OF q_mem] by blast
+    have step: "set (rflts (rpder_norm9_list c (RNTIMES (RCHAR d) n))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RNTIMES (RCHAR d) n)"
+      by (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_RCHAR)
+    show ?thesis
+      using Cons Nil q_eq step by simp
+  next
+    case (Cons q' qs')
+    have alt: "rsimp_ALTs rs = RALTS rs"
+      using rs_cons Cons by simp
+    have step: "set (rflts (rpder_norm9_list c (RNTIMES (RALTS rs) n))) \<subseteq>
+        partial_derivative_path9_atom_frontier_universe (RNTIMES (RALTS rs) n)"
+      by (rule rpder_norm9_path9_atom_frontier_step_RNTIMES_RALTS_RCHARs
+          [OF chars])
+    show ?thesis
+      using alt step by simp
+  qed
 qed
 
 lemma finite_rpath_dual_frontiers [simp]:

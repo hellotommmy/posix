@@ -905,6 +905,11 @@ to be read before continuing long-running agent work.
   `RONE`, so route it through `partial_derivative_path9_atom_frontier_universe`
   directly instead of pretending it came from
   `rpath9_atom_frontier_acc (RALTS rs) ...`.
+- Character alternatives are now also packaged through `rsimp_ALTs`, which is
+  the actual constructor returned by normalized alternative branches in
+  `rsimp9`. The proofs deliberately split the empty, singleton, and
+  many-alternative cases; this keeps the normalizer bridge local and avoids a
+  broad theorem about arbitrary `rsimp_ALTs` output.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

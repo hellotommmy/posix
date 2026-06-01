@@ -381,6 +381,12 @@ immutability.
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_RALTS_RCHARs`. The counted
   proof explicitly splits the zero-predecessor case, where `RONE` is admitted
   by the universe rather than by a body-frontier inclusion.
+  The normalized alternative shape is also bridged by
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp_ALTs_RCHARs`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp_ALTs_RCHARs`, which
+  split `rsimp_ALTs` into empty, singleton-character, and genuine-`RALTS`
+  cases. This is still only checked progress toward BR-036.
 
 ## Completed
 

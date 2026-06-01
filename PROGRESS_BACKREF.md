@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 RALTS-of-chars body bridges)
+Last updated: 2026-06-02 (path9 rsimp_ALTs character bridges)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -154,6 +154,14 @@ Last updated: 2026-06-02 (path9 RALTS-of-chars body bridges)
   `rpder_norm9_path9_atom_frontier_step_RNTIMES_RALTS_RCHARs`. The counted
   proof keeps the zero-predecessor branch separate because it contributes
   `RONE` directly to the universe, not through the body frontier.
+- Connected the character-alternative bridge to the actual normalized
+  alternative output used by `rsimp9`: the checked
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_rsimp_ALTs_RCHARs_stable`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_rsimp_ALTs_RCHARs`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_rsimp_ALTs_RCHARs` split the
+  `rsimp_ALTs` result into empty, singleton, and genuine-`RALTS` cases. This
+  removes a small but recurring proof gap between normalized alternatives and
+  the raw `RALTS` bridge lemmas.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 
