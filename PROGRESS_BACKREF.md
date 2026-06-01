@@ -5122,6 +5122,18 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     carry9. A small star/sequence regex has a carry9 member larger than that
     bound. Therefore the viable cubic interface is the parameterized one
     above, not the fixed-2 member-size hook.
+- Stronger checked obstruction:
+  - `carry9_bad_root` defines a pure non-backref star/sequence family with
+    linear root size (`rsize_carry9_bad_root`: `6*n+2`).
+  - `carry9_bad_witness_acc`/`carry9_bad_witness` pick the repeated
+    carried-continuation witness along that family.
+  - `carry9_member_size_eight_bound_counterexample` shows that even
+    `K = 8` is too small at depth 7: the witness is in the carry9 universe,
+    but its size exceeds `8 * (rsize root + 2)`.
+  - This means carry9 is best understood as a diagnostic/refinement prototype,
+    not the final cubic universe. The next viable route should test whether a
+    stronger Chapter-7-style simplifier collapses this family, or replace the
+    carried-tail frontier with a more compact state representation.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash, under the
   300s guard.
 

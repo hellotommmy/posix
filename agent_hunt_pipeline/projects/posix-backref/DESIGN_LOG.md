@@ -1001,3 +1001,13 @@ to be read before continuing long-running agent work.
   work should use the parameterized linear-constant interface
   `rsizes_rpders_norm19_rows_rsimp9_carry9_atom_frontier_param_cubicI` and
   prove a concrete constant `K` for member size.
+- A deeper checked obstruction shows the parameterized carry9 member-size
+  route is probably not the final design either. `carry9_bad_root` is a
+  non-backref star/sequence family with checked linear root size
+  `rsize_carry9_bad_root = 6*n+2`; `carry9_member_size_eight_bound_counterexample`
+  shows that at depth 7 the carry9 witness already exceeds
+  `8 * (rsize root + 2)`. Treat carry9 as a useful diagnostic universe that
+  repairs the raw-spine omission, but do not spend more proof effort trying to
+  tune a small constant. The next route should either add a stronger
+  simplifier that collapses this family, or represent carried tails in a
+  compact/quotiented way instead of materializing the growing sequence.

@@ -15712,6 +15712,42 @@ lemma carry9_member_size_two_bound_counterexample:
       partial_derivative_carry9_atom_frontier_universe_def
       rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
 
+fun carry9_bad_root :: "nat \<Rightarrow> rrexp" where
+  "carry9_bad_root 0 = RSTAR (RCHAR (CHR ''a''))"
+| "carry9_bad_root (Suc n) =
+    RSTAR
+      (RSEQ
+        (RSTAR (RSEQ (RCHAR (CHR ''a'')) (carry9_bad_root n)))
+        (RCHAR (CHR ''a'')))"
+
+lemma rsize_carry9_bad_root:
+  "rsize (carry9_bad_root n) = 6 * n + 2"
+  by (induct n) simp_all
+
+fun carry9_bad_witness_acc :: "nat \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "carry9_bad_witness_acc 0 k =
+    rsimp9 (rsimp4_SEQ_atom (carry9_bad_root 0) k)"
+| "carry9_bad_witness_acc (Suc n) k =
+    carry9_bad_witness_acc n
+      (rsimp4_SEQ_atom
+        (RSTAR (RSEQ (RCHAR (CHR ''a'')) (carry9_bad_root n)))
+        (rsimp4_SEQ_atom (RCHAR (CHR ''a''))
+          (rsimp4_SEQ_atom (carry9_bad_root (Suc n)) k)))"
+
+definition carry9_bad_witness :: "nat \<Rightarrow> rrexp" where
+  "carry9_bad_witness n = carry9_bad_witness_acc n RONE"
+
+lemma carry9_member_size_eight_bound_counterexample:
+  shows "carry9_bad_witness (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0))))))) \<in>
+      partial_derivative_carry9_atom_frontier_universe
+        (carry9_bad_root (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0))))))))"
+    and "8 * (rsize (carry9_bad_root
+        (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0)))))))) + 2) <
+      rsize (carry9_bad_witness (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0))))))))"
+  by (simp_all add: carry9_bad_witness_def
+      partial_derivative_carry9_atom_frontier_universe_def
+      rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
 definition RSEQ_set where
   "RSEQ_set A n \<equiv> {RSEQ r1 r2 | r1 r2. r1 \<in> A \<and> r2 \<in> A \<and> rsize r1 + rsize r2 \<le> n}"
 
