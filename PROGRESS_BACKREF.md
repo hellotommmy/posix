@@ -1,6 +1,21 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-05-31 (rsimp9 RNTIMES zero-count repair)
+Last updated: 2026-06-01 (path9 raw-tail size bridge)
+
+## Path9 Raw-Tail Bridge (2026-06-01)
+
+- Added and checked `rpath9_tail`, a compact helper that turns a raw
+  continuation spine into the normalized tail shape carried by
+  `rpath9_atom_frontier_acc`.
+- Checked the first linear member-size bridge:
+  `rsize_rpath9_tail_le`, `rfrontier_rpath9_tail_member_size_le`,
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le`, and
+  `rfrontier_rpath9_tail_RSEQ_member_size_le`. These facts say the normalized
+  tail and its frontier members remain bounded by the raw continuation size,
+  so the remaining BR-036 member-size proof can reason about raw continuation
+  structure instead of repeatedly unfolding the normalized accumulator.
+- Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
+  build processes that were holding resources from earlier runs.
 
 ## Cubic Row-Universe Checkpoint (2026-05-31)
 

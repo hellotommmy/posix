@@ -10051,6 +10051,94 @@ definition partial_derivative_path9_atom_frontier_universe :: "rrexp \<Rightarro
   "partial_derivative_path9_atom_frontier_universe r =
     insert RZERO (insert RONE (rsubterms (rsimp9 r) \<union> rpath9_atom_frontiers r))"
 
+fun rpath9_tail :: "rrexp \<Rightarrow> rrexp" where
+  "rpath9_tail (RSEQ r k) = rsimp7_SEQ_atom (rsimp9 r) (rpath9_tail k)"
+| "rpath9_tail k = rsimp7_SEQ_atom (rsimp9 k) RONE"
+
+lemma rsize_rpath9_tail_le:
+  "rsize (rpath9_tail k) \<le> rsize k"
+proof (induct k)
+  case RZERO
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of RZERO] by simp
+next
+  case RONE
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of RONE] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RCHAR c"] by simp
+next
+  case (RSEQ r k)
+  have "rsize (rpath9_tail (RSEQ r k)) \<le>
+      Suc (rsize (rsimp9 r) + rsize (rpath9_tail k))"
+    by (simp add: rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r + rsize k)"
+    using RSEQ.hyps(2) rsize_rsimp9_le[of r] by linarith
+  finally show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RALTS rs"] by simp
+next
+  case (RSTAR r)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RSTAR r"] by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RNTIMES r n"] by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RBACKREF4 r1 r2 r3 r4 cs"] by simp
+next
+  case (RHALF r cs rep)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RHALF r cs rep"] by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    using rsize_rsimp7_SEQ_atom_rsimp9_RONE_le[of "RRESIDUE cs rep"] by simp
+qed
+
+lemma rfrontier_rpath9_tail_member_size_le:
+  assumes "q \<in> rfrontier (rpath9_tail k)"
+  shows "rsize q \<le> rsize k"
+proof -
+  have "rsize q \<le> rsize (rpath9_tail k)"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> rsize k"
+    by (rule rsize_rpath9_tail_le)
+  finally show ?thesis .
+qed
+
+lemma rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le:
+  assumes "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 p) (rpath9_tail k))"
+  shows "rsize q \<le> rsize (RSEQ p k)"
+proof -
+  have "rsize q \<le> rsize (rsimp7_SEQ_atom (rsimp9 p) (rpath9_tail k))"
+    by (rule rfrontier_member_size_le_rsize[OF assms])
+  also have "... \<le> Suc (rsize (rsimp9 p) + rsize (rpath9_tail k))"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize p + rsize k)"
+    using rsize_rsimp9_le[of p] rsize_rpath9_tail_le[of k] by linarith
+  finally show ?thesis
+    by simp
+qed
+
+lemma rfrontier_rpath9_tail_RSEQ_member_size_le:
+  assumes "q \<in> rfrontier (rpath9_tail (RSEQ p k))"
+  shows "rsize q \<le> rsize (RSEQ p k)"
+proof -
+  have "q \<in> rfrontier (rsimp7_SEQ_atom (rsimp9 p) (rpath9_tail k))"
+    using assms by simp
+  then show ?thesis
+    by (rule rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le)
+qed
+
 definition rpath_dual_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_dual_frontier_acc r k =
     rpath_frontier_acc r k \<union> rpath_atom_frontier_acc r k"

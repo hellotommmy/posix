@@ -713,3 +713,21 @@ to be read before continuing long-running agent work.
   `rsizes_rpders_norm19_rows_rsimp9_path9_atom_frontier_cubicI` are the
   intended BR-036 landing zone: prove path9 one-step closure and the linear
   member-size premise, then instantiate this hook.
+
+## 2026-06-01: Path9 raw-tail bridge
+
+- Added `rpath9_tail` to represent the normalized continuation carried by
+  path9 as a function of the raw continuation syntax. This avoids trying to
+  prove arbitrary-tail accumulator member-size facts, which are too broad for
+  `RSTAR`/`RNTIMES` because the tail can reintroduce the parent.
+- The checked lemmas `rsize_rpath9_tail_le`,
+  `rfrontier_rpath9_tail_member_size_le`,
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le`, and
+  `rfrontier_rpath9_tail_RSEQ_member_size_le` show that normalized tails and
+  their frontier members are bounded by the corresponding raw continuation
+  size.
+- Next step: show every `rpath9_atom_frontiers r` member is the frontier of
+  such a normalized raw continuation where the raw continuation is either a
+  linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
+  continuation. That should discharge the remaining linear member-size premise
+  for the path9 cubic hook.

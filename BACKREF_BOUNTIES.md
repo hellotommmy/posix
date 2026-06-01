@@ -60,7 +60,13 @@ immutability.
   `partial_derivative_path9_atom_frontier_universe`,
   `finite_rpath9_atom_frontier_acc`, `finite_rpath9_atom_frontiers`,
   `finite_partial_derivative_path9_atom_frontier_universe`, and
-  `path9_atom_frontier_avoids_old_atom_explosion`. The checked accounting
+  `path9_atom_frontier_avoids_old_atom_explosion`. The raw-tail bridge
+  `rpath9_tail`, `rsize_rpath9_tail_le`,
+  `rfrontier_rpath9_tail_member_size_le`,
+  `rfrontier_rsimp7_SEQ_atom_rsimp9_rpath9_tail_member_size_le`, and
+  `rfrontier_rpath9_tail_RSEQ_member_size_le` is also checked; it is progress
+  toward the remaining linear member-size premise, not a payout claim. The
+  checked accounting
   interface adds
   `partial_derivative_path9_atom_frontier_universe_card_le`,
   `partial_derivative_path9_atom_frontier_universe_member_size_boundI`,
