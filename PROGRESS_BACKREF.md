@@ -42,8 +42,13 @@ Last updated: 2026-06-02 (annotated strong finite-universe interface)
 - Added checked one-step size-control facts for the executable annotated
   route: `asizes_bpder_strong_list_le`,
   `asizes_concat_map_bpder_strong_list_le`,
-  `asizes_bpder_strong_rows_le`, and
-  `asize_bp_der_strong_le_asizes`.
+  `asizes_bpder_strong_rows_le`, `asize_bp_der_strong_le_asizes`, and
+  `asize_bp_der_strong_le_rows`.
+- Added checked annotated cubic-accounting hooks:
+  `asizes_bpders_strong_rows_cubic_universe_boundI`,
+  `asizes_bpders_strong1_rows_cubic_universe_boundI`,
+  `asize_bp_der_strong_finite_universe_boundI`, and
+  `asize_bp_der_strong_cubic_universe_boundI`.
 - Design result: future annotated bounds can now reuse the same row-list
   finite-universe discipline as the proof-level `rrexp` pipeline, but with
   an explicit `rerase` bridge. The closure premise is still intentionally

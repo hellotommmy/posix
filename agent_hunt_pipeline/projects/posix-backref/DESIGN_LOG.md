@@ -1134,3 +1134,11 @@ to be read before continuing long-running agent work.
   `asizes` bound. This keeps the pipeline honest: the hard theorem is still
   the root-owned closure of the chosen universe, but later work no longer has
   to redo the erasure/distinct/cardinality accounting.
+- The same annotated bookkeeping is now packaged as cubic hooks. The row-list
+  facts `asizes_bpders_strong_rows_cubic_universe_boundI` and
+  `asizes_bpders_strong1_rows_cubic_universe_boundI` mirror the proof-level
+  `rpders_strong_rows` hooks, while `asize_bp_der_strong_cubic_universe_boundI`
+  gives a direct one-step expression bound for `bp_der_strong`. The theorem
+  shape deliberately keeps the closure premise explicit; the next real
+  research step is still to instantiate a root-owned universe closed under the
+  strong row step.

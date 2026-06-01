@@ -2023,6 +2023,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma asize_bp_der_strong_le_rows:
+  "asize (bp_der_strong c r) \<le> Suc (asizes (bpder_strong_rows c [r]))"
+  unfolding bp_der_strong_def by (rule asize_bsimp_AALTs_le)
+
 lemma distinct_map_rerase_distinctWith_eq1:
   "distinct (map rerase (distinctWith rs eq1 {}))"
   by (simp add: map_rerase_distinctWith_eq1 rdistinct_does_the_job)
@@ -2123,6 +2127,87 @@ proof -
         [OF rows step finite member_size distinct_rows])
   then show ?thesis
     by (simp add: bpders_strong1_rows_def)
+qed
+
+lemma asizes_bpders_strong_rows_cubic_universe_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and distinct: "distinct (map rerase rs)"
+      and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong_rows rs s) \<le> B"
+proof -
+  have "asizes (bpders_strong_rows rs s) \<le> card U * M"
+    by (rule asizes_bpders_strong_rows_finite_universe_boundI
+        [OF init step finite member_size distinct])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma asizes_bpders_strong1_rows_cubic_universe_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong1_rows r s) \<le> B"
+proof -
+  have "asizes (bpders_strong1_rows r s) \<le> card U * M"
+    by (rule asizes_bpders_strong1_rows_finite_universe_boundI
+        [OF init step finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma asize_bp_der_strong_finite_universe_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "asize (bp_der_strong c r) \<le> Suc (card U * M)"
+proof -
+  have rows:
+    "asizes (bpders_strong1_rows r [c]) \<le> card U * M"
+    by (rule asizes_bpders_strong1_rows_finite_universe_boundI
+        [OF init step finite member_size])
+  have "asize (bp_der_strong c r) \<le>
+      Suc (asizes (bpder_strong_rows c [r]))"
+    by (rule asize_bp_der_strong_le_rows)
+  also have "... \<le> Suc (card U * M)"
+    using rows by (simp add: bpders_strong1_rows_def)
+  finally show ?thesis .
+qed
+
+lemma asize_bp_der_strong_cubic_universe_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "Suc (C * M) \<le> B"
+  shows "asize (bp_der_strong c r) \<le> B"
+proof -
+  have "asize (bp_der_strong c r) \<le> Suc (card U * M)"
+    by (rule asize_bp_der_strong_finite_universe_boundI
+        [OF init step finite member_size])
+  also have "... \<le> Suc (C * M)"
+    by (simp add: card_bound mult_right_mono)
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
 qed
 
 lemma thesis_ch7_evil5_bders_simp_size_16:
