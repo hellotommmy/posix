@@ -761,6 +761,12 @@ to be read before continuing long-running agent work.
   using the original frontier universe after `rsimp9` has normalized a loop
   body (`(1.a)*` contributes `a*`). So the path9 member-size proof must stay
   within the dedicated path9 accounting layer.
+- Added the recursive budget layer
+  `rpath9_member_budget`/`rpath9_member_budget_list`. The checked theorem
+  `rpath9_atom_frontier_acc_rpath9_tail_member_budget` follows the accumulator
+  recursion case-by-case, and `rpath9_atom_frontiers_member_budget` exposes the
+  top-level `RONE` instance. This is the current bridge between raw-tail
+  membership and a later linear arithmetic bound on the budget.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear

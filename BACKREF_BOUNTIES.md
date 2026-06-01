@@ -92,6 +92,13 @@ immutability.
   `path9_frontiers_not_subset_norm9_frontier_universe` and
   `path9_frontiers_not_subset_original_frontier_universe` rule out reusing the
   old frontier universe as a direct superset of path9 frontiers.
+  The checked budget layer
+  `rpath9_member_budget`, `rpath9_member_budget_list`,
+  `rpath9_atom_frontier_acc_rpath9_tail_member_budget`, and
+  `rpath9_atom_frontiers_member_budget` now packages the accumulator
+  member-size recursion. Remaining work is to bound that budget linearly at
+  the top level and feed it into
+  `partial_derivative_path9_atom_frontier_universe_member_size_linearI`.
   The
   checked accounting
   interface adds

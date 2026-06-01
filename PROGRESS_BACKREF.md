@@ -49,6 +49,13 @@ Last updated: 2026-06-01 (path9 raw-tail top-level bridge)
   tempting shortcuts: embedding `rpath9_atom_frontiers r` directly into the
   old frontier universe of either `rsimp9 r` or the original `r`. The remaining
   route must use the dedicated path9 universe/member-size accounting.
+- Added the recursive path9 member-size budget
+  `rpath9_member_budget`/`rpath9_member_budget_list` and checked
+  `rpath9_atom_frontier_acc_rpath9_tail_member_budget` plus
+  `rpath9_atom_frontiers_member_budget`. This gives a controlled induction
+  target matching the `rpath9_atom_frontier_acc` recursion, instead of trying
+  to prove the final linear bound in one monolithic pass. Next step: prove the
+  top-level estimate `rpath9_member_budget r RONE <= Suc (rsize r + rsize r)`.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 
