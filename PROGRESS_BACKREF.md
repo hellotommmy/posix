@@ -20,6 +20,12 @@ Last updated: 2026-06-01 (path9 raw-tail size bridge)
   `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le` and
   `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le`. These are
   the base leaves for the next carried-continuation induction.
+- Added checked raw-tail handoff lemmas for carried constructors:
+  `rpath9_atom_frontier_acc_RSEQ_rpath9_tail_member_sizeI`,
+  `rpath9_atom_frontier_acc_RSTAR_rpath9_tail_member_sizeI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI`. These
+  expose the recursive obligations using `rpath9_tail (RSEQ ... k)` instead
+  of the expanded `rsimp7_SEQ_atom (rsimp9 ...) (rpath9_tail k)` form.
 - Build: direct Isabelle `Posix` build passed after removing stale CLI Isabelle
   build processes that were holding resources from earlier runs.
 

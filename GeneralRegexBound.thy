@@ -10163,6 +10163,56 @@ proof -
     by (rule rfrontier_rpath9_tail_RSEQ_member_size_le)
 qed
 
+lemma rpath9_atom_frontier_acc_RSEQ_rpath9_tail_member_sizeI:
+  assumes left: "\<And>x. x \<in> rpath9_atom_frontier_acc r1
+      (rpath9_tail (RSEQ r2 k)) \<Longrightarrow> rsize x \<le> rsize (RSEQ r2 k)"
+    and right: "\<And>x. x \<in> rpath9_atom_frontier_acc r2
+      (rpath9_tail k) \<Longrightarrow> rsize x \<le> rsize (RSEQ r2 k)"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+  shows "rsize x \<le> rsize (RSEQ r2 k)"
+proof -
+  consider
+      "x \<in> rpath9_atom_frontier_acc r1 (rpath9_tail (RSEQ r2 k))"
+    | "x \<in> rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+    using x by auto
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis by (rule left)
+  next
+    case 2
+    then show ?thesis by (rule right)
+  qed
+qed
+
+lemma rpath9_atom_frontier_acc_RSTAR_rpath9_tail_member_sizeI:
+  assumes body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RSTAR r) k)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ (RSTAR r) k)"
+    and x: "x \<in> rpath9_atom_frontier_acc (RSTAR r) (rpath9_tail k)"
+  shows "rsize x \<le> rsize (RSEQ (RSTAR r) k)"
+proof -
+  have "x \<in> rpath9_atom_frontier_acc r (rpath9_tail (RSEQ (RSTAR r) k))"
+    using x by simp
+  then show ?thesis
+    by (rule body)
+qed
+
+lemma rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI:
+  assumes n: "n \<noteq> 0"
+    and body: "\<And>x. x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RNTIMES r (n - 1)) k)) \<Longrightarrow>
+      rsize x \<le> rsize (RSEQ (RNTIMES r n) k)"
+    and x: "x \<in> rpath9_atom_frontier_acc (RNTIMES r n) (rpath9_tail k)"
+  shows "rsize x \<le> rsize (RSEQ (RNTIMES r n) k)"
+proof -
+  have "x \<in> rpath9_atom_frontier_acc r
+      (rpath9_tail (RSEQ (RNTIMES r (n - 1)) k))"
+    using n x by simp
+  then show ?thesis
+    by (rule body)
+qed
+
 definition rpath_dual_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rpath_dual_frontier_acc r k =
     rpath_frontier_acc r k \<union> rpath_atom_frontier_acc r k"

@@ -70,7 +70,12 @@ immutability.
   and the `RCHAR` raw-tail base cases
   `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_member_size_le` and
   `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le` are
-  checked as the first leaves for that induction. The
+  checked as the first leaves for that induction. The carried-constructor
+  raw-tail handoffs
+  `rpath9_atom_frontier_acc_RSEQ_rpath9_tail_member_sizeI`,
+  `rpath9_atom_frontier_acc_RSTAR_rpath9_tail_member_sizeI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI` are also
+  checked. The
   checked accounting
   interface adds
   `partial_derivative_path9_atom_frontier_universe_card_le`,

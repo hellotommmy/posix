@@ -732,6 +732,13 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontier_acc_RCHAR_rpath9_tail_RSEQ_member_size_le`. These are
   intentionally small: they give the next induction a clean base case without
   unfolding `rsimp9` or `rpath9_atom_frontier_acc`.
+- Added carried-constructor raw-tail handoffs:
+  `rpath9_atom_frontier_acc_RSEQ_rpath9_tail_member_sizeI`,
+  `rpath9_atom_frontier_acc_RSTAR_rpath9_tail_member_sizeI`, and
+  `rpath9_atom_frontier_acc_RNTIMES_nonzero_rpath9_tail_member_sizeI`. Their
+  purpose is to keep the recursive member-size induction in raw-continuation
+  syntax; `rpath9_tail (RSEQ p k)` is the named form of the expanded
+  normalized tail.
 - Next step: show every `rpath9_atom_frontiers r` member is the frontier of
   such a normalized raw continuation where the raw continuation is either a
   linear continuation or `RSEQ p k` with `p` a subterm and `k` a linear
