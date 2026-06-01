@@ -90,6 +90,15 @@ immutability.
   bounty requirements: POSIX/bitcode preservation, derivative-size regression
   on the full evil family, and integration without weakening existing lexer
   theorems.
+- BR-037 now has the first full evil-family size regression for that prototype:
+  `thesis_ch7_evil5_bders_simpStrong_lt_simp8_size_16` and
+  `thesis_ch7_evil5_bders_simpStrong_size_16_under_825` show
+  `bders_simpStrong` below `825` on `k=5, a^16`, while
+  `thesis_ch7_evil5_bders_simpStrong_size_16_not_under_812` gives a checked
+  lower-bound sanity check. This confirms the Chapter 7 prune is active beyond
+  the toy overlap, but it is still only progress:
+  row-list normalization remains smaller (`645`), and no general cubic theorem
+  or POSIX/bitcode preservation theorem has been awarded.
 - BR-036 now also has the checked norm9-specific scaffold
   `rpath9_atom_frontier_acc`, `rpath9_atom_frontiers`,
   `partial_derivative_path9_atom_frontier_universe`,

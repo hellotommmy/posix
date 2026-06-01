@@ -856,6 +856,21 @@ lemma thesis_ch7_evil5_bders_simp8_size_16:
       (replicate 16 thesis_ch7_a)) = 1308"
   by eval
 
+lemma thesis_ch7_evil5_bders_simpStrong_lt_simp8_size_16:
+  "asize (bders_simpStrong (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 1308"
+  by eval
+
+lemma thesis_ch7_evil5_bders_simpStrong_size_16_under_825:
+  "asize (bders_simpStrong (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 825"
+  by eval
+
+lemma thesis_ch7_evil5_bders_simpStrong_size_16_not_under_812:
+  "\<not> asize (bders_simpStrong (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 812"
+  by eval
+
 lemma thesis_ch7_evil5_bpders_norm17_row_size_16:
   "asizes (bpders_norm17_rows (bsimp7 (intern (thesis_ch7_evil 5)))
       (replicate 16 thesis_ch7_a)) = 645"

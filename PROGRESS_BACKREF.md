@@ -342,8 +342,16 @@ Last updated: 2026-06-01 (path9 stable-tail helper layer)
   `thesis_ch7_bsimpStrong_overlap_smaller`, and
   `thesis_ch7_bsimpStrong_overlap_same_language` show that this prototype
   performs the Chapter 7 overlap prune on `(a + b + d).c + (a + c + e).c`.
+  The first full-family size regression is also checked:
+  `thesis_ch7_evil5_bders_simpStrong_lt_simp8_size_16` and
+  `thesis_ch7_evil5_bders_simpStrong_size_16_under_825` show that on
+  `((a* + (aa)* + ... + (aaaaa)*)*)*` after `a^16`, `bders_simpStrong`
+  is below `825`, and
+  `thesis_ch7_evil5_bders_simpStrong_size_16_not_under_812` gives a checked
+  lower-bound sanity check. It improves over `bsimp8 = 1308` and vastly over old
+  `bders_simp = 14876`, but still not matching the row-list route (`645`).
   This is still not a BR-036 payout: production use needs a POSIX/bitcode
-  preservation theorem and derivative-size tests on the full evil family.
+  preservation theorem and a general cubic proof.
   Added the dual-frontier cubic hook:
   `quadratic_plus_linear_padding_bound`,
   `quadratic_plus_linear_times_linear_cubic_bound`, and

@@ -201,9 +201,13 @@ to be read before continuing long-running agent work.
   `thesis_ch7_bsimpStrong_prunes_overlap` confirms that the prototype reduces
   `(a + b + d).c + (a + c + e).c` to
   `(a + b + d).c + (c + e).c`, with checked smaller size and same erasure
-  language. Do not mark this as production yet; the next design step is a
-  POSIX/bitcode preservation theorem and size tests against the full
-  `((a*) + ((aa)*) + ...)^**` evil family.
+  language. The first full evil-family regression is checked too:
+  on `((a*) + ((aa)*) + ... + ((aaaaa)*))^**` after `a^16`,
+  `bders_simpStrong` is below `825` but not below `812`. This beats
+  `bsimp8 = 1308` and old `bders_simp = 14876`, but does not yet match the
+  row-list route (`645`).
+  Do not mark this as production yet; the next design step is a POSIX/bitcode
+  preservation theorem plus a general cubic proof.
 - The dual-frontier route now has a checked conditional cubic hook:
   `rsizes_distinct_path_dual_frontier_universe_cubicI`. It reduces the
   remaining arithmetic/accounting work to two local obligations: prove
