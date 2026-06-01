@@ -899,6 +899,21 @@ to be read before continuing long-running agent work.
   `rpath9_atom_frontier_acc r ...`, not only by the single frontier of
   `rsimp7_SEQ_atom (rsimp9 r) ...`. Future work should generalize to a
   carried set/accumulator theorem rather than forcing one frontier equality.
+- The first rpath9-tail carried splitter layer is checked. The useful facts
+  are `rsimp7_SEQ_atom_rsimp9_RONE`, `rpath9_tail_rsimp9`,
+  `rtail_nf_rpath9_tail`, `rder_path_continuations_acc_RCHAR_rpath9_tail`,
+  and the constructor handoff rules
+  `rder_path_continuations_acc_RALTS_rpath9_tailI`,
+  `rder_path_continuations_acc_RSEQ_rpath9_tailI`,
+  `rder_path_continuations_acc_RSTAR_rpath9_tailI`, and
+  `rder_path_continuations_acc_RNTIMES_rpath9_tailI`. These mirror the
+  existing path9 member-budget recursion: the carried proof obligations for
+  sequence, star, and counted repetition are now expressed with
+  `rpath9_tail (RSEQ ... k)`. A direct global associativity proof for
+  `rsimp7_SEQ_atom` was tried and backed out because it created large
+  nested-sequence subgoals. The next bridge should be a small continuation
+  relation between the derivative accumulator's `rsimp4_SEQ_atom ... k` and
+  the path accumulator's raw spine `RSEQ ... k`.
 - The first one-step leaves using those splitters are checked:
   `RSEQ (RCHAR _) _` under stable right tails, `RSTAR (RCHAR _)`, and
   `RNTIMES (RCHAR _) n`. In the counted case, the proof explicitly routes

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 raw RCHAR tail bridge)
+Last updated: 2026-06-02 (path9 carried-tail splitter layer)
 
 ## Path9 Raw-Tail Bridge (2026-06-01)
 
@@ -139,6 +139,22 @@ Last updated: 2026-06-02 (path9 raw RCHAR tail bridge)
   exposed that the continuation target cannot be compressed to a single
   frontier: recursive simplification can expose child frontier members, so the
   next theorem needs a carried set/accumulator statement.
+- Added the first rpath9-tail carried splitter package:
+  `rsimp7_SEQ_atom_rsimp9_RONE`, `rpath9_tail_rsimp9`,
+  `rtail_nf_rpath9_tail`,
+  `rder_path_continuations_acc_RCHAR_rpath9_tail`,
+  `rder_path_continuations_acc_RALTS_rpath9_tailI`,
+  `rder_path_continuations_acc_RSEQ_rpath9_tailI`,
+  `rder_path_continuations_acc_RSTAR_rpath9_tailI`, and
+  `rder_path_continuations_acc_RNTIMES_rpath9_tailI`. This aligns the
+  derivative-side carried splitters with the existing path9 member-budget
+  recursion: `RSEQ`, `RSTAR`, and nonzero `RNTIMES` now expose recursive
+  obligations under `rpath9_tail (RSEQ ... k)`, exactly like the size-accounting
+  layer. A scratch attempt at a global `rsimp7_SEQ_atom` associativity lemma
+  was rejected because it immediately produced large nested-sequence goals; the
+  next proof should introduce a small relation between the derivative
+  continuation `rsimp4_SEQ_atom ... k` and the path-side raw spine
+  `RSEQ ... k`, rather than forcing syntactic associativity.
 - Added the first checked one-step path9 leaves over that layer:
   `rder_path_continuations_acc_RCHAR_root_path9_stable` plus the `RSTAR` and
   `RNTIMES` root leaves, the stable package

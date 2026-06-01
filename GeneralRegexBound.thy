@@ -12832,6 +12832,95 @@ lemma rsimp9_rsimp4_SEQ_atom_rsimp9_RONE:
   "rsimp9 (rsimp4_SEQ_atom (rsimp9 r) RONE) = rsimp9 (rsimp9 r)"
   by (simp add: rsimp4_SEQ_atom_RONE_stable_rsimp9)
 
+lemma rsimp7_SEQ_atom_rsimp9_RONE:
+  "rsimp7_SEQ_atom (rsimp9 r) RONE = rsimp9 r"
+proof -
+  have "rsimp7_SEQ_atom (rsimp9 r) RONE =
+      rsimp4_SEQ_atom (rsimp9 r) RONE"
+    by (rule rsimp7_SEQ_atom_RONE_eq_rsimp4)
+  also have "... = rsimp9 r"
+    by (rule rsimp4_SEQ_atom_RONE_stable_rsimp9)
+  finally show ?thesis .
+qed
+
+lemma rpath9_tail_rsimp9:
+  "rpath9_tail k = rsimp9 k"
+proof (induct k)
+  case RZERO
+  have "rpath9_tail RZERO = rsimp7_SEQ_atom (rsimp9 RZERO) RONE"
+    by simp
+  also have "... = rsimp9 RZERO"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case RONE
+  have "rpath9_tail RONE = rsimp7_SEQ_atom (rsimp9 RONE) RONE"
+    by simp
+  also have "... = rsimp9 RONE"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RCHAR c)
+  have "rpath9_tail (RCHAR c) = rsimp7_SEQ_atom (rsimp9 (RCHAR c)) RONE"
+    by simp
+  also have "... = rsimp9 (RCHAR c)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RSEQ k1 k2)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have "rpath9_tail (RALTS rs) = rsimp7_SEQ_atom (rsimp9 (RALTS rs)) RONE"
+    by simp
+  also have "... = rsimp9 (RALTS rs)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RSTAR k)
+  have "rpath9_tail (RSTAR k) = rsimp7_SEQ_atom (rsimp9 (RSTAR k)) RONE"
+    by simp
+  also have "... = rsimp9 (RSTAR k)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RNTIMES k n)
+  have "rpath9_tail (RNTIMES k n) =
+      rsimp7_SEQ_atom (rsimp9 (RNTIMES k n)) RONE"
+    by simp
+  also have "... = rsimp9 (RNTIMES k n)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RBACKREF4 k1 k2 k3 k4 cs)
+  have "rpath9_tail (RBACKREF4 k1 k2 k3 k4 cs) =
+      rsimp7_SEQ_atom (rsimp9 (RBACKREF4 k1 k2 k3 k4 cs)) RONE"
+    by simp
+  also have "... = rsimp9 (RBACKREF4 k1 k2 k3 k4 cs)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RHALF k cs rep)
+  have "rpath9_tail (RHALF k cs rep) =
+      rsimp7_SEQ_atom (rsimp9 (RHALF k cs rep)) RONE"
+    by simp
+  also have "... = rsimp9 (RHALF k cs rep)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+next
+  case (RRESIDUE cs rep)
+  have "rpath9_tail (RRESIDUE cs rep) =
+      rsimp7_SEQ_atom (rsimp9 (RRESIDUE cs rep)) RONE"
+    by simp
+  also have "... = rsimp9 (RRESIDUE cs rep)"
+    by (rule rsimp7_SEQ_atom_rsimp9_RONE)
+  finally show ?case .
+qed
+
+lemma rtail_nf_rpath9_tail:
+  "rtail_nf (rpath9_tail k)"
+  by (simp add: rpath9_tail_rsimp9 rtail_nf_rsimp9)
+
 lemma rflts_good_singleton_frontier:
   assumes "good r \<or> r = RZERO"
   shows "set (rflts [r]) \<subseteq> rfrontier r"
@@ -12895,6 +12984,19 @@ proof (rule rder_path_continuations_acc_RCHAR_frontierI[OF _ p])
       rpath9_atom_frontier_acc (RCHAR d)
         (rsimp7_SEQ_atom (rsimp9 k) RONE)"
     using tail by simp
+qed
+
+lemma rder_path_continuations_acc_RCHAR_rpath9_tail:
+  assumes p: "p \<in> rder_path_continuations_acc c (RCHAR d) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RCHAR d) (rpath9_tail k)"
+proof -
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RCHAR d)
+        (rsimp7_SEQ_atom (rsimp9 k) RONE)"
+    by (rule rder_path_continuations_acc_RCHAR_path9_tail[OF p])
+  then show ?thesis
+    by (simp add: rpath9_tail_rsimp9 rsimp7_SEQ_atom_rsimp9_RONE)
 qed
 
 lemma rder_path_continuations_acc_RCHAR_raw_left_path9:
@@ -13027,6 +13129,121 @@ next
     using p by simp
   then show ?thesis
     by (rule body[OF False])
+qed
+
+lemma rder_path_continuations_acc_RALTS_rpath9_tailI:
+  assumes child: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c q k \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        rpath9_atom_frontier_acc q (rpath9_tail k)"
+    and p: "p \<in> rder_path_continuations_acc c (RALTS rs) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RALTS rs) (rpath9_tail k)"
+proof (rule rder_path_continuations_acc_RALTS_carriedI[OF _ p])
+  fix q p
+  assume q: "q \<in> set rs"
+    and p: "p \<in> rder_path_continuations_acc c q k"
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc q (rpath9_tail k)"
+    by (rule child[OF q p])
+  then show "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RALTS rs) (rpath9_tail k)"
+    using q by auto
+qed
+
+lemma rder_path_continuations_acc_RSEQ_rpath9_tailI:
+  assumes left: "\<And>p. p \<in> rder_path_continuations_acc c r1
+        (rsimp4_SEQ_atom r2 k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        rpath9_atom_frontier_acc r1 (rpath9_tail (RSEQ r2 k))"
+    and right: "\<And>p. rnullable r1 \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c r2 k \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+    and p: "p \<in> rder_path_continuations_acc c (RSEQ r1 r2) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+proof (rule rder_path_continuations_acc_RSEQ_carriedI[OF _ _ p])
+  fix p
+  assume p: "p \<in> rder_path_continuations_acc c r1
+      (rsimp4_SEQ_atom r2 k)"
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc r1 (rpath9_tail (RSEQ r2 k))"
+    by (rule left[OF p])
+  note subset = this
+  show "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+  proof
+    fix x
+    assume x: "x \<in> set (rflts [rsimp9 p])"
+    have "x \<in> rpath9_atom_frontier_acc r1 (rpath9_tail (RSEQ r2 k))"
+      by (rule subsetD[OF subset x])
+    then show "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+      by simp
+  qed
+next
+  fix p
+  assume nullable: "rnullable r1"
+    and p: "p \<in> rder_path_continuations_acc c r2 k"
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+    by (rule right[OF nullable p])
+  note subset = this
+  show "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+  proof
+    fix x
+    assume x: "x \<in> set (rflts [rsimp9 p])"
+    have "x \<in> rpath9_atom_frontier_acc r2 (rpath9_tail k)"
+      by (rule subsetD[OF subset x])
+    then show "x \<in> rpath9_atom_frontier_acc (RSEQ r1 r2) (rpath9_tail k)"
+      by simp
+  qed
+qed
+
+lemma rder_path_continuations_acc_RSTAR_rpath9_tailI:
+  assumes body: "\<And>p. p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RSTAR r) k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        rpath9_atom_frontier_acc r
+          (rpath9_tail (RSEQ (RSTAR r) k))"
+    and p: "p \<in> rder_path_continuations_acc c (RSTAR r) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RSTAR r) (rpath9_tail k)"
+proof (rule rder_path_continuations_acc_RSTAR_carriedI[OF _ p])
+  fix p
+  assume p: "p \<in> rder_path_continuations_acc c r
+      (rsimp4_SEQ_atom (RSTAR r) k)"
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc r (rpath9_tail (RSEQ (RSTAR r) k))"
+    by (rule body[OF p])
+  then show "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RSTAR r) (rpath9_tail k)"
+    by simp
+qed
+
+lemma rder_path_continuations_acc_RNTIMES_rpath9_tailI:
+  assumes body: "\<And>p. n \<noteq> 0 \<Longrightarrow>
+      p \<in> rder_path_continuations_acc c r
+        (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k) \<Longrightarrow>
+      set (rflts [rsimp9 p]) \<subseteq>
+        rpath9_atom_frontier_acc r
+          (rpath9_tail (RSEQ (RNTIMES r (n - 1)) k))"
+    and p: "p \<in> rder_path_continuations_acc c (RNTIMES r n) k"
+  shows "set (rflts [rsimp9 p]) \<subseteq>
+    rpath9_atom_frontier_acc (RNTIMES r n) (rpath9_tail k)"
+proof (rule rder_path_continuations_acc_RNTIMES_carriedI[OF _ p])
+  fix p
+  assume n: "n \<noteq> 0"
+    and p: "p \<in> rder_path_continuations_acc c r
+      (rsimp4_SEQ_atom (RNTIMES r (n - 1)) k)"
+  have "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc r
+        (rpath9_tail (RSEQ (RNTIMES r (n - 1)) k))"
+    by (rule body[OF n p])
+  then show "set (rflts [rsimp9 p]) \<subseteq>
+      rpath9_atom_frontier_acc (RNTIMES r n) (rpath9_tail k)"
+    using n by simp
 qed
 
 lemma rder_path_continuations_acc_RCHAR_left_path9_stable:
