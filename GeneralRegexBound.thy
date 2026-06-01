@@ -15927,6 +15927,133 @@ definition rsimpStrong_ALTs :: "rrexp list \<Rightarrow> rrexp" where
   "rsimpStrong_ALTs rs =
     rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows rs)) {})"
 
+lemma rsimpStrong_prune_pair_shared_subsetI:
+  assumes later: "set (rflts [later]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+proof -
+  consider
+    (shared_case) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared_case lrs rrs k)
+    show ?thesis
+      using shared[OF shared_case] shared_case
+      by (simp add: rsimpStrong_prune_pair_def)
+  next
+    case other
+    have "rsimpStrong_prune_pair earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using later by simp
+  qed
+qed
+
+lemma rsimpStrong_prune_against_rows_pair_subsetI:
+  assumes row: "set (rflts [r]) \<subseteq> U"
+    and pair: "\<And>earlier later. earlier \<in> set seen \<Longrightarrow>
+      set (rflts [later]) \<subseteq> U \<Longrightarrow>
+      set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+  shows "set (rflts [rsimpStrong_prune_against_rows seen r]) \<subseteq> U"
+  using row pair
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair x r"
+  have first: "set (rflts [?p]) \<subseteq> U"
+    by (rule Cons.prems(2)) (use Cons.prems(1) in simp_all)
+  have rest: "set (rflts [rsimpStrong_prune_against_rows xs ?p]) \<subseteq> U"
+    by (rule Cons.hyps[OF first]) (use Cons.prems(2) in auto)
+  show ?case
+    using rest by simp
+qed
+
+lemma rsimpStrong_prune_rows_acc_pair_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and pair: "\<And>earlier later.
+      set (rflts [later]) \<subseteq> U \<Longrightarrow>
+      set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+  shows "set (rflts (rsimpStrong_prune_rows_acc seen rs)) \<subseteq> U"
+  using rows
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows seen r"
+  have head: "set (rflts [?r']) \<subseteq> U"
+  proof (rule rsimpStrong_prune_against_rows_pair_subsetI)
+    show "set (rflts [r]) \<subseteq> U"
+      by (rule Cons.prems) simp
+    show "\<And>earlier later. earlier \<in> set seen \<Longrightarrow>
+      set (rflts [later]) \<subseteq> U \<Longrightarrow>
+      set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+      by (rule pair)
+  qed
+  have tail: "set (rflts (rsimpStrong_prune_rows_acc (?r' # seen) rs)) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+  proof -
+    have split:
+      "rflts (?r' # rsimpStrong_prune_rows_acc (?r' # seen) rs) =
+        rflts [?r'] @
+        rflts (rsimpStrong_prune_rows_acc (?r' # seen) rs)"
+      by (simp add: flts_append[symmetric])
+    have "set (rflts
+        (?r' # rsimpStrong_prune_rows_acc (?r' # seen) rs)) \<subseteq> U"
+      using head tail split by auto
+    then show ?thesis
+      by (simp add: Let_def)
+  qed
+qed
+
+lemma rsimpStrong_prune_rows_pair_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and pair: "\<And>earlier later.
+      set (rflts [later]) \<subseteq> U \<Longrightarrow>
+      set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+  shows "set (rflts (rsimpStrong_prune_rows rs)) \<subseteq> U"
+  unfolding rsimpStrong_prune_rows_def
+  by (rule rsimpStrong_prune_rows_acc_pair_subsetI[OF rows pair])
+
+lemma rsimpStrong_prune_rows_shared_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rflts (rsimpStrong_prune_rows rs)) \<subseteq> U"
+proof (rule rsimpStrong_prune_rows_pair_subsetI[OF rows])
+  fix earlier later
+  assume later: "set (rflts [later]) \<subseteq> U"
+  show "set (rflts [rsimpStrong_prune_pair earlier later]) \<subseteq> U"
+  proof (rule rsimpStrong_prune_pair_shared_subsetI[OF later])
+    fix lrs rrs k
+    show "earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+      by (rule shared)
+  qed
+qed
+
 lemma RL_rsimpStrong_prune_against_rows:
   "RL (RALTS (seen @ [rsimpStrong_prune_against_rows seen r])) =
     RL (RALTS (seen @ [r]))"

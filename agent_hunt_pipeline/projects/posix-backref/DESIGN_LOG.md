@@ -1150,3 +1150,11 @@ to be read before continuing long-running agent work.
   `rsimpStrong_prune_rows` pass. This gives the next root-owned closure proof
   a usable structure: attack normalized derivative members and row pruning
   separately instead of unfolding the whole row pipeline.
+- The row-pruning half of that closure premise is now split again. The checked
+  lemmas from `rsimpStrong_prune_pair_shared_subsetI` through
+  `rsimpStrong_prune_rows_shared_subsetI` isolate the only nontrivial prune
+  case: two rows with a common suffix, where the later row is replaced by
+  `rsimp7_SEQ_atom (rsimp_ALTs (rdistinct (rflts (rprune_eq_against ...)) {}))
+  k`. The row scanner itself is now just induction/bookkeeping. This is the
+  right shape for a root-owned universe proof because the Chapter-7 operation
+  can be admitted or bounded locally.

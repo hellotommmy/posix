@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row closure splitters)
+Last updated: 2026-06-02 (strong row-prune closure splitters)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -29,6 +29,15 @@ Last updated: 2026-06-02 (strong-row closure splitters)
   closure premise to two local obligations: each normalized partial derivative
   member must stay in the chosen universe after `rsimpStrong` and flattening,
   and the shared-suffix row-prune pass must preserve that universe.
+- Further factored the row-prune obligation with
+  `rsimpStrong_prune_pair_shared_subsetI`,
+  `rsimpStrong_prune_against_rows_pair_subsetI`,
+  `rsimpStrong_prune_rows_acc_pair_subsetI`,
+  `rsimpStrong_prune_rows_pair_subsetI`, and
+  `rsimpStrong_prune_rows_shared_subsetI`. The remaining prune-side proof can
+  now focus exactly on the Chapter-7 shared-suffix result
+  `rsimp7_SEQ_atom (rsimp_ALTs (...rprune_eq_against...)) k`, rather than on
+  the surrounding row scanner.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
