@@ -17075,6 +17075,23 @@ next
   finally show ?case .
 qed
 
+lemma rsize_rsimpStrong_prune_against_rows_head_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
+  shows "rsize
+      (rsimpStrong_prune_against_rows
+        (RSEQ (RALTS lrs) k # seen) (RSEQ (RALTS rrs) k)) <
+    rsize (RSEQ (RALTS rrs) k)"
+proof -
+  let ?p = "rsimpStrong_prune_pair
+    (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k)"
+  have tail_le: "rsize (rsimpStrong_prune_against_rows seen ?p) \<le> rsize ?p"
+    by (rule rsize_rsimpStrong_prune_against_rows_le)
+  have pair_lt: "rsize ?p < rsize (RSEQ (RALTS rrs) k)"
+    by (rule rsize_rsimpStrong_prune_pair_shared_suffix_lt[OF hit])
+  show ?thesis
+    using tail_le pair_lt by simp
+qed
+
 lemma rsizes_rsimpStrong_prune_rows_acc_le:
   "rsizes (rsimpStrong_prune_rows_acc seen rs) \<le> rsizes rs"
 proof (induct rs arbitrary: seen)

@@ -249,6 +249,16 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   strict derivative-row facts can now be derived or reused at a higher level,
   while future scanner/potential proofs can cite the primitive pair theorem
   directly.
+- Lifted that strict decrease one step into the row scanner. The checked
+  `rsize_rsimpStrong_prune_against_rows_head_shared_suffix_lt` and
+  `asize_bsimpStrong_prune_against_rows_head_shared_suffix_lt` prove that if
+  the current head of the seen list is a shared-suffix row covering at least
+  one alternative of the row being scanned, then the whole
+  `*_prune_against_rows` pass is strictly smaller than the original row; the
+  remaining seen rows can only decrease size further. The deliberately narrow
+  "head" statement avoids the false-looking shortcut that any matching row
+  anywhere in `seen` is enough without tracking how earlier seen rows have
+  already rewritten the later row.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

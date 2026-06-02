@@ -2090,6 +2090,26 @@ next
   finally show ?case .
 qed
 
+lemma asize_bsimpStrong_prune_against_rows_head_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. eq1_member r lrs"
+      and suffix: "k1 ~1 k2"
+  shows "asize
+      (bsimpStrong_prune_against_rows
+        (ASEQ bs1 (AALTs lbs lrs) k1 # seen)
+        (ASEQ bs2 (AALTs rbs rrs) k2)) <
+    asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+proof -
+  let ?p = "bsimpStrong_prune_pair
+    (ASEQ bs1 (AALTs lbs lrs) k1)
+    (ASEQ bs2 (AALTs rbs rrs) k2)"
+  have tail_le: "asize (bsimpStrong_prune_against_rows seen ?p) \<le> asize ?p"
+    by (rule asize_bsimpStrong_prune_against_rows_le)
+  have pair_lt: "asize ?p < asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+    by (rule asize_bsimpStrong_prune_pair_shared_suffix_lt[OF hit suffix])
+  show ?thesis
+    using tail_le pair_lt by simp
+qed
+
 lemma asizes_bsimpStrong_prune_rows_acc_le:
   "asizes (bsimpStrong_prune_rows_acc seen rs) \<le> asizes rs"
 proof (induct rs arbitrary: seen)
