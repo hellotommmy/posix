@@ -1296,6 +1296,24 @@ next
   finally show ?case .
 qed
 
+lemma bnullable_bders_simpStrong_iff_Ders:
+  "bnullable (bders_simpStrong r s) \<longleftrightarrow> [] \<in> Ders s (RL (rerase r))"
+proof -
+  have "bnullable (bders_simpStrong r s) \<longleftrightarrow>
+      [] \<in> L (erase (bders_simpStrong r s))"
+    by (simp add: bnullable_correctness[symmetric] nullable_correctness)
+  also have "... \<longleftrightarrow>
+      [] \<in> RL (rerase (bders_simpStrong r s))"
+    by (simp add: RL_rerase)
+  also have "... \<longleftrightarrow> [] \<in> Ders s (RL (rerase r))"
+    by (simp add: RL_rerase_bders_simpStrong)
+  finally show ?thesis .
+qed
+
+lemma bnullable_bders_simpStrong_iff_member:
+  "bnullable (bders_simpStrong r s) \<longleftrightarrow> s \<in> RL (rerase r)"
+  by (simp add: bnullable_bders_simpStrong_iff_Ders Ders_def)
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

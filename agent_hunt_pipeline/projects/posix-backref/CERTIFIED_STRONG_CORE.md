@@ -28,6 +28,9 @@ The current positive candidate is the deferred/generalized route:
 - If that state is nullable, exact POSIX value reconstruction is deferred to a
   relation over the original regex and consumed string.
 - The Scala reference implementation is `strongDeferredValue`.
+- The Isabelle acceptance bridge is now checked in `FBound.thy`:
+  `bnullable_bders_simpStrong_iff_Ders` and
+  `bnullable_bders_simpStrong_iff_member`.
 
 The current positive Scala smoke gate is:
 
@@ -43,6 +46,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
 
 It also passes the default exhaustive depth `2`, input length `3` grid with
 `84,300` regex/input pairs.
+
+The new CE-driven direct-decode guard is:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
+  -SkipLegacyCubic `
+  -FindStrongDirectCE `
+  -RandomCases 5000 `
+  -RandomDepth 6 `
+  -RandomInputLength 7
+```
+
+It currently shrinks to `STAR(STAR(CH(b)))` on input `b`, which proves that
+directly decoding ordinary values from the final `bsimpStrong` state is not the
+right semantic object. This is intentional negative evidence for the deferred
+route.
 
 ## Isabelle Invariant Shape
 
@@ -149,8 +168,8 @@ history/payload to preserve future POSIX choices.
 1. Treat `strongDeferredValue` as the current positive route:
    `bdersStrong` supplies a small acceptance state, while exact POSIX values
    are reconstructed from the original regex and consumed string.
-2. Prove/check the language bridge for `bdersStrong` first:
-   `nullable (bdersStrong (intern r) s)` should agree with `s \<in> lang r`.
+2. Continue from the checked language bridge for `bdersStrong`:
+   `bnullable (bders_simpStrong r s)` agrees with `s \<in> RL (rerase r)`.
 3. Define a proof-facing deferred reconstruction relation, for example:
    `deferred_posix r s v`, rather than trying to decode ordinary POSIX values
    directly from the simplified derivative.

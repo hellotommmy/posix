@@ -1917,6 +1917,9 @@ object PosixCubicSmoke {
   def strongCoreLoopMismatch(r: Rexp, s: String): Boolean =
     baselineValue(r, s) != strongCoreCertifiedValue(r, s)
 
+  def strongDirectMismatch(r: Rexp, s: String): Boolean =
+    baselineValue(r, s) != strongValue(r, s)
+
   def rawInjectLoopMismatch(r: Rexp, s: String): Boolean =
     baselineValue(r, s) != rawInjectCertifiedValue(r, s)
 
@@ -1936,6 +1939,27 @@ object PosixCubicSmoke {
        |baseSize  = ${asize(baseFinal)}
        |coreCounts= ${shortCounts(finalCore)}
        |baseCounts= ${shortCounts(baseFinal)}
+       |""".stripMargin
+  }
+
+  def strongDirectMismatchReport(r: Rexp, s: String, label: String): String = {
+    val base = baselineValue(r, s)
+    val strong = strongValue(r, s)
+    val finalStrong = bdersStrong(intern(r), s)
+    val baseFinal = bders(intern(r), s)
+    s"""$label
+       |regex      = $r
+       |input      = $s
+       |rsize      = ${rsize(r)}
+       |base       = $base
+       |strong     = $strong
+       |strongSize = ${asize(finalStrong)}
+       |strongShape= ${ashapeDagSize(finalStrong)}
+       |baseSize   = ${asize(baseFinal)}
+       |strongNull = ${bnullable(finalStrong)}
+       |baseNull   = ${bnullable(baseFinal)}
+       |strongBits = ${if (bnullable(finalStrong)) Some(bmkeps(finalStrong)) else None}
+       |baseBits   = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
        |""".stripMargin
   }
 
@@ -1984,6 +2008,44 @@ object PosixCubicSmoke {
       }
     }
     loop(startR, startInput)
+  }
+
+  def shrinkStrongDirectCE(startR: Rexp, startInput: String): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String): (Rexp, String) = {
+      val inputHit = inputShrinkCandidates(s).find(t => strongDirectMismatch(r, t))
+      inputHit match {
+        case Some(t) => loop(r, t)
+        case None =>
+          regexShrinkCandidates(r).find(candidate => strongDirectMismatch(candidate, s)) match {
+            case Some(candidate) => loop(candidate, s)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput)
+  }
+
+  def findStrongDirectValueCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (strongDirectMismatch(r, s)) {
+          found = true
+          println(strongDirectMismatchReport(r, s, s"direct bsimpStrong POSIX CE before shrinking (seed=$seed case=$checked)"))
+          val (shrunkR, shrunkS) = shrinkStrongDirectCE(r, s)
+          println(strongDirectMismatchReport(shrunkR, shrunkS, "direct bsimpStrong POSIX CE after greedy shrinking"))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no direct bsimpStrong POSIX CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    }
   }
 
   def findStrongCoreCertifiedValueCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
@@ -2128,6 +2190,7 @@ object PosixCubicSmoke {
     val traceStrongCoreLoop = boolSetting("posix.smoke.traceStrongCoreLoop", "POSIX_SMOKE_TRACE_STRONG_CORE_LOOP", false)
     val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
     val checkStrongCoreLoop = boolSetting("posix.smoke.checkStrongCoreLoop", "POSIX_SMOKE_CHECK_STRONG_CORE_LOOP", false)
+    val findStrongDirectCE = boolSetting("posix.smoke.findStrongDirectCE", "POSIX_SMOKE_FIND_STRONG_DIRECT_CE", false)
     val findStrongCoreCE = boolSetting("posix.smoke.findStrongCoreCE", "POSIX_SMOKE_FIND_STRONG_CORE_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
@@ -2175,6 +2238,9 @@ object PosixCubicSmoke {
       if (randomCases > 0) {
         checkStrongCoreCertifiedValueRandom(randomCases, randomDepth, randomInputMax, randomSeed)
       }
+    }
+    if (findStrongDirectCE) {
+      findStrongDirectValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
     if (findStrongCoreCE) {
       findStrongCoreCertifiedValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)

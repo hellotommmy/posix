@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (CE-driven strong-core diagnostics updated)
+Last updated: 2026-06-02 (deferred strong acceptance bridge checked)
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 
@@ -30,11 +30,24 @@ Last updated: 2026-06-02 (CE-driven strong-core diagnostics updated)
   - Chapter 7 `k=8`, lengths `0,4,8,16,32,48`:
     `97,1164,1816,2691,2879,2963`.
 - Next proof question:
-  - prove/check a language theorem for the strong derivative state, then define
-    a proof-facing deferred reconstruction relation. This relation should not
-    pretend that simplified ordinary values are POSIX values; it should say
-    that a nullable strong derivative plus the consumed string authorizes
-    reconstruction of the original POSIX value.
+  - Define a proof-facing deferred reconstruction relation. This relation
+    should not pretend that simplified ordinary values are POSIX values; it
+    should say that a nullable strong derivative plus the consumed string
+    authorizes reconstruction of the original POSIX value.
+- Checked Isabelle bridge now available in `FBound.thy`:
+  - `bnullable_bders_simpStrong_iff_Ders`;
+  - `bnullable_bders_simpStrong_iff_member`.
+  These state that the full thesis-style `bders_simpStrong` final state has
+  correct acceptance behavior even though its ordinary decoded values are not
+  generally POSIX values for the original regex.
+- Added CE-driven Scala gate `-FindStrongDirectCE` for the unsafe direct decode
+  route. It finds and greedily shrinks counterexamples before any proof attempt.
+  Current minimal CE:
+  - regex `STAR(STAR(CH(b)))`;
+  - input `b`;
+  - baseline POSIX value is nested `Stars`, while direct `strongValue` is
+    `None` because the small final state's epsilon bits no longer decode as
+    the original nested-star POSIX value.
 
 ## Cubic Candidate Prototype: CE-Driven Strong-Core Reassessment (2026-06-02)
 

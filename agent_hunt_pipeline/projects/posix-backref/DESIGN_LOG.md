@@ -3,6 +3,29 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Deferred strong route gets a checked acceptance bridge
+
+- The current viable way to preserve thesis `bsimpStrong` tree behavior is not
+  to decode ordinary POSIX values from the final simplified derivative. The
+  smallest direct-decode CE found by the new Scala shrinker is
+  `STAR(STAR(CH(b)))` on input `b`: the baseline value is a nested `Stars`
+  value, while direct `strongValue` fails to decode the simplified final
+  epsilon bits.
+- Added `PosixCubicSmoke -FindStrongDirectCE` plus wrapper flags in
+  `scala_cubic_smoke.ps1` and `isabelle_ci.ps1`. This is the CE-driven guard
+  for future changes: first find/shrink direct-value failures, then repair the
+  reconstruction route; do not attempt a proof from a candidate that fails this
+  smoke layer.
+- Added checked Isabelle lemmas in `FBound.thy`:
+  `bnullable_bders_simpStrong_iff_Ders` and
+  `bnullable_bders_simpStrong_iff_member`. They show that
+  `bders_simpStrong` remains a correct small acceptance state:
+  `bnullable (bders_simpStrong r s)` iff `s \<in> RL (rerase r)`.
+- Design consequence: keep the small final `bsimpStrong` tree as the
+  recognition certificate, and define a deferred/generalized POSIX value
+  relation over the original regex and consumed string. Direct decoding of the
+  simplified derivative is historical negative evidence only.
+
 ## 2026-06-02: CE-driven strong route needs value transformers
 
 - Added a Scala-only `bsimpStrongSafe` diagnostic to test the user's proposed
