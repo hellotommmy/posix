@@ -992,6 +992,38 @@ object PosixCubicSmoke {
     }
   }
 
+  def strongCubicTreeBound(r: Rexp, factor: Double): Long =
+    if (factor > 0.0) {
+      val n = rsize(r).toDouble
+      math.ceil(factor * n * n * n).toLong
+    } else {
+      0L
+    }
+
+  def checkStrongCubicTreeBudget(
+      r: Rexp,
+      input: String,
+      result: StrongDeferredMemoResult,
+      label: String,
+      factor: Double
+  ): Unit = {
+    val budget = strongCubicTreeBound(r, factor)
+    if (budget > 0L && result.strongTree.toLong > budget) {
+      throw new AssertionError(
+        s"""strong memo-deferred cubic tree budget failed
+           |label      = $label
+           |regex      = $r
+           |input      = $input
+           |rsize      = ${rsize(r)}
+           |factor     = $factor
+           |budget     = $budget
+           |strongTree = ${result.strongTree}
+           |strongDag  = ${result.strongDag}
+           |""".stripMargin
+      )
+    }
+  }
+
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrongSafe)
 
@@ -1721,7 +1753,12 @@ object PosixCubicSmoke {
     println(s"checked strong deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
-  def checkStrongDeferredMemoValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+  def checkStrongDeferredMemoValuePreservation(
+      maxDepth: Int,
+      maxInput: Int,
+      maxRegexes: Int,
+      treeCubicFactor: Double
+  ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
@@ -1732,6 +1769,7 @@ object PosixCubicSmoke {
         val result = strongDeferredMemoResult(r, s)
         val deferred = result.value
         checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
+        checkStrongCubicTreeBudget(r, s, result, s"exhaustive case $checked", treeCubicFactor)
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
           throw new AssertionError(
@@ -1748,10 +1786,16 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor)")
   }
 
-  def checkStrongDeferredMemoRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+  def checkStrongDeferredMemoRandomValuePreservation(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      treeCubicFactor: Double
+  ): Unit = {
     val rng = new Random(seed)
     var checked = 0
     (0 until cases).foreach { _ =>
@@ -1762,6 +1806,7 @@ object PosixCubicSmoke {
       val result = strongDeferredMemoResult(r, s)
       val deferred = result.value
       checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
+      checkStrongCubicTreeBudget(r, s, result, s"random seed=$seed case=$checked", treeCubicFactor)
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
         throw new AssertionError(
@@ -1778,10 +1823,10 @@ object PosixCubicSmoke {
         )
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor)")
   }
 
-  def checkStrongDeferredMemoKnownCounterexamples(): Unit = {
+  def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double): Unit = {
     val cases = List(
       "direct nested-star CE" -> STAR(STAR(CH('a'))) -> List("", "a", "aa", "aaa"),
       "full-cert greedy sequence CE" ->
@@ -1798,6 +1843,7 @@ object PosixCubicSmoke {
         val base = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
         checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
+        checkStrongCubicTreeBudget(r, s, result, s"known CE $name input=$s", treeCubicFactor)
         if (base != result.value) {
           throw new AssertionError(
             s"""strong memo-deferred known CE mismatch: $name
@@ -1814,7 +1860,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred known CE grid on $checked cases")
+    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor)")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {
@@ -2068,12 +2114,7 @@ object PosixCubicSmoke {
   ): Unit = {
     val r = thesisCh7Evil(k)
     val rootSize = rsize(r).toLong
-    val cubicTreeBound =
-      if (treeCubicFactor > 0.0) {
-        math.ceil(treeCubicFactor * rootSize.toDouble * rootSize.toDouble * rootSize.toDouble).toLong
-      } else {
-        0L
-      }
+    val cubicTreeBound = strongCubicTreeBound(r, treeCubicFactor)
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
@@ -2098,13 +2139,7 @@ object PosixCubicSmoke {
           s"Chapter 7 strong tree threshold failed at n=$n: asize=${result.strongTree} threshold=$treeThreshold"
         )
       }
-      if (cubicTreeBound > 0L && result.strongTree.toLong > cubicTreeBound) {
-        val out = bdersStrong(intern(r), input)
-        println(s"Chapter 7 strong cubic-budget failed-shape n=$n: ${shortCounts(out)}")
-        throw new AssertionError(
-          s"Chapter 7 strong cubic tree budget failed at n=$n: asize=${result.strongTree} rsize=$rootSize factor=$treeCubicFactor budget=$cubicTreeBound"
-        )
-      }
+      checkStrongCubicTreeBudget(r, input, result, s"Chapter 7 k=$k n=$n", treeCubicFactor)
       if (dagThreshold > 0 && result.strongDag >= dagThreshold) {
         throw new AssertionError(
           s"Chapter 7 strong DAG threshold failed at n=$n: adagSize=${result.strongDag} threshold=$dagThreshold"
@@ -2923,6 +2958,7 @@ object PosixCubicSmoke {
     val ch7DagThreshold = intSetting("posix.smoke.ch7DagThreshold", "POSIX_SMOKE_CH7_DAG_THRESHOLD", 0)
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     val ch7StrongCubicFactor = doubleSetting("posix.smoke.ch7StrongCubicFactor", "POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR", 0.0)
+    val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
@@ -2966,10 +3002,10 @@ object PosixCubicSmoke {
       }
     }
     if (checkStrongDeferredMemo) {
-      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes)
-      checkStrongDeferredMemoKnownCounterexamples()
+      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes, strongCubicFactor)
+      checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor)
       if (randomCases > 0) {
-        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor)
       }
     }
     if (checkStrongSafe) {

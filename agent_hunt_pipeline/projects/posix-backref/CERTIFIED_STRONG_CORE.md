@@ -88,7 +88,9 @@ The memoized reconstruction table-size trace is:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
   -SkipLegacyCubic `
+  -CheckStrongDeferredMemo `
   -TraceStrongDeferredMemo `
+  -StrongCubicFactor 1.0 `
   -Ch7K 5 `
   -Ch7Lengths "0,4,8,12,16,20,24,30" `
   -Ch7TreeThreshold 1000 `
@@ -97,6 +99,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
 
 Observed checkpoints:
 
+- depth 2 / input 3 exhaustive grid: `84,300` regex/input pairs preserve
+  exact POSIX values and satisfy the factor-1 strong cubic tree budget.
+- deterministic random grid: depth 6 / input 7 / seed `20260602` passes
+  factor-1 strong cubic budget on `1,000` cases.
 - k=5, n=30: strong tree `958`, accepts states `1577`, value states `126`,
   split probes `6011`, span bound `44206`, split bound `1370386`; with
   `rsize=46`, the factor-1 cubic tree budget is `97336`.

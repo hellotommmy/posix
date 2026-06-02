@@ -1,6 +1,28 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong deferred cubic-budget guard)
+Last updated: 2026-06-03 (global strong-deferred cubic smoke)
+
+## Cubic Candidate Prototype: Global Strong-Deferred Cubic Smoke (2026-06-03)
+
+- Added `-StrongCubicFactor` / `-ScalaSmokeStrongCubicFactor` for the
+  `StrongDeferredMemo` exhaustive, known-CE, and random smoke grids.
+- When enabled, every checked `(regex, input)` pair must satisfy
+  `asize(final bsimpStrong tree) <= factor * rsize(regex)^3`, in addition to
+  exact POSIX value equality and the memo span/split universe bounds.
+- This is deliberately CE-oriented: if an ordinary generated regex, rather
+  than just the Chapter 7 family, violates the cubic-shaped budget, the smoke
+  now reports the concrete regex/input witness.
+- Checked smoke:
+  - depth `2`, input length `3`: `84,300` exhaustive pairs pass with factor
+    `1.0`;
+  - known CE grid: `15` cases pass with factor `1.0`;
+  - deterministic random depth `6`, input length `7`, seed `20260602`:
+    `1,000` cases pass with factor `1.0`;
+  - the Chapter 7 `k=5` and `k=8` traces also pass with
+    `-Ch7StrongCubicFactor 1.0`.
+- This still does not prove the cubic theorem. It upgrades the smoke gate so
+  the counterexample-driven loop can reject a candidate for size-budget failure
+  on general generated regexes, not only on hand-picked evil families.
 
 ## Cubic Candidate Prototype: Regex-Size Cubic Budget Smoke (2026-06-03)
 

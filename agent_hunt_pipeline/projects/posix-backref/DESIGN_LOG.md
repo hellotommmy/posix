@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong-deferred cubic budget is now global smoke
+
+- Added `-StrongCubicFactor` / `-ScalaSmokeStrongCubicFactor` to check the
+  `StrongDeferredMemo` exhaustive, known-CE, and random grids against
+  `factor * rsize(regex)^3`.
+- This is separate from `-Ch7StrongCubicFactor`, which checks the Chapter 7
+  family. The former searches general generated regex/input pairs for
+  cubic-budget CEs; the latter protects the thesis evil family trace.
+- Design consequence: use both when evaluating a candidate. Passing only the
+  Ch7 family is too narrow; passing value smoke without a size budget is too
+  weak for the cubic route.
+
 ## 2026-06-03: Strong deferred cubic-budget smoke
 
 - Added optional `-Ch7StrongCubicFactor` /

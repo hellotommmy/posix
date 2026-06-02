@@ -205,6 +205,12 @@ Keep this distinct from the fixed thesis-regression tree threshold: the former
 tests the shape of a cubic claim, while the latter checks that the k=5 example
 stays in the Figure 7.6 scale.
 
+Also run the general budget gate with `-StrongCubicFactor 1.0` (or
+`-ScalaSmokeStrongCubicFactor 1.0`). This applies the same cubic-shaped size
+budget to the exhaustive, known-CE, and random `StrongDeferredMemo` smoke
+cases. A candidate that only passes the Chapter 7 family but fails this general
+grid should be treated as a fresh CE, not as a proof target.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle
