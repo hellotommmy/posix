@@ -1,6 +1,25 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (checked span memo-table interface)
+Last updated: 2026-06-02 (checked span reconstruction algebra)
+
+## Cubic Candidate Prototype: Checked Span Reconstruction Algebra (2026-06-02)
+
+- Added checked slice and span lemmas in `GeneralRegexBound.thy`:
+  - `rslice_0_length`;
+  - `rslice_same`;
+  - `length_rslice`;
+  - `rslice_append`;
+  - `rspan_accepts_iff`;
+  - `rspan_accepts_root_iff`.
+- Added checked reconstruction-introduction facts:
+  - `rspan_all_split_probes_iff`;
+  - `rspan_accepts_RSEQI`, showing that if a legal split has left/right
+    accepted slices, then the whole `RSEQ` span is accepted;
+  - `rspan_accepts_RSTAR_emptyI`, the empty-star span case.
+- This starts the correctness side of the span/memo route: the table bounds
+  already exist, and now the basic string-slice algebra needed to prove
+  dynamic-programming reconstruction has checked entry points.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Span Memo Tables (2026-06-02)
 

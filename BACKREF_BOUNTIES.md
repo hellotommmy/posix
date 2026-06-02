@@ -178,6 +178,11 @@ immutability.
   with checked subset/cardinality bounds inherited from the universes. This is
   stronger than raw universe accounting, but still not a bounty payout until a
   reconstruction correctness relation is proved.
+- Checked span algebra: `rslice_append`, `rspan_accepts_root_iff`,
+  `rspan_accepts_RSEQI`, and `rspan_accepts_RSTAR_emptyI` now provide the first
+  constructor rules for the memo-table correctness proof. These are
+  infrastructure only; missing constructor/extraction rules and POSIX value
+  reconstruction still block payout.
 - Proof-facing bridge: `CERTIFIED_STRONG_CORE.md` records the intended
   `cert_recon` relation, loop invariant, certificate constructors, and
   loop-size trace. This is planning evidence, not payout.

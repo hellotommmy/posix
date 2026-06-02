@@ -2774,6 +2774,34 @@ qed
 definition rslice :: "string \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> string" where
   "rslice s i j = take (j - i) (drop i s)"
 
+lemma rslice_0_length [simp]:
+  "rslice s 0 (length s) = s"
+  by (simp add: rslice_def)
+
+lemma rslice_same [simp]:
+  assumes "i \<le> length s"
+  shows "rslice s i i = []"
+  using assms by (simp add: rslice_def)
+
+lemma length_rslice:
+  assumes "i \<le> j" "j \<le> length s"
+  shows "length (rslice s i j) = j - i"
+  using assms by (simp add: rslice_def)
+
+lemma rslice_append:
+  assumes "i \<le> k" "k \<le> j" "j \<le> length s"
+  shows "rslice s i j = rslice s i k @ rslice s k j"
+proof -
+  have len: "j - i = (k - i) + (j - k)"
+    using assms by simp
+  have ki: "k - i + i = k"
+    using assms by simp
+  have drop: "drop (k - i) (drop i s) = drop k s"
+    by (simp add: drop_drop ki)
+  show ?thesis
+    by (simp add: rslice_def len take_add drop ki)
+qed
+
 definition rspan_accepts :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat) set" where
   "rspan_accepts r s =
     {(q, i, j). q \<in> rsubterms r \<and> i \<le> j \<and> j \<le> length s \<and> rslice s i j \<in> RL q}"
@@ -2803,6 +2831,15 @@ lemma rspan_acceptsE:
   assumes "(q, i, j) \<in> rspan_accepts r s"
   obtains "q \<in> rsubterms r" "i \<le> j" "j \<le> length s" "rslice s i j \<in> RL q"
   using assms by (auto simp: rspan_accepts_def)
+
+lemma rspan_accepts_iff:
+  assumes "q \<in> rsubterms r" "i \<le> j" "j \<le> length s"
+  shows "(q, i, j) \<in> rspan_accepts r s \<longleftrightarrow> rslice s i j \<in> RL q"
+  using assms by (auto simp: rspan_accepts_def)
+
+lemma rspan_accepts_root_iff:
+  "(r, 0, length s) \<in> rspan_accepts r s \<longleftrightarrow> s \<in> RL r"
+  by (auto simp: rspan_accepts_def)
 
 lemma card_rspan_accepts_bound:
   "card (rspan_accepts r s) \<le> rsize r * Suc (length s) * Suc (length s)"
@@ -2838,10 +2875,49 @@ lemma rspan_all_split_probesE:
   obtains "q \<in> rsubterms r" "i \<le> k" "k \<le> j" "j \<le> length s"
   using assms by (auto simp: rspan_all_split_probes_def)
 
+lemma rspan_all_split_probes_iff:
+  "(q, i, k, j) \<in> rspan_all_split_probes r s \<longleftrightarrow>
+    q \<in> rsubterms r \<and> i \<le> k \<and> k \<le> j \<and> j \<le> length s"
+  by (auto simp: rspan_all_split_probes_def)
+
 lemma card_rspan_all_split_probes_bound:
   "card (rspan_all_split_probes r s) \<le>
     rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
   by (rule card_subset_rspan_split_probes_bound[OF rspan_all_split_probes_subset])
+
+lemma rspan_accepts_RSEQI:
+  assumes split: "(RSEQ r1 r2, i, k, j) \<in> rspan_all_split_probes r s"
+    and left: "rslice s i k \<in> RL r1"
+    and right: "rslice s k j \<in> RL r2"
+  shows "(RSEQ r1 r2, i, j) \<in> rspan_accepts r s"
+proof -
+  obtain sub ik kj jl where
+    sub: "RSEQ r1 r2 \<in> rsubterms r" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rspan_all_split_probesE)
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  also have "... \<in> RL r1 ;; RL r2"
+    using left right by (rule concI)
+  finally have "rslice s i j \<in> RL (RSEQ r1 r2)"
+    by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF sub ij jl])
+qed
+
+lemma rspan_accepts_RSTAR_emptyI:
+  assumes "RSTAR q \<in> rsubterms r" "i \<le> length s"
+  shows "(RSTAR q, i, i) \<in> rspan_accepts r s"
+proof -
+  have "[] \<in> (RL q)\<star>"
+    by (rule Star.start)
+  then have "rslice s i i \<in> RL (RSTAR q)"
+    using assms by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF assms(1) order_refl assms(2)])
+qed
 
 lemma rsize_member_le_rsizes:
   assumes "r \<in> set rs"

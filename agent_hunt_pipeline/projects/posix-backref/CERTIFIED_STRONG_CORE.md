@@ -129,6 +129,23 @@ The next checked layer has also been started:
 Future reconstruction correctness can now be phrased against these table
 specifications rather than against raw finite universes.
 
+The table-correctness algebra has started as well:
+
+- `rslice_0_length`;
+- `rslice_same`;
+- `length_rslice`;
+- `rslice_append`;
+- `rspan_accepts_iff`;
+- `rspan_accepts_root_iff`;
+- `rspan_all_split_probes_iff`;
+- `rspan_accepts_RSEQI`;
+- `rspan_accepts_RSTAR_emptyI`.
+
+These facts are deliberately one-directional where that keeps the proof light:
+they support constructing accepted table entries from legal split evidence.
+The converse/extraction lemmas for longest-left POSIX reconstruction are still
+future work.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Checked span reconstruction algebra
+
+- Added the first correctness-side lemmas for the span/memo route in
+  `GeneralRegexBound.thy`.
+- `rslice_append` is the key string fact: when `i <= k <= j`, the span
+  `s[i,j)` splits as `s[i,k) @ s[k,j)`.
+- `rspan_accepts_root_iff` connects the root table entry
+  `(r, 0, length s)` to ordinary language membership.
+- `rspan_accepts_RSEQI` is the first grammar constructor rule for the checked
+  memo table: a legal split with accepted left/right slices yields an accepted
+  `RSEQ` span. `rspan_accepts_RSTAR_emptyI` records the empty-star case.
+- Design consequence: future work should continue adding constructor rules for
+  `RALTS`, `RSTAR` nonempty split, and `RNTIMES`, then connect the table to a
+  POSIX value/reconstruction relation.
+
 ## 2026-06-02: Checked span memo-table specifications
 
 - Extended the Isabelle span interface with `rslice`, `rspan_accepts`, and
