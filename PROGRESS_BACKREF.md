@@ -241,6 +241,14 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   viable finite universe must explicitly account for pruned grouped
   alternatives or use a different potential/accounting argument; simply
   pointing the strong-row hooks at `partial_derivative_universe` is false.
+- Exposed the primitive strict-decrease theorem behind that potential route:
+  `rsize_rsimpStrong_prune_pair_shared_suffix_lt` and the executable
+  counterpart `asize_bsimpStrong_prune_pair_shared_suffix_lt`. These say that
+  whenever a previous shared-suffix row covers at least one alternative of a
+  later row, the pair prune strictly shrinks the later row itself. The earlier
+  strict derivative-row facts can now be derived or reused at a higher level,
+  while future scanner/potential proofs can cite the primitive pair theorem
+  directly.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

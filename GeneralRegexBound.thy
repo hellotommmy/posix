@@ -17025,6 +17025,37 @@ proof -
   qed
 qed
 
+lemma rsize_rsimpStrong_prune_pair_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
+  shows "rsize (rsimpStrong_prune_pair
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k)) <
+    rsize (RSEQ (RALTS rrs) k)"
+proof -
+  have pruned_lt: "rsizes (rprune_eq_against lrs rrs) < rsizes rrs"
+    by (rule rsizes_rprune_eq_against_lt[OF hit])
+  have pair_le:
+    "rsize (rsimpStrong_prune_pair
+        (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k)) \<le>
+      rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
+  proof -
+    have pair_eq:
+      "rsimpStrong_prune_pair
+        (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) =
+       rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {})) k"
+      by (simp add: rsimpStrong_prune_pair_def)
+    show ?thesis
+      using rsize_rsimpStrong_shared_prune_result_le[of lrs rrs k]
+      by (simp add: pair_eq)
+  qed
+  have tail_lt:
+    "rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k) <
+      rsize (RSEQ (RALTS rrs) k)"
+    using pruned_lt by simp
+  show ?thesis
+    using pair_le tail_lt by linarith
+qed
+
 lemma rsize_rsimpStrong_prune_against_rows_le:
   "rsize (rsimpStrong_prune_against_rows seen r) \<le> rsize r"
 proof (induct seen arbitrary: r)

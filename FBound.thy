@@ -2036,6 +2036,41 @@ proof -
   qed
 qed
 
+lemma asize_bsimpStrong_prune_pair_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. eq1_member r lrs"
+      and suffix: "k1 ~1 k2"
+  shows "asize (bsimpStrong_prune_pair
+      (ASEQ bs1 (AALTs lbs lrs) k1)
+      (ASEQ bs2 (AALTs rbs rrs) k2)) <
+    asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+proof -
+  have pruned_lt: "asizes (prune_eq1_against lrs rrs) < asizes rrs"
+    by (rule asizes_prune_eq1_against_lt[OF hit])
+  have pair_le:
+    "asize (bsimpStrong_prune_pair
+        (ASEQ bs1 (AALTs lbs lrs) k1)
+        (ASEQ bs2 (AALTs rbs rrs) k2)) \<le>
+      asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2)"
+  proof -
+    have pair_eq:
+      "bsimpStrong_prune_pair
+        (ASEQ bs1 (AALTs lbs lrs) k1)
+        (ASEQ bs2 (AALTs rbs rrs) k2) =
+       bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2"
+      using suffix by (simp add: bsimpStrong_prune_pair_def)
+    show ?thesis
+      using asize_bsimpStrong_shared_prune_result_le[of bs2 rbs lrs rrs k2]
+      by (simp add: pair_eq)
+  qed
+  have tail_lt:
+    "asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2) <
+      asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+    using pruned_lt by (simp add: asizes_def)
+  show ?thesis
+    using pair_le tail_lt by linarith
+qed
+
 lemma asize_bsimpStrong_prune_against_rows_le:
   "asize (bsimpStrong_prune_against_rows seen r) \<le> asize r"
 proof (induct seen arbitrary: r)
