@@ -1822,6 +1822,69 @@ next
   qed
 qed
 
+lemma length_prune_eq1_against_le:
+  "length (prune_eq1_against covered rs) \<le> length rs"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "eq1_member r covered")
+    case True
+    then show ?thesis
+      using Cons.hyps by simp
+  next
+    case False
+    then show ?thesis
+      using Cons.hyps by simp
+  qed
+qed
+
+lemma length_prune_eq1_against_lt:
+  assumes "\<exists>r \<in> set rs. eq1_member r covered"
+  shows "length (prune_eq1_against covered rs) < length rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "eq1_member x covered")
+    case True
+    have tail_le: "length (prune_eq1_against covered xs) \<le> length xs"
+      by (rule length_prune_eq1_against_le)
+    show ?thesis
+      using True tail_le by simp
+  next
+    case False
+    obtain r where r_in: "r \<in> set (x # xs)"
+        and r_hit: "eq1_member r covered"
+      using Cons.prems by blast
+    have r_tail: "r \<in> set xs"
+    proof (cases "r = x")
+      case True
+      then have "eq1_member x covered"
+        using r_hit by simp
+      then show ?thesis
+        using False by contradiction
+    next
+      case False
+      then show ?thesis
+        using r_in by simp
+    qed
+    have hit_tail: "\<exists>r \<in> set xs. eq1_member r covered"
+      using r_tail r_hit by blast
+    have tail_lt: "length (prune_eq1_against covered xs) < length xs"
+      by (rule Cons.hyps[OF hit_tail])
+    show ?thesis
+      using False tail_lt by simp
+  qed
+qed
+
 lemma asizes_prune_eq1_against_lt:
   assumes "\<exists>r \<in> set rs. eq1_member r covered"
   shows "asizes (prune_eq1_against covered rs) < asizes rs"
@@ -2144,6 +2207,16 @@ proof -
     by (simp add: rows asizes_def)
 qed
 
+lemma length_bpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and cover: "\<forall>r \<in> set rrs. eq1_member r lrs"
+    and suffix: "k1 ~1 k2"
+  shows "length (bpder_strong_rows c rs) = 1"
+  by (simp add: bpder_strong_rows_full_cover_shared_suffix
+      [OF raw cover suffix])
+
 lemma asizes_bpder_strong_rows_shared_suffix_le:
   assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
       [ASEQ bs1 (AALTs lbs lrs) k1,
@@ -2171,6 +2244,20 @@ proof -
     by (simp add: asizes_def)
   finally show ?thesis .
 qed
+
+lemma length_bpder_strong_rows_shared_suffix_le:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and suffix: "k1 ~1 k2"
+  shows "length (bpder_strong_rows c rs) \<le>
+    length
+      (flts
+        [ASEQ bs1 (AALTs lbs lrs) k1,
+         bsimp7_ASEQ_atom bs2
+          (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2])"
+  by (simp add: bpder_strong_rows_shared_suffix[OF raw suffix]
+      length_distinctWith_le)
 
 lemma asizes_bpder_strong_rows_shared_suffix_lt:
   assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =

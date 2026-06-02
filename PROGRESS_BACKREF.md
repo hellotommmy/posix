@@ -194,6 +194,18 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   the proof-level strong pair normalizes with `rdistinct (rflts pruned)` first.
   Use the checked language bridge in row-scanner contexts instead of forcing
   syntactic equality.
+- Added the first row-count accounting layer for the Chapter-7 prune route.
+  The proof-level lemmas `length_rdistinct_le`,
+  `length_rprune_eq_against_le`, `length_rprune_eq_against_lt`,
+  `length_rpder_strong_rows_full_cover_shared_suffix`, and
+  `length_rpder_strong_rows_shared_suffix_le` show that duplicate removal and
+  shared-suffix pruning do not increase candidate rows, with strict prune
+  shrinkage when a covered alternative is actually present. The executable
+  counterparts are `length_distinctWith_le`, `length_prune_eq1_against_le`,
+  `length_prune_eq1_against_lt`,
+  `length_bpder_strong_rows_full_cover_shared_suffix`, and
+  `length_bpder_strong_rows_shared_suffix_le`. These are deliberately narrow
+  accounting facts, not a final cubic bound.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

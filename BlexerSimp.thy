@@ -17,6 +17,26 @@ fun distinctWith :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bo
      (if (\<exists> y \<in> acc. eq x y) then distinctWith xs eq acc 
       else x # (distinctWith xs eq ({x} \<union> acc)))"
 
+lemma length_distinctWith_le:
+  "length (distinctWith rs eq acc) \<le> length rs"
+proof (induct rs arbitrary: acc)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "\<exists>y \<in> acc. eq x y")
+    case True
+    show ?thesis
+      using True Cons.hyps[of acc] by simp
+  next
+    case False
+    show ?thesis
+      using False Cons.hyps[of "{x} \<union> acc"] by simp
+  qed
+qed
+
 
 (* BACKREF-MIGRATION-COMPLETED (datatype/function augmentation):
    Add cases for the new arexp constructors while preserving the existing

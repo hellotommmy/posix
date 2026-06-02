@@ -16772,6 +16772,52 @@ lemma rsizes_rprune_eq_against_le:
   "rsizes (rprune_eq_against covered rs) \<le> rsizes rs"
   by (induct rs) simp_all
 
+lemma length_rprune_eq_against_le:
+  "length (rprune_eq_against covered rs) \<le> length rs"
+  by (induct rs) simp_all
+
+lemma length_rprune_eq_against_lt:
+  assumes "\<exists>r \<in> set rs. r \<in> set covered"
+  shows "length (rprune_eq_against covered rs) < length rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> set covered")
+    case True
+    have tail_le: "length (rprune_eq_against covered xs) \<le> length xs"
+      by (rule length_rprune_eq_against_le)
+    show ?thesis
+      using True tail_le by simp
+  next
+    case False
+    obtain r where r_in: "r \<in> set (x # xs)" and r_hit: "r \<in> set covered"
+      using Cons.prems by blast
+    have r_tail: "r \<in> set xs"
+    proof (cases "r = x")
+      case True
+      then have "x \<in> set covered"
+        using r_hit by simp
+      then show ?thesis
+        using False by contradiction
+    next
+      case False
+      then show ?thesis
+        using r_in by simp
+    qed
+    have hit_tail: "\<exists>r \<in> set xs. r \<in> set covered"
+      using r_tail r_hit by blast
+    have tail_lt: "length (rprune_eq_against covered xs) < length xs"
+      by (rule Cons.hyps[OF hit_tail])
+    show ?thesis
+      using False tail_lt by simp
+  qed
+qed
+
 lemma rsizes_rprune_eq_against_lt:
   assumes "\<exists>r \<in> set rs. r \<in> set covered"
   shows "rsizes (rprune_eq_against covered rs) < rsizes rs"
@@ -17308,6 +17354,13 @@ lemma rpder_strong_rows_full_cover_shared_suffix:
   by (simp add: rpder_strong_rows_def raw
       rdistinct_rflts_rsimpStrong_prune_rows_full_cover_shared_suffix[OF cover])
 
+lemma length_rpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+    and cover: "set rrs \<subseteq> set lrs"
+  shows "length (rpder_strong_rows c rs) = 1"
+  by (simp add: rpder_strong_rows_full_cover_shared_suffix[OF raw cover])
+
 lemma rsizes_rpder_strong_rows_full_cover_shared_suffix:
   assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
       [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
@@ -17339,6 +17392,18 @@ proof -
     using rsize_rsimpStrong_shared_prune_result_le[of lrs rrs k] by simp
   finally show ?thesis .
 qed
+
+lemma length_rpder_strong_rows_shared_suffix_le:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+  shows "length (rpder_strong_rows c rs) \<le>
+    length
+      (rflts
+        [RSEQ (RALTS lrs) k,
+         rsimp7_SEQ_atom
+          (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+          k])"
+  by (simp add: rpder_strong_rows_shared_suffix[OF raw] length_rdistinct_le)
 
 lemma rsizes_rpder_strong_rows_shared_suffix_lt:
   assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =

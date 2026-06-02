@@ -102,6 +102,26 @@ lemma rdistinct_does_the_job:
   apply(auto simp add: rdistinct1)
   done
 
+lemma length_rdistinct_le:
+  "length (rdistinct rs acc) \<le> length rs"
+proof (induct rs arbitrary: acc)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> acc")
+    case True
+    show ?thesis
+      using True Cons.hyps[of acc] by simp
+  next
+    case False
+    show ?thesis
+      using False Cons.hyps[of "{x} \<union> acc"] by simp
+  qed
+qed
+
 
 
 lemma rdistinct_concat:
