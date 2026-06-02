@@ -3,6 +3,27 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong rows are an acceptance gate for deferred values
+
+- Added a checked bridge from annotated row nullability to erased row-set
+  language membership:
+  `bnullable_iff_RL_rerase_empty` and
+  `bex_bnullable_iff_RLS_map_rerase_empty`.
+- Added `bpders_strong1_rows_nullable_iff_bders_simpStrong`, and the original
+  entry version
+  `bpders_strong1_rows_intern_nullable_iff_bders_simpStrong`.
+- Added `strong_deferred_original_row_gate`: under `legacy_rexp r`,
+  `bpders_strong1_rows (intern r) s` contains a nullable row exactly when
+  there is a unique deferred span POSIX value for `(r, s)`.
+- Design consequence: future cubic work can bound and close the strong row
+  universe, then use nullable-row existence as the acceptance interface for the
+  existing deferred value reconstruction route. This is a better fit for the
+  Antimirov/linear-form idea than trying to decode POSIX values directly from
+  the aggressively simplified strong derivative tree.
+- Added `asize_intern` and `rsize_rerase_intern`, so any skeleton-side size
+  bound starting from `rerase (intern r)` can be stated exactly in terms of
+  the original `rxsize r`.
+
 ## 2026-06-03: Deferred span tables stay in the original fragment
 
 - Added checked closure facts showing that if the original root satisfies

@@ -1266,6 +1266,15 @@ proof -
     by (simp add: RLS_def)
 qed
 
+lemma bnullable_iff_RL_rerase_empty:
+  "bnullable r \<longleftrightarrow> [] \<in> RL (rerase r)"
+  by (simp add: RL_rerase bnullable_correctness[symmetric] nullable_correctness)
+
+lemma bex_bnullable_iff_RLS_map_rerase_empty:
+  "(\<exists>r \<in> set rs. bnullable r) \<longleftrightarrow>
+    [] \<in> RLS (set (map rerase rs))"
+  by (auto simp: RLS_def bnullable_iff_RL_rerase_empty)
+
 lemma RL_rerase_bsimpStrong:
   "RL (rerase (bsimpStrong r)) = RL (rerase r)"
   by (simp add: RL_rerase L_bsimpStrong)
@@ -3184,6 +3193,66 @@ lemma RLS_set_map_rerase_bpders_strong1_rows:
   using RLS_set_map_rerase_bpders_strong_rows[of "[r]" s] assms
   by (simp add: bpders_strong1_rows_def RLS_def)
 
+lemma bpders_strong1_rows_nullable_iff_bders_simpStrong:
+  assumes "legacy_rrexp (rerase r)"
+  shows "(\<exists>p \<in> set (bpders_strong1_rows r s). bnullable p) \<longleftrightarrow>
+    bnullable (bders_simpStrong r s)"
+proof -
+  have rows:
+    "RLS (set (map rerase (bpders_strong1_rows r s))) =
+      Ders s (RL (rerase r))"
+    by (rule RLS_set_map_rerase_bpders_strong1_rows[OF assms])
+  have row_nullable:
+    "(\<exists>p \<in> set (bpders_strong1_rows r s). bnullable p) \<longleftrightarrow>
+      [] \<in> RLS (set (map rerase (bpders_strong1_rows r s)))"
+    by (rule bex_bnullable_iff_RLS_map_rerase_empty)
+  have rows_empty:
+    "([] \<in> RLS (set (map rerase (bpders_strong1_rows r s)))) =
+      ([] \<in> Ders s (RL (rerase r)))"
+  proof -
+    from rows have "(\<lambda>X. [] \<in> X)
+        (RLS (set (map rerase (bpders_strong1_rows r s)))) =
+      (\<lambda>X. [] \<in> X) (Ders s (RL (rerase r)))"
+      by (rule arg_cong)
+    then show ?thesis
+      by simp
+  qed
+  have strong_nullable:
+    "bnullable (bders_simpStrong r s) \<longleftrightarrow>
+      [] \<in> Ders s (RL (rerase r))"
+    by (rule bnullable_bders_simpStrong_iff_Ders)
+  show ?thesis
+    using row_nullable rows_empty strong_nullable by simp
+qed
+
+lemma bpders_strong1_rows_intern_nullable_iff_bders_simpStrong:
+  assumes "legacy_rexp r"
+  shows "(\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+    bnullable (bders_simpStrong (intern r) s)"
+proof -
+  have legacy: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  show ?thesis
+    by (rule bpders_strong1_rows_nullable_iff_bders_simpStrong[OF legacy])
+qed
+
+lemma strong_deferred_original_row_gate:
+  assumes "legacy_rexp r"
+  shows "(\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+    (\<exists>!v. strong_deferred_span_value r s v)"
+proof -
+  have row_gate:
+    "(\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s)"
+    by (rule bpders_strong1_rows_intern_nullable_iff_bders_simpStrong[OF assms])
+  have deferred_gate:
+    "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_reconstruction_budget(1))
+  show ?thesis
+    using row_gate deferred_gate by simp
+qed
+
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])
@@ -3335,6 +3404,14 @@ lemma asizes_cons [simp]:
 lemma asize_fuse [simp]:
   "asize (fuse bs r) = asize r"
   by (cases r) simp_all
+
+lemma asize_intern:
+  "asize (intern r) = rxsize r"
+  by (induct r) simp_all
+
+lemma rsize_rerase_intern:
+  "rsize (rerase (intern r)) = rxsize r"
+  by (simp add: asize_rsize asize_intern)
 
 lemma asizes_map_fuse [simp]:
   "asizes (map (fuse bs) rs) = asizes rs"

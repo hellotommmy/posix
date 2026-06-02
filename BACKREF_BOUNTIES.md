@@ -99,6 +99,13 @@ immutability.
   `strong_deferred_original_legacy_budget` includes this closure for the value
   and split-probe tables. This supports BR-040 but remains infrastructure, not
   a payout.
+- Strong row gate bridge: `FBound.thy` now connects
+  `bpders_strong1_rows (intern r) s` to the current deferred-value route:
+  under `legacy_rexp r`, existence of a nullable strong row is equivalent to
+  existence of the unique `strong_deferred_span_value r s`. The same checkpoint
+  adds `asize_intern` and `rsize_rerase_intern`, aligning annotated/skeleton
+  size with original `rxsize`. This supports the Antimirov row-universe cubic
+  route but remains infrastructure, not a payout.
 - Checked original split probes: `FBound.thy` now also has
   `rexp_span_split_probes`, `rexp_span_all_split_probes`, their cardinality
   bounds, and one-directional original POSIX constructor rules for `ONE`, `CH`,

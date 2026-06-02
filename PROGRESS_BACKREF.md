@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (original span fragment closure)
+Last updated: 2026-06-03 (strong row gate bridge)
+
+## Cubic Candidate Prototype: Strong Row Gate Bridge (2026-06-03)
+
+- Added checked row-nullability bridge lemmas in `FBound.thy`:
+  - `bnullable_iff_RL_rerase_empty`;
+  - `bex_bnullable_iff_RLS_map_rerase_empty`;
+  - `bpders_strong1_rows_nullable_iff_bders_simpStrong`;
+  - `bpders_strong1_rows_intern_nullable_iff_bders_simpStrong`;
+  - `strong_deferred_original_row_gate`.
+- Design result:
+  - The Antimirov-style strong row pipeline
+    `bpders_strong1_rows (intern r) s` is now connected to the current
+    strong-deferred acceptance/value story: under `legacy_rexp r`, it has a
+    nullable row exactly when the deferred original-root POSIX value exists
+    uniquely.
+  - This narrows the remaining cubic proof obligation: future row-universe
+    bounds can reason about the row set, while exact POSIX values still come
+    from the original span reconstruction table.
+- Added size bridge lemmas:
+  - `asize_intern`;
+  - `rsize_rerase_intern`.
+  These state that interning an original `rexp` preserves the original
+  `rxsize` exactly at both annotated and erased skeleton levels.
+- This is still proof infrastructure. It does not prove a regex-size cubic
+  bound and does not pay BR-039/BR-040.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Original Span Fragment Closure (2026-06-03)
 
