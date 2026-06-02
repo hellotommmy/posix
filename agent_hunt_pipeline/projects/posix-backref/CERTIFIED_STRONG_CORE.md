@@ -115,6 +115,20 @@ and split-probe set are subsets of these universes. This gives the same
 accounting discipline as the Scala `posixMemoValue` smoke without committing
 to direct value decoding from the simplified derivative state.
 
+The next checked layer has also been started:
+
+- `rslice s i j`;
+- `rspan_accepts r s`, a language-membership specification for acceptance memo
+  entries;
+- `rspan_accepts_subset_rspan_states`;
+- `card_rspan_accepts_bound`;
+- `rspan_all_split_probes r s`, a legal-split specification for split probes;
+- `rspan_all_split_probes_subset`;
+- `card_rspan_all_split_probes_bound`.
+
+Future reconstruction correctness can now be phrased against these table
+specifications rather than against raw finite universes.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

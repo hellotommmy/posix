@@ -173,6 +173,11 @@ immutability.
   POSIX reconstruction relation still needs to prove that its memo table and
   split probes are subsets of these universes and agree with the existing
   POSIX value relation.
+- Checked memo-table specifications: `rspan_accepts` and
+  `rspan_all_split_probes` now give concrete table targets for the span route,
+  with checked subset/cardinality bounds inherited from the universes. This is
+  stronger than raw universe accounting, but still not a bounty payout until a
+  reconstruction correctness relation is proved.
 - Proof-facing bridge: `CERTIFIED_STRONG_CORE.md` records the intended
   `cert_recon` relation, loop invariant, certificate constructors, and
   loop-size trace. This is planning evidence, not payout.

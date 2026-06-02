@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Checked span memo-table specifications
+
+- Extended the Isabelle span interface with `rslice`, `rspan_accepts`, and
+  `rspan_all_split_probes`.
+- `rspan_accepts r s` is the checked specification of the acceptance memo table
+  over original-regex spans: `(q, i, j)` belongs when `q` is a subterm of `r`,
+  `i <= j <= length s`, and `rslice s i j : RL q`.
+- `rspan_all_split_probes r s` is the checked specification of all legal split
+  positions `(q, i, k, j)` with `i <= k <= j <= length s`.
+- New checked facts show both sets are subsets of the previously added finite
+  universes and inherit their cardinality bounds. This is the next bridge from
+  Scala `posixMemoValue` evidence toward an Isabelle reconstruction relation.
+
 ## 2026-06-02: Checked span-universe bounds for deferred reconstruction
 
 - Added `rspan_states` and `rspan_split_probes` in `GeneralRegexBound.thy`.

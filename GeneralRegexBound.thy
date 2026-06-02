@@ -2771,6 +2771,78 @@ proof -
   finally show ?thesis .
 qed
 
+definition rslice :: "string \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> string" where
+  "rslice s i j = take (j - i) (drop i s)"
+
+definition rspan_accepts :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat) set" where
+  "rspan_accepts r s =
+    {(q, i, j). q \<in> rsubterms r \<and> i \<le> j \<and> j \<le> length s \<and> rslice s i j \<in> RL q}"
+
+lemma finite_rspan_accepts [simp]:
+  "finite (rspan_accepts r s)"
+proof -
+  have "rspan_accepts r s \<subseteq> rspan_states r s"
+    by (auto simp: rspan_accepts_def intro: rspan_statesI)
+  then show ?thesis
+    using finite_rspan_states finite_subset by blast
+qed
+
+lemma rspan_accepts_subset_rspan_states:
+  "rspan_accepts r s \<subseteq> rspan_states r s"
+  by (auto simp: rspan_accepts_def intro: rspan_statesI)
+
+lemma rspan_acceptsI:
+  assumes "q \<in> rsubterms r"
+    and "i \<le> j"
+    and "j \<le> length s"
+    and "rslice s i j \<in> RL q"
+  shows "(q, i, j) \<in> rspan_accepts r s"
+  using assms by (auto simp: rspan_accepts_def)
+
+lemma rspan_acceptsE:
+  assumes "(q, i, j) \<in> rspan_accepts r s"
+  obtains "q \<in> rsubterms r" "i \<le> j" "j \<le> length s" "rslice s i j \<in> RL q"
+  using assms by (auto simp: rspan_accepts_def)
+
+lemma card_rspan_accepts_bound:
+  "card (rspan_accepts r s) \<le> rsize r * Suc (length s) * Suc (length s)"
+  by (rule card_subset_rspan_states_bound[OF rspan_accepts_subset_rspan_states])
+
+definition rspan_all_split_probes :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat * nat) set" where
+  "rspan_all_split_probes r s =
+    {(q, i, k, j). q \<in> rsubterms r \<and> i \<le> k \<and> k \<le> j \<and> j \<le> length s}"
+
+lemma finite_rspan_all_split_probes [simp]:
+  "finite (rspan_all_split_probes r s)"
+proof -
+  have "rspan_all_split_probes r s \<subseteq> rspan_split_probes r s"
+    by (auto simp: rspan_all_split_probes_def intro: rspan_split_probesI)
+  then show ?thesis
+    using finite_rspan_split_probes finite_subset by blast
+qed
+
+lemma rspan_all_split_probes_subset:
+  "rspan_all_split_probes r s \<subseteq> rspan_split_probes r s"
+  by (auto simp: rspan_all_split_probes_def intro: rspan_split_probesI)
+
+lemma rspan_all_split_probesI:
+  assumes "q \<in> rsubterms r"
+    and "i \<le> k"
+    and "k \<le> j"
+    and "j \<le> length s"
+  shows "(q, i, k, j) \<in> rspan_all_split_probes r s"
+  using assms by (auto simp: rspan_all_split_probes_def)
+
+lemma rspan_all_split_probesE:
+  assumes "(q, i, k, j) \<in> rspan_all_split_probes r s"
+  obtains "q \<in> rsubterms r" "i \<le> k" "k \<le> j" "j \<le> length s"
+  using assms by (auto simp: rspan_all_split_probes_def)
+
+lemma card_rspan_all_split_probes_bound:
+  "card (rspan_all_split_probes r s) \<le>
+    rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+  by (rule card_subset_rspan_split_probes_bound[OF rspan_all_split_probes_subset])
+
 lemma rsize_member_le_rsizes:
   assumes "r \<in> set rs"
   shows "rsize r \<le> rsizes rs"

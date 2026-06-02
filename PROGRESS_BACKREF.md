@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (checked span reconstruction universe)
+Last updated: 2026-06-02 (checked span memo-table interface)
+
+## Cubic Candidate Prototype: Checked Span Memo Tables (2026-06-02)
+
+- Extended the checked span-reconstruction interface in `GeneralRegexBound.thy`:
+  - `rslice s i j = take (j - i) (drop i s)`;
+  - `rspan_accepts r s`, the specification of memoized acceptance states:
+    `(subregex, i, j)` where the slice `s[i,j)` is in the subregex language;
+  - `rspan_all_split_probes r s`, the specification of all legal split probes
+    `(subregex, i, k, j)` with `i <= k <= j <= length s`.
+- Added checked subset and cardinality facts:
+  - `rspan_accepts_subset_rspan_states`;
+  - `card_rspan_accepts_bound`;
+  - `rspan_all_split_probes_subset`;
+  - `card_rspan_all_split_probes_bound`.
+- This moves the memo route one step beyond a raw universe: a future
+  reconstruction algorithm can now target these checked table specifications
+  directly, then inherit the state/split bounds. The left-greedy CE for
+  `StrongFullCert` is exactly the kind of behavior this original-regex
+  span-table route is meant to handle.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Span Reconstruction Universe (2026-06-02)
 
