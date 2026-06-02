@@ -663,6 +663,27 @@ fun bsimpStrong_prune_rows_acc :: "arexp list \<Rightarrow> arexp list \<Rightar
 definition bsimpStrong_prune_rows :: "arexp list \<Rightarrow> arexp list" where
   "bsimpStrong_prune_rows rs = bsimpStrong_prune_rows_acc [] rs"
 
+lemma flts_bsimpStrong_prune_rows_full_cover_shared_suffix:
+  assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
+      and "k1 ~1 k2"
+  shows "flts (bsimpStrong_prune_rows
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]) =
+    [ASEQ bs1 (AALTs lbs lrs) k1]"
+  using assms
+  by (simp add: bsimpStrong_prune_rows_def
+      bsimpStrong_prune_pair_full_cover)
+
+lemma distinctWith_flts_bsimpStrong_prune_rows_full_cover_shared_suffix:
+  assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
+      and "k1 ~1 k2"
+  shows "distinctWith (flts (bsimpStrong_prune_rows
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2])) eq1 {} =
+    [ASEQ bs1 (AALTs lbs lrs) k1]"
+  by (simp add:
+      flts_bsimpStrong_prune_rows_full_cover_shared_suffix[OF assms])
+
 definition bsimpStrong_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp" where
   "bsimpStrong_AALTs bs rs =
     bsimp_AALTs bs (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {})"

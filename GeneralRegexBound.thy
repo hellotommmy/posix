@@ -16179,6 +16179,23 @@ fun rsimpStrong_prune_rows_acc :: "rrexp list \<Rightarrow> rrexp list \<Rightar
 definition rsimpStrong_prune_rows :: "rrexp list \<Rightarrow> rrexp list" where
   "rsimpStrong_prune_rows rs = rsimpStrong_prune_rows_acc [] rs"
 
+lemma rflts_rsimpStrong_prune_rows_full_cover_shared_suffix:
+  assumes "set rrs \<subseteq> set lrs"
+  shows "rflts (rsimpStrong_prune_rows
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]) =
+    [RSEQ (RALTS lrs) k]"
+  using assms
+  by (simp add: rsimpStrong_prune_rows_def
+      rsimpStrong_prune_pair_full_cover)
+
+lemma rdistinct_rflts_rsimpStrong_prune_rows_full_cover_shared_suffix:
+  assumes "set rrs \<subseteq> set lrs"
+  shows "rdistinct (rflts (rsimpStrong_prune_rows
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k])) {} =
+    [RSEQ (RALTS lrs) k]"
+  by (simp add:
+      rflts_rsimpStrong_prune_rows_full_cover_shared_suffix[OF assms])
+
 definition rsimpStrong_ALTs :: "rrexp list \<Rightarrow> rrexp" where
   "rsimpStrong_ALTs rs =
     rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows rs)) {})"

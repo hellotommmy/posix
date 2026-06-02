@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong full-cover AALTs surface)
+Last updated: 2026-06-02 (strong full-cover row output)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -138,6 +138,16 @@ Last updated: 2026-06-02 (strong full-cover AALTs surface)
   `[]`-bit specialization used by `bp_der_strong`. This makes the Chapter-7
   deletion mechanism available at the same surface where executable row
   derivatives call it.
+- Added row-output versions of the full-cover deletion fact. The proof-level
+  lemmas `rflts_rsimpStrong_prune_rows_full_cover_shared_suffix` and
+  `rdistinct_rflts_rsimpStrong_prune_rows_full_cover_shared_suffix` show that
+  after row pruning, flattening, and duplicate removal, a covered two-row
+  shared-suffix list contains only the earlier row. The executable counterparts
+  `flts_bsimpStrong_prune_rows_full_cover_shared_suffix` and
+  `distinctWith_flts_bsimpStrong_prune_rows_full_cover_shared_suffix` do the
+  same for `arexp` using `eq1_member`. These facts are closer to
+  `rpder_strong_rows`/`bpder_strong_rows`, whose definitions inspect the
+  flattened pruned row list directly.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

@@ -1251,6 +1251,15 @@ to be read before continuing long-running agent work.
   exactly for top-level `[]` bits. Use these when connecting row-prune
   reasoning to `bp_der_strong`/`bpder_strong_rows`, since those definitions
   call the alternative simplifier rather than the pair-prune helper directly.
+- The full-cover deletion atom now also has row-output forms for the exact
+  data inspected by row derivative definitions. On `rrexp`, use
+  `rflts_rsimpStrong_prune_rows_full_cover_shared_suffix` and
+  `rdistinct_rflts_rsimpStrong_prune_rows_full_cover_shared_suffix`. On
+  `arexp`, use `flts_bsimpStrong_prune_rows_full_cover_shared_suffix` and
+  `distinctWith_flts_bsimpStrong_prune_rows_full_cover_shared_suffix`. These
+  show that a fully covered later row disappears after pruning, flattening,
+  and duplicate removal; they are the facts to reach for when proving
+  cardinality decrease or row-count control.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of
