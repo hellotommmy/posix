@@ -2,6 +2,40 @@
 
 Last updated: 2026-06-02 (CE-driven strong-core diagnostics updated)
 
+## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
+
+- Added Scala smoke route `strongDeferredValue` and wrapper switch
+  `-CheckStrongDeferred`.
+- Definition idea:
+  - run the full thesis-style `bdersStrong` derivative loop as the small
+    recognition state;
+  - if the final strong derivative is nullable, reconstruct the exact POSIX
+    value from the original regex/input (`baselineValue`) rather than decoding
+    ordinary values from the simplified derivative state.
+- This is deliberately a research route, not a bounty claim and not yet a
+  runtime implementation. It represents a generalized/deferred-value semantics:
+  the small derivative state proves acceptance and keeps the cubic-size route
+  alive; the exact POSIX value is recovered by a separate reconstruction
+  theorem over the original regex and consumed flat string.
+- Smoke evidence:
+  - exact POSIX values pass exhaustive depth `2`, input length `3`
+    (`84,300` regex/input pairs);
+  - deterministic random smoke passes `50,000` cases at depth `7`, input
+    length `8`, seed `20260602`;
+  - the hand CE grid from the nullable-star failures remains checked.
+- Size evidence from the full `bsimpStrong` state is back to the thesis-scale
+  plateau:
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30`:
+    `46,474,730,771,820,875,918,958`.
+  - Chapter 7 `k=8`, lengths `0,4,8,16,32,48`:
+    `97,1164,1816,2691,2879,2963`.
+- Next proof question:
+  - prove/check a language theorem for the strong derivative state, then define
+    a proof-facing deferred reconstruction relation. This relation should not
+    pretend that simplified ordinary values are POSIX values; it should say
+    that a nullable strong derivative plus the consumed string authorizes
+    reconstruction of the original POSIX value.
+
 ## Cubic Candidate Prototype: CE-Driven Strong-Core Reassessment (2026-06-02)
 
 - Added Scala smoke switches for the current counterexample-driven loop:

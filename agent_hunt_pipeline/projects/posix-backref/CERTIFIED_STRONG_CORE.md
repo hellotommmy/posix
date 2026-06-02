@@ -6,10 +6,10 @@ This note is the proof-facing bridge from the Scala smoke prototype toward an
 Isabelle candidate for the non-backref cubic-size route. It records the semantic
 object that should be proved, not a bounty claim.
 
-## Candidate Object
+## Candidate Objects
 
-The executable candidate is the certified strong core currently implemented in
-`agent_hunt_pipeline/scala/PosixCubicSmoke.scala`:
+The historical direct-core candidate in
+`agent_hunt_pipeline/scala/PosixCubicSmoke.scala` is:
 
 - `bsimpStrongCoreCert r = (r', recon)` returns a simplified annotated regex and
   a reconstruction function from epsilon values of `r'` back to epsilon values
@@ -19,16 +19,25 @@ The executable candidate is the certified strong core currently implemented in
 - The final continuation maps the final simplified epsilon value back to the
   original POSIX value.
 
-The current Scala smoke gate is:
+CE-driven smoke shows that this direct-core candidate is not strong enough for
+nullable-star future derivatives.
+
+The current positive candidate is the deferred/generalized route:
+
+- `bdersStrong (intern r) s` is the small acceptance state.
+- If that state is nullable, exact POSIX value reconstruction is deferred to a
+  relation over the original regex and consumed string.
+- The Scala reference implementation is `strongDeferredValue`.
+
+The current positive Scala smoke gate is:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
-  -SeqMode expanded-keyed-no-reassoc `
-  -CheckStrongCoreCert `
-  -CheckStrongCoreLoop `
-  -RandomCases 3000 `
-  -RandomDepth 5 `
-  -RandomInputLength 6 `
+  -SkipLegacyCubic `
+  -CheckStrongDeferred `
+  -RandomCases 50000 `
+  -RandomDepth 7 `
+  -RandomInputLength 8 `
   -Ch7TreeThreshold 1000000
 ```
 
@@ -137,12 +146,25 @@ history/payload to preserve future POSIX choices.
 
 ## Next Proof Tasks
 
-1. Strengthen the Scala prototype first: no Isabelle proof attempt should start
-   until the hand CEs and deterministic random exact-value smoke pass.
-2. Compare two routes:
+1. Treat `strongDeferredValue` as the current positive route:
+   `bdersStrong` supplies a small acceptance state, while exact POSIX values
+   are reconstructed from the original regex and consumed string.
+2. Prove/check the language bridge for `bdersStrong` first:
+   `nullable (bdersStrong (intern r) s)` should agree with `s \<in> lang r`.
+3. Define a proof-facing deferred reconstruction relation, for example:
+   `deferred_posix r s v`, rather than trying to decode ordinary POSIX values
+   directly from the simplified derivative.
+4. Keep comparing two implementation routes:
    - smart/certified pruning with payload/history keys;
    - generalized POSIX values that can reconstruct equivalent nullable-star
      segmentations.
-3. Once Scala smoke passes, define the corresponding Isabelle relation.
-4. Only after that relation is stable, connect the size trace to a
+5. Only after that relation is stable, connect the size trace to a
    proof-facing row-universe or cubic frontier argument.
+
+Current positive Scala evidence for the deferred route:
+
+- exhaustive depth `2`, input length `3`: `84,300` pairs pass;
+- deterministic random depth `7`, input length `8`: `50,000` cases pass with
+  seed `20260602`;
+- Chapter 7 `bsimpStrong` traces remain thesis-scale:
+  `k=5`, n=30 -> `958`; `k=8`, n=48 -> `2963`.

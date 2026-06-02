@@ -1663,3 +1663,14 @@ to be read before continuing long-running agent work.
   bounty. The next credible route is smart/certified pruning or generalized
   POSIX values that retain enough history for nullable-star segmentation while
   keeping the strong tree plateau.
+- Deferred/generalized-value route (2026-06-02): a promising way to keep the
+  thesis `bsimpStrong` tree plateau is to stop decoding ordinary POSIX values
+  directly from the simplified derivative state. The Scala smoke
+  `strongDeferredValue` uses `bdersStrong` only as an acceptance/small-state
+  witness, then reconstructs the exact POSIX value from the original regex and
+  consumed string. This passes depth-2 exhaustive smoke, 50k deterministic
+  random cases at depth 7/input 8, and keeps the Chapter-7 traces at the
+  thesis scale (`k=5`, n=30: 958; `k=8`, n=48: 2963). This is not a bounty
+  claim: the remaining work is to replace the Scala `baselineValue` reference
+  with a proof-facing deferred reconstruction relation and, eventually, an
+  executable reconstruction procedure if runtime matters.

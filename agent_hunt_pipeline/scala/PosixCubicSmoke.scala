@@ -816,6 +816,11 @@ object PosixCubicSmoke {
   def strongValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrong)
 
+  def strongDeferredValue(r: Rexp, input: String): Option[Val] = {
+    val finalRegex = bdersStrong(intern(r), input)
+    if (bnullable(finalRegex)) baselineValue(r, input) else None
+  }
+
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrongSafe)
 
@@ -1320,6 +1325,62 @@ object PosixCubicSmoke {
       }
     }
     println(s"checked bsimpStrong random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
+  def checkStrongDeferredValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val b = baselineValue(r, s)
+        val deferred = strongDeferredValue(r, s)
+        checked += 1
+        if (b != deferred) {
+          val strongFinal = bdersStrong(intern(r), s)
+          throw new AssertionError(
+            s"""strong deferred POSIX value mismatch
+               |case       = $checked
+               |regex      = $r
+               |input      = $s
+               |base       = $b
+               |deferred   = $deferred
+               |strongSize = ${asize(strongFinal)}
+               |strongNull = ${bnullable(strongFinal)}
+               |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked strong deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongDeferredRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val deferred = strongDeferredValue(r, s)
+      checked += 1
+      if (b != deferred) {
+        val strongFinal = bdersStrong(intern(r), s)
+        throw new AssertionError(
+          s"""strong deferred random POSIX value mismatch
+             |seed       = $seed
+             |case       = $checked
+             |regex      = $r
+             |input      = $s
+             |base       = $b
+             |deferred   = $deferred
+             |strongSize = ${asize(strongFinal)}
+             |strongNull = ${bnullable(strongFinal)}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked strong deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
   def checkStrongSafeValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
@@ -2059,6 +2120,7 @@ object PosixCubicSmoke {
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
+    val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -2081,6 +2143,12 @@ object PosixCubicSmoke {
       checkStrongValuePreservation(maxDepth, maxInput, maxRegexes)
       if (randomCases > 0) {
         checkStrongRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+    }
+    if (checkStrongDeferred) {
+      checkStrongDeferredValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongDeferredRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
       }
     }
     if (checkStrongSafe) {
