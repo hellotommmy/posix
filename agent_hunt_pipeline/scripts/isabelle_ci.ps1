@@ -21,7 +21,9 @@ param(
   [int]$ScalaSmokeCh7DagThreshold = 0,
   [int]$ScalaSmokeCh7ShapeThreshold = 0,
   [switch]$ScalaSmokeSharedNoReassoc,
-  [switch]$ScalaSmokeCheckStrong
+  [switch]$ScalaSmokeCheckStrong,
+  [switch]$ScalaSmokeCheckStrongSafe,
+  [switch]$ScalaSmokeTraceStrongRecon
 )
 
 $ErrorActionPreference = "Stop"
@@ -80,8 +82,10 @@ try {
   if (-not $PilotOnly -and -not $SkipScalaSmoke) {
     $SharedNoReassocFlag = if ($ScalaSmokeSharedNoReassoc) { 1 } else { 0 }
     $CheckStrongFlag = if ($ScalaSmokeCheckStrong) { 1 } else { 0 }
-    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag checkStrong=$CheckStrongFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold =="
-    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_SHARED_NO_REASSOC=$SharedNoReassocFlag POSIX_SMOKE_CHECK_STRONG=$CheckStrongFlag POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+    $CheckStrongSafeFlag = if ($ScalaSmokeCheckStrongSafe) { 1 } else { 0 }
+    $TraceStrongReconFlag = if ($ScalaSmokeTraceStrongRecon) { 1 } else { 0 }
+    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag checkStrong=$CheckStrongFlag checkStrongSafe=$CheckStrongSafeFlag strongRecon=$TraceStrongReconFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold =="
+    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_SHARED_NO_REASSOC=$SharedNoReassocFlag POSIX_SMOKE_CHECK_STRONG=$CheckStrongFlag POSIX_SMOKE_CHECK_STRONG_SAFE=$CheckStrongSafeFlag POSIX_SMOKE_TRACE_STRONG_RECON=$TraceStrongReconFlag POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
     if ($LASTEXITCODE -ne 0) {
       if ($LASTEXITCODE -eq 124) {
         throw "Scala cubic smoke timed out after $SessionTimeoutSeconds seconds"

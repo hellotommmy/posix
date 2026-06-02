@@ -3,6 +3,37 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: CE-driven strong route needs value transformers
+
+- Added a Scala-only `bsimpStrongSafe` diagnostic to test the user's proposed
+  counterexample-driven route: start from thesis-style `bsimpStrong`, repair
+  value counterexamples, and measure how much of the small-tree behavior
+  survives.
+- Four value-unsafe output rewrites were isolated:
+  1. nested-star collapse loses the outer `Stars` constructor;
+  2. dropping right `AONE bs` loses nonempty epsilon bits such as `[S]`;
+  3. star absorption `r* . r* -> r*` loses the second star's value;
+  4. left-nested sequence reassociation reorders prefix bits.
+- Disabling those rewrites in the output syntax gives a value-safe baseline:
+  `bsimpStrongSafe` passes exhaustive depth `2`/input `3`, random depth `4` with
+  `5,000` cases, and random depth `5` with `2,000` cases, all at seed
+  `20260602`. But the price is too high for the Figure 7.6 tree goal: on
+  `k=5,n=30`, tree size is `5133` rather than thesis strong's `958`.
+- Therefore the next path should not keep weakening the output regex. To retain
+  the thesis strong tree size and still return correct POSIX values, the small
+  regex must be paired with a reconstruction/transformer layer. Each strong
+  rewrite should contribute a local map from values of the simplified regex
+  back to values of the original regex, e.g. nested-star collapse maps
+  `Stars vs` back to a nested `Stars` value, star absorption maps `r*` values
+  back to `Seq (Stars vs) (Stars [])`, and reassociation maps
+  `Seq x (Seq y z)` back to `Seq (Seq x y) z`.
+- Added `scala_cubic_smoke.ps1 -TraceStrongRecon` as a first executable sketch
+  of that route. It does not weaken `bsimpStrong`; instead, it checks the local
+  reconstruction equations on the current CE witnesses. The result is positive
+  but deliberately narrow: CE witnesses can be repaired while retaining small
+  strong output trees, so the next algorithmic object should be a compositional
+  derivative-time certificate, not another safe-output simplifier.
+
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 
 - `PosixCubicSmoke.scala` now has a diagnostic

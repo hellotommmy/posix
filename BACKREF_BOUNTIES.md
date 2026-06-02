@@ -120,6 +120,20 @@ immutability.
   structure is collapsed. This is an expected diagnostic failure, not a default
   CI failure. BR-039 may not use `bsimpStrong` as-is without a checked
   value-reconstruction theorem or a repaired value-safe strong simplifier.
+- CE-driven safe-output diagnostic: `bsimpStrongSafe` repairs the first wave of
+  value counterexamples by disabling nested-star collapse, nonempty right-unit
+  deletion, star absorption, and sequence reassociation in the emitted regex.
+  It passes exact POSIX smoke through random depth `5`/input `6`, seed
+  `20260602`, but does not preserve the thesis tree-size plateau (`k=5,n=30`
+  tree `5133`). It is therefore route evidence only. A payable tree-level
+  strong candidate must keep the small `bsimpStrong` regex and add checked
+  value transformers/reconstruction for those rewrites, or find a different
+  value-safe pruning rule with comparable size.
+- CE-driven strong-reconstruction sketch: `scala_cubic_smoke.ps1
+  -TraceStrongRecon` now checks local transformer equations for the first
+  strong CE witnesses while retaining the actual small `bsimpStrong` output.
+  This is positive route evidence, not a bounty claim; payout still requires a
+  compositional derivative-time certificate or theorem.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

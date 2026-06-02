@@ -137,6 +137,19 @@ structure. A future tree-level strong route must repair that simplifier or add
 a checked generalized-value reconstruction theorem before any POSIX/cubic
 bounty can rely on it.
 
+The CE-driven `bsimpStrongSafe` diagnostic is useful but not the destination.
+It disables nested-star collapse, nonempty right-unit deletion, star absorption,
+and sequence reassociation in output syntax; this passes deeper exact-value
+Scala smoke but loses the Figure 7.6 tree-size plateau. The next tree-level
+route should keep the small strong regex and carry local value transformers for
+those rewrites, then prove reconstruction to the original `val`.
+
+Use `scala_cubic_smoke.ps1 -TraceStrongRecon` to check the current executable
+sketch for that route. It verifies the first CE witnesses with local
+reconstruction equations while keeping the actual `bsimpStrong` small output.
+Treat it as route evidence only; a bounty candidate still needs a
+compositional derivative-time certificate or theorem.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

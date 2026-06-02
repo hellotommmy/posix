@@ -76,6 +76,16 @@ Short version:
   `STAR (STAR (CH a))` with input `a`, because nested-star value structure is
   collapsed. That failure is a design fact: a tree-level strong route needs a
   repaired value-safe simplifier or a checked generalized-value transfer.
+- `bsimpStrongSafe` is only a CE-driven diagnostic baseline. It disables the
+  strong output rewrites that are known to destroy POSIX values, and it passes
+  deeper random smoke, but its tree size no longer matches the thesis plateau.
+  Use it to identify value hazards. The target route is a small strong regex
+  plus value transformers/reconstruction, not merely a weaker safe output
+  simplifier.
+- `scala_cubic_smoke.ps1 -TraceStrongRecon` checks the first local
+  reconstruction sketches for the CE-driven strong route. Passing this sketch
+  is only route evidence; it does not replace a compositional certificate across
+  derivative steps.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

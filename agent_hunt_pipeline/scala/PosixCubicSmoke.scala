@@ -132,6 +132,16 @@ object PosixCubicSmoke {
     case NTIMES(r, n) => ANTIMES(Nil, intern(r), n)
   }
 
+  def eraseA(r: ARexp): Rexp = r match {
+    case AZERO => ZERO
+    case AONE(_) => ONE
+    case ACHAR(_, c) => CH(c)
+    case ASEQ(_, r1, r2) => SEQ(eraseA(r1), eraseA(r2))
+    case AALTs(_, rs) => altList(rs.map(eraseA))
+    case ASTAR(_, r) => STAR(eraseA(r))
+    case ANTIMES(_, r, n) => NTIMES(eraseA(r), n)
+  }
+
   def bnullable(r: ARexp): Boolean = r match {
     case AZERO => false
     case AONE(_) => true
@@ -224,6 +234,18 @@ object PosixCubicSmoke {
     case (ASTAR(_, a), ASTAR(_, b)) if eq1(a, b) => r1
     case (ASTAR(_, a), ASEQ(_, ASTAR(_, b), k)) if eq1(a, b) => ASEQ(bs, r1, k)
     case _ => bsimp4ASEQAtom(bs, r1, r2)
+  }
+
+  def bsimp4ASEQAtomSafe(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
+    case (AZERO, _) => AZERO
+    case (AONE(bs2), _) => fuse(bs ++ bs2, r2)
+    case (_, AZERO) => AZERO
+    case (_, AONE(Nil)) => fuse(bs, r1)
+    case _ => ASEQ(bs, r1, r2)
+  }
+
+  def bsimp7ASEQAtomSafe(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
+    case _ => bsimp4ASEQAtomSafe(bs, r1, r2)
   }
 
   def bsimpCubicASEQAtom(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
@@ -347,6 +369,28 @@ object PosixCubicSmoke {
   def bsimpStrongAALTs(bs: List[Bit], rs: List[ARexp]): ARexp =
     bsimpAALTs(bs, distinctWith(flts(bsimpStrongPruneRows(rs))))
 
+  def bsimpStrongSafePrunePair(earlier: ARexp, later: ARexp): ARexp = (earlier, later) match {
+    case (ASEQ(_, AALTs(_, lrs), k1), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
+      bsimp7ASEQAtomSafe(bs2, bsimpAALTs(rbs, pruneEq1Against(lrs, rrs)), k2)
+    case _ => later
+  }
+
+  def bsimpStrongSafePruneAgainstRows(seen: List[ARexp], r: ARexp): ARexp =
+    seen.foldLeft(r)((acc, earlier) => bsimpStrongSafePrunePair(earlier, acc))
+
+  def bsimpStrongSafePruneRows(rs: List[ARexp]): List[ARexp] = {
+    def loop(seen: List[ARexp], todo: List[ARexp]): List[ARexp] = todo match {
+      case Nil => Nil
+      case r :: rest =>
+        val pruned = bsimpStrongSafePruneAgainstRows(seen, r)
+        pruned :: loop(pruned :: seen, rest)
+    }
+    loop(Nil, rs)
+  }
+
+  def bsimpStrongSafeAALTs(bs: List[Bit], rs: List[ARexp]): ARexp =
+    bsimpAALTs(bs, distinctWith(flts(bsimpStrongSafePruneRows(rs))))
+
   def bsimpCubicPrunePair(earlier: ARexp, later: ARexp): ARexp =
     bsimpCubicPrunePairMode(cubicSeqMode, earlier, later)
 
@@ -426,6 +470,17 @@ object PosixCubicSmoke {
     case other => other
   }
 
+  def bsimpStrongSafe(r: ARexp): ARexp = r match {
+    case ASEQ(bs, r1, r2) => bsimp7ASEQAtomSafe(bs, bsimpStrongSafe(r1), bsimpStrongSafe(r2))
+    case AALTs(bs, rs) => bsimpStrongSafeAALTs(bs, flts(rs.map(bsimpStrongSafe)))
+    case ASTAR(bs, r) => bsimpStrongSafe(r) match {
+      case AZERO => AONE(bs ++ List(S))
+      case AONE(_) => AONE(bs ++ List(S))
+      case s => ASTAR(bs, s)
+    }
+    case other => other
+  }
+
   def bsimpCubicWithMode(seqMode: String, r: ARexp): ARexp = r match {
     case ASEQ(bs, r1, r2) => bsimpCubicASEQAtomMode(seqMode, bs, bsimpCubicWithMode(seqMode, r1), bsimpCubicWithMode(seqMode, r2))
     case AALTs(bs, rs) => bsimpCubicAALTsWithMode(seqMode, bs, flts(rs.map(bsimpCubicWithMode(seqMode, _))))
@@ -455,6 +510,9 @@ object PosixCubicSmoke {
 
   def bdersStrong(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bsimpStrong(bder(c, acc)))
+
+  def bdersStrongSafe(r: ARexp, s: String): ARexp =
+    s.foldLeft(r)((acc, c) => bsimpStrongSafe(bder(c, acc)))
 
   sealed trait DNode
   case object DZero extends DNode
@@ -618,6 +676,28 @@ object PosixCubicSmoke {
 
   def strongValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrong)
+
+  def strongSafeValue(r: Rexp, input: String): Option[Val] =
+    blexerValue(r, input, bdersStrongSafe)
+
+  def nullableErasedValue(r: ARexp): Option[Val] =
+    if (bnullable(r)) decodeBits(eraseA(r), bmkeps(r)) else None
+
+  def sketchNestedStarRecon(v: Val): Option[Val] = v match {
+    case StarsVal(Nil) => Some(StarsVal(Nil))
+    case StarsVal(vs) => Some(StarsVal(List(StarsVal(vs))))
+    case _ => None
+  }
+
+  def sketchStarAbsorbRecon(v: Val): Option[Val] = v match {
+    case StarsVal(vs) => Some(SeqVal(StarsVal(vs), StarsVal(Nil)))
+    case _ => None
+  }
+
+  def sketchSeqReassocRecon(v: Val): Option[Val] = v match {
+    case SeqVal(v1, SeqVal(v2, v3)) => Some(SeqVal(SeqVal(v1, v2), v3))
+    case _ => None
+  }
 
   def charPower(c: Char, n: Int): Rexp =
     if (n == 0) ONE else SEQ(CH(c), charPower(c, n - 1))
@@ -813,6 +893,67 @@ object PosixCubicSmoke {
     println(s"checked bsimpStrong random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
+  def checkStrongSafeValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val b = baselineValue(r, s)
+        val strong = strongSafeValue(r, s)
+        checked += 1
+        if (b != strong) {
+          val baseFinal = bders(intern(r), s)
+          val strongFinal = bdersStrongSafe(intern(r), s)
+          val msg =
+            s"""bsimpStrongSafe POSIX value mismatch
+               |regex      = $r
+               |input      = $s
+               |base       = $b
+               |strongSafe = $strong
+               |baseRe     = $baseFinal
+               |safeRe     = $strongFinal
+               |baseEps    = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+               |safeEps    = ${if (bnullable(strongFinal)) Some(bmkeps(strongFinal)) else None}
+               |""".stripMargin
+          throw new AssertionError(msg)
+        }
+      }
+    }
+    println(s"checked bsimpStrongSafe POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongSafeRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val strong = strongSafeValue(r, s)
+      checked += 1
+      if (b != strong) {
+        val baseFinal = bders(intern(r), s)
+        val strongFinal = bdersStrongSafe(intern(r), s)
+        val msg =
+          s"""bsimpStrongSafe random POSIX value mismatch
+             |seed       = $seed
+             |case       = $checked
+             |regex      = $r
+             |input      = $s
+             |base       = $b
+             |strongSafe = $strong
+             |baseRe     = $baseFinal
+             |safeRe     = $strongFinal
+             |baseEps    = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+             |safeEps    = ${if (bnullable(strongFinal)) Some(bmkeps(strongFinal)) else None}
+             |""".stripMargin
+        throw new AssertionError(msg)
+      }
+    }
+    println(s"checked bsimpStrongSafe random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
   def checkSharedValuePreservation(seqMode: String, maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
@@ -945,6 +1086,18 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
+  def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val out = bdersStrongSafe(intern(r), "a" * n)
+      n -> (asize(out), adagSize(out), ashapeDagSize(out))
+    }
+    println(s"Chapter 7 k=$k bsimpStrongSafe trace: " +
+      trace.map { case (n, (tree, dag, shape)) =>
+        s"$n->$tree/dag=$dag/shape=$shape"
+      }.mkString(", "))
+  }
+
   def checkCounterexamples(): Unit = {
     val a = ACHAR(Nil, 'a')
     val b = ACHAR(Nil, 'b')
@@ -980,6 +1133,66 @@ object PosixCubicSmoke {
       throw new AssertionError("bsimpStrong nested-star collapse no longer witnesses a POSIX value mismatch")
     }
     println("counterexample smoke checks passed")
+  }
+
+  def checkStrongReconstructionSketch(): Unit = {
+    final case class SketchCase(
+        name: String,
+        regex: Rexp,
+        input: String,
+        reconstruct: Val => Option[Val]
+    )
+
+    val cases = List(
+      SketchCase(
+        "nested-star collapse",
+        STAR(STAR(CH('a'))),
+        "a",
+        sketchNestedStarRecon
+      ),
+      SketchCase(
+        "star absorption",
+        SEQ(STAR(CH('a')), STAR(CH('a'))),
+        "a",
+        sketchStarAbsorbRecon
+      ),
+      SketchCase(
+        "right nullable unit after star-zero",
+        SEQ(STAR(CH('a')), STAR(ZERO)),
+        "a",
+        sketchStarAbsorbRecon
+      )
+    )
+
+    cases.foreach { tc =>
+      val base = baselineValue(tc.regex, tc.input)
+      val strongFinal = bdersStrong(intern(tc.regex), tc.input)
+      val strongLocal = nullableErasedValue(strongFinal)
+      val reconstructed = strongLocal.flatMap(tc.reconstruct)
+      if (base != reconstructed) {
+        throw new AssertionError(
+          s"""strong reconstruction sketch failed: ${tc.name}
+             |regex          = ${tc.regex}
+             |input          = ${tc.input}
+             |baseline       = $base
+             |strongFinal    = $strongFinal
+             |strongLocal    = $strongLocal
+             |reconstructed  = $reconstructed
+             |strongFinalSize= ${asize(strongFinal)}
+             |""".stripMargin
+        )
+      }
+      println(
+        s"strong reconstruction sketch ${tc.name}: strongSize=${asize(strongFinal)} value=$reconstructed"
+      )
+    }
+
+    val reassocSmall = SeqVal(CharVal('a'), SeqVal(CharVal('b'), CharVal('c')))
+    val reassocLarge = SeqVal(SeqVal(CharVal('a'), CharVal('b')), CharVal('c'))
+    if (sketchSeqReassocRecon(reassocSmall) != Some(reassocLarge)) {
+      throw new AssertionError("sequence reassociation sketch transformer failed")
+    }
+    println("strong reconstruction sketch sequence reassociation transformer passed")
   }
 
   def intSetting(prop: String, env: String, default: Int): Int =
@@ -1033,6 +1246,9 @@ object PosixCubicSmoke {
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
+    val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
+    val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
+    val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
@@ -1044,9 +1260,21 @@ object PosixCubicSmoke {
         checkStrongRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
       }
     }
+    if (checkStrongSafe) {
+      checkStrongSafeValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongSafeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+    }
     checkCounterexamples()
+    if (traceStrongRecon) {
+      checkStrongReconstructionSketch()
+    }
     if (traceStrong) {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
+    }
+    if (traceStrongSafe) {
+      checkStrongSafeEvilFamilyTrace(ch7K, ch7Lengths)
     }
     checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     if (sharedNoReassoc) {

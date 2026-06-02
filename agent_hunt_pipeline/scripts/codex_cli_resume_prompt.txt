@@ -52,6 +52,15 @@ Current override, 2026-06-02:
   value structure is collapsed. Do not use `bsimpStrong` as a POSIX candidate
   without either repairing that simplifier or adding a checked generalized-value
   reconstruction theorem.
+- CE-driven update: `bsimpStrongSafe` disables the value-unsafe strong output
+  rewrites and passes exact-value smoke through random depth 5, input 6, seed
+  20260602, but its Figure 7.6 k=5 tree size at n=30 is 5133. This is a
+  diagnostic baseline, not the desired endpoint. The desired endpoint is small
+  `bsimpStrong`-style regex plus local value transformers/reconstruction.
+- `scala_cubic_smoke.ps1 -TraceStrongRecon` checks the first local
+  reconstruction sketches on the CE witnesses while keeping actual
+  `bsimpStrong` output trees. It is route evidence only; continue toward a
+  compositional derivative-time certificate.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.
@@ -75,6 +84,8 @@ Smoke commands:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 1 -TraceStrong -SeqMode expanded-keyed-no-reassoc -Ch7K 5 -Ch7Lengths "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 10000 -Ch7ShapeThreshold 5000`
 - Strong POSIX diagnostic, expected to fail until repaired:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -CheckStrong -Ch7TreeThreshold 1000000 -TimeoutSeconds 240`
+- Strong-safe CE diagnostic:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SeqMode expanded-keyed-no-reassoc -CheckStrongSafe -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -Ch7TreeThreshold 1000000 -TimeoutSeconds 240`
 - Full verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`
 

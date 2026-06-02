@@ -1,6 +1,56 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (hash-consed and virtual expanded-key prototypes added)
+Last updated: 2026-06-02 (strong reconstruction sketch added)
+
+## Cubic Candidate Prototype: CE-Driven Strong Value Safety (2026-06-02)
+
+- Added Scala-only diagnostic `bsimpStrongSafe`, with wrapper switches
+  `-CheckStrongSafe` and `-TraceStrongSafe`. This is not a bounty artifact; it
+  is the first counterexample-driven attempt to keep as much of the thesis
+  strong simplifier as possible while preserving exact POSIX values.
+- CE-driven repairs found so far:
+  - `STAR (STAR (CH a))` on `a` shows nested-star collapse loses the outer
+    `Stars` value. Safe variant keeps nested stars and preserves empty-star
+    `S` bits.
+  - `SEQ (STAR (CH a)) (STAR ZERO)` on `a` shows right `AONE bs` may carry
+    value bits. Safe variant drops the right unit only when it is `AONE []`.
+  - `SEQ (STAR (CH a)) (STAR (CH a))` on `a` shows star absorption
+    `r* . r* -> r*` loses the second-star value. Safe variant disables this
+    output rewrite.
+  - A depth-3 random counterexample showed left-nested reassociation
+    `(x.y).z -> x.(y.z)` reorders prefix bits. Safe variant disables this
+    output rewrite too.
+- Smoke evidence after those repairs: exact POSIX value preservation passes
+  exhaustive depth `2`, input length `3` (`84,300` pairs), deterministic random
+  depth `4`, input length `5` (`5,000` cases), and deterministic random depth
+  `5`, input length `6` (`2,000` cases), seed `20260602`.
+- Size evidence: `bsimpStrongSafe` no longer preserves the thesis Figure 7.6
+  tree plateau. On `k=5`, lengths `0..30`, selected tree sizes
+  `0,4,8,12,16,20,24,30` are `46,880,2192,2961,3449,3927,4486,5133`.
+  This is exact-value safe but worse than both thesis `bsimpStrong`
+  (`46,474,730,771,820,875,918,958`) and the current
+  `expanded-keyed-no-reassoc` (`46,662,1334,1841,2264,2816,3150,3849`).
+- Design conclusion: if we want to keep the `bsimpStrong` tree-size behavior
+  and still return correct POSIX values, weakening output rewrites is the wrong
+  endpoint. The next serious route is a transformer/reconstruction layer for
+  the three value-unsafe strong rewrites: nested-star collapse, star absorption,
+  and sequence reassociation. Those rewrites may remain in the small regex only
+  if the lexer carries enough evidence to map decoded simplified values back to
+  the original `val` shape.
+- Added optional sketch smoke `scala_cubic_smoke.ps1 -TraceStrongRecon`. It
+  keeps the actual `bsimpStrong` final regex and tests local value
+  reconstruction sketches on the first CE family:
+  - nested-star collapse: `Stars vs` reconstructs to
+    `Stars [Stars vs]` for the nonempty derivative case;
+  - star absorption/right nullable unit: `Stars vs` reconstructs to
+    `Seq (Stars vs) (Stars [])`;
+  - sequence reassociation: `Seq x (Seq y z)` reconstructs to
+    `Seq (Seq x y) z`.
+  The smoke passes on the current CE witnesses while `bsimpStrong` keeps the
+  thesis-sized final regexes, e.g. each small CE has final strong tree size `2`.
+  This is positive route evidence, not a completed algorithm: the remaining
+  work is to make these local transformers compositional across derivative
+  steps.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 
