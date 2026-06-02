@@ -1213,6 +1213,16 @@ to be read before continuing long-running agent work.
   `rpder_norm_list`, `rpder_strong_list`, `rpder_strong_rows`, and
   `rpders_strong_rows`. Use `row_group_deep_nf_rpders_strong_rows` for
   iteration, then project back with `row_group_deep_nf_imp_row_group_nf`.
+- `rsimp9` is now the checked entry normalizer from arbitrary roots into
+  `row_group_deep_nf`. This matters because raw roots, especially `RNTIMES`
+  bodies, need not already satisfy the deep invariant; `rsimp9` recursively
+  normalizes those bodies before the strong-row iteration starts. Use
+  `row_group_deep_nf_rsimp9`,
+  `row_group_deep_nf_rpders_strong1_rows_rsimp9`, and
+  `row_group_nf_rpders_strong1_rows_rsimp9` when starting from an arbitrary
+  root. This is still only the entry shape guarantee; the remaining hard
+  target is a finite root-owned universe with cubic cardinality/member-size
+  bounds.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

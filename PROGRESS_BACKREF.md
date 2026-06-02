@@ -100,6 +100,15 @@ Last updated: 2026-06-02 (strong-row deep grouped normal form)
   `row_group_nf_rpders_strong_rows` corollary recovers the shallow grouped-row
   shape for every reached row. This is still a shape invariant, not the final
   finite universe or cubic bound.
+- Connected the deep grouped invariant to the existing root-safe normalizer:
+  `row_group_deep_nf_rsimp9` proves every `rsimp9 r` is deep-grouped, including
+  recursively normalized `RNTIMES` bodies. The entry lemmas
+  `row_group_deep_nf_rpders_strong1_rows_rsimp9` and
+  `row_group_nf_rpders_strong1_rows_rsimp9` now say that the strong-row
+  iteration started from `rsimp9 r` stays in the deep invariant and therefore
+  has grouped-row shape. This closes the initial-shape gap left by the previous
+  checkpoint; the remaining work is still a finite root-owned universe with
+  cubic cardinality/member-size bounds.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

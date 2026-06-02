@@ -17560,6 +17560,53 @@ next
   then show ?case by simp
 qed
 
+lemma row_group_deep_nf_rsimp9:
+  "row_group_deep_nf (rsimp9 r)"
+proof (induction r rule: rsimp9.induct)
+  case (1 r1 r2)
+  have left: "row_group_deep_nf (rsimp9 r1)"
+    using 1 by blast
+  have right: "row_group_deep_nf (rsimp9 r2)"
+    using 1 by blast
+  show ?case
+    by (simp add: row_group_deep_nf_rsimp7_SEQ_atom[OF left right])
+next
+  case (2 rs)
+  have elems: "\<forall>q \<in> set (map rsimp9 rs). row_group_deep_nf q"
+  proof
+    fix q
+    assume q: "q \<in> set (map rsimp9 rs)"
+    obtain r where r: "r \<in> set rs" "q = rsimp9 r"
+      using q by auto
+    have "row_group_deep_nf (rsimp9 r)"
+      using 2 r by blast
+    then show "row_group_deep_nf q"
+      using r by simp
+  qed
+  show ?case
+    by (simp add: row_group_deep_nf_normalize[OF elems])
+next
+  case (3 r)
+  have inner: "row_group_deep_nf (rsimp9 r)"
+    using 3 by blast
+  show ?case
+    using inner by (cases "rsimp9 r") simp_all
+next
+  case (4 r n)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc m)
+    have inner: "row_group_deep_nf (rsimp9 r)"
+      using 4 Suc by blast
+    then show ?thesis
+      using inner by (cases "rsimp9 r") simp_all
+  qed
+qed simp_all
+
 lemma row_group_deep_nf_map_rsimp4_SEQ_atom:
   assumes rows: "\<forall>p \<in> set xs. row_group_deep_nf p"
       and k: "row_group_deep_nf k"
@@ -17840,6 +17887,22 @@ lemma row_group_nf_rpders_strong1_rows:
 proof -
   have "row_group_deep_nf p"
     by (rule row_group_deep_nf_rpders_strong1_rows[OF assms])
+  then show ?thesis
+    by (rule row_group_deep_nf_imp_row_group_nf)
+qed
+
+lemma row_group_deep_nf_rpders_strong1_rows_rsimp9:
+  assumes "p \<in> set (rpders_strong1_rows (rsimp9 r) s)"
+  shows "row_group_deep_nf p"
+  by (rule row_group_deep_nf_rpders_strong1_rows
+      [OF row_group_deep_nf_rsimp9 assms])
+
+lemma row_group_nf_rpders_strong1_rows_rsimp9:
+  assumes "p \<in> set (rpders_strong1_rows (rsimp9 r) s)"
+  shows "row_group_nf p"
+proof -
+  have "row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpders_strong1_rows_rsimp9[OF assms])
   then show ?thesis
     by (rule row_group_deep_nf_imp_row_group_nf)
 qed
