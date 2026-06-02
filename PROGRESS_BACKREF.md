@@ -2,6 +2,20 @@
 
 Last updated: 2026-06-02 (strong-row cubic route correction)
 
+## Cubic Bound Checkpoint: Root-Normalized Strong Rows (2026-06-02)
+
+- Added checked proof-level bridge `RLS_rpders_strong1_rows_rsimp9`: starting
+  the strong row pipeline from `rsimp9 r` still denotes the ordinary repeated
+  derivatives of `r`. This records the intended composition: `rsimp9` supplies
+  root/tail/countdown normalization, while `rpders_strong1_rows` supplies the
+  Chapter-7 shared-suffix row pruning route.
+- Added checked cubic-universe hooks
+  `rsizes_rpders_strong1_rows_rsimp9_cubic_universe_boundI` and
+  `rsizes_rpders_strong1_rows_rsimp9_norm_later_shared_cubic_universe_boundI`.
+  These do not close the finite universe theorem; they repackage the remaining
+  proof obligation around the correct initial state `rsimp9 r`.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+
 ## Cubic Bound Route Correction: Strong-Row Route Is The Target (2026-06-02)
 
 - The Chapter 7 evil family is the three-star shape
