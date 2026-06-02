@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Raw one-step closure is split into local obligations
+
+- Added raw subset decomposition lemmas for pruning and derivative rows:
+  `rsimpStrong_prune_rows_raw_later_shared_subsetI`,
+  `rflts_rpder_strong_list_raw_subsetI`,
+  `rpder_strong_rows_raw_norm_later_shared_subsetI`, and the iterated row
+  interface.
+- Added
+  `strong_deferred_original_raw_row_norm_later_shared_cubic_universe_interface`
+  in `FBound.thy`.
+- Design consequence: the next finite-universe proof should not unfold
+  `rpder_strong_rows_raw` all at once. Prove `flat_closed`, `norm`, and
+  `shared` closure lemmas for the proposed universe, then use the checked
+  interface to obtain the annotated size bound and deferred-value gate.
+
 ## 2026-06-03: Raw-row closure is now the preferred cubic obligation
 
 - Added raw-row finite-universe bookkeeping for `rpders_strong_rows_raw`:

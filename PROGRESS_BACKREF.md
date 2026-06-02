@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (raw strong row universe interface)
+Last updated: 2026-06-03 (raw strong one-step closure split)
+
+## Cubic Candidate Prototype: Raw Strong One-Step Closure Split (2026-06-03)
+
+- Added checked raw one-step subset decomposition in `GeneralRegexBound.thy`:
+  - `rsimpStrong_prune_pair_raw_shared_subsetI`;
+  - `rsimpStrong_prune_rows_raw_later_shared_subsetI`;
+  - `rflts_rpder_strong_list_raw_subsetI`;
+  - `rpder_strong_rows_raw_norm_later_shared_subsetI`;
+  - `rpders_strong_rows_raw_norm_later_shared_subsetI`;
+  - `rsizes_rpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI`.
+- Added checked annotated/original transfer in `FBound.thy`:
+  - `asizes_bpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI`;
+  - `strong_deferred_original_raw_row_norm_later_shared_cubic_universe_interface`.
+- Design result:
+  - The raw one-step closure obligation is no longer a monolithic premise
+    over `rpder_strong_rows_raw`.
+  - Future universe construction can prove three local obligations:
+    `flat_closed` for row flattening, `norm` for
+    `rsimpStrong_raw` over `rpder_norm_list`, and `shared` for the raw
+    shared-suffix prune result
+    `rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k`.
+  - These local obligations still have to be instantiated by a concrete
+    finite raw/shared universe with cubic card/member bounds. No BR-039 or
+    BR-040 payout is claimed.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Raw Strong Row Universe Interface (2026-06-03)
 

@@ -4965,6 +4965,84 @@ proof -
     by (rule asize_intern)
 qed
 
+lemma asizes_bpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI:
+  assumes init: "rerase r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      RSEQ (RALTS rrs) k \<in> U \<Longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong1_rows r s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase r) s) \<le> B"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI
+        [OF init flat_closed norm shared finite card_bound member_size cubic])
+  have "asizes (bpders_strong1_rows r s) =
+      rsizes (rpders_strong1_rows_raw (rerase r) s)"
+  proof -
+    have "asizes (bpders_strong1_rows r s) =
+        rsizes (map rerase (bpders_strong1_rows r s))"
+      by (simp add: asizes_rsizes_rerase[symmetric])
+    also have "... = rsizes (rpders_strong1_rows_raw (rerase r) s)"
+      by (simp add: map_rerase_bpders_strong1_rows_raw)
+    finally show ?thesis .
+  qed
+  then show ?thesis
+    using raw_bound by simp
+qed
+
+lemma strong_deferred_original_raw_row_norm_later_shared_cubic_universe_interface:
+  assumes legacy: "legacy_rexp r"
+      and init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and shared: "\<And>lrs rrs k.
+        RSEQ (RALTS rrs) k \<in> U \<Longrightarrow>
+        set (rflts [rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule asizes_bpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI
+        [OF init flat_closed norm shared finite card_bound member_size cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI
+        [OF init flat_closed norm shared finite card_bound member_size cubic])
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule strong_deferred_original_row_gate[OF legacy])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule map_rerase_bpders_strong1_rows_raw)
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule rsize_rerase_intern)
+  show "asize (intern r) = rxsize r"
+    by (rule asize_intern)
+qed
+
 lemma asize_bp_der_strong_finite_universe_boundI:
   assumes init: "rerase r \<in> U"
       and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>

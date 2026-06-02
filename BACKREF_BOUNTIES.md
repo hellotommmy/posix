@@ -63,6 +63,14 @@ immutability.
 
 ## Open Artifact Notes
 
+- Raw one-step closure split: `GeneralRegexBound.thy` now splits the raw
+  `rpder_strong_rows_raw` closure proof into local `flat_closed`, `norm`, and
+  `shared` obligations, with the shared obligation targeting the raw delayed
+  prune result `rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k`.
+  `FBound.thy` exposes this as
+  `strong_deferred_original_raw_row_norm_later_shared_cubic_universe_interface`.
+  This is useful BR-040 infrastructure, not a payout before a concrete
+  cubic raw/shared universe is checked.
 - Raw-row universe interface: `GeneralRegexBound.thy` now has finite-universe
   subset/distinct/length/`rsizes` bookkeeping for `rpders_strong_rows_raw`.
   `FBound.thy` adds `strong_deferred_original_raw_row_cubic_universe_interface`,

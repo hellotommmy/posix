@@ -147,6 +147,15 @@ contract: prove a finite universe `U` is closed by
 `bpders_strong1_rows (intern r) s` size bound plus deferred-value gate follows.
 This keeps later universe construction away from annotated bit payloads.
 
+For actual closure work, use the split interface
+`strong_deferred_original_raw_row_norm_later_shared_cubic_universe_interface`.
+It reduces raw one-step closure to three local obligations: row flattening
+closure, `rsimpStrong_raw` closure over `rpder_norm_list`, and raw shared-suffix
+pruning closure for
+`rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k`. Do not unfold and
+attack the full `rpder_strong_rows_raw` definition when these local hooks
+suffice.
+
 Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
 `bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
 value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,
