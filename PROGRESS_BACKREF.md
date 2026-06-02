@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong full-cover derivative surface)
+Last updated: 2026-06-02 (strong shared-suffix accounting)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -166,6 +166,15 @@ Last updated: 2026-06-02 (strong full-cover derivative surface)
   narrow facts for the Chapter-7 overlap atom: they turn full-cover deletion
   into a one-row `rsizes`/`asizes` equation without unfolding the whole
   derivative-row pipeline in later bound proofs.
+- Added partial-overlap size-accounting lemmas for the same surface:
+  `rsize_rsimpStrong_shared_prune_result_le`,
+  `rsizes_rpder_strong_rows_shared_suffix_le`,
+  `asize_bsimpStrong_shared_prune_result_le`, and
+  `asizes_bpder_strong_rows_shared_suffix_le`. These facts bound the actual
+  strong-row derivative output by the earlier shared-suffix row plus the later
+  row after `rprune_eq_against`/`prune_eq1_against`. This is the accounting
+  form needed for the thesis Chapter-7 family, where the second row is often
+  partially rather than fully covered.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

@@ -1277,6 +1277,15 @@ to be read before continuing long-running agent work.
   full-cover deletion as a one-row size equation, which is the form future
   cardinality/member-size proofs should use when counting the Chapter-7
   overlap family.
+- For partial overlap, the reusable accounting atoms are
+  `rsize_rsimpStrong_shared_prune_result_le`,
+  `rsizes_rpder_strong_rows_shared_suffix_le`,
+  `asize_bsimpStrong_shared_prune_result_le`, and
+  `asizes_bpder_strong_rows_shared_suffix_le`. These bounds count the actual
+  row-derivative output as the earlier shared-suffix row plus the later row
+  after covered alternatives have been deleted. This is the form needed for
+  examples such as `(a+b+d).c + (a+c+e).c`, where the second row is shrunk but
+  not erased.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

@@ -16806,6 +16806,39 @@ proof -
     by simp
 qed
 
+lemma rsize_rsimp_ALTs_rdistinct_rflts_le:
+  "rsize (rsimp_ALTs (rdistinct (rflts rs) {})) \<le> rsize (RALTS rs)"
+proof -
+  have "rsize (rsimp_ALTs (rdistinct (rflts rs) {})) \<le>
+      Suc (rsizes (rdistinct (rflts rs) {}))"
+    by (rule rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes (rflts rs))"
+    using rdistinct_smaller[of "rflts rs" "{}"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using rflts_mono[of rs] by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimpStrong_shared_prune_result_le:
+  "rsize
+    (rsimp7_SEQ_atom
+      (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+      k) \<le>
+    rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
+proof -
+  let ?pruned = "rprune_eq_against lrs rrs"
+  have "rsize
+      (rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts ?pruned) {})) k) \<le>
+      Suc (rsize (rsimp_ALTs (rdistinct (rflts ?pruned) {})) + rsize k)"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize (RALTS ?pruned) + rsize k)"
+    using rsize_rsimp_ALTs_rdistinct_rflts_le[of ?pruned] by simp
+  finally show ?thesis
+    by simp
+qed
+
 lemma rsize_rsimpStrong_prune_pair_le:
   "rsize (rsimpStrong_prune_pair earlier later) \<le> rsize later"
 proof -
@@ -17237,6 +17270,31 @@ lemma rsizes_rpder_strong_rows_full_cover_shared_suffix:
     and cover: "set rrs \<subseteq> set lrs"
   shows "rsizes (rpder_strong_rows c rs) = rsize (RSEQ (RALTS lrs) k)"
   using assms by (simp add: rpder_strong_rows_full_cover_shared_suffix)
+
+lemma rsizes_rpder_strong_rows_shared_suffix_le:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+  shows "rsizes (rpder_strong_rows c rs) \<le>
+    rsize (RSEQ (RALTS lrs) k) +
+    rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
+proof -
+  let ?earlier = "RSEQ (RALTS lrs) k"
+  let ?tail =
+    "rsimp7_SEQ_atom
+      (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {})) k"
+  have "rsizes (rpder_strong_rows c rs) =
+      rsizes (rdistinct (rflts [?earlier, ?tail]) {})"
+    by (simp add: rpder_strong_rows_shared_suffix[OF raw])
+  also have "... \<le> rsizes (rflts [?earlier, ?tail])"
+    using rdistinct_smaller[of "rflts [?earlier, ?tail]" "{}"] by simp
+  also have "... \<le> rsizes [?earlier, ?tail]"
+    using rflts_mono[of "[?earlier, ?tail]"] by simp
+  also have "... \<le>
+      rsize ?earlier +
+      rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
+    using rsize_rsimpStrong_shared_prune_result_le[of lrs rrs k] by simp
+  finally show ?thesis .
+qed
 
 lemma distinct_rpders_strong_rows:
   assumes "distinct rs"

@@ -1818,6 +1818,23 @@ proof -
     by (simp add: asizes_def)
 qed
 
+lemma asize_bsimpStrong_shared_prune_result_le:
+  "asize
+    (bsimp7_ASEQ_atom bs
+      (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k) \<le>
+    asize (ASEQ bs (AALTs rbs (prune_eq1_against lrs rrs)) k)"
+proof -
+  let ?pruned = "prune_eq1_against lrs rrs"
+  have "asize
+      (bsimp7_ASEQ_atom bs (bsimp_AALTs rbs ?pruned) k) \<le>
+      Suc (asize (bsimp_AALTs rbs ?pruned) + asize k)"
+    by (rule asize_bsimp7_ASEQ_atom_le)
+  also have "... \<le> Suc (asize (AALTs rbs ?pruned) + asize k)"
+    using asize_bsimp_AALTs_le[of rbs ?pruned] by (simp add: asizes_def)
+  finally show ?thesis
+    by simp
+qed
+
 lemma asize_bsimpStrong_prune_pair_le:
   "asize (bsimpStrong_prune_pair earlier later) \<le> asize later"
 proof -
@@ -2025,6 +2042,34 @@ proof -
         [OF raw cover suffix])
   show ?thesis
     by (simp add: rows asizes_def)
+qed
+
+lemma asizes_bpder_strong_rows_shared_suffix_le:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and suffix: "k1 ~1 k2"
+  shows "asizes (bpder_strong_rows c rs) \<le>
+    asize (ASEQ bs1 (AALTs lbs lrs) k1) +
+    asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2)"
+proof -
+  let ?earlier = "ASEQ bs1 (AALTs lbs lrs) k1"
+  let ?tail =
+    "bsimp7_ASEQ_atom bs2
+      (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2"
+  have "asizes (bpder_strong_rows c rs) =
+      asizes (distinctWith (flts [?earlier, ?tail]) eq1 {})"
+    by (simp add: bpder_strong_rows_shared_suffix[OF raw suffix])
+  also have "... \<le> asizes (flts [?earlier, ?tail])"
+    by (rule asizes_distinctWith_le)
+  also have "... \<le> asizes [?earlier, ?tail]"
+    by (rule asizes_flts_le)
+  also have "... \<le>
+      asize ?earlier +
+      asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2)"
+    using asize_bsimpStrong_shared_prune_result_le[of bs2 rbs lrs rrs k2]
+    by (simp add: asizes_def)
+  finally show ?thesis .
 qed
 
 lemma asize_bp_der_strong_le_asizes:
