@@ -2888,6 +2888,33 @@ lemma asize_bp_der_norm_cubic:
   using rsize_rpd_der_norm_cubic[OF assms, of c]
   by (simp add: asize_bp_der_norm_rpd_der_norm)
 
+lemma asizes_bpder_norm_list_cubic:
+  assumes "legacy_rrexp (rerase r)"
+  shows "asizes (bpder_norm_list c r) \<le>
+    2 * (rsize (rerase r) + 3) ^ 3"
+proof -
+  have "asizes (bpder_norm_list c r) =
+      rsizes (rpder_norm_list c (rerase r))"
+    by (simp add: asizes_rsizes_rerase[symmetric]
+        rerase_bpder_norm_list)
+  also have "... \<le> 2 * (rsize (rerase r) + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma asize_bp_der_strong_cubic:
+  assumes "legacy_rrexp (rerase r)"
+  shows "asize (bp_der_strong c r) \<le>
+    Suc (2 * (rsize (rerase r) + 3) ^ 3)"
+proof -
+  have "asize (bp_der_strong c r) \<le>
+      Suc (asizes (bpder_norm_list c r))"
+    by (rule asize_bp_der_strong_le_asizes)
+  also have "... \<le> Suc (2 * (rsize (rerase r) + 3) ^ 3)"
+    using asizes_bpder_norm_list_cubic[OF assms, of c] by simp
+  finally show ?thesis .
+qed
+
 corollary aders_pder_finiteness:
   assumes "\<exists>N. \<forall>s. rsize (rders_pder (rerase r) s) \<le> N"
   shows "\<exists>N. \<forall>s. asize (bders_pder r s) \<le> N"

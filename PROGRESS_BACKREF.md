@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong expression bridge)
+Last updated: 2026-06-02 (annotated strong one-step size)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -14,6 +14,14 @@ Last updated: 2026-06-02 (strong expression bridge)
   and the existing one-step cubic size budget to `rpd_der_strong` itself.
   This is support plumbing only, not a BR-036 payout: the remaining hard
   theorem is still root-owned closure/cardinality for repeated strong rows.
+- Added the annotated one-step size counterpart in `FBound.thy`:
+  `asizes_bpder_norm_list_cubic` and `asize_bp_der_strong_cubic`.
+  These transfer the existing proof-level normalized-row cubic one-step
+  budget through `rerase` and show that `bp_der_strong` inherits that
+  immediate size bound on the non-backref fragment. This does not prove a
+  repeated cubic bound for `bpders_strong_rows`; it is the annotated bridge
+  needed before the future root-owned universe closure theorem can be used in
+  the executable layer.
 - Added and checked the conditional finite-universe interface for the
   proof-level strong row pipeline:
   `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,

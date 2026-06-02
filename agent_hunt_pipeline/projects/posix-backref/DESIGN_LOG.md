@@ -1315,3 +1315,10 @@ to be read before continuing long-running agent work.
   `rsize_rpd_der_strong_cubic`. Use these when a future proof reasons about
   `rpd_der_strong` directly instead of the row list `rpder_strong_rows c [r]`.
   They are glue for the root-owned universe route, not a bounty claim.
+- The annotated layer now has the matching one-step size bridge:
+  `asizes_bpder_norm_list_cubic` transfers the proof-level
+  `rsizes_rpder_norm_list_cubic` theorem through `rerase_bpder_norm_list`, and
+  `asize_bp_der_strong_cubic` shows `bp_der_strong` inherits that immediate
+  cubic one-step budget. This deliberately stops short of a repeated
+  `bpders_strong_rows` cubic theorem; the missing ingredient is still the
+  root-owned strong-row closure/cardinality proof.
