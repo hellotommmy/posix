@@ -1,6 +1,36 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (ASEQ reassociation localized as bsimpCubic value hazard)
+Last updated: 2026-06-02 (value-safe DAG/shared-row route identified)
+
+## Cubic Candidate Diagnostic: Value-Safe DAG/Shared-Row Route (2026-06-02)
+
+- Extended the Scala smoke harness with exact DAG and shape-DAG size
+  diagnostics for Chapter 7 traces. The wrapper now exposes
+  `-Ch7K`, `-Ch7Lengths`, `-Ch7TreeThreshold`, `-Ch7DagThreshold`, and
+  `-Ch7ShapeThreshold`. Default CI still uses the old tree threshold.
+- Key evidence: the value-safe `no-reassoc` mode passes deterministic random
+  POSIX value smoke (`-RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`)
+  but fails the tree-size Chapter 7 threshold. However, its repeated structure
+  is highly shareable:
+  - `k=5`, lengths `4,8,16,32,64`:
+    tree `880,2057,3281,5325,8342`;
+    exact DAG `65,124,206,348,575`;
+    shape DAG `51,90,132,194,278`.
+  - `k=8`, lengths `4,8,16,32`:
+    tree `2188,5728,11699,18643`;
+    exact DAG `86,166,317,547`;
+    shape DAG `69,123,210,312`.
+- This gives a concrete next route that preserves POSIX values without
+  destructive `ASEQ` reassociation: represent derivative states as a shared
+  DAG/hash-consed row universe or delayed linear forms. The tree term still
+  grows too much, so this is not a completed tree-size bound, but it supports
+  an Antimirov-style finite-row accounting route where repeated continuations
+  are shared rather than reassociated into the executable syntax.
+- Current recommended next step: prototype a row-universe/DAG representation
+  that keeps `no-reassoc`-style value behavior, proves or tests a reconstruction
+  path back to ordinary POSIX values, and measures the number of distinct
+  annotated nodes/rows as the candidate size metric before attempting Isabelle
+  proofs.
 
 ## Cubic Candidate Diagnostic: ASEQ Reassociation Hazard (2026-06-02)
 

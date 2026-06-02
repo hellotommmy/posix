@@ -48,6 +48,12 @@ Short version:
   values but grows too much. Reassociation may be used only as a comparison
   key, proof device, or generalized-value transfer route until a checked
   bitcode/value reconstruction theorem exists.
+- Use DAG/shared-row diagnostics to guide the next cubic design, but do not
+  confuse them with a completed tree-size theorem. Current smoke shows that
+  value-safe `no-reassoc` has large tree size but much smaller exact DAG and
+  shape-DAG size on the Chapter 7 family. This supports a hash-consed
+  row-universe, delayed linear-form, or reconstruction-based route; it is not
+  a bounty claim until the representation and POSIX-value transfer are checked.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

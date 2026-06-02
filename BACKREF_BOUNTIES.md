@@ -93,6 +93,12 @@ immutability.
   `reassoc-nonnullable-left` still fails random value smoke. Therefore BR-039
   cannot pay for a simplifier that emits reassociated sequence syntax unless it
   also supplies a checked bitcode/value reconstruction theorem.
+- New route evidence: the Scala harness now reports exact DAG and shape-DAG
+  sizes for Chapter 7. Value-safe `no-reassoc` has large tree size but compact
+  shared structure (`k=8`, length `32`: tree `18643`, exact DAG `547`,
+  shape DAG `312`). This supports a future hash-consed row-universe or delayed
+  linear-form bounty route, but it is not itself a payout because BR-039 still
+  asks for a smoke-tested candidate with an explicit POSIX-value story.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

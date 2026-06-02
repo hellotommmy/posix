@@ -3,6 +3,30 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Value-safe route should exploit sharing, not reassociation
+
+- The Scala smoke harness now reports three Chapter 7 size measures:
+  tree `asize`, exact DAG size over annotated expressions, and shape-DAG size
+  that ignores bit payloads. The tree threshold remains the default CI gate,
+  but the DAG measures are now first-class diagnostics for Antimirov-style row
+  universe work.
+- The important observation is that the value-safe `no-reassoc` mode is not
+  fundamentally exploding in distinct structure. On the thesis Chapter 7 family
+  with `k=5`, lengths `4,8,16,32,64`, the tree sizes are
+  `880,2057,3281,5325,8342`, while exact DAG sizes are only
+  `65,124,206,348,575` and shape-DAG sizes are `51,90,132,194,278`. For
+  `k=8`, lengths `4,8,16,32`, the tree reaches `18643`, but exact DAG is
+  `547` and shape DAG is `312`.
+- This suggests a better cubic-bound design: keep executable output
+  `no-reassoc`/POSIX-value shaped, but represent states with hash-consed
+  sharing or delayed linear forms so repeated continuations are counted once.
+  This matches the Antimirov set/row intuition without forcing syntactic
+  distribution or `(x.y).z -> x.(y.z)` into the value-carrying regex.
+- This is still a route, not a payout. A future candidate must specify the
+  shared representation, prove or smoke-test reconstruction to ordinary POSIX
+  values, and then state the size theorem over that representation or transfer
+  it back to tree syntax with a checked expansion bound.
+
 ## 2026-06-02: Destructive sequence reassociation is not value-safe output
 
 - A diagnostic Scala switch `POSIX_SMOKE_SEQ_MODE` now isolates the sequence

@@ -14,7 +14,12 @@ param(
   [int]$ScalaSmokeRandomDepth = 5,
   [int]$ScalaSmokeRandomInputLength = 6,
   [long]$ScalaSmokeSeed = 20260602,
-  [string]$ScalaSmokeSeqMode = "full"
+  [string]$ScalaSmokeSeqMode = "full",
+  [int]$ScalaSmokeCh7K = 5,
+  [string]$ScalaSmokeCh7Lengths = "4,8,12,16,20",
+  [int]$ScalaSmokeCh7TreeThreshold = 1000,
+  [int]$ScalaSmokeCh7DagThreshold = 0,
+  [int]$ScalaSmokeCh7ShapeThreshold = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -71,8 +76,8 @@ try {
   Write-Host "== Acquired Isabelle build lock =="
 
   if (-not $PilotOnly -and -not $SkipScalaSmoke) {
-    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode =="
-    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold =="
+    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
     if ($LASTEXITCODE -ne 0) {
       if ($LASTEXITCODE -eq 124) {
         throw "Scala cubic smoke timed out after $SessionTimeoutSeconds seconds"

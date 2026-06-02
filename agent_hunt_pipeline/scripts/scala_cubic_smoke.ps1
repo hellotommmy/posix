@@ -7,6 +7,11 @@ param(
   [int]$RandomInputLength = 6,
   [long]$Seed = 20260602,
   [string]$SeqMode = "full",
+  [int]$Ch7K = 5,
+  [string]$Ch7Lengths = "4,8,12,16,20",
+  [int]$Ch7TreeThreshold = 1000,
+  [int]$Ch7DagThreshold = 0,
+  [int]$Ch7ShapeThreshold = 0,
   [int]$TimeoutSeconds = 120
 )
 
@@ -35,8 +40,8 @@ $Isabelle = "$IsabelleCyg/bin/isabelle"
 
 Set-Location -LiteralPath $Repo
 
-Write-Host "== Scala cubic smoke: depth=$Depth input=$InputLength random=$RandomCases/$RandomDepth seed=$Seed seq=$SeqMode =="
-& $Bash -lc "cd '$RepoCyg' && timeout ${TimeoutSeconds}s env POSIX_SMOKE_DEPTH=$Depth POSIX_SMOKE_INPUT=$InputLength POSIX_SMOKE_MAX_REGEXES=$MaxRegexes POSIX_SMOKE_RANDOM_CASES=$RandomCases POSIX_SMOKE_RANDOM_DEPTH=$RandomDepth POSIX_SMOKE_RANDOM_INPUT=$RandomInputLength POSIX_SMOKE_SEED=$Seed POSIX_SMOKE_SEQ_MODE='$SeqMode' '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+Write-Host "== Scala cubic smoke: depth=$Depth input=$InputLength random=$RandomCases/$RandomDepth seed=$Seed seq=$SeqMode ch7=$Ch7K/$Ch7Lengths tree=$Ch7TreeThreshold dag=$Ch7DagThreshold shape=$Ch7ShapeThreshold =="
+& $Bash -lc "cd '$RepoCyg' && timeout ${TimeoutSeconds}s env POSIX_SMOKE_DEPTH=$Depth POSIX_SMOKE_INPUT=$InputLength POSIX_SMOKE_MAX_REGEXES=$MaxRegexes POSIX_SMOKE_RANDOM_CASES=$RandomCases POSIX_SMOKE_RANDOM_DEPTH=$RandomDepth POSIX_SMOKE_RANDOM_INPUT=$RandomInputLength POSIX_SMOKE_SEED=$Seed POSIX_SMOKE_SEQ_MODE='$SeqMode' POSIX_SMOKE_CH7_K=$Ch7K POSIX_SMOKE_CH7_LENGTHS='$Ch7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$Ch7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$Ch7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$Ch7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
 if ($LASTEXITCODE -ne 0) {
   if ($LASTEXITCODE -eq 124) {
     throw "Scala cubic smoke timed out after $TimeoutSeconds seconds"

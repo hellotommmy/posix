@@ -97,6 +97,15 @@ proof-only normalization, or generalized-value transfer route, but production
 `bsimpCubic` needs a checked bitcode/value reconstruction theorem before it can
 emit reassociated syntax.
 
+The newest promising route is shared representation rather than destructive
+syntax change. The Scala harness reports tree size, exact DAG size, and
+shape-DAG size for Chapter 7 traces. Value-safe `no-reassoc` fails the old
+tree threshold but has much smaller DAG measures, suggesting a hash-consed
+row universe or delayed linear-form representation. Use those diagnostics to
+guide design, but do not claim a tree-size theorem or bounty from DAG evidence
+alone; the shared representation and POSIX-value reconstruction must be stated
+and checked.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

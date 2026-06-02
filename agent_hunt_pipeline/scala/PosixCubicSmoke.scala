@@ -44,6 +44,51 @@ object PosixCubicSmoke {
     case ANTIMES(_, r, n) => 1 + asize(r) + n
   }
 
+  def adagSize(r: ARexp): Int = {
+    val seen = scala.collection.mutable.Set.empty[ARexp]
+    def visit(x: ARexp): Unit = {
+      if (seen.add(x)) {
+        x match {
+          case ASEQ(_, r1, r2) => visit(r1); visit(r2)
+          case AALTs(_, rs) => rs.foreach(visit)
+          case ASTAR(_, body) => visit(body)
+          case ANTIMES(_, body, _) => visit(body)
+          case _ => ()
+        }
+      }
+    }
+    visit(r)
+    seen.size
+  }
+
+  def ashapeKey(r: ARexp): String = r match {
+    case AZERO => "0"
+    case AONE(_) => "1"
+    case ACHAR(_, c) => s"c($c)"
+    case ASEQ(_, r1, r2) => s".(${ashapeKey(r1)},${ashapeKey(r2)})"
+    case AALTs(_, rs) => s"+(${rs.map(ashapeKey).mkString(",")})"
+    case ASTAR(_, body) => s"*(${ashapeKey(body)})"
+    case ANTIMES(_, body, n) => s"n($n,${ashapeKey(body)})"
+  }
+
+  def ashapeDagSize(r: ARexp): Int = {
+    val seen = scala.collection.mutable.Set.empty[String]
+    def visit(x: ARexp): Unit = {
+      val key = ashapeKey(x)
+      if (seen.add(key)) {
+        x match {
+          case ASEQ(_, r1, r2) => visit(r1); visit(r2)
+          case AALTs(_, rs) => rs.foreach(visit)
+          case ASTAR(_, body) => visit(body)
+          case ANTIMES(_, body, _) => visit(body)
+          case _ => ()
+        }
+      }
+    }
+    visit(r)
+    seen.size
+  }
+
   def shapeCounts(r: ARexp): Map[String, Int] = {
     def add(xs: Map[String, Int], key: String): Map[String, Int] =
       xs.updated(key, xs.getOrElse(key, 0) + 1)
@@ -542,19 +587,31 @@ object PosixCubicSmoke {
     println(s"checked random POSIX value preservation on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
-  def checkEvilFamilyTrace(): Unit = {
-    val r = thesisCh7Evil(5)
-    val lengths = List(4, 8, 12, 16, 20)
+  def checkEvilFamilyTrace(
+      k: Int,
+      lengths: List[Int],
+      treeThreshold: Int,
+      dagThreshold: Int,
+      shapeThreshold: Int
+  ): Unit = {
+    val r = thesisCh7Evil(k)
     val trace = lengths.map { n =>
       val out = bdersSimpCubic(intern(r), "a" * n)
-      n -> asize(out)
+      n -> (asize(out), adagSize(out), ashapeDagSize(out))
     }
-    println("Chapter 7 k=5 bsimpCubic trace: " + trace.map { case (n, size) => s"$n->$size" }.mkString(", "))
-    trace.foreach { case (n, size) =>
-      if (size >= 1000) {
+    println(s"Chapter 7 k=$k bsimpCubic trace: " +
+      trace.map { case (n, (tree, dag, shapeDag)) => s"$n->$tree/dag=$dag/shape=$shapeDag" }.mkString(", "))
+    trace.foreach { case (n, (size, dagSize, shapeSize)) =>
+      if (size >= treeThreshold) {
         val out = bdersSimpCubic(intern(r), "a" * n)
         println(s"Chapter 7 failed-shape n=$n: ${shortCounts(out)}")
-        throw new AssertionError(s"Chapter 7 smoke threshold failed at n=$n: asize=$size")
+        throw new AssertionError(s"Chapter 7 smoke threshold failed at n=$n: asize=$size threshold=$treeThreshold")
+      }
+      if (dagThreshold > 0 && dagSize >= dagThreshold) {
+        throw new AssertionError(s"Chapter 7 DAG threshold failed at n=$n: adagSize=$dagSize threshold=$dagThreshold")
+      }
+      if (shapeThreshold > 0 && shapeSize >= shapeThreshold) {
+        throw new AssertionError(s"Chapter 7 shape-DAG threshold failed at n=$n: ashapeDagSize=$shapeSize threshold=$shapeThreshold")
       }
     }
   }
@@ -606,6 +663,14 @@ object PosixCubicSmoke {
       .orElse(sys.env.get(env))
       .getOrElse(default)
 
+  def intListSetting(prop: String, env: String, default: List[Int]): List[Int] =
+    stringSetting(prop, env, default.mkString(","))
+      .split(",")
+      .toList
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .map(_.toInt)
+
   lazy val cubicSeqMode: String =
     stringSetting("posix.smoke.seqMode", "POSIX_SMOKE_SEQ_MODE", "full")
 
@@ -617,13 +682,18 @@ object PosixCubicSmoke {
     val randomDepth = intSetting("posix.smoke.randomDepth", "POSIX_SMOKE_RANDOM_DEPTH", 5)
     val randomInputMax = intSetting("posix.smoke.randomInput", "POSIX_SMOKE_RANDOM_INPUT", 6)
     val randomSeed = longSetting("posix.smoke.seed", "POSIX_SMOKE_SEED", 20260602L)
+    val ch7K = intSetting("posix.smoke.ch7K", "POSIX_SMOKE_CH7_K", 5)
+    val ch7Lengths = intListSetting("posix.smoke.ch7Lengths", "POSIX_SMOKE_CH7_LENGTHS", List(4, 8, 12, 16, 20))
+    val ch7TreeThreshold = intSetting("posix.smoke.ch7TreeThreshold", "POSIX_SMOKE_CH7_TREE_THRESHOLD", 1000)
+    val ch7DagThreshold = intSetting("posix.smoke.ch7DagThreshold", "POSIX_SMOKE_CH7_DAG_THRESHOLD", 0)
+    val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
       checkRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
     }
     checkCounterexamples()
-    checkEvilFamilyTrace()
+    checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
   }
 
   def main(args: Array[String]): Unit =

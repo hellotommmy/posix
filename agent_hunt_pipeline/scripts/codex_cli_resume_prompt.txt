@@ -31,6 +31,12 @@ Current override, 2026-06-02:
   `no-reassoc` is the mode that preserves tested random values. Unfortunately
   `no-reassoc` grows too much on Chapter 7, and `keyed-no-reassoc` is not yet
   strong enough. Even `reassoc-nonnullable-left` fails random value smoke.
+- The newest positive evidence is the DAG/shared-row route. `no-reassoc` keeps
+  POSIX value smoke green but has high tree size; its exact DAG and shape-DAG
+  sizes on Chapter 7 are much smaller. For example, k=8 at length 32 had tree
+  18643, exact DAG 547, and shape DAG 312. This points to hash-consed row
+  universes, delayed linear forms, or reconstruction-based sharing rather than
+  reassociated output syntax.
 - Therefore the next useful work is not proving old hooks. The next useful work
   is to design and test a value-safe pruning route: delayed/indexed linear
   forms, richer row/continuation keys with reconstruction, or generalized POSIX
@@ -51,6 +57,8 @@ Smoke commands:
 - Diagnostic sequence modes:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -SeqMode no-reassoc`
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -SeqMode keyed-no-reassoc`
+- DAG/shared-row diagnostic:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 2 -RandomCases 1000 -RandomDepth 5 -RandomInputLength 6 -SeqMode no-reassoc -Ch7K 8 -Ch7Lengths "4,8,16,32" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 1000 -Ch7ShapeThreshold 500`
 - Full verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`
 
