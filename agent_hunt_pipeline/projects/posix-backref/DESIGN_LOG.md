@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Shared-prune closure now uses both earlier and later rows
+
+- Added `raw_shared_prune_closed`, a predicate saying that raw shared pruning
+  is closed when both row shapes `RSEQ (RALTS lrs) k` and
+  `RSEQ (RALTS rrs) k` are already in the universe.
+- Added checked derivations from this predicate to raw row closure and to the
+  original-entry annotated size/value interface.
+- Design consequence: the next candidate universe does not need to be closed
+  for arbitrary left-row lists. It only needs pairwise shared-prune closure for
+  rows it already contains, which is the operational invariant maintained by
+  the pruning accumulator.
+
 ## 2026-06-03: Raw one-step closure is split into local obligations
 
 - Added raw subset decomposition lemmas for pruning and derivative rows:

@@ -20310,6 +20310,159 @@ proof (rule rpders_strong_rows_raw_subsetI[OF init])
   qed
 qed
 
+definition raw_shared_prune_closed :: "rrexp set \<Rightarrow> bool" where
+  "raw_shared_prune_closed U \<longleftrightarrow>
+    (\<forall>lrs rrs k.
+      RSEQ (RALTS lrs) k \<in> U \<longrightarrow>
+      RSEQ (RALTS rrs) k \<in> U \<longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U)"
+
+lemma rsimpStrong_prune_pair_raw_closed_subsetI:
+  assumes closed: "raw_shared_prune_closed U"
+    and earlier: "set (rflts [earlier]) \<subseteq> U"
+    and later: "set (rflts [later]) \<subseteq> U"
+  shows "set (rflts [rsimpStrong_prune_pair_raw earlier later]) \<subseteq> U"
+proof (rule rsimpStrong_prune_pair_raw_shared_subsetI[OF later])
+  fix lrs rrs k
+  assume earlier_eq: "earlier = RSEQ (RALTS lrs) k"
+    and later_eq: "later = RSEQ (RALTS rrs) k"
+  have earlier_mem: "RSEQ (RALTS lrs) k \<in> U"
+    using earlier earlier_eq by simp
+  have later_mem: "RSEQ (RALTS rrs) k \<in> U"
+    using later later_eq by simp
+  show "set (rflts [rsimp7_SEQ_atom
+    (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+    using closed earlier_mem later_mem
+    by (simp add: raw_shared_prune_closed_def)
+qed
+
+lemma rsimpStrong_prune_against_rows_raw_closed_subsetI:
+  assumes seen: "\<And>x. x \<in> set seen \<Longrightarrow> set (rflts [x]) \<subseteq> U"
+    and row: "set (rflts [r]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "set (rflts [rsimpStrong_prune_against_rows_raw seen r]) \<subseteq> U"
+  using seen row
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair_raw x r"
+  have x_in: "set (rflts [x]) \<subseteq> U"
+    by (rule Cons.prems(1)) simp
+  have first: "set (rflts [?p]) \<subseteq> U"
+    by (rule rsimpStrong_prune_pair_raw_closed_subsetI
+        [OF closed x_in Cons.prems(2)])
+  have rest: "set (rflts [rsimpStrong_prune_against_rows_raw xs ?p]) \<subseteq> U"
+    by (rule Cons.hyps[OF _ first]) (use Cons.prems(1) in auto)
+  show ?case
+    using rest by simp
+qed
+
+lemma rsimpStrong_prune_rows_acc_raw_closed_subsetI:
+  assumes seen: "\<And>x. x \<in> set seen \<Longrightarrow> set (rflts [x]) \<subseteq> U"
+    and rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "set (rflts (rsimpStrong_prune_rows_acc_raw seen rs)) \<subseteq> U"
+  using rows seen
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have head: "set (rflts [?r']) \<subseteq> U"
+    by (rule rsimpStrong_prune_against_rows_raw_closed_subsetI)
+      (use Cons.prems closed in simp_all)
+  have seen_next:
+    "\<And>x. x \<in> set (?r' # seen) \<Longrightarrow> set (rflts [x]) \<subseteq> U"
+    using head Cons.prems(2) by auto
+  have tail:
+    "set (rflts (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)) \<subseteq> U"
+    by (rule Cons.hyps[OF _ seen_next]) (use Cons.prems(1) in simp)
+  show ?case
+  proof -
+    have split:
+      "rflts (?r' # rsimpStrong_prune_rows_acc_raw (?r' # seen) rs) =
+        rflts [?r'] @
+        rflts (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)"
+      by (simp add: flts_append[symmetric])
+    have "set (rflts
+        (?r' # rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)) \<subseteq> U"
+      using head tail split by auto
+    then show ?thesis
+      by (simp add: Let_def)
+  qed
+qed
+
+lemma rsimpStrong_prune_rows_raw_closed_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "set (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq> U"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule rsimpStrong_prune_rows_acc_raw_closed_subsetI)
+    (use rows closed in simp_all)
+
+lemma rpder_strong_rows_raw_norm_closed_subsetI:
+  assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "set (rpder_strong_rows_raw c rs) \<subseteq> U"
+proof (rule rpder_strong_rows_raw_local_subsetI)
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (rflts (rpder_strong_list_raw c q)) \<subseteq> U"
+    by (rule rflts_rpder_strong_list_raw_subsetI)
+      (use norm[OF q] in blast)
+next
+  fix xs
+  assume xs: "set xs \<subseteq> U"
+  show "set (rflts (rsimpStrong_prune_rows_raw xs)) \<subseteq> U"
+  proof (rule rsimpStrong_prune_rows_raw_closed_subsetI)
+    fix r
+    assume r: "r \<in> set xs"
+    show "set (rflts [r]) \<subseteq> U"
+      by (rule flat_closed) (use xs r in blast)
+  next
+    show "raw_shared_prune_closed U"
+      by (rule closed)
+  qed
+qed
+
+lemma rpders_strong_rows_raw_norm_closed_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "set (rpders_strong_rows_raw rs s) \<subseteq> U"
+proof (rule rpders_strong_rows_raw_subsetI[OF init])
+  fix xs c
+  assume xs: "set xs \<subseteq> U"
+  show "set (rpder_strong_rows_raw c xs) \<subseteq> U"
+  proof (rule rpder_strong_rows_raw_norm_closed_subsetI)
+    fix q p
+    assume q: "q \<in> set xs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    show "set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      by (rule norm[OF xs q p])
+  next
+    fix q
+    assume "q \<in> U"
+    show "set (rflts [q]) \<subseteq> U"
+      by (rule flat_closed[OF \<open>q \<in> U\<close>])
+  next
+    show "raw_shared_prune_closed U"
+      by (rule closed)
+  qed
+qed
+
 lemma length_rpders_strong_rows_raw_finite_universe_boundI:
   assumes init: "set rs \<subseteq> U"
       and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
@@ -20451,6 +20604,56 @@ proof -
     by (rule
         rsizes_rpders_strong1_rows_raw_norm_later_shared_finite_universe_boundI
         [OF init flat_closed norm shared finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_strong1_rows_raw_norm_closed_finite_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+proof -
+  have rows: "set [r] \<subseteq> U"
+    using init by simp
+  have distinct: "distinct [r]"
+    by simp
+  have step:
+    "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+      set (rpder_strong_rows_raw c xs) \<subseteq> U"
+    by (rule rpder_strong_rows_raw_norm_closed_subsetI)
+      (use flat_closed norm closed in blast)+
+  have "rsizes (rpders_strong_rows_raw [r] s) \<le> card U * M"
+    by (rule rsizes_rpders_strong_rows_raw_finite_universe_boundI
+        [OF rows step finite member_size distinct])
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_raw_def)
+qed
+
+lemma rsizes_rpders_strong1_rows_raw_norm_closed_cubic_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+proof -
+  have "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+    by (rule rsizes_rpders_strong1_rows_raw_norm_closed_finite_universe_boundI
+        [OF init flat_closed norm closed finite member_size])
   also have "... \<le> C * M"
     by (rule mult_right_mono[OF card_bound]) simp
   also have "... \<le> B"

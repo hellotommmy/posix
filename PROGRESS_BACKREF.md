@@ -1,6 +1,34 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (raw strong one-step closure split)
+Last updated: 2026-06-03 (raw shared-prune closure predicate)
+
+## Cubic Candidate Prototype: Raw Shared-Prune Closure Predicate (2026-06-03)
+
+- Added `raw_shared_prune_closed` in `GeneralRegexBound.thy`.
+- Added checked closure chain using that predicate:
+  - `rsimpStrong_prune_pair_raw_closed_subsetI`;
+  - `rsimpStrong_prune_rows_raw_closed_subsetI`;
+  - `rpder_strong_rows_raw_norm_closed_subsetI`;
+  - `rpders_strong_rows_raw_norm_closed_subsetI`;
+  - `rsizes_rpders_strong1_rows_raw_norm_closed_cubic_universe_boundI`.
+- Added checked annotated/original transfer in `FBound.thy`:
+  - `asizes_bpders_strong1_rows_raw_norm_closed_cubic_universe_boundI`;
+  - `strong_deferred_original_raw_row_norm_closed_cubic_universe_interface`.
+- Design result:
+  - The shared-suffix obligation is now weaker and more concrete: instead of
+    requiring closure for arbitrary `lrs`, a universe must be closed under raw
+    shared pruning only when both
+    `RSEQ (RALTS lrs) k` and `RSEQ (RALTS rrs) k` are already represented in
+    the universe.
+  - This better matches the operational invariant of `rsimpStrong_prune_rows_raw`,
+    where earlier rows are accumulated from already-produced rows rather than
+    invented from nowhere.
+  - The next concrete proof target is to define a finite raw/shared row
+    universe satisfying `raw_shared_prune_closed`, `flat_closed`, and the
+    `rsimpStrong_raw` norm closure, with cubic card/member bounds.
+  - No BR-039 or BR-040 payout is claimed.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Raw Strong One-Step Closure Split (2026-06-03)
 

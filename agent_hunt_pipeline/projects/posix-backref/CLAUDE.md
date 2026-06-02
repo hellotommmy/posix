@@ -156,6 +156,13 @@ pruning closure for
 attack the full `rpder_strong_rows_raw` definition when these local hooks
 suffice.
 
+Prefer the newer closed-universe contract when possible:
+`strong_deferred_original_raw_row_norm_closed_cubic_universe_interface`.
+It replaces the arbitrary-left shared premise with
+`raw_shared_prune_closed U`, meaning shared pruning is required only when both
+the earlier and later row shapes already belong to `U`. This is the more
+realistic target for a finite raw/shared universe.
+
 Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
 `bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
 value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,

@@ -63,6 +63,13 @@ immutability.
 
 ## Open Artifact Notes
 
+- Raw shared-prune closure predicate: `GeneralRegexBound.thy` now has
+  `raw_shared_prune_closed`, which weakens the shared closure obligation to
+  the case where both `RSEQ (RALTS lrs) k` and `RSEQ (RALTS rrs) k` are already
+  in the candidate universe. `FBound.thy` exposes the corresponding
+  `strong_deferred_original_raw_row_norm_closed_cubic_universe_interface`.
+  This is a closer BR-040 proof contract for a concrete raw/shared universe,
+  but still not a payout before that universe and its cubic bounds are checked.
 - Raw one-step closure split: `GeneralRegexBound.thy` now splits the raw
   `rpder_strong_rows_raw` closure proof into local `flat_closed`, `norm`, and
   `shared` obligations, with the shared obligation targeting the raw delayed
