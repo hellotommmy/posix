@@ -18682,6 +18682,73 @@ proof -
   finally show ?thesis .
 qed
 
+lemma length_rpders_strong_rows_finite_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and distinct: "distinct rs"
+  shows "length (rpders_strong_rows rs s) \<le> card U"
+proof -
+  have rows: "set (rpders_strong_rows rs s) \<subseteq> U"
+    by (rule rpders_strong_rows_subsetI[OF init step])
+  have dist: "distinct (rpders_strong_rows rs s)"
+    by (rule distinct_rpders_strong_rows[OF distinct])
+  show ?thesis
+    by (rule length_distinct_subset_card[OF finite rows dist])
+qed
+
+lemma length_rpders_strong1_rows_finite_universe_boundI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+  shows "length (rpders_strong1_rows r s) \<le> card U"
+proof -
+  have rows: "set [r] \<subseteq> U"
+    using init by simp
+  have distinct_rows: "distinct [r]"
+    by simp
+  have "length (rpders_strong_rows [r] s) \<le> card U"
+    by (rule length_rpders_strong_rows_finite_universe_boundI
+        [OF rows step finite distinct_rows])
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_def)
+qed
+
+lemma length_rpders_strong_rows_card_boundI:
+  assumes init: "set rs \<subseteq> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and distinct: "distinct rs"
+      and card_bound: "card U \<le> C"
+  shows "length (rpders_strong_rows rs s) \<le> C"
+proof -
+  have "length (rpders_strong_rows rs s) \<le> card U"
+    by (rule length_rpders_strong_rows_finite_universe_boundI
+        [OF init step finite distinct])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
+lemma length_rpders_strong1_rows_card_boundI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+  shows "length (rpders_strong1_rows r s) \<le> C"
+proof -
+  have "length (rpders_strong1_rows r s) \<le> card U"
+    by (rule length_rpders_strong1_rows_finite_universe_boundI
+        [OF init step finite])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
 lemma rsizes_rpders_strong_rows_finite_universe_boundI:
   assumes init: "set rs \<subseteq> U"
       and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>

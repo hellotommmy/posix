@@ -2371,6 +2371,77 @@ proof -
     by (simp add: asizes_def asize_rsize comp_def)
 qed
 
+lemma length_bpders_strong_rows_finite_universe_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and distinct: "distinct (map rerase rs)"
+  shows "length (bpders_strong_rows rs s) \<le> card U"
+proof -
+  have rows:
+    "set (map rerase (bpders_strong_rows rs s)) \<subseteq> U"
+    by (rule map_rerase_bpders_strong_rows_subsetI[OF init step])
+  have dist:
+    "distinct (map rerase (bpders_strong_rows rs s))"
+    by (rule distinct_map_rerase_bpders_strong_rows[OF distinct])
+  have "length (map rerase (bpders_strong_rows rs s)) \<le> card U"
+    by (rule length_distinct_subset_card[OF finite rows dist])
+  then show ?thesis
+    by simp
+qed
+
+lemma length_bpders_strong1_rows_finite_universe_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+  shows "length (bpders_strong1_rows r s) \<le> card U"
+proof -
+  have rows: "set (map rerase [r]) \<subseteq> U"
+    using init by simp
+  have distinct_rows: "distinct (map rerase [r])"
+    by simp
+  have "length (bpders_strong_rows [r] s) \<le> card U"
+    by (rule length_bpders_strong_rows_finite_universe_boundI
+        [OF rows step finite distinct_rows])
+  then show ?thesis
+    by (simp add: bpders_strong1_rows_def)
+qed
+
+lemma length_bpders_strong_rows_card_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and distinct: "distinct (map rerase rs)"
+      and card_bound: "card U \<le> C"
+  shows "length (bpders_strong_rows rs s) \<le> C"
+proof -
+  have "length (bpders_strong_rows rs s) \<le> card U"
+    by (rule length_bpders_strong_rows_finite_universe_boundI
+        [OF init step finite distinct])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
+lemma length_bpders_strong1_rows_card_boundI:
+  assumes init: "rerase r \<in> U"
+      and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+        set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+  shows "length (bpders_strong1_rows r s) \<le> C"
+proof -
+  have "length (bpders_strong1_rows r s) \<le> card U"
+    by (rule length_bpders_strong1_rows_finite_universe_boundI
+        [OF init step finite])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
 lemma asizes_bpders_strong_rows_finite_universe_boundI:
   assumes init: "set (map rerase rs) \<subseteq> U"
       and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>

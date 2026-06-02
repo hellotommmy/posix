@@ -218,6 +218,19 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   This keeps the future cubic argument focused on the finite candidate
   universe and on Chapter-7 shared-suffix deletion, rather than on the
   scanner recursion.
+- Added direct candidate-count hooks for future finite-universe instantiations.
+  On the proof side, `length_rpders_strong_rows_finite_universe_boundI`,
+  `length_rpders_strong1_rows_finite_universe_boundI`,
+  `length_rpders_strong_rows_card_boundI`, and
+  `length_rpders_strong1_rows_card_boundI` show that once a finite
+  root-owned universe is closed under the strong-row step, the number of
+  reachable rows is bounded by `card U`. The annotated counterparts
+  `length_bpders_strong_rows_finite_universe_boundI`,
+  `length_bpders_strong1_rows_finite_universe_boundI`,
+  `length_bpders_strong_rows_card_boundI`, and
+  `length_bpders_strong1_rows_card_boundI` prove the same fact through
+  `rerase`. This separates the cardinality half of the cubic argument from
+  the member-size half already handled by the `rsizes`/`asizes` hooks.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
