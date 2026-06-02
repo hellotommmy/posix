@@ -159,6 +159,24 @@ they support constructing accepted table entries from legal split evidence.
 The converse/extraction lemmas for longest-left POSIX reconstruction are still
 future work.
 
+The original-`rexp` POSIX value side now has a checked root interface in
+`FBound.thy`:
+
+- `rxsize`;
+- `rexp_subterms`;
+- `rexp_span_states`;
+- `rexp_span_posix`;
+- `rexp_span_posix_states`;
+- `card_rexp_span_posix_states_bound`;
+- `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`;
+- `bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root`.
+
+This is the first checked statement that says the small strong derivative
+acceptance result is the gate for a unique original POSIX root span entry. The
+next relation should refine `rexp_span_posix` with constructor rules mirroring
+the Scala memo algorithm's left-priority alternatives and longest-left
+sequence/star/countdown splits.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

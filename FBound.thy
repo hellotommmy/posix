@@ -1392,6 +1392,247 @@ proof -
   qed
 qed
 
+fun rxsize :: "rexp \<Rightarrow> nat" where
+  "rxsize ZERO = 1"
+| "rxsize ONE = 1"
+| "rxsize (CH c) = 1"
+| "rxsize (SEQ r1 r2) = Suc (rxsize r1 + rxsize r2)"
+| "rxsize (ALT r1 r2) = Suc (rxsize r1 + rxsize r2)"
+| "rxsize (STAR r) = Suc (rxsize r)"
+| "rxsize (NTIMES r n) = Suc (rxsize r)"
+| "rxsize (BACKREF4 r1 r2 r3 r4 cs) =
+    Suc (rxsize r1 + rxsize r2 + rxsize r3 + rxsize r4)"
+| "rxsize (HALF r cs rep) = Suc (rxsize r)"
+| "rxsize (RESIDUE cs rep) = 1"
+
+fun rexp_subterms :: "rexp \<Rightarrow> rexp set" where
+  "rexp_subterms ZERO = {ZERO}"
+| "rexp_subterms ONE = {ONE}"
+| "rexp_subterms (CH c) = {CH c}"
+| "rexp_subterms (SEQ r1 r2) =
+    insert (SEQ r1 r2) (rexp_subterms r1 \<union> rexp_subterms r2)"
+| "rexp_subterms (ALT r1 r2) =
+    insert (ALT r1 r2) (rexp_subterms r1 \<union> rexp_subterms r2)"
+| "rexp_subterms (STAR r) = insert (STAR r) (rexp_subterms r)"
+| "rexp_subterms (NTIMES r n) = insert (NTIMES r n) (rexp_subterms r)"
+| "rexp_subterms (BACKREF4 r1 r2 r3 r4 cs) =
+    insert (BACKREF4 r1 r2 r3 r4 cs)
+      (rexp_subterms r1 \<union> rexp_subterms r2 \<union>
+       rexp_subterms r3 \<union> rexp_subterms r4)"
+| "rexp_subterms (HALF r cs rep) = insert (HALF r cs rep) (rexp_subterms r)"
+| "rexp_subterms (RESIDUE cs rep) = {RESIDUE cs rep}"
+
+lemma finite_rexp_subterms [simp]:
+  "finite (rexp_subterms r)"
+  by (induct r) simp_all
+
+lemma card_rexp_subterms_le_rxsize:
+  "card (rexp_subterms r) \<le> rxsize r"
+proof (induct r)
+  case ZERO
+  then show ?case by simp
+next
+  case ONE
+  then show ?case by simp
+next
+  case (CH x)
+  then show ?case by simp
+next
+  case (SEQ r1 r2)
+  have "card (rexp_subterms (SEQ r1 r2)) \<le>
+      Suc (card (rexp_subterms r1 \<union> rexp_subterms r2))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> Suc (card (rexp_subterms r1) + card (rexp_subterms r2))"
+    using card_Un_le by simp
+  also have "... \<le> rxsize (SEQ r1 r2)"
+    using SEQ by simp
+  finally show ?case .
+next
+  case (ALT r1 r2)
+  have "card (rexp_subterms (ALT r1 r2)) \<le>
+      Suc (card (rexp_subterms r1 \<union> rexp_subterms r2))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> Suc (card (rexp_subterms r1) + card (rexp_subterms r2))"
+    using card_Un_le by simp
+  also have "... \<le> rxsize (ALT r1 r2)"
+    using ALT by simp
+  finally show ?case .
+next
+  case (STAR r)
+  have "card (rexp_subterms (STAR r)) \<le> Suc (card (rexp_subterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rxsize (STAR r)"
+    using STAR by simp
+  finally show ?case .
+next
+  case (NTIMES r n)
+  have "card (rexp_subterms (NTIMES r n)) \<le> Suc (card (rexp_subterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rxsize (NTIMES r n)"
+    using NTIMES by simp
+  finally show ?case .
+next
+  case (BACKREF4 r1 r2 r3 r4 cs)
+  have "card (rexp_subterms (BACKREF4 r1 r2 r3 r4 cs)) \<le>
+      Suc (card (rexp_subterms r1 \<union> rexp_subterms r2 \<union>
+        rexp_subterms r3 \<union> rexp_subterms r4))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le>
+      Suc (card (rexp_subterms r1) + card (rexp_subterms r2) +
+        card (rexp_subterms r3) + card (rexp_subterms r4))"
+    using card_Un4_le[of "rexp_subterms r1" "rexp_subterms r2"
+        "rexp_subterms r3" "rexp_subterms r4"] by simp
+  also have "... \<le> rxsize (BACKREF4 r1 r2 r3 r4 cs)"
+    using BACKREF4 by simp
+  finally show ?case .
+next
+  case (HALF r cs rep)
+  have "card (rexp_subterms (HALF r cs rep)) \<le> Suc (card (rexp_subterms r))"
+    by (simp add: card_insert_le_Suc)
+  also have "... \<le> rxsize (HALF r cs rep)"
+    using HALF by simp
+  finally show ?case .
+next
+  case (RESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rexp_subterms_root [simp]:
+  "r \<in> rexp_subterms r"
+  by (induct r) simp_all
+
+definition rexp_span_states :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat) set" where
+  "rexp_span_states r s =
+    (\<lambda>(q, (i, j)). (q, i, j)) ` (rexp_subterms r \<times> ({..length s} \<times> {..length s}))"
+
+lemma finite_rexp_span_states [simp]:
+  "finite (rexp_span_states r s)"
+  by (simp add: rexp_span_states_def)
+
+lemma rexp_span_statesI:
+  assumes "q \<in> rexp_subterms r" "i \<le> length s" "j \<le> length s"
+  shows "(q, i, j) \<in> rexp_span_states r s"
+  using assms by (auto simp: rexp_span_states_def)
+
+lemma rexp_span_statesE:
+  assumes "(q, i, j) \<in> rexp_span_states r s"
+  obtains "q \<in> rexp_subterms r" "i \<le> length s" "j \<le> length s"
+  using assms by (auto simp: rexp_span_states_def)
+
+lemma card_rexp_span_states_bound:
+  "card (rexp_span_states r s) \<le> rxsize r * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rexp_span_states r s) \<le>
+      card (rexp_subterms r \<times> ({..length s} \<times> {..length s}))"
+    by (simp add: rexp_span_states_def card_image_le)
+  also have "... = card (rexp_subterms r) * Suc (length s) * Suc (length s)"
+    by (simp add: algebra_simps)
+  also have "... \<le> rxsize r * Suc (length s) * Suc (length s)"
+    using card_rexp_subterms_le_rxsize[of r]
+    by (intro mult_mono; simp)
+  finally show ?thesis .
+qed
+
+definition rexp_span_posix :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat * val) set" where
+  "rexp_span_posix r s =
+    {(q, i, j, v).
+      q \<in> rexp_subterms r \<and> i \<le> j \<and> j \<le> length s \<and>
+      rslice s i j \<in> q \<rightarrow> v}"
+
+definition rexp_span_posix_states :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat) set" where
+  "rexp_span_posix_states r s =
+    {(q, i, j). \<exists>v. (q, i, j, v) \<in> rexp_span_posix r s}"
+
+lemma rexp_span_posixI:
+  assumes "q \<in> rexp_subterms r"
+    and "i \<le> j"
+    and "j \<le> length s"
+    and "rslice s i j \<in> q \<rightarrow> v"
+  shows "(q, i, j, v) \<in> rexp_span_posix r s"
+  using assms by (auto simp: rexp_span_posix_def)
+
+lemma rexp_span_posixE:
+  assumes "(q, i, j, v) \<in> rexp_span_posix r s"
+  obtains "q \<in> rexp_subterms r" "i \<le> j" "j \<le> length s"
+    "rslice s i j \<in> q \<rightarrow> v"
+  using assms by (auto simp: rexp_span_posix_def)
+
+lemma rexp_span_posix_root_iff:
+  "(r, 0, length s, v) \<in> rexp_span_posix r s \<longleftrightarrow> s \<in> r \<rightarrow> v"
+  by (auto simp: rexp_span_posix_def)
+
+lemma rexp_span_posix_states_subset:
+  "rexp_span_posix_states r s \<subseteq> rexp_span_states r s"
+proof
+  fix x
+  assume "x \<in> rexp_span_posix_states r s"
+  then obtain q i j v where
+    x: "x = (q, i, j)" and
+    entry: "(q, i, j, v) \<in> rexp_span_posix r s"
+    by (auto simp: rexp_span_posix_states_def)
+  have sub: "q \<in> rexp_subterms r"
+    and ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    using entry by (auto simp: rexp_span_posix_def)
+  have il: "i \<le> length s"
+    using ij jl by simp
+  show "x \<in> rexp_span_states r s"
+    using x rexp_span_statesI[OF sub il jl] by simp
+qed
+
+lemma finite_rexp_span_posix_states [simp]:
+  "finite (rexp_span_posix_states r s)"
+  using rexp_span_posix_states_subset finite_rexp_span_states finite_subset by blast
+
+lemma card_rexp_span_posix_states_bound:
+  "card (rexp_span_posix_states r s) \<le>
+    rxsize r * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rexp_span_posix_states r s) \<le> card (rexp_span_states r s)"
+    using rexp_span_posix_states_subset
+    by (meson card_mono finite_rexp_span_states)
+  also have "... \<le> rxsize r * Suc (length s) * Suc (length s)"
+    by (rule card_rexp_span_states_bound)
+  finally show ?thesis .
+qed
+
+lemma bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root:
+  "bnullable (bders_simpStrong (intern r) s) \<longleftrightarrow>
+    (\<exists>v. (r, 0, length s, v) \<in> rexp_span_posix r s)"
+  by (simp add: bnullable_bders_simpStrong_intern_iff_Posix
+      rexp_span_posix_root_iff)
+
+lemma rexp_span_posix_root_unique:
+  assumes "(r, 0, length s, v) \<in> rexp_span_posix r s"
+    and "(r, 0, length s, w) \<in> rexp_span_posix r s"
+  shows "v = w"
+proof -
+  have v: "s \<in> r \<rightarrow> v"
+    using assms(1) by (simp add: rexp_span_posix_root_iff)
+  have w: "s \<in> r \<rightarrow> w"
+    using assms(2) by (simp add: rexp_span_posix_root_iff)
+  show ?thesis
+    by (rule Posix_determ[OF v w])
+qed
+
+lemma bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root:
+  assumes "bnullable (bders_simpStrong (intern r) s)"
+  shows "\<exists>!v. (r, 0, length s, v) \<in> rexp_span_posix r s"
+proof -
+  obtain v where v: "(r, 0, length s, v) \<in> rexp_span_posix r s"
+    using assms bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root by auto
+  show ?thesis
+  proof (rule ex1I)
+    show "(r, 0, length s, v) \<in> rexp_span_posix r s"
+      by (rule v)
+  next
+    fix w
+    assume "(r, 0, length s, w) \<in> rexp_span_posix r s"
+    then show "w = v"
+      by (rule rexp_span_posix_root_unique[OF _ v])
+  qed
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Checked root span POSIX bridge
+
+- Added original-`rexp` span/value proof infrastructure in `FBound.thy`.
+  `rexp_span_posix r s` records span entries `(q,i,j,v)` where the slice
+  `s[i,j)` has original POSIX value `v` for subexpression `q`.
+- The value-erased projection `rexp_span_posix_states r s` is bounded by
+  `rxsize r * (|s|+1)^2`, via `rexp_span_states` and `rexp_subterms`.
+- The main checked bridge is
+  `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`: the final
+  `bders_simpStrong` nullable bit is exactly existence of a root POSIX span
+  entry. `bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root`
+  records uniqueness at the root via `Posix_determ`.
+- Design consequence: future work can treat the strong derivative tree as the
+  small acceptance certificate, while proving exact values through original
+  span reconstruction. This is the proof-facing analogue of the Scala
+  `strongDeferredMemoValue` route.
+
 ## 2026-06-03: Strong tree, counterexamples, and span reconstruction
 
 - The user-requested target is now interpreted as: keep the `bsimpStrong`

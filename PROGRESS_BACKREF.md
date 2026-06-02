@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong-tree span reconstruction CE gate)
+Last updated: 2026-06-03 (checked root span POSIX bridge)
+
+## Cubic Candidate Prototype: Checked Root Span POSIX Bridge (2026-06-03)
+
+- Added an original-`rexp` span reconstruction interface in `FBound.thy`:
+  - `rxsize`, a payload-insensitive structural size for original regexes;
+  - `rexp_subterms` and `card_rexp_subterms_le_rxsize`;
+  - `rexp_span_states` and `card_rexp_span_states_bound`;
+  - `rexp_span_posix`, whose entries are `(subregex, i, j, value)` with
+    `rslice s i j` carrying the original `Posix` value;
+  - `rexp_span_posix_states`, the value-erased query-state projection, with
+    `card_rexp_span_posix_states_bound`.
+- Added the key bridge from the strong acceptance certificate to original
+  span reconstruction:
+  - `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`;
+  - `bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root`.
+- Meaning: a nullable final `bders_simpStrong (intern r) s` now authorizes a
+  unique root entry in the original POSIX span table. This is still not a
+  cubic theorem, but it turns the Scala `strongDeferredMemoValue` route into a
+  checked proof interface.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Strong Tree Plus Span Reconstruction (2026-06-03)
 
