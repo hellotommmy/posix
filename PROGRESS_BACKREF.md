@@ -1,6 +1,22 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (top-N strong cubic frontier reporting)
+Last updated: 2026-06-03 (distinct top-N strong cubic frontier)
+
+## Cubic Candidate Prototype: Distinct-Regex Frontier Reporting (2026-06-03)
+
+- Extended `-StrongCubicTop` reporting to print both:
+  - the raw top-N observed size-pressure samples; and
+  - a distinct-regex top-N frontier that keeps only the strongest input for
+    each regex structure.
+- This matters because exhaustive and known-CE grids often produce several
+  high-ratio inputs for the same regex. Without structural deduplication, the
+  report can hide the next useful C/D/E/F counterexample family behind repeated
+  input variants.
+- Sanity check: with top `4`, depth `2`/input `3`, the raw frontier was filled
+  by repeated `NTIMES(STAR(CH _),2)` inputs, while the distinct frontier also
+  exposed `STAR(NTIMES(CH _),2)`.
+- This is still diagnostic only. It improves the counterexample search loop;
+  it does not prove a cubic theorem and does not pay BR-039/BR-040.
 
 ## Cubic Candidate Prototype: Top-N Strong Cubic Frontier (2026-06-03)
 

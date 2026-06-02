@@ -3,6 +3,17 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Frontier reports include structurally distinct regexes
+
+- `StrongDeferredMemo` top-N reporting now prints a second top-N list that is
+  deduplicated by regex structure, keeping the highest-ratio input per regex.
+- This addresses a CEGAR failure mode in the report itself: repeated inputs for
+  one regex can consume the entire top-N list and hide different structural
+  pressure families.
+- Design consequence: use the distinct-regex frontier when looking for the
+  next compact regression or proof obligation. Use the raw top-N frontier when
+  studying how one structure changes across inputs.
+
 ## 2026-06-03: Strong cubic frontier reports can show top-N witnesses
 
 - Added `-StrongCubicTop` to the Scala smoke and

@@ -222,6 +222,10 @@ For a broader CEGAR signal, add `-StrongCubicTop 3` to
 `isabelle_ci.ps1`. This reports several high-ratio frontier witnesses while
 still checking every generated case against the budget. The top-N list is a
 diagnostic steering tool only; it does not justify a bounty or theorem claim.
+When top-N is greater than one, the smoke also prints a distinct-regex
+frontier. Prefer that structurally deduplicated list when choosing the next
+compact regression or counterexample family; use the raw list when analyzing
+how one regex behaves across several inputs.
 
 When a tightened constant is suspected to fail, run
 `scala_cubic_smoke.ps1 -SkipLegacyCubic -FindStrongCubicBudgetCE

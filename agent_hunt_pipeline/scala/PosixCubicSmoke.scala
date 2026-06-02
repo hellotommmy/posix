@@ -1050,6 +1050,30 @@ object PosixCubicSmoke {
         .take(limit)
     }
 
+  def strongerCubicObservationBetter(a: StrongCubicObservation, b: StrongCubicObservation): Boolean =
+    a.ratio > b.ratio ||
+      (a.ratio == b.ratio && (a.strongTree > b.strongTree ||
+        (a.strongTree == b.strongTree && (a.regexSize > b.regexSize ||
+          (a.regexSize == b.regexSize && (a.input < b.input ||
+            (a.input == b.input && a.regex.toString < b.regex.toString)))))))
+
+  def strongerCubicTopDistinctRegex(
+      current: Vector[StrongCubicObservation],
+      next: StrongCubicObservation,
+      minRegexSize: Int,
+      limit: Int
+  ): Vector[StrongCubicObservation] =
+    if (limit <= 0 || next.regexSize < minRegexSize) current
+    else {
+      current.find(_.regex == next.regex) match {
+        case Some(old) if !strongerCubicObservationBetter(next, old) => current
+        case _ =>
+          (current.filterNot(_.regex == next.regex) :+ next)
+            .sortBy(o => (-o.ratio, -o.strongTree, -o.regexSize, o.input, o.regex.toString))
+            .take(limit)
+      }
+    }
+
   def strongCubicWorstSummary(worst: Option[StrongCubicObservation], minRegexSize: Int): String =
     worst match {
       case None => s"no strong cubic observations with rsize >= $minRegexSize"
@@ -1057,13 +1081,34 @@ object PosixCubicSmoke {
         f"worst strong cubic ratio=${w.ratio}%.6f label=${w.label} tree=${w.strongTree} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
     }
 
-  def strongCubicFrontierSummary(top: Vector[StrongCubicObservation], minRegexSize: Int): String =
+  def strongCubicFrontierListSummary(
+      prefix: String,
+      top: Vector[StrongCubicObservation],
+      minRegexSize: Int
+  ): String =
     if (top.isEmpty) s"no strong cubic observations with rsize >= $minRegexSize"
-    else if (top.length == 1) strongCubicWorstSummary(top.headOption, minRegexSize)
     else {
       top.zipWithIndex.map { case (w, i) =>
         f"#${i + 1}:ratio=${w.ratio}%.6f label=${w.label} tree=${w.strongTree} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
-      }.mkString("top strong cubic ratios: ", "; ", "")
+      }.mkString(s"$prefix: ", "; ", "")
+    }
+
+  def strongCubicFrontierSummary(top: Vector[StrongCubicObservation], minRegexSize: Int): String =
+    if (top.isEmpty) s"no strong cubic observations with rsize >= $minRegexSize"
+    else if (top.length == 1) strongCubicWorstSummary(top.headOption, minRegexSize)
+    else strongCubicFrontierListSummary("top strong cubic ratios", top, minRegexSize)
+
+  def strongCubicFrontiersSummary(
+      top: Vector[StrongCubicObservation],
+      distinctRegexTop: Vector[StrongCubicObservation],
+      minRegexSize: Int
+  ): String =
+    if (top.length <= 1) strongCubicFrontierSummary(top, minRegexSize)
+    else {
+      val topSummary = strongCubicFrontierListSummary("top strong cubic ratios", top, minRegexSize)
+      val distinctSummary =
+        strongCubicFrontierListSummary("distinct-regex strong cubic ratios", distinctRegexTop, minRegexSize)
+      s"$topSummary; $distinctSummary"
     }
 
   def checkStrongCubicTreeBudget(
@@ -1862,6 +1907,7 @@ object PosixCubicSmoke {
     val inputs = stringsUpTo(maxInput)
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
+    var distinctFrontier = Vector.empty[StrongCubicObservation]
     regexes.foreach { r =>
       inputs.foreach { s =>
         checked += 1
@@ -1869,7 +1915,9 @@ object PosixCubicSmoke {
         val result = strongDeferredMemoResult(r, s)
         val deferred = result.value
         checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
-        frontier = strongerCubicTop(frontier, strongCubicObservation(r, s, result, s"exhaustive case $checked"), minRegexSize, topLimit)
+        val obs = strongCubicObservation(r, s, result, s"exhaustive case $checked")
+        frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
+        distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
         checkStrongCubicTreeBudget(r, s, result, s"exhaustive case $checked", treeCubicFactor)
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
@@ -1887,7 +1935,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontierSummary(frontier, minRegexSize)}")
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
   }
 
   def checkStrongDeferredMemoRandomValuePreservation(
@@ -1902,6 +1950,7 @@ object PosixCubicSmoke {
     val rng = new Random(seed)
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
+    var distinctFrontier = Vector.empty[StrongCubicObservation]
     (0 until cases).foreach { _ =>
       checked += 1
       val r = randomRegex(rng, maxDepth)
@@ -1910,7 +1959,9 @@ object PosixCubicSmoke {
       val result = strongDeferredMemoResult(r, s)
       val deferred = result.value
       checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
-      frontier = strongerCubicTop(frontier, strongCubicObservation(r, s, result, s"random seed=$seed case=$checked"), minRegexSize, topLimit)
+      val obs = strongCubicObservation(r, s, result, s"random seed=$seed case=$checked")
+      frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
+      distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
       checkStrongCubicTreeBudget(r, s, result, s"random seed=$seed case=$checked", treeCubicFactor)
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
@@ -1928,7 +1979,7 @@ object PosixCubicSmoke {
         )
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontierSummary(frontier, minRegexSize)}")
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
   }
 
   def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double, minRegexSize: Int, topLimit: Int): Unit = {
@@ -1943,13 +1994,16 @@ object PosixCubicSmoke {
     )
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
+    var distinctFrontier = Vector.empty[StrongCubicObservation]
     cases.foreach { case ((name, r), inputs) =>
       inputs.foreach { s =>
         checked += 1
         val base = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
         checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
-        frontier = strongerCubicTop(frontier, strongCubicObservation(r, s, result, s"known CE $name input=$s"), minRegexSize, topLimit)
+        val obs = strongCubicObservation(r, s, result, s"known CE $name input=$s")
+        frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
+        distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
         checkStrongCubicTreeBudget(r, s, result, s"known CE $name input=$s", treeCubicFactor)
         if (base != result.value) {
           throw new AssertionError(
@@ -1967,7 +2021,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontierSummary(frontier, minRegexSize)}")
+    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {
@@ -2225,10 +2279,13 @@ object PosixCubicSmoke {
     val rootSize = rsize(r).toLong
     val cubicTreeBound = strongCubicTreeBound(r, treeCubicFactor)
     var frontier = Vector.empty[StrongCubicObservation]
+    var distinctFrontier = Vector.empty[StrongCubicObservation]
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
-      frontier = strongerCubicTop(frontier, strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n"), minRegexSize, topLimit)
+      val obs = strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n")
+      frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
+      distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
       checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
       if (!result.value.exists(flatVal(_) == input)) {
         throw new AssertionError(
@@ -2274,7 +2331,7 @@ object PosixCubicSmoke {
           s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
           s"/splits=${s.memo.splitProbes}/splitBound=$splitBound"
       }.mkString(", ") +
-      s"; ${strongCubicFrontierSummary(frontier, minRegexSize)}")
+      s"; ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
   }
 
   def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {

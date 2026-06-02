@@ -72,8 +72,10 @@ immutability.
   remain green before any BR-039/BR-040 claim can use this route.
 - Strong cubic frontier reporting: optional `-StrongCubicTop` /
   `-ScalaSmokeStrongCubicTop` reports multiple high-ratio size-pressure
-  witnesses for the strong-deferred CEGAR loop. This is diagnostic tooling
-  only; it does not by itself satisfy BR-039 or BR-040.
+  witnesses for the strong-deferred CEGAR loop. The report also includes a
+  distinct-regex frontier so repeated inputs for one regex do not hide other
+  structural pressure families. This is diagnostic tooling only; it does not
+  by itself satisfy BR-039 or BR-040.
 - Checked original-value bridge: `FBound.thy` now has
   `rexp_span_posix` and the root bridge
   `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`, plus a
