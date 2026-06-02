@@ -2802,6 +2802,32 @@ proof -
     by (simp add: rslice_def len take_add drop ki)
 qed
 
+lemma rslice_prefix_split:
+  assumes ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and eq: "rslice s i j = s1 @ s2"
+    and k: "k = i + length s1"
+  shows "i \<le> k"
+    and "k \<le> j"
+    and "rslice s i k = s1"
+    and "rslice s k j = s2"
+proof -
+  have len: "length s1 + length s2 = j - i"
+    using length_rslice[OF ij jl] eq by simp
+  show ik: "i \<le> k"
+    by (simp add: k)
+  show kj: "k \<le> j"
+    using ij len by (simp add: k)
+  have split: "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  have left_len: "length (rslice s i k) = length s1"
+    using ik kj jl by (simp add: length_rslice k)
+  show "rslice s i k = s1"
+    using split eq left_len by (metis append_eq_conv_conj)
+  show "rslice s k j = s2"
+    using split eq left_len by (metis append_eq_conv_conj)
+qed
+
 definition rspan_accepts :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat) set" where
   "rspan_accepts r s =
     {(q, i, j). q \<in> rsubterms r \<and> i \<le> j \<and> j \<le> length s \<and> rslice s i j \<in> RL q}"

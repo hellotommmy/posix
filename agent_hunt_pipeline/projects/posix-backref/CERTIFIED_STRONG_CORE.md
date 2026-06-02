@@ -182,12 +182,16 @@ That refinement has now started. `FBound.thy` also has:
 - `rexp_span_split_probes` and `card_rexp_span_split_probes_bound`;
 - `rexp_span_all_split_probes` and
   `card_rexp_span_all_split_probes_bound`;
+- countdown-aware `rexp_subterms`/`rxsize` for `NTIMES`, plus
+  `rexp_subterms_NTIMES_countdown`;
 - constructor rules `rexp_span_posix_ONE_emptyI`,
   `rexp_span_posix_CHI`, `rexp_span_posix_ALT1I`,
   `rexp_span_posix_ALT2I`, `rexp_span_posix_SEQI`,
   `rexp_span_posix_STAR_emptyI`, `rexp_span_posix_STAR_stepI`,
   `rexp_span_posix_NTIMES_zero_emptyI`, and
   `rexp_span_posix_NTIMES_SucI`.
+- inversion rules `rexp_span_posix_ALT1E`, `rexp_span_posix_ALT2E`, and
+  `rexp_span_posix_SEQE`, supported by `rslice_prefix_split`.
 
 The intended proof direction is now counterexample-driven: keep using
 `StrongFullCert` to mine cases where local reconstruction chooses the wrong

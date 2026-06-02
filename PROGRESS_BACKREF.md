@@ -1,6 +1,29 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong tree plus checked split probes)
+Last updated: 2026-06-03 (countdown-aware span universe)
+
+## Cubic Candidate Prototype: Countdown-Aware Span Inversion (2026-06-03)
+
+- Fixed an important proof-interface gap in the original-root span universe:
+  `NTIMES q (Suc n)` reconstruction needs the tail state `NTIMES q n`, but
+  plain syntactic subterms do not contain countdown variants.
+- Updated `FBound.thy` so `rexp_subterms (NTIMES r n)` contains all
+  `NTIMES r k` for `k <= n`, and changed `rxsize (NTIMES r n)` to include
+  the `Suc n` countdown budget. The cardinality bound
+  `card_rexp_subterms_le_rxsize` remains checked.
+- Added `rexp_subterms_NTIMES_countdown`, making the countdown closure explicit
+  for later memo proofs.
+- Added `rslice_prefix_split` in `GeneralRegexBound.thy`, which turns an
+  equality `rslice s i j = s1 @ s2` into the concrete split index
+  `k = i + length s1`.
+- Added original POSIX span inversion rules for left/right alternatives and
+  sequences:
+  `rexp_span_posix_ALT1E`, `rexp_span_posix_ALT2E`, and
+  `rexp_span_posix_SEQE`.
+- Attempted STAR/NTIMES inversion with broad elimination was deliberately not
+  kept because it triggered long proof search. Future work should add those
+  using explicit structured cases, not `auto elim!`.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Strong Tree with CE-Driven Span Values (2026-06-03)
 

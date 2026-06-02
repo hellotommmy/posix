@@ -83,6 +83,12 @@ immutability.
   keep the `bsimpStrong` tree as the nullable gate, mine local-certificate CEs,
   and prove exact values through bounded original-root span reconstruction.
   It is still infrastructure, not a BR-039/BR-040 payout.
+- Countdown universe fix: original `rexp_subterms` is now reconstruction-aware
+  for `NTIMES`, containing every countdown state `NTIMES r k` with `k <= n`.
+  This is required for span reconstruction of counted repetitions; plain
+  syntactic subterms are too weak. `rexp_span_posix_ALT1E`,
+  `rexp_span_posix_ALT2E`, and `rexp_span_posix_SEQE` are checked inversion
+  infrastructure only.
 - Checked span constructor support now includes alternatives, unit/empty,
   nonempty star, and counted-repetition intro rules:
   `rspan_accepts_RALTSI`, `rspan_accepts_RONE_emptyI`,

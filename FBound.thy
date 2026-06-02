@@ -1399,7 +1399,7 @@ fun rxsize :: "rexp \<Rightarrow> nat" where
 | "rxsize (SEQ r1 r2) = Suc (rxsize r1 + rxsize r2)"
 | "rxsize (ALT r1 r2) = Suc (rxsize r1 + rxsize r2)"
 | "rxsize (STAR r) = Suc (rxsize r)"
-| "rxsize (NTIMES r n) = Suc (rxsize r)"
+| "rxsize (NTIMES r n) = Suc n + rxsize r"
 | "rxsize (BACKREF4 r1 r2 r3 r4 cs) =
     Suc (rxsize r1 + rxsize r2 + rxsize r3 + rxsize r4)"
 | "rxsize (HALF r cs rep) = Suc (rxsize r)"
@@ -1414,7 +1414,7 @@ fun rexp_subterms :: "rexp \<Rightarrow> rexp set" where
 | "rexp_subterms (ALT r1 r2) =
     insert (ALT r1 r2) (rexp_subterms r1 \<union> rexp_subterms r2)"
 | "rexp_subterms (STAR r) = insert (STAR r) (rexp_subterms r)"
-| "rexp_subterms (NTIMES r n) = insert (NTIMES r n) (rexp_subterms r)"
+| "rexp_subterms (NTIMES r n) = ((\<lambda>k. NTIMES r k) ` {..n}) \<union> rexp_subterms r"
 | "rexp_subterms (BACKREF4 r1 r2 r3 r4 cs) =
     insert (BACKREF4 r1 r2 r3 r4 cs)
       (rexp_subterms r1 \<union> rexp_subterms r2 \<union>
@@ -1466,10 +1466,22 @@ next
   finally show ?case .
 next
   case (NTIMES r n)
-  have "card (rexp_subterms (NTIMES r n)) \<le> Suc (card (rexp_subterms r))"
-    by (simp add: card_insert_le_Suc)
-  also have "... \<le> rxsize (NTIMES r n)"
+  have "card (rexp_subterms (NTIMES r n)) \<le>
+      card (((\<lambda>k. NTIMES r k) ` {..n}) \<union> rexp_subterms r)"
+    by simp
+  also have "... \<le> card ((\<lambda>k. NTIMES r k) ` {..n}) + card (rexp_subterms r)"
+    by (rule card_Un_le)
+  also have "... \<le> Suc n + card (rexp_subterms r)"
+  proof -
+    have "card ((\<lambda>k. NTIMES r k) ` {..n}) \<le> card ({..n})"
+      by (rule card_image_le) simp
+    then show ?thesis
+      by simp
+  qed
+  also have "... \<le> Suc n + rxsize r"
     using NTIMES by simp
+  also have "... = rxsize (NTIMES r n)"
+    by simp
   finally show ?case .
 next
   case (BACKREF4 r1 r2 r3 r4 cs)
@@ -1500,6 +1512,31 @@ qed
 lemma rexp_subterms_root [simp]:
   "r \<in> rexp_subterms r"
   by (induct r) simp_all
+
+lemma rexp_subterms_ALT_children:
+  assumes "ALT r1 r2 \<in> rexp_subterms root"
+  shows "r1 \<in> rexp_subterms root" "r2 \<in> rexp_subterms root"
+  using assms by (induct root) auto
+
+lemma rexp_subterms_SEQ_children:
+  assumes "SEQ r1 r2 \<in> rexp_subterms root"
+  shows "r1 \<in> rexp_subterms root" "r2 \<in> rexp_subterms root"
+  using assms by (induct root) auto
+
+lemma rexp_subterms_STAR_child:
+  assumes "STAR q \<in> rexp_subterms root"
+  shows "q \<in> rexp_subterms root"
+  using assms by (induct root) auto
+
+lemma rexp_subterms_NTIMES_child:
+  assumes "NTIMES q n \<in> rexp_subterms root"
+  shows "q \<in> rexp_subterms root"
+  using assms by (induct root) auto
+
+lemma rexp_subterms_NTIMES_countdown:
+  assumes "NTIMES q n \<in> rexp_subterms root" "m \<le> n"
+  shows "NTIMES q m \<in> rexp_subterms root"
+  using assms by (induct root) auto
 
 definition rexp_span_states :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat) set" where
   "rexp_span_states r s =
@@ -1813,6 +1850,93 @@ proof -
     by (simp add: slice)
   then show ?thesis
     by (rule rexp_span_posixI[OF sub ij jl])
+qed
+
+lemma rexp_span_posix_ALT1E:
+  assumes entry: "(ALT r1 r2, i, j, Left v) \<in> rexp_span_posix root s"
+  obtains "(r1, i, j, v) \<in> rexp_span_posix root s"
+proof -
+  have sub: "ALT r1 r2 \<in> rexp_subterms root"
+    and ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and pos: "rslice s i j \<in> ALT r1 r2 \<rightarrow> Left v"
+    using entry by (auto simp: rexp_span_posix_def)
+  have child: "r1 \<in> rexp_subterms root"
+    using sub by (rule rexp_subterms_ALT_children(1))
+  have left_pos: "rslice s i j \<in> r1 \<rightarrow> v"
+    using pos by (auto elim!: Posix_elims(4))
+  have "(r1, i, j, v) \<in> rexp_span_posix root s"
+    by (rule rexp_span_posixI[OF child ij jl left_pos])
+  then show ?thesis
+    by (rule that)
+qed
+
+lemma rexp_span_posix_ALT2E:
+  assumes entry: "(ALT r1 r2, i, j, Right v) \<in> rexp_span_posix root s"
+  obtains "(r2, i, j, v) \<in> rexp_span_posix root s" "rslice s i j \<notin> L r1"
+proof -
+  have sub: "ALT r1 r2 \<in> rexp_subterms root"
+    and ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and pos: "rslice s i j \<in> ALT r1 r2 \<rightarrow> Right v"
+    using entry by (auto simp: rexp_span_posix_def)
+  have child: "r2 \<in> rexp_subterms root"
+    using sub by (rule rexp_subterms_ALT_children(2))
+  have right_pos: "rslice s i j \<in> r2 \<rightarrow> v"
+    and no_left: "rslice s i j \<notin> L r1"
+    using pos by (auto elim!: Posix_elims(4))
+  have "(r2, i, j, v) \<in> rexp_span_posix root s"
+    by (rule rexp_span_posixI[OF child ij jl right_pos])
+  then show ?thesis
+    using no_left by (rule that)
+qed
+
+lemma rexp_span_posix_SEQE:
+  assumes entry: "(SEQ r1 r2, i, j, Seq v1 v2) \<in> rexp_span_posix root s"
+  obtains k where
+    "(SEQ r1 r2, i, k, j) \<in> rexp_span_all_split_probes root s"
+    "(r1, i, k, v1) \<in> rexp_span_posix root s"
+    "(r2, k, j, v2) \<in> rexp_span_posix root s"
+    "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+      (rslice s i k @ s3) \<in> L r1 \<and> s4 \<in> L r2)"
+proof -
+  have sub: "SEQ r1 r2 \<in> rexp_subterms root"
+    and ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and pos: "rslice s i j \<in> SEQ r1 r2 \<rightarrow> Seq v1 v2"
+    using entry by (auto simp: rexp_span_posix_def)
+  obtain s1 s2 where
+    eq: "rslice s i j = s1 @ s2"
+    and left_pos: "s1 \<in> r1 \<rightarrow> v1"
+    and right_pos: "s2 \<in> r2 \<rightarrow> v2"
+    and longest_raw:
+      "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = s2 \<and>
+        (s1 @ s3) \<in> L r1 \<and> s4 \<in> L r2)"
+    using pos by (auto elim!: Posix_elims(5))
+  define k where "k = i + length s1"
+  have ik: "i \<le> k"
+    and kj: "k \<le> j"
+    and left_slice: "rslice s i k = s1"
+    and right_slice: "rslice s k j = s2"
+    using rslice_prefix_split[OF ij jl eq k_def] by blast+
+  have left_child: "r1 \<in> rexp_subterms root"
+    using sub by (rule rexp_subterms_SEQ_children(1))
+  have right_child: "r2 \<in> rexp_subterms root"
+    using sub by (rule rexp_subterms_SEQ_children(2))
+  have k_len: "k \<le> length s"
+    using kj jl by simp
+  have split: "(SEQ r1 r2, i, k, j) \<in> rexp_span_all_split_probes root s"
+    by (rule rexp_span_all_split_probesI[OF sub ik kj jl])
+  have left: "(r1, i, k, v1) \<in> rexp_span_posix root s"
+    using left_pos left_slice by (intro rexp_span_posixI[OF left_child ik k_len]) simp
+  have right: "(r2, k, j, v2) \<in> rexp_span_posix root s"
+    using right_pos right_slice by (intro rexp_span_posixI[OF right_child kj jl]) simp
+  have longest:
+    "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+      (rslice s i k @ s3) \<in> L r1 \<and> s4 \<in> L r2)"
+    using longest_raw left_slice right_slice by simp
+  show ?thesis
+    by (rule that[OF split left right longest])
 qed
 
 lemma rexp_span_posix_states_subset:

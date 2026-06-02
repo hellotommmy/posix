@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Countdown-aware original span universe
+
+- The original-root span table cannot be bounded by plain syntactic subterms
+  alone: POSIX reconstruction for `NTIMES q (Suc n)` recursively refers to
+  `NTIMES q n`.
+- `FBound.thy` now treats `rexp_subterms (NTIMES r n)` as a reconstruction
+  universe containing all countdown states `NTIMES r k` with `k <= n`.
+  Correspondingly, `rxsize (NTIMES r n)` now includes the `Suc n` countdown
+  budget. This is the original-`rexp` analogue of the continuation/countdown
+  accounting already used in the `rrexp` bound work.
+- Added `rexp_subterms_NTIMES_countdown` as the reusable closure fact. This
+  avoids trying to prove false tail-subterm claims during span reconstruction.
+- Added `rslice_prefix_split` and original span inversion rules for ALT/SEQ:
+  `rexp_span_posix_ALT1E`, `rexp_span_posix_ALT2E`, and
+  `rexp_span_posix_SEQE`. These expose the split index needed by greedy
+  POSIX value reconstruction.
+- STAR/NTIMES inversion should be added later with explicit structured cases.
+  A broad `auto elim!` attempt was rejected because it produced long-running
+  proof search, exactly the performance debt this project is trying to avoid.
+
 ## 2026-06-03: Strong tree plus CE-driven span values
 
 - The current preferred route matches the user's counterexample-driven
