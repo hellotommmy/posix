@@ -81,6 +81,18 @@ Last updated: 2026-06-02 (strong reconstruction sketch added)
   checks `2,000` random derivative expressions. Both pass. This is still not a
   full lexer-level certificate, because derivative through an already-certified
   simplified state and certified Antimirov row pruning remain open.
+- Added certified alternation flatten/distinct support inside
+  `StrongCoreCert`. Flattened rows now carry their original outer/inner
+  alternative index, and `distinctWith` keeps row certificates for surviving
+  rows so the original ALT value wrapper can be reconstructed even when deleted
+  rows shift the output index.
+- Added `scala_cubic_smoke.ps1 -TraceStrongCore`. Current Chapter 7 k=5
+  comparison at lengths `0,4,8,12,16,20,24,30`:
+  - thesis `bsimpStrong`: `46,474,730,771,820,875,918,958`;
+  - certified `bsimpStrongCore`: `46,420,718,1012,1308,1600,1898,2342`;
+  - current `bsimpCubic full`: `46,413,725,800,800,820,816,900`.
+  This pinpoints the next missing certificate layer: shared-suffix /
+  Antimirov-style row pruning, not sequence/star simplification.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 

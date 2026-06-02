@@ -89,8 +89,10 @@ Short version:
   certificate laws; extend those laws before trusting any new strong rewrite.
 - `scala_cubic_smoke.ps1 -CheckStrongCoreCert` checks the current compositional
   certificate prototype for the sequence/star core of `bsimpStrong` on
-  derivative-generated expressions. It is intentionally not a certificate for
-  alternation flattening/pruning yet.
+  derivative-generated expressions. It now includes alternation
+  flatten/distinct certificates, but not shared-suffix row pruning.
+- `scala_cubic_smoke.ps1 -TraceStrongCore` compares the certified core size
+  against thesis `bsimpStrong`; use it to measure the remaining pruning gap.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

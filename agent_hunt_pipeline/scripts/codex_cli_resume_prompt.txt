@@ -65,8 +65,11 @@ Current override, 2026-06-02:
   rewrite is proposed.
 - `scala_cubic_smoke.ps1 -CheckStrongCoreCert` checks the current
   compositional certificate prototype for the sequence/star core of
-  `bsimpStrong` on derivative-generated epsilon values. It does not yet certify
-  alternation flattening/pruning.
+  `bsimpStrong` on derivative-generated epsilon values. It now certifies
+  alternation flatten/distinct, but not shared-suffix row pruning.
+- `scala_cubic_smoke.ps1 -TraceStrongCore` compares certified-core size against
+  thesis `bsimpStrong`; current Chapter 7 evidence says row pruning is the next
+  missing certificate layer.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.

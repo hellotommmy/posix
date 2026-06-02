@@ -42,14 +42,22 @@ to be read before continuing long-running agent work.
   sequence reassociation. This is still local: the next design step is to
   compose these certificates through `bder`/`bsimpStrong` iterations.
 - Added `StrongCoreCert`, which is the first compositional implementation of
-  that idea for the sequence/star core. It deliberately does not certify
-  alternation flattening or pruning yet; instead it returns a simplified regex
-  and a value transformer for nested sequence/star rewrites. The certificate is
-  checked on derivative-generated expressions with `decodeAEpsValue`, a
+  that idea. It returns a simplified regex and a value transformer for nested
+  sequence/star rewrites. The certificate is checked on derivative-generated
+  expressions with `decodeAEpsValue`, a
   separate epsilon decoder that avoids treating non-nullable `ACHAR` rows as
   nullable values. This split matters: ordinary annotated decoding is for input
   bitstreams, while certificate checks compare epsilon values of derivative
   expressions.
+- `StrongCoreCert` now also certifies alternation flattening and `distinctWith`.
+  Flattened rows remember their original alternative index, so output choices
+  can be rewrapped into the original nested/shifted ALT value shape. This closes
+  the easy alternation layer but not shared-suffix pruning.
+- Size comparison on the Chapter 7 k=5 family shows why pruning is the next
+  certificate target. At n=30, thesis `bsimpStrong` is `958`, certified
+  `bsimpStrongCore` is `2342`, and current uncertified `bsimpCubic full` is
+  `900`. The certificate gap is therefore concentrated in row pruning rather
+  than the already-certified sequence/star and flatten/distinct rewrites.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

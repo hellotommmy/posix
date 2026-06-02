@@ -823,6 +823,7 @@ object PosixCubicSmoke {
   }
 
   final case class ValueCert(regex: ARexp, recon: Val => Option[Val])
+  final case class AltRowCert(regex: ARexp, originalIndex: Int, recon: Val => Option[Val])
 
   def traverseOption[A, B](xs: List[A])(f: A => Option[B]): Option[List[B]] =
     xs.foldRight(Option(List.empty[B])) { (x, acc) =>
@@ -835,6 +836,11 @@ object PosixCubicSmoke {
   def certIdentity(r: ARexp): ValueCert =
     ValueCert(r, v => Some(v))
 
+  def altValueAt(index: Int, total: Int, v: Val): Val =
+    if (total <= 1) v
+    else if (index == 0) LeftVal(v)
+    else RightVal(altValueAt(index - 1, total - 1, v))
+
   def mapAltChoice(certs: List[ValueCert], v: Val): Option[Val] =
     certs match {
       case Nil => None
@@ -845,6 +851,55 @@ object PosixCubicSmoke {
         case _ => None
       }
     }
+
+  def mapAltRowChoice(rows: List[AltRowCert], originalTotal: Int, v: Val): Option[Val] =
+    rows match {
+      case Nil => None
+      case row :: Nil => row.recon(v).map(altValueAt(row.originalIndex, originalTotal, _))
+      case row :: rest => v match {
+        case LeftVal(v0) =>
+          row.recon(v0).map(altValueAt(row.originalIndex, originalTotal, _))
+        case RightVal(vs) => mapAltRowChoice(rest, originalTotal, vs)
+        case _ => None
+      }
+    }
+
+  def fltAltRowCert(row: ValueCert, originalIndex: Int): List[AltRowCert] =
+    row.regex match {
+      case AZERO => Nil
+      case AALTs(bs, rs) =>
+        rs.zipWithIndex.map { case (r, innerIndex) =>
+          AltRowCert(
+            fuse(bs, r),
+            originalIndex,
+            v => row.recon(altValueAt(innerIndex, rs.length, v))
+          )
+        }
+      case r => List(AltRowCert(r, originalIndex, row.recon))
+    }
+
+  def distinctAltRowCerts(rows: List[AltRowCert]): List[AltRowCert] = {
+    @tailrec
+    def loop(todo: List[AltRowCert], seen: List[ARexp], out: List[AltRowCert]): List[AltRowCert] =
+      todo match {
+        case Nil => out.reverse
+        case row :: rest =>
+          if (seen.exists(eq1(row.regex, _))) loop(rest, seen, out)
+          else loop(rest, row.regex :: seen, row :: out)
+      }
+    loop(rows, Nil, Nil)
+  }
+
+  def bsimpAALTsCert(bs: List[Bit], rows: List[ValueCert]): ValueCert = {
+    val originalTotal = rows.length
+    val flatRows = rows.zipWithIndex.flatMap { case (row, index) => fltAltRowCert(row, index) }
+    val keptRows = distinctAltRowCerts(flatRows)
+    val out = bsimpAALTs(bs, keptRows.map(_.regex))
+    out match {
+      case AZERO => ValueCert(AZERO, _ => None)
+      case _ => ValueCert(out, v => mapAltRowChoice(keptRows, originalTotal, v))
+    }
+  }
 
   def bsimp4ASEQAtomCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = (r1, r2) match {
     case (AZERO, _) => ValueCert(AZERO, _ => None)
@@ -902,11 +957,7 @@ object PosixCubicSmoke {
       )
     case AALTs(bs, rs) =>
       val certs = rs.map(bsimpStrongCoreCert)
-      bsimpAALTs(bs, certs.map(_.regex)) match {
-        case AZERO => ValueCert(AZERO, _ => None)
-        case row if certs.length == 1 => ValueCert(row, certs.head.recon)
-        case out => ValueCert(out, v => mapAltChoice(certs, v))
-      }
+      bsimpAALTsCert(bs, certs)
     case ASTAR(bs, r0) =>
       val body = bsimpStrongCoreCert(r0)
       val starRewrite: ValueCert = body.regex match {
@@ -1336,6 +1387,18 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
+  def checkStrongCoreEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val out = bdersStrongCore(intern(r), "a" * n)
+      n -> (asize(out), adagSize(out), ashapeDagSize(out))
+    }
+    println(s"Chapter 7 k=$k bsimpStrongCore trace: " +
+      trace.map { case (n, (tree, dag, shape)) =>
+        s"$n->$tree/dag=$dag/shape=$shape"
+      }.mkString(", "))
+  }
+
   def checkCounterexamples(): Unit = {
     val a = ACHAR(Nil, 'a')
     val b = ACHAR(Nil, 'b')
@@ -1630,6 +1693,7 @@ object PosixCubicSmoke {
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
+    val traceStrongCore = boolSetting("posix.smoke.traceStrongCore", "POSIX_SMOKE_TRACE_STRONG_CORE", false)
     val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
@@ -1664,6 +1728,9 @@ object PosixCubicSmoke {
     }
     if (traceStrongSafe) {
       checkStrongSafeEvilFamilyTrace(ch7K, ch7Lengths)
+    }
+    if (traceStrongCore) {
+      checkStrongCoreEvilFamilyTrace(ch7K, ch7Lengths)
     }
     checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     if (sharedNoReassoc) {

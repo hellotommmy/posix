@@ -154,9 +154,13 @@ needs a compositional derivative-time certificate or theorem.
 Use `scala_cubic_smoke.ps1 -CheckStrongCoreCert` to check the current
 compositional certificate prototype for the sequence/star core of
 `bsimpStrong`. The prototype returns a simplified regex plus a value
-transformer for derivative-expression epsilon values. It deliberately does not
-certify alternation flattening or Antimirov row pruning yet, so do not treat it
-as BR-039 completion.
+transformer for derivative-expression epsilon values. It now includes
+alternation flatten/distinct certificates, but deliberately does not certify
+Antimirov row pruning yet, so do not treat it as BR-039 completion.
+
+Use `scala_cubic_smoke.ps1 -TraceStrongCore` to compare the certified core size
+against thesis `bsimpStrong`. The current gap on Chapter 7 points to
+shared-suffix row pruning as the next certificate target.
 
 Minimum smoke coverage for a serious cubic candidate:
 
