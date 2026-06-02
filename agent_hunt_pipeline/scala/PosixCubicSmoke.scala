@@ -575,13 +575,350 @@ object PosixCubicSmoke {
       case DNTimes(bs, body, n) => ANTIMES(bs, toARexp(body), n)
     }
 
+    def fuseId(bs: List[Bit], id: Int): Int =
+      if (bs.isEmpty) id
+      else node(id) match {
+        case DZero => mk(DZero)
+        case DOne(cs) => mk(DOne(bs ++ cs))
+        case DChar(cs, c) => mk(DChar(bs ++ cs, c))
+        case DSeq(cs, r1, r2) => mk(DSeq(bs ++ cs, r1, r2))
+        case DAlts(cs, rs) => mk(DAlts(bs ++ cs, rs))
+        case DStar(cs, r) => mk(DStar(bs ++ cs, r))
+        case DNTimes(cs, r, n) => mk(DNTimes(bs ++ cs, r, n))
+      }
+
+    private val nullableCache = scala.collection.mutable.HashMap.empty[Int, Boolean]
+    private val epsCache = scala.collection.mutable.HashMap.empty[Int, List[Bit]]
+    private val eq1Cache = scala.collection.mutable.HashMap.empty[(Int, Int), Boolean]
+
+    def bnullableId(id: Int): Boolean =
+      nullableCache.getOrElseUpdate(id, node(id) match {
+        case DZero => false
+        case DOne(_) => true
+        case DChar(_, _) => false
+        case DSeq(_, r1, r2) => bnullableId(r1) && bnullableId(r2)
+        case DAlts(_, rs) => rs.exists(bnullableId)
+        case DStar(_, _) => true
+        case DNTimes(_, r, n) => if (n == 0) true else bnullableId(r)
+      })
+
+    def bmkepsId(id: Int): List[Bit] =
+      epsCache.getOrElseUpdate(id, node(id) match {
+        case DOne(bs) => bs
+        case DSeq(bs, r1, r2) => bs ++ bmkepsId(r1) ++ bmkepsId(r2)
+        case DAlts(bs, r :: rs) =>
+          if (bnullableId(r)) bs ++ bmkepsId(r)
+          else bmkepsId(mk(DAlts(bs, rs)))
+        case DStar(bs, _) => bs ++ List(S)
+        case DNTimes(bs, r, n) =>
+          if (n == 0) bs ++ List(S)
+          else bs ++ List(Z) ++ bmkepsId(r) ++ bmkepsId(mk(DNTimes(Nil, r, n - 1)))
+        case other => sys.error(s"bmkepsId on non-nullable or malformed expression: $other")
+      })
+
+    def eq1Id(x: Int, y: Int): Boolean = {
+      val key = if (x <= y) (x, y) else (y, x)
+      eq1Cache.getOrElseUpdate(key, (node(x), node(y)) match {
+        case (DZero, DZero) => true
+        case (DOne(_), DOne(_)) => true
+        case (DChar(_, c), DChar(_, d)) => c == d
+        case (DSeq(_, a1, a2), DSeq(_, b1, b2)) => eq1Id(a1, b1) && eq1Id(a2, b2)
+        case (DAlts(_, xs), DAlts(_, ys)) =>
+          xs.length == ys.length && xs.zip(ys).forall { case (a, b) => eq1Id(a, b) }
+        case (DStar(_, a), DStar(_, b)) => eq1Id(a, b)
+        case (DNTimes(_, a, n), DNTimes(_, b, m)) => n == m && eq1Id(a, b)
+        case _ => false
+      })
+    }
+
+    def eq1MemberId(r: Int, rs: List[Int]): Boolean =
+      rs.exists(eq1Id(r, _))
+
+    def eq1ListId(xs: List[Int], ys: List[Int]): Boolean =
+      xs.length == ys.length && xs.zip(ys).forall { case (x, y) => eq1Id(x, y) }
+
+    def pruneEq1AgainstId(covered: List[Int], rs: List[Int]): List[Int] =
+      rs.filterNot(r => eq1MemberId(r, covered))
+
+    def fltsIds(rs: List[Int]): List[Int] = rs match {
+      case Nil => Nil
+      case r :: tail =>
+        node(r) match {
+          case DZero => fltsIds(tail)
+          case DAlts(bs, xs) => xs.map(fuseId(bs, _)) ++ fltsIds(tail)
+          case _ => r :: fltsIds(tail)
+        }
+    }
+
+    def distinctWithIds(xs: List[Int]): List[Int] = {
+      @tailrec
+      def loop(todo: List[Int], acc: List[Int], out: List[Int]): List[Int] = todo match {
+        case Nil => out.reverse
+        case x :: rest =>
+          if (acc.exists(eq1Id(x, _))) loop(rest, acc, out)
+          else loop(rest, x :: acc, x :: out)
+      }
+      loop(xs, Nil, Nil)
+    }
+
+    def bsimpAALTsId(bs: List[Bit], rs: List[Int]): Int = rs match {
+      case Nil => mk(DZero)
+      case r :: Nil => fuseId(bs, r)
+      case _ => mk(DAlts(bs, rs))
+    }
+
+    def bsimpCubicASEQAtomModeId(mode: String, bs: List[Bit], r1: Int, r2: Int): Int =
+      mode match {
+        case "full" =>
+          node(r1) match {
+            case DZero => mk(DZero)
+            case DOne(bs2) => fuseId(bs ++ bs2, r2)
+            case DSeq(bs2, a, b) =>
+              bsimpCubicASEQAtomModeId(mode, bs2, a,
+                bsimpCubicASEQAtomModeId(mode, bs, b, r2))
+            case _ =>
+              node(r2) match {
+                case DZero => mk(DZero)
+                case DOne(Nil) => fuseId(bs, r1)
+                case _ => mk(DSeq(bs, r1, r2))
+              }
+          }
+        case "none" => mk(DSeq(bs, r1, r2))
+        case "keyed-no-reassoc" | "expanded-keyed-no-reassoc" =>
+          bsimpCubicASEQAtomModeId("no-reassoc", bs, r1, r2)
+        case "reassoc-nonnullable-left" =>
+          node(r1) match {
+            case DSeq(bs2, a, b) if !bnullableId(a) =>
+              bsimpCubicASEQAtomModeId(mode, bs2, a,
+                bsimpCubicASEQAtomModeId(mode, bs, b, r2))
+            case _ => bsimpCubicASEQAtomModeId("no-reassoc", bs, r1, r2)
+          }
+        case "no-reassoc" =>
+          node(r1) match {
+            case DZero => mk(DZero)
+            case DOne(bs2) => fuseId(bs ++ bs2, r2)
+            case _ =>
+              node(r2) match {
+                case DZero => mk(DZero)
+                case DOne(Nil) => fuseId(bs, r1)
+                case _ => mk(DSeq(bs, r1, r2))
+              }
+          }
+        case "no-left-one" =>
+          node(r1) match {
+            case DZero => mk(DZero)
+            case DSeq(bs2, a, b) =>
+              bsimpCubicASEQAtomModeId(mode, bs2, a,
+                bsimpCubicASEQAtomModeId(mode, bs, b, r2))
+            case _ =>
+              node(r2) match {
+                case DZero => mk(DZero)
+                case DOne(Nil) => fuseId(bs, r1)
+                case _ => mk(DSeq(bs, r1, r2))
+              }
+          }
+        case "no-right-one" =>
+          node(r1) match {
+            case DZero => mk(DZero)
+            case DOne(bs2) => fuseId(bs ++ bs2, r2)
+            case DSeq(bs2, a, b) =>
+              bsimpCubicASEQAtomModeId(mode, bs2, a,
+                bsimpCubicASEQAtomModeId(mode, bs, b, r2))
+            case _ =>
+              node(r2) match {
+                case DZero => mk(DZero)
+                case _ => mk(DSeq(bs, r1, r2))
+              }
+          }
+        case "zeros-only" =>
+          (node(r1), node(r2)) match {
+            case (DZero, _) => mk(DZero)
+            case (_, DZero) => mk(DZero)
+            case _ => mk(DSeq(bs, r1, r2))
+          }
+        case other => throw new IllegalArgumentException(
+          s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
+        )
+      }
+
+    def seqFactorsId(id: Int): List[Int] = node(id) match {
+      case DSeq(_, r1, r2) => seqFactorsId(r1) ++ seqFactorsId(r2)
+      case _ => List(id)
+    }
+
+    def seqCoverRowsId(id: Int): Option[(List[Int], Int)] = node(id) match {
+      case DSeq(_, rowBlock, k) =>
+        node(rowBlock) match {
+          case DAlts(_, rows) => Some((rows, k))
+          case _ => Some((List(rowBlock), k))
+        }
+      case _ => None
+    }
+
+    def seqCoverRowsKeyId(id: Int): Option[(List[Int], List[Int])] =
+      seqFactorsId(id) match {
+        case Nil => None
+        case first :: tail =>
+          node(first) match {
+            case DAlts(_, rows) => Some((rows, tail))
+            case _ => Some((List(first), tail))
+          }
+      }
+
+    def expandedSeqKeysId(id: Int, maxKeys: Int): Option[List[List[Int]]] = {
+      def choices(f: Int): List[Int] = node(f) match {
+        case DAlts(_, rows) => rows
+        case _ => List(f)
+      }
+      def step(acc: List[List[Int]], f: Int): Option[List[List[Int]]] = {
+        val cs = choices(f)
+        val next = for { key <- acc; c <- cs } yield key :+ c
+        if (next.length > maxKeys) None else Some(next)
+      }
+      seqFactorsId(id).foldLeft(Option(List(List.empty[Int]))) {
+        case (Some(acc), f) => step(acc, f)
+        case (None, _) => None
+      }
+    }
+
+    def seqKeyMemberId(key: List[Int], keys: List[List[Int]]): Boolean =
+      keys.exists(eq1ListId(key, _))
+
+    def seqKeysCoveredId(keys: List[List[Int]], covered: List[List[Int]]): Boolean =
+      keys.nonEmpty && keys.forall(seqKeyMemberId(_, covered))
+
+    def bsimpCubicPrunePairModeId(seqMode: String, earlier: Int, later: Int): Int =
+      if (seqMode == "expanded-keyed-no-reassoc") {
+        val maxKeys = 5000
+        expandedSeqKeysId(earlier, maxKeys) match {
+          case Some(covered) =>
+            node(later) match {
+              case DSeq(bs2, rowBlock, k2) =>
+                node(rowBlock) match {
+                  case DAlts(rbs, rrs) =>
+                    val kept = rrs.filterNot { row =>
+                      expandedSeqKeysId(mk(DSeq(Nil, row, k2)), maxKeys)
+                        .exists(seqKeysCoveredId(_, covered))
+                    }
+                    if (kept == rrs) later
+                    else bsimpCubicASEQAtomModeId(seqMode, bs2, bsimpAALTsId(rbs, kept), k2)
+                  case _ =>
+                    expandedSeqKeysId(later, maxKeys) match {
+                      case Some(laterKeys) if seqKeysCoveredId(laterKeys, covered) => mk(DZero)
+                      case _ => later
+                    }
+                }
+              case _ =>
+                expandedSeqKeysId(later, maxKeys) match {
+                  case Some(laterKeys) if seqKeysCoveredId(laterKeys, covered) => mk(DZero)
+                  case _ => later
+                }
+            }
+          case None => later
+        }
+      } else if (seqMode == "keyed-no-reassoc") {
+        (seqCoverRowsKeyId(earlier), seqCoverRowsKeyId(later), node(later)) match {
+          case (Some((covered, tail1)), Some((_, tail2)), DSeq(bs2, rowBlock, k2)) if eq1ListId(tail1, tail2) =>
+            node(rowBlock) match {
+              case DAlts(rbs, rrs) =>
+                bsimpCubicASEQAtomModeId(seqMode, bs2, bsimpAALTsId(rbs, pruneEq1AgainstId(covered, rrs)), k2)
+              case _ => later
+            }
+          case (Some((covered, tail1)), Some((laterRows, tail2)), _) if eq1ListId(tail1, tail2) && laterRows.exists(eq1MemberId(_, covered)) =>
+            mk(DZero)
+          case _ => later
+        }
+      } else {
+        (seqCoverRowsId(earlier), node(later)) match {
+          case (Some((covered, k1)), DSeq(bs2, rowBlock, k2)) if eq1Id(k1, k2) =>
+            node(rowBlock) match {
+              case DAlts(rbs, rrs) =>
+                bsimpCubicASEQAtomModeId(seqMode, bs2, bsimpAALTsId(rbs, pruneEq1AgainstId(covered, rrs)), k2)
+              case _ if eq1MemberId(rowBlock, covered) => mk(DZero)
+              case _ => later
+            }
+          case _ => later
+        }
+      }
+
+    def bsimpCubicPruneRowsModeId(seqMode: String, rs: List[Int]): List[Int] = {
+      def loop(seen: List[Int], todo: List[Int]): List[Int] = todo match {
+        case Nil => Nil
+        case r :: rest =>
+          val pruned = seen.foldLeft(r)((acc, earlier) =>
+            bsimpCubicPrunePairModeId(seqMode, earlier, acc))
+          pruned :: loop(pruned :: seen, rest)
+      }
+      loop(Nil, rs)
+    }
+
+    def bsimpCubicAALTsWithModeId(seqMode: String, bs: List[Bit], rs: List[Int]): Int =
+      bsimpAALTsId(bs, distinctWithIds(fltsIds(bsimpCubicPruneRowsModeId(seqMode, rs))))
+
+    def bsimpCubicWithModeId(seqMode: String, id: Int): Int = node(id) match {
+      case DSeq(bs, r1, r2) =>
+        bsimpCubicASEQAtomModeId(seqMode, bs,
+          bsimpCubicWithModeId(seqMode, r1),
+          bsimpCubicWithModeId(seqMode, r2))
+      case DAlts(bs, rs) =>
+        bsimpCubicAALTsWithModeId(seqMode, bs,
+          fltsIds(rs.map(bsimpCubicWithModeId(seqMode, _))))
+      case DStar(bs, r) =>
+        val s = bsimpCubicWithModeId(seqMode, r)
+        node(s) match {
+          case DZero => mk(DOne(bs ++ List(S)))
+          case DOne(_) => mk(DOne(bs ++ List(S)))
+          case _ => mk(DStar(bs, s))
+        }
+      case DNTimes(bs, r, n) =>
+        if (n == 0) mk(DOne(bs ++ List(S)))
+        else {
+          val s = bsimpCubicWithModeId(seqMode, r)
+          node(s) match {
+            case DZero => mk(DZero)
+            case DOne(_) => mk(DOne(bmkepsId(mk(DNTimes(bs, s, n)))))
+            case _ => mk(DNTimes(bs, s, n))
+          }
+        }
+      case _ => id
+    }
+
+    def bderId(c: Char, id: Int): Int = node(id) match {
+      case DZero => mk(DZero)
+      case DOne(_) => mk(DZero)
+      case DChar(bs, d) => if (c == d) mk(DOne(bs)) else mk(DZero)
+      case DAlts(bs, rs) => mk(DAlts(bs, rs.map(bderId(c, _))))
+      case DSeq(bs, r1, r2) =>
+        if (bnullableId(r1)) {
+          mk(DAlts(bs, List(
+            mk(DSeq(Nil, bderId(c, r1), r2)),
+            fuseId(bmkepsId(r1), bderId(c, r2))
+          )))
+        } else {
+          mk(DSeq(bs, bderId(c, r1), r2))
+        }
+      case DStar(bs, body) =>
+        mk(DSeq(bs ++ List(Z), bderId(c, body), mk(DStar(Nil, body))))
+      case DNTimes(bs, body, n) =>
+        if (n == 0) mk(DZero)
+        else mk(DSeq(bs ++ List(Z), bderId(c, body), mk(DNTimes(Nil, body, n - 1))))
+    }
+
     def stepWithMode(seqMode: String, c: Char, root: Int): Int =
       derCache.getOrElseUpdate((seqMode, c, root), {
         fromARexp(bsimpCubicWithMode(seqMode, bder(c, toARexp(root))))
       })
 
+    def stepDirectWithMode(seqMode: String, c: Char, root: Int): Int =
+      derCache.getOrElseUpdate((s"direct:$seqMode", c, root), {
+        bsimpCubicWithModeId(seqMode, bderId(c, root))
+      })
+
     def bdersWithMode(seqMode: String, root: Int, s: String): Int =
       s.foldLeft(root)((acc, c) => stepWithMode(seqMode, c, acc))
+
+    def bdersDirectWithMode(seqMode: String, root: Int, s: String): Int =
+      s.foldLeft(root)((acc, c) => stepDirectWithMode(seqMode, c, acc))
 
     def reachableIds(root: Int): Set[Int] = {
       val seen = scala.collection.mutable.Set.empty[Int]
@@ -622,20 +959,30 @@ object PosixCubicSmoke {
       treeSize: Int,
       dagSize: Int,
       shapeDagSize: Int,
+      statePoolSize: Int,
       poolSize: Int
   )
 
-  def sharedModeResult(seqMode: String, r: Rexp, input: String): SharedResult = {
+  def sharedModeResult(seqMode: String, r: Rexp, input: String, directDag: Boolean = false): SharedResult = {
     val store = new DagStore
     val root0 = store.fromARexp(intern(r))
-    val root = store.bdersWithMode(seqMode, root0, input)
+    var root = root0
+    var prefixRoots = List(root0)
+    input.foreach { c =>
+      root =
+        if (directDag) store.stepDirectWithMode(seqMode, c, root)
+        else store.stepWithMode(seqMode, c, root)
+      prefixRoots = root :: prefixRoots
+    }
     val finalRegex = store.toARexp(root)
     val value = if (bnullable(finalRegex)) decodeBits(r, bmkeps(finalRegex)) else None
+    val statePool = prefixRoots.flatMap(store.reachableIds).toSet.size
     SharedResult(
       value,
       asize(finalRegex),
       store.reachableIds(root).size,
       store.reachableShapeSize(root),
+      statePool,
       store.totalSize
     )
   }
@@ -2133,55 +2480,70 @@ object PosixCubicSmoke {
     println(s"checked bsimpStrongSafe random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
-  def checkSharedValuePreservation(seqMode: String, maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+  def checkSharedValuePreservation(
+      seqMode: String,
+      maxDepth: Int,
+      maxInput: Int,
+      maxRegexes: Int,
+      directDag: Boolean = false
+  ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
+    val label = if (directDag) "direct-shared" else "shared"
     regexes.foreach { r =>
       inputs.foreach { s =>
         val b = baselineValue(r, s)
-        val shared = sharedModeResult(seqMode, r, s)
+        val shared = sharedModeResult(seqMode, r, s, directDag)
         checked += 1
         if (b != shared.value) {
           throw new AssertionError(
-            s"""shared $seqMode POSIX value mismatch
+            s"""$label $seqMode POSIX value mismatch
                |regex   = $r
                |input   = $s
                |base    = $b
                |shared  = ${shared.value}
-               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, pool=${shared.poolSize}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, pool=${shared.poolSize}
                |""".stripMargin
           )
         }
       }
     }
-    println(s"checked shared $seqMode POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+    println(s"checked $label $seqMode POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
   }
 
-  def checkSharedRandomValuePreservation(seqMode: String, cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+  def checkSharedRandomValuePreservation(
+      seqMode: String,
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      directDag: Boolean = false
+  ): Unit = {
     val rng = new Random(seed)
     var checked = 0
+    val label = if (directDag) "direct-shared" else "shared"
     (0 until cases).foreach { _ =>
       val r = randomRegex(rng, maxDepth)
       val s = randomInput(rng, maxInput)
       val b = baselineValue(r, s)
-      val shared = sharedModeResult(seqMode, r, s)
+      val shared = sharedModeResult(seqMode, r, s, directDag)
       checked += 1
       if (b != shared.value) {
         throw new AssertionError(
-          s"""shared $seqMode random POSIX value mismatch
+          s"""$label $seqMode random POSIX value mismatch
              |seed    = $seed
              |case    = $checked
              |regex   = $r
              |input   = $s
              |base    = $b
              |shared  = ${shared.value}
-             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, pool=${shared.poolSize}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, pool=${shared.poolSize}
              |""".stripMargin
         )
       }
     }
-    println(s"checked shared $seqMode random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    println(s"checked $label $seqMode random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
   def checkSharedEvilFamilyTrace(
@@ -2189,23 +2551,25 @@ object PosixCubicSmoke {
       k: Int,
       lengths: List[Int],
       dagThreshold: Int,
-      shapeThreshold: Int
+      shapeThreshold: Int,
+      directDag: Boolean = false
   ): Unit = {
     val r = thesisCh7Evil(k)
+    val label = if (directDag) "direct-shared" else "shared"
     val trace = lengths.map { n =>
-      val out = sharedModeResult(seqMode, r, "a" * n)
+      val out = sharedModeResult(seqMode, r, "a" * n, directDag)
       n -> out
     }
-    println(s"Chapter 7 k=$k shared $seqMode trace: " +
+    println(s"Chapter 7 k=$k $label $seqMode trace: " +
       trace.map { case (n, out) =>
-        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/pool=${out.poolSize}"
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/pool=${out.poolSize}"
       }.mkString(", "))
     trace.foreach { case (n, out) =>
       if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
-        throw new AssertionError(s"shared $seqMode DAG threshold failed at n=$n: dag=${out.dagSize} threshold=$dagThreshold")
+        throw new AssertionError(s"$label $seqMode DAG threshold failed at n=$n: dag=${out.dagSize} threshold=$dagThreshold")
       }
       if (shapeThreshold > 0 && out.shapeDagSize >= shapeThreshold) {
-        throw new AssertionError(s"shared $seqMode shape-DAG threshold failed at n=$n: shape=${out.shapeDagSize} threshold=$shapeThreshold")
+        throw new AssertionError(s"$label $seqMode shape-DAG threshold failed at n=$n: shape=${out.shapeDagSize} threshold=$shapeThreshold")
       }
     }
   }
@@ -3190,6 +3554,7 @@ object PosixCubicSmoke {
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
+    val sharedDirectDag = boolSetting("posix.smoke.sharedDirectDag", "POSIX_SMOKE_SHARED_DIRECT_DAG", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
     val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
@@ -3324,12 +3689,12 @@ object PosixCubicSmoke {
     if (!skipLegacyCubic) {
       checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     }
-    if (sharedNoReassoc) {
-      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes)
+    if (sharedNoReassoc || sharedDirectDag) {
+      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes, sharedDirectDag)
       if (randomCases > 0) {
-        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed)
+        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed, sharedDirectDag)
       }
-      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold)
+      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold, sharedDirectDag)
     }
   }
 

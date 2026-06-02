@@ -3,6 +3,27 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Direct-DAG smoke separates state pool from temporary pool
+
+- Added an optional `SharedDirectDag` smoke route. It runs derivative and
+  simplification directly on hash-consed node IDs instead of expanding the
+  current DAG root into an ordinary tree at each derivative step.
+- Added `statePool` to shared traces: the union of nodes reachable from every
+  prefix derivative root. This is the proof-relevant shared-state measure,
+  while the raw `pool` additionally counts dead temporary nodes allocated
+  during derivative/simplification construction.
+- Current evidence: direct `expanded-keyed-no-reassoc` preserves exact POSIX
+  values on exhaustive depth `2`/input `3` and random `1,000` cases at
+  depth `5`/input `6`. On Chapter 7, `k=5,n=30` gives final DAG `276`,
+  shape DAG `132`, `statePool` `1042`, and total temporary pool `4005`;
+  `k=8,n=32` gives final DAG `408`, shape DAG `173`, `statePool` `1400`,
+  and total temporary pool `5292`.
+- Design consequence: the next proof-facing universe should bound prefix
+  reachable rows/nodes, not the whole allocation pool. If an eventual
+  executable algorithm exposes the raw pool, it will need garbage-free
+  construction, garbage collection, or a separate dead-temporary accounting
+  argument.
+
 ## 2026-06-03: sizeNregex closes raw shared pruning
 
 - Added `raw_shared_prune_closed_sizeNregex`, plus small size and legacy

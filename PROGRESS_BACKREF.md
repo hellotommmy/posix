@@ -1,6 +1,44 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (sizeNregex raw shared-prune closure)
+Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
+
+## Cubic Candidate Prototype: Direct-DAG Shared Smoke (2026-06-03)
+
+- Added an optional direct-DAG path to `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.
+  Unlike the earlier shared diagnostic, this path performs derivative and
+  simplification operations directly on hash-consed node IDs instead of
+  expanding the current DAG root back to a tree before every derivative step.
+- Added `statePool` reporting to shared traces. This is the union of nodes
+  reachable from every prefix derivative root, and is distinct from the raw
+  total node pool, which also includes dead temporary nodes produced during a
+  direct derivative/simplification step.
+- Added wrapper flags:
+  - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedDirectDag`;
+  - `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -ScalaSmokeSharedDirectDag`.
+- Smoke evidence:
+  - Direct `no-reassoc`: exhaustive depth `2`, input length `3`, and random
+    `1,000` cases at depth `5`/input `6` preserve exact POSIX values.
+  - Direct `expanded-keyed-no-reassoc`: same value smoke also passes.
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30` under direct
+    `expanded-keyed-no-reassoc`:
+    final DAG `18,57,97,130,161,197,227,276`;
+    shape DAG `18,43,63,76,87,103,113,132`;
+    prefix `statePool` `18,90,187,310,445,598,767,1042`;
+    raw total pool `18,242,599,1055,1569,2171,2859,4005`.
+  - Chapter 7 `k=8`, lengths `0,4,8,16,32` under direct
+    `expanded-keyed-no-reassoc`:
+    final DAG `27,78,130,232,408`;
+    shape DAG `27,61,87,125,173`;
+    prefix `statePool` `27,120,229,550,1400`;
+    raw total pool `27,350,752,1957,5292`.
+- Design result:
+  - The direct-DAG prototype preserves the value-safe no-reassociation output
+    story while moving the smoke harness closer to a real shared-row algorithm.
+  - The proof-facing universe should target prefix reachable states/rows, not
+    the naive total node pool. Dead temporary nodes need either garbage-free
+    construction, GC, or a separate implementation accounting theorem.
+  - This is smoke evidence and tooling only; no BR-039/BR-040 payout is
+    claimed.
 
 ## Cubic Candidate Prototype: Concrete Raw Shared-Prune Sanity Universe (2026-06-03)
 

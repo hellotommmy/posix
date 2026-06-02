@@ -106,15 +106,18 @@ guide design, but do not claim a tree-size theorem or bounty from DAG evidence
 alone; the shared representation and POSIX-value reconstruction must be stated
 and checked.
 
-There is an optional executable reconstruction prototype:
-`scala_cubic_smoke.ps1 -SharedNoReassoc`. The switch name is retained for
-compatibility, but the shared diagnostic now follows the current `-SeqMode`.
-It hash-conses states, expands the final root back to an ordinary `arexp`, and
-checks exact decoded POSIX values. Passing this smoke is evidence that the
-shared representation route is semantically plausible, but it is not yet a
-direct shared derivative algorithm because the current prototype still uses
-tree derivatives before interning. The next serious candidate should move bder
-and simplification to node IDs/delayed rows.
+There are two shared smoke routes. `scala_cubic_smoke.ps1 -SharedNoReassoc`
+retains the historical post-step hash-cons diagnostic, and the shared
+diagnostic follows the current `-SeqMode`. The newer
+`scala_cubic_smoke.ps1 -SharedDirectDag` route runs derivative and
+simplification directly on hash-consed node IDs. Both expand the final root
+back to ordinary `arexp` only to check exact decoded POSIX values. Passing
+direct-DAG smoke is stronger evidence for a future shared-row algorithm, but
+it is still not a theorem. The direct report distinguishes final reachable DAG
+size, prefix `statePool`, and raw total allocation pool; proof work should
+target the prefix reachable state/row universe, while raw dead temporaries
+need either garbage-free construction, garbage collection, or separate
+accounting.
 
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a
