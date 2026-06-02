@@ -184,6 +184,16 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   strong-row derivative output is strictly smaller than keeping both raw rows.
   This is a general theorem-level version of the Chapter-7 overlap-prune
   intuition, not just an `eval` regression.
+- Added semantic erasure bridges around the executable strong simplifier:
+  `RL_rerase_bsimpStrong_rsimpStrong`,
+  `RL_rerase_bders_simpStrong_rders_simpStrong`,
+  `eq1_member_rerase`, `map_rerase_prune_eq1_against`, and
+  `RL_rerase_bsimpStrong_prune_pair_with_earlier`. The attempted exact
+  erasure equation for `bsimpStrong_prune_pair` is too strong for the current
+  definitions: executable `bsimp_AALTs` erases to `rsimp_ALTs pruned`, while
+  the proof-level strong pair normalizes with `rdistinct (rflts pruned)` first.
+  Use the checked language bridge in row-scanner contexts instead of forcing
+  syntactic equality.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

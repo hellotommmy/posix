@@ -1293,6 +1293,14 @@ to be read before continuing long-running agent work.
   `asizes_bpder_strong_rows_shared_suffix_lt` to conclude that the actual
   proof/executable row derivative is smaller than retaining both raw
   shared-suffix rows.
+- Do not try to prove a raw syntactic erasure equation for
+  `bsimpStrong_prune_pair` against `rsimpStrong_prune_pair`; the current
+  definitions normalize the pruned alternatives at different syntactic points.
+  The checked bridge is semantic and row-contextual:
+  `RL_rerase_bsimpStrong_prune_pair_with_earlier`. Supporting erasure facts
+  are `eq1_member_rerase`, `map_rerase_prune_eq1_against`,
+  `RL_rerase_bsimpStrong_rsimpStrong`, and
+  `RL_rerase_bders_simpStrong_rders_simpStrong`.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

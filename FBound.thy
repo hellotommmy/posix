@@ -941,6 +941,10 @@ lemma RL_rerase_bsimpStrong:
   "RL (rerase (bsimpStrong r)) = RL (rerase r)"
   by (simp add: RL_rerase L_bsimpStrong)
 
+lemma RL_rerase_bsimpStrong_rsimpStrong:
+  "RL (rerase (bsimpStrong r)) = RL (rsimpStrong (rerase r))"
+  by (simp add: RL_rerase_bsimpStrong RL_rsimpStrong)
+
 lemma RL_rerase_bders_simpStrong:
   "RL (rerase (bders_simpStrong r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)
@@ -961,6 +965,57 @@ next
   also have "... = Ders (c # s) (RL (rerase r))"
     by (simp add: Ders_Cons)
   finally show ?case .
+qed
+
+lemma RL_rerase_bders_simpStrong_rders_simpStrong:
+  "RL (rerase (bders_simpStrong r s)) =
+    RL (rders_simpStrong (rerase r) s)"
+  by (simp add: RL_rerase_bders_simpStrong RL_rders_simpStrong)
+
+lemma eq1_member_rerase:
+  "eq1_member r rs \<longleftrightarrow> rerase r \<in> set (map rerase rs)"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+    using Cons.hyps by (simp add: eq1_rerase)
+qed
+
+lemma map_rerase_prune_eq1_against:
+  "map rerase (prune_eq1_against covered rs) =
+    rprune_eq_against (map rerase covered) (map rerase rs)"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+    by (simp add: Cons.hyps eq1_member_rerase)
+qed
+
+lemma RL_rerase_bsimpStrong_prune_pair_with_earlier:
+  "RL (rerase earlier) \<union>
+    RL (rerase (bsimpStrong_prune_pair earlier later)) =
+    RL (rerase earlier) \<union>
+    RL (rsimpStrong_prune_pair (rerase earlier) (rerase later))"
+proof -
+  have left:
+    "RL (rerase earlier) \<union>
+      RL (rerase (bsimpStrong_prune_pair earlier later)) =
+      RL (rerase earlier) \<union> RL (rerase later)"
+    using L_bsimpStrong_prune_pair_cover[of earlier later]
+    by (simp add: RL_rerase)
+  have right:
+    "RL (rerase earlier) \<union>
+      RL (rsimpStrong_prune_pair (rerase earlier) (rerase later)) =
+      RL (rerase earlier) \<union> RL (rerase later)"
+    by (rule RL_rsimpStrong_prune_pair_with_earlier)
+  show ?thesis
+    using left right by simp
 qed
 
 lemma legacy_rerase_flts:
