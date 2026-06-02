@@ -79,6 +79,13 @@ immutability.
   erased-language bridges `L_bsimpCubic`, `RL_rerase_bsimpCubic`, and
   `RL_rerase_bders_simpCubic` are checked support facts only; the full cubic
   theorem and POSIX/bitcode-preserving route remain open.
+- BR-039/BR-040 payout is explicitly blocked by the optional deterministic
+  random smoke diagnostic until repaired. With seed `20260602`, random case
+  `99` finds a POSIX value mismatch for
+  `STAR (ALT ONE (STAR (STAR (STAR (STAR (STAR (CH a)))))))` on input `aaa`.
+  Default CI keeps random smoke off to preserve a green integration branch, but
+  any proof/bounty attempt must run it and resolve this class of bitstream
+  mismatch first.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

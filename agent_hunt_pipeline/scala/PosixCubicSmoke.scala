@@ -1,4 +1,5 @@
 import scala.annotation.tailrec
+import scala.util.Random
 
 object PosixCubicSmoke {
   sealed trait Rexp
@@ -341,17 +342,24 @@ object PosixCubicSmoke {
   def stringsUpTo(maxLen: Int): List[String] = {
     def exact(n: Int): List[String] =
       if (n == 0) List("")
-      else for { c <- alphabet; s <- exact(n - 1) } yield c + s
+      else for { c <- alphabet; s <- exact(n - 1) } yield c.toString + s
     (0 to maxLen).toList.flatMap(exact)
   }
 
-  def regexesUpToDepth(maxDepth: Int): List[Rexp] = {
+  def regexesUpToDepth(maxDepth: Int, maxRegexes: Int): List[Rexp] = {
     val memo = scala.collection.mutable.Map.empty[Int, List[Rexp]]
     def go(d: Int): List[Rexp] = memo.getOrElseUpdate(d, {
       val base = List(ZERO, ONE) ++ alphabet.map(CH(_))
       if (d == 0) base
       else {
         val smaller = go(d - 1)
+        val estimated = base.length.toLong + 4L * smaller.length + 2L * smaller.length * smaller.length
+        if (estimated > maxRegexes) {
+          throw new IllegalArgumentException(
+            s"exhaustive regex generation depth=$d would create about $estimated regexes before deduplication; " +
+              s"cap is $maxRegexes. Lower POSIX_SMOKE_DEPTH or raise POSIX_SMOKE_MAX_REGEXES deliberately."
+          )
+        }
         val unary = smaller.flatMap(r => List(STAR(r), NTIMES(r, 0), NTIMES(r, 1), NTIMES(r, 2)))
         val binary = for {
           r1 <- smaller
@@ -364,10 +372,35 @@ object PosixCubicSmoke {
     go(maxDepth)
   }
 
+  def randomRegex(rng: Random, depth: Int): Rexp = {
+    def base(): Rexp = rng.nextInt(4) match {
+      case 0 => ZERO
+      case 1 => ONE
+      case _ => CH(alphabet(rng.nextInt(alphabet.length)))
+    }
+    if (depth <= 0) base()
+    else rng.nextInt(9) match {
+      case 0 => ZERO
+      case 1 => ONE
+      case 2 => CH(alphabet(rng.nextInt(alphabet.length)))
+      case 3 => ALT(randomRegex(rng, depth - 1), randomRegex(rng, depth - 1))
+      case 4 => SEQ(randomRegex(rng, depth - 1), randomRegex(rng, depth - 1))
+      case 5 => STAR(randomRegex(rng, depth - 1))
+      case 6 => STAR(STAR(randomRegex(rng, depth - 1)))
+      case 7 => NTIMES(randomRegex(rng, depth - 1), rng.nextInt(4))
+      case _ => ALT(SEQ(randomRegex(rng, depth - 1), randomRegex(rng, depth - 1)), randomRegex(rng, depth - 1))
+    }
+  }
+
+  def randomInput(rng: Random, maxLen: Int): String = {
+    val n = rng.nextInt(maxLen + 1)
+    (0 until n).map(_ => alphabet(rng.nextInt(alphabet.length))).mkString
+  }
+
   final case class FailureCase(regex: Rexp, input: String, baseline: Option[Val], cubic: Option[Val])
 
-  def checkValuePreservation(maxDepth: Int, maxInput: Int): Unit = {
-    val regexes = regexesUpToDepth(maxDepth)
+  def checkValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
     regexes.foreach { r =>
@@ -376,18 +409,55 @@ object PosixCubicSmoke {
         val c = cubicValue(r, s)
         checked += 1
         if (b != c) {
+          val baseFinal = bders(intern(r), s)
+          val cubicFinal = bdersSimpCubic(intern(r), s)
           val msg =
             s"""POSIX value mismatch
                |regex   = $r
                |input   = $s
                |base    = $b
                |cubic   = $c
+               |baseRe  = $baseFinal
+               |cubicRe = $cubicFinal
+               |baseEps = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+               |cubicEps= ${if (bnullable(cubicFinal)) Some(bmkeps(cubicFinal)) else None}
                |""".stripMargin
           throw new AssertionError(msg)
         }
       }
     }
     println(s"checked POSIX value preservation on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val c = cubicValue(r, s)
+      checked += 1
+      if (b != c) {
+        val baseFinal = bders(intern(r), s)
+        val cubicFinal = bdersSimpCubic(intern(r), s)
+        val msg =
+          s"""random POSIX value mismatch
+             |seed    = $seed
+             |case    = $checked
+             |regex   = $r
+             |input   = $s
+             |base    = $b
+             |cubic   = $c
+             |baseRe  = $baseFinal
+             |cubicRe = $cubicFinal
+             |baseEps = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+             |cubicEps= ${if (bnullable(cubicFinal)) Some(bmkeps(cubicFinal)) else None}
+             |""".stripMargin
+        throw new AssertionError(msg)
+      }
+    }
+    println(s"checked random POSIX value preservation on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
   def checkEvilFamilyTrace(): Unit = {
@@ -443,10 +513,24 @@ object PosixCubicSmoke {
       .flatMap(s => scala.util.Try(s.toInt).toOption)
       .getOrElse(default)
 
+  def longSetting(prop: String, env: String, default: Long): Long =
+    sys.props.get(prop)
+      .orElse(sys.env.get(env))
+      .flatMap(s => scala.util.Try(s.toLong).toOption)
+      .getOrElse(default)
+
   def runSmoke(): Unit = {
     val maxDepth = intSetting("posix.smoke.depth", "POSIX_SMOKE_DEPTH", 2)
     val maxInput = intSetting("posix.smoke.input", "POSIX_SMOKE_INPUT", 3)
-    checkValuePreservation(maxDepth, maxInput)
+    val maxRegexes = intSetting("posix.smoke.maxRegexes", "POSIX_SMOKE_MAX_REGEXES", 100000)
+    val randomCases = intSetting("posix.smoke.randomCases", "POSIX_SMOKE_RANDOM_CASES", 0)
+    val randomDepth = intSetting("posix.smoke.randomDepth", "POSIX_SMOKE_RANDOM_DEPTH", 5)
+    val randomInputMax = intSetting("posix.smoke.randomInput", "POSIX_SMOKE_RANDOM_INPUT", 6)
+    val randomSeed = longSetting("posix.smoke.seed", "POSIX_SMOKE_SEED", 20260602L)
+    checkValuePreservation(maxDepth, maxInput, maxRegexes)
+    if (randomCases > 0) {
+      checkRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+    }
     checkCounterexamples()
     checkEvilFamilyTrace()
   }

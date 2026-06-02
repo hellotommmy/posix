@@ -80,6 +80,12 @@ lexer/simplifier definitions and performs exact POSIX value comparisons:
 baseline derivative lexer on bounded generated regexes and inputs. Language
 preservation alone is not enough for a cubic candidate.
 
+Default CI runs the bounded exhaustive smoke only. Before any cubic proof or
+bounty attempt, also run deterministic deeper random smoke, for example
+`scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`.
+If random smoke finds a POSIX value mismatch, the candidate is diagnostic only
+until the simplifier or value-reconstruction story is repaired.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated
@@ -89,7 +95,9 @@ Minimum smoke coverage for a serious cubic candidate:
   growth behavior under repeated derivatives.
 - Bounded regex enumeration: generate all regexes up to a selected depth over a
   small alphabet and compare exact POSIX values over all strings up to a
-  selected length. Increase these limits before attempting proof-level payout.
+  selected length. Depth `3` is intentionally not a casual default: it expands
+  to tens of millions of raw regexes, so use the cap and random smoke rather
+  than accidentally running the machine out of memory.
 - Counterexample pressure tests C/D/E/F or later successors must expose
   concrete weaknesses of older simplifiers and show the new candidate fixing
   them. Put broad grids in Scala; keep only compact theorem-facing sanity

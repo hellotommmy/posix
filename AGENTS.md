@@ -32,7 +32,10 @@ Short version:
   baseline lexer, then checks shared-suffix pruning and the thesis Chapter 7
   three-layer-star family. If a candidate is known to miss a required pruning
   rule or fails exact POSIX value smoke, retire or re-scope it instead of
-  proving around the defect.
+  proving around the defect. Before proof/bounty work, run the optional
+  deterministic random smoke, e.g. `scala_cubic_smoke.ps1 -RandomCases 2000`;
+  default CI keeps this off so the branch can stay green while diagnostics are
+  recorded.
 - The cubic route must reconcile Antimirov-style row/set deduplication with
   POSIX value preservation. Naively distributing `(a+b)c` to `ac+bc` can change
   value shape (`Seq (Left x) y` vs `Left (Seq x y)`), so use pruning,

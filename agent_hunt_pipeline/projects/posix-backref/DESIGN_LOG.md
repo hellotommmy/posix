@@ -29,6 +29,19 @@ to be read before continuing long-running agent work.
   first-match behavior. In Scala this brings the Chapter 7 `k=5` trace to
   `4->413, 8->725, 12->800, 16->800, 20->820` while exact POSIX value smoke
   passes on the default bounded enumeration.
+- Stronger random smoke has now found a deeper POSIX counterexample for the
+  current `bsimpCubic` candidate:
+  `STAR (ALT ONE (STAR (STAR (STAR (STAR (STAR (CH a)))))))` on input `aaa`
+  with seed `20260602`, random case `99`. The baseline lexer returns a nested
+  right-branch star value, while `bders_simpCubic` produces a bitstream that
+  does not decode against the original regex. This blocks any BR-039/BR-040
+  payout: the next design needs a value-aware row identity, reconstruction
+  theorem, or generalized POSIX-value transfer before the size candidate can
+  be treated as production.
+- Exhaustive depth `3` over the two-character grammar is not a practical
+  default smoke level: it attempts about `63,191,284` raw regexes before
+  deduplication. The Scala harness now has a cap and reports this clearly
+  instead of running out of memory.
 
 ## 2026-06-02: Cubic route must be smoke-first and POSIX-aware
 

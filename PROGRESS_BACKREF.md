@@ -1,6 +1,28 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (Scala-gated bsimpCubic smoke checkpoint)
+Last updated: 2026-06-02 (random smoke found deeper bsimpCubic value gap)
+
+## Cubic Candidate Diagnostic: Random Smoke Value Gap (2026-06-02)
+
+- Extended `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` with an explicit
+  exhaustive-generation cap and optional deterministic random smoke. Default
+  CI keeps random smoke off; proof/bounty attempts should run it manually, e.g.
+  `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000
+  -RandomDepth 5 -RandomInputLength 6`.
+- Exhaustive depth `3` over the current two-character grammar is not practical
+  as a casual gate: the harness reports about `63,191,284` raw regexes before
+  deduplication and fails clearly instead of exhausting heap.
+- Random smoke with seed `20260602` found a real value-preservation gap at case
+  `99`: regex
+  `STAR (ALT ONE (STAR (STAR (STAR (STAR (STAR (CH a)))))))` on input `aaa`.
+  The baseline derivative lexer decodes a nested right-branch star value, while
+  `bders_simpCubic` produces a nullable final state whose bits do not decode
+  against the original regex.
+- Design consequence: the current `bsimpCubic` remains useful as a
+  language/size/smoke prototype, but it is not yet a production POSIX-value
+  preserving cubic candidate. BR-039/BR-040 must remain open until a
+  value-aware row identity, reconstruction theorem, or generalized POSIX value
+  transfer fixes this class of examples.
 
 ## Cubic Candidate Checkpoint: Scala-Gated bsimpCubic Smoke (2026-06-02)
 
