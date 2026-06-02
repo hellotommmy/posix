@@ -73,6 +73,10 @@ lemma rerase_fuse:
        apply simp+
   done
 
+lemma legacy_rerase_intern:
+  "legacy_rrexp (rerase (intern r)) = legacy_rexp r"
+  by (induct r) (simp_all add: rerase_fuse)
+
 lemma rerase_bsimp_ASEQ:
   shows "rerase (bsimp_ASEQ x1 a1 a2) = rsimp_SEQ (rerase a1) (rerase a2)"
   by (cases a1; cases a2; simp add: bsimp_ASEQ_def rerase_fuse)
@@ -2581,6 +2585,39 @@ next
     by (rule legacy_rerase_bsimpStrong[OF der])
   show ?case
     by (simp add: Cons.hyps[OF step])
+qed
+
+lemma legacy_rexp_rerase_bders_simpStrong_intern:
+  assumes "legacy_rexp r"
+  shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+proof -
+  have "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  then show ?thesis
+    by (rule legacy_rerase_bders_simpStrong)
+qed
+
+lemma strong_deferred_original_legacy_budget:
+  assumes "legacy_rexp r"
+  shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "card (rexp_span_posix r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    using assms by (rule legacy_rexp_rerase_bders_simpStrong_intern)
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_reconstruction_budget(1))
+  show "card (rexp_span_posix r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_reconstruction_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_reconstruction_budget(3))
 qed
 
 lemma rerase_map_fuse:

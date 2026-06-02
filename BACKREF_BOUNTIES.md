@@ -87,6 +87,12 @@ immutability.
   unique deferred value, bounded POSIX value table, and bounded split-probe
   table for the current span/memo route. This is BR-040 infrastructure only;
   the regex-size cubic tree/share bound remains open.
+- Original non-backref fragment bridge: `RegLangs.thy` now has `legacy_rexp`,
+  and `FBound.thy` has `legacy_rerase_intern`,
+  `legacy_rexp_rerase_bders_simpStrong_intern`, and
+  `strong_deferred_original_legacy_budget`. Future original-file cubic
+  statements can use the premise `legacy_rexp r` directly. This is BR-040
+  infrastructure only and does not count as a bounty payout.
 - Checked original split probes: `FBound.thy` now also has
   `rexp_span_split_probes`, `rexp_span_all_split_probes`, their cardinality
   bounds, and one-directional original POSIX constructor rules for `ONE`, `CH`,

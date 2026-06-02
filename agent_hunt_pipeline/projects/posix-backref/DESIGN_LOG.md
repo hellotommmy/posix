@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Original non-backref fragment bridge
+
+- Added `legacy_rexp` on the original `rexp` datatype. It is the user-facing
+  non-backref premise for the current cubic-bound route: original regular
+  constructors are accepted, while `BACKREF4`, `HALF`, and `RESIDUE` are
+  excluded.
+- Added `legacy_rerase_intern`, proving that interning an original `rexp` and
+  erasing it into the bounds skeleton preserves exactly this fragment
+  predicate.
+- Added `legacy_rexp_rerase_bders_simpStrong_intern` and
+  `strong_deferred_original_legacy_budget`, so future proof work can state the
+  route directly from `legacy_rexp r`: the strong derivative gate remains in
+  the legacy skeleton fragment and the existing deferred reconstruction budget
+  is available at the same original-regex entry point.
+- Design consequence: use `legacy_rexp r` for original-file non-backref cubic
+  statements. Use `legacy_rrexp (rerase a)` only when the theorem is genuinely
+  about an already-annotated state.
+
 ## 2026-06-03: Strong-deferred reconstruction package is checked
 
 - Added a small package of `FBound.thy` facts around

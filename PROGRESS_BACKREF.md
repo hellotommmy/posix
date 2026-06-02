@@ -1,6 +1,27 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (checked strong-deferred reconstruction package)
+Last updated: 2026-06-03 (original non-backref fragment bridge)
+
+## Cubic Candidate Prototype: Original Fragment Bridge (2026-06-03)
+
+- Added `legacy_rexp` in `RegLangs.thy`, a direct predicate on the original
+  `rexp` datatype that accepts the legacy/non-backref constructors and rejects
+  `BACKREF4`, `HALF`, and `RESIDUE`.
+- Added proof-facing bridge lemmas in `FBound.thy`:
+  - `legacy_rerase_intern`;
+  - `legacy_rexp_rerase_bders_simpStrong_intern`;
+  - `strong_deferred_original_legacy_budget`.
+- Design result:
+  - The current strong-deferred route can now start from the user-facing
+    original regex premise `legacy_rexp r`, rather than only from the erased
+    bounds skeleton premise `legacy_rrexp (rerase a)`.
+  - `bders_simpStrong (intern r) s` is checked to remain in the
+    legacy/non-backref bounds fragment under that premise, while the existing
+    deferred reconstruction budget facts remain available at the same entry
+    point.
+  - This is infrastructure for the cubic route, not a POSIX/bitcode
+    preservation theorem and not a bounty payout.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Strong-Deferred Reconstruction Package (2026-06-03)
 

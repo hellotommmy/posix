@@ -218,6 +218,18 @@ datatype rexp =
 | HALF rexp string string
 | RESIDUE string string
 
+fun legacy_rexp :: "rexp \<Rightarrow> bool" where
+  "legacy_rexp ZERO = True"
+| "legacy_rexp ONE = True"
+| "legacy_rexp (CH c) = True"
+| "legacy_rexp (SEQ r1 r2) = (legacy_rexp r1 \<and> legacy_rexp r2)"
+| "legacy_rexp (ALT r1 r2) = (legacy_rexp r1 \<and> legacy_rexp r2)"
+| "legacy_rexp (STAR r) = legacy_rexp r"
+| "legacy_rexp (NTIMES r n) = legacy_rexp r"
+| "legacy_rexp (BACKREF4 r1 r2 r3 r4 cs) = False"
+| "legacy_rexp (HALF r cs rep) = False"
+| "legacy_rexp (RESIDUE cs rep) = False"
+
 section \<open>Semantics of Regular Expressions\<close>
 
 definition backref_lang4 ::
