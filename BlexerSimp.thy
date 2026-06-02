@@ -551,6 +551,11 @@ fun prune_eq1_against :: "arexp list \<Rightarrow> arexp list \<Rightarrow> arex
     (if eq1_member r covered then prune_eq1_against covered rs
      else r # prune_eq1_against covered rs)"
 
+lemma prune_eq1_against_all_covered_empty:
+  assumes "\<forall>r \<in> set rs. eq1_member r covered"
+  shows "prune_eq1_against covered rs = []"
+  using assms by (induct rs) auto
+
 lemma eq1_member_set:
   assumes "eq1_member r rs"
   shows "\<exists>s \<in> set rs. r ~1 s"
@@ -633,6 +638,16 @@ definition bsimpStrong_prune_pair :: "arexp \<Rightarrow> arexp \<Rightarrow> ar
           (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2
         else later
     | _ \<Rightarrow> later)"
+
+lemma bsimpStrong_prune_pair_full_cover:
+  assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
+      and "k1 ~1 k2"
+  shows "bsimpStrong_prune_pair
+      (ASEQ bs1 (AALTs lbs lrs) k1)
+      (ASEQ bs2 (AALTs rbs rrs) k2) = AZERO"
+  using assms
+  by (simp add: bsimpStrong_prune_pair_def
+      prune_eq1_against_all_covered_empty bsimp7_ASEQ_atom_def)
 
 fun bsimpStrong_prune_against_rows :: "arexp list \<Rightarrow> arexp \<Rightarrow> arexp" where
   "bsimpStrong_prune_against_rows [] r = r"

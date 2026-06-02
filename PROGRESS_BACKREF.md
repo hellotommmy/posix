@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row later-local shared prune hooks)
+Last updated: 2026-06-02 (strong full-cover prune facts)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -120,6 +120,16 @@ Last updated: 2026-06-02 (strong-row later-local shared prune hooks)
   a concrete universe only has to close shared-suffix deletion for rows it can
   actually contain, not for arbitrary `lrs rrs k`. Still no final cubic theorem
   or bounty claim.
+- Added checked full-cover prune facts for both the proof-level and executable
+  strong simplifiers. In `GeneralRegexBound.thy`,
+  `rprune_eq_against_subset_empty` and `rsimpStrong_prune_pair_full_cover`
+  prove that a later row whose alternatives are all already covered collapses
+  to `RZERO`, and `rsimpStrong_ALTs_full_cover_shared_suffix` records that a
+  two-row shared-suffix alternative then keeps only the earlier row. In
+  `BlexerSimp.thy`, `prune_eq1_against_all_covered_empty` and
+  `bsimpStrong_prune_pair_full_cover` check the same mechanism for annotated
+  `arexp` rows up to `eq1`. This is the precise Chapter-7 deletion atom needed
+  for future row-count/size accounting; it is still not a general cubic bound.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

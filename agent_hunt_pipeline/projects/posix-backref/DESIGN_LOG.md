@@ -1234,6 +1234,16 @@ to be read before continuing long-running agent work.
   closure for every synthetic `lrs rrs k`. This is the right obligation shape
   for a root-owned finite universe; do not revert to the older global shared
   premise unless there is a specific reason.
+- The Chapter-7 full-cover deletion atom is now checked in both layers. On
+  proof-level `rrexp`, use `rprune_eq_against_subset_empty`,
+  `rsimpStrong_prune_pair_full_cover`, and
+  `rsimpStrong_ALTs_full_cover_shared_suffix`: if every later alternative is
+  already in the covered earlier row, the later shared-suffix row is removed.
+  On executable `arexp`, use `prune_eq1_against_all_covered_empty` and
+  `bsimpStrong_prune_pair_full_cover`, where coverage is stated via
+  `eq1_member`. These are the small facts to use when explaining why the
+  stronger simplifier actually controls the thesis Chapter-7 overlap family,
+  rather than relying only on concrete examples.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

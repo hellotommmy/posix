@@ -16012,6 +16012,11 @@ lemma set_append_rprune_eq_against:
   "set (covered @ rprune_eq_against covered rs) = set (covered @ rs)"
   by (induct rs) auto
 
+lemma rprune_eq_against_subset_empty:
+  assumes "set rs \<subseteq> set covered"
+  shows "rprune_eq_against covered rs = []"
+  using assms by (induct rs) auto
+
 lemma row_group_nf_rprune_eq_against:
   assumes "\<forall>r \<in> set rs. row_group_nf r"
   shows "\<forall>r \<in> set (rprune_eq_against covered rs). row_group_nf r"
@@ -16113,6 +16118,14 @@ lemma thesis_ch7_rstrong_prunes_overlap:
     RSEQ (RCHAR d) (RCHAR c)"
   using assms by (simp add: rsimpStrong_prune_pair_def rsimp7_SEQ_atom_def)
 
+lemma rsimpStrong_prune_pair_full_cover:
+  assumes "set rrs \<subseteq> set lrs"
+  shows "rsimpStrong_prune_pair
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) = RZERO"
+  using assms
+  by (simp add: rsimpStrong_prune_pair_def rprune_eq_against_subset_empty
+      rsimp7_SEQ_atom_def)
+
 lemma thesis_ch7_rstrong_overlap_same_language:
   "RL (RALTS
       [RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c),
@@ -16169,6 +16182,15 @@ definition rsimpStrong_prune_rows :: "rrexp list \<Rightarrow> rrexp list" where
 definition rsimpStrong_ALTs :: "rrexp list \<Rightarrow> rrexp" where
   "rsimpStrong_ALTs rs =
     rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows rs)) {})"
+
+lemma rsimpStrong_ALTs_full_cover_shared_suffix:
+  assumes "set rrs \<subseteq> set lrs"
+  shows "rsimpStrong_ALTs
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k] =
+    RSEQ (RALTS lrs) k"
+  using assms
+  by (simp add: rsimpStrong_ALTs_def rsimpStrong_prune_rows_def
+      rsimpStrong_prune_pair_full_cover)
 
 lemma row_group_nf_rsimpStrong_prune_pair:
   assumes earlier_nf: "row_group_nf earlier"
