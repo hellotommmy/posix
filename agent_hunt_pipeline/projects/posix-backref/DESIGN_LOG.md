@@ -1322,3 +1322,12 @@ to be read before continuing long-running agent work.
   cubic one-step budget. This deliberately stops short of a repeated
   `bpders_strong_rows` cubic theorem; the missing ingredient is still the
   root-owned strong-row closure/cardinality proof.
+- The exact syntactic transfer
+  `rerase (bsimpStrong_prune_pair earlier later) =
+   rsimpStrong_prune_pair (rerase earlier) (rerase later)` is checked-false
+  via `bsimpStrong_prune_pair_exact_rerase_counterexample`. The witness has a
+  later shared-suffix row with duplicate alternatives: the executable pair
+  leaves those duplicates under `bsimp_AALTs`, while the proof-level pair
+  normalizes through `rflts/rdistinct` before `rsimp_ALTs`. Keep using the
+  semantic union bridge and the row-context facts instead of trying to recover
+  exact erasure equality.

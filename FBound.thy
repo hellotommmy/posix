@@ -1018,6 +1018,20 @@ proof -
     using left right by simp
 qed
 
+lemma bsimpStrong_prune_pair_exact_rerase_counterexample:
+  assumes "a \<noteq> b"
+  shows
+    "rerase
+      (bsimpStrong_prune_pair
+        (ASEQ [] (AALTs [] [ACHAR [] b]) (ACHAR [] c))
+        (ASEQ [] (AALTs [] [ACHAR [] a, ACHAR [] a]) (ACHAR [] c))) \<noteq>
+     rsimpStrong_prune_pair
+      (rerase (ASEQ [] (AALTs [] [ACHAR [] b]) (ACHAR [] c)))
+      (rerase (ASEQ [] (AALTs [] [ACHAR [] a, ACHAR [] a]) (ACHAR [] c)))"
+  using assms
+  by (simp add: bsimpStrong_prune_pair_def rsimpStrong_prune_pair_def
+      bsimp7_ASEQ_atom_def rsimp7_SEQ_atom_def)
+
 lemma legacy_rerase_flts:
   assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
   shows "\<forall>r \<in> set (flts rs). legacy_rrexp (rerase r)"

@@ -22,6 +22,13 @@ Last updated: 2026-06-02 (annotated strong one-step size)
   repeated cubic bound for `bpders_strong_rows`; it is the annotated bridge
   needed before the future root-owned universe closure theorem can be used in
   the executable layer.
+- Added the checked no-go
+  `bsimpStrong_prune_pair_exact_rerase_counterexample`. It records that the
+  executable pair prune does not syntactically erase to the proof-level
+  `rsimpStrong_prune_pair` on all inputs: duplicate later alternatives can be
+  normalized away at different layers. Future transfer proofs should use the
+  checked semantic bridge `RL_rerase_bsimpStrong_prune_pair_with_earlier` and
+  row-contextual accounting facts, not an exact `rerase` equation.
 - Added and checked the conditional finite-universe interface for the
   proof-level strong row pipeline:
   `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,
