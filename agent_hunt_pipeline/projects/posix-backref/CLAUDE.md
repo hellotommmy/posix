@@ -147,8 +147,9 @@ those rewrites, then prove reconstruction to the original `val`.
 Use `scala_cubic_smoke.ps1 -TraceStrongRecon` to check the current executable
 sketch for that route. It verifies the first CE witnesses with local
 reconstruction equations while keeping the actual `bsimpStrong` small output.
-Treat it as route evidence only; a bounty candidate still needs a
-compositional derivative-time certificate or theorem.
+It also runs annotated-value local certificate laws for the rewrite rules that
+caused those CEs. Treat it as route evidence only; a bounty candidate still
+needs a compositional derivative-time certificate or theorem.
 
 Minimum smoke coverage for a serious cubic candidate:
 

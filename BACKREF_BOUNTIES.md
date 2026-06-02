@@ -132,8 +132,10 @@ immutability.
 - CE-driven strong-reconstruction sketch: `scala_cubic_smoke.ps1
   -TraceStrongRecon` now checks local transformer equations for the first
   strong CE witnesses while retaining the actual small `bsimpStrong` output.
-  This is positive route evidence, not a bounty claim; payout still requires a
-  compositional derivative-time certificate or theorem.
+  It also checks annotated-value local certificate laws for those rewrite
+  classes over small input grids. This is positive route evidence, not a bounty
+  claim; payout still requires a compositional derivative-time certificate or
+  theorem.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

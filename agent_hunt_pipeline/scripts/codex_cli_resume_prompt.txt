@@ -60,7 +60,9 @@ Current override, 2026-06-02:
 - `scala_cubic_smoke.ps1 -TraceStrongRecon` checks the first local
   reconstruction sketches on the CE witnesses while keeping actual
   `bsimpStrong` output trees. It is route evidence only; continue toward a
-  compositional derivative-time certificate.
+  compositional derivative-time certificate. The current version also checks
+  annotated-value local certificate laws; add new laws whenever a new strong
+  rewrite is proposed.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.

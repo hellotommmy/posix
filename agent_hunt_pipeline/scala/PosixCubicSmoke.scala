@@ -663,6 +663,73 @@ object PosixCubicSmoke {
     dec(r, bits).collect { case (v, Nil) => v }
   }
 
+  def decodeAValue(r: ARexp, bits: List[Bit]): Option[Val] = {
+    def stripPrefix(prefix: List[Bit], bs: List[Bit]): Option[List[Bit]] =
+      if (bs.startsWith(prefix)) Some(bs.drop(prefix.length)) else None
+
+    def altValueAt(index: Int, total: Int, v: Val): Val =
+      if (total <= 1) v
+      else if (index == 0) LeftVal(v)
+      else RightVal(altValueAt(index - 1, total - 1, v))
+
+    def dec(re: ARexp, bs: List[Bit]): Option[(Val, List[Bit])] = re match {
+      case AZERO => None
+      case AONE(prefix) => stripPrefix(prefix, bs).map(rest => (Void, rest))
+      case ACHAR(prefix, c) => stripPrefix(prefix, bs).map(rest => (CharVal(c), rest))
+      case ASEQ(prefix, r1, r2) =>
+        for {
+          bs0 <- stripPrefix(prefix, bs)
+          left <- dec(r1, bs0)
+          (v1, rest1) = left
+          right <- dec(r2, rest1)
+          (v2, rest2) = right
+        } yield (SeqVal(v1, v2), rest2)
+      case AALTs(prefix, rs) =>
+        stripPrefix(prefix, bs).flatMap { bs0 =>
+          rs.zipWithIndex.view.flatMap { case (row, index) =>
+            dec(row, bs0).map { case (v, rest) => (altValueAt(index, rs.length, v), rest) }
+          }.headOption
+        }
+      case ASTAR(prefix, body) =>
+        stripPrefix(prefix, bs).flatMap {
+          case S :: rest => Some((StarsVal(Nil), rest))
+          case Z :: rest =>
+            for {
+              head <- dec(body, rest)
+              (v, rest1) = head
+              tail <- dec(ASTAR(Nil, body), rest1)
+              out <- tail match {
+                case (StarsVal(vs), rest2) => Some((StarsVal(v :: vs), rest2))
+                case _ => None
+              }
+            } yield out
+          case Nil => None
+        }
+      case ANTIMES(prefix, body, n) =>
+        stripPrefix(prefix, bs).flatMap {
+          case S :: rest if n == 0 => Some((StarsVal(Nil), rest))
+          case Z :: rest if n > 0 =>
+            for {
+              head <- dec(body, rest)
+              (v, rest1) = head
+              tail <- dec(ANTIMES(Nil, body, n - 1), rest1)
+              out <- tail match {
+                case (StarsVal(vs), rest2) => Some((StarsVal(v :: vs), rest2))
+                case _ => None
+              }
+            } yield out
+          case _ => None
+        }
+    }
+
+    dec(r, bits).collect { case (v, Nil) => v }
+  }
+
+  def annotatedValue(r: ARexp, input: String): Option[Val] = {
+    val finalRegex = bders(r, input)
+    if (bnullable(finalRegex)) decodeAValue(r, bmkeps(finalRegex)) else None
+  }
+
   def blexerValue(r: Rexp, input: String, derivative: (ARexp, String) => ARexp): Option[Val] = {
     val finalRegex = derivative(intern(r), input)
     if (bnullable(finalRegex)) decodeBits(r, bmkeps(finalRegex)) else None
@@ -1195,6 +1262,79 @@ object PosixCubicSmoke {
     println("strong reconstruction sketch sequence reassociation transformer passed")
   }
 
+  def checkStrongLocalCertificateLaws(): Unit = {
+    def checkLaw(name: String, before: ARexp, after: ARexp, rebuild: Val => Option[Val], maxInput: Int): Unit = {
+      stringsUpTo(maxInput).foreach { input =>
+        val beforeValue = annotatedValue(before, input)
+        val afterValue = annotatedValue(after, input)
+        val rebuilt = afterValue.flatMap(rebuild)
+        if (beforeValue != rebuilt) {
+          throw new AssertionError(
+            s"""strong local certificate law failed: $name
+               |input       = $input
+               |before      = $before
+               |after       = $after
+               |beforeValue = $beforeValue
+               |afterValue  = $afterValue
+               |rebuilt     = $rebuilt
+               |""".stripMargin
+          )
+        }
+      }
+      println(s"strong local certificate law $name passed on inputs <= $maxInput")
+    }
+
+    val a = ACHAR(Nil, 'a')
+    val b = ACHAR(Nil, 'b')
+    val aa = ASEQ(Nil, a, a)
+    val aOrB = AALTs(Nil, List(fuse(List(Z), a), fuse(List(S), b)))
+    val bodies = List(a, aa, aOrB)
+
+    bodies.foreach { body =>
+      checkLaw(
+        s"nested-star collapse body=${ashapeKey(body)}",
+        ASTAR(Nil, ASTAR(Nil, body)),
+        ASTAR(Nil, body),
+        sketchNestedStarRecon,
+        4
+      )
+      checkLaw(
+        s"star absorption body=${ashapeKey(body)}",
+        ASEQ(Nil, ASTAR(Nil, body), ASTAR(Nil, body)),
+        ASTAR(Nil, body),
+        sketchStarAbsorbRecon,
+        4
+      )
+    }
+
+    checkLaw(
+      "star-zero collapse",
+      ASTAR(Nil, AZERO),
+      AONE(Nil),
+      {
+        case Void => Some(StarsVal(Nil))
+        case _ => None
+      },
+      2
+    )
+
+    checkLaw(
+      "right AONE deletion with carried bits",
+      ASEQ(Nil, ASTAR(Nil, a), AONE(List(S))),
+      ASTAR(Nil, a),
+      v => Some(SeqVal(v, Void)),
+      4
+    )
+
+    checkLaw(
+      "sequence reassociation",
+      ASEQ(Nil, ASEQ(Nil, a, b), a),
+      ASEQ(Nil, a, ASEQ(Nil, b, a)),
+      sketchSeqReassocRecon,
+      3
+    )
+  }
+
   def intSetting(prop: String, env: String, default: Int): Int =
     sys.props.get(prop)
       .orElse(sys.env.get(env))
@@ -1269,6 +1409,7 @@ object PosixCubicSmoke {
     checkCounterexamples()
     if (traceStrongRecon) {
       checkStrongReconstructionSketch()
+      checkStrongLocalCertificateLaws()
     }
     if (traceStrong) {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)

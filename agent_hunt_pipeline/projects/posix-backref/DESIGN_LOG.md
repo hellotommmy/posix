@@ -33,6 +33,14 @@ to be read before continuing long-running agent work.
   but deliberately narrow: CE witnesses can be repaired while retaining small
   strong output trees, so the next algorithmic object should be a compositional
   derivative-time certificate, not another safe-output simplifier.
+- The sketch now includes `decodeAValue`, an annotated-regex decoder used to
+  test local certificate laws over input grids. This catches the exact POSIX
+  value shape of the pre-rewrite and post-rewrite annotated regexes, then checks
+  that the local transformer maps the post-rewrite value back to the
+  pre-rewrite value. Current passing laws cover nested-star collapse, star
+  absorption, star-zero collapse, right-unit deletion with carried bits, and
+  sequence reassociation. This is still local: the next design step is to
+  compose these certificates through `bder`/`bsimpStrong` iterations.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

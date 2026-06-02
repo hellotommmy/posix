@@ -85,7 +85,8 @@ Short version:
 - `scala_cubic_smoke.ps1 -TraceStrongRecon` checks the first local
   reconstruction sketches for the CE-driven strong route. Passing this sketch
   is only route evidence; it does not replace a compositional certificate across
-  derivative steps.
+  derivative steps. The current version also runs annotated-value local
+  certificate laws; extend those laws before trusting any new strong rewrite.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

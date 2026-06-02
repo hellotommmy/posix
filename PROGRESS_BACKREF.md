@@ -51,6 +51,19 @@ Last updated: 2026-06-02 (strong reconstruction sketch added)
   This is positive route evidence, not a completed algorithm: the remaining
   work is to make these local transformers compositional across derivative
   steps.
+- Strengthened the sketch with an annotated-value decoder `decodeAValue` and
+  local certificate-law smoke. The new checks compare the original annotated
+  expression and the rewritten annotated expression over input grids, then apply
+  the proposed transformer to the rewritten POSIX value. Passing laws so far:
+  nested-star collapse and star absorption for bodies `a`, `aa`, and `a+b`;
+  star-zero collapse; right-`AONE` deletion with carried bits; and sequence
+  reassociation. This moves the route from isolated CE repair toward reusable
+  local certificates.
+- Current Figure 7.6 sanity with the certificate-law smoke enabled keeps the
+  thesis small-tree trace for `bsimpStrong` on `k=5` selected lengths
+  `0,4,8,12,16,20,24,30`: `46,474,730,771,820,875,918,958`.
+  The local laws are not yet composed through a full derivative loop, so this
+  remains route evidence rather than BR-039 completion.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 
