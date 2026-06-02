@@ -93,6 +93,12 @@ immutability.
   `strong_deferred_original_legacy_budget`. Future original-file cubic
   statements can use the premise `legacy_rexp r` directly. This is BR-040
   infrastructure only and does not count as a bounty payout.
+- Deferred span fragment closure: `FBound.thy` now also proves that
+  `rexp_subterms`, span states, split probes, POSIX span entries, and POSIX
+  span states all remain `legacy_rexp` when the root is `legacy_rexp`.
+  `strong_deferred_original_legacy_budget` includes this closure for the value
+  and split-probe tables. This supports BR-040 but remains infrastructure, not
+  a payout.
 - Checked original split probes: `FBound.thy` now also has
   `rexp_span_split_probes`, `rexp_span_all_split_probes`, their cardinality
   bounds, and one-directional original POSIX constructor rules for `ONE`, `CH`,

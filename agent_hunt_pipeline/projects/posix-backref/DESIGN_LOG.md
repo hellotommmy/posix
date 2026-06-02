@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Deferred span tables stay in the original fragment
+
+- Added checked closure facts showing that if the original root satisfies
+  `legacy_rexp`, then every regex state in `rexp_subterms`,
+  `rexp_span_states`, `rexp_span_split_probes`,
+  `rexp_span_all_split_probes`, `rexp_span_posix`, and
+  `rexp_span_posix_states` also satisfies `legacy_rexp`.
+- Strengthened `strong_deferred_original_legacy_budget` with those closure
+  facts for the POSIX value table and split-probe table.
+- Design consequence: deferred reconstruction is now tied to a finite
+  non-backref universe at the original `rexp` level, which is the right
+  premise shape for future regex-size cubic statements.
+- Proof-performance lesson: do not write impossible constructor cases as
+  `then show ?case by simp` when the case context contains large induction
+  hypotheses. In this checkpoint the `BACKREF4` case of
+  `legacy_rexp_subterms` ran past the CI timeout until it was rewritten to use
+  only `BACKREF4.prems(1)` to obtain `False`, then discharge by `FalseE`.
+
 ## 2026-06-03: Original non-backref fragment bridge
 
 - Added `legacy_rexp` on the original `rexp` datatype. It is the user-facing

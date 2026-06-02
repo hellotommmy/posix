@@ -1542,6 +1542,119 @@ lemma rexp_subterms_NTIMES_countdown:
   shows "NTIMES q m \<in> rexp_subterms root"
   using assms by (induct root) auto
 
+lemma legacy_rexp_subterms:
+  assumes "legacy_rexp r" "q \<in> rexp_subterms r"
+  shows "legacy_rexp q"
+  using assms
+proof (induct r arbitrary: q)
+  case ZERO
+  then show ?case by simp
+next
+  case ONE
+  then show ?case by simp
+next
+  case (CH c)
+  then show ?case by simp
+next
+  case (SEQ r1 r2)
+  have l: "legacy_rexp r1" and r: "legacy_rexp r2"
+    using SEQ.prems(1) by simp_all
+  show ?case
+  proof (cases "q = SEQ r1 r2")
+    case True
+    then show ?thesis
+      using l r by simp
+  next
+    case False
+    then have "q \<in> rexp_subterms r1 \<or> q \<in> rexp_subterms r2"
+      using SEQ.prems(2) by simp
+    then show ?thesis
+    proof
+      assume "q \<in> rexp_subterms r1"
+      then show ?thesis
+        by (rule SEQ.hyps(1)[OF l])
+    next
+      assume "q \<in> rexp_subterms r2"
+      then show ?thesis
+        by (rule SEQ.hyps(2)[OF r])
+    qed
+  qed
+next
+  case (ALT r1 r2)
+  have l: "legacy_rexp r1" and r: "legacy_rexp r2"
+    using ALT.prems(1) by simp_all
+  show ?case
+  proof (cases "q = ALT r1 r2")
+    case True
+    then show ?thesis
+      using l r by simp
+  next
+    case False
+    then have "q \<in> rexp_subterms r1 \<or> q \<in> rexp_subterms r2"
+      using ALT.prems(2) by simp
+    then show ?thesis
+    proof
+      assume "q \<in> rexp_subterms r1"
+      then show ?thesis
+        by (rule ALT.hyps(1)[OF l])
+    next
+      assume "q \<in> rexp_subterms r2"
+      then show ?thesis
+        by (rule ALT.hyps(2)[OF r])
+    qed
+  qed
+next
+  case (STAR r)
+  have body: "legacy_rexp r"
+    using STAR.prems(1) by simp
+  show ?case
+  proof (cases "q = STAR r")
+    case True
+    then show ?thesis
+      using body by simp
+  next
+    case False
+    then have "q \<in> rexp_subterms r"
+      using STAR.prems(2) by simp
+    then show ?thesis
+      by (rule STAR.hyps[OF body])
+  qed
+next
+  case (NTIMES r n)
+  have body: "legacy_rexp r"
+    using NTIMES.prems(1) by simp
+  show ?case
+  proof (cases "q \<in> rexp_subterms r")
+    case True
+    then show ?thesis
+      by (rule NTIMES.hyps[OF body])
+  next
+    case False
+    then obtain k where "q = NTIMES r k"
+      using NTIMES.prems(2) by auto
+    then show ?thesis
+      using body by simp
+  qed
+next
+  case (BACKREF4 r1 r2 r3 r4 cs)
+  have impossible: False
+    using BACKREF4.prems(1) by simp
+  from impossible show ?case
+    by (rule FalseE)
+next
+  case (HALF r cs rep)
+  have impossible: False
+    using HALF.prems(1) by simp
+  from impossible show ?case
+    by (rule FalseE)
+next
+  case (RESIDUE cs rep)
+  have impossible: False
+    using RESIDUE.prems(1) by simp
+  from impossible show ?case
+    by (rule FalseE)
+qed
+
 definition rexp_span_states :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat) set" where
   "rexp_span_states r s =
     (\<lambda>(q, (i, j)). (q, i, j)) ` (rexp_subterms r \<times> ({..length s} \<times> {..length s}))"
@@ -1559,6 +1672,16 @@ lemma rexp_span_statesE:
   assumes "(q, i, j) \<in> rexp_span_states r s"
   obtains "q \<in> rexp_subterms r" "i \<le> length s" "j \<le> length s"
   using assms by (auto simp: rexp_span_states_def)
+
+lemma legacy_rexp_span_states:
+  assumes "legacy_rexp r" "(q, i, j) \<in> rexp_span_states r s"
+  shows "legacy_rexp q"
+proof -
+  have "q \<in> rexp_subterms r"
+    using assms(2) by (rule rexp_span_statesE)
+  then show ?thesis
+    by (rule legacy_rexp_subterms[OF assms(1)])
+qed
 
 lemma card_rexp_span_states_bound:
   "card (rexp_span_states r s) \<le> rxsize r * Suc (length s) * Suc (length s)"
@@ -1595,6 +1718,16 @@ lemma rexp_span_split_probesE:
   assumes "(q, i, k, j) \<in> rexp_span_split_probes r s"
   obtains "q \<in> rexp_subterms r" "i \<le> length s" "k \<le> length s" "j \<le> length s"
   using assms by (auto simp: rexp_span_split_probes_def)
+
+lemma legacy_rexp_span_split_probes:
+  assumes "legacy_rexp r" "(q, i, k, j) \<in> rexp_span_split_probes r s"
+  shows "legacy_rexp q"
+proof -
+  have "q \<in> rexp_subterms r"
+    using assms(2) by (rule rexp_span_split_probesE)
+  then show ?thesis
+    by (rule legacy_rexp_subterms[OF assms(1)])
+qed
 
 lemma card_rexp_span_split_probes_bound:
   "card (rexp_span_split_probes r s) \<le>
@@ -1643,6 +1776,16 @@ lemma rexp_span_all_split_probesE:
   obtains "q \<in> rexp_subterms r" "i \<le> k" "k \<le> j" "j \<le> length s"
   using assms by (auto simp: rexp_span_all_split_probes_def)
 
+lemma legacy_rexp_span_all_split_probes:
+  assumes "legacy_rexp r" "(q, i, k, j) \<in> rexp_span_all_split_probes r s"
+  shows "legacy_rexp q"
+proof -
+  have "q \<in> rexp_subterms r"
+    using assms(2) by (rule rexp_span_all_split_probesE)
+  then show ?thesis
+    by (rule legacy_rexp_subterms[OF assms(1)])
+qed
+
 lemma card_rexp_span_all_split_probes_bound:
   "card (rexp_span_all_split_probes r s) \<le>
     rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
@@ -1680,6 +1823,16 @@ lemma rexp_span_posixE:
   obtains "q \<in> rexp_subterms r" "i \<le> j" "j \<le> length s"
     "rslice s i j \<in> q \<rightarrow> v"
   using assms by (auto simp: rexp_span_posix_def)
+
+lemma legacy_rexp_span_posix:
+  assumes "legacy_rexp r" "(q, i, j, v) \<in> rexp_span_posix r s"
+  shows "legacy_rexp q"
+proof -
+  have "q \<in> rexp_subterms r"
+    using assms(2) by (rule rexp_span_posixE)
+  then show ?thesis
+    by (rule legacy_rexp_subterms[OF assms(1)])
+qed
 
 lemma rexp_span_posix_root_iff:
   "(r, 0, length s, v) \<in> rexp_span_posix r s \<longleftrightarrow> s \<in> r \<rightarrow> v"
@@ -2065,6 +2218,16 @@ proof
     using ij jl by simp
   show "x \<in> rexp_span_states r s"
     using x rexp_span_statesI[OF sub il jl] by simp
+qed
+
+lemma legacy_rexp_span_posix_states:
+  assumes "legacy_rexp r" "(q, i, j) \<in> rexp_span_posix_states r s"
+  shows "legacy_rexp q"
+proof -
+  obtain v where "(q, i, j, v) \<in> rexp_span_posix r s"
+    using assms(2) by (auto simp: rexp_span_posix_states_def)
+  then show ?thesis
+    by (rule legacy_rexp_span_posix[OF assms(1)])
 qed
 
 lemma finite_rexp_span_posix_states [simp]:
@@ -2602,8 +2765,12 @@ lemma strong_deferred_original_legacy_budget:
   shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
     and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
       bnullable (bders_simpStrong (intern r) s))"
+    and "\<forall>q i j v. (q, i, j, v) \<in> rexp_span_posix r s \<longrightarrow>
+      legacy_rexp q"
     and "card (rexp_span_posix r s) \<le>
       rxsize r * Suc (length s) * Suc (length s)"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
     and "card (rexp_span_all_split_probes r s) \<le>
       rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
 proof -
@@ -2612,9 +2779,25 @@ proof -
   show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
       bnullable (bders_simpStrong (intern r) s))"
     by (rule strong_deferred_reconstruction_budget(1))
+  show "\<forall>q i j v. (q, i, j, v) \<in> rexp_span_posix r s \<longrightarrow>
+      legacy_rexp q"
+  proof (intro allI impI)
+    fix q i j v
+    assume "(q, i, j, v) \<in> rexp_span_posix r s"
+    then show "legacy_rexp q"
+      by (rule legacy_rexp_span_posix[OF assms])
+  qed
   show "card (rexp_span_posix r s) \<le>
       rxsize r * Suc (length s) * Suc (length s)"
     by (rule strong_deferred_reconstruction_budget(2))
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+  proof (intro allI impI)
+    fix q i k j
+    assume "(q, i, k, j) \<in> rexp_span_all_split_probes r s"
+    then show "legacy_rexp q"
+      by (rule legacy_rexp_span_all_split_probes[OF assms])
+  qed
   show "card (rexp_span_all_split_probes r s) \<le>
       rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
     by (rule strong_deferred_reconstruction_budget(3))

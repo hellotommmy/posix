@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (original non-backref fragment bridge)
+Last updated: 2026-06-03 (original span fragment closure)
+
+## Cubic Candidate Prototype: Original Span Fragment Closure (2026-06-03)
+
+- Added checked fragment-closure lemmas in `FBound.thy`:
+  - `legacy_rexp_subterms`;
+  - `legacy_rexp_span_states`;
+  - `legacy_rexp_span_split_probes`;
+  - `legacy_rexp_span_all_split_probes`;
+  - `legacy_rexp_span_posix`;
+  - `legacy_rexp_span_posix_states`.
+- Strengthened `strong_deferred_original_legacy_budget`: under
+  `legacy_rexp r`, every regex state appearing in the deferred POSIX value
+  table and split-probe table is itself `legacy_rexp`.
+- Design result:
+  - The strong-deferred route now has a checked pure-non-backref state-space
+    invariant for the reconstruction tables, not only for the initial regex
+    and final strong derivative gate.
+  - This is useful for future regex-size cubic statements because the span
+    universe cannot silently introduce `BACKREF4`, `HALF`, or `RESIDUE` states
+    while reconstructing exact POSIX values.
+  - This remains proof infrastructure, not a final cubic theorem or payout.
+- Proof-performance note:
+  - The first version used a broad constructor-case simplification and caused
+    a 300s CI timeout in the impossible `BACKREF4` branch. The checked proof
+    now splits constructors and uses only the relevant contradiction premise.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Original Fragment Bridge (2026-06-03)
 
