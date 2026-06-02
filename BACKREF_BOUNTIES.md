@@ -136,6 +136,12 @@ immutability.
   classes over small input grids. This is positive route evidence, not a bounty
   claim; payout still requires a compositional derivative-time certificate or
   theorem.
+- Strong core certificate prototype: `scala_cubic_smoke.ps1
+  -CheckStrongCoreCert` checks the sequence/star core certificate on derivative
+  expressions. Current smoke covers `84,300` exhaustive derivative expressions
+  plus `2,000` deterministic random expressions with seed `20260602`. This is
+  still not a payout artifact because alternation flattening/pruning and
+  derivative-through-certified-state remain open.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

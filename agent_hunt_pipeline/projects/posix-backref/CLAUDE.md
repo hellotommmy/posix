@@ -151,6 +151,13 @@ It also runs annotated-value local certificate laws for the rewrite rules that
 caused those CEs. Treat it as route evidence only; a bounty candidate still
 needs a compositional derivative-time certificate or theorem.
 
+Use `scala_cubic_smoke.ps1 -CheckStrongCoreCert` to check the current
+compositional certificate prototype for the sequence/star core of
+`bsimpStrong`. The prototype returns a simplified regex plus a value
+transformer for derivative-expression epsilon values. It deliberately does not
+certify alternation flattening or Antimirov row pruning yet, so do not treat it
+as BR-039 completion.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

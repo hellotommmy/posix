@@ -41,6 +41,15 @@ to be read before continuing long-running agent work.
   absorption, star-zero collapse, right-unit deletion with carried bits, and
   sequence reassociation. This is still local: the next design step is to
   compose these certificates through `bder`/`bsimpStrong` iterations.
+- Added `StrongCoreCert`, which is the first compositional implementation of
+  that idea for the sequence/star core. It deliberately does not certify
+  alternation flattening or pruning yet; instead it returns a simplified regex
+  and a value transformer for nested sequence/star rewrites. The certificate is
+  checked on derivative-generated expressions with `decodeAEpsValue`, a
+  separate epsilon decoder that avoids treating non-nullable `ACHAR` rows as
+  nullable values. This split matters: ordinary annotated decoding is for input
+  bitstreams, while certificate checks compare epsilon values of derivative
+  expressions.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

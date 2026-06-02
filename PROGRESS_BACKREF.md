@@ -64,6 +64,23 @@ Last updated: 2026-06-02 (strong reconstruction sketch added)
   `0,4,8,12,16,20,24,30`: `46,474,730,771,820,875,918,958`.
   The local laws are not yet composed through a full derivative loop, so this
   remains route evidence rather than BR-039 completion.
+- Added `StrongCoreCert`, a first compositional Scala certificate prototype for
+  the sequence/star core of `bsimpStrong`. It returns a simplified annotated
+  regex together with a value transformer from the simplified epsilon value
+  back to the pre-simplification epsilon value. This currently certifies
+  sequence reassociation, right-unit deletion, star-zero collapse, nested-star
+  collapse, and star absorption, while alternation flattening/pruning remains a
+  deliberately separate next target.
+- Added `decodeAEpsValue`, because derivative-expression certificate checks
+  must decode nullable epsilon values, not ordinary input-carrying annotated
+  values. This fixed two useful CE diagnostics where non-nullable `ACHAR []`
+  branches could otherwise steal an epsilon bitstream.
+- Smoke evidence for `StrongCoreCert`: exhaustive depth `2`, input length `3`
+  checks `84,300` derivative expressions; deterministic random smoke with
+  `expanded-keyed-no-reassoc`, depth `5`, input length `6`, seed `20260602`,
+  checks `2,000` random derivative expressions. Both pass. This is still not a
+  full lexer-level certificate, because derivative through an already-certified
+  simplified state and certified Antimirov row pruning remain open.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 

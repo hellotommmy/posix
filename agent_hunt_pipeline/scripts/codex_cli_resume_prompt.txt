@@ -63,6 +63,10 @@ Current override, 2026-06-02:
   compositional derivative-time certificate. The current version also checks
   annotated-value local certificate laws; add new laws whenever a new strong
   rewrite is proposed.
+- `scala_cubic_smoke.ps1 -CheckStrongCoreCert` checks the current
+  compositional certificate prototype for the sequence/star core of
+  `bsimpStrong` on derivative-generated epsilon values. It does not yet certify
+  alternation flattening/pruning.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.

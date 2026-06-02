@@ -87,6 +87,10 @@ Short version:
   is only route evidence; it does not replace a compositional certificate across
   derivative steps. The current version also runs annotated-value local
   certificate laws; extend those laws before trusting any new strong rewrite.
+- `scala_cubic_smoke.ps1 -CheckStrongCoreCert` checks the current compositional
+  certificate prototype for the sequence/star core of `bsimpStrong` on
+  derivative-generated expressions. It is intentionally not a certificate for
+  alternation flattening/pruning yet.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

@@ -672,55 +672,111 @@ object PosixCubicSmoke {
       else if (index == 0) LeftVal(v)
       else RightVal(altValueAt(index - 1, total - 1, v))
 
-    def dec(re: ARexp, bs: List[Bit]): Option[(Val, List[Bit])] = re match {
-      case AZERO => None
-      case AONE(prefix) => stripPrefix(prefix, bs).map(rest => (Void, rest))
-      case ACHAR(prefix, c) => stripPrefix(prefix, bs).map(rest => (CharVal(c), rest))
+    def dec(re: ARexp, bs: List[Bit]): List[(Val, List[Bit])] = re match {
+      case AZERO => Nil
+      case AONE(prefix) => stripPrefix(prefix, bs).toList.map(rest => (Void, rest))
+      case ACHAR(prefix, c) => stripPrefix(prefix, bs).toList.map(rest => (CharVal(c), rest))
       case ASEQ(prefix, r1, r2) =>
         for {
-          bs0 <- stripPrefix(prefix, bs)
+          bs0 <- stripPrefix(prefix, bs).toList
           left <- dec(r1, bs0)
           (v1, rest1) = left
           right <- dec(r2, rest1)
           (v2, rest2) = right
         } yield (SeqVal(v1, v2), rest2)
       case AALTs(prefix, rs) =>
-        stripPrefix(prefix, bs).flatMap { bs0 =>
-          rs.zipWithIndex.view.flatMap { case (row, index) =>
-            dec(row, bs0).map { case (v, rest) => (altValueAt(index, rs.length, v), rest) }
-          }.headOption
-        }
+        for {
+          bs0 <- stripPrefix(prefix, bs).toList
+          rowWithIndex <- rs.zipWithIndex
+          (row, index) = rowWithIndex
+          decoded <- dec(row, bs0)
+          (v, rest) = decoded
+        } yield (altValueAt(index, rs.length, v), rest)
       case ASTAR(prefix, body) =>
-        stripPrefix(prefix, bs).flatMap {
-          case S :: rest => Some((StarsVal(Nil), rest))
+        stripPrefix(prefix, bs).toList.flatMap {
+          case S :: rest => List((StarsVal(Nil), rest))
           case Z :: rest =>
             for {
               head <- dec(body, rest)
               (v, rest1) = head
               tail <- dec(ASTAR(Nil, body), rest1)
               out <- tail match {
-                case (StarsVal(vs), rest2) => Some((StarsVal(v :: vs), rest2))
-                case _ => None
+                case (StarsVal(vs), rest2) => List((StarsVal(v :: vs), rest2))
+                case _ => Nil
               }
             } yield out
-          case Nil => None
+          case Nil => Nil
         }
       case ANTIMES(prefix, body, n) =>
-        stripPrefix(prefix, bs).flatMap {
-          case S :: rest if n == 0 => Some((StarsVal(Nil), rest))
+        stripPrefix(prefix, bs).toList.flatMap {
+          case S :: rest if n == 0 => List((StarsVal(Nil), rest))
           case Z :: rest if n > 0 =>
             for {
               head <- dec(body, rest)
               (v, rest1) = head
               tail <- dec(ANTIMES(Nil, body, n - 1), rest1)
               out <- tail match {
-                case (StarsVal(vs), rest2) => Some((StarsVal(v :: vs), rest2))
-                case _ => None
+                case (StarsVal(vs), rest2) => List((StarsVal(v :: vs), rest2))
+                case _ => Nil
               }
             } yield out
-          case _ => None
+          case _ => Nil
         }
     }
+
+    dec(r, bits).collectFirst { case (v, Nil) => v }
+  }
+
+  def decodeAEpsValue(r: ARexp, bits: List[Bit]): Option[Val] = {
+    def stripPrefix(prefix: List[Bit], bs: List[Bit]): Option[List[Bit]] =
+      if (bs.startsWith(prefix)) Some(bs.drop(prefix.length)) else None
+
+    def altValueAt(index: Int, total: Int, v: Val): Val =
+      if (total <= 1) v
+      else if (index == 0) LeftVal(v)
+      else RightVal(altValueAt(index - 1, total - 1, v))
+
+    def dec(re: ARexp, bs: List[Bit]): Option[(Val, List[Bit])] =
+      if (!bnullable(re)) None
+      else re match {
+        case AZERO => None
+        case AONE(prefix) => stripPrefix(prefix, bs).map(rest => (Void, rest))
+        case ACHAR(_, _) => None
+        case ASEQ(prefix, r1, r2) =>
+          for {
+            bs0 <- stripPrefix(prefix, bs)
+            left <- dec(r1, bs0)
+            (v1, rest1) = left
+            right <- dec(r2, rest1)
+            (v2, rest2) = right
+          } yield (SeqVal(v1, v2), rest2)
+        case AALTs(prefix, rs) =>
+          stripPrefix(prefix, bs).flatMap { bs0 =>
+            rs.zipWithIndex.collectFirst(Function.unlift { case (row, index) =>
+              dec(row, bs0).map { case (v, rest) => (altValueAt(index, rs.length, v), rest) }
+            })
+          }
+        case ASTAR(prefix, _) =>
+          stripPrefix(prefix, bs).flatMap {
+            case S :: rest => Some((StarsVal(Nil), rest))
+            case _ => None
+          }
+        case ANTIMES(prefix, body, n) =>
+          stripPrefix(prefix, bs).flatMap {
+            case S :: rest if n == 0 => Some((StarsVal(Nil), rest))
+            case Z :: rest if n > 0 =>
+              for {
+                head <- dec(body, rest)
+                (v, rest1) = head
+                tail <- dec(ANTIMES(Nil, body, n - 1), rest1)
+                out <- tail match {
+                  case (StarsVal(vs), rest2) => Some((StarsVal(v :: vs), rest2))
+                  case _ => None
+                }
+              } yield out
+            case _ => None
+          }
+      }
 
     dec(r, bits).collect { case (v, Nil) => v }
   }
@@ -765,6 +821,121 @@ object PosixCubicSmoke {
     case SeqVal(v1, SeqVal(v2, v3)) => Some(SeqVal(SeqVal(v1, v2), v3))
     case _ => None
   }
+
+  final case class ValueCert(regex: ARexp, recon: Val => Option[Val])
+
+  def traverseOption[A, B](xs: List[A])(f: A => Option[B]): Option[List[B]] =
+    xs.foldRight(Option(List.empty[B])) { (x, acc) =>
+      for {
+        y <- f(x)
+        ys <- acc
+      } yield y :: ys
+    }
+
+  def certIdentity(r: ARexp): ValueCert =
+    ValueCert(r, v => Some(v))
+
+  def mapAltChoice(certs: List[ValueCert], v: Val): Option[Val] =
+    certs match {
+      case Nil => None
+      case c :: Nil => c.recon(v)
+      case c :: rest => v match {
+        case LeftVal(v0) => c.recon(v0).map(LeftVal.apply)
+        case RightVal(vs) => mapAltChoice(rest, vs).map(RightVal.apply)
+        case _ => None
+      }
+    }
+
+  def bsimp4ASEQAtomCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = (r1, r2) match {
+    case (AZERO, _) => ValueCert(AZERO, _ => None)
+    case (AONE(_), _) =>
+      ValueCert(bsimp4ASEQAtom(bs, r1, r2), v2 => Some(SeqVal(Void, v2)))
+    case (ASEQ(bs2, a, b), _) =>
+      val inner = bsimp4ASEQAtomCert(bs, b, r2)
+      val outer = bsimp4ASEQAtomCert(bs2, a, inner.regex)
+      ValueCert(
+        outer.regex,
+        v => outer.recon(v).flatMap {
+          case SeqVal(va, innerValue) =>
+            inner.recon(innerValue).flatMap {
+              case SeqVal(vb, vc) => Some(SeqVal(SeqVal(va, vb), vc))
+              case _ => None
+            }
+          case _ => None
+        }
+      )
+    case (_, AZERO) => ValueCert(AZERO, _ => None)
+    case (_, AONE(_)) =>
+      ValueCert(bsimp4ASEQAtom(bs, r1, r2), v1 => Some(SeqVal(v1, Void)))
+    case _ => ValueCert(ASEQ(bs, r1, r2), v => Some(v))
+  }
+
+  def bsimp7ASEQAtomCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = (r1, r2) match {
+    case (ASTAR(_, a), ASTAR(_, b)) if eq1(a, b) =>
+      ValueCert(r1, sketchStarAbsorbRecon)
+    case (ASTAR(_, a), ASEQ(_, ASTAR(_, b), k)) if eq1(a, b) =>
+      ValueCert(
+        ASEQ(bs, r1, k),
+        {
+          case SeqVal(vs, vk) => Some(SeqVal(vs, SeqVal(StarsVal(Nil), vk)))
+          case _ => None
+        }
+      )
+    case _ => bsimp4ASEQAtomCert(bs, r1, r2)
+  }
+
+  def bsimpStrongCoreCert(r: ARexp): ValueCert = r match {
+    case ASEQ(bs, r1, r2) =>
+      val c1 = bsimpStrongCoreCert(r1)
+      val c2 = bsimpStrongCoreCert(r2)
+      val atom = bsimp7ASEQAtomCert(bs, c1.regex, c2.regex)
+      ValueCert(
+        atom.regex,
+        v => atom.recon(v).flatMap {
+          case SeqVal(v1, v2) =>
+            for {
+              w1 <- c1.recon(v1)
+              w2 <- c2.recon(v2)
+            } yield SeqVal(w1, w2)
+          case _ => None
+        }
+      )
+    case AALTs(bs, rs) =>
+      val certs = rs.map(bsimpStrongCoreCert)
+      bsimpAALTs(bs, certs.map(_.regex)) match {
+        case AZERO => ValueCert(AZERO, _ => None)
+        case row if certs.length == 1 => ValueCert(row, certs.head.recon)
+        case out => ValueCert(out, v => mapAltChoice(certs, v))
+      }
+    case ASTAR(bs, r0) =>
+      val body = bsimpStrongCoreCert(r0)
+      val starRewrite: ValueCert = body.regex match {
+        case AZERO => ValueCert(AONE(Nil), {
+          case Void => Some(StarsVal(Nil))
+          case _ => None
+        })
+        case AONE(_) => ValueCert(AONE(Nil), {
+          case Void => Some(StarsVal(Nil))
+          case _ => None
+        })
+        case ASTAR(bs2, s) => ValueCert(ASTAR(bs2, s), sketchNestedStarRecon)
+        case s => ValueCert(ASTAR(bs, s), v => Some(v))
+      }
+      ValueCert(
+        starRewrite.regex,
+        v => starRewrite.recon(v).flatMap {
+          case StarsVal(vs) => traverseOption(vs)(body.recon).map(StarsVal.apply)
+          case _ => None
+        }
+      )
+    case other => certIdentity(other)
+  }
+
+  def bsimpStrongCore(r: ARexp): ARexp =
+    bsimpStrongCoreCert(r).regex
+
+  def bdersStrongCore(r: ARexp, s: String): ARexp =
+    s.foldLeft(r)((acc, c) => bsimpStrongCore(bder(c, acc)))
 
   def charPower(c: Char, n: Int): Rexp =
     if (n == 0) ONE else SEQ(CH(c), charPower(c, n - 1))
@@ -1335,6 +1506,76 @@ object PosixCubicSmoke {
     )
   }
 
+  def checkStrongCoreCertOnDerivatives(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    def checkOne(r: Rexp, s: String, checked: Int): Unit = {
+      val before = bders(intern(r), s)
+      val cert = bsimpStrongCoreCert(before)
+      val beforeValue = if (bnullable(before)) decodeAEpsValue(before, bmkeps(before)) else None
+      val afterValue =
+        if (bnullable(cert.regex)) decodeAEpsValue(cert.regex, bmkeps(cert.regex)).flatMap(cert.recon)
+        else None
+      if (beforeValue != afterValue) {
+        throw new AssertionError(
+          s"""strong core certificate mismatch on derivative expression
+             |case        = $checked
+             |regex       = $r
+             |input       = $s
+             |before      = $before
+             |after       = ${cert.regex}
+             |beforeValue = $beforeValue
+             |afterValue  = $afterValue
+             |beforeEps   = ${if (bnullable(before)) Some(bmkeps(before)) else None}
+             |afterEps    = ${if (bnullable(cert.regex)) Some(bmkeps(cert.regex)) else None}
+             |""".stripMargin
+        )
+      }
+    }
+
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        checked += 1
+        checkOne(r, s, checked)
+      }
+    }
+    println(s"checked strong core certificates on $checked derivative expressions (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongCoreCertRandom(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      checked += 1
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val before = bders(intern(r), s)
+      val cert = bsimpStrongCoreCert(before)
+      val beforeValue = if (bnullable(before)) decodeAEpsValue(before, bmkeps(before)) else None
+      val afterValue =
+        if (bnullable(cert.regex)) decodeAEpsValue(cert.regex, bmkeps(cert.regex)).flatMap(cert.recon)
+        else None
+      if (beforeValue != afterValue) {
+        throw new AssertionError(
+          s"""strong core certificate random mismatch on derivative expression
+             |seed        = $seed
+             |case        = $checked
+             |regex       = $r
+             |input       = $s
+             |before      = $before
+             |after       = ${cert.regex}
+             |beforeValue = $beforeValue
+             |afterValue  = $afterValue
+             |beforeEps   = ${if (bnullable(before)) Some(bmkeps(before)) else None}
+             |afterEps    = ${if (bnullable(cert.regex)) Some(bmkeps(cert.regex)) else None}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked strong core certificates on $checked random derivative expressions (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
   def intSetting(prop: String, env: String, default: Int): Int =
     sys.props.get(prop)
       .orElse(sys.env.get(env))
@@ -1389,6 +1630,7 @@ object PosixCubicSmoke {
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
+    val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
@@ -1410,6 +1652,12 @@ object PosixCubicSmoke {
     if (traceStrongRecon) {
       checkStrongReconstructionSketch()
       checkStrongLocalCertificateLaws()
+    }
+    if (checkStrongCoreCert) {
+      checkStrongCoreCertOnDerivatives(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongCoreCertRandom(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
     }
     if (traceStrong) {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
