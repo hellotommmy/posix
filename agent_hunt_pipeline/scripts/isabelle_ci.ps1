@@ -27,7 +27,11 @@ param(
   [switch]$ScalaSmokeTraceStrongCore,
   [switch]$ScalaSmokeTraceStrongCoreLoop,
   [switch]$ScalaSmokeCheckStrongCoreCert,
-  [switch]$ScalaSmokeCheckStrongCoreLoop
+  [switch]$ScalaSmokeCheckStrongCoreLoop,
+  [switch]$ScalaSmokeFindStrongCoreCE,
+  [switch]$ScalaSmokeFindRawInjectCE,
+  [switch]$ScalaSmokeCheckStrongCoreHand,
+  [switch]$ScalaSmokeSkipLegacyCubic
 )
 
 $ErrorActionPreference = "Stop"
@@ -92,8 +96,12 @@ try {
     $TraceStrongCoreLoopFlag = if ($ScalaSmokeTraceStrongCoreLoop) { 1 } else { 0 }
     $CheckStrongCoreCertFlag = if ($ScalaSmokeCheckStrongCoreCert) { 1 } else { 0 }
     $CheckStrongCoreLoopFlag = if ($ScalaSmokeCheckStrongCoreLoop) { 1 } else { 0 }
-    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag checkStrong=$CheckStrongFlag checkStrongSafe=$CheckStrongSafeFlag strongRecon=$TraceStrongReconFlag strongCore=$TraceStrongCoreFlag strongCoreLoopTrace=$TraceStrongCoreLoopFlag strongCoreCert=$CheckStrongCoreCertFlag strongCoreLoop=$CheckStrongCoreLoopFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold =="
-    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_SHARED_NO_REASSOC=$SharedNoReassocFlag POSIX_SMOKE_CHECK_STRONG=$CheckStrongFlag POSIX_SMOKE_CHECK_STRONG_SAFE=$CheckStrongSafeFlag POSIX_SMOKE_TRACE_STRONG_RECON=$TraceStrongReconFlag POSIX_SMOKE_TRACE_STRONG_CORE=$TraceStrongCoreFlag POSIX_SMOKE_TRACE_STRONG_CORE_LOOP=$TraceStrongCoreLoopFlag POSIX_SMOKE_CHECK_STRONG_CORE_CERT=$CheckStrongCoreCertFlag POSIX_SMOKE_CHECK_STRONG_CORE_LOOP=$CheckStrongCoreLoopFlag POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+    $FindStrongCoreCEFlag = if ($ScalaSmokeFindStrongCoreCE) { 1 } else { 0 }
+    $FindRawInjectCEFlag = if ($ScalaSmokeFindRawInjectCE) { 1 } else { 0 }
+    $CheckStrongCoreHandFlag = if ($ScalaSmokeCheckStrongCoreHand) { 1 } else { 0 }
+    $SkipLegacyCubicFlag = if ($ScalaSmokeSkipLegacyCubic) { 1 } else { 0 }
+    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag skipLegacy=$SkipLegacyCubicFlag checkStrong=$CheckStrongFlag checkStrongSafe=$CheckStrongSafeFlag strongRecon=$TraceStrongReconFlag strongCore=$TraceStrongCoreFlag strongCoreLoopTrace=$TraceStrongCoreLoopFlag strongCoreCert=$CheckStrongCoreCertFlag strongCoreLoop=$CheckStrongCoreLoopFlag findCoreCE=$FindStrongCoreCEFlag findRawInjectCE=$FindRawInjectCEFlag handCore=$CheckStrongCoreHandFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold =="
+    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_SHARED_NO_REASSOC=$SharedNoReassocFlag POSIX_SMOKE_SKIP_LEGACY_CUBIC=$SkipLegacyCubicFlag POSIX_SMOKE_CHECK_STRONG=$CheckStrongFlag POSIX_SMOKE_CHECK_STRONG_SAFE=$CheckStrongSafeFlag POSIX_SMOKE_TRACE_STRONG_RECON=$TraceStrongReconFlag POSIX_SMOKE_TRACE_STRONG_CORE=$TraceStrongCoreFlag POSIX_SMOKE_TRACE_STRONG_CORE_LOOP=$TraceStrongCoreLoopFlag POSIX_SMOKE_CHECK_STRONG_CORE_CERT=$CheckStrongCoreCertFlag POSIX_SMOKE_CHECK_STRONG_CORE_LOOP=$CheckStrongCoreLoopFlag POSIX_SMOKE_FIND_STRONG_CORE_CE=$FindStrongCoreCEFlag POSIX_SMOKE_FIND_RAW_INJECT_CE=$FindRawInjectCEFlag POSIX_SMOKE_CHECK_STRONG_CORE_HAND=$CheckStrongCoreHandFlag POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
     if ($LASTEXITCODE -ne 0) {
       if ($LASTEXITCODE -eq 124) {
         throw "Scala cubic smoke timed out after $SessionTimeoutSeconds seconds"

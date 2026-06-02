@@ -67,9 +67,13 @@ loop_cert r0 s r k ==>
   s \<in> lang r0 /\ posix_value r0 s v
 ```
 
-The executable Scala `LoopValueCert(regex, recon)` is evidence for this shape,
-but Isabelle should replace `recon` with an inductive relation over certificate
-constructors.
+The executable Scala `LoopValueCert(regex, recon)` is only route evidence for
+this shape. CE-driven smoke now shows that local `Val => Option[Val]`
+reconstruction is not enough when nullable expressions are simplified and then
+used for future derivatives. Isabelle should therefore not commit to this
+closure shape until the certificate relation carries enough history for
+nullable-star segmentation, or until the simplifier is restricted to a fragment
+where the derivative-state theorem is true.
 
 ## Certificate Constructors Needed
 
@@ -93,41 +97,52 @@ Important: shared-suffix pruning is contextual. A deleted later row is not a
 standalone equivalent regex. It is justified only because an earlier outer
 alternative with the same suffix has POSIX priority and captures the value.
 
-## Current Size Evidence
+## CE-Driven Status
 
-For the Chapter 7 k=5 family and lengths `0,4,8,12,16,20,24,30`, the certified
-strong core trace is:
+The earlier full strong-core trace kept the desired small tree:
 
 ```text
 46,438,618,612,612,632,579,678
 ```
 
-This is below the thesis `bsimpStrong` trace at n=30 (`958`) and below the
-previous uncertified/unsafe route's practical target on this smoke. It is
-evidence that the certificate route can preserve the desired tree-size behavior.
+That trace is now classified as unsafe for exact POSIX values. Counterexamples
+show that future derivatives over the simplified state can change POSIX
+segmentation even when a local reconstruction function repairs the current
+epsilon value.
 
-The loop-level size summary on the same family is:
+Important CEs:
+
+- `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`
+- `STAR(STAR(ALT(SEQ(STAR(a), ONE), b)))` on `bab`
+- deterministic random seed `20260602`, depth `6`, input length `7`, case
+  `1355`, involving nullable `NTIMES(ONE,3)` and `STAR(STAR(ZERO))`
+
+The current side-conditioned core avoids nullable unit deletion,
+nullable-left reassociation, and nullable-body star absorption/collapse. It
+passes the hand CE grid but still fails broader random exact-value smoke.
+
+Its size trace is worse:
 
 ```text
-n=0  final=46  maxRaw=46    maxCore=46
-n=4  final=438 maxRaw=807   maxCore=438
-n=8  final=618 maxRaw=1302  maxCore=618
-n=12 final=612 maxRaw=1429  maxCore=721
-n=16 final=612 maxRaw=1429  maxCore=721
-n=20 final=632 maxRaw=1429  maxCore=721
-n=24 final=579 maxRaw=1429  maxCore=721
-n=30 final=678 maxRaw=1434  maxCore=721
+k=5 lengths 0,4,8,12,16,20,24,30:
+46,901,2241,2988,3305,3317,3443,3674
+
+k=8 lengths 0,4,8,16,32:
+97,2209,5789,12145,18473
 ```
 
-This suggests the proof should bound every simplified loop state, not just the
-final state. The raw derivative can be temporarily larger, but the certified
-core quickly returns to a stable frontier.
+Disabling AALTs pruning/dedup entirely caused an OOM on the k=5 trace, so the
+size route still needs pruning. The open problem is to make pruning carry enough
+history/payload to preserve future POSIX choices.
 
 ## Next Proof Tasks
 
-1. Define a small certificate datatype or inductive relation in Isabelle.
-2. Define an Isabelle relation corresponding to `injectA`.
-3. State and prove `cert_recon` soundness for each constructor.
-4. State and prove the derivative-loop invariant using `injectA`.
-5. Only after those pass, connect the size trace to a proof-facing row-universe
-   or cubic frontier argument.
+1. Strengthen the Scala prototype first: no Isabelle proof attempt should start
+   until the hand CEs and deterministic random exact-value smoke pass.
+2. Compare two routes:
+   - smart/certified pruning with payload/history keys;
+   - generalized POSIX values that can reconstruct equivalent nullable-star
+     segmentations.
+3. Once Scala smoke passes, define the corresponding Isabelle relation.
+4. Only after that relation is stable, connect the size trace to a
+   proof-facing row-universe or cubic frontier argument.

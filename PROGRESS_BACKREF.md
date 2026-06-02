@@ -1,6 +1,52 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (derivative-loop certificate smoke added)
+Last updated: 2026-06-02 (CE-driven strong-core diagnostics updated)
+
+## Cubic Candidate Prototype: CE-Driven Strong-Core Reassessment (2026-06-02)
+
+- Added Scala smoke switches for the current counterexample-driven loop:
+  `-FindStrongCoreCE`, `-FindRawInjectCE`, `-CheckStrongCoreHand`, and
+  `-SkipLegacyCubic`. These isolate the candidate route from the known-bad
+  legacy `bsimpCubic full` random gate.
+- Positive diagnostic:
+  - Raw derivative injection without simplification found no counterexample in
+    `1,000` deterministic random cases at depth `7`, input length `8`, seed
+    `20260602`. This points away from `injectA` as the first culprit.
+- Counterexamples found for the exact-value strong-core loop:
+  - `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba` shows that local
+    reconstruction around strong simplification can move the final `a` across
+    a star boundary.
+  - `STAR(STAR(ALT(SEQ(STAR(a), ONE), b)))` on `bab` shows that deleting a
+    right unit after a nullable expression is not derivative-state safe under
+    nested star: the simplified loop can lose the final `b`.
+  - A later random CE involving `NTIMES(ONE,3)`, `STAR(STAR(ZERO))`, and
+    nullable alternatives shows that side conditions for nullable units/stars
+    are still insufficient as a full exact-value algorithm.
+- Experimental repair:
+  - `bsimpStrongCoreShape` now uses a POSIX-core sequence helper with side
+    conditions: right-unit deletion requires a non-nullable left side,
+    left-unit deletion requires a non-nullable right side, reassociation
+    requires a non-nullable left factor, and star absorption/nested-star
+    collapse require a non-nullable repeated body.
+  - The hand CE grid now passes (`44` cases), but broader random smoke still
+    finds failures. This is not bounty-complete.
+- Size impact:
+  - With pruning restored and the side conditions enabled, Chapter 7 `k=5`
+    selected lengths `0,4,8,12,16,20,24,30` give
+    `46,901,2241,2988,3305,3317,3443,3674`.
+  - Chapter 7 `k=8` selected lengths `0,4,8,16,32` give
+    `97,2209,5789,12145,18473`.
+  - Disabling AALTs pruning/dedup entirely caused an OOM on the k=5 trace, so
+    pruning remains essential. The next route must be smarter/certified
+    pruning or generalized POSIX values, not simply weakening all strong
+    rewrites.
+- Current conclusion:
+  - A plain `Val => Val` reconstruction layered over ordinary derivatives is
+    too weak for the full nullable-star/nullable-alternative fragment.
+  - The promising research direction is either a generalized value relation
+    that treats equivalent star/sequence segmentations as reconstructible, or a
+    row-pruning certificate that records enough payload/history to avoid
+    deleting future POSIX choices while keeping the Chapter 7 tree plateau.
 
 ## Cubic Candidate Prototype: CE-Driven Strong Value Safety (2026-06-02)
 

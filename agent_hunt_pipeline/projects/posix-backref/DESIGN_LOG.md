@@ -1649,3 +1649,17 @@ to be read before continuing long-running agent work.
   `rsimpStrong`/`bsimpStrong` row-prune route, which should be the eventual
   production replacement candidate once its POSIX/bitcode and cubic closure
   facts are strong enough.
+- CE-driven strong-core reassessment (2026-06-02): the earlier local
+  certificate route is not sufficient for exact POSIX values through future
+  derivatives. Minimal hand CE:
+  `STAR(STAR(ALT(SEQ(STAR(a), ONE), b)))` on `bab`; the unsafe core loses the
+  final `b`. Raw derivative injection alone did not reproduce the failure on
+  1,000 deterministic random cases, so the culprit is derivative-state
+  simplification of nullable expressions, not the first-order `injectA` smoke.
+  Current side-conditioned core avoids nullable unit/reassociation/star
+  rewrites and passes the hand grid, but random smoke still finds nullable
+  `NTIMES(ONE,3)` / `STAR(STAR(ZERO))` failures and the Chapter-7 tree trace
+  regresses (`k=5`, n=30: 3674; `k=8`, n=32: 18473). Do not claim this as a
+  bounty. The next credible route is smart/certified pruning or generalized
+  POSIX values that retain enough history for nullable-star segmentation while
+  keeping the strong tree plateau.
