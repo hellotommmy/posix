@@ -54,6 +54,23 @@ Short version:
   shape-DAG size on the Chapter 7 family. This supports a hash-consed
   row-universe, delayed linear-form, or reconstruction-based route; it is not
   a bounty claim until the representation and POSIX-value transfer are checked.
+- The optional Scala `-SharedNoReassoc` switch is retained as the shared-state
+  diagnostic entry point, but the shared store now follows the current
+  `-SeqMode`. It interns value-safe states and checks that expanding the final
+  shared root decodes to the baseline POSIX value. Future work should move
+  derivative/simplification onto node IDs or delayed rows directly, then prove
+  the expansion/reconstruction theorem in Isabelle.
+- The `expanded-keyed-no-reassoc` diagnostic implements virtual expanded
+  pruning keys: an accumulator that has seen `(a+b).c` may also index `a.c` and
+  `b.c` for coverage, while still emitting `no-reassoc` output syntax. This is
+  promising smoke evidence for the Antimirov row idea, but any stronger pruning
+  key must pass exact POSIX value smoke before proof or bounty work starts.
+- Distinguish tree-size evidence from shared-representation evidence. On the
+  thesis Figure 7.6 `k=5` family, `bsimpStrong` gives the expected
+  hundreds-scale ordinary tree behavior; `expanded-keyed-no-reassoc` still has
+  larger ordinary trees while keeping exact DAG/shape-DAG compact. Do not claim
+  that a DAG plateau reproduces the thesis tree plot unless the theorem target
+  is explicitly a shared-row/DAG representation with reconstruction.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

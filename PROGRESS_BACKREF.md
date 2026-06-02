@@ -1,6 +1,59 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (value-safe DAG/shared-row route identified)
+Last updated: 2026-06-02 (hash-consed and virtual expanded-key prototypes added)
+
+## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
+
+- Added an optional Scala hash-consed annotated-regex store. It interns
+  annotated nodes, runs each derivative/simplifier step in the selected
+  `POSIX_SMOKE_SEQ_MODE`, reconstructs an ordinary `arexp` at the final root,
+  and compares decoded POSIX values against the baseline lexer. The wrapper
+  switch is still named `scala_cubic_smoke.ps1 -SharedNoReassoc` for
+  compatibility, but the shared diagnostic now follows the current `-SeqMode`.
+  This is executable reconstruction evidence, not an Isabelle proof.
+- Added diagnostic sequence mode `expanded-keyed-no-reassoc`, the smoke version
+  of the accumulator idea: comparison/pruning keys virtually expose rows such
+  as `a.c` and `b.c` from `(a+b).c`, but the emitted regex remains
+  `no-reassoc` shaped. Thus the index can compare Antimirov-style row
+  contributions without destructively distributing POSIX value-carrying syntax.
+- Checked smoke evidence for `expanded-keyed-no-reassoc`:
+  - Exhaustive depth `2`, input length `3`: exact POSIX value preservation on
+    `84,300` regex/input pairs.
+  - Deterministic random smoke: `2,000` cases at random depth `5`, input length
+    `6`, seed `20260602`, preserves exact POSIX values.
+  - Chapter 7 `k=8`, lengths `4,8,16,32`:
+    tree `1616,3226,6178,10218`;
+    final exact DAG `78,130,232,408`;
+    shape DAG `61,87,125,173`;
+    shared cumulative pool `120,229,550,1400`.
+  - Longer Chapter 7 `k=8`, lengths `32,64,128`:
+    tree `10218,18274,34581`;
+    final exact DAG `408,760,1465`;
+    shape DAG `173,269,462`;
+    shared cumulative pool `1400,3855,11810`.
+- Comparison with plain `no-reassoc` on Chapter 7 `k=8`, lengths `32,64,128`:
+  tree `18643,30258,48077`; exact DAG `547,980,1721`;
+  shape DAG `312,489,718`; shared pool `1312,3593,11170`. Interpretation:
+  virtual expanded keys improve final pruning and DAG/shape size, while
+  hash-consing tracks the shared-state accounting; the virtual key mode can
+  create a slightly larger cumulative pool while producing a smaller final
+  root.
+- Thesis Figure 7.6 comparison for `k=5`, lengths `0..30`: the Scala
+  `-TraceStrong` diagnostic now mirrors Isabelle `bders_simpStrong` closely
+  (`n=16` gives tree size `820`, matching the existing Isabelle facts `<825`
+  and not `<812`). Its tree trace rises and then oscillates in the hundreds:
+  `0,4,8,12,16,20,24,30 -> 46,474,730,771,820,875,918,958`. By contrast, the
+  value-safe `expanded-keyed-no-reassoc` ordinary tree trace is larger:
+  `46,662,1334,1841,2264,2816,3150,3849`, while its exact DAG/shape-DAG at
+  `n=30` are only `276/132`. Thus the current value-safe route has not
+  reproduced the thesis tree-size plateau; it has reproduced a shareable-state
+  plateau.
+- Design interpretation: these two ideas are complementary. Hash-consing is a
+  representation/counting mechanism; virtual expanded keys are a pruning/index
+  mechanism. The next serious design should define derivatives directly over a
+  hash-consed row universe or delayed linear forms, record virtual row keys for
+  coverage, and prove reconstruction to ordinary POSIX values before any bounty
+  or cubic theorem claim.
 
 ## Cubic Candidate Diagnostic: Value-Safe DAG/Shared-Row Route (2026-06-02)
 

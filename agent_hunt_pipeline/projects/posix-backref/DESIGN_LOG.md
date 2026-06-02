@@ -3,6 +3,61 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Virtual expanded keys complement hash-consing
+
+- `PosixCubicSmoke.scala` now has a diagnostic
+  `expanded-keyed-no-reassoc` sequence mode. It implements the accumulator-key
+  idea: when a row such as `(a+b).c` is considered for coverage, the comparison
+  index also records virtual rows like `a.c` and `b.c`. The executable output
+  remains `no-reassoc` shaped, so this does not intentionally change POSIX
+  value constructors the way direct distribution would.
+- Smoke evidence is positive but not yet proof-level. With exhaustive depth
+  `2`, input length `3`, and deterministic random smoke of `2,000` cases at
+  depth `5`, input length `6`, seed `20260602`, exact POSIX values are
+  preserved. On Chapter 7 `k=8`, lengths `4,8,16,32`, the final tree sizes are
+  `1616,3226,6178,10218`, exact DAG sizes `78,130,232,408`, and shape-DAG
+  sizes `61,87,125,173`.
+- Compared with plain `no-reassoc` at Chapter 7 `k=8`, lengths `32,64,128`,
+  the virtual-key mode improves final tree/DAG/shape sizes
+  `48077/1721/718 -> 34581/1465/462` at length `128`. Its cumulative shared
+  pool is slightly larger (`11170 -> 11810`), so it should be understood as a
+  pruning/index improvement rather than a smaller store by itself.
+- The design conclusion is that hash-consing and virtual expanded keys solve
+  different parts of the Antimirov/POSIX tension. Hash-consing gives a shared
+  representation and a plausible size metric; virtual keys expose covered row
+  contributions such as `a.c` without emitting distributed POSIX syntax. A
+  production candidate should combine them as a delayed row universe with a
+  checked reconstruction theorem, not as a wrapper or bounty shortcut.
+- On the thesis Figure 7.6 `k=5`, lengths `0..30` test, `bsimpStrong` still
+  gives the expected hundreds-scale tree behavior. The current Scala
+  `-TraceStrong` mirror aligns with the Isabelle sanity point at `n=16`
+  (`820`, with checked facts `<825` and not `<812`). The value-safe
+  `expanded-keyed-no-reassoc` route does not yet match that ordinary tree
+  plateau: at `n=30` its tree size is `3849`, although exact DAG/shape-DAG are
+  only `276/132`. This is the main design fork: either recover a tree-level
+  POSIX-safe strong simplifier, or make the theorem statement use the shared
+  row/DAG representation with reconstruction.
+
+## 2026-06-02: Hash-consed no-reassoc prototype gives reconstruction evidence
+
+- `PosixCubicSmoke.scala` now has an optional hash-consed shared store for
+  annotated regexes. It interns nodes, runs the value-safe `no-reassoc`
+  derivative/simplification path, reconstructs a normal `arexp` from the final
+  root, and decodes the resulting bits against the original regex. This tests
+  the crucial reconstruction shape before any Isabelle commitment.
+- Evidence so far is positive for the shared-state route. Exhaustive depth `2`
+  and input length `3` preserve exact POSIX values on `84,300` cases; random
+  depth `5`, input length `6`, seed `20260602`, preserves values on `1,000`
+  cases. On Chapter 7 `k=8`, length `32`, the shared final root has tree size
+  `18643`, exact DAG size `547`, shape-DAG size `312`, and cumulative store
+  pool `1312`.
+- This should be interpreted carefully. The prototype currently computes each
+  derivative step using the existing tree functions and then interns the
+  result, so it is a reconstruction/representation prototype rather than a
+  fully shared derivative algorithm. The next design should define bder/bsimp
+  directly over node IDs or over delayed linear-form rows, then prove that
+  expanding/reconstructing the final root gives the same POSIX value.
+
 ## 2026-06-02: Value-safe route should exploit sharing, not reassociation
 
 - The Scala smoke harness now reports three Chapter 7 size measures:

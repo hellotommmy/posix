@@ -106,6 +106,30 @@ guide design, but do not claim a tree-size theorem or bounty from DAG evidence
 alone; the shared representation and POSIX-value reconstruction must be stated
 and checked.
 
+There is an optional executable reconstruction prototype:
+`scala_cubic_smoke.ps1 -SharedNoReassoc`. The switch name is retained for
+compatibility, but the shared diagnostic now follows the current `-SeqMode`.
+It hash-conses states, expands the final root back to an ordinary `arexp`, and
+checks exact decoded POSIX values. Passing this smoke is evidence that the
+shared representation route is semantically plausible, but it is not yet a
+direct shared derivative algorithm because the current prototype still uses
+tree derivatives before interning. The next serious candidate should move bder
+and simplification to node IDs/delayed rows.
+
+The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
+virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a
+prior row has shape `(a+b).c`, but it still emits `no-reassoc` output syntax.
+This is promising because it exposes Antimirov-style row coverage without
+directly distributing POSIX value-carrying syntax. It remains smoke evidence
+only until reconstruction/value theorems are stated and checked.
+
+Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
+`bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
+value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,
+although its exact DAG/shape-DAG are compact. Do not treat shared-DAG evidence
+as a tree-size reproduction of `strongBlexer` unless the candidate theorem is
+explicitly about the shared representation and includes reconstruction.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

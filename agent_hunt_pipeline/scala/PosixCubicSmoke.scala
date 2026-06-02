@@ -205,21 +205,25 @@ object PosixCubicSmoke {
     case _ => AALTs(bs, rs)
   }
 
-  def bsimp7ASEQAtom(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
+  def bsimp4ASEQAtom(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
     case (AZERO, _) => AZERO
     case (AONE(bs2), _) => fuse(bs ++ bs2, r2)
-    case (ASEQ(bs2, a, b), _) => bsimp7ASEQAtom(bs2, a, bsimp7ASEQAtom(bs, b, r2))
+    case (ASEQ(bs2, a, b), _) => bsimp4ASEQAtom(bs2, a, bsimp4ASEQAtom(bs, b, r2))
     case (ACHAR(_, _), AZERO) => AZERO
     case (ACHAR(_, _), AONE(_)) => r1
     case (AALTs(_, _), AZERO) => AZERO
     case (AALTs(_, _), AONE(_)) => r1
-    case (ASTAR(_, a), ASTAR(_, b)) if eq1(a, b) => r1
-    case (ASTAR(_, a), ASEQ(_, ASTAR(_, b), k)) if eq1(a, b) => ASEQ(bs, r1, k)
     case (ASTAR(_, _), AZERO) => AZERO
     case (ASTAR(_, _), AONE(_)) => r1
     case (ANTIMES(_, _, _), AZERO) => AZERO
     case (ANTIMES(_, _, _), AONE(_)) => r1
     case _ => ASEQ(bs, r1, r2)
+  }
+
+  def bsimp7ASEQAtom(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
+    case (ASTAR(_, a), ASTAR(_, b)) if eq1(a, b) => r1
+    case (ASTAR(_, a), ASEQ(_, ASTAR(_, b), k)) if eq1(a, b) => ASEQ(bs, r1, k)
+    case _ => bsimp4ASEQAtom(bs, r1, r2)
   }
 
   def bsimpCubicASEQAtom(bs: List[Bit], r1: ARexp, r2: ARexp): ARexp = (r1, r2) match {
@@ -236,6 +240,7 @@ object PosixCubicSmoke {
       case "full" => bsimpCubicASEQAtom(bs, r1, r2)
       case "none" => ASEQ(bs, r1, r2)
       case "keyed-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
+      case "expanded-keyed-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
       case "reassoc-nonnullable-left" => (r1, r2) match {
         case (ASEQ(bs2, a, b), _) if !bnullable(a) =>
           bsimpCubicASEQAtomMode(mode, bs2, a, bsimpCubicASEQAtomMode(mode, bs, b, r2))
@@ -268,7 +273,7 @@ object PosixCubicSmoke {
         case _ => ASEQ(bs, r1, r2)
       }
       case other => throw new IllegalArgumentException(
-        s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
+        s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
       )
     }
 
@@ -298,6 +303,28 @@ object PosixCubicSmoke {
       case row :: tail => Some((List(row), tail))
     }
 
+  def expandedSeqKeys(r: ARexp, maxKeys: Int): Option[List[List[ARexp]]] = {
+    def choices(f: ARexp): List[ARexp] = f match {
+      case AALTs(_, rows) => rows
+      case _ => List(f)
+    }
+    def step(acc: List[List[ARexp]], f: ARexp): Option[List[List[ARexp]]] = {
+      val cs = choices(f)
+      val next = for { key <- acc; c <- cs } yield key :+ c
+      if (next.length > maxKeys) None else Some(next)
+    }
+    seqFactors(r).foldLeft(Option(List(List.empty[ARexp]))) {
+      case (Some(acc), f) => step(acc, f)
+      case (None, _) => None
+    }
+  }
+
+  def seqKeyMember(key: List[ARexp], keys: List[List[ARexp]]): Boolean =
+    keys.exists(eq1List(key, _))
+
+  def seqKeysCovered(keys: List[List[ARexp]], covered: List[List[ARexp]]): Boolean =
+    keys.nonEmpty && keys.forall(seqKeyMember(_, covered))
+
   def bsimpStrongPrunePair(earlier: ARexp, later: ARexp): ARexp = (earlier, later) match {
     case (ASEQ(_, AALTs(_, lrs), k1), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
       bsimp7ASEQAtom(bs2, bsimpAALTs(rbs, pruneEq1Against(lrs, rrs)), k2)
@@ -324,7 +351,26 @@ object PosixCubicSmoke {
     bsimpCubicPrunePairMode(cubicSeqMode, earlier, later)
 
   def bsimpCubicPrunePairMode(seqMode: String, earlier: ARexp, later: ARexp): ARexp =
-    if (seqMode == "keyed-no-reassoc") {
+    if (seqMode == "expanded-keyed-no-reassoc") {
+      val maxKeys = 5000
+      expandedSeqKeys(earlier, maxKeys) match {
+        case Some(covered) =>
+          later match {
+            case ASEQ(bs2, AALTs(rbs, rrs), k2) =>
+              val kept = rrs.filterNot { row =>
+                expandedSeqKeys(ASEQ(Nil, row, k2), maxKeys).exists(seqKeysCovered(_, covered))
+              }
+              if (kept == rrs) later
+              else bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, kept), k2)
+            case _ =>
+              expandedSeqKeys(later, maxKeys) match {
+                case Some(laterKeys) if seqKeysCovered(laterKeys, covered) => AZERO
+                case _ => later
+              }
+          }
+        case None => later
+      }
+    } else if (seqMode == "keyed-no-reassoc") {
       (seqCoverRowsKey(earlier), seqCoverRowsKey(later), later) match {
         case (Some((covered, tail1)), Some((_, tail2)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1List(tail1, tail2) =>
           bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, pruneEq1Against(covered, rrs)), k2)
@@ -406,6 +452,122 @@ object PosixCubicSmoke {
 
   def bdersSimpCubic(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bsimpCubic(bder(c, acc)))
+
+  def bdersStrong(r: ARexp, s: String): ARexp =
+    s.foldLeft(r)((acc, c) => bsimpStrong(bder(c, acc)))
+
+  sealed trait DNode
+  case object DZero extends DNode
+  final case class DOne(bs: List[Bit]) extends DNode
+  final case class DChar(bs: List[Bit], c: Char) extends DNode
+  final case class DSeq(bs: List[Bit], r1: Int, r2: Int) extends DNode
+  final case class DAlts(bs: List[Bit], rs: List[Int]) extends DNode
+  final case class DStar(bs: List[Bit], r: Int) extends DNode
+  final case class DNTimes(bs: List[Bit], r: Int, n: Int) extends DNode
+
+  final class DagStore {
+    private val nodes = scala.collection.mutable.ArrayBuffer.empty[DNode]
+    private val index = scala.collection.mutable.HashMap.empty[DNode, Int]
+    private val derCache = scala.collection.mutable.HashMap.empty[(String, Char, Int), Int]
+
+    def totalSize: Int = nodes.size
+
+    def node(id: Int): DNode = nodes(id)
+
+    def mk(n: DNode): Int =
+      index.getOrElseUpdate(n, {
+        val id = nodes.length
+        nodes += n
+        id
+      })
+
+    def fromARexp(r: ARexp): Int = r match {
+      case AZERO => mk(DZero)
+      case AONE(bs) => mk(DOne(bs))
+      case ACHAR(bs, c) => mk(DChar(bs, c))
+      case ASEQ(bs, r1, r2) => mk(DSeq(bs, fromARexp(r1), fromARexp(r2)))
+      case AALTs(bs, rs) => mk(DAlts(bs, rs.map(fromARexp)))
+      case ASTAR(bs, body) => mk(DStar(bs, fromARexp(body)))
+      case ANTIMES(bs, body, n) => mk(DNTimes(bs, fromARexp(body), n))
+    }
+
+    def toARexp(id: Int): ARexp = node(id) match {
+      case DZero => AZERO
+      case DOne(bs) => AONE(bs)
+      case DChar(bs, c) => ACHAR(bs, c)
+      case DSeq(bs, r1, r2) => ASEQ(bs, toARexp(r1), toARexp(r2))
+      case DAlts(bs, rs) => AALTs(bs, rs.map(toARexp))
+      case DStar(bs, body) => ASTAR(bs, toARexp(body))
+      case DNTimes(bs, body, n) => ANTIMES(bs, toARexp(body), n)
+    }
+
+    def stepWithMode(seqMode: String, c: Char, root: Int): Int =
+      derCache.getOrElseUpdate((seqMode, c, root), {
+        fromARexp(bsimpCubicWithMode(seqMode, bder(c, toARexp(root))))
+      })
+
+    def bdersWithMode(seqMode: String, root: Int, s: String): Int =
+      s.foldLeft(root)((acc, c) => stepWithMode(seqMode, c, acc))
+
+    def reachableIds(root: Int): Set[Int] = {
+      val seen = scala.collection.mutable.Set.empty[Int]
+      def visit(id: Int): Unit = {
+        if (seen.add(id)) {
+          node(id) match {
+            case DSeq(_, r1, r2) => visit(r1); visit(r2)
+            case DAlts(_, rs) => rs.foreach(visit)
+            case DStar(_, body) => visit(body)
+            case DNTimes(_, body, _) => visit(body)
+            case _ => ()
+          }
+        }
+      }
+      visit(root)
+      seen.toSet
+    }
+
+    private val shapeMemo = scala.collection.mutable.HashMap.empty[Int, String]
+
+    def shapeKey(id: Int): String =
+      shapeMemo.getOrElseUpdate(id, node(id) match {
+        case DZero => "0"
+        case DOne(_) => "1"
+        case DChar(_, c) => s"c($c)"
+        case DSeq(_, r1, r2) => s".(${shapeKey(r1)},${shapeKey(r2)})"
+        case DAlts(_, rs) => s"+(${rs.map(shapeKey).mkString(",")})"
+        case DStar(_, body) => s"*(${shapeKey(body)})"
+        case DNTimes(_, body, n) => s"n($n,${shapeKey(body)})"
+      })
+
+    def reachableShapeSize(root: Int): Int =
+      reachableIds(root).map(shapeKey).size
+  }
+
+  final case class SharedResult(
+      value: Option[Val],
+      treeSize: Int,
+      dagSize: Int,
+      shapeDagSize: Int,
+      poolSize: Int
+  )
+
+  def sharedModeResult(seqMode: String, r: Rexp, input: String): SharedResult = {
+    val store = new DagStore
+    val root0 = store.fromARexp(intern(r))
+    val root = store.bdersWithMode(seqMode, root0, input)
+    val finalRegex = store.toARexp(root)
+    val value = if (bnullable(finalRegex)) decodeBits(r, bmkeps(finalRegex)) else None
+    SharedResult(
+      value,
+      asize(finalRegex),
+      store.reachableIds(root).size,
+      store.reachableShapeSize(root),
+      store.totalSize
+    )
+  }
+
+  def sharedNoReassocResult(r: Rexp, input: String): SharedResult =
+    sharedModeResult("no-reassoc", r, input)
 
   def decodeBits(r: Rexp, bits: List[Bit]): Option[Val] = {
     def dec(re: Rexp, bs: List[Bit]): Option[(Val, List[Bit])] = re match {
@@ -587,6 +749,97 @@ object PosixCubicSmoke {
     println(s"checked random POSIX value preservation on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
+  def checkSharedValuePreservation(seqMode: String, maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val b = baselineValue(r, s)
+        val shared = sharedModeResult(seqMode, r, s)
+        checked += 1
+        if (b != shared.value) {
+          throw new AssertionError(
+            s"""shared $seqMode POSIX value mismatch
+               |regex   = $r
+               |input   = $s
+               |base    = $b
+               |shared  = ${shared.value}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, pool=${shared.poolSize}
+               |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked shared $seqMode POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkSharedRandomValuePreservation(seqMode: String, cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val shared = sharedModeResult(seqMode, r, s)
+      checked += 1
+      if (b != shared.value) {
+        throw new AssertionError(
+          s"""shared $seqMode random POSIX value mismatch
+             |seed    = $seed
+             |case    = $checked
+             |regex   = $r
+             |input   = $s
+             |base    = $b
+             |shared  = ${shared.value}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, pool=${shared.poolSize}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked shared $seqMode random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
+  def checkSharedEvilFamilyTrace(
+      seqMode: String,
+      k: Int,
+      lengths: List[Int],
+      dagThreshold: Int,
+      shapeThreshold: Int
+  ): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val out = sharedModeResult(seqMode, r, "a" * n)
+      n -> out
+    }
+    println(s"Chapter 7 k=$k shared $seqMode trace: " +
+      trace.map { case (n, out) =>
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/pool=${out.poolSize}"
+      }.mkString(", "))
+    trace.foreach { case (n, out) =>
+      if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
+        throw new AssertionError(s"shared $seqMode DAG threshold failed at n=$n: dag=${out.dagSize} threshold=$dagThreshold")
+      }
+      if (shapeThreshold > 0 && out.shapeDagSize >= shapeThreshold) {
+        throw new AssertionError(s"shared $seqMode shape-DAG threshold failed at n=$n: shape=${out.shapeDagSize} threshold=$shapeThreshold")
+      }
+    }
+  }
+
+  def checkSharedNoReassocValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit =
+    checkSharedValuePreservation("no-reassoc", maxDepth, maxInput, maxRegexes)
+
+  def checkSharedNoReassocRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit =
+    checkSharedRandomValuePreservation("no-reassoc", cases, maxDepth, maxInput, seed)
+
+  def checkSharedNoReassocEvilFamilyTrace(
+      k: Int,
+      lengths: List[Int],
+      dagThreshold: Int,
+      shapeThreshold: Int
+  ): Unit =
+    checkSharedEvilFamilyTrace("no-reassoc", k, lengths, dagThreshold, shapeThreshold)
+
   def checkEvilFamilyTrace(
       k: Int,
       lengths: List[Int],
@@ -614,6 +867,18 @@ object PosixCubicSmoke {
         throw new AssertionError(s"Chapter 7 shape-DAG threshold failed at n=$n: ashapeDagSize=$shapeSize threshold=$shapeThreshold")
       }
     }
+  }
+
+  def checkStrongEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val out = bdersStrong(intern(r), "a" * n)
+      n -> (asize(out), adagSize(out), ashapeDagSize(out))
+    }
+    println(s"Chapter 7 k=$k bsimpStrong trace: " +
+      trace.map { case (n, (tree, dag, shape)) =>
+        s"$n->$tree/dag=$dag/shape=$shape"
+      }.mkString(", "))
   }
 
   def checkCounterexamples(): Unit = {
@@ -671,6 +936,13 @@ object PosixCubicSmoke {
       .filter(_.nonEmpty)
       .map(_.toInt)
 
+  def boolSetting(prop: String, env: String, default: Boolean): Boolean =
+    stringSetting(prop, env, if (default) "1" else "0").toLowerCase match {
+      case "1" | "true" | "yes" | "on" => true
+      case "0" | "false" | "no" | "off" => false
+      case other => throw new IllegalArgumentException(s"invalid boolean setting $env/$prop=$other")
+    }
+
   lazy val cubicSeqMode: String =
     stringSetting("posix.smoke.seqMode", "POSIX_SMOKE_SEQ_MODE", "full")
 
@@ -687,13 +959,25 @@ object PosixCubicSmoke {
     val ch7TreeThreshold = intSetting("posix.smoke.ch7TreeThreshold", "POSIX_SMOKE_CH7_TREE_THRESHOLD", 1000)
     val ch7DagThreshold = intSetting("posix.smoke.ch7DagThreshold", "POSIX_SMOKE_CH7_DAG_THRESHOLD", 0)
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
+    val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
+    val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
       checkRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
     }
     checkCounterexamples()
+    if (traceStrong) {
+      checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
+    }
     checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
+    if (sharedNoReassoc) {
+      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold)
+    }
   }
 
   def main(args: Array[String]): Unit =

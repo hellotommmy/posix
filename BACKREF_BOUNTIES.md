@@ -99,6 +99,21 @@ immutability.
   shape DAG `312`). This supports a future hash-consed row-universe or delayed
   linear-form bounty route, but it is not itself a payout because BR-039 still
   asks for a smoke-tested candidate with an explicit POSIX-value story.
+- Stronger route evidence: diagnostic mode `expanded-keyed-no-reassoc` indexes
+  virtual expanded rows such as `a.c` and `b.c` from `(a+b).c` for pruning while
+  keeping the emitted syntax `no-reassoc` shaped. It passes the current
+  exhaustive depth `2`/input `3` smoke (`84,300` pairs) and deterministic random
+  smoke (`2,000` cases, seed `20260602`). On Chapter 7 `k=8`, length `128`, it
+  improves plain `no-reassoc` final sizes from tree/exact-DAG/shape-DAG
+  `48077/1721/718` to `34581/1465/462`, with a slightly larger shared pool
+  `11170 -> 11810`. This is a promising BR-039 design lead, not a payout.
+- Thesis Figure 7.6 `k=5` caveat: `bsimpStrong` remains the route that gives
+  hundreds-scale ordinary tree size (`n=16` is `820`, matching checked Isabelle
+  facts). `expanded-keyed-no-reassoc` at `n=30` still has ordinary tree size
+  `3849`, despite compact exact DAG/shape-DAG `276/132`. Therefore no bounty may
+  describe this diagnostic as a tree-level reproduction of thesis
+  `strongBlexer`; any payout must either recover a value-safe tree simplifier or
+  state and prove a shared-representation reconstruction theorem.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require
