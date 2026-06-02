@@ -31,6 +31,13 @@ The current positive candidate is the deferred/generalized route:
 - The Isabelle acceptance bridge is now checked in `FBound.thy`:
   `bnullable_bders_simpStrong_iff_Ders` and
   `bnullable_bders_simpStrong_iff_member`.
+- The bridge to the original POSIX value relation is also checked:
+  `bnullable_bders_simpStrong_intern_iff_Posix`,
+  `bnullable_bders_simpStrong_intern_iff_lexer_defined`,
+  `bnullable_bders_simpStrong_intern_obtain_lexer`, and
+  `bnullable_bders_simpStrong_intern_unique_Posix`.
+  The current theorem-level fallback says: when the small strong state is
+  nullable, `lexer r s` supplies the unique original POSIX value.
 
 The current positive Scala smoke gate is:
 
@@ -170,7 +177,9 @@ history/payload to preserve future POSIX choices.
    are reconstructed from the original regex and consumed string.
 2. Continue from the checked language bridge for `bdersStrong`:
    `bnullable (bders_simpStrong r s)` agrees with `s \<in> RL (rerase r)`.
-3. Define a proof-facing deferred reconstruction relation, for example:
+3. Refine the checked fallback bridge
+   `bnullable_bders_simpStrong_intern_obtain_lexer` into an efficient
+   proof-facing deferred reconstruction relation, for example
    `deferred_posix r s v`, rather than trying to decode ordinary POSIX values
    directly from the simplified derivative.
 4. Keep comparing two implementation routes:

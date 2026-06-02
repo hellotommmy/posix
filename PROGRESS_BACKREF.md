@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (deferred strong acceptance bridge checked)
+Last updated: 2026-06-02 (deferred strong POSIX bridge checked)
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 
@@ -40,6 +40,17 @@ Last updated: 2026-06-02 (deferred strong acceptance bridge checked)
   These state that the full thesis-style `bders_simpStrong` final state has
   correct acceptance behavior even though its ordinary decoded values are not
   generally POSIX values for the original regex.
+- The bridge now also connects directly to original POSIX values and the
+  production lexer:
+  - `bnullable_bders_simpStrong_intern_iff_Posix`;
+  - `bnullable_bders_simpStrong_intern_iff_lexer_defined`;
+  - `bnullable_bders_simpStrong_intern_obtain_lexer`;
+  - `bnullable_bders_simpStrong_intern_unique_Posix`.
+  This is the current proof-facing meaning of deferred reconstruction:
+  `bders_simpStrong` is a small acceptance certificate; when it accepts,
+  the original `lexer r s` supplies the unique POSIX value. A future cubic
+  runtime must replace that fallback by an efficient reconstruction relation,
+  but the semantic target is now checked.
 - Added CE-driven Scala gate `-FindStrongDirectCE` for the unsafe direct decode
   route. It finds and greedily shrinks counterexamples before any proof attempt.
   Current minimal CE:

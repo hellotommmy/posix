@@ -1314,6 +1314,84 @@ lemma bnullable_bders_simpStrong_iff_member:
   "bnullable (bders_simpStrong r s) \<longleftrightarrow> s \<in> RL (rerase r)"
   by (simp add: bnullable_bders_simpStrong_iff_Ders Ders_def)
 
+lemma bnullable_bders_simpStrong_intern_iff_Posix:
+  "bnullable (bders_simpStrong (intern r) s) \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof -
+  have "bnullable (bders_simpStrong (intern r) s) \<longleftrightarrow> s \<in> L r"
+    by (simp add: bnullable_bders_simpStrong_iff_member RL_rerase)
+  also have "... \<longleftrightarrow> (\<exists>v. s \<in> r \<rightarrow> v)"
+  proof
+    assume "s \<in> L r"
+    then have "\<exists>v. lexer r s = Some v \<and> s \<in> r \<rightarrow> v"
+      using lexer_correct_Some[of s r] by simp
+    then show "\<exists>v. s \<in> r \<rightarrow> v"
+      by (elim exE conjE) (intro exI)
+  next
+    assume "\<exists>v. s \<in> r \<rightarrow> v"
+    then obtain v where "s \<in> r \<rightarrow> v" ..
+    then show "s \<in> L r"
+      by (rule Posix1(1))
+  qed
+  finally show ?thesis .
+qed
+
+lemma bnullable_bders_simpStrong_intern_iff_lexer_defined:
+  "bnullable (bders_simpStrong (intern r) s) \<longleftrightarrow> lexer r s \<noteq> None"
+proof -
+  have strong: "bnullable (bders_simpStrong (intern r) s) \<longleftrightarrow> s \<in> L r"
+    by (simp add: bnullable_bders_simpStrong_iff_member RL_rerase)
+  show ?thesis
+  proof
+    assume "bnullable (bders_simpStrong (intern r) s)"
+    then have "s \<in> L r"
+      using strong by simp
+    then show "lexer r s \<noteq> None"
+      using lexer_correct_None[of s r] by simp
+  next
+    assume "lexer r s \<noteq> None"
+    then have "s \<in> L r"
+      using lexer_correct_None[of s r] by auto
+    then show "bnullable (bders_simpStrong (intern r) s)"
+      using strong by simp
+  qed
+qed
+
+lemma bnullable_bders_simpStrong_intern_obtain_lexer:
+  assumes "bnullable (bders_simpStrong (intern r) s)"
+  obtains v where "lexer r s = Some v" "s \<in> r \<rightarrow> v"
+proof -
+  have "s \<in> L r"
+    using assms
+    by (simp add: bnullable_bders_simpStrong_iff_member RL_rerase)
+  then have "\<exists>v. lexer r s = Some v \<and> s \<in> r \<rightarrow> v"
+    using lexer_correct_Some[of s r] by simp
+  then show ?thesis
+  proof (elim exE conjE)
+    fix v
+    assume "lexer r s = Some v" "s \<in> r \<rightarrow> v"
+    then show ?thesis
+      by (rule that)
+  qed
+qed
+
+lemma bnullable_bders_simpStrong_intern_unique_Posix:
+  assumes "bnullable (bders_simpStrong (intern r) s)"
+  shows "\<exists>!v. s \<in> r \<rightarrow> v"
+proof -
+  obtain v where v: "s \<in> r \<rightarrow> v"
+    using assms bnullable_bders_simpStrong_intern_iff_Posix by auto
+  show ?thesis
+  proof (rule ex1I)
+    show "s \<in> r \<rightarrow> v"
+      by (rule v)
+  next
+    fix w
+    assume "s \<in> r \<rightarrow> w"
+    then show "w = v"
+      by (rule Posix_determ[OF _ v])
+  qed
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

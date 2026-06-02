@@ -21,10 +21,23 @@ to be read before continuing long-running agent work.
   `bnullable_bders_simpStrong_iff_member`. They show that
   `bders_simpStrong` remains a correct small acceptance state:
   `bnullable (bders_simpStrong r s)` iff `s \<in> RL (rerase r)`.
+- Extended the bridge to original POSIX values and the production lexer:
+  `bnullable_bders_simpStrong_intern_iff_Posix`,
+  `bnullable_bders_simpStrong_intern_iff_lexer_defined`,
+  `bnullable_bders_simpStrong_intern_obtain_lexer`, and
+  `bnullable_bders_simpStrong_intern_unique_Posix`. These theorems deliberately
+  do not decode ordinary values from the strong final derivative. They say that
+  a nullable strong state authorizes the unique original POSIX value, currently
+  via `lexer r s`.
 - Design consequence: keep the small final `bsimpStrong` tree as the
   recognition certificate, and define a deferred/generalized POSIX value
   relation over the original regex and consumed string. Direct decoding of the
   simplified derivative is historical negative evidence only.
+- Proof-engineering note: an early version used a broad
+  `using lexer_correct_Some lexer_correctness(1) by blast`, which caused a
+  runaway build. The checked version splits the equivalence with explicit
+  `iffI`/`obtain` steps and uses `Posix1`/`Posix_determ` directly. Keep this
+  pattern for future POSIX-value bridge lemmas.
 
 ## 2026-06-02: CE-driven strong route needs value transformers
 
