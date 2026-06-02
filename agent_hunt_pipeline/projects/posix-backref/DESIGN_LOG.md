@@ -1183,3 +1183,14 @@ to be read before continuing long-running agent work.
   closure work should either enlarge the root-owned universe to include these
   grouped-left rows or prove a stronger local collapse for the prune result;
   do not spend time trying to close the composed hook with `row_nf` alone.
+- The first enlargement is now named and checked as `row_group_nf`. This is a
+  shape invariant, not the finite universe itself: it admits `RALTS` rows and
+  `RSEQ (RALTS ...) k` grouped-left rows in addition to ordinary row-normal
+  rows. The checked preservation lemmas are intentionally local:
+  `row_group_nf_rflts`, `row_group_nf_normalize`,
+  `row_group_nf_rsimp4_SEQ_atom`, `row_group_nf_rsimp7_SEQ_atom`, and
+  `row_group_nf_shared_prune_result`. The last lemma is the important prune
+  bridge: if the later alternative rows and suffix are grouped-row normal, the
+  Chapter-7 shared-suffix replacement is grouped-row normal. Future work should
+  refine this into a finite root-owned universe and cardinality/member-size
+  proof, rather than using the infinite predicate directly.

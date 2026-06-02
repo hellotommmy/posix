@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row row-normal obstruction)
+Last updated: 2026-06-02 (strong-row grouped-row normal form)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -64,6 +64,15 @@ Last updated: 2026-06-02 (strong-row row-normal obstruction)
   cannot consist only of strict `row_nf` rows unless the prune result is
   separately collapsed or the universe explicitly admits grouped left
   alternatives.
+- Added the first checked grouped-row normal form for that enlarged route:
+  `row_group_nf`. It admits ordinary row-normal rows, normalized alternatives,
+  and grouped-left sequence rows, while remaining closed under singleton
+  flattening, `rsimp_ALTs` normalization, and `rsimp4/rsimp7` sequence atoms.
+  The key local theorem is `row_group_nf_shared_prune_result`, which shows the
+  isolated Chapter-7 shared-suffix prune result is grouped-row normal whenever
+  the later row alternatives and suffix are grouped-row normal. This is not a
+  finite-universe proof yet; it is the checked shape invariant the finite
+  root-owned universe should refine.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

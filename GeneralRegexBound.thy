@@ -5220,6 +5220,177 @@ proof -
     by (rule rows_nf_rflts[of "[r]", simplified])
 qed
 
+fun row_group_nf :: "rrexp \<Rightarrow> bool" where
+  "row_group_nf RZERO = True"
+| "row_group_nf RONE = True"
+| "row_group_nf (RCHAR c) = True"
+| "row_group_nf (RALTS rs) = (\<forall>r \<in> set rs. row_group_nf r)"
+| "row_group_nf (RSEQ r1 r2) =
+    (row_group_nf r1 \<and> row_group_nf r2 \<and>
+      r1 \<noteq> RZERO \<and> r1 \<noteq> RONE \<and> r2 \<noteq> RZERO \<and> r2 \<noteq> RONE)"
+| "row_group_nf (RSTAR r) = True"
+| "row_group_nf (RNTIMES r n) = True"
+| "row_group_nf (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "row_group_nf (RHALF r cs rep) = True"
+| "row_group_nf (RRESIDUE cs rep) = True"
+
+lemma row_nf_imp_row_group_nf:
+  assumes "row_nf r"
+  shows "row_group_nf r"
+  using assms by (induct r) simp_all
+
+lemma row_group_nf_rflts_singleton:
+  assumes "row_group_nf r"
+  shows "\<forall>x \<in> set (rflts [r]). row_group_nf x"
+  using assms by (cases r) simp_all
+
+lemma row_group_nf_rflts:
+  assumes "\<forall>r \<in> set rs. row_group_nf r"
+  shows "\<forall>x \<in> set (rflts rs). row_group_nf x"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head: "\<forall>x \<in> set (rflts [r]). row_group_nf x"
+    by (rule row_group_nf_rflts_singleton) (use Cons.prems in simp)
+  have tail: "\<forall>x \<in> set (rflts rs). row_group_nf x"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  have "rflts (r # rs) = rflts [r] @ rflts rs"
+    by (simp add: flts_append[symmetric])
+  then show ?case
+    using head tail by auto
+qed
+
+lemma row_group_nf_rdistinct:
+  assumes "\<forall>x \<in> set rs. row_group_nf x"
+  shows "\<forall>x \<in> set (rdistinct rs acc). row_group_nf x"
+  using assms by (auto simp add: rdistinct_set_equality1)
+
+lemma row_group_nf_rsimp_ALTs:
+  assumes "\<forall>x \<in> set rs. row_group_nf x"
+  shows "row_group_nf (rsimp_ALTs rs)"
+proof (cases rs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons x xs)
+  then show ?thesis
+  proof (cases xs)
+    case Nil
+    then show ?thesis
+      using Cons assms by simp
+  next
+    case (Cons y ys)
+    have rs_shape: "rs = x # y # ys"
+      using \<open>rs = x # xs\<close> Cons by simp
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma row_group_nf_normalize:
+  assumes "\<forall>r \<in> set rs. row_group_nf r"
+  shows "row_group_nf (rsimp_ALTs (rdistinct (rflts rs) {}))"
+proof -
+  have flat: "\<forall>x \<in> set (rflts rs). row_group_nf x"
+    by (rule row_group_nf_rflts[OF assms])
+  have distinct: "\<forall>x \<in> set (rdistinct (rflts rs) {}). row_group_nf x"
+    by (rule row_group_nf_rdistinct[OF flat])
+  show ?thesis
+    by (rule row_group_nf_rsimp_ALTs[OF distinct])
+qed
+
+lemma row_group_nf_rsimp4_SEQ_atom:
+  assumes "row_group_nf x" "row_group_nf y"
+  shows "row_group_nf (rsimp4_SEQ_atom x y)"
+  using assms
+proof (induct x arbitrary: y)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RSEQ x1 x2)
+  have x1_nf: "row_group_nf x1"
+    using RSEQ.prems by simp
+  have x2_nf: "row_group_nf x2"
+    using RSEQ.prems by simp
+  have inner: "row_group_nf (rsimp4_SEQ_atom x2 y)"
+    by (rule RSEQ.hyps(2)[OF x2_nf RSEQ.prems(2)])
+  have seq: "row_group_nf (rsimp4_SEQ_atom x1 (rsimp4_SEQ_atom x2 y))"
+    by (rule RSEQ.hyps(1)[OF x1_nf inner])
+  show ?case
+    using seq by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases y) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases y) simp_all
+qed
+
+lemma row_group_nf_rsimp7_SEQ_atom:
+  assumes "row_group_nf x" "row_group_nf y"
+  shows "row_group_nf (rsimp7_SEQ_atom x y)"
+proof -
+  have fallback: "row_group_nf (rsimp4_SEQ_atom x y)"
+    by (rule row_group_nf_rsimp4_SEQ_atom[OF assms])
+  show ?thesis
+  proof (cases x)
+    case (RSTAR r)
+    note x_star = RSTAR
+    show ?thesis
+    proof (cases y)
+      case (RSTAR s)
+      then show ?thesis
+        using x_star fallback by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RSEQ y1 y2)
+      note y_seq = RSEQ
+      show ?thesis
+      proof (cases y1)
+        case (RSTAR s)
+        have y2_nf: "row_group_nf y2"
+          using assms y_seq by simp
+        have y2_not_zero: "y2 \<noteq> RZERO"
+          using assms y_seq by simp
+        have y2_not_one: "y2 \<noteq> RONE"
+          using assms y_seq by simp
+        show ?thesis
+          using x_star y_seq RSTAR y2_nf y2_not_zero y2_not_one fallback
+          by (simp add: rsimp7_SEQ_atom_def)
+      qed (use x_star y_seq fallback in
+        \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+    qed (use x_star fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed (use fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+qed
+
 lemma rows_nf_rdistinct:
   assumes "\<forall>x \<in> set rs. row_nf x"
   shows "\<forall>x \<in> set (rdistinct rs acc). row_nf x"
@@ -15840,6 +16011,31 @@ definition rsimpStrong_prune_pair :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rr
 lemma set_append_rprune_eq_against:
   "set (covered @ rprune_eq_against covered rs) = set (covered @ rs)"
   by (induct rs) auto
+
+lemma row_group_nf_rprune_eq_against:
+  assumes "\<forall>r \<in> set rs. row_group_nf r"
+  shows "\<forall>r \<in> set (rprune_eq_against covered rs). row_group_nf r"
+  using assms by (induct rs) auto
+
+lemma row_group_nf_shared_prune_result:
+  assumes rrs: "\<forall>r \<in> set rrs. row_group_nf r"
+    and k: "row_group_nf k"
+  shows "row_group_nf
+    (rsimp7_SEQ_atom
+      (rsimp_ALTs
+        (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+      k)"
+proof -
+  have pruned: "\<forall>r \<in> set (rprune_eq_against lrs rrs). row_group_nf r"
+    by (rule row_group_nf_rprune_eq_against[OF rrs])
+  have normalized:
+    "row_group_nf
+      (rsimp_ALTs
+        (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))"
+    by (rule row_group_nf_normalize[OF pruned])
+  show ?thesis
+    by (rule row_group_nf_rsimp7_SEQ_atom[OF normalized k])
+qed
 
 lemma RL_rprune_eq_against_cover_UN:
   "(\<Union>r \<in> set (covered @ rprune_eq_against covered rs). RL r) =
