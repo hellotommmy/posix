@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong deferred cubic-budget smoke
+
+- Added optional `-Ch7StrongCubicFactor` /
+  `-ScalaSmokeCh7StrongCubicFactor` for the current positive route.
+- This checks the Chapter 7 strong recognition tree against
+  `factor * rsize(root)^3`, while the existing fixed threshold still protects
+  the thesis Figure 7.6 scale. Both run alongside reconstructed-value flatness
+  and memo universe checks.
+- Design consequence: this is a smoke-level bridge toward the desired
+  regex-size cubic theorem. It should be used to find CEs and tune the route,
+  but it does not replace a checked Isabelle frontier/bound theorem.
+
 ## 2026-06-03: Strong deferred trace is a guard, not just a report
 
 - The current counterexample-driven route is: keep the small thesis

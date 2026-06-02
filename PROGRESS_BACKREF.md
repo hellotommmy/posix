@@ -1,6 +1,27 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong deferred Ch7 guard)
+Last updated: 2026-06-03 (strong deferred cubic-budget guard)
+
+## Cubic Candidate Prototype: Regex-Size Cubic Budget Smoke (2026-06-03)
+
+- Added an optional `StrongDeferredMemo` Chapter 7 budget
+  `-Ch7StrongCubicFactor` / `-ScalaSmokeCh7StrongCubicFactor`.
+- When enabled, the traced `bsimpStrong` recognition tree must satisfy
+  `asize <= factor * rsize(root)^3`, in addition to the existing fixed
+  thesis-example threshold, reconstructed-value flatness, and memo
+  span/split universe checks.
+- This separates two useful guards:
+  - fixed small thresholds such as `1000` for the thesis Figure 7.6 `k=5`
+    regression;
+  - a regex-size cubic-shaped budget for larger `k` grids.
+- Checked smoke:
+  - `k=5`, lengths `0,4,8,12,16,20,24,30`, factor `1.0`:
+    `rsize=46`, cubic bound `97336`, max strong tree `958`;
+  - `k=8`, lengths `0,4,8,16,32`, factor `1.0`:
+    `rsize=97`, cubic bound `912673`, max strong tree `2879`.
+- This is still smoke evidence, not a proof. Its purpose is to make the
+  counterexample loop more honest: future candidates can be rejected either by
+  POSIX value failure or by violating a regex-size polynomial budget.
 
 ## Cubic Candidate Prototype: Strong Deferred Ch7 Guard (2026-06-03)
 

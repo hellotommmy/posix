@@ -198,6 +198,13 @@ known-CE smoke grids. Treat either a small tree with a bad value or a correct
 value with an exploding tree as the next counterexample to repair before proof
 work.
 
+For regex-size budget pressure, add `-Ch7StrongCubicFactor 1.0` (or the
+corresponding `-ScalaSmokeCh7StrongCubicFactor 1.0` in full CI). This enforces
+`asize(final strong tree) <= factor * rsize(root)^3` on the Chapter 7 grid.
+Keep this distinct from the fixed thesis-regression tree threshold: the former
+tests the shape of a cubic claim, while the latter checks that the k=5 example
+stays in the Figure 7.6 scale.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

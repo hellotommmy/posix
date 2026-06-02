@@ -2063,9 +2063,17 @@ object PosixCubicSmoke {
       lengths: List[Int],
       treeThreshold: Int,
       dagThreshold: Int,
-      shapeThreshold: Int
+      shapeThreshold: Int,
+      treeCubicFactor: Double
   ): Unit = {
     val r = thesisCh7Evil(k)
+    val rootSize = rsize(r).toLong
+    val cubicTreeBound =
+      if (treeCubicFactor > 0.0) {
+        math.ceil(treeCubicFactor * rootSize.toDouble * rootSize.toDouble * rootSize.toDouble).toLong
+      } else {
+        0L
+      }
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
@@ -2090,6 +2098,13 @@ object PosixCubicSmoke {
           s"Chapter 7 strong tree threshold failed at n=$n: asize=${result.strongTree} threshold=$treeThreshold"
         )
       }
+      if (cubicTreeBound > 0L && result.strongTree.toLong > cubicTreeBound) {
+        val out = bdersStrong(intern(r), input)
+        println(s"Chapter 7 strong cubic-budget failed-shape n=$n: ${shortCounts(out)}")
+        throw new AssertionError(
+          s"Chapter 7 strong cubic tree budget failed at n=$n: asize=${result.strongTree} rsize=$rootSize factor=$treeCubicFactor budget=$cubicTreeBound"
+        )
+      }
       if (dagThreshold > 0 && result.strongDag >= dagThreshold) {
         throw new AssertionError(
           s"Chapter 7 strong DAG threshold failed at n=$n: adagSize=${result.strongDag} threshold=$dagThreshold"
@@ -2107,6 +2122,7 @@ object PosixCubicSmoke {
         val spanBound = memoSpanBound(r, n)
         val splitBound = memoSplitProbeBound(r, n)
         s"$n->strong=${s.strongTree}/dag=${s.strongDag}/shape=${s.strongShapeDag}" +
+          s"/rsize=$rootSize/cubicTreeBound=$cubicTreeBound" +
           s"/memoA=${s.memo.acceptsStates}/memoV=${s.memo.valueStates}" +
           s"/spanBound=$spanBound" +
           s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
@@ -2864,6 +2880,12 @@ object PosixCubicSmoke {
       .flatMap(s => scala.util.Try(s.toLong).toOption)
       .getOrElse(default)
 
+  def doubleSetting(prop: String, env: String, default: Double): Double =
+    sys.props.get(prop)
+      .orElse(sys.env.get(env))
+      .flatMap(s => scala.util.Try(s.toDouble).toOption)
+      .getOrElse(default)
+
   def stringSetting(prop: String, env: String, default: String): String =
     sys.props.get(prop)
       .orElse(sys.env.get(env))
@@ -2900,6 +2922,7 @@ object PosixCubicSmoke {
     val ch7TreeThreshold = intSetting("posix.smoke.ch7TreeThreshold", "POSIX_SMOKE_CH7_TREE_THRESHOLD", 1000)
     val ch7DagThreshold = intSetting("posix.smoke.ch7DagThreshold", "POSIX_SMOKE_CH7_DAG_THRESHOLD", 0)
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
+    val ch7StrongCubicFactor = doubleSetting("posix.smoke.ch7StrongCubicFactor", "POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR", 0.0)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
@@ -3005,7 +3028,14 @@ object PosixCubicSmoke {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
     }
     if (traceStrongDeferredMemo) {
-      checkStrongDeferredMemoEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
+      checkStrongDeferredMemoEvilFamilyTrace(
+        ch7K,
+        ch7Lengths,
+        ch7TreeThreshold,
+        ch7DagThreshold,
+        ch7ShapeThreshold,
+        ch7StrongCubicFactor
+      )
     }
     if (traceStrongSafe) {
       checkStrongSafeEvilFamilyTrace(ch7K, ch7Lengths)
