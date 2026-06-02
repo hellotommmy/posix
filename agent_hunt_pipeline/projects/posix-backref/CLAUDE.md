@@ -130,6 +130,13 @@ although its exact DAG/shape-DAG are compact. Do not treat shared-DAG evidence
 as a tree-size reproduction of `strongBlexer` unless the candidate theorem is
 explicitly about the shared representation and includes reconstruction.
 
+Also keep the value story honest. The optional `scala_cubic_smoke.ps1
+-CheckStrong` gate currently fails for `bsimpStrong` on `STAR (STAR (CH a))`
+with input `a`, because the strong simplifier collapses nested-star bit/value
+structure. A future tree-level strong route must repair that simplifier or add
+a checked generalized-value reconstruction theorem before any POSIX/cubic
+bounty can rely on it.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

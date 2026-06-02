@@ -616,6 +616,9 @@ object PosixCubicSmoke {
   def cubicValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersSimpCubic)
 
+  def strongValue(r: Rexp, input: String): Option[Val] =
+    blexerValue(r, input, bdersStrong)
+
   def charPower(c: Char, n: Int): Rexp =
     if (n == 0) ONE else SEQ(CH(c), charPower(c, n - 1))
 
@@ -747,6 +750,67 @@ object PosixCubicSmoke {
       }
     }
     println(s"checked random POSIX value preservation on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
+  def checkStrongValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val b = baselineValue(r, s)
+        val strong = strongValue(r, s)
+        checked += 1
+        if (b != strong) {
+          val baseFinal = bders(intern(r), s)
+          val strongFinal = bdersStrong(intern(r), s)
+          val msg =
+            s"""bsimpStrong POSIX value mismatch
+               |regex    = $r
+               |input    = $s
+               |base     = $b
+               |strong   = $strong
+               |baseRe   = $baseFinal
+               |strongRe = $strongFinal
+               |baseEps  = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+               |strongEps= ${if (bnullable(strongFinal)) Some(bmkeps(strongFinal)) else None}
+               |""".stripMargin
+          throw new AssertionError(msg)
+        }
+      }
+    }
+    println(s"checked bsimpStrong POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val strong = strongValue(r, s)
+      checked += 1
+      if (b != strong) {
+        val baseFinal = bders(intern(r), s)
+        val strongFinal = bdersStrong(intern(r), s)
+        val msg =
+          s"""bsimpStrong random POSIX value mismatch
+             |seed     = $seed
+             |case     = $checked
+             |regex    = $r
+             |input    = $s
+             |base     = $b
+             |strong   = $strong
+             |baseRe   = $baseFinal
+             |strongRe = $strongFinal
+             |baseEps  = ${if (bnullable(baseFinal)) Some(bmkeps(baseFinal)) else None}
+             |strongEps= ${if (bnullable(strongFinal)) Some(bmkeps(strongFinal)) else None}
+             |""".stripMargin
+        throw new AssertionError(msg)
+      }
+    }
+    println(s"checked bsimpStrong random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
   def checkSharedValuePreservation(seqMode: String, maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
@@ -908,6 +972,13 @@ object PosixCubicSmoke {
     if (bsimpCubic(g) != expected) {
       throw new AssertionError(s"ANTIMES epsilon-body case did not collapse to value-preserving AONE: ${bsimpCubic(g)}")
     }
+
+    val nestedStar = STAR(STAR(CH('a')))
+    val nestedBase = baselineValue(nestedStar, "a")
+    val nestedStrong = strongValue(nestedStar, "a")
+    if (nestedBase == nestedStrong) {
+      throw new AssertionError("bsimpStrong nested-star collapse no longer witnesses a POSIX value mismatch")
+    }
     println("counterexample smoke checks passed")
   }
 
@@ -961,10 +1032,17 @@ object PosixCubicSmoke {
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
+    val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
       checkRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+    }
+    if (checkStrong) {
+      checkStrongValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
     }
     checkCounterexamples()
     if (traceStrong) {

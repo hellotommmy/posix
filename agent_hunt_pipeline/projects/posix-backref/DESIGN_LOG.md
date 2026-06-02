@@ -37,6 +37,14 @@ to be read before continuing long-running agent work.
   only `276/132`. This is the main design fork: either recover a tree-level
   POSIX-safe strong simplifier, or make the theorem statement use the shared
   row/DAG representation with reconstruction.
+- Optional `-CheckStrong` value smoke now makes the first fork concrete. It
+  fails on the minimal nested-star example `STAR (STAR (CH a))` over input `a`:
+  the baseline POSIX value has nested stars, but `bsimpStrong` collapses the
+  final regex to a single star-shaped bitstream. Therefore thesis-style
+  `bsimpStrong` cannot be treated as a POSIX candidate merely because its size
+  trace matches Figure 7.6. A tree-level route must keep enough nested-star
+  structure, or explicitly transfer generalized values back to the original
+  `val` shape.
 
 ## 2026-06-02: Hash-consed no-reassoc prototype gives reconstruction evidence
 

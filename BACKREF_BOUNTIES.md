@@ -114,6 +114,12 @@ immutability.
   describe this diagnostic as a tree-level reproduction of thesis
   `strongBlexer`; any payout must either recover a value-safe tree simplifier or
   state and prove a shared-representation reconstruction theorem.
+- New optional smoke gate `-CheckStrong` blocks a naive tree-level
+  `strongBlexer` payout: current `bsimpStrong` fails exact POSIX value
+  preservation on `STAR (STAR (CH a))` with input `a`, because nested-star value
+  structure is collapsed. This is an expected diagnostic failure, not a default
+  CI failure. BR-039 may not use `bsimpStrong` as-is without a checked
+  value-reconstruction theorem or a repaired value-safe strong simplifier.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

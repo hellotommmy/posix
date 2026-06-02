@@ -48,6 +48,15 @@ Last updated: 2026-06-02 (hash-consed and virtual expanded-key prototypes added)
   `n=30` are only `276/132`. Thus the current value-safe route has not
   reproduced the thesis tree-size plateau; it has reproduced a shareable-state
   plateau.
+- Added optional `-CheckStrong` smoke for the thesis-style `bsimpStrong` loop.
+  It intentionally stays off by default and currently fails exact POSIX value
+  preservation immediately on `STAR (STAR (CH a))` with input `a`: the baseline
+  decodes `Stars [Stars [Char a]]`, while `bsimpStrong` collapses to a final
+  `ASTAR [Z] (ACHAR [] a)` whose epsilon bits `[Z,S]` do not decode against
+  the original nested-star regex. This confirms that the tree-level strong
+  plateau is language/size evidence only unless we either disable that
+  value-destroying collapse or add a checked generalized-value reconstruction
+  theorem.
 - Design interpretation: these two ideas are complementary. Hash-consing is a
   representation/counting mechanism; virtual expanded keys are a pruning/index
   mechanism. The next serious design should define derivatives directly over a

@@ -71,6 +71,11 @@ Short version:
   larger ordinary trees while keeping exact DAG/shape-DAG compact. Do not claim
   that a DAG plateau reproduces the thesis tree plot unless the theorem target
   is explicitly a shared-row/DAG representation with reconstruction.
+- Before treating thesis-style `bsimpStrong` as a POSIX candidate, run
+  `scala_cubic_smoke.ps1 -CheckStrong`. It currently fails on
+  `STAR (STAR (CH a))` with input `a`, because nested-star value structure is
+  collapsed. That failure is a design fact: a tree-level strong route needs a
+  repaired value-safe simplifier or a checked generalized-value transfer.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

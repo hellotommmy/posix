@@ -47,6 +47,11 @@ Current override, 2026-06-02:
   `expanded-keyed-no-reassoc` is not yet a tree-level reproduction: at `n=30`
   its ordinary tree is 3849, although exact DAG/shape-DAG are 276/132. Do not
   confuse shared-DAG evidence with a tree-size theorem.
+- POSIX caveat: `scala_cubic_smoke.ps1 -CheckStrong` currently fails for
+  thesis-style `bsimpStrong` on `STAR (STAR (CH a))` with input `a`; nested-star
+  value structure is collapsed. Do not use `bsimpStrong` as a POSIX candidate
+  without either repairing that simplifier or adding a checked generalized-value
+  reconstruction theorem.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.
@@ -68,6 +73,8 @@ Smoke commands:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 2 -RandomCases 1000 -RandomDepth 5 -RandomInputLength 6 -SeqMode expanded-keyed-no-reassoc -SharedNoReassoc -Ch7K 8 -Ch7Lengths "4,8,16,32" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 1000 -Ch7ShapeThreshold 500`
 - Thesis k=5 comparison:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 1 -TraceStrong -SeqMode expanded-keyed-no-reassoc -Ch7K 5 -Ch7Lengths "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 10000 -Ch7ShapeThreshold 5000`
+- Strong POSIX diagnostic, expected to fail until repaired:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -CheckStrong -Ch7TreeThreshold 1000000 -TimeoutSeconds 240`
 - Full verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`
 
