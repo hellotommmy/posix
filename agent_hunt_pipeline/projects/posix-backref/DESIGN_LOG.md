@@ -1331,3 +1331,12 @@ to be read before continuing long-running agent work.
   normalizes through `rflts/rdistinct` before `rsimp_ALTs`. Keep using the
   semantic union bridge and the row-context facts instead of trying to recover
   exact erasure equality.
+- The annotated row-closure route now has local splitter lemmas mirroring the
+  proof-level interface:
+  `map_rerase_flts_bpder_strong_list_subsetI`,
+  `map_rerase_flts_concat_map_bpder_strong_list_subsetI`,
+  `map_rerase_bpder_strong_rows_local_subsetI`, and
+  `map_rerase_bpder_strong_rows_norm_prune_subsetI`. Use them to reduce future
+  `bpder_strong_rows` universe obligations to normalized-member closure and
+  shared-suffix prune closure, without attempting a global exact-erasure
+  equation for the executable prune.

@@ -2457,6 +2457,117 @@ next
     by (simp add: Cons.hyps)
 qed
 
+lemma map_rerase_flts_bpder_strong_list_subsetI:
+  assumes "\<And>p. p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+    set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+  shows "set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+proof -
+  have "map rerase (flts (bpder_strong_list c q)) =
+      rflts (map rerase (map bsimpStrong (bpder_norm_list c q)))"
+    by (simp add: bpder_strong_list_def rerase_flts)
+  have rows: "set (map rerase (flts (map bsimpStrong
+        (bpder_norm_list c q)))) \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in> set (map rerase
+        (flts (map bsimpStrong (bpder_norm_list c q))))"
+    have xr: "x \<in> set (rflts (map rerase
+        (map bsimpStrong (bpder_norm_list c q))))"
+      using x by (simp add: rerase_flts)
+    obtain p' where p': "p' \<in> set (map bsimpStrong (bpder_norm_list c q))"
+      and x_p': "x \<in> set (rflts [rerase p'])"
+      by (rule set_rflts_map_memberE[OF xr])
+    obtain p where p: "p \<in> set (bpder_norm_list c q)"
+      and p'_eq: "p' = bsimpStrong p"
+      using p' by auto
+    have "set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+      by (rule assms[OF p])
+    moreover have "x \<in> set (map rerase (flts [bsimpStrong p]))"
+      using x_p' p'_eq by (simp add: rerase_flts)
+    then show "x \<in> U"
+      using calculation by blast
+  qed
+  show ?thesis
+    using rows by (simp add: bpder_strong_list_def)
+qed
+
+lemma map_rerase_flts_concat_map_bpder_strong_list_subsetI:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow>
+    set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+  shows "set (map rerase
+    (flts (concat (map (bpder_strong_list c) rs)))) \<subseteq> U"
+proof -
+  have flat: "set (rflts
+      (concat (map (\<lambda>q. map rerase (bpder_strong_list c q)) rs)))
+      \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in> set (rflts
+        (concat (map (\<lambda>q. map rerase (bpder_strong_list c q)) rs)))"
+    have sub: "set (rflts
+        (concat (map (\<lambda>q. map rerase (bpder_strong_list c q)) rs)))
+        \<subseteq>
+        (\<Union>q \<in> set rs. set (rflts (map rerase (bpder_strong_list c q))))"
+      by (induct rs) (auto simp add: flts_append)
+    obtain q where q: "q \<in> set rs"
+      and xq: "x \<in> set (rflts (map rerase (bpder_strong_list c q)))"
+      using x sub by blast
+    have "set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+      by (rule assms[OF q])
+    moreover have "x \<in> set (map rerase (flts (bpder_strong_list c q)))"
+      using xq by (simp add: rerase_flts)
+    then show "x \<in> U"
+      using calculation by blast
+  qed
+  have "map rerase
+      (flts (concat (map (bpder_strong_list c) rs))) =
+      rflts
+        (concat (map (\<lambda>q. map rerase (bpder_strong_list c q)) rs))"
+    by (induct rs) (simp_all add: rerase_flts flts_append)
+  then show ?thesis
+    using flat by simp
+qed
+
+lemma map_rerase_bpder_strong_rows_local_subsetI:
+  assumes lists: "\<And>q. q \<in> set rs \<Longrightarrow>
+      set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+    and prune: "\<And>xs. set (map rerase xs) \<subseteq> U \<Longrightarrow>
+      set (map rerase (flts (bsimpStrong_prune_rows xs))) \<subseteq> U"
+  shows "set (map rerase (bpder_strong_rows c rs)) \<subseteq> U"
+proof -
+  let ?rows = "flts (concat (map (bpder_strong_list c) rs))"
+  have flat: "set (map rerase ?rows) \<subseteq> U"
+    by (rule map_rerase_flts_concat_map_bpder_strong_list_subsetI[OF lists])
+  have pruned: "set (map rerase (flts (bsimpStrong_prune_rows ?rows))) \<subseteq> U"
+    by (rule prune[OF flat])
+  have "set (map rerase
+      (distinctWith (flts (bsimpStrong_prune_rows ?rows)) eq1 {})) \<subseteq> U"
+  proof -
+    have "set (rdistinct
+        (map rerase (flts (bsimpStrong_prune_rows ?rows))) {}) \<subseteq> U"
+      using pruned by (auto simp add: rdistinct_set_equality1)
+    then show ?thesis
+      by (simp add: map_rerase_distinctWith_eq1)
+  qed
+  then show ?thesis
+    by (simp add: bpder_strong_rows_def)
+qed
+
+lemma map_rerase_bpder_strong_rows_norm_prune_subsetI:
+  assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+      set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+    and prune: "\<And>xs. set (map rerase xs) \<subseteq> U \<Longrightarrow>
+      set (map rerase (flts (bsimpStrong_prune_rows xs))) \<subseteq> U"
+  shows "set (map rerase (bpder_strong_rows c rs)) \<subseteq> U"
+proof (rule map_rerase_bpder_strong_rows_local_subsetI[OF _ prune])
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+    by (rule map_rerase_flts_bpder_strong_list_subsetI)
+      (use norm[OF q] in blast)
+qed
+
 lemma map_rerase_bpders_strong_rows_subsetI:
   assumes init: "set (map rerase rs) \<subseteq> U"
       and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>

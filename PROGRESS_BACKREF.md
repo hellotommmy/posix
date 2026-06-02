@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong one-step size)
+Last updated: 2026-06-02 (annotated strong closure splitters)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -29,6 +29,15 @@ Last updated: 2026-06-02 (annotated strong one-step size)
   normalized away at different layers. Future transfer proofs should use the
   checked semantic bridge `RL_rerase_bsimpStrong_prune_pair_with_earlier` and
   row-contextual accounting facts, not an exact `rerase` equation.
+- Added the annotated local closure splitters
+  `map_rerase_flts_bpder_strong_list_subsetI`,
+  `map_rerase_flts_concat_map_bpder_strong_list_subsetI`,
+  `map_rerase_bpder_strong_rows_local_subsetI`, and
+  `map_rerase_bpder_strong_rows_norm_prune_subsetI`. These factor executable
+  `bpder_strong_rows` closure into the same two local obligations as the
+  proof-level route: normalized member closure after `bsimpStrong`, and
+  preservation by the shared-suffix row-prune pass. This avoids relying on the
+  checked-false exact erasure equation for `bsimpStrong_prune_pair`.
 - Added and checked the conditional finite-universe interface for the
   proof-level strong row pipeline:
   `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,
