@@ -1352,3 +1352,19 @@ to be read before continuing long-running agent work.
   but its shared premise is intentionally phrased over the actual
   `bsimpStrong`/`bsimp7_ASEQ_atom` syntax before applying `rerase`; do not
   replace it with a false exact-erasure transfer.
+- The path9 frontier route now has carried-tail closure hooks for the
+  remaining `RSEQ`/`RSTAR`/nonzero-`RNTIMES` one-step proof shape. The local
+  singleton helpers are
+  `rder_path_continuations_acc_RSEQ_rpath9_universeI`,
+  `rder_path_continuations_acc_RSTAR_rpath9_universeI`,
+  `rder_path_continuations_acc_RNTIMES_rpath9_universeI`, plus the explicit
+  tail-to-root lifts
+  `rpath9_atom_frontiers_seq_left_tail_universe`,
+  `rpath9_atom_frontiers_star_body_tail_universe`, and
+  `rpath9_atom_frontiers_ntimes_body_tail_universe`. The row-level hooks are
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_left_tailI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_tailI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_tailI`. Future closure proofs
+  should now prove accumulator-local obligations instead of manually lifting
+  each carried continuation back into
+  `partial_derivative_path9_atom_frontier_universe`.

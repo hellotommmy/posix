@@ -1,6 +1,29 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong later-shared hooks)
+Last updated: 2026-06-02 (path9 carried-tail closure hooks)
+
+## Cubic Bound Research Checkpoint: Path9 Carried-Tail Closure Hooks (2026-06-02)
+
+- Added checked carried-tail universe helpers in `GeneralRegexBound.thy`:
+  `rder_path_continuations_acc_RSEQ_rpath9_universeI`,
+  `rder_path_continuations_acc_RSTAR_rpath9_universeI`,
+  `rder_path_continuations_acc_RNTIMES_rpath9_universeI`,
+  `rpath9_atom_frontiers_seq_left_tail_universe`,
+  `rpath9_atom_frontiers_star_body_tail_universe`, and
+  `rpath9_atom_frontiers_ntimes_body_tail_universe`.
+- Added row-level one-step closure splitters:
+  `rpder_norm9_path9_atom_frontier_step_RSEQ_left_tailI`,
+  `rpder_norm9_path9_atom_frontier_step_RSTAR_tailI`, and
+  `rpder_norm9_path9_atom_frontier_step_RNTIMES_tailI`. These compose the
+  existing `rpder_norm9` constructor splitters with path9 carried-tail
+  accumulator obligations, so future `RSEQ`/`RSTAR`/nonzero-`RNTIMES` cases can
+  prove the local accumulator invariant and immediately land in the root
+  `partial_derivative_path9_atom_frontier_universe`.
+- This is progress toward the BR-036 one-step closure proof, not a bounty
+  claim. The remaining hard step is still the root-owned induction that proves
+  those local carried-tail accumulator obligations for the full non-backref
+  fragment, plus the matching linear member-size premise.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
