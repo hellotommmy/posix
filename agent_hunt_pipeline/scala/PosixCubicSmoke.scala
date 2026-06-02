@@ -1781,6 +1781,42 @@ object PosixCubicSmoke {
     println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
+  def checkStrongDeferredMemoKnownCounterexamples(): Unit = {
+    val cases = List(
+      "direct nested-star CE" -> STAR(STAR(CH('a'))) -> List("", "a", "aa", "aaa"),
+      "full-cert greedy sequence CE" ->
+        SEQ(STAR(ALT(STAR(CH('b')), SEQ(CH('b'), CH('a')))), STAR(CH('a'))) ->
+        List("", "b", "bb", "bba", "bbba", "bbaa"),
+      "nested nullable seq alt CE family" ->
+        STAR(STAR(ALT(SEQ(STAR(CH('a')), ONE), CH('b')))) ->
+        List("", "a", "b", "bab", "abaaabab")
+    )
+    var checked = 0
+    cases.foreach { case ((name, r), inputs) =>
+      inputs.foreach { s =>
+        checked += 1
+        val base = baselineValue(r, s)
+        val result = strongDeferredMemoResult(r, s)
+        checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
+        if (base != result.value) {
+          throw new AssertionError(
+            s"""strong memo-deferred known CE mismatch: $name
+               |regex      = $r
+               |input      = $s
+               |base       = $base
+               |memo       = ${result.value}
+               |strongTree = ${result.strongTree}
+               |strongDag  = ${result.strongDag}
+               |memoStates = ${result.memo.acceptsStates}+${result.memo.valueStates}
+               |splits     = ${result.memo.splitProbes}
+               |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked strong memo-deferred known CE grid on $checked cases")
+  }
+
   def checkStrongSafeValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
@@ -2820,6 +2856,7 @@ object PosixCubicSmoke {
     }
     if (checkStrongDeferredMemo) {
       checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes)
+      checkStrongDeferredMemoKnownCounterexamples()
       if (randomCases > 0) {
         checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
       }

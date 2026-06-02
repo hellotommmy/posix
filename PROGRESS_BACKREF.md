@@ -1,6 +1,43 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (checked span reconstruction algebra)
+Last updated: 2026-06-03 (strong-tree span reconstruction CE gate)
+
+## Cubic Candidate Prototype: Strong Tree Plus Span Reconstruction (2026-06-03)
+
+- Added an explicit Scala known-CE grid to `-CheckStrongDeferredMemo`.
+  It now checks the examples that broke direct/final-state decoding:
+  - `STAR(STAR(CH a))` on small `a`-strings;
+  - `SEQ(STAR(ALT(STAR(CH b), SEQ(CH b, CH a))), STAR(CH a))` on
+    `bba` and neighboring inputs;
+  - the nested nullable sequence/star family.
+- Latest smoke checkpoint:
+  - exhaustive depth `2`, input length `3`: `84,300` pairs pass;
+  - known CE grid: `15` cases pass;
+  - deterministic random depth `7`, input length `8`, seed `20260602`:
+    `5,000` cases pass;
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30` keeps the
+    `bsimpStrong` tree plateau, ending at strong tree `958`.
+- Design conclusion:
+  - the user's requested path is viable if "small tree" means the strong
+    derivative state remains the acceptance certificate;
+  - exact POSIX values should be reconstructed from original `(regex, input)`
+    spans, not decoded directly from the final simplified regex;
+  - `StrongFullCert` remains a counterexample miner for local certificate
+    ideas, but its `bba` greedy-sequence CE shows that local
+    `Val => Option[Val]` transformers do not carry enough split history.
+
+## Cubic Candidate Prototype: More Checked Span Constructor Rules (2026-06-03)
+
+- Extended the checked table-construction algebra in `GeneralRegexBound.thy`:
+  - `rspan_accepts_RALTSI`;
+  - `rspan_accepts_RONE_emptyI`;
+  - `rspan_accepts_RSTAR_stepI`;
+  - `rspan_accepts_RNTIMES_zeroI`;
+  - `rspan_accepts_RNTIMES_SucI`.
+- These are still infrastructure, not a payout: they let future memo/value
+  reconstruction proofs build accepted span-table entries for alternatives,
+  empty/unit cases, nonempty stars, and counted repetitions.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Span Reconstruction Algebra (2026-06-02)
 

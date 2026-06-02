@@ -174,6 +174,19 @@ certificate smoke. It composes `bder`, `bsimpStrongCoreCert`, `injectA`, and an
 accumulated continuation to reconstruct the original POSIX value. This is the
 main executable gate for the certified-core route.
 
+Use `scala_cubic_smoke.ps1 -CheckStrongFullLoop -FindStrongFullCE` as a CE
+miner for the user's preferred "keep the `bsimpStrong` tree" idea. Do not
+promote this local-certificate route to a proof target while it still fails the
+greedy sequence CE
+`SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`.
+
+The current positive version of "keep the `bsimpStrong` tree and still get the
+right answer" is `scala_cubic_smoke.ps1 -CheckStrongDeferredMemo`: `bdersStrong`
+is only the small nullable acceptance certificate, and exact POSIX values are
+reconstructed from original `(regex, input)` spans. This gate now includes the
+known nested-star and greedy-sequence CEs, so keep it green before trying any
+Isabelle proof route based on the strong tree plateau.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

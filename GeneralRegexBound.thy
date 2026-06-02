@@ -2907,6 +2907,30 @@ proof -
     by (rule rspan_acceptsI[OF sub ij jl])
 qed
 
+lemma rspan_accepts_RALTSI:
+  assumes sub: "RALTS rs \<in> rsubterms r"
+    and row: "q \<in> set rs"
+    and ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and acc: "rslice s i j \<in> RL q"
+  shows "(RALTS rs, i, j) \<in> rspan_accepts r s"
+proof -
+  have "rslice s i j \<in> RL (RALTS rs)"
+    using row acc by auto
+  then show ?thesis
+    by (rule rspan_acceptsI[OF sub ij jl])
+qed
+
+lemma rspan_accepts_RONE_emptyI:
+  assumes "RONE \<in> rsubterms r" "i \<le> length s"
+  shows "(RONE, i, i) \<in> rspan_accepts r s"
+proof -
+  have "rslice s i i \<in> RL RONE"
+    using assms by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF assms(1) order_refl assms(2)])
+qed
+
 lemma rspan_accepts_RSTAR_emptyI:
   assumes "RSTAR q \<in> rsubterms r" "i \<le> length s"
   shows "(RSTAR q, i, i) \<in> rspan_accepts r s"
@@ -2917,6 +2941,62 @@ proof -
     using assms by simp
   then show ?thesis
     by (rule rspan_acceptsI[OF assms(1) order_refl assms(2)])
+qed
+
+lemma rspan_accepts_RSTAR_stepI:
+  assumes split: "(RSTAR q, i, k, j) \<in> rspan_all_split_probes r s"
+    and head: "rslice s i k \<in> RL q"
+    and tail: "rslice s k j \<in> RL (RSTAR q)"
+  shows "(RSTAR q, i, j) \<in> rspan_accepts r s"
+proof -
+  obtain sub ik kj jl where
+    sub: "RSTAR q \<in> rsubterms r" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rspan_all_split_probesE)
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have tail_star: "rslice s k j \<in> (RL q)\<star>"
+    using tail by simp
+  have "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  also have "... \<in> (RL q)\<star>"
+    by (rule Star.step[OF head tail_star])
+  finally have "rslice s i j \<in> RL (RSTAR q)"
+    by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF sub ij jl])
+qed
+
+lemma rspan_accepts_RNTIMES_zeroI:
+  assumes "RNTIMES q 0 \<in> rsubterms r" "i \<le> length s"
+  shows "(RNTIMES q 0, i, i) \<in> rspan_accepts r s"
+proof -
+  have "rslice s i i \<in> RL (RNTIMES q 0)"
+    using assms by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF assms(1) order_refl assms(2)])
+qed
+
+lemma rspan_accepts_RNTIMES_SucI:
+  assumes split: "(RNTIMES q (Suc n), i, k, j) \<in> rspan_all_split_probes r s"
+    and head: "rslice s i k \<in> RL q"
+    and tail: "rslice s k j \<in> RL (RNTIMES q n)"
+  shows "(RNTIMES q (Suc n), i, j) \<in> rspan_accepts r s"
+proof -
+  obtain sub ik kj jl where
+    sub: "RNTIMES q (Suc n) \<in> rsubterms r" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rspan_all_split_probesE)
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  also have "... \<in> RL q ;; ((RL q) ^^ n)"
+    using head tail by (simp add: concI)
+  finally have "rslice s i j \<in> RL (RNTIMES q (Suc n))"
+    by simp
+  then show ?thesis
+    by (rule rspan_acceptsI[OF sub ij jl])
 qed
 
 lemma rsize_member_le_rsizes:

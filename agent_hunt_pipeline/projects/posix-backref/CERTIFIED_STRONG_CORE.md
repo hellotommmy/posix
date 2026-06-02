@@ -1,6 +1,6 @@
 # Certified Strong-Core Route
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 
 This note is the proof-facing bridge from the Scala smoke prototype toward an
 Isabelle candidate for the non-backref cubic-size route. It records the semantic
@@ -72,6 +72,14 @@ calls `posixMemoValue` to reconstruct the original POSIX value from
 prototype over `strongDeferredValue`, whose `baselineValue` fallback still runs
 the derivative lexer.
 
+The `-CheckStrongDeferredMemo` gate also checks the known CE grid that broke
+direct strong decoding and the full local-certificate route, including
+`STAR(STAR(CH a))` and
+`SEQ(STAR(ALT(STAR(CH b), SEQ(CH b, CH a))), STAR(CH a))` on `bba`.
+This is the current counterexample-driven version of the user's preferred
+route: keep the small `bsimpStrong` tree, but recover exact values from
+original spans.
+
 The memoized reconstruction table-size trace is:
 
 ```powershell
@@ -139,7 +147,12 @@ The table-correctness algebra has started as well:
 - `rspan_accepts_root_iff`;
 - `rspan_all_split_probes_iff`;
 - `rspan_accepts_RSEQI`;
-- `rspan_accepts_RSTAR_emptyI`.
+- `rspan_accepts_RALTSI`;
+- `rspan_accepts_RONE_emptyI`;
+- `rspan_accepts_RSTAR_emptyI`;
+- `rspan_accepts_RSTAR_stepI`;
+- `rspan_accepts_RNTIMES_zeroI`;
+- `rspan_accepts_RNTIMES_SucI`.
 
 These facts are deliberately one-directional where that keeps the proof light:
 they support constructing accepted table entries from legal split evidence.

@@ -63,6 +63,19 @@ immutability.
 
 ## Open Artifact Notes
 
+- Strong-tree route clarification: the currently viable way to preserve the
+  `bsimpStrong` tree plateau while getting exact POSIX values is the
+  deferred/span-memo route. `StrongFullCert` is retained as a CE-mining tool,
+  but the `bba` greedy-sequence CE shows that local final-state
+  `Val => Option[Val]` reconstruction is not enough by itself. The optional
+  `-CheckStrongDeferredMemo` smoke now includes the known CE grid and must
+  remain green before any BR-039/BR-040 claim can use this route.
+- Checked span constructor support now includes alternatives, unit/empty,
+  nonempty star, and counted-repetition intro rules:
+  `rspan_accepts_RALTSI`, `rspan_accepts_RONE_emptyI`,
+  `rspan_accepts_RSTAR_stepI`, `rspan_accepts_RNTIMES_zeroI`, and
+  `rspan_accepts_RNTIMES_SucI`. These are infrastructure only, not a payout
+  until an actual POSIX reconstruction relation is checked.
 - Admin revocation note: all later mentions of `BR-036`, `BR-037`, `rsimp9`,
   `norm19`, or `path9` in these notes are historical diagnostics only. They are
   not active bounty targets, cannot be locked, and cannot be collected. New

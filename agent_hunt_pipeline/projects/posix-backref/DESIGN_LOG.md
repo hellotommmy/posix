@@ -3,6 +3,35 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong tree, counterexamples, and span reconstruction
+
+- The user-requested target is now interpreted as: keep the `bsimpStrong`
+  derivative tree small, but do not require ordinary epsilon decoding from
+  that final small tree to be the original POSIX value.
+- The direct/local certificate route remains useful for mining CEs. Its stable
+  minimal blocker is
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`: local reconstruction
+  assigns the final `a` to the right star, while POSIX greediness assigns
+  `bba` to the left star and leaves the right star empty.
+- Therefore the positive route is `strongDeferredMemoValue`: use
+  `bdersStrong` as a small nullable acceptance certificate, then reconstruct
+  the exact POSIX value from original-regex spans. This keeps the thesis
+  Figure 7.6 tree behavior while making the missing greedy split information
+  explicit in a memo table.
+- `-CheckStrongDeferredMemo` now includes a known-CE grid for the nested-star
+  and greedy-sequence failures, so this path stays counterexample-driven.
+
+## 2026-06-03: More checked span constructor rules
+
+- Added further one-directional constructor rules for the checked memo table:
+  `rspan_accepts_RALTSI`, `rspan_accepts_RONE_emptyI`,
+  `rspan_accepts_RSTAR_stepI`, `rspan_accepts_RNTIMES_zeroI`, and
+  `rspan_accepts_RNTIMES_SucI`.
+- Design consequence: future POSIX reconstruction proofs can now construct
+  language-accepted table entries for alternatives, empty/unit entries,
+  nonempty star steps, and counted-repetition steps without relying on broad
+  automation.
+
 ## 2026-06-02: Checked span reconstruction algebra
 
 - Added the first correctness-side lemmas for the span/memo route in
