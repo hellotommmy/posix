@@ -55,6 +55,16 @@ immutability.
 
 ## Open Artifact Notes
 
+- BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
+  does not address the thesis Chapter 7 three-star evil family
+  `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require
+  shared-suffix row pruning such as `(a + b).c + (a + d).c ->
+  (a + b).c + d.c`. Future payout for the cubic-bound tranche must therefore
+  close the strong-row route (`rsimpStrong`/`bsimpStrong`,
+  `rpder_strong_rows`/`bpder_strong_rows`) or prove an equivalent pruning
+  theorem. The existing `rsimp9`/path9 material remains useful scaffold for
+  tail/countdown normalization and diagnostics, but an `rsimp9`-only closure is
+  not sufficient for this bounty.
 - BR-036 now has explicit checked regression sanity lemmas for the thesis
   cubic-bound examples: `thesis_cubic_evil3_aaa_norm19_rows_cubic` for the
   Chapter 6 evil shape `(a* + (aa)* + (aaa)*)*` after `aaa`, with

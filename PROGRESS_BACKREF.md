@@ -1,6 +1,31 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 tight-budget root-linear hooks)
+Last updated: 2026-06-02 (strong-row cubic route correction)
+
+## Cubic Bound Route Correction: Strong-Row Route Is The Target (2026-06-02)
+
+- The Chapter 7 evil family is the three-star shape
+  `STAR (STAR (ALTs [a*, (aa)*, ...]))`, represented here by
+  `thesis_ch7_evil`. This family is designed to defeat simplifiers that only
+  flatten alternatives, remove exact duplicates, or normalize repetition
+  tails. A route based only on `rsimp9`/`bsimp9` should therefore not be treated
+  as the final cubic-bound candidate.
+- The required missing operation is shared-suffix row pruning, e.g. reducing
+  `(a + b).c + (a + d).c` to `(a + b).c + d.c`. In this repository that
+  operation is implemented in the proof-level `rsimpStrong` route and the
+  executable annotated `bsimpStrong` route.
+- Existing checked evidence for this route includes
+  `thesis_ch7_rsimpStrong_ALTs_prunes_overlap`,
+  `thesis_ch7_rsimpStrong_ALTs_overlap_smaller`,
+  `thesis_ch7_bsimpStrong_prunes_overlap`,
+  `thesis_ch7_evil5_bders_simpStrong_lt_simp8_size_16`, and
+  `thesis_ch7_evil5_bders_simpStrong_size_16_under_825`.
+- Hence the cubic-bound payout target should be the strong row pipeline
+  `rpder_strong_rows`/`bpder_strong_rows`, with `rsimp9` retained only as
+  normalization scaffold for tails/countdowns and diagnostics. The remaining
+  hard theorem is the finite universe and one-step closure theorem for strong
+  rows, including the shared-suffix prune result, followed by the annotated
+  transfer.
 
 ## Cubic Bound Research Checkpoint: Path9 Tight-Budget Root-Linear Hooks (2026-06-02)
 
