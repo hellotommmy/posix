@@ -1,23 +1,30 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (checked bsimpCubic smoke extensions)
+Last updated: 2026-06-02 (Scala-gated bsimpCubic smoke checkpoint)
 
-## Cubic Candidate Checkpoint: bsimpCubic Smoke Extensions (2026-06-02)
+## Cubic Candidate Checkpoint: Scala-Gated bsimpCubic Smoke (2026-06-02)
 
-- Strengthened the checked `FBound.thy` smoke suite for the current
-  `bsimpCubic`/`bders_simpCubic` candidate without marking any cubic bounty as
-  done. The Chapter 7 `k=5` three-layer-star family is now checked at
-  derivative lengths `4`, `8`, `12`, `16`, and `20`, all under the explicit
-  `asize < 1000` smoke threshold.
-- Added two counted-repetition pressure tests:
-  `thesis_cubic_counterexample_G` and `thesis_cubic_counterexample_H`. These
-  show that `bsimpCubic` is not just a `bsimpStrong` wrapper: it simplifies
-  `ANTIMES` bodies/zero counts that `bsimpStrong` deliberately leaves alone.
-- Added erased-language preservation support for the candidate:
-  `L_bsimpCubic`, `RL_rerase_bsimpCubic`, and
-  `RL_rerase_bders_simpCubic`. This is a necessary correctness bridge for the
-  candidate, not the final POSIX value/bitcode preservation theorem and not a
-  cubic-bound payout.
+- Moved broad Chapter 7 grid/enumeration smoke tests out of Isabelle and into
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, with wrapper
+  `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`. Full
+  `agent_hunt_pipeline/scripts/isabelle_ci.ps1` now runs this Scala gate before
+  full Isabelle sessions unless `-PilotOnly` or `-SkipScalaSmoke` is used.
+- The Scala gate enumerates bounded non-backref regexes and input strings, then
+  compares exact decoded POSIX values for the baseline derivative lexer versus
+  `bders_simpCubic`. Default evidence: `84300` regex/input pairs checked at
+  depth `2`, input length `3`.
+- Scala smoke caught and forced value-preserving repairs: `ANTIMES _ _ 0` and
+  empty-star collapses now keep the terminating `S` bit, nested-star collapse
+  is not used, and sequence-level star absorption is rejected by the concrete
+  counterexample `SEQ (STAR a) (STAR a)` on input `a`.
+- Added generalized covered-continuation pruning to `bsimpCubic`: earlier rows
+  such as `p.k` or `(p+q).k` cover later rows such as `(p+r).k` without
+  destructively distributing the executable regex. The Scala Chapter 7 `k=5`
+  trace is now `4->413, 8->725, 12->800, 16->800, 20->820`.
+- Isabelle side remains proof-facing: `FBound.thy` checks compact smoke facts
+  and erased-language bridges `L_bsimpCubic`, `RL_rerase_bsimpCubic`, and
+  `RL_rerase_bders_simpCubic`. This is support for the candidate, not a final
+  cubic theorem and not a bounty payout.
 - Build evidence: focused Isabelle `Posix` build PASS via bundled Cygwin bash.
 
 ## Cubic Bound Guidance Update: Smoke Before Proof (2026-06-02)

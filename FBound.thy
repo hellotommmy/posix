@@ -888,12 +888,272 @@ next
   qed (use ih in simp_all)
 qed simp_all
 
+lemma L_bsimpCubic_ASEQ_atom:
+  "L (erase (bsimpCubic_ASEQ_atom bs r1 r2)) =
+    L (erase (ASEQ bs r1 r2))"
+  by (induct bs r1 r2 rule: bsimpCubic_ASEQ_atom.induct)
+    (simp_all add: erase_fuse erase_AALTs_ignore_bits L_erase_AALTs_set
+      conc_assoc)
+
+lemma L_bsimpCubic_seq_cover:
+  assumes "bsimpCubic_seq_cover earlier = Some (covered, k)"
+  shows "L (erase earlier) =
+    L (erase (AALTs [] covered)) ;; L (erase k)"
+  using assms
+proof (cases earlier)
+  case (ASEQ bs left right)
+  then show ?thesis
+  proof (cases left)
+    case (AALTs lbs lrs)
+    then show ?thesis
+      using assms ASEQ by (simp add: L_erase_AALTs_set erase_AALTs_ignore_bits)
+  qed (use assms ASEQ in \<open>auto simp add: L_erase_AALTs_set\<close>)
+qed simp_all
+
+lemma L_bsimpCubic_prune_pair_non_AALTs:
+  assumes cover: "bsimpCubic_seq_cover earlier = Some (covered, k1)"
+      and later: "later = ASEQ bs2 row k2"
+      and non_alts: "\<And>rbs rrs. row \<noteq> AALTs rbs rrs"
+  shows "L (erase earlier) \<union>
+    L (erase (bsimpCubic_prune_pair earlier later)) =
+    L (erase earlier) \<union> L (erase later)"
+proof (cases "k1 ~1 k2 \<and> eq1_member row covered")
+  case True
+  have suffix: "L (erase k1) = L (erase k2)"
+    using True eq1_L by blast
+  obtain q where q: "q \<in> set covered" "row ~1 q"
+    using True eq1_member_set by blast
+  have earlier_lang:
+    "L (erase earlier) =
+      L (erase (AALTs [] covered)) ;; L (erase k2)"
+    using L_bsimpCubic_seq_cover[OF cover] suffix by simp
+  have left_subset:
+    "L (erase row) \<subseteq> L (erase (AALTs [] covered))"
+    using q eq1_L[OF q(2)] by (auto simp add: L_erase_AALTs_set)
+  have seq_subset:
+    "L (erase row) ;; L (erase k2) \<subseteq>
+      L (erase (AALTs [] covered)) ;; L (erase k2)"
+    using left_subset by (auto simp add: Sequ_def)
+  have pair_zero:
+    "bsimpCubic_prune_pair earlier later = AZERO"
+    using cover later non_alts True
+    by (cases row; cases "k1 ~1 k2")
+      (simp_all add: bsimpCubic_prune_pair_def)
+  show ?thesis
+    using earlier_lang later pair_zero seq_subset by auto
+next
+  case False
+  have pair_same:
+    "bsimpCubic_prune_pair earlier later = later"
+    using cover later non_alts False
+    by (cases row; cases "k1 ~1 k2")
+      (simp_all add: bsimpCubic_prune_pair_def)
+  show ?thesis
+    using pair_same by simp
+qed
+
+lemma L_bsimpCubic_prune_pair_cover:
+  "L (erase earlier) \<union>
+    L (erase (bsimpCubic_prune_pair earlier later)) =
+    L (erase earlier) \<union> L (erase later)"
+proof (cases "bsimpCubic_seq_cover earlier")
+  case None
+  then show ?thesis
+    by (simp add: bsimpCubic_prune_pair_def)
+next
+  case (Some ck)
+  then obtain covered k1 where cover:
+    "bsimpCubic_seq_cover earlier = Some (covered, k1)"
+    by (cases ck) simp
+  have earlier_lang:
+    "L (erase earlier) =
+      L (erase (AALTs [] covered)) ;; L (erase k1)"
+    by (rule L_bsimpCubic_seq_cover[OF cover])
+  show ?thesis
+  proof (cases later)
+    case (ASEQ bs2 left k2)
+    show ?thesis
+    proof (cases left)
+      case (AALTs rbs rrs)
+      show ?thesis
+      proof (cases "k1 ~1 k2")
+        case True
+        have suffix: "L (erase k1) = L (erase k2)"
+          using True eq1_L by blast
+        have left_union:
+          "L (erase (AALTs [] covered)) \<union>
+            L (erase (bsimp_AALTs rbs
+              (prune_eq1_against covered rrs))) =
+            L (erase (AALTs [] covered)) \<union>
+            L (erase (AALTs rbs rrs))"
+          using L_prune_eq1_against_AALTs_union[of "[]" covered rbs rrs]
+            L_bsimp_AALTs[of rbs "prune_eq1_against covered rrs"]
+          by simp
+        let ?A = "L (erase (AALTs [] covered))"
+        let ?B = "L (erase (bsimp_AALTs rbs
+          (prune_eq1_against covered rrs)))"
+        let ?C = "L (erase (AALTs rbs rrs))"
+        let ?K = "L (erase k2)"
+        have pair_eval:
+          "bsimpCubic_prune_pair earlier later =
+            bsimpCubic_ASEQ_atom bs2
+              (bsimp_AALTs rbs (prune_eq1_against covered rrs)) k2"
+          using cover ASEQ AALTs True
+          by (simp add: bsimpCubic_prune_pair_def)
+        have pair_lang:
+          "L (erase (bsimpCubic_prune_pair earlier later)) = ?B ;; ?K"
+          using pair_eval L_bsimpCubic_ASEQ_atom[
+            of bs2 "bsimp_AALTs rbs (prune_eq1_against covered rrs)" k2]
+          by simp
+        have later_lang: "L (erase later) = ?C ;; ?K"
+          using ASEQ AALTs by simp
+        have earlier_lang': "L (erase earlier) = ?A ;; ?K"
+          using earlier_lang suffix by simp
+        have seq_union: "?A ;; ?K \<union> ?B ;; ?K = ?A ;; ?K \<union> ?C ;; ?K"
+          by (rule Sequ_union_right_cong[OF left_union])
+        show ?thesis
+          using earlier_lang' pair_lang later_lang seq_union by simp
+      next
+        case False
+        then show ?thesis
+          using cover ASEQ AALTs by (simp add: bsimpCubic_prune_pair_def)
+      qed
+    next
+      case non_alts: AZERO
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (AONE x2)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ACHAR x31 x32)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ASEQ x41 x42 x43)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ASTAR x61 x62)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ANTIMES x71 x72 x73)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ABACKREF4 x81 x82 x83 x84 x85 x86)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (AHALF x91 x92 x93 x94)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    next
+      case non_alts: (ARESIDUE x101 x102 x103)
+      show ?thesis
+        by (rule L_bsimpCubic_prune_pair_non_AALTs[OF cover ASEQ])
+          (use non_alts in simp)
+    qed
+  qed (insert cover, simp_all add: bsimpCubic_prune_pair_def)
+qed
+
+lemma L_bsimpCubic_prune_against_rows_cover:
+  "(\<Union>x \<in> set seen. L (erase x)) \<union>
+    L (erase (bsimpCubic_prune_against_rows seen r)) =
+    (\<Union>x \<in> set seen. L (erase x)) \<union> L (erase r)"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have tail:
+    "(\<Union>y \<in> set xs. L (erase y)) \<union>
+      L (erase (bsimpCubic_prune_against_rows xs
+        (bsimpCubic_prune_pair x r))) =
+      (\<Union>y \<in> set xs. L (erase y)) \<union>
+      L (erase (bsimpCubic_prune_pair x r))"
+    by (rule Cons.hyps)
+  have pair:
+    "L (erase x) \<union> L (erase (bsimpCubic_prune_pair x r)) =
+      L (erase x) \<union> L (erase r)"
+    by (rule L_bsimpCubic_prune_pair_cover)
+  show ?case
+    using tail pair by auto
+qed
+
+lemma L_bsimpCubic_prune_rows_acc_cover:
+  "(\<Union>x \<in> set seen. L (erase x)) \<union>
+    (\<Union>x \<in> set (bsimpCubic_prune_rows_acc seen rs). L (erase x)) =
+    (\<Union>x \<in> set seen. L (erase x)) \<union>
+    (\<Union>x \<in> set rs. L (erase x))"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpCubic_prune_against_rows seen r"
+  have head:
+    "(\<Union>x \<in> set seen. L (erase x)) \<union> L (erase ?r') =
+      (\<Union>x \<in> set seen. L (erase x)) \<union> L (erase r)"
+    by (rule L_bsimpCubic_prune_against_rows_cover)
+  have tail:
+    "(\<Union>x \<in> set (?r' # seen). L (erase x)) \<union>
+      (\<Union>x \<in> set (bsimpCubic_prune_rows_acc (?r' # seen) rs).
+        L (erase x)) =
+      (\<Union>x \<in> set (?r' # seen). L (erase x)) \<union>
+      (\<Union>x \<in> set rs. L (erase x))"
+    by (rule Cons.hyps)
+  let ?S = "(\<Union>x \<in> set seen. L (erase x))"
+  let ?R = "L (erase r)"
+  let ?R' = "L (erase ?r')"
+  let ?T = "(\<Union>x \<in> set (bsimpCubic_prune_rows_acc (?r' # seen) rs).
+    L (erase x))"
+  let ?U = "(\<Union>x \<in> set rs. L (erase x))"
+  have tail': "(?S \<union> ?R') \<union> ?T = (?S \<union> ?R') \<union> ?U"
+    using tail by (simp add: Un_assoc Un_commute Un_left_commute)
+  have head': "?S \<union> ?R' = ?S \<union> ?R"
+    by (rule head)
+  have "?S \<union> (?R' \<union> ?T) = (?S \<union> ?R') \<union> ?T"
+    by (simp add: Un_assoc)
+  also have "... = (?S \<union> ?R') \<union> ?U"
+    by (rule tail')
+  also have "... = (?S \<union> ?R) \<union> ?U"
+    using head' by simp
+  also have "... = ?S \<union> (?R \<union> ?U)"
+    by (simp add: Un_assoc)
+  finally have union_step: "?S \<union> (?R' \<union> ?T) = ?S \<union> (?R \<union> ?U)" .
+  show ?case
+    using union_step by (simp add: Let_def Un_assoc)
+qed
+
+lemma L_bsimpCubic_prune_rows:
+  "L (erase (AALTs bs (bsimpCubic_prune_rows rs))) =
+    L (erase (AALTs bs rs))"
+  using L_bsimpCubic_prune_rows_acc_cover[of "[]" rs]
+  by (simp add: bsimpCubic_prune_rows_def L_erase_AALTs_set)
+
+lemma L_bsimpCubic_AALTs:
+  "L (erase (bsimpCubic_AALTs bs rs)) =
+    L (erase (AALTs bs rs))"
+  by (simp add: bsimpCubic_AALTs_def L_bsimp_AALTs
+      L_distinctWith_eq1_AALTs L_flts_AALTs L_bsimpCubic_prune_rows)
+
 lemma L_bsimpCubic:
   "L (erase (bsimpCubic r)) = L (erase r)"
 proof (induct r rule: bsimpCubic.induct)
   case (1 bs r1 r2)
   then show ?case
-    by (simp add: L_bsimp7_ASEQ_atom)
+    by (simp add: L_bsimpCubic_ASEQ_atom)
 next
   case (2 bs rs)
   have rows:
@@ -901,7 +1161,7 @@ next
       L (erase (AALTs bs rs))"
     using 2 by (auto simp add: L_erase_AALTs_set)
   show ?case
-    by (simp add: L_bsimpStrong_AALTs L_flts_AALTs rows)
+    by (simp add: L_bsimpCubic_AALTs L_flts_AALTs rows)
 next
   case (3 bs r)
   note ih = 3
@@ -3269,19 +3529,6 @@ lemma thesis_cubic_smoke_B_ch7_three_star:
       (replicate 16 thesis_ch7_a)) < 825"
   by eval+
 
-lemma thesis_cubic_smoke_B_ch7_three_star_grid:
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 4 thesis_ch7_a)) < 1000"
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 8 thesis_ch7_a)) < 1000"
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 12 thesis_ch7_a)) < 1000"
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 16 thesis_ch7_a)) < 1000"
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 20 thesis_ch7_a)) < 1000"
-  by eval+
-
 definition thesis_cubic_counterexample_C :: arexp where
   "thesis_cubic_counterexample_C =
     AALTs []
@@ -3385,7 +3632,7 @@ definition thesis_cubic_counterexample_G :: arexp where
     ANTIMES [] (AALTs [] [AZERO, AONE []]) 3"
 
 definition thesis_cubic_counterexample_G_pruned :: arexp where
-  "thesis_cubic_counterexample_G_pruned = AONE []"
+  "thesis_cubic_counterexample_G_pruned = AONE [Z, Z, Z, S]"
 
 lemma thesis_cubic_counterexample_G_checks:
   "bsimpStrong thesis_cubic_counterexample_G =
@@ -3401,7 +3648,7 @@ definition thesis_cubic_counterexample_H :: arexp where
     ANTIMES [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b]) 0"
 
 definition thesis_cubic_counterexample_H_pruned :: arexp where
-  "thesis_cubic_counterexample_H_pruned = AONE []"
+  "thesis_cubic_counterexample_H_pruned = AONE [S]"
 
 lemma thesis_cubic_counterexample_H_checks:
   "bsimpStrong thesis_cubic_counterexample_H =
@@ -3416,8 +3663,6 @@ lemma thesis_cubic_smoke_suite_bsimpCubic:
   "bsimpCubic thesis_ch7_overlap = thesis_ch7_overlap_pruned"
   "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
       (replicate 16 thesis_ch7_a)) < 825"
-  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
-      (replicate 20 thesis_ch7_a)) < 1000"
   "bsimpCubic thesis_cubic_counterexample_C =
     thesis_cubic_counterexample_C_pruned"
   "bsimpCubic thesis_cubic_counterexample_D =

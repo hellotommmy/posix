@@ -3,6 +3,33 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Scala smoke caught value bugs in bsimpCubic
+
+- Broad cubic experiments now live in Scala, not as large Isabelle `eval`
+  grids. The executable gate is
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, run directly by
+  `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1` and by full
+  `isabelle_ci.ps1`. It enumerates bounded non-backref regexes and input
+  strings, then compares exact decoded POSIX values between the baseline
+  derivative lexer and `bders_simpCubic`.
+- The first Scala smoke run exposed real value-level bugs. Treating
+  `ANTIMES _ _ 0` as `AONE []` lost the terminating `S` bit, and collapsing
+  nested stars changed values for examples such as `STAR (STAR a)`. The current
+  `bsimpCubic` preserves those bits: zero-count repetition and empty stars
+  return value-carrying `AONE (bs @ [S])`, and nested-star collapse is not part
+  of the POSIX-preserving candidate.
+- Sequence-level star absorption is also not POSIX-value safe in general.
+  Scala found the counterexample `SEQ (STAR a) (STAR a)` on input `a`: dropping
+  the second star loses the required `Seq (Stars [a]) (Stars [])` value shape.
+  This rule may remain historical language/size evidence, but it cannot be used
+  in `bsimpCubic` without a separate generalized-value transfer theorem.
+- The value-safe pruning step added here is generalized covered-continuation
+  pruning. If an earlier row is `p.k` or `(p+q).k`, then a later row
+  `(p+r).k` can remove the covered `p` contribution while preserving POSIX
+  first-match behavior. In Scala this brings the Chapter 7 `k=5` trace to
+  `4->413, 8->725, 12->800, 16->800, 20->820` while exact POSIX value smoke
+  passes on the default bounded enumeration.
+
 ## 2026-06-02: Cubic route must be smoke-first and POSIX-aware
 
 - Cubic-bound proof work is now explicitly smoke-gated. A simplifier candidate

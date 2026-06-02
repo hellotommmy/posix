@@ -67,7 +67,18 @@ parallel regex datatypes. The final regex datatypes should be the original
 
 The non-backref cubic size-bound project is smoke-test gated. Do not try to
 prove a cubic theorem for a simplifier candidate until the candidate has first
-passed an extensive checked smoke/regression suite in `FBound.thy`.
+passed the executable Scala smoke gate and the small Isabelle theorem/sanity
+facts that belong in `FBound.thy`.
+
+Experimental/grid/enumeration tests belong in ordinary executable code, not in
+large Isabelle `eval` lemmas. For this project the gate is
+`agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, runnable via
+`agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1` and by full
+`isabelle_ci.ps1`. The Scala model intentionally mirrors the non-backref
+lexer/simplifier definitions and performs exact POSIX value comparisons:
+`bsimpCubic` must produce the same decoded POSIX value/bitcode result as the
+baseline derivative lexer on bounded generated regexes and inputs. Language
+preservation alone is not enough for a cubic candidate.
 
 Minimum smoke coverage for a serious cubic candidate:
 
@@ -76,9 +87,13 @@ Minimum smoke coverage for a serious cubic candidate:
 - Thesis Chapter 7 evil family: the three-layer star shape
   `((a* + (aa)* + ... + (a...a)*)*)*` must not exhibit the old exponential
   growth behavior under repeated derivatives.
+- Bounded regex enumeration: generate all regexes up to a selected depth over a
+  small alphabet and compare exact POSIX values over all strings up to a
+  selected length. Increase these limits before attempting proof-level payout.
 - Counterexample pressure tests C/D/E/F or later successors must expose
   concrete weaknesses of older simplifiers and show the new candidate fixing
-  them by checked evaluation lemmas.
+  them. Put broad grids in Scala; keep only compact theorem-facing sanity
+  lemmas in Isabelle.
 
 If the candidate is already known to lack a necessary pruning/simplification
 operation, stop and re-scope it as diagnostic work. Do not continue with a

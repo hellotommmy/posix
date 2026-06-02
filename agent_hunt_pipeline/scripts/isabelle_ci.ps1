@@ -2,10 +2,13 @@ param(
   [switch]$SkipFetch,
   [switch]$PilotOnly,
   [switch]$NoCertificate,
+  [switch]$SkipScalaSmoke,
   [ValidateSet("admin", "steward", "worker")]
   [string]$Role = "admin",
   [int]$BuildLockTimeoutSeconds = 7200,
-  [int]$SessionTimeoutSeconds = 120
+  [int]$SessionTimeoutSeconds = 120,
+  [int]$ScalaSmokeDepth = 2,
+  [int]$ScalaSmokeInputLength = 3
 )
 
 $ErrorActionPreference = "Stop"
@@ -60,6 +63,17 @@ try {
     throw "Timed out waiting for Isabelle build lock after $BuildLockTimeoutSeconds seconds"
   }
   Write-Host "== Acquired Isabelle build lock =="
+
+  if (-not $PilotOnly -and -not $SkipScalaSmoke) {
+    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength =="
+    & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+    if ($LASTEXITCODE -ne 0) {
+      if ($LASTEXITCODE -eq 124) {
+        throw "Scala cubic smoke timed out after $SessionTimeoutSeconds seconds"
+      }
+      throw "Scala cubic smoke failed with exit code $LASTEXITCODE"
+    }
+  }
 
   foreach ($Session in $Sessions) {
     Write-Host "== Isabelle build: $($Session.Name) =="

@@ -9,7 +9,25 @@ Read these files first, in this order:
 2. agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md
 3. PROGRESS_BACKREF.md
 4. BACKREF_BOUNTIES.md
-5. GeneralRegexBound.thy around the `rsimp8`, `rpder_norm8_list`, `rpders_norm18_rows`, and live-row universe sections.
+5. agent_hunt_pipeline/scala/PosixCubicSmoke.scala
+6. BlexerSimp.thy around `bsimpCubic`
+7. FBound.thy around `L_bsimpCubic` and `thesis_cubic_smoke_suite_bsimpCubic`
+
+Current override, 2026-06-02:
+- The old BR-036/BR-037 `rsimp9` proof-first route is revoked historical
+  context. Do not pursue it as a bounty or production cubic candidate.
+- The active cubic candidate work is smoke-gated `bsimpCubic` with exact POSIX
+  value smoke in Scala. Broad grid/enumeration tests belong in
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, not in large Isabelle
+  `eval` lemmas.
+- Before proof work or bounty claims, run
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`.
+- Full verification should use
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- The newest checked design is generalized covered-continuation pruning:
+  earlier rows like `p.k` or `(p+q).k` cover later rows like `(p+r).k`,
+  preserving POSIX first-match behavior without destructive distribution.
+  Continue from `PROGRESS_BACKREF.md` if this file and progress disagree.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.

@@ -769,23 +769,71 @@ where
 | "bders_simpStrong r (c # s) =
     bders_simpStrong (bsimpStrong (bder c r)) s"
 
+fun bsimpCubic_ASEQ_atom :: "bit list \<Rightarrow> arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimpCubic_ASEQ_atom bs AZERO r2 = AZERO"
+| "bsimpCubic_ASEQ_atom bs (AONE bs2) r2 = fuse (bs @ bs2) r2"
+| "bsimpCubic_ASEQ_atom bs (ASEQ bs2 r1 r2) r3 =
+    bsimpCubic_ASEQ_atom bs2 r1 (bsimpCubic_ASEQ_atom bs r2 r3)"
+| "bsimpCubic_ASEQ_atom bs r1 AZERO = AZERO"
+| "bsimpCubic_ASEQ_atom bs r1 (AONE []) = fuse bs r1"
+| "bsimpCubic_ASEQ_atom bs r1 r2 = ASEQ bs r1 r2"
+
+fun bsimpCubic_seq_cover :: "arexp \<Rightarrow> (arexp list \<times> arexp) option" where
+  "bsimpCubic_seq_cover (ASEQ bs (AALTs lbs lrs) k) = Some (lrs, k)"
+| "bsimpCubic_seq_cover (ASEQ bs row k) = Some ([row], k)"
+| "bsimpCubic_seq_cover r = None"
+
+definition bsimpCubic_prune_pair :: "arexp \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimpCubic_prune_pair earlier later =
+    (case bsimpCubic_seq_cover earlier of
+      Some (covered, k1) \<Rightarrow>
+        (case later of
+          ASEQ bs2 (AALTs rbs rrs) k2 \<Rightarrow>
+            if k1 ~1 k2
+            then bsimpCubic_ASEQ_atom bs2
+              (bsimp_AALTs rbs (prune_eq1_against covered rrs)) k2
+            else later
+        | ASEQ bs2 row k2 \<Rightarrow>
+            if k1 ~1 k2 \<and> eq1_member row covered
+            then AZERO
+            else later
+        | _ \<Rightarrow> later)
+    | None \<Rightarrow> later)"
+
+fun bsimpCubic_prune_against_rows :: "arexp list \<Rightarrow> arexp \<Rightarrow> arexp" where
+  "bsimpCubic_prune_against_rows [] r = r"
+| "bsimpCubic_prune_against_rows (x # xs) r =
+    bsimpCubic_prune_against_rows xs (bsimpCubic_prune_pair x r)"
+
+fun bsimpCubic_prune_rows_acc :: "arexp list \<Rightarrow> arexp list \<Rightarrow> arexp list" where
+  "bsimpCubic_prune_rows_acc seen [] = []"
+| "bsimpCubic_prune_rows_acc seen (r # rs) =
+    (let r' = bsimpCubic_prune_against_rows seen r
+     in r' # bsimpCubic_prune_rows_acc (r' # seen) rs)"
+
+definition bsimpCubic_prune_rows :: "arexp list \<Rightarrow> arexp list" where
+  "bsimpCubic_prune_rows rs = bsimpCubic_prune_rows_acc [] rs"
+
+definition bsimpCubic_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow> arexp" where
+  "bsimpCubic_AALTs bs rs =
+    bsimp_AALTs bs (distinctWith (flts (bsimpCubic_prune_rows rs)) eq1 {})"
+
 fun bsimpCubic :: "arexp \<Rightarrow> arexp"
 where
   "bsimpCubic (ASEQ bs r1 r2) =
-    bsimp7_ASEQ_atom bs (bsimpCubic r1) (bsimpCubic r2)"
+    bsimpCubic_ASEQ_atom bs (bsimpCubic r1) (bsimpCubic r2)"
 | "bsimpCubic (AALTs bs rs) =
-    bsimpStrong_AALTs bs (flts (map bsimpCubic rs))"
+    bsimpCubic_AALTs bs (flts (map bsimpCubic rs))"
 | "bsimpCubic (ASTAR bs r) =
     (case bsimpCubic r of
-      AZERO \<Rightarrow> AONE []
-    | AONE bs' \<Rightarrow> AONE []
-    | ASTAR bs' s \<Rightarrow> ASTAR bs' s
+      AZERO \<Rightarrow> AONE (bs @ [S])
+    | AONE bs' \<Rightarrow> AONE (bs @ [S])
     | s \<Rightarrow> ASTAR bs s)"
 | "bsimpCubic (ANTIMES bs r n) =
-    (if n = 0 then AONE [] else
+    (if n = 0 then AONE (bs @ [S]) else
       (case bsimpCubic r of
         AZERO \<Rightarrow> AZERO
-      | AONE bs' \<Rightarrow> AONE []
+      | AONE bs' \<Rightarrow> AONE (bmkeps (ANTIMES bs (AONE bs') n))
       | s \<Rightarrow> ANTIMES bs s n))"
 | "bsimpCubic r = r"
 
