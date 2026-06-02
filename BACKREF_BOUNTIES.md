@@ -63,6 +63,13 @@ immutability.
 
 ## Open Artifact Notes
 
+- Concrete raw shared-prune sanity universe: `GeneralRegexBound.thy` now has
+  `raw_shared_prune_closed_sizeNregex`, supported by raw size/legacy lemmas.
+  This proves that the raw delayed shared-prune result stays inside every
+  coarse legacy size-bounded universe `sizeNregex N`. It is useful evidence
+  that the shared-prune obligation is locally well behaved, but it is not a
+  BR-039/BR-040 payout because `sizeNregex N` is not a root-owned cubic
+  cardinality universe.
 - Raw shared-prune closure predicate: `GeneralRegexBound.thy` now has
   `raw_shared_prune_closed`, which weakens the shared closure obligation to
   the case where both `RSEQ (RALTS lrs) k` and `RSEQ (RALTS rrs) k` are already

@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: sizeNregex closes raw shared pruning
+
+- Added `raw_shared_prune_closed_sizeNregex`, plus small size and legacy
+  helper lemmas for the raw delayed shared-prune result.
+- Design consequence: raw shared pruning itself is no longer a mystery
+  closure obligation. Any coarse legacy size-bounded universe `sizeNregex N`
+  is closed under the raw shared-prune result, because the result is legacy and
+  no larger than the later row already in the universe.
+- This is deliberately not the final cubic universe. `sizeNregex N` is too
+  large for the desired cardinality statement. The remaining hard target is to
+  replace it with a root-owned shared-row/linear-form universe that has cubic
+  card/member bounds while reusing the same local closure shape.
+
 ## 2026-06-03: Shared-prune closure now uses both earlier and later rows
 
 - Added `raw_shared_prune_closed`, a predicate saying that raw shared pruning

@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (raw shared-prune closure predicate)
+Last updated: 2026-06-03 (sizeNregex raw shared-prune closure)
+
+## Cubic Candidate Prototype: Concrete Raw Shared-Prune Sanity Universe (2026-06-03)
+
+- Added checked raw shared-prune size/legacy helpers in `GeneralRegexBound.thy`:
+  - `rsize_rsimp_ALTs_rprune_eq_against_le`;
+  - `rsize_rsimpStrong_raw_shared_prune_result_le`;
+  - `legacy_rsimpStrong_raw_shared_prune_result`.
+- Added checked theorem `raw_shared_prune_closed_sizeNregex`.
+- Design result:
+  - The raw shared-prune step is now known to stay inside every legacy
+    `sizeNregex N` universe when the later shared row is already inside that
+    same universe.
+  - This does not prove the desired cubic bound, because `sizeNregex N` is a
+    coarse finite-by-size universe rather than a root-owned cubic-cardinality
+    universe.
+  - It does isolate the next hard problem: construct a much smaller raw/shared
+    row universe that inherits the same size/legacy closure pattern while
+    satisfying cubic cardinality and member-size bounds.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Raw Shared-Prune Closure Predicate (2026-06-03)
 

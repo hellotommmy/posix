@@ -17959,6 +17959,19 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_rsimp_ALTs_rprune_eq_against_le:
+  "rsize (rsimp_ALTs (rprune_eq_against covered rs)) \<le>
+    rsize (RALTS rs)"
+proof -
+  have "rsize (rsimp_ALTs (rprune_eq_against covered rs)) \<le>
+      Suc (rsizes (rprune_eq_against covered rs))"
+    by (rule rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes rs)"
+    using rsizes_rprune_eq_against_le[of covered rs] by simp
+  finally show ?thesis
+    by simp
+qed
+
 lemma rsize_rsimpStrong_pruned_ALTs_le:
   "rsize (rsimp_ALTs
       (rdistinct (rflts (rprune_eq_against covered rs)) {})) \<le>
@@ -18012,6 +18025,22 @@ proof -
     by (rule rsize_rsimp7_SEQ_atom_le)
   also have "... \<le> Suc (rsize (RALTS ?pruned) + rsize k)"
     using rsize_rsimp_ALTs_rdistinct_rflts_le[of ?pruned] by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimpStrong_raw_shared_prune_result_le:
+  "rsize
+    (rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against lrs rrs)) k) \<le>
+    rsize (RSEQ (RALTS rrs) k)"
+proof -
+  let ?pruned = "rprune_eq_against lrs rrs"
+  have "rsize (rsimp7_SEQ_atom (rsimp_ALTs ?pruned) k) \<le>
+      Suc (rsize (rsimp_ALTs ?pruned) + rsize k)"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize (RALTS rrs) + rsize k)"
+    using rsize_rsimp_ALTs_rprune_eq_against_le[of lrs rrs] by simp
   finally show ?thesis
     by simp
 qed
@@ -18304,6 +18333,22 @@ lemma legacy_rprune_eq_against:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
   shows "\<forall>r \<in> set (rprune_eq_against covered rs). legacy_rrexp r"
   using assms by (induct rs) auto
+
+lemma legacy_rsimpStrong_raw_shared_prune_result:
+  assumes "\<forall>r \<in> set rrs. legacy_rrexp r"
+    and "legacy_rrexp k"
+  shows "legacy_rrexp
+    (rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+proof -
+  have pruned:
+    "\<forall>r \<in> set (rprune_eq_against lrs rrs). legacy_rrexp r"
+    by (rule legacy_rprune_eq_against[OF assms(1)])
+  have alt: "legacy_rrexp (rsimp_ALTs (rprune_eq_against lrs rrs))"
+    by (rule legacy_rsimp_ALTs[OF pruned])
+  show ?thesis
+    by (rule legacy_rsimp7_SEQ_atom[OF alt assms(2)])
+qed
 
 lemma legacy_rsimpStrong_prune_pair:
   assumes "legacy_rrexp later"
@@ -21126,6 +21171,48 @@ lemma finite_size_n:
     apply(simp)
   apply(simp add: s9_aux)
   done
+
+lemma raw_shared_prune_closed_sizeNregex:
+  "raw_shared_prune_closed (sizeNregex N)"
+  unfolding raw_shared_prune_closed_def
+proof clarify
+  fix lrs rrs k x
+  assume later: "RSEQ (RALTS rrs) k \<in> sizeNregex N"
+    and x: "x \<in> set (rflts
+      [rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k])"
+  let ?p = "rsimp7_SEQ_atom
+    (rsimp_ALTs (rprune_eq_against lrs rrs)) k"
+  have later_legacy: "legacy_rrexp (RSEQ (RALTS rrs) k)"
+    using later unfolding sizeNregex_def by simp
+  have rows_legacy: "\<forall>r \<in> set rrs. legacy_rrexp r"
+    using later_legacy by simp
+  have k_legacy: "legacy_rrexp k"
+    using later_legacy by simp
+  have p_legacy: "legacy_rrexp ?p"
+    by (rule legacy_rsimpStrong_raw_shared_prune_result
+        [OF rows_legacy k_legacy])
+  have flat_legacy: "\<forall>r \<in> set (rflts [?p]). legacy_rrexp r"
+    by (rule legacy_rflts) (use p_legacy in simp)
+  have x_legacy: "legacy_rrexp x"
+    using flat_legacy x by simp
+  have x_size_le_p: "rsize x \<le> rsize ?p"
+  proof -
+    have "rsize x \<le> rsizes (rflts [?p])"
+      by (rule elem_size_le_rsizes[OF x])
+    also have "... \<le> rsizes [?p]"
+      by (rule rflts_mono)
+    finally show ?thesis
+      by simp
+  qed
+  have p_size_le_later: "rsize ?p \<le> rsize (RSEQ (RALTS rrs) k)"
+    by (rule rsize_rsimpStrong_raw_shared_prune_result_le)
+  have later_size: "rsize (RSEQ (RALTS rrs) k) \<le> N"
+    using later unfolding sizeNregex_def by simp
+  have "rsize x \<le> N"
+    using x_size_le_p p_size_le_later later_size by linarith
+  then show "x \<in> sizeNregex N"
+    using x_legacy unfolding sizeNregex_def by simp
+qed
 
 
 lemma three_easy_cases0: 
