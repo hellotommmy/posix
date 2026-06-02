@@ -3,6 +3,17 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong cubic CE search has a size floor
+
+- Added `-StrongCubicMinRegexSize` to make the strong cubic frontier search
+  asymptotic-facing rather than dominated by tiny constant examples.
+- Ordinary budget checks still apply to all regexes. The size floor only
+  affects reports and random CE search, and the shrinker preserves the floor
+  when reducing regex structure.
+- Design consequence: when tuning constants, use a small floor such as `5` to
+  get compact structural witnesses, or a larger floor such as `10` to ask
+  whether the apparent issue survives beyond toy syntax.
+
 ## 2026-06-03: Strong cubic budget finder shrinks CEs
 
 - Added optional `-FindStrongCubicBudgetCE` for the strong-deferred route.

@@ -225,6 +225,12 @@ avoid same-size replacement loops; if it reports a tiny witness, that usually
 means the factor is too small as a universal finite-size constant, not that the
 asymptotic route failed.
 
+Use `-StrongCubicMinRegexSize <n>` to focus the report/finder on larger
+frontiers. The budget checks still cover all regexes, but the worst-witness
+summary and CE search ignore smaller regexes, and the CE shrinker preserves
+that floor. This is the right knob when small constants are drowning out the
+larger Antimirov/Chapter-7-style structure.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

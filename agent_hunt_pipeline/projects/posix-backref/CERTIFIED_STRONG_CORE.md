@@ -129,13 +129,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
   -SkipLegacyCubic `
   -FindStrongCubicBudgetCE `
   -StrongCubicFactor 0.03 `
+  -StrongCubicMinRegexSize 5 `
   -RandomCases 1000 `
   -RandomDepth 6 `
   -RandomInputLength 7
 ```
 
 The example factor is intentionally too tight; it verifies that the finder can
-report and greedily shrink a size-budget witness.
+report and greedily shrink a size-budget witness while preserving the requested
+minimum regex size. Raise `-StrongCubicMinRegexSize` when tiny constant
+witnesses drown out the larger frontier being studied.
 
 The first checked Isabelle support for this route is now in
 `GeneralRegexBound.thy`:

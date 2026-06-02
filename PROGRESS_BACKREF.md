@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong cubic budget CE finder)
+Last updated: 2026-06-03 (configurable strong cubic CE frontier)
+
+## Cubic Candidate Prototype: Configurable Strong Cubic Frontier Size (2026-06-03)
+
+- Added `-StrongCubicMinRegexSize` /
+  `-ScalaSmokeStrongCubicMinRegexSize`.
+- The parameter controls which regexes are reported in worst-frontier
+  summaries and which regexes are eligible for `-FindStrongCubicBudgetCE`.
+  Budget checks in ordinary smoke still cover every regex.
+- The CE finder now also preserves this minimum during greedy regex shrinking,
+  so a search for larger structural witnesses does not collapse back to
+  `ZERO`/`ONE`-scale examples.
+- Sanity checks:
+  - with factor `0.03`, min rsize `5`, seed `20260602`, the finder reports a
+    shrunk rsize-6 witness
+    `STAR(ALT(SEQ(CH b, CH b), CH b))` on input `b`;
+  - with the same factor and min rsize `10`, no witness is found in `1,000`
+    random depth-6/input-7 cases.
+- This makes the CE loop more useful for asymptotic research: small-regex
+  constant artifacts can be filtered out without weakening the real budget
+  checks.
 
 ## Cubic Candidate Prototype: Strong Cubic Budget CE Finder (2026-06-03)
 

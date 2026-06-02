@@ -847,8 +847,6 @@ object PosixCubicSmoke {
       ratio: Double
   )
 
-  val StrongCubicWorstMinRegexSize = 5
-
   def posixMemoResult(r: Rexp, input: String): PosixMemoResult = {
     val acceptsMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Boolean]
     val valueMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Option[Val]]
@@ -1019,9 +1017,10 @@ object PosixCubicSmoke {
 
   def strongerCubicWorst(
       current: Option[StrongCubicObservation],
-      next: StrongCubicObservation
+      next: StrongCubicObservation,
+      minRegexSize: Int
   ): Option[StrongCubicObservation] =
-    if (next.regexSize < StrongCubicWorstMinRegexSize) current
+    if (next.regexSize < minRegexSize) current
     else current match {
       case None => Some(next)
       case Some(old) =>
@@ -1029,9 +1028,9 @@ object PosixCubicSmoke {
         else current
     }
 
-  def strongCubicWorstSummary(worst: Option[StrongCubicObservation]): String =
+  def strongCubicWorstSummary(worst: Option[StrongCubicObservation], minRegexSize: Int): String =
     worst match {
-      case None => s"no strong cubic observations with rsize >= $StrongCubicWorstMinRegexSize"
+      case None => s"no strong cubic observations with rsize >= $minRegexSize"
       case Some(w) =>
         f"worst strong cubic ratio=${w.ratio}%.6f label=${w.label} tree=${w.strongTree} rsize=${w.regexSize} input=${w.input} regex=${w.regex}"
     }
@@ -1824,7 +1823,8 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       maxRegexes: Int,
-      treeCubicFactor: Double
+      treeCubicFactor: Double,
+      minRegexSize: Int
   ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
@@ -1837,7 +1837,7 @@ object PosixCubicSmoke {
         val result = strongDeferredMemoResult(r, s)
         val deferred = result.value
         checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
-        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"exhaustive case $checked"))
+        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"exhaustive case $checked"), minRegexSize)
         checkStrongCubicTreeBudget(r, s, result, s"exhaustive case $checked", treeCubicFactor)
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
@@ -1855,7 +1855,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize); ${strongCubicWorstSummary(worst, minRegexSize)}")
   }
 
   def checkStrongDeferredMemoRandomValuePreservation(
@@ -1863,7 +1863,8 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       seed: Long,
-      treeCubicFactor: Double
+      treeCubicFactor: Double,
+      minRegexSize: Int
   ): Unit = {
     val rng = new Random(seed)
     var checked = 0
@@ -1876,7 +1877,7 @@ object PosixCubicSmoke {
       val result = strongDeferredMemoResult(r, s)
       val deferred = result.value
       checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
-      worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"random seed=$seed case=$checked"))
+      worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"random seed=$seed case=$checked"), minRegexSize)
       checkStrongCubicTreeBudget(r, s, result, s"random seed=$seed case=$checked", treeCubicFactor)
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
@@ -1894,10 +1895,10 @@ object PosixCubicSmoke {
         )
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize); ${strongCubicWorstSummary(worst, minRegexSize)}")
   }
 
-  def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double): Unit = {
+  def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double, minRegexSize: Int): Unit = {
     val cases = List(
       "direct nested-star CE" -> STAR(STAR(CH('a'))) -> List("", "a", "aa", "aaa"),
       "full-cert greedy sequence CE" ->
@@ -1915,7 +1916,7 @@ object PosixCubicSmoke {
         val base = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
         checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
-        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"known CE $name input=$s"))
+        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"known CE $name input=$s"), minRegexSize)
         checkStrongCubicTreeBudget(r, s, result, s"known CE $name input=$s", treeCubicFactor)
         if (base != result.value) {
           throw new AssertionError(
@@ -1933,7 +1934,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
+    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize); ${strongCubicWorstSummary(worst, minRegexSize)}")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {
@@ -2183,7 +2184,8 @@ object PosixCubicSmoke {
       treeThreshold: Int,
       dagThreshold: Int,
       shapeThreshold: Int,
-      treeCubicFactor: Double
+      treeCubicFactor: Double,
+      minRegexSize: Int
   ): Unit = {
     val r = thesisCh7Evil(k)
     val rootSize = rsize(r).toLong
@@ -2192,7 +2194,7 @@ object PosixCubicSmoke {
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
-      worst = strongerCubicWorst(worst, strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n"))
+      worst = strongerCubicWorst(worst, strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n"), minRegexSize)
       checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
       if (!result.value.exists(flatVal(_) == input)) {
         throw new AssertionError(
@@ -2238,7 +2240,7 @@ object PosixCubicSmoke {
           s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
           s"/splits=${s.memo.splitProbes}/splitBound=$splitBound"
       }.mkString(", ") +
-      s"; ${strongCubicWorstSummary(worst)}")
+      s"; ${strongCubicWorstSummary(worst, minRegexSize)}")
   }
 
   def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
@@ -2799,7 +2801,12 @@ object PosixCubicSmoke {
     loop(startR, startInput)
   }
 
-  def shrinkStrongCubicBudgetCE(startR: Rexp, startInput: String, factor: Double): (Rexp, String) = {
+  def shrinkStrongCubicBudgetCE(
+      startR: Rexp,
+      startInput: String,
+      factor: Double,
+      minRegexSize: Int
+  ): (Rexp, String) = {
     @tailrec
     def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
       val nextSeen = seen + ((r, s))
@@ -2811,6 +2818,7 @@ object PosixCubicSmoke {
         case None =>
           regexShrinkCandidates(r)
             .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .filter(candidate => rsize(candidate) >= minRegexSize)
             .find(candidate => strongCubicBudgetExceeded(candidate, s, factor)) match {
             case Some(candidate) => loop(candidate, s, nextSeen)
             case None => (r, s)
@@ -2915,7 +2923,14 @@ object PosixCubicSmoke {
     }
   }
 
-  def findStrongCubicBudgetCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long, factor: Double): Unit = {
+  def findStrongCubicBudgetCounterexample(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      factor: Double,
+      minRegexSize: Int
+  ): Unit = {
     if (factor <= 0.0) {
       throw new IllegalArgumentException("FindStrongCubicBudgetCE requires -StrongCubicFactor / POSIX_SMOKE_STRONG_CUBIC_FACTOR > 0")
     }
@@ -2927,16 +2942,16 @@ object PosixCubicSmoke {
         checked += 1
         val r = randomRegex(rng, maxDepth)
         val s = randomInput(rng, maxInput)
-        if (strongCubicBudgetExceeded(r, s, factor)) {
+        if (rsize(r) >= minRegexSize && strongCubicBudgetExceeded(r, s, factor)) {
           found = true
           println(strongCubicBudgetReport(r, s, s"strong cubic budget CE before shrinking (seed=$seed case=$checked)", factor))
-          val (shrunkR, shrunkS) = shrinkStrongCubicBudgetCE(r, s, factor)
-          println(strongCubicBudgetReport(shrunkR, shrunkS, "strong cubic budget CE after greedy shrinking", factor))
+          val (shrunkR, shrunkS) = shrinkStrongCubicBudgetCE(r, s, factor, minRegexSize)
+          println(strongCubicBudgetReport(shrunkR, shrunkS, s"strong cubic budget CE after greedy shrinking (minRegexSize=$minRegexSize)", factor))
         }
       }
     }
     if (!found) {
-      println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor)")
+      println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor, minRegexSize=$minRegexSize)")
     }
   }
 
@@ -3081,6 +3096,7 @@ object PosixCubicSmoke {
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     val ch7StrongCubicFactor = doubleSetting("posix.smoke.ch7StrongCubicFactor", "POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
+    val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
@@ -3125,10 +3141,10 @@ object PosixCubicSmoke {
       }
     }
     if (checkStrongDeferredMemo) {
-      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes, strongCubicFactor)
-      checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor)
+      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes, strongCubicFactor, strongCubicMinRegexSize)
+      checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor, strongCubicMinRegexSize)
       if (randomCases > 0) {
-        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor)
+        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize)
       }
     }
     if (checkStrongSafe) {
@@ -3178,7 +3194,7 @@ object PosixCubicSmoke {
       findRawInjectCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
     if (findStrongCubicBudgetCE) {
-      findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor)
+      findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize)
     }
     if (checkStrongCoreHand) {
       checkStrongCoreHandCases()
@@ -3196,7 +3212,8 @@ object PosixCubicSmoke {
         ch7TreeThreshold,
         ch7DagThreshold,
         ch7ShapeThreshold,
-        ch7StrongCubicFactor
+        ch7StrongCubicFactor,
+        strongCubicMinRegexSize
       )
     }
     if (traceStrongSafe) {
