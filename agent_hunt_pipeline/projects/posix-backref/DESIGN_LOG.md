@@ -1204,3 +1204,18 @@ to be read before continuing long-running agent work.
   for the remaining closure work: after a normalized derivative member is
   shown to have grouped-row shape, `rsimpStrong` will preserve it. What is
   still missing is finite root-owned membership, not shape preservation.
+- Shallow `row_group_nf` is not an induction invariant for repeated
+  derivatives. It intentionally treats `RSTAR r` and `RNTIMES r n` as
+  row-shaped without inspecting `r`, but `rpder_list` exposes those bodies.
+  The checked replacement invariant is `row_group_deep_nf`: it implies
+  `row_group_nf`, recurses through `RSTAR`/`RNTIMES`, and is preserved by
+  `rsimp4_SEQ_atom`, `rsimp7_SEQ_atom`, `rsimpStrong`, `rpder_list`,
+  `rpder_norm_list`, `rpder_strong_list`, `rpder_strong_rows`, and
+  `rpders_strong_rows`. Use `row_group_deep_nf_rpders_strong_rows` for
+  iteration, then project back with `row_group_deep_nf_imp_row_group_nf`.
+- Proof-performance rule reinforced: avoid `then show ... by simp` in
+  constructor cases when `then` carries large or irrelevant induction
+  hypotheses. In this checkpoint the `RBACKREF4` case of
+  `row_group_deep_nf_rpder_list` looped for more than two minutes because the
+  simplifier received unused IH facts for the backref fields; the checked fix
+  was the plain `show ?case by simp`, since the derivative list is empty.

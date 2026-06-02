@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row grouped-row normal form)
+Last updated: 2026-06-02 (strong-row deep grouped normal form)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -83,6 +83,23 @@ Last updated: 2026-06-02 (strong-row grouped-row normal form)
   enlarged normal-form class. This narrows the remaining concrete-universe
   work to proving that normalized derivative members enter a finite
   root-owned subset of this shape class.
+- Added the checked deep version of that shape invariant:
+  `row_group_deep_nf`. The shallow predicate `row_group_nf` is not enough for
+  derivative iteration because it deliberately treats `RSTAR r` and
+  `RNTIMES r n` as row-shaped without remembering that their bodies can be
+  exposed by `rpder_list`. The new checked chain
+  `row_group_deep_nf_rsimp4_SEQ_atom`,
+  `row_group_deep_nf_rsimp7_SEQ_atom`,
+  `row_group_deep_nf_rsimpStrong`,
+  `row_group_deep_nf_rpder_list`,
+  `row_group_deep_nf_rpder_norm_list`,
+  `row_group_deep_nf_rpder_strong_list`,
+  `row_group_deep_nf_rpder_strong_rows`, and
+  `row_group_deep_nf_rpders_strong_rows` proves that the strong row derivative
+  iteration preserves the recursive grouped invariant. The exported
+  `row_group_nf_rpders_strong_rows` corollary recovers the shallow grouped-row
+  shape for every reached row. This is still a shape invariant, not the final
+  finite universe or cubic bound.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
