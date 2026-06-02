@@ -1307,3 +1307,11 @@ to be read before continuing long-running agent work.
   `row_group_deep_nf_rpder_list` looped for more than two minutes because the
   simplifier received unused IH facts for the backref fields; the checked fix
   was the plain `show ?case by simp`, since the derivative list is empty.
+- The strong-row route now has expression-level shape/size entry lemmas:
+  `row_group_deep_nf_rpd_der_strong`,
+  `row_group_deep_nf_rpd_der_strong_rsimp9`,
+  `row_group_nf_rpd_der_strong`,
+  `row_group_nf_rpd_der_strong_rsimp9`, and
+  `rsize_rpd_der_strong_cubic`. Use these when a future proof reasons about
+  `rpd_der_strong` directly instead of the row list `rpder_strong_rows c [r]`.
+  They are glue for the root-owned universe route, not a bounty claim.

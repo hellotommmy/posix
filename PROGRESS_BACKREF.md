@@ -1,9 +1,19 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong shared-suffix accounting)
+Last updated: 2026-06-02 (strong expression bridge)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
+- Added the checked expression-level bridge for the proof-level strong row
+  route:
+  `row_group_deep_nf_rpd_der_strong`,
+  `row_group_deep_nf_rpd_der_strong_rsimp9`,
+  `row_group_nf_rpd_der_strong`,
+  `row_group_nf_rpd_der_strong_rsimp9`, and
+  `rsize_rpd_der_strong_cubic`. These connect the row-list shape invariant
+  and the existing one-step cubic size budget to `rpd_der_strong` itself.
+  This is support plumbing only, not a BR-036 payout: the remaining hard
+  theorem is still root-owned closure/cardinality for repeated strong rows.
 - Added and checked the conditional finite-universe interface for the
   proof-level strong row pipeline:
   `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,

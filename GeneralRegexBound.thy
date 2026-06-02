@@ -18354,6 +18354,32 @@ proof -
     by (rule row_group_deep_nf_imp_row_group_nf)
 qed
 
+lemma row_group_deep_nf_rpd_der_strong:
+  assumes "row_group_deep_nf r"
+  shows "row_group_deep_nf (rpd_der_strong c r)"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_strong_rows c [r]). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpder_strong_rows) (use assms in simp)
+  show ?thesis
+    unfolding rpd_der_strong_def
+    by (rule row_group_deep_nf_rsimp_ALTs[OF rows])
+qed
+
+lemma row_group_deep_nf_rpd_der_strong_rsimp9:
+  "row_group_deep_nf (rpd_der_strong c (rsimp9 r))"
+  by (rule row_group_deep_nf_rpd_der_strong[OF row_group_deep_nf_rsimp9])
+
+lemma row_group_nf_rpd_der_strong:
+  assumes "row_group_deep_nf r"
+  shows "row_group_nf (rpd_der_strong c r)"
+  using row_group_deep_nf_rpd_der_strong[OF assms]
+  by (rule row_group_deep_nf_imp_row_group_nf)
+
+lemma row_group_nf_rpd_der_strong_rsimp9:
+  "row_group_nf (rpd_der_strong c (rsimp9 r))"
+  using row_group_deep_nf_rpd_der_strong_rsimp9
+  by (rule row_group_deep_nf_imp_row_group_nf)
+
 lemma RLS_set_rflts:
   "RLS (set (rflts rs)) = RLS (set rs)"
   unfolding RLS_def
@@ -18462,6 +18488,17 @@ proof -
     by (simp add: rpd_der_strong_def rsize_rsimp_ALTs_le)
   also have "... \<le> Suc (rsizes (rpder_norm_list c r))"
     using rsizes_rpder_strong_rows_le[of c "[r]"] by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_rpd_der_strong_cubic:
+  assumes "legacy_rrexp r"
+  shows "rsize (rpd_der_strong c r) \<le> Suc (2 * (rsize r + 3) ^ 3)"
+proof -
+  have "rsize (rpd_der_strong c r) \<le> Suc (rsizes (rpder_norm_list c r))"
+    by (rule rsize_rpd_der_strong_le_rsizes)
+  also have "... \<le> Suc (2 * (rsize r + 3) ^ 3)"
+    using rsizes_rpder_norm_list_cubic[OF assms] by simp
   finally show ?thesis .
 qed
 
