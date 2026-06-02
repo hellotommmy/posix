@@ -63,6 +63,14 @@ immutability.
 
 ## Open Artifact Notes
 
+- Strong prune exact-erasure caveat: `FBound.thy` now has the checked
+  counterexample `rerase_bsimpStrong_prune_pair_not_exact`. It shows that
+  annotated `bsimpStrong_prune_pair` does not syntactically erase to
+  `rsimpStrong_prune_pair`, because the annotated side keeps bit/value-carrying
+  row syntax while the skeleton side normalizes duplicate/nested pruned rows
+  internally. Future BR-039/BR-040 work must not rely on a naive exact
+  `map rerase` bridge for strong pruning; it needs a language/coverage
+  universe argument or a checked shared-row reconstruction layer.
 - Original-entry strong-row cubic interface: `FBound.thy` now has
   `strong_deferred_original_row_cubic_universe_interface`. It states the
   current checked contract from an original `legacy_rexp r`: a finite erased

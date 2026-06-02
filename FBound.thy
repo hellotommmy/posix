@@ -2517,6 +2517,21 @@ next
     by (simp add: Cons.hyps eq1_member_rerase)
 qed
 
+lemma rerase_bsimpStrong_prune_pair_not_exact:
+  "rerase (bsimpStrong_prune_pair
+      (ASEQ [] (AALTs [] [ACHAR [] (CHR ''a'')]) (ACHAR [] (CHR ''z'')))
+      (ASEQ [] (AALTs [] [ACHAR [] (CHR ''b''), ACHAR [] (CHR ''b'')])
+        (ACHAR [] (CHR ''z'')))) \<noteq>
+    rsimpStrong_prune_pair
+      (rerase (ASEQ [] (AALTs [] [ACHAR [] (CHR ''a'')])
+        (ACHAR [] (CHR ''z''))))
+      (rerase (ASEQ [] (AALTs [] [ACHAR [] (CHR ''b''),
+        ACHAR [] (CHR ''b'')]) (ACHAR [] (CHR ''z''))))"
+  by (simp add: bsimpStrong_prune_pair_def rsimpStrong_prune_pair_def
+      eq1_rerase map_rerase_prune_eq1_against rerase_bsimp_AALTs
+      rerase_bsimp7_ASEQ_atom map_rerase_distinctWith_eq1 rerase_flts
+      rsimp7_SEQ_atom_def)
+
 lemma RL_rerase_bsimpStrong_prune_pair_with_earlier:
   "RL (rerase earlier) \<union>
     RL (rerase (bsimpStrong_prune_pair earlier later)) =

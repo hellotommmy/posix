@@ -123,6 +123,15 @@ This is promising because it exposes Antimirov-style row coverage without
 directly distributing POSIX value-carrying syntax. It remains smoke evidence
 only until reconstruction/value theorems are stated and checked.
 
+Do not try to shortcut strong-row bounds with a naive exact erasure theorem for
+strong pruning. `FBound.thy` has the checked counterexample
+`rerase_bsimpStrong_prune_pair_not_exact`: annotated
+`bsimpStrong_prune_pair` keeps bit/value-carrying alternative syntax and relies
+on outer `distinctWith/flts`, while skeleton `rsimpStrong_prune_pair`
+normalizes the pruned row internally with `rdistinct/rflts`. Future row-universe
+work must use language/coverage subset interfaces, or introduce an explicit
+normalized/shared-row representation plus reconstruction theorem.
+
 Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
 `bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
 value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,

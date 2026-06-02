@@ -1,6 +1,31 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (original row cubic interface)
+Last updated: 2026-06-03 (strong prune exact-erasure counterexample)
+
+## Cubic Candidate Prototype: Strong Prune Exact-Erasure CE (2026-06-03)
+
+- Added checked counterexample
+  `rerase_bsimpStrong_prune_pair_not_exact` in `FBound.thy`.
+- The counterexample rules out the tempting bridge
+  `rerase (bsimpStrong_prune_pair earlier later) =
+   rsimpStrong_prune_pair (rerase earlier) (rerase later)`.
+- Reason:
+  - the annotated `bsimpStrong_prune_pair` preserves bit/value-carrying syntax
+    and leaves some list normalization to the outer `distinctWith/flts` layer;
+  - the erased skeleton `rsimpStrong_prune_pair` normalizes the pruned
+    alternative row internally with `rdistinct/rflts`.
+  A later row with duplicate residual alternatives therefore erases to a
+  different syntax shape, even though the language/coverage story remains the
+  intended one.
+- Design result:
+  - Do not try to transfer cubic row bounds by a naive exact syntactic
+    `map rerase` commutation theorem for `bsimpStrong_prune_pair` or
+    `bpder_strong_rows`.
+  - Future progress should use the existing language/coverage subset
+    interfaces, or define an explicit normalized/shared-row representation
+    with a checked reconstruction theorem.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Original Row Cubic Interface (2026-06-03)
 

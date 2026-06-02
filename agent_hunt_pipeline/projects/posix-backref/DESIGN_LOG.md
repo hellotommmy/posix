@@ -3,6 +3,20 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong prune is not exact under erasure
+
+- Added checked counterexample
+  `rerase_bsimpStrong_prune_pair_not_exact`.
+- This refutes a tempting shortcut: annotated `bsimpStrong_prune_pair` does
+  not erase syntactically to `rsimpStrong_prune_pair`. The annotated version
+  keeps bit/value-carrying alternative syntax and relies on an outer
+  `distinctWith/flts` cleanup, while the skeleton version normalizes the
+  pruned row internally with `rdistinct/rflts`.
+- Design consequence: do not base the cubic route on a naive exact
+  `map rerase` commutation theorem for strong pruning. The viable proof shape
+  is either a language/coverage-row universe bound, or an explicit
+  normalized/shared-row representation with a checked reconstruction theorem.
+
 ## 2026-06-03: Original-entry cubic row interface
 
 - Added `strong_deferred_original_row_cubic_universe_interface`.
