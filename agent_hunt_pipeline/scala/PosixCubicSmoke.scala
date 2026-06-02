@@ -186,16 +186,72 @@ object PosixCubicSmoke {
     case _ => ASEQ(bs, r1, r2)
   }
 
+  def bsimpCubicASEQAtomMode(mode: String, bs: List[Bit], r1: ARexp, r2: ARexp): ARexp =
+    mode match {
+      case "full" => bsimpCubicASEQAtom(bs, r1, r2)
+      case "none" => ASEQ(bs, r1, r2)
+      case "keyed-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
+      case "reassoc-nonnullable-left" => (r1, r2) match {
+        case (ASEQ(bs2, a, b), _) if !bnullable(a) =>
+          bsimpCubicASEQAtomMode(mode, bs2, a, bsimpCubicASEQAtomMode(mode, bs, b, r2))
+        case _ => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
+      }
+      case "no-reassoc" => (r1, r2) match {
+        case (AZERO, _) => AZERO
+        case (AONE(bs2), _) => fuse(bs ++ bs2, r2)
+        case (_, AZERO) => AZERO
+        case (_, AONE(Nil)) => fuse(bs, r1)
+        case _ => ASEQ(bs, r1, r2)
+      }
+      case "no-left-one" => (r1, r2) match {
+        case (AZERO, _) => AZERO
+        case (ASEQ(bs2, a, b), _) => bsimpCubicASEQAtomMode(mode, bs2, a, bsimpCubicASEQAtomMode(mode, bs, b, r2))
+        case (_, AZERO) => AZERO
+        case (_, AONE(Nil)) => fuse(bs, r1)
+        case _ => ASEQ(bs, r1, r2)
+      }
+      case "no-right-one" => (r1, r2) match {
+        case (AZERO, _) => AZERO
+        case (AONE(bs2), _) => fuse(bs ++ bs2, r2)
+        case (ASEQ(bs2, a, b), _) => bsimpCubicASEQAtomMode(mode, bs2, a, bsimpCubicASEQAtomMode(mode, bs, b, r2))
+        case (_, AZERO) => AZERO
+        case _ => ASEQ(bs, r1, r2)
+      }
+      case "zeros-only" => (r1, r2) match {
+        case (AZERO, _) => AZERO
+        case (_, AZERO) => AZERO
+        case _ => ASEQ(bs, r1, r2)
+      }
+      case other => throw new IllegalArgumentException(
+        s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
+      )
+    }
+
   def eq1Member(r: ARexp, rs: List[ARexp]): Boolean = rs.exists(eq1(r, _))
 
   def pruneEq1Against(covered: List[ARexp], rs: List[ARexp]): List[ARexp] =
     rs.filterNot(r => eq1Member(r, covered))
+
+  def eq1List(xs: List[ARexp], ys: List[ARexp]): Boolean =
+    xs.length == ys.length && xs.zip(ys).forall { case (x, y) => eq1(x, y) }
+
+  def seqFactors(r: ARexp): List[ARexp] = r match {
+    case ASEQ(_, r1, r2) => seqFactors(r1) ++ seqFactors(r2)
+    case _ => List(r)
+  }
 
   def seqCoverRows(r: ARexp): Option[(List[ARexp], ARexp)] = r match {
     case ASEQ(_, AALTs(_, rows), k) => Some((rows, k))
     case ASEQ(_, row, k) => Some((List(row), k))
     case _ => None
   }
+
+  def seqCoverRowsKey(r: ARexp): Option[(List[ARexp], List[ARexp])] =
+    seqFactors(r) match {
+      case Nil => None
+      case AALTs(_, rows) :: tail => Some((rows, tail))
+      case row :: tail => Some((List(row), tail))
+    }
 
   def bsimpStrongPrunePair(earlier: ARexp, later: ARexp): ARexp = (earlier, later) match {
     case (ASEQ(_, AALTs(_, lrs), k1), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
@@ -220,29 +276,52 @@ object PosixCubicSmoke {
     bsimpAALTs(bs, distinctWith(flts(bsimpStrongPruneRows(rs))))
 
   def bsimpCubicPrunePair(earlier: ARexp, later: ARexp): ARexp =
-    (seqCoverRows(earlier), later) match {
-      case (Some((covered, k1)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
-        bsimpCubicASEQAtom(bs2, bsimpAALTs(rbs, pruneEq1Against(covered, rrs)), k2)
-      case (Some((covered, k1)), ASEQ(_, row, k2)) if eq1(k1, k2) && eq1Member(row, covered) =>
-        AZERO
-      case _ => later
+    bsimpCubicPrunePairMode(cubicSeqMode, earlier, later)
+
+  def bsimpCubicPrunePairMode(seqMode: String, earlier: ARexp, later: ARexp): ARexp =
+    if (seqMode == "keyed-no-reassoc") {
+      (seqCoverRowsKey(earlier), seqCoverRowsKey(later), later) match {
+        case (Some((covered, tail1)), Some((_, tail2)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1List(tail1, tail2) =>
+          bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, pruneEq1Against(covered, rrs)), k2)
+        case (Some((covered, tail1)), Some((laterRows, tail2)), _) if eq1List(tail1, tail2) && laterRows.exists(eq1Member(_, covered)) =>
+          AZERO
+        case _ => later
+      }
+    } else {
+      (seqCoverRows(earlier), later) match {
+        case (Some((covered, k1)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
+          bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, pruneEq1Against(covered, rrs)), k2)
+        case (Some((covered, k1)), ASEQ(_, row, k2)) if eq1(k1, k2) && eq1Member(row, covered) =>
+          AZERO
+        case _ => later
+      }
     }
 
   def bsimpCubicPruneAgainstRows(seen: List[ARexp], r: ARexp): ARexp =
-    seen.foldLeft(r)((acc, earlier) => bsimpCubicPrunePair(earlier, acc))
+    bsimpCubicPruneAgainstRowsMode(cubicSeqMode, seen, r)
+
+  def bsimpCubicPruneAgainstRowsMode(seqMode: String, seen: List[ARexp], r: ARexp): ARexp =
+    seen.foldLeft(r)((acc, earlier) => bsimpCubicPrunePairMode(seqMode, earlier, acc))
 
   def bsimpCubicPruneRows(rs: List[ARexp]): List[ARexp] = {
+    bsimpCubicPruneRowsMode(cubicSeqMode, rs)
+  }
+
+  def bsimpCubicPruneRowsMode(seqMode: String, rs: List[ARexp]): List[ARexp] = {
     def loop(seen: List[ARexp], todo: List[ARexp]): List[ARexp] = todo match {
       case Nil => Nil
       case r :: rest =>
-        val pruned = bsimpCubicPruneAgainstRows(seen, r)
+        val pruned = bsimpCubicPruneAgainstRowsMode(seqMode, seen, r)
         pruned :: loop(pruned :: seen, rest)
     }
     loop(Nil, rs)
   }
 
   def bsimpCubicAALTs(bs: List[Bit], rs: List[ARexp]): ARexp =
-    bsimpAALTs(bs, distinctWith(flts(bsimpCubicPruneRows(rs))))
+    bsimpCubicAALTsWithMode(cubicSeqMode, bs, rs)
+
+  def bsimpCubicAALTsWithMode(seqMode: String, bs: List[Bit], rs: List[ARexp]): ARexp =
+    bsimpAALTs(bs, distinctWith(flts(bsimpCubicPruneRowsMode(seqMode, rs))))
 
   def bsimpStrong(r: ARexp): ARexp = r match {
     case ASEQ(bs, r1, r2) => bsimp7ASEQAtom(bs, bsimpStrong(r1), bsimpStrong(r2))
@@ -256,23 +335,26 @@ object PosixCubicSmoke {
     case other => other
   }
 
-  def bsimpCubic(r: ARexp): ARexp = r match {
-    case ASEQ(bs, r1, r2) => bsimpCubicASEQAtom(bs, bsimpCubic(r1), bsimpCubic(r2))
-    case AALTs(bs, rs) => bsimpCubicAALTs(bs, flts(rs.map(bsimpCubic)))
-    case ASTAR(bs, r) => bsimpCubic(r) match {
+  def bsimpCubicWithMode(seqMode: String, r: ARexp): ARexp = r match {
+    case ASEQ(bs, r1, r2) => bsimpCubicASEQAtomMode(seqMode, bs, bsimpCubicWithMode(seqMode, r1), bsimpCubicWithMode(seqMode, r2))
+    case AALTs(bs, rs) => bsimpCubicAALTsWithMode(seqMode, bs, flts(rs.map(bsimpCubicWithMode(seqMode, _))))
+    case ASTAR(bs, r) => bsimpCubicWithMode(seqMode, r) match {
       case AZERO => AONE(bs ++ List(S))
       case AONE(_) => AONE(bs ++ List(S))
       case s => ASTAR(bs, s)
     }
     case ANTIMES(bs, r, n) =>
       if (n == 0) AONE(bs ++ List(S))
-      else bsimpCubic(r) match {
+      else bsimpCubicWithMode(seqMode, r) match {
         case AZERO => AZERO
         case AONE(bs2) => AONE(bmkeps(ANTIMES(bs, AONE(bs2), n)))
         case s => ANTIMES(bs, s, n)
       }
     case other => other
   }
+
+  def bsimpCubic(r: ARexp): ARexp =
+    bsimpCubicWithMode(cubicSeqMode, r)
 
   def bders(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bder(c, acc))
@@ -519,6 +601,14 @@ object PosixCubicSmoke {
       .flatMap(s => scala.util.Try(s.toLong).toOption)
       .getOrElse(default)
 
+  def stringSetting(prop: String, env: String, default: String): String =
+    sys.props.get(prop)
+      .orElse(sys.env.get(env))
+      .getOrElse(default)
+
+  lazy val cubicSeqMode: String =
+    stringSetting("posix.smoke.seqMode", "POSIX_SMOKE_SEQ_MODE", "full")
+
   def runSmoke(): Unit = {
     val maxDepth = intSetting("posix.smoke.depth", "POSIX_SMOKE_DEPTH", 2)
     val maxInput = intSetting("posix.smoke.input", "POSIX_SMOKE_INPUT", 3)
@@ -527,6 +617,7 @@ object PosixCubicSmoke {
     val randomDepth = intSetting("posix.smoke.randomDepth", "POSIX_SMOKE_RANDOM_DEPTH", 5)
     val randomInputMax = intSetting("posix.smoke.randomInput", "POSIX_SMOKE_RANDOM_INPUT", 6)
     val randomSeed = longSetting("posix.smoke.seed", "POSIX_SMOKE_SEED", 20260602L)
+    println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
       checkRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)

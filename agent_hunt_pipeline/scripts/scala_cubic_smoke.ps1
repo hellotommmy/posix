@@ -6,6 +6,7 @@ param(
   [int]$RandomDepth = 5,
   [int]$RandomInputLength = 6,
   [long]$Seed = 20260602,
+  [string]$SeqMode = "full",
   [int]$TimeoutSeconds = 120
 )
 
@@ -34,8 +35,8 @@ $Isabelle = "$IsabelleCyg/bin/isabelle"
 
 Set-Location -LiteralPath $Repo
 
-Write-Host "== Scala cubic smoke: depth=$Depth input=$InputLength random=$RandomCases/$RandomDepth seed=$Seed =="
-& $Bash -lc "cd '$RepoCyg' && timeout ${TimeoutSeconds}s env POSIX_SMOKE_DEPTH=$Depth POSIX_SMOKE_INPUT=$InputLength POSIX_SMOKE_MAX_REGEXES=$MaxRegexes POSIX_SMOKE_RANDOM_CASES=$RandomCases POSIX_SMOKE_RANDOM_DEPTH=$RandomDepth POSIX_SMOKE_RANDOM_INPUT=$RandomInputLength POSIX_SMOKE_SEED=$Seed '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
+Write-Host "== Scala cubic smoke: depth=$Depth input=$InputLength random=$RandomCases/$RandomDepth seed=$Seed seq=$SeqMode =="
+& $Bash -lc "cd '$RepoCyg' && timeout ${TimeoutSeconds}s env POSIX_SMOKE_DEPTH=$Depth POSIX_SMOKE_INPUT=$InputLength POSIX_SMOKE_MAX_REGEXES=$MaxRegexes POSIX_SMOKE_RANDOM_CASES=$RandomCases POSIX_SMOKE_RANDOM_DEPTH=$RandomDepth POSIX_SMOKE_RANDOM_INPUT=$RandomInputLength POSIX_SMOKE_SEED=$Seed POSIX_SMOKE_SEQ_MODE='$SeqMode' '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
 if ($LASTEXITCODE -ne 0) {
   if ($LASTEXITCODE -eq 124) {
     throw "Scala cubic smoke timed out after $TimeoutSeconds seconds"

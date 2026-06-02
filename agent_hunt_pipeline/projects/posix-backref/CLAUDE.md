@@ -86,6 +86,17 @@ bounty attempt, also run deterministic deeper random smoke, for example
 If random smoke finds a POSIX value mismatch, the candidate is diagnostic only
 until the simplifier or value-reconstruction story is repaired.
 
+Do not count destructive sequence reassociation as a POSIX-value-preserving
+output simplification. The Scala diagnostic mode localized a current
+`bsimpCubic` gap to `(x.y).z -> x.(y.z)`: full reassociation controls the
+Chapter 7 size trace but fails deterministic random value smoke, while
+`no-reassoc` preserves tested values but grows beyond the threshold. Even the
+tempting restriction "only reassociate when the left factor is non-nullable"
+failed random value smoke. Reassociation may be used as a comparison key,
+proof-only normalization, or generalized-value transfer route, but production
+`bsimpCubic` needs a checked bitcode/value reconstruction theorem before it can
+emit reassociated syntax.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

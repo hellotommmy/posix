@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (random smoke found deeper bsimpCubic value gap)
+Last updated: 2026-06-02 (ASEQ reassociation localized as bsimpCubic value hazard)
+
+## Cubic Candidate Diagnostic: ASEQ Reassociation Hazard (2026-06-02)
+
+- Added a diagnostic `POSIX_SMOKE_SEQ_MODE`/`-SeqMode` switch to the Scala
+  smoke harness. Default remains `full`, so normal CI still checks the current
+  production candidate; alternative modes are for localization only.
+- The deterministic random smoke localizes the known value bug to destructive
+  sequence reassociation in `bsimpCubic_ASEQ_atom`. With seed `20260602` and
+  `-RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`:
+  `no-reassoc`, `zeros-only`, and the experimental `keyed-no-reassoc` mode
+  preserve exact POSIX values on the tested random cases, while `full` still
+  fails at random case `99`.
+- Size tells the other half of the story: `no-reassoc` preserves values but
+  the Chapter 7 trace grows to `4->880, 8->2057, 12->2643, 16->3281,
+  20->3804`; `keyed-no-reassoc` still fails the threshold at `n=8` with
+  `asize=2157`. Thus comparison-only keys are not yet enough to recover the
+  desired pruning strength.
+- A tempting compromise, `reassoc-nonnullable-left`, also fails exact POSIX
+  random smoke (seed `20260602`, case `370`). The design lesson is now
+  explicit: ordinary `(x.y).z -> x.(y.z)` reassociation cannot be used as a
+  value-preserving output rewrite unless a separate bitcode/value transfer or
+  generalized POSIX-value reconstruction theorem is supplied.
+- Next viable route: keep destructive associativity out of executable output,
+  but introduce a richer row/continuation identity, delayed linear-form index,
+  or reconstruction layer strong enough to expose Chapter 7 shared suffixes.
+  The current diagnostic modes are evidence for design, not bounty artifacts.
 
 ## Cubic Candidate Diagnostic: Random Smoke Value Gap (2026-06-02)
 

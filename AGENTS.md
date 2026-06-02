@@ -41,6 +41,13 @@ Short version:
   value shape (`Seq (Left x) y` vs `Left (Seq x y)`), so use pruning,
   delayed/indexed linear forms, reconstruction, or a generalized POSIX-value
   equivalence before claiming a proof route.
+- Do not treat destructive sequence reassociation as a POSIX-value-preserving
+  output rewrite. Scala smoke localized a `bsimpCubic` value bug to
+  `(x.y).z -> x.(y.z)`: full reassociation controls the Chapter 7 size trace
+  but fails deterministic random value smoke, while `no-reassoc` preserves
+  values but grows too much. Reassociation may be used only as a comparison
+  key, proof device, or generalized-value transfer route until a checked
+  bitcode/value reconstruction theorem exists.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

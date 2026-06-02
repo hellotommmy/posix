@@ -3,6 +3,31 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Destructive sequence reassociation is not value-safe output
+
+- A diagnostic Scala switch `POSIX_SMOKE_SEQ_MODE` now isolates the sequence
+  simplification rules inside `bsimpCubic_ASEQ_atom`. The default remains
+  `full`, but modes such as `no-reassoc`, `keyed-no-reassoc`,
+  `reassoc-nonnullable-left`, and `zeros-only` are available for smoke
+  localization.
+- The localization result is decisive enough to guide later proof work. Full
+  destructive reassociation gives the attractive Chapter 7 trace
+  `4->413, 8->725, 12->800, 16->800, 20->820`, but fails deterministic random
+  POSIX value smoke at seed `20260602`, case `99`. Disabling reassociation
+  makes the same random smoke pass but loses the Chapter 7 threshold:
+  `no-reassoc` reaches `8->2057`, and `keyed-no-reassoc` still reaches
+  `8->2157`.
+- The attempted compromise "reassociate only when the left factor is
+  non-nullable" is also not POSIX-value safe; it fails random smoke at seed
+  `20260602`, case `370`. Therefore ordinary `(x.y).z -> x.(y.z)` cannot be
+  part of a production `bsimpCubic` output rewrite without an explicit
+  bitcode/value transfer theorem.
+- Future cubic candidates should use reassociation only as a proof/index/key
+  device, or introduce delayed linear forms/generalized POSIX values with a
+  reconstruction theorem back to the original `val` shape. A pretty size trace
+  is not evidence of a payable simplifier unless exact POSIX value smoke also
+  passes.
+
 ## 2026-06-02: Scala smoke caught value bugs in bsimpCubic
 
 - Broad cubic experiments now live in Scala, not as large Isabelle `eval`

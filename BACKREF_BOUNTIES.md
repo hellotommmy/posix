@@ -86,6 +86,13 @@ immutability.
   Default CI keeps random smoke off to preserve a green integration branch, but
   any proof/bounty attempt must run it and resolve this class of bitstream
   mismatch first.
+- New diagnostic localization: the value mismatch is tied to destructive
+  sequence reassociation in `bsimpCubic_ASEQ_atom`. Mode `no-reassoc` passes
+  the tested random value smoke but fails the Chapter 7 threshold; mode
+  `full` passes the threshold but fails random value smoke; mode
+  `reassoc-nonnullable-left` still fails random value smoke. Therefore BR-039
+  cannot pay for a simplifier that emits reassociated sequence syntax unless it
+  also supplies a checked bitcode/value reconstruction theorem.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require
