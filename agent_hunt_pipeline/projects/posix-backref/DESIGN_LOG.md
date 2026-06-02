@@ -1223,6 +1223,17 @@ to be read before continuing long-running agent work.
   root. This is still only the entry shape guarantee; the remaining hard
   target is a finite root-owned universe with cubic cardinality/member-size
   bounds.
+- The shared-suffix prune closure obligation has a checked later-row-local
+  form now. Prefer `rsimpStrong_prune_pair_later_shared_subsetI`,
+  `rsimpStrong_prune_rows_later_shared_subsetI`,
+  `rpder_strong_rows_norm_later_shared_subsetI`,
+  `rpders_strong_rows_norm_later_shared_subsetI`, and the corresponding
+  finite/cubic hooks when instantiating a concrete universe. These lemmas only
+  ask for the Chapter-7 deletion result when the later row
+  `RSEQ (RALTS rrs) k` is already in `U`, instead of requiring unconditional
+  closure for every synthetic `lrs rrs k`. This is the right obligation shape
+  for a root-owned finite universe; do not revert to the older global shared
+  premise unless there is a specific reason.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

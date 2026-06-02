@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row deep grouped normal form)
+Last updated: 2026-06-02 (strong-row later-local shared prune hooks)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -109,6 +109,17 @@ Last updated: 2026-06-02 (strong-row deep grouped normal form)
   has grouped-row shape. This closes the initial-shape gap left by the previous
   checkpoint; the remaining work is still a finite root-owned universe with
   cubic cardinality/member-size bounds.
+- Localized the Chapter-7 shared-prune closure interface. The new checked
+  lemmas `rsimpStrong_prune_pair_later_shared_subsetI`,
+  `rsimpStrong_prune_rows_later_shared_subsetI`,
+  `rpder_strong_rows_norm_later_shared_subsetI`,
+  `rpders_strong_rows_norm_later_shared_subsetI`, and the matching finite/
+  cubic hooks replace the previous unconditional shared premise by the weaker
+  obligation that the later row `RSEQ (RALTS rrs) k` already belongs to the
+  candidate universe `U`. This is closer to a root-owned finite-universe proof:
+  a concrete universe only has to close shared-suffix deletion for rows it can
+  actually contain, not for arbitrary `lrs rrs k`. Still no final cubic theorem
+  or bounty claim.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
