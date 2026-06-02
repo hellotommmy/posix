@@ -58,6 +58,18 @@ to be read before continuing long-running agent work.
   `bsimpStrongCore` is `2342`, and current uncertified `bsimpCubic full` is
   `900`. The certificate gap is therefore concentrated in row pruning rather
   than the already-certified sequence/star and flatten/distinct rewrites.
+- Certified row pruning is now prototyped for the direct shared-suffix pattern.
+  The design point is contextual POSIX priority: a later duplicate row may be
+  removed because an earlier outer alternative with the same suffix has already
+  claimed that language. Therefore the certificate belongs to the whole AALTs
+  traversal, not to the later row as a standalone equivalence. Surviving later
+  rows reconstruct through their original later-row transformer; deleted rows
+  have no output values and are represented by the earlier branch.
+- This reduces the Chapter 7 k=5 certified-core trace dramatically. At n=30,
+  certified `bsimpStrongCore` is now `678`, compared with thesis `bsimpStrong`
+  at `958`. This is strong evidence that the certificate route can preserve the
+  desired tree-size behavior, but it is still Scala smoke: the next semantic
+  artifact must compose certificates through the derivative loop.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong reconstruction sketch added)
+Last updated: 2026-06-02 (certified row-pruning prototype added)
 
 ## Cubic Candidate Prototype: CE-Driven Strong Value Safety (2026-06-02)
 
@@ -93,6 +93,25 @@ Last updated: 2026-06-02 (strong reconstruction sketch added)
   - current `bsimpCubic full`: `46,413,725,800,800,820,816,900`.
   This pinpoints the next missing certificate layer: shared-suffix /
   Antimirov-style row pruning, not sequence/star simplification.
+- Added the first certified shared-suffix row pruning prototype. The rule is
+  deliberately contextual: deleting a later row is justified by an earlier
+  outer-ALT row with the same suffix, so the deleted later branch is not locally
+  value-equivalent; the earlier row handles the POSIX choice. Surviving pruned
+  rows carry transformers back to their original later-row value.
+- Smoke evidence for certified row pruning:
+  - `-TraceStrongRecon -CheckStrongCoreCert` passes `84,300` exhaustive
+    derivative expressions.
+  - `expanded-keyed-no-reassoc -CheckStrongCoreCert` with `3,000` random
+    depth-5/input-6 expressions, seed `20260602`, passes.
+  - Chapter 7 k=5 selected lengths `0,4,8,12,16,20,24,30` for certified
+    `bsimpStrongCore` are now `46,438,618,612,612,632,579,678`, down from
+    `46,420,718,1012,1308,1600,1898,2342`. This is the first certified route
+    that beats the thesis Figure 7.6 tree trace on this smoke.
+- Remaining gap to a bounty candidate: this is still a one-step simplification
+  certificate over derivative-generated expressions. The next required object
+  is a derivative-loop certificate that composes `bder`, simplification, and
+  reconstruction across the whole lexer run, plus a proof-facing statement of
+  the row-pruning invariant.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 

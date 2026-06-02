@@ -890,10 +890,55 @@ object PosixCubicSmoke {
     loop(rows, Nil, Nil)
   }
 
+  def mapKeptInnerAltChoice(rows: List[(ARexp, Int)], originalTotal: Int, v: Val): Option[Val] = {
+    val certRows = rows.map { case (row, originalIndex) =>
+      AltRowCert(row, originalIndex, x => Some(x))
+    }
+    mapAltRowChoice(certRows, originalTotal, v)
+  }
+
+  def pruneAltRowCertPair(earlier: ARexp, later: AltRowCert): AltRowCert =
+    (earlier, later.regex) match {
+      case (ASEQ(_, AALTs(_, covered), k1), ASEQ(bs2, AALTs(rbs, rows), k2)) if eq1(k1, k2) =>
+        val kept = rows.zipWithIndex.filterNot { case (row, _) => eq1Member(row, covered) }
+        if (kept.length == rows.length) later
+        else {
+          val inner = bsimpAALTs(rbs, kept.map(_._1))
+          val atom = bsimp7ASEQAtomCert(bs2, inner, k2)
+          AltRowCert(
+            atom.regex,
+            later.originalIndex,
+            v => atom.recon(v).flatMap {
+              case SeqVal(innerValue, tailValue) =>
+                mapKeptInnerAltChoice(kept, rows.length, innerValue)
+                  .flatMap(innerOriginal => later.recon(SeqVal(innerOriginal, tailValue)))
+              case _ => None
+            }
+          )
+        }
+      case (ASEQ(_, AALTs(_, covered), k1), ASEQ(_, row, k2)) if eq1(k1, k2) && eq1Member(row, covered) =>
+        AltRowCert(AZERO, later.originalIndex, _ => None)
+      case _ => later
+    }
+
+  def pruneAltRowCertAgainst(seen: List[AltRowCert], row: AltRowCert): AltRowCert =
+    seen.foldLeft(row)((acc, earlier) => pruneAltRowCertPair(earlier.regex, acc))
+
+  def pruneAltRowCerts(rows: List[AltRowCert]): List[AltRowCert] = {
+    def loop(seen: List[AltRowCert], todo: List[AltRowCert]): List[AltRowCert] =
+      todo match {
+        case Nil => Nil
+        case row :: rest =>
+          val pruned = pruneAltRowCertAgainst(seen, row)
+          pruned :: loop(pruned :: seen, rest)
+      }
+    loop(Nil, rows)
+  }
+
   def bsimpAALTsCert(bs: List[Bit], rows: List[ValueCert]): ValueCert = {
     val originalTotal = rows.length
     val flatRows = rows.zipWithIndex.flatMap { case (row, index) => fltAltRowCert(row, index) }
-    val keptRows = distinctAltRowCerts(flatRows)
+    val keptRows = distinctAltRowCerts(pruneAltRowCerts(flatRows))
     val out = bsimpAALTs(bs, keptRows.map(_.regex))
     out match {
       case AZERO => ValueCert(AZERO, _ => None)

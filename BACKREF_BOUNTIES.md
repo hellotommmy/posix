@@ -141,11 +141,16 @@ immutability.
   expressions. Current smoke covers `84,300` exhaustive derivative expressions
   plus `3,000` deterministic random expressions with seed `20260602`.
   Alternation flatten/distinct is now included. This is still not a payout
-  artifact because shared-suffix row pruning and derivative-through-certified
-  state remain open.
-- Certified-core size trace: `scala_cubic_smoke.ps1 -TraceStrongCore` shows
-  k=5,n=30 at `2342` versus thesis `bsimpStrong` at `958`; the remaining
-  tree-size gap is row pruning.
+  artifact because the full derivative-through-certified-state story remains
+  open.
+- Certified-core size trace before row pruning was k=5,n=30 at `2342` versus
+  thesis `bsimpStrong` at `958`; this identified row pruning as the next target.
+- Certified row-pruning prototype: the direct shared-suffix pattern is now
+  certificate-smoked in the surrounding `AALTs` context. The new k=5,n=30
+  certified-core size is `678`, with `84,300` exhaustive derivative-expression
+  checks and `3,000` deterministic random checks passing. This is still not
+  BR-039 payout because the derivative-loop certificate and proof-facing
+  invariant remain open.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

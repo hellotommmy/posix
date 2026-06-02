@@ -70,6 +70,10 @@ Current override, 2026-06-02:
 - `scala_cubic_smoke.ps1 -TraceStrongCore` compares certified-core size against
   thesis `bsimpStrong`; current Chapter 7 evidence says row pruning is the next
   missing certificate layer.
+- Direct shared-suffix row pruning is now certificate-smoked in the surrounding
+  `AALTs` context. It is not a standalone row equivalence. Current k=5,n=30
+  certified-core size is `678`; next target is composing certificates through
+  the derivative loop.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.

@@ -93,6 +93,9 @@ Short version:
   flatten/distinct certificates, but not shared-suffix row pruning.
 - `scala_cubic_smoke.ps1 -TraceStrongCore` compares the certified core size
   against thesis `bsimpStrong`; use it to measure the remaining pruning gap.
+- Certified row pruning is contextual to the surrounding `AALTs`: a deleted
+  later row is justified by an earlier row with the same suffix. Do not present
+  it as a standalone row equivalence.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.
