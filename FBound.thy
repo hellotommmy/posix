@@ -2190,6 +2190,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma length_bpder_strong_rows_le_pruned:
+  "length (bpder_strong_rows c rs) \<le>
+    length
+      (flts
+        (bsimpStrong_prune_rows
+          (flts (concat (map (bpder_strong_list c) rs)))))"
+  by (simp add: bpder_strong_rows_def length_distinctWith_le)
+
 lemma asizes_bpder_strong_rows_full_cover_shared_suffix:
   assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
       [ASEQ bs1 (AALTs lbs lrs) k1,

@@ -683,6 +683,26 @@ fun bsimpStrong_prune_rows_acc :: "arexp list \<Rightarrow> arexp list \<Rightar
 definition bsimpStrong_prune_rows :: "arexp list \<Rightarrow> arexp list" where
   "bsimpStrong_prune_rows rs = bsimpStrong_prune_rows_acc [] rs"
 
+lemma length_bsimpStrong_prune_rows_acc:
+  "length (bsimpStrong_prune_rows_acc seen rs) = length rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpStrong_prune_against_rows seen r"
+  have tail:
+    "length (bsimpStrong_prune_rows_acc (?r' # seen) rs) = length rs"
+    by (rule Cons.hyps)
+  show ?case
+    using tail by (simp add: Let_def)
+qed
+
+lemma length_bsimpStrong_prune_rows:
+  "length (bsimpStrong_prune_rows rs) = length rs"
+  by (simp add: bsimpStrong_prune_rows_def length_bsimpStrong_prune_rows_acc)
+
 lemma flts_bsimpStrong_prune_rows_full_cover_shared_suffix:
   assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
       and "k1 ~1 k2"

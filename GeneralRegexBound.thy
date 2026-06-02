@@ -16179,6 +16179,26 @@ fun rsimpStrong_prune_rows_acc :: "rrexp list \<Rightarrow> rrexp list \<Rightar
 definition rsimpStrong_prune_rows :: "rrexp list \<Rightarrow> rrexp list" where
   "rsimpStrong_prune_rows rs = rsimpStrong_prune_rows_acc [] rs"
 
+lemma length_rsimpStrong_prune_rows_acc:
+  "length (rsimpStrong_prune_rows_acc seen rs) = length rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows seen r"
+  have tail:
+    "length (rsimpStrong_prune_rows_acc (?r' # seen) rs) = length rs"
+    by (rule Cons.hyps)
+  show ?case
+    using tail by (simp add: Let_def)
+qed
+
+lemma length_rsimpStrong_prune_rows:
+  "length (rsimpStrong_prune_rows rs) = length rs"
+  by (simp add: rsimpStrong_prune_rows_def length_rsimpStrong_prune_rows_acc)
+
 lemma rflts_rsimpStrong_prune_rows_full_cover_shared_suffix:
   assumes "set rrs \<subseteq> set lrs"
   shows "rflts (rsimpStrong_prune_rows
@@ -17332,6 +17352,14 @@ definition rpders_strong1_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrex
 lemma distinct_rpder_strong_rows [simp]:
   "distinct (rpder_strong_rows c rs)"
   by (simp add: rpder_strong_rows_def rdistinct_does_the_job)
+
+lemma length_rpder_strong_rows_le_pruned:
+  "length (rpder_strong_rows c rs) \<le>
+    length
+      (rflts
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs)))))"
+  by (simp add: rpder_strong_rows_def length_rdistinct_le)
 
 lemma rpder_strong_rows_shared_suffix:
   assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =

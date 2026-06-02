@@ -206,6 +206,18 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   `length_bpder_strong_rows_full_cover_shared_suffix`, and
   `length_bpder_strong_rows_shared_suffix_le`. These are deliberately narrow
   accounting facts, not a final cubic bound.
+- Added the next row-scanner accounting layer. The checked facts
+  `length_rsimpStrong_prune_rows_acc` and `length_rsimpStrong_prune_rows`
+  show that the proof-level strong prune scanner itself emits exactly one
+  row per input row before flattening/duplicate-removal; the analogous
+  executable facts are `length_bsimpStrong_prune_rows_acc` and
+  `length_bsimpStrong_prune_rows`. The general derivative-row bounds
+  `length_rpder_strong_rows_le_pruned` and
+  `length_bpder_strong_rows_le_pruned` then expose the exact place where row
+  count can only shrink: final flattening and duplicate/subsumption removal.
+  This keeps the future cubic argument focused on the finite candidate
+  universe and on Chapter-7 shared-suffix deletion, rather than on the
+  scanner recursion.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
