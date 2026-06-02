@@ -17099,6 +17099,67 @@ proof (rule rpders_strong_rows_subsetI[OF init])
   qed
 qed
 
+lemma rflts_singleton_nonalt_nonzero_subsetI:
+  assumes rows: "\<And>q. q \<in> U \<Longrightarrow> nonalt q \<and> q \<noteq> RZERO"
+      and q: "q \<in> U"
+  shows "set (rflts [q]) \<subseteq> U"
+proof -
+  have props: "nonalt q" "q \<noteq> RZERO"
+    using rows[OF q] by simp_all
+  have "rflts [q] = [q]"
+    by (rule k0b[OF props])
+  then show ?thesis
+    using q by simp
+qed
+
+lemma rflts_singleton_row_nf_subsetI:
+  assumes rows: "\<And>q. q \<in> U \<Longrightarrow> row_nf q"
+      and q: "q \<in> U"
+  shows "set (rflts [q]) \<subseteq> U"
+proof -
+  have nf: "row_nf q"
+    by (rule rows[OF q])
+  show ?thesis
+  proof (rule rflts_singleton_nonalt_nonzero_subsetI[OF _ q])
+    fix p
+    assume p: "p \<in> U"
+    have p_nf: "row_nf p"
+      by (rule rows[OF p])
+    show "nonalt p \<and> p \<noteq> RZERO"
+      using row_nf_nonalt[OF p_nf] row_nf_not_RZERO[OF p_nf] by simp
+  qed
+qed
+
+lemma rpders_strong_rows_norm_shared_flat_rows_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_rows: "\<And>q. q \<in> U \<Longrightarrow> nonalt q \<and> q \<noteq> RZERO"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rpders_strong_rows rs s) \<subseteq> U"
+  by (rule rpders_strong_rows_norm_shared_subsetI
+      [OF init _ norm shared])
+    (rule rflts_singleton_nonalt_nonzero_subsetI[OF flat_rows])
+
+lemma rpders_strong_rows_norm_shared_row_nf_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and row_nf: "\<And>q. q \<in> U \<Longrightarrow> row_nf q"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rpders_strong_rows rs s) \<subseteq> U"
+  by (rule rpders_strong_rows_norm_shared_subsetI
+      [OF init _ norm shared])
+    (rule rflts_singleton_row_nf_subsetI[OF row_nf])
+
 lemma rsizes_distinct_finite_universe_bound:
   assumes finite: "finite U"
       and rows: "set rs \<subseteq> U"
@@ -17245,6 +17306,82 @@ proof -
     by (rule cubic)
   finally show ?thesis .
 qed
+
+lemma rsizes_rpders_strong_rows_norm_shared_flat_rows_finite_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_rows: "\<And>q. q \<in> U \<Longrightarrow> nonalt q \<and> q \<noteq> RZERO"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+  shows "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+  by (rule rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI
+      [OF init _ norm shared finite member_size distinct])
+    (rule rflts_singleton_nonalt_nonzero_subsetI[OF flat_rows])
+
+lemma rsizes_rpders_strong_rows_norm_shared_flat_rows_cubic_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_rows: "\<And>q. q \<in> U \<Longrightarrow> nonalt q \<and> q \<noteq> RZERO"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong_rows rs s) \<le> B"
+  by (rule rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI
+      [OF init _ norm shared finite card_bound member_size distinct cubic])
+    (rule rflts_singleton_nonalt_nonzero_subsetI[OF flat_rows])
+
+lemma rsizes_rpders_strong_rows_norm_shared_row_nf_finite_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and row_nf: "\<And>q. q \<in> U \<Longrightarrow> row_nf q"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+  shows "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+  by (rule rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI
+      [OF init _ norm shared finite member_size distinct])
+    (rule rflts_singleton_row_nf_subsetI[OF row_nf])
+
+lemma rsizes_rpders_strong_rows_norm_shared_row_nf_cubic_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and row_nf: "\<And>q. q \<in> U \<Longrightarrow> row_nf q"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong_rows rs s) \<le> B"
+  by (rule rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI
+      [OF init _ norm shared finite card_bound member_size distinct cubic])
+    (rule rflts_singleton_row_nf_subsetI[OF row_nf])
 
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"

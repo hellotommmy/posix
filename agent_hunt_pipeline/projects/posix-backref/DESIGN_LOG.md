@@ -1167,3 +1167,10 @@ to be read before continuing long-running agent work.
   bounds, this yields the repeated-row cubic bound. The remaining research is
   now to instantiate these three obligations for a concrete universe, then
   transfer the same shape through the annotated/bit-coded layer.
+- The singleton-flattening obligation is now packaged through row-normal
+  conditions. The new `flat_rows` and `row_nf` variants show that a universe
+  whose members are non-alt/nonzero, or satisfy `row_nf`, automatically meets
+  the flat-closure premise of the composed hook. This removes one bookkeeping
+  branch from future root-owned universe instantiations: the universe proof can
+  maintain row normal form and spend its effort on the normalized derivative
+  and shared-suffix prune cases.

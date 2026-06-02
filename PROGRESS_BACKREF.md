@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row composed cubic hook)
+Last updated: 2026-06-02 (strong-row row-normal cubic hook)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -46,6 +46,16 @@ Last updated: 2026-06-02 (strong-row composed cubic hook)
   the remaining proof-level target as three explicit universe obligations:
   flat closure of `U`, closure of normalized derivative members after
   `rsimpStrong`, and closure of the isolated shared-suffix prune result.
+- Added row-normal variants that discharge the flat-closure obligation from
+  either `nonalt q` plus `q != RZERO` style row facts or the existing
+  `row_nf` predicate:
+  `rflts_singleton_nonalt_nonzero_subsetI`,
+  `rflts_singleton_row_nf_subsetI`,
+  `rpders_strong_rows_norm_shared_flat_rows_subsetI`,
+  `rpders_strong_rows_norm_shared_row_nf_subsetI`, and the matching finite/
+  cubic bound hooks. This makes the next concrete universe instantiation
+  cleaner: maintain row normal form, then focus only on normalized derivative
+  closure and shared-suffix prune closure.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
