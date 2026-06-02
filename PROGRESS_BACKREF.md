@@ -1,6 +1,30 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong row gate bridge)
+Last updated: 2026-06-03 (original row cubic interface)
+
+## Cubic Candidate Prototype: Original Row Cubic Interface (2026-06-03)
+
+- Added checked theorem
+  `strong_deferred_original_row_cubic_universe_interface` in `FBound.thy`.
+- The theorem packages the current proof-facing shape of the strong-row route:
+  under `legacy_rexp r`, if a finite erased row universe contains
+  `rerase (intern r)`, is closed by one `bpder_strong_rows` step, has a
+  cardinality bound, and has a per-member size bound, then
+  `bpders_strong1_rows (intern r) s` is bounded by the advertised product
+  budget.
+- The same interface keeps the semantic gate attached to exact POSIX value
+  reconstruction:
+  nullable strong row existence is equivalent to unique
+  `strong_deferred_span_value r s`.
+- It also exposes the size alignment
+  `rsize (rerase (intern r)) = rxsize r` and
+  `asize (intern r) = rxsize r`, so future regex-size cubic statements can
+  start from the original `rexp`.
+- This remains infrastructure. The missing hard theorem is still the actual
+  finite row universe/closure construction with cubic card/member bounds.
+  No BR-039/BR-040 bounty is claimed.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Strong Row Gate Bridge (2026-06-03)
 

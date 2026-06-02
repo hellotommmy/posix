@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Original-entry cubic row interface
+
+- Added `strong_deferred_original_row_cubic_universe_interface`.
+- This is the current theorem-shaped contract for the strong-row route from
+  the original `rexp`: assume `legacy_rexp r`, a finite erased row universe
+  containing `rerase (intern r)`, one-step closure under
+  `bpder_strong_rows`, and card/member-size bounds. Then the row-list size
+  after `bpders_strong1_rows (intern r) s` is bounded by the product budget.
+- The interface also keeps the acceptance/value story attached: nullable row
+  existence is equivalent to unique `strong_deferred_span_value r s`, and
+  `intern`/`rerase` preserve `rxsize`.
+- Design consequence: the remaining hard work is now isolated as the actual
+  cubic row-universe construction and closure proof. This theorem is not a
+  bounty payout by itself; it is a checked boundary between the smoke-tested
+  deferred-value route and future Antimirov/hash-cons row accounting.
+
 ## 2026-06-03: Strong rows are an acceptance gate for deferred values
 
 - Added a checked bridge from annotated row nullability to erased row-set

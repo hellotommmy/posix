@@ -63,6 +63,15 @@ immutability.
 
 ## Open Artifact Notes
 
+- Original-entry strong-row cubic interface: `FBound.thy` now has
+  `strong_deferred_original_row_cubic_universe_interface`. It states the
+  current checked contract from an original `legacy_rexp r`: a finite erased
+  row universe with one-step `bpder_strong_rows` closure and card/member-size
+  bounds gives a product bound for
+  `bpders_strong1_rows (intern r) s`, while preserving the nullable-row iff
+  unique deferred POSIX value gate and the `rxsize` alignment of `intern`.
+  This is BR-040 infrastructure only. It does not pay until the actual cubic
+  row universe construction/closure theorem is checked.
 - Strong-tree route clarification: the currently viable way to preserve the
   `bsimpStrong` tree plateau while getting exact POSIX values is the
   deferred/span-memo route. `StrongFullCert` is retained as a CE-mining tool,
