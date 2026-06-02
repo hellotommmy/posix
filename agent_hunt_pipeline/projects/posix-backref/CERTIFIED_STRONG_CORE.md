@@ -114,6 +114,46 @@ directly decoding ordinary values from the final `bsimpStrong` state is not the
 right semantic object. This is intentional negative evidence for the deferred
 route.
 
+## Full Strong Tree Experiment
+
+There is now a second experimental route, `StrongFullCert`, whose purpose is to
+test the user's preferred goal: keep the `bsimpStrong` tree-size behavior and
+recover exact POSIX values by certificate reconstruction.
+
+Useful smoke commands:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
+  -SkipLegacyCubic `
+  -CheckStrongFullLoop `
+  -FindStrongFullCE `
+  -TraceStrongFullLoop `
+  -RandomCases 10000 `
+  -RandomDepth 6 `
+  -RandomInputLength 7 `
+  -Ch7K 5 `
+  -Ch7Lengths "0,4,8,12,16,20,24,30"
+```
+
+Current positive evidence:
+
+- exhaustive depth `2`, input length `3`: `84,300` pairs pass;
+- random depth `6`, input length `7`, seed `20260602`: `10,000` cases pass;
+- Chapter 7 `k=5` max full-certificate state is `721`.
+
+Current negative evidence:
+
+- random depth `7`, input length `8`, seed `20260602`, case `622` shrinks to
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on input `bba`;
+- the exact POSIX value is
+  `Seq(Stars [Left (Stars [b]), Right (Seq b a)], Stars [])`;
+- the current full certificate returns
+  `Seq(Stars [Left (Stars [b,b])], Stars [a])`.
+
+This is a left-greedy sequence boundary CE: the right `STAR(a)` receives a
+character that POSIX assigns to the left star. Therefore `StrongFullCert` is a
+CE-mining and design tool, not a theorem target or bounty candidate yet.
+
 ## Isabelle Invariant Shape
 
 The proof-facing relation should avoid Scala-style function closures. A useful

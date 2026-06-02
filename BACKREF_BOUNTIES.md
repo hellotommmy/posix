@@ -155,6 +155,16 @@ immutability.
   cases. This upgrades the route from local certificates to whole-lexer Scala
   evidence, but Isabelle proof-facing invariants are still required before
   payout.
+- Full strong-tree certificate diagnostic: `scala_cubic_smoke.ps1
+  -CheckStrongFullLoop -FindStrongFullCE -TraceStrongFullLoop` keeps the
+  `bsimpStrong`-scale tree and currently passes exhaustive depth `2`/input `3`
+  plus `10,000` deterministic random cases at depth `6`/input `7`. It also
+  reproduces the Chapter 7 `k=5` plateau with max state `721`. This does not
+  pay BR-039: depth `7`/input `8`, seed `20260602`, case `622` shrinks to
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`, where the current
+  certificate gives the final `a` to the right star instead of the left POSIX
+  greedy star. This CE must be repaired or bypassed by a checked span/memo
+  reconstruction theorem before any full-strong candidate can pay out.
 - Proof-facing bridge: `CERTIFIED_STRONG_CORE.md` records the intended
   `cert_recon` relation, loop invariant, certificate constructors, and
   loop-size trace. This is planning evidence, not payout.

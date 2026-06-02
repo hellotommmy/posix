@@ -1,6 +1,45 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (memoized reconstruction span bound smoke)
+Last updated: 2026-06-02 (CE-driven full strong certificate smoke)
+
+## Cubic Candidate Prototype: Full Strong Tree With Certificates (2026-06-02)
+
+- Added experimental Scala route `StrongFullCert`:
+  - it keeps the small `bsimpStrong`-style output tree as the recognition
+    state;
+  - each simplification step carries a reconstruction function from values of
+    the simplified state back to values of the pre-simplification derivative;
+  - wrapper switches: `-CheckStrongFullLoop`, `-FindStrongFullCE`,
+    `-TraceStrongFullLoop`, and `-TraceStrongFullKnown`.
+- Positive smoke:
+  - exhaustive depth `2`, input length `3` passes (`84,300` regex/input pairs);
+  - deterministic random depth `6`, input length `7`, seed `20260602`, passes
+    `10,000` cases;
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30`, keeps the thesis-scale
+    tree plateau with max full-certificate state `721` and final sizes
+    `46,438,618,612,612,632,579,678`.
+- CE-driven repair:
+  - depth `6` exposed a small trailing-unit order CE:
+    `STAR(STAR(ALT(SEQ(b,ONE), SEQ(SEQ(STAR(a),a),ONE))))` on `abbab`;
+  - replacing broad atom-level reparsing by explicit value transformers for
+    right-unit deletion, left-unit deletion, sequence reassociation, and star
+    absorption repairs that CE and the larger hard random witness.
+- Current blocker:
+  - deterministic random depth `7`, input length `8`, seed `20260602`, case
+    `622` shrinks to
+    `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`;
+  - the exact POSIX value lets the left star consume `bba`, while the current
+    full certificate reconstructs `bb` for the left star and gives the final
+    `a` to the right `STAR(a)`;
+  - this is a left-greedy sequence boundary problem, so `StrongFullCert` is not
+    a bounty candidate yet.
+- Design conclusion:
+  - the user-suggested CE loop is working and should remain in the pipeline;
+  - a pure local `Val => Option[Val]` transformer may still be too weak for
+    future derivatives across nullable/greedy sequence boundaries;
+  - the most robust theorem route remains: full `bdersStrong` as the small
+    acceptance certificate, plus a proof-facing span/memo POSIX reconstruction
+    relation for the original regex/input.
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 

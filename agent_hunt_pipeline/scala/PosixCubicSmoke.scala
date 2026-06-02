@@ -1086,6 +1086,16 @@ object PosixCubicSmoke {
       } yield y :: ys
     }
 
+  def mapSeqCertValue(left: ValueCert, right: ValueCert, v: Val): Option[Val] =
+    v match {
+      case SeqVal(v1, v2) =>
+        for {
+          w1 <- left.recon(v1)
+          w2 <- right.recon(v2)
+        } yield SeqVal(w1, w2)
+      case _ => None
+    }
+
   def certIdentity(r: ARexp): ValueCert =
     ValueCert(r, v => Some(v))
 
@@ -1196,23 +1206,60 @@ object PosixCubicSmoke {
     val out = bsimpAALTs(bs, keptRows.map(_.regex))
     out match {
       case AZERO => ValueCert(AZERO, _ => None)
-      case _ => ValueCert(out, v => reparseRecon(before)(v).flatMap(mapAltChoice(rows, _)))
+      case _ => ValueCert(out, v => mapAltRowChoice(keptRows, originalTotal, v))
     }
   }
 
   def bsimp4ASEQAtomCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = {
-    val before = ASEQ(bs, r1, r2)
-    val after = bsimp4ASEQAtom(bs, r1, r2)
-    after match {
-      case AZERO => ValueCert(AZERO, _ => None)
-      case _ if after == before => ValueCert(after, v => Some(v))
-      case _ => ValueCert(after, reparseRecon(before))
+    (r1, r2) match {
+      case (AZERO, _) =>
+        ValueCert(AZERO, _ => None)
+      case (AONE(bs2), _) =>
+        ValueCert(fuse(bs ++ bs2, r2), v => Some(SeqVal(Void, v)))
+      case (ASEQ(bs2, a, b), _) =>
+        val inner = bsimp4ASEQAtomCert(bs, b, r2)
+        val outer = bsimp4ASEQAtomCert(bs2, a, inner.regex)
+        ValueCert(
+          outer.regex,
+          v => outer.recon(v).flatMap {
+            case SeqVal(va, innerValue) =>
+              inner.recon(innerValue).flatMap {
+                case SeqVal(vb, vr2) => Some(SeqVal(SeqVal(va, vb), vr2))
+                case _ => None
+              }
+            case _ => None
+          }
+        )
+      case (ACHAR(_, _), AZERO) | (AALTs(_, _), AZERO) |
+           (ASTAR(_, _), AZERO) | (ANTIMES(_, _, _), AZERO) =>
+        ValueCert(AZERO, _ => None)
+      case (ACHAR(_, _), AONE(_)) | (AALTs(_, _), AONE(_)) |
+           (ASTAR(_, _), AONE(_)) | (ANTIMES(_, _, _), AONE(_)) =>
+        ValueCert(r1, v => Some(SeqVal(v, Void)))
+      case _ =>
+        ValueCert(ASEQ(bs, r1, r2), v => Some(v))
     }
   }
 
   def bsimp7ASEQAtomCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = {
+    (r1, r2) match {
+      case (ASTAR(_, a), ASTAR(_, b)) if eq1(a, b) =>
+        ValueCert(r1, v => Some(SeqVal(v, StarsVal(Nil))))
+      case (ASTAR(_, a), ASEQ(_, ASTAR(_, b), k)) if eq1(a, b) =>
+        ValueCert(
+          ASEQ(bs, r1, k),
+          {
+            case SeqVal(vStar, vk) => Some(SeqVal(vStar, SeqVal(StarsVal(Nil), vk)))
+            case _ => None
+          }
+        )
+      case _ => bsimp4ASEQAtomCert(bs, r1, r2)
+    }
+  }
+
+  def bsimp7ASEQAtomPosixCoreCert(bs: List[Bit], r1: ARexp, r2: ARexp): ValueCert = {
     val before = ASEQ(bs, r1, r2)
-    val after = bsimp7ASEQAtom(bs, r1, r2)
+    val after = bsimp7ASEQAtomPosixCore(bs, r1, r2)
     after match {
       case AZERO => ValueCert(AZERO, _ => None)
       case _ if after == before => ValueCert(after, v => Some(v))
@@ -1237,11 +1284,49 @@ object PosixCubicSmoke {
   }
 
   def bsimpStrongCoreCert(r: ARexp): ValueCert = {
-    val out = bsimpStrongCoreShape(r)
-    out match {
-      case AZERO => ValueCert(AZERO, _ => None)
-      case _ if out == r => ValueCert(out, v => Some(v))
-      case _ => ValueCert(out, reparseRecon(r))
+    r match {
+      case ASEQ(bs, r1, r2) =>
+        val left = bsimpStrongCoreCert(r1)
+        val right = bsimpStrongCoreCert(r2)
+        val atom = bsimp7ASEQAtomPosixCoreCert(bs, left.regex, right.regex)
+        ValueCert(
+          atom.regex,
+          v => atom.recon(v).flatMap(mapSeqCertValue(left, right, _))
+        )
+      case AALTs(bs, rs) =>
+        bsimpAALTsCert(bs, rs.map(bsimpStrongCoreCert))
+      case ASTAR(bs, body) =>
+        val inner = bsimpStrongCoreCert(body)
+        inner.regex match {
+          case AZERO =>
+            ValueCert(AONE(Nil), {
+              case Void => Some(StarsVal(Nil))
+              case _ => None
+            })
+          case AONE(_) =>
+            ValueCert(AONE(Nil), {
+              case Void => Some(StarsVal(Nil))
+              case _ => None
+            })
+          case ASTAR(bs2, s) if !bnullable(s) =>
+            ValueCert(
+              ASTAR(bs2, s),
+              {
+                case StarsVal(Nil) => Some(StarsVal(Nil))
+                case v @ StarsVal(_ :: _) => inner.recon(v).map(w => StarsVal(List(w)))
+                case _ => None
+              }
+            )
+          case s =>
+            ValueCert(
+              ASTAR(bs, s),
+              {
+                case StarsVal(vs) => traverseOption(vs)(inner.recon).map(StarsVal.apply)
+                case _ => None
+              }
+            )
+        }
+      case other => certIdentity(other)
     }
   }
 
@@ -1250,6 +1335,55 @@ object PosixCubicSmoke {
 
   def bdersStrongCore(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bsimpStrongCore(bder(c, acc)))
+
+  def bsimpStrongFullCert(r: ARexp): ValueCert = {
+    r match {
+      case ASEQ(bs, r1, r2) =>
+        val left = bsimpStrongFullCert(r1)
+        val right = bsimpStrongFullCert(r2)
+        val atom = bsimp7ASEQAtomCert(bs, left.regex, right.regex)
+        ValueCert(
+          atom.regex,
+          v => atom.recon(v).flatMap(mapSeqCertValue(left, right, _))
+        )
+      case AALTs(bs, rs) =>
+        bsimpAALTsCert(bs, rs.map(bsimpStrongFullCert))
+      case ASTAR(bs, body) =>
+        val inner = bsimpStrongFullCert(body)
+        inner.regex match {
+          case AZERO =>
+            ValueCert(AONE(Nil), {
+              case Void => Some(StarsVal(Nil))
+              case _ => None
+            })
+          case AONE(_) =>
+            ValueCert(AONE(Nil), {
+              case Void => Some(StarsVal(Nil))
+              case _ => None
+            })
+          case ASTAR(bs2, s) =>
+            ValueCert(
+              ASTAR(bs2, s),
+              reparseRecon(ASTAR(bs, body))
+            )
+          case s =>
+            ValueCert(
+              ASTAR(bs, s),
+              {
+                case StarsVal(vs) => traverseOption(vs)(inner.recon).map(StarsVal.apply)
+                case _ => None
+              }
+            )
+        }
+      case other => certIdentity(other)
+    }
+  }
+
+  def bsimpStrongFullCertShape(r: ARexp): ARexp =
+    bsimpStrongFullCert(r).regex
+
+  def bdersStrongFullCert(r: ARexp, s: String): ARexp =
+    s.foldLeft(r)((acc, c) => bsimpStrongFullCertShape(bder(c, acc)))
 
   final case class LoopValueCert(regex: ARexp, recon: Val => Option[Val])
 
@@ -1288,6 +1422,25 @@ object PosixCubicSmoke {
     } else None
   }
 
+  def strongFullCertifiedValue(r: Rexp, input: String): Option[Val] = {
+    val finalCert = input.foldLeft(LoopValueCert(intern(r), v => Some(v): Option[Val])) {
+      case (state, c) =>
+        val raw = bder(c, state.regex)
+        val cert = bsimpStrongFullCert(raw)
+        val previousRecon = state.recon
+        val previousRegex = state.regex
+        LoopValueCert(
+          cert.regex,
+          v => cert.recon(v)
+            .flatMap(rawValue => injectA(previousRegex, c, rawValue))
+            .flatMap(previousRecon)
+        )
+    }
+    if (bnullable(finalCert.regex)) {
+      decodeAEpsValue(finalCert.regex, bmkeps(finalCert.regex)).flatMap(finalCert.recon)
+    } else None
+  }
+
   final case class LoopSizeSummary(finalSize: Int, finalDag: Int, maxRaw: Int, maxCore: Int)
 
   def strongCoreLoopSizeSummary(r: Rexp, input: String): LoopSizeSummary = {
@@ -1297,6 +1450,20 @@ object PosixCubicSmoke {
     input.foreach { c =>
       val raw = bder(c, current)
       val cert = bsimpStrongCoreCert(raw)
+      maxRaw = math.max(maxRaw, asize(raw))
+      maxCore = math.max(maxCore, asize(cert.regex))
+      current = cert.regex
+    }
+    LoopSizeSummary(asize(current), adagSize(current), maxRaw, maxCore)
+  }
+
+  def strongFullLoopSizeSummary(r: Rexp, input: String): LoopSizeSummary = {
+    var current = intern(r)
+    var maxRaw = asize(current)
+    var maxCore = asize(current)
+    input.foreach { c =>
+      val raw = bder(c, current)
+      val cert = bsimpStrongFullCert(raw)
       maxRaw = math.max(maxRaw, asize(raw))
       maxCore = math.max(maxCore, asize(cert.regex))
       current = cert.regex
@@ -1860,6 +2027,18 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
+  def checkStrongFullLoopSizeTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val summary = strongFullLoopSizeSummary(r, "a" * n)
+      n -> summary
+    }
+    println(s"Chapter 7 k=$k bsimpStrongFullCert loop summary: " +
+      trace.map { case (n, s) =>
+        s"$n->final=${s.finalSize}/dag=${s.finalDag}/maxRaw=${s.maxRaw}/maxFull=${s.maxCore}"
+      }.mkString(", "))
+  }
+
   def checkCounterexamples(): Unit = {
     val a = ACHAR(Nil, 'a')
     val b = ACHAR(Nil, 'b')
@@ -2154,6 +2333,60 @@ object PosixCubicSmoke {
     println(s"checked strong core certified loop values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
+  def checkStrongFullCertifiedValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        checked += 1
+        val base = baselineValue(r, s)
+        val certified = strongFullCertifiedValue(r, s)
+        if (base != certified) {
+          throw new AssertionError(
+            s"""strong full certified loop value mismatch
+               |case      = $checked
+               |regex     = $r
+             |input     = $s
+             |base      = $base
+             |certified = $certified
+             |fullSize  = ${asize(bdersStrongFullCert(intern(r), s))}
+             |baseSize  = ${asize(bders(intern(r), s))}
+             |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked strong full certified loop values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongFullCertifiedValueRandom(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      checked += 1
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val base = baselineValue(r, s)
+      val certified = strongFullCertifiedValue(r, s)
+      if (base != certified) {
+        throw new AssertionError(
+          s"""strong full certified loop random value mismatch
+             |seed      = $seed
+             |case      = $checked
+             |regex     = $r
+             |input     = $s
+             |base      = $base
+             |certified = $certified
+             |fullSize  = ${asize(bdersStrongFullCert(intern(r), s))}
+             |baseSize  = ${asize(bders(intern(r), s))}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked strong full certified loop values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
   def rsize(r: Rexp): Int = r match {
     case ZERO | ONE | CH(_) => 1
     case ALT(r1, r2) => 1 + rsize(r1) + rsize(r2)
@@ -2164,6 +2397,9 @@ object PosixCubicSmoke {
 
   def strongCoreLoopMismatch(r: Rexp, s: String): Boolean =
     baselineValue(r, s) != strongCoreCertifiedValue(r, s)
+
+  def strongFullLoopMismatch(r: Rexp, s: String): Boolean =
+    baselineValue(r, s) != strongFullCertifiedValue(r, s)
 
   def strongDirectMismatch(r: Rexp, s: String): Boolean =
     baselineValue(r, s) != strongValue(r, s)
@@ -2211,6 +2447,29 @@ object PosixCubicSmoke {
        |""".stripMargin
   }
 
+  def strongFullLoopMismatchReport(r: Rexp, s: String, label: String): String = {
+    val base = baselineValue(r, s)
+    val certified = strongFullCertifiedValue(r, s)
+    val finalFull = bdersStrongFullCert(intern(r), s)
+    val finalStrong = bdersStrong(intern(r), s)
+    val baseFinal = bders(intern(r), s)
+    s"""$label
+       |regex      = $r
+       |input      = $s
+       |rsize      = ${rsize(r)}
+       |base       = $base
+       |certified  = $certified
+       |finalFull  = $finalFull
+       |finalStrong= $finalStrong
+       |fullSize   = ${asize(finalFull)}
+       |strongSize = ${asize(finalStrong)}
+       |fullShape  = ${ashapeDagSize(finalFull)}
+       |baseSize   = ${asize(baseFinal)}
+       |fullCounts = ${shortCounts(finalFull)}
+       |baseCounts = ${shortCounts(baseFinal)}
+       |""".stripMargin
+  }
+
   def regexShrinkCandidates(r: Rexp): List[Rexp] = {
     val atoms = List(ZERO, ONE, CH('a'), CH('b'))
     val structural = r match {
@@ -2250,6 +2509,22 @@ object PosixCubicSmoke {
         case Some(t) => loop(r, t)
         case None =>
           regexShrinkCandidates(r).find(candidate => strongCoreLoopMismatch(candidate, s)) match {
+            case Some(candidate) => loop(candidate, s)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput)
+  }
+
+  def shrinkStrongFullCE(startR: Rexp, startInput: String): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String): (Rexp, String) = {
+      val inputHit = inputShrinkCandidates(s).find(t => strongFullLoopMismatch(r, t))
+      inputHit match {
+        case Some(t) => loop(r, t)
+        case None =>
+          regexShrinkCandidates(r).find(candidate => strongFullLoopMismatch(candidate, s)) match {
             case Some(candidate) => loop(candidate, s)
             case None => (r, s)
           }
@@ -2318,6 +2593,28 @@ object PosixCubicSmoke {
     }
   }
 
+  def findStrongFullCertifiedValueCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (strongFullLoopMismatch(r, s)) {
+          found = true
+          println(strongFullLoopMismatchReport(r, s, s"strong full certified loop CE before shrinking (seed=$seed case=$checked)"))
+          val (shrunkR, shrunkS) = shrinkStrongFullCE(r, s)
+          println(strongFullLoopMismatchReport(shrunkR, shrunkS, "strong full certified loop CE after greedy shrinking"))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no strong full certified loop CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    }
+  }
+
   def findRawInjectCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
     val rng = new Random(seed)
     var found = false
@@ -2377,6 +2674,59 @@ object PosixCubicSmoke {
     }
     if (mismatches == 0) println(s"checked ${candidates.length * inputs.length} strong core hand cases without mismatch")
     else throw new AssertionError(s"strong core hand cases found $mismatches mismatch(es)")
+  }
+
+  def traceStrongFullKnownCE(): Unit = {
+    val hard =
+      STAR(STAR(STAR(STAR(
+        ALT(
+          SEQ(CH('b'), ONE),
+          SEQ(
+            ALT(SEQ(STAR(CH('a')), CH('a')), ZERO),
+            STAR(STAR(STAR(STAR(ONE))))
+          )
+        )
+      ))))
+    val baseBody =
+      ALT(
+        SEQ(CH('b'), ONE),
+        SEQ(SEQ(STAR(CH('a')), CH('a')), ONE)
+      )
+    val candidates = List(
+      "hard random CE" -> hard,
+      "tail ONE, four stars" -> STAR(STAR(STAR(STAR(baseBody)))),
+      "tail ONE, three stars" -> STAR(STAR(STAR(baseBody))),
+      "tail ONE, two stars" -> STAR(STAR(baseBody)),
+      "tail ONE, one star" -> STAR(baseBody),
+      "no trailing ONE, two stars" -> STAR(STAR(ALT(CH('b'), SEQ(STAR(CH('a')), CH('a'))))),
+      "no trailing ONE, one star" -> STAR(ALT(CH('b'), SEQ(STAR(CH('a')), CH('a')))),
+      "tail STAR(ONE), four stars" -> STAR(STAR(STAR(STAR(
+        ALT(SEQ(CH('b'), ONE), SEQ(SEQ(STAR(CH('a')), CH('a')), STAR(ONE)))
+      )))),
+      "tail STAR(ONE), three stars" -> STAR(STAR(STAR(
+        ALT(SEQ(CH('b'), ONE), SEQ(SEQ(STAR(CH('a')), CH('a')), STAR(ONE)))
+      )))
+    )
+    val input = "abbabb"
+    candidates.foreach { case (name, r) =>
+      var stopped = false
+      input.indices.toList.map(i => input.take(i + 1)).foreach { prefix =>
+        if (!stopped) {
+          val base = baselineValue(r, prefix)
+          val full = strongFullCertifiedValue(r, prefix)
+          val finalFull = bdersStrongFullCert(intern(r), prefix)
+          val mark = if (base == full) "ok" else "CE"
+          println(
+            s"strong full known $name prefix $mark prefix=$prefix rsize=${rsize(r)} fullSize=${asize(finalFull)} " +
+              s"strongSize=${asize(bdersStrong(intern(r), prefix))} baseDefined=${base.isDefined} fullDefined=${full.isDefined}"
+          )
+          if (base != full) {
+            println(strongFullLoopMismatchReport(r, prefix, s"strong full known prefix mismatch: $name"))
+            stopped = true
+          }
+        }
+      }
+    }
   }
 
   def intSetting(prop: String, env: String, default: Int): Int =
@@ -2440,10 +2790,14 @@ object PosixCubicSmoke {
     val traceStrongCoreLoop = boolSetting("posix.smoke.traceStrongCoreLoop", "POSIX_SMOKE_TRACE_STRONG_CORE_LOOP", false)
     val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
     val checkStrongCoreLoop = boolSetting("posix.smoke.checkStrongCoreLoop", "POSIX_SMOKE_CHECK_STRONG_CORE_LOOP", false)
+    val checkStrongFullLoop = boolSetting("posix.smoke.checkStrongFullLoop", "POSIX_SMOKE_CHECK_STRONG_FULL_LOOP", false)
+    val traceStrongFullLoop = boolSetting("posix.smoke.traceStrongFullLoop", "POSIX_SMOKE_TRACE_STRONG_FULL_LOOP", false)
     val findStrongDirectCE = boolSetting("posix.smoke.findStrongDirectCE", "POSIX_SMOKE_FIND_STRONG_DIRECT_CE", false)
     val findStrongCoreCE = boolSetting("posix.smoke.findStrongCoreCE", "POSIX_SMOKE_FIND_STRONG_CORE_CE", false)
+    val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
+    val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
     val skipLegacyCubic = boolSetting("posix.smoke.skipLegacyCubic", "POSIX_SMOKE_SKIP_LEGACY_CUBIC", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     if (!skipLegacyCubic) {
@@ -2495,17 +2849,29 @@ object PosixCubicSmoke {
         checkStrongCoreCertifiedValueRandom(randomCases, randomDepth, randomInputMax, randomSeed)
       }
     }
+    if (checkStrongFullLoop) {
+      checkStrongFullCertifiedValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongFullCertifiedValueRandom(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+    }
     if (findStrongDirectCE) {
       findStrongDirectValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
     if (findStrongCoreCE) {
       findStrongCoreCertifiedValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
+    if (findStrongFullCE) {
+      findStrongFullCertifiedValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
+    }
     if (findRawInjectCE) {
       findRawInjectCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
     if (checkStrongCoreHand) {
       checkStrongCoreHandCases()
+    }
+    if (traceStrongFullKnown) {
+      traceStrongFullKnownCE()
     }
     if (traceStrong) {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
@@ -2521,6 +2887,9 @@ object PosixCubicSmoke {
     }
     if (traceStrongCoreLoop) {
       checkStrongCoreLoopSizeTrace(ch7K, ch7Lengths)
+    }
+    if (traceStrongFullLoop) {
+      checkStrongFullLoopSizeTrace(ch7K, ch7Lengths)
     }
     if (!skipLegacyCubic) {
       checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)

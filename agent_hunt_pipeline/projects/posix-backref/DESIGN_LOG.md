@@ -3,6 +3,34 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: CE-driven full strong certificate route
+
+- Added an experimental `StrongFullCert` route to
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`. Unlike the side-conditioned
+  `StrongCoreCert`, this tries to keep the small `bsimpStrong` tree shape and
+  attach reconstruction transformers to the strong rewrites.
+- New switches in `scala_cubic_smoke.ps1`:
+  `-CheckStrongFullLoop`, `-FindStrongFullCE`, `-TraceStrongFullLoop`, and
+  `-TraceStrongFullKnown`.
+- This route confirms the user's preferred counterexample-driven method is the
+  right engineering discipline. The first depth-6 CE localized to trailing
+  right-unit deletion under nested stars:
+  `STAR(STAR(ALT(SEQ(b,ONE), SEQ(SEQ(STAR(a),a),ONE))))` on `abbab`.
+  Broad local reparsing was not stable enough; explicit transformers for unit
+  deletion, reassociation, and star absorption repaired that witness.
+- Positive evidence after that repair: exhaustive depth `2`/input `3` and
+  deterministic random depth `6`/input `7` pass exact POSIX value smoke, and
+  the Chapter 7 `k=5` strong-full loop has max state `721`.
+- Remaining blocker: depth `7`, input length `8`, seed `20260602`, case `622`
+  shrinks to `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`. The
+  original POSIX value assigns `bba` to the left star and leaves the right star
+  empty; the current full certificate assigns `bb` left and `a` right.
+- Design consequence: a local `Val => Option[Val]` certificate is useful
+  route evidence but not yet a proof target. To keep the thesis small tree and
+  get exact POSIX values, the next serious object should either carry richer
+  greedy-boundary history in the certificate or use the span/memo
+  reconstruction relation over the original regex and input.
+
 ## 2026-06-02: Memoized deferred POSIX reconstruction prototype
 
 - Added `posixMemoValue` in `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.
