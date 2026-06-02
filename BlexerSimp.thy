@@ -667,6 +667,26 @@ definition bsimpStrong_AALTs :: "bit list \<Rightarrow> arexp list \<Rightarrow>
   "bsimpStrong_AALTs bs rs =
     bsimp_AALTs bs (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {})"
 
+lemma bsimpStrong_AALTs_full_cover_shared_suffix:
+  assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
+      and "k1 ~1 k2"
+  shows "bsimpStrong_AALTs bs
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2] =
+    fuse bs (ASEQ bs1 (AALTs lbs lrs) k1)"
+  using assms
+  by (simp add: bsimpStrong_AALTs_def bsimpStrong_prune_rows_def
+      bsimpStrong_prune_pair_full_cover)
+
+lemma bsimpStrong_AALTs_full_cover_shared_suffix_Nil:
+  assumes "\<forall>r \<in> set rrs. eq1_member r lrs"
+      and "k1 ~1 k2"
+  shows "bsimpStrong_AALTs []
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2] =
+    ASEQ bs1 (AALTs lbs lrs) k1"
+  by (simp add: bsimpStrong_AALTs_full_cover_shared_suffix[OF assms])
+
 fun bsimpStrong :: "arexp \<Rightarrow> arexp"
 where
   "bsimpStrong (ASEQ bs r1 r2) =

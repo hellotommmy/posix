@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong full-cover prune facts)
+Last updated: 2026-06-02 (strong full-cover AALTs surface)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -130,6 +130,14 @@ Last updated: 2026-06-02 (strong full-cover prune facts)
   `bsimpStrong_prune_pair_full_cover` check the same mechanism for annotated
   `arexp` rows up to `eq1`. This is the precise Chapter-7 deletion atom needed
   for future row-count/size accounting; it is still not a general cubic bound.
+- Lifted the executable full-cover fact from pair pruning to the actual
+  alternative simplifier surface. `bsimpStrong_AALTs_full_cover_shared_suffix`
+  proves that `bsimpStrong_AALTs` on two shared-suffix rows fuses only the
+  earlier row when the later alternatives are all covered up to `eq1`, and
+  `bsimpStrong_AALTs_full_cover_shared_suffix_Nil` records the top-level
+  `[]`-bit specialization used by `bp_der_strong`. This makes the Chapter-7
+  deletion mechanism available at the same surface where executable row
+  derivatives call it.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

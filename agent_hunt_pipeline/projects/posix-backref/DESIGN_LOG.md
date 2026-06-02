@@ -1244,6 +1244,13 @@ to be read before continuing long-running agent work.
   `eq1_member`. These are the small facts to use when explaining why the
   stronger simplifier actually controls the thesis Chapter-7 overlap family,
   rather than relying only on concrete examples.
+- The executable full-cover fact is also available at the actual
+  `bsimpStrong_AALTs` surface. `bsimpStrong_AALTs_full_cover_shared_suffix`
+  returns `fuse bs earlier_row`, and
+  `bsimpStrong_AALTs_full_cover_shared_suffix_Nil` returns the earlier row
+  exactly for top-level `[]` bits. Use these when connecting row-prune
+  reasoning to `bp_der_strong`/`bpder_strong_rows`, since those definitions
+  call the alternative simplifier rather than the pair-prune helper directly.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of
