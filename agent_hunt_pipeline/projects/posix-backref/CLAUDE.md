@@ -217,6 +217,12 @@ checking them for budget failure. Use the reported witness as the next thing to
 shrink, explain, or turn into a compact regression when tightening constants
 or modifying the simplifier.
 
+For a broader CEGAR signal, add `-StrongCubicTop 3` to
+`scala_cubic_smoke.ps1` or `-ScalaSmokeStrongCubicTop 3` to
+`isabelle_ci.ps1`. This reports several high-ratio frontier witnesses while
+still checking every generated case against the budget. The top-N list is a
+diagnostic steering tool only; it does not justify a bounty or theorem claim.
+
 When a tightened constant is suspected to fail, run
 `scala_cubic_smoke.ps1 -SkipLegacyCubic -FindStrongCubicBudgetCE
 -StrongCubicFactor <factor> ...`. The finder searches random cases and greedily

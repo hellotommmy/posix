@@ -1,6 +1,23 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (configurable strong cubic CE frontier)
+Last updated: 2026-06-03 (top-N strong cubic frontier reporting)
+
+## Cubic Candidate Prototype: Top-N Strong Cubic Frontier (2026-06-03)
+
+- Added `-StrongCubicTop` / `-ScalaSmokeStrongCubicTop`, defaulting to `1`.
+- The `StrongDeferredMemo` smoke grids can now report the top-N observed
+  `asize(final bsimpStrong tree) / rsize(regex)^3` pressure points instead of
+  only the single worst case. This keeps the CEGAR loop from overfitting to
+  one accidental tiny witness.
+- The report is intentionally diagnostic-only: ordinary budget checks still
+  run on every generated regex/input pair, while the top-N list is only for
+  steering the next counterexample analysis.
+- Sanity checks:
+  - depth `2`, input `3`, random `20` cases, top `3` passed and reported
+    multiple frontier witnesses;
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30`, top `3`, tree
+    threshold `1000`, cubic factor `1.0` passed and kept the expected
+    `n=30` strong tree size `958`.
 
 ## Cubic Candidate Prototype: Configurable Strong Cubic Frontier Size (2026-06-03)
 

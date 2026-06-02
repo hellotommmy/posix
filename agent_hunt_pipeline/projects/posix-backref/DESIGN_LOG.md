@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong cubic frontier reports can show top-N witnesses
+
+- Added `-StrongCubicTop` to the Scala smoke and
+  `-ScalaSmokeStrongCubicTop` to full CI.
+- The strong-deferred route now keeps a bounded frontier of observed
+  size-pressure witnesses. With the default `1`, behavior is the same as the
+  old worst-only report. With values such as `3` or `5`, the report shows
+  several high-ratio regex/input pairs.
+- Design consequence: when tightening the cubic constant or modifying
+  `bsimpStrong`/the deferred reconstruction story, inspect the frontier rather
+  than one witness. The top-N report is evidence for the CEGAR loop only; it is
+  not a theorem, payout, or replacement for checked POSIX reconstruction.
+
 ## 2026-06-03: Strong cubic CE search has a size floor
 
 - Added `-StrongCubicMinRegexSize` to make the strong cubic frontier search
