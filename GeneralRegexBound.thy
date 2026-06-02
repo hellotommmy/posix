@@ -16772,6 +16772,50 @@ lemma rsizes_rprune_eq_against_le:
   "rsizes (rprune_eq_against covered rs) \<le> rsizes rs"
   by (induct rs) simp_all
 
+lemma rsizes_rprune_eq_against_lt:
+  assumes "\<exists>r \<in> set rs. r \<in> set covered"
+  shows "rsizes (rprune_eq_against covered rs) < rsizes rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> set covered")
+    case True
+    have tail_le: "rsizes (rprune_eq_against covered xs) \<le> rsizes xs"
+      by (rule rsizes_rprune_eq_against_le)
+    have x_pos: "0 < rsize x"
+      using size_geq1[of x] by simp
+    show ?thesis
+      using True tail_le x_pos by simp
+  next
+    case False
+    obtain r where r_in: "r \<in> set (x # xs)" and r_hit: "r \<in> set covered"
+      using Cons.prems by blast
+    have r_tail: "r \<in> set xs"
+    proof (cases "r = x")
+      case True
+      then have "x \<in> set covered"
+        using r_hit by simp
+      then show ?thesis
+        using False by contradiction
+    next
+      case False
+      then show ?thesis
+        using r_in by simp
+    qed
+    have hit_tail: "\<exists>r \<in> set xs. r \<in> set covered"
+      using r_tail r_hit by blast
+    have tail_lt: "rsizes (rprune_eq_against covered xs) < rsizes xs"
+      by (rule Cons.hyps[OF hit_tail])
+    show ?thesis
+      using False tail_lt by simp
+  qed
+qed
+
 lemma rsize_rsimp_ALTs_le:
   "rsize (rsimp_ALTs rs) \<le> Suc (rsizes rs)"
 proof -
@@ -17294,6 +17338,27 @@ proof -
       rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
     using rsize_rsimpStrong_shared_prune_result_le[of lrs rrs k] by simp
   finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_rows_shared_suffix_lt:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+    and hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
+  shows "rsizes (rpder_strong_rows c rs) <
+    rsize (RSEQ (RALTS lrs) k) + rsize (RSEQ (RALTS rrs) k)"
+proof -
+  have pruned_lt: "rsizes (rprune_eq_against lrs rrs) < rsizes rrs"
+    by (rule rsizes_rprune_eq_against_lt[OF hit])
+  have rows_le: "rsizes (rpder_strong_rows c rs) \<le>
+      rsize (RSEQ (RALTS lrs) k) +
+      rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k)"
+    by (rule rsizes_rpder_strong_rows_shared_suffix_le[OF raw])
+  have tail_lt:
+      "rsize (RSEQ (RALTS (rprune_eq_against lrs rrs)) k) <
+       rsize (RSEQ (RALTS rrs) k)"
+    using pruned_lt by simp
+  show ?thesis
+    using rows_le tail_lt by linarith
 qed
 
 lemma distinct_rpders_strong_rows:

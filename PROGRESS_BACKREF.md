@@ -175,6 +175,15 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   row after `rprune_eq_against`/`prune_eq1_against`. This is the accounting
   form needed for the thesis Chapter-7 family, where the second row is often
   partially rather than fully covered.
+- Added strict versions for genuine overlap:
+  `rsizes_rprune_eq_against_lt`,
+  `rsizes_rpder_strong_rows_shared_suffix_lt`,
+  `asizes_prune_eq1_against_lt`, and
+  `asizes_bpder_strong_rows_shared_suffix_lt`. These prove that if the later
+  shared-suffix row contains at least one covered alternative, the actual
+  strong-row derivative output is strictly smaller than keeping both raw rows.
+  This is a general theorem-level version of the Chapter-7 overlap-prune
+  intuition, not just an `eval` regression.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

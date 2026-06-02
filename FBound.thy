@@ -1767,6 +1767,51 @@ next
   qed
 qed
 
+lemma asizes_prune_eq1_against_lt:
+  assumes "\<exists>r \<in> set rs. eq1_member r covered"
+  shows "asizes (prune_eq1_against covered rs) < asizes rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "eq1_member x covered")
+    case True
+    have tail_le: "asizes (prune_eq1_against covered xs) \<le> asizes xs"
+      by (rule asizes_prune_eq1_against_le)
+    have x_pos: "0 < asize x"
+      by (rule asize0)
+    show ?thesis
+      using True tail_le x_pos by (simp add: asizes_def)
+  next
+    case False
+    obtain r where r_in: "r \<in> set (x # xs)"
+        and r_hit: "eq1_member r covered"
+      using Cons.prems by blast
+    have r_tail: "r \<in> set xs"
+    proof (cases "r = x")
+      case True
+      then have "eq1_member x covered"
+        using r_hit by simp
+      then show ?thesis
+        using False by contradiction
+    next
+      case False
+      then show ?thesis
+        using r_in by simp
+    qed
+    have hit_tail: "\<exists>r \<in> set xs. eq1_member r covered"
+      using r_tail r_hit by blast
+    have tail_lt: "asizes (prune_eq1_against covered xs) < asizes xs"
+      by (rule Cons.hyps[OF hit_tail])
+    show ?thesis
+      using False tail_lt by simp
+  qed
+qed
+
 lemma asize_bsimp_AALTs_le:
   "asize (bsimp_AALTs bs rs) \<le> Suc (asizes rs)"
 proof (cases rs)
@@ -2070,6 +2115,30 @@ proof -
     using asize_bsimpStrong_shared_prune_result_le[of bs2 rbs lrs rrs k2]
     by (simp add: asizes_def)
   finally show ?thesis .
+qed
+
+lemma asizes_bpder_strong_rows_shared_suffix_lt:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and suffix: "k1 ~1 k2"
+    and hit: "\<exists>r \<in> set rrs. eq1_member r lrs"
+  shows "asizes (bpder_strong_rows c rs) <
+    asize (ASEQ bs1 (AALTs lbs lrs) k1) +
+    asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+proof -
+  have pruned_lt: "asizes (prune_eq1_against lrs rrs) < asizes rrs"
+    by (rule asizes_prune_eq1_against_lt[OF hit])
+  have rows_le: "asizes (bpder_strong_rows c rs) \<le>
+      asize (ASEQ bs1 (AALTs lbs lrs) k1) +
+      asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2)"
+    by (rule asizes_bpder_strong_rows_shared_suffix_le[OF raw suffix])
+  have tail_lt:
+      "asize (ASEQ bs2 (AALTs rbs (prune_eq1_against lrs rrs)) k2) <
+       asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+    using pruned_lt by (simp add: asizes_def)
+  show ?thesis
+    using rows_le tail_lt by linarith
 qed
 
 lemma asize_bp_der_strong_le_asizes:

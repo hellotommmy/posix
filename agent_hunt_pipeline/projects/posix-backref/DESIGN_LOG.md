@@ -1286,6 +1286,13 @@ to be read before continuing long-running agent work.
   after covered alternatives have been deleted. This is the form needed for
   examples such as `(a+b+d).c + (a+c+e).c`, where the second row is shrunk but
   not erased.
+- Strict shrinkage is now checked too. Use
+  `rsizes_rprune_eq_against_lt` / `asizes_prune_eq1_against_lt` to show the
+  prune pass removes positive size when it hits a covered alternative, then
+  `rsizes_rpder_strong_rows_shared_suffix_lt` /
+  `asizes_bpder_strong_rows_shared_suffix_lt` to conclude that the actual
+  proof/executable row derivative is smaller than retaining both raw
+  shared-suffix rows.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of
