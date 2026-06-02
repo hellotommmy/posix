@@ -12073,6 +12073,137 @@ lemma rpath9_tight_member_budget_RNTIMES_nonzero_boundI:
   shows "rpath9_tight_member_budget (RNTIMES r n) k \<le> N"
   using assms by simp
 
+lemma rsize_member_le_rsize_RALTS:
+  assumes "q \<in> set rs"
+  shows "rsize q \<le> rsize (RALTS rs)"
+  using assms by (induct rs) auto
+
+lemma rpath9_tight_member_budget_RALTS_child_root_linearI:
+  assumes child: "\<And>q. q \<in> set rs \<Longrightarrow>
+    rpath9_tight_member_budget q RONE \<le> Suc (rsize q + rsize q)"
+  shows "rpath9_tight_member_budget (RALTS rs) RONE \<le>
+    Suc (rsize (RALTS rs) + rsize (RALTS rs))"
+proof (rule rpath9_tight_member_budget_RALTS_boundI)
+  fix q
+  assume q: "q \<in> set rs"
+  have q_bound: "rpath9_tight_member_budget q RONE \<le>
+      Suc (rsize q + rsize q)"
+    by (rule child[OF q])
+  have q_size: "rsize q \<le> rsize (RALTS rs)"
+    by (rule rsize_member_le_rsize_RALTS[OF q])
+  show "rpath9_tight_member_budget q RONE \<le>
+      Suc (rsize (RALTS rs) + rsize (RALTS rs))"
+    using q_bound q_size by linarith
+qed
+
+lemma rpath9_tight_member_budget_RSEQ_left_tail_root_linearI:
+  assumes left: "rpath9_tight_member_budget r1 (RSEQ r2 RONE) \<le>
+      rsize (RSEQ r2 RONE)"
+    and right: "rpath9_tight_member_budget r2 RONE \<le>
+      Suc (rsize r2 + rsize r2)"
+  shows "rpath9_tight_member_budget (RSEQ r1 r2) RONE \<le>
+    Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+proof -
+  let ?N = "Suc (rsize (RSEQ r1 r2) + rsize (RSEQ r1 r2))"
+  have left_N: "rpath9_tight_member_budget r1 (RSEQ r2 RONE) \<le> ?N"
+    using left by simp
+  have right_N: "rpath9_tight_member_budget r2 RONE \<le> ?N"
+    using right by simp
+  show ?thesis
+    using left_N right_N by simp
+qed
+
+lemma rpath9_tight_member_budget_RSTAR_tail_root_linearI:
+  assumes body: "rpath9_tight_member_budget r (RSEQ (RSTAR r) RONE) \<le>
+      rsize (RSEQ (RSTAR r) RONE)"
+  shows "rpath9_tight_member_budget (RSTAR r) RONE \<le>
+    Suc (rsize (RSTAR r) + rsize (RSTAR r))"
+  using body by simp
+
+lemma rpath9_tight_member_budget_RNTIMES_tail_root_linearI:
+  assumes body: "n \<noteq> 0 \<Longrightarrow>
+      rpath9_tight_member_budget r (RSEQ (RNTIMES r (n - 1)) RONE) \<le>
+        rsize (RSEQ (RNTIMES r n) RONE)"
+  shows "rpath9_tight_member_budget (RNTIMES r n) RONE \<le>
+    Suc (rsize (RNTIMES r n) + rsize (RNTIMES r n))"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  have body_N: "rpath9_tight_member_budget r
+      (RSEQ (RNTIMES r (n - 1)) RONE) \<le>
+    rsize (RSEQ (RNTIMES r n) RONE)"
+    by (rule body[OF False])
+  show ?thesis
+    using False body_N by simp
+qed
+
+lemma rpath9_tight_member_budget_RALTS_RCHARs_tail_le:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "rpath9_tight_member_budget (RALTS rs) k \<le> rsize (rpath9_tail k)"
+proof (rule rpath9_tight_member_budget_RALTS_boundI)
+  fix q
+  assume q: "q \<in> set rs"
+  obtain d where q_eq: "q = RCHAR d"
+    using chars[OF q] by blast
+  show "rpath9_tight_member_budget q k \<le> rsize (rpath9_tail k)"
+    using q_eq by simp
+qed
+
+lemma rpath9_tight_member_budget_RALTS_RCHARs_root_linear:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "rpath9_tight_member_budget (RALTS rs) RONE \<le>
+    Suc (rsize (RALTS rs) + rsize (RALTS rs))"
+proof -
+  have "rpath9_tight_member_budget (RALTS rs) RONE \<le> rsize (rpath9_tail RONE)"
+    by (rule rpath9_tight_member_budget_RALTS_RCHARs_tail_le[OF chars])
+  then show ?thesis
+    by simp
+qed
+
+lemma rpath9_tight_member_budget_RSTAR_RALTS_RCHARs_root_linear:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "rpath9_tight_member_budget (RSTAR (RALTS rs)) RONE \<le>
+    Suc (rsize (RSTAR (RALTS rs)) + rsize (RSTAR (RALTS rs)))"
+proof (rule rpath9_tight_member_budget_RSTAR_tail_root_linearI)
+  have tail: "rpath9_tight_member_budget (RALTS rs)
+      (RSEQ (RSTAR (RALTS rs)) RONE) \<le>
+    rsize (rpath9_tail (RSEQ (RSTAR (RALTS rs)) RONE))"
+    by (rule rpath9_tight_member_budget_RALTS_RCHARs_tail_le[OF chars])
+  have "rsize (rpath9_tail (RSEQ (RSTAR (RALTS rs)) RONE)) \<le>
+      rsize (RSEQ (RSTAR (RALTS rs)) RONE)"
+    by (rule rsize_rpath9_tail_le)
+  then show "rpath9_tight_member_budget (RALTS rs)
+      (RSEQ (RSTAR (RALTS rs)) RONE) \<le>
+    rsize (RSEQ (RSTAR (RALTS rs)) RONE)"
+    using tail by linarith
+qed
+
+lemma rpath9_tight_member_budget_RNTIMES_RALTS_RCHARs_root_linear:
+  assumes chars: "\<And>q. q \<in> set rs \<Longrightarrow> \<exists>d. q = RCHAR d"
+  shows "rpath9_tight_member_budget (RNTIMES (RALTS rs) n) RONE \<le>
+    Suc (rsize (RNTIMES (RALTS rs) n) + rsize (RNTIMES (RALTS rs) n))"
+proof (rule rpath9_tight_member_budget_RNTIMES_tail_root_linearI)
+  assume n: "n \<noteq> 0"
+  have tail: "rpath9_tight_member_budget (RALTS rs)
+      (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE) \<le>
+    rsize (rpath9_tail (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE))"
+    by (rule rpath9_tight_member_budget_RALTS_RCHARs_tail_le[OF chars])
+  have tail_size: "rsize (rpath9_tail
+      (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE)) \<le>
+    rsize (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE)"
+    by (rule rsize_rpath9_tail_le)
+  have pred_size: "rsize (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE) \<le>
+      rsize (RSEQ (RNTIMES (RALTS rs) n) RONE)"
+    by simp
+  show "rpath9_tight_member_budget (RALTS rs)
+      (RSEQ (RNTIMES (RALTS rs) (n - 1)) RONE) \<le>
+    rsize (RSEQ (RNTIMES (RALTS rs) n) RONE)"
+    using tail tail_size pred_size by linarith
+qed
+
 lemma rpath9_tight_member_budget_list_le_member_budget:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow>
     rpath9_tight_member_budget r k \<le> rpath9_member_budget r k"

@@ -1,6 +1,29 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (path9 carried-tail closure hooks)
+Last updated: 2026-06-02 (path9 tight-budget root-linear hooks)
+
+## Cubic Bound Research Checkpoint: Path9 Tight-Budget Root-Linear Hooks (2026-06-02)
+
+- Added checked tight-member-budget constructor hooks in
+  `GeneralRegexBound.thy`:
+  `rpath9_tight_member_budget_RALTS_child_root_linearI`,
+  `rpath9_tight_member_budget_RSEQ_left_tail_root_linearI`,
+  `rpath9_tight_member_budget_RSTAR_tail_root_linearI`, and
+  `rpath9_tight_member_budget_RNTIMES_tail_root_linearI`.
+- Added the character-alternative specialization
+  `rpath9_tight_member_budget_RALTS_RCHARs_tail_le`,
+  `rpath9_tight_member_budget_RALTS_RCHARs_root_linear`,
+  `rpath9_tight_member_budget_RSTAR_RALTS_RCHARs_root_linear`, and
+  `rpath9_tight_member_budget_RNTIMES_RALTS_RCHARs_root_linear`. This gives
+  the member-size side a checked analogue of the already-checked one-step
+  closure slices for `RALTS` of characters.
+- Important design note: `rsimp9` is not the Chapter-7 shared-suffix pruning
+  simplifier. It repairs the root-safe/tail-normalization and counted
+  repetition route; examples like `(a+b)c + (a+d)c` need the stronger
+  `rsimpStrong`/`bsimpStrong` shared-suffix row-prune path. The final cubic
+  candidate should therefore promote the strong simplifier route, not claim
+  that plain `rsimp9` has that pruning power.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 
 ## Cubic Bound Research Checkpoint: Path9 Carried-Tail Closure Hooks (2026-06-02)
 

@@ -1368,3 +1368,20 @@ to be read before continuing long-running agent work.
   should now prove accumulator-local obligations instead of manually lifting
   each carried continuation back into
   `partial_derivative_path9_atom_frontier_universe`.
+- The path9 member-size route now has root-linear tight-budget constructor
+  hooks:
+  `rpath9_tight_member_budget_RALTS_child_root_linearI`,
+  `rpath9_tight_member_budget_RSEQ_left_tail_root_linearI`,
+  `rpath9_tight_member_budget_RSTAR_tail_root_linearI`, and
+  `rpath9_tight_member_budget_RNTIMES_tail_root_linearI`. For the character
+  alternative family already used by the closure slices, use
+  `rpath9_tight_member_budget_RALTS_RCHARs_tail_le`,
+  `rpath9_tight_member_budget_RALTS_RCHARs_root_linear`,
+  `rpath9_tight_member_budget_RSTAR_RALTS_RCHARs_root_linear`, and
+  `rpath9_tight_member_budget_RNTIMES_RALTS_RCHARs_root_linear`.
+- Do not present `rsimp9` as the Chapter-7 overlap-pruning solution.
+  `rsimp9` is the root-safe/tail-normalizing/countdown repair. The shared
+  suffix example `(a+b)c + (a+d)c` is handled by the stronger
+  `rsimpStrong`/`bsimpStrong` row-prune route, which should be the eventual
+  production replacement candidate once its POSIX/bitcode and cubic closure
+  facts are strong enough.
