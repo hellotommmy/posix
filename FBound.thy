@@ -2568,6 +2568,223 @@ proof (rule map_rerase_bpder_strong_rows_local_subsetI[OF _ prune])
       (use norm[OF q] in blast)
 qed
 
+lemma map_rerase_flts_singleton_flat_closed:
+  assumes row: "rerase r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+  shows "set (map rerase (flts [r])) \<subseteq> U"
+proof -
+  have "set (rflts [rerase r]) \<subseteq> U"
+    by (rule flat_closed[OF row])
+  then show ?thesis
+    by (simp add: rerase_flts)
+qed
+
+lemma map_rerase_bsimpStrong_prune_pair_later_shared_subsetI:
+  assumes later: "set (map rerase (flts [later])) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+  shows "set (map rerase
+    (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+proof (cases earlier)
+  case (ASEQ bs1 left k1)
+  note earlier_ASEQ = ASEQ
+  then show ?thesis
+  proof (cases left)
+    case (AALTs lbs lrs)
+    note left_AALTs = AALTs
+    then show ?thesis
+    proof (cases later)
+      case (ASEQ bs2 right k2)
+      note later_ASEQ = ASEQ
+      then show ?thesis
+      proof (cases right)
+        case (AALTs rbs rrs)
+        note right_AALTs = AALTs
+        show ?thesis
+        proof (cases "k1 ~1 k2")
+          case True
+          have later_member:
+            "rerase (ASEQ bs2 (AALTs rbs rrs) k2) \<in> U"
+            using later later_ASEQ right_AALTs by simp
+          have "set (map rerase (flts [bsimp7_ASEQ_atom bs2
+              (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k2])) \<subseteq> U"
+            by (rule shared[OF later_member])
+          then show ?thesis
+            using later_ASEQ right_AALTs True earlier_ASEQ left_AALTs
+            by (simp add: bsimpStrong_prune_pair_def)
+        next
+          case False
+          then show ?thesis
+            using later later_ASEQ right_AALTs earlier_ASEQ left_AALTs
+            by (simp add: bsimpStrong_prune_pair_def)
+        qed
+      qed (insert later later_ASEQ earlier_ASEQ left_AALTs,
+          auto simp add: bsimpStrong_prune_pair_def)
+    qed (insert later earlier_ASEQ left_AALTs,
+        auto simp add: bsimpStrong_prune_pair_def)
+  next
+    case AZERO
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (AONE x2)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ACHAR x31 x32)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ASEQ x41 x42 x43)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ASTAR x61 x62)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ANTIMES x71 x72 x73)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ABACKREF4 x81 x82 x83 x84 x85 x86)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (AHALF x91 x92 x93 x94)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  next
+    case (ARESIDUE x101 x102 x103)
+    then show ?thesis
+      using later earlier_ASEQ by (simp add: bsimpStrong_prune_pair_def)
+  qed
+qed (insert later, auto simp add: bsimpStrong_prune_pair_def)
+
+lemma map_rerase_bsimpStrong_prune_against_rows_pair_subsetI:
+  assumes row: "set (map rerase (flts [r])) \<subseteq> U"
+    and pair: "\<And>earlier later.
+      set (map rerase (flts [later])) \<subseteq> U \<Longrightarrow>
+      set (map rerase
+        (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+  shows "set (map rerase
+    (flts [bsimpStrong_prune_against_rows seen r])) \<subseteq> U"
+  using row
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "bsimpStrong_prune_pair x r"
+  have first: "set (map rerase (flts [?p])) \<subseteq> U"
+    by (rule pair[OF Cons.prems])
+  show ?case
+    using Cons.hyps[OF first] by simp
+qed
+
+lemma map_rerase_bsimpStrong_prune_rows_acc_pair_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow>
+      set (map rerase (flts [r])) \<subseteq> U"
+    and pair: "\<And>earlier later.
+      set (map rerase (flts [later])) \<subseteq> U \<Longrightarrow>
+      set (map rerase
+        (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+  shows "set (map rerase
+    (flts (bsimpStrong_prune_rows_acc seen rs))) \<subseteq> U"
+  using rows
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "bsimpStrong_prune_against_rows seen r"
+  have head: "set (map rerase (flts [?r'])) \<subseteq> U"
+  proof (rule map_rerase_bsimpStrong_prune_against_rows_pair_subsetI)
+    show "set (map rerase (flts [r])) \<subseteq> U"
+      by (rule Cons.prems) simp
+    show "\<And>earlier later.
+      set (map rerase (flts [later])) \<subseteq> U \<Longrightarrow>
+      set (map rerase
+        (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+      by (rule pair)
+  qed
+  have tail: "set (map rerase
+      (flts (bsimpStrong_prune_rows_acc (?r' # seen) rs))) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  have split:
+    "flts (?r' # bsimpStrong_prune_rows_acc (?r' # seen) rs) =
+      flts [?r'] @ flts (bsimpStrong_prune_rows_acc (?r' # seen) rs)"
+    by (cases ?r') simp_all
+  have "set (map rerase
+      (flts (?r' # bsimpStrong_prune_rows_acc (?r' # seen) rs))) \<subseteq> U"
+    using head tail split by auto
+  then show ?case
+    by (simp add: Let_def)
+qed
+
+lemma map_rerase_bsimpStrong_prune_rows_pair_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow>
+      set (map rerase (flts [r])) \<subseteq> U"
+    and pair: "\<And>earlier later.
+      set (map rerase (flts [later])) \<subseteq> U \<Longrightarrow>
+      set (map rerase
+        (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+  shows "set (map rerase (flts (bsimpStrong_prune_rows rs))) \<subseteq> U"
+  unfolding bsimpStrong_prune_rows_def
+  by (rule map_rerase_bsimpStrong_prune_rows_acc_pair_subsetI[OF rows pair])
+
+lemma map_rerase_bsimpStrong_prune_rows_later_shared_subsetI:
+  assumes rows: "set (map rerase rs) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+  shows "set (map rerase (flts (bsimpStrong_prune_rows rs))) \<subseteq> U"
+proof (rule map_rerase_bsimpStrong_prune_rows_pair_subsetI)
+  fix r
+  assume r: "r \<in> set rs"
+  have "rerase r \<in> U"
+    using rows r by auto
+  then show "set (map rerase (flts [r])) \<subseteq> U"
+    by (rule map_rerase_flts_singleton_flat_closed[OF _ flat_closed])
+next
+  fix earlier later
+  assume later: "set (map rerase (flts [later])) \<subseteq> U"
+  show "set (map rerase
+      (flts [bsimpStrong_prune_pair earlier later])) \<subseteq> U"
+    by (rule map_rerase_bsimpStrong_prune_pair_later_shared_subsetI
+        [OF later shared])
+qed
+
+lemma map_rerase_bpder_strong_rows_norm_later_shared_subsetI:
+  assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+      set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+  shows "set (map rerase (bpder_strong_rows c rs)) \<subseteq> U"
+proof (rule map_rerase_bpder_strong_rows_local_subsetI)
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (map rerase (flts (bpder_strong_list c q))) \<subseteq> U"
+    by (rule map_rerase_flts_bpder_strong_list_subsetI)
+      (use norm[OF q] in blast)
+next
+  fix xs
+  assume xs: "set (map rerase xs) \<subseteq> U"
+  show "set (map rerase (flts (bsimpStrong_prune_rows xs))) \<subseteq> U"
+    by (rule map_rerase_bsimpStrong_prune_rows_later_shared_subsetI
+        [OF xs flat_closed shared])
+qed
+
 lemma map_rerase_bpders_strong_rows_subsetI:
   assumes init: "set (map rerase rs) \<subseteq> U"
       and step: "\<And>ars c. set (map rerase ars) \<subseteq> U \<Longrightarrow>
@@ -2588,6 +2805,25 @@ next
     by (rule Cons.hyps[OF rows])
   show ?case
     using tail by simp
+qed
+
+lemma map_rerase_bpders_strong_rows_norm_later_shared_subsetI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>ars c q p. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+      q \<in> set ars \<Longrightarrow> p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+      set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+  shows "set (map rerase (bpders_strong_rows rs s)) \<subseteq> U"
+proof (rule map_rerase_bpders_strong_rows_subsetI[OF init])
+  fix ars c
+  assume ars: "set (map rerase ars) \<subseteq> U"
+  show "set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+    by (rule map_rerase_bpder_strong_rows_norm_later_shared_subsetI)
+      (use ars flat_closed norm shared in blast)+
 qed
 
 lemma asizes_rsizes_rerase:
@@ -2732,6 +2968,56 @@ proof -
   have "asizes (bpders_strong_rows rs s) \<le> card U * M"
     by (rule asizes_bpders_strong_rows_finite_universe_boundI
         [OF init step finite member_size distinct])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma asizes_bpders_strong_rows_norm_later_shared_finite_universe_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>ars c q p. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+      q \<in> set ars \<Longrightarrow> p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+      set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct (map rerase rs)"
+  shows "asizes (bpders_strong_rows rs s) \<le> card U * M"
+proof (rule asizes_bpders_strong_rows_finite_universe_boundI
+    [OF init _ finite member_size distinct])
+  fix ars c
+  assume ars: "set (map rerase ars) \<subseteq> U"
+  show "set (map rerase (bpder_strong_rows c ars)) \<subseteq> U"
+    by (rule map_rerase_bpder_strong_rows_norm_later_shared_subsetI)
+      (use ars flat_closed norm shared in blast)+
+qed
+
+lemma asizes_bpders_strong_rows_norm_later_shared_cubic_universe_boundI:
+  assumes init: "set (map rerase rs) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>ars c q p. set (map rerase ars) \<subseteq> U \<Longrightarrow>
+      q \<in> set ars \<Longrightarrow> p \<in> set (bpder_norm_list c q) \<Longrightarrow>
+      set (map rerase (flts [bsimpStrong p])) \<subseteq> U"
+    and shared: "\<And>bs2 rbs lrs rrs k.
+      rerase (ASEQ bs2 (AALTs rbs rrs) k) \<in> U \<Longrightarrow>
+      set (map rerase (flts [bsimp7_ASEQ_atom bs2
+        (bsimp_AALTs rbs (prune_eq1_against lrs rrs)) k])) \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct (map rerase rs)"
+    and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong_rows rs s) \<le> B"
+proof -
+  have "asizes (bpders_strong_rows rs s) \<le> card U * M"
+    by (rule asizes_bpders_strong_rows_norm_later_shared_finite_universe_boundI
+        [OF init flat_closed norm shared finite member_size distinct])
   also have "... \<le> C * M"
     by (rule mult_right_mono[OF card_bound]) simp
   also have "... \<le> B"

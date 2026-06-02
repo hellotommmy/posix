@@ -1340,3 +1340,15 @@ to be read before continuing long-running agent work.
   `bpder_strong_rows` universe obligations to normalized-member closure and
   shared-suffix prune closure, without attempting a global exact-erasure
   equation for the executable prune.
+- The annotated route now also has the later-row-local shared-prune bridge:
+  `map_rerase_bsimpStrong_prune_pair_later_shared_subsetI`,
+  `map_rerase_bsimpStrong_prune_rows_later_shared_subsetI`,
+  `map_rerase_bpder_strong_rows_norm_later_shared_subsetI`,
+  `map_rerase_bpders_strong_rows_norm_later_shared_subsetI`, and the matching
+  finite/cubic hooks
+  `asizes_bpders_strong_rows_norm_later_shared_finite_universe_boundI` /
+  `asizes_bpders_strong_rows_norm_later_shared_cubic_universe_boundI`.
+  This is the executable analogue of the proof-level later-shared interface,
+  but its shared premise is intentionally phrased over the actual
+  `bsimpStrong`/`bsimp7_ASEQ_atom` syntax before applying `rerase`; do not
+  replace it with a false exact-erasure transfer.

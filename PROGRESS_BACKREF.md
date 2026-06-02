@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (annotated strong closure splitters)
+Last updated: 2026-06-02 (annotated strong later-shared hooks)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -38,6 +38,17 @@ Last updated: 2026-06-02 (annotated strong closure splitters)
   proof-level route: normalized member closure after `bsimpStrong`, and
   preservation by the shared-suffix row-prune pass. This avoids relying on the
   checked-false exact erasure equation for `bsimpStrong_prune_pair`.
+- Added the honest executable later-shared closure bridge for that same route:
+  `map_rerase_bsimpStrong_prune_pair_later_shared_subsetI`,
+  `map_rerase_bsimpStrong_prune_rows_later_shared_subsetI`,
+  `map_rerase_bpder_strong_rows_norm_later_shared_subsetI`,
+  `map_rerase_bpders_strong_rows_norm_later_shared_subsetI`,
+  `asizes_bpders_strong_rows_norm_later_shared_finite_universe_boundI`, and
+  `asizes_bpders_strong_rows_norm_later_shared_cubic_universe_boundI`. The
+  shared premise is stated at the executable syntax produced by
+  `bsimpStrong_prune_pair`, then projected through `rerase`; it deliberately
+  does not pretend that executable pruning syntactically equals the
+  proof-level `rsimpStrong_prune_pair`.
 - Added and checked the conditional finite-universe interface for the
   proof-level strong row pipeline:
   `rpders_strong_rows_subsetI`, `rpders_strong1_rows_subsetI`,
