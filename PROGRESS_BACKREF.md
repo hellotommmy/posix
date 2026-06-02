@@ -259,6 +259,14 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   "head" statement avoids the false-looking shortcut that any matching row
   anywhere in `seen` is enough without tracking how earlier seen rows have
   already rewritten the later row.
+- Added the two-row scanner strict-decrease surface:
+  `rsizes_rsimpStrong_prune_rows_two_shared_suffix_lt` and
+  `asizes_bsimpStrong_prune_rows_two_shared_suffix_lt`. These lift the
+  helper-level head theorem to the actual `*_prune_rows` scanner on
+  `[earlier, later]`, proving that the total row-size budget strictly shrinks
+  when the second row shares the suffix and has any alternative covered by the
+  first. This is the direct row-scanner potential fact needed before trying to
+  generalize strict shrinkage to longer row lists.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

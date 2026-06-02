@@ -2110,6 +2110,27 @@ proof -
     using tail_le pair_lt by simp
 qed
 
+lemma asizes_bsimpStrong_prune_rows_two_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. eq1_member r lrs"
+      and suffix: "k1 ~1 k2"
+  shows "asizes (bsimpStrong_prune_rows
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]) <
+    asizes
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+proof -
+  have tail_lt:
+    "asize (bsimpStrong_prune_against_rows
+        [ASEQ bs1 (AALTs lbs lrs) k1]
+        (ASEQ bs2 (AALTs rbs rrs) k2)) <
+      asize (ASEQ bs2 (AALTs rbs rrs) k2)"
+    by (rule asize_bsimpStrong_prune_against_rows_head_shared_suffix_lt
+        [OF hit suffix, where seen = "[]"])
+  show ?thesis
+    using tail_lt by (simp add: bsimpStrong_prune_rows_def Let_def asizes_def)
+qed
+
 lemma asizes_bsimpStrong_prune_rows_acc_le:
   "asizes (bsimpStrong_prune_rows_acc seen rs) \<le> asizes rs"
 proof (induct rs arbitrary: seen)

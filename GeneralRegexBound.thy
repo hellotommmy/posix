@@ -17092,6 +17092,22 @@ proof -
     using tail_le pair_lt by simp
 qed
 
+lemma rsizes_rsimpStrong_prune_rows_two_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
+  shows "rsizes (rsimpStrong_prune_rows
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]) <
+    rsizes [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+proof -
+  have tail_lt:
+    "rsize (rsimpStrong_prune_against_rows
+        [RSEQ (RALTS lrs) k] (RSEQ (RALTS rrs) k)) <
+      rsize (RSEQ (RALTS rrs) k)"
+    by (rule rsize_rsimpStrong_prune_against_rows_head_shared_suffix_lt
+        [OF hit, where seen = "[]"])
+  show ?thesis
+    using tail_lt by (simp add: rsimpStrong_prune_rows_def Let_def)
+qed
+
 lemma rsizes_rsimpStrong_prune_rows_acc_le:
   "rsizes (rsimpStrong_prune_rows_acc seen rs) \<le> rsizes rs"
 proof (induct rs arbitrary: seen)
