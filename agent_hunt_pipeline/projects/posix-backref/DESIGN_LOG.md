@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Raw strong skeleton restores exact erasure
+
+- Added a raw skeleton mirror of the annotated strong simplifier:
+  `rsimpStrong_prune_pair_raw`, `rsimpStrong_prune_rows_raw`,
+  `rsimpStrong_ALTs_raw`, `rsimpStrong_raw`, and raw strong row derivative
+  entry points.
+- This is intentionally not the earlier normalized skeleton. The raw version
+  preserves the same delayed row-normalization shape as annotated
+  `bsimpStrong`, which makes exact erasure bridges true again:
+  `rerase_bsimpStrong_raw`, `map_rerase_bpder_strong_rows_raw`, and the
+  iterated row bridge.
+- Design consequence: after the exact-erasure counterexample, the proof route
+  should use this raw skeleton as the erased carrier for shared-row or
+  reconstruction universes. Normalize/share only at a layer that has an
+  explicit reconstruction theorem; do not silently replace the raw carrier by
+  normalized syntax.
+
 ## 2026-06-03: Strong prune is not exact under erasure
 
 - Added checked counterexample

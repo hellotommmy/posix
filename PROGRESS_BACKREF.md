@@ -1,6 +1,39 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong prune exact-erasure counterexample)
+Last updated: 2026-06-03 (raw strong skeleton bridge)
+
+## Cubic Candidate Prototype: Raw Strong Skeleton Bridge (2026-06-03)
+
+- Added a raw skeleton mirror of the annotated strong simplifier in
+  `GeneralRegexBound.thy`:
+  - `rsimpStrong_prune_pair_raw`;
+  - `rsimpStrong_prune_rows_raw`;
+  - `rsimpStrong_ALTs_raw`;
+  - `rsimpStrong_raw`;
+  - `rpder_strong_list_raw`, `rpder_strong_rows_raw`, and the iterated row
+    entry points.
+- This raw layer deliberately mirrors the annotated delayed-normalization
+  shape instead of the earlier normalized `rsimpStrong_prune_pair`. It is a
+  proof-facing carrier for row-universe/reconstruction work, not a new
+  production simplifier.
+- Checked language preservation:
+  - `RL_rsimpStrong_raw`;
+  - row-pruning preservation lemmas for the raw strong row layer.
+- Added exact erasure bridges in `FBound.thy`:
+  - `rerase_bsimpStrong_raw`;
+  - `map_rerase_bpder_strong_list_raw`;
+  - `map_rerase_bpder_strong_rows_raw`;
+  - `map_rerase_bpders_strong1_rows_raw`.
+- Design result:
+  - The previous exact-erasure shortcut was false for the normalized skeleton,
+    but exact erasure is recoverable by making the skeleton carry the same
+    delayed row-normalization shape as the annotated algorithm.
+  - Future cubic/shared-row proofs can target the raw erased row universe, then
+    connect back to annotated `bsimpStrong` through these checked bridges.
+  - This is infrastructure only. It does not prove a cubic theorem and does
+    not pay BR-039 or BR-040.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Strong Prune Exact-Erasure CE (2026-06-03)
 

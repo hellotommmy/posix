@@ -2532,6 +2532,133 @@ lemma rerase_bsimpStrong_prune_pair_not_exact:
       rerase_bsimp7_ASEQ_atom map_rerase_distinctWith_eq1 rerase_flts
       rsimp7_SEQ_atom_def)
 
+lemma rerase_bsimpStrong_prune_pair_raw:
+  "rerase (bsimpStrong_prune_pair earlier later) =
+    rsimpStrong_prune_pair_raw (rerase earlier) (rerase later)"
+  by (cases earlier; cases later)
+    (simp_all add: bsimpStrong_prune_pair_def rsimpStrong_prune_pair_raw_def
+      eq1_rerase map_rerase_prune_eq1_against rerase_bsimp_AALTs
+      rerase_bsimp7_ASEQ_atom split: arexp.splits rrexp.splits)
+
+lemma rerase_bsimpStrong_prune_against_rows_raw:
+  "rerase (bsimpStrong_prune_against_rows seen r) =
+    rsimpStrong_prune_against_rows_raw (map rerase seen) (rerase r)"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  show ?case
+    by (simp add: Cons.hyps rerase_bsimpStrong_prune_pair_raw)
+qed
+
+lemma map_rerase_bsimpStrong_prune_rows_acc_raw:
+  "map rerase (bsimpStrong_prune_rows_acc seen rs) =
+    rsimpStrong_prune_rows_acc_raw (map rerase seen) (map rerase rs)"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  show ?case
+    by (simp add: Cons.hyps rerase_bsimpStrong_prune_against_rows_raw Let_def)
+qed
+
+lemma map_rerase_bsimpStrong_prune_rows_raw:
+  "map rerase (bsimpStrong_prune_rows rs) =
+    rsimpStrong_prune_rows_raw (map rerase rs)"
+  by (simp add: bsimpStrong_prune_rows_def rsimpStrong_prune_rows_raw_def
+      map_rerase_bsimpStrong_prune_rows_acc_raw)
+
+lemma rerase_bsimpStrong_AALTs_raw:
+  "rerase (bsimpStrong_AALTs bs rs) = rsimpStrong_ALTs_raw (map rerase rs)"
+  by (simp add: bsimpStrong_AALTs_def rsimpStrong_ALTs_raw_def
+      rerase_bsimp_AALTs map_rerase_distinctWith_eq1 rerase_flts
+      map_rerase_bsimpStrong_prune_rows_raw)
+
+lemma rerase_bsimpStrong_raw:
+  "rerase (bsimpStrong r) = rsimpStrong_raw (rerase r)"
+proof (induct r)
+  case AZERO
+  then show ?case
+    by simp
+next
+  case (AONE bs)
+  then show ?case
+    by simp
+next
+  case (ACHAR bs c)
+  then show ?case
+    by simp
+next
+  case (ASEQ bs r1 r2)
+  then show ?case
+    by (simp add: rerase_bsimp7_ASEQ_atom)
+next
+  case (AALTs bs rs)
+  have flat_mapped:
+    "rflts (map (\<lambda>x. rerase (bsimpStrong x)) rs) =
+      rflts (map (\<lambda>x. rsimpStrong_raw (rerase x)) rs)"
+  proof -
+    have aux: "\<And>xs. (\<And>x. x \<in> set xs \<Longrightarrow>
+        rerase (bsimpStrong x) = rsimpStrong_raw (rerase x)) \<Longrightarrow>
+      rflts (map (\<lambda>x. rerase (bsimpStrong x)) xs) =
+      rflts (map (\<lambda>x. rsimpStrong_raw (rerase x)) xs)"
+    proof -
+      fix xs
+      assume prem: "\<And>x. x \<in> set xs \<Longrightarrow>
+        rerase (bsimpStrong x) = rsimpStrong_raw (rerase x)"
+      show "rflts (map (\<lambda>x. rerase (bsimpStrong x)) xs) =
+        rflts (map (\<lambda>x. rsimpStrong_raw (rerase x)) xs)"
+        using prem
+      proof (induct xs)
+        case Nil
+        then show ?case
+          by simp
+      next
+        case (Cons a xs)
+        have head: "rerase (bsimpStrong a) = rsimpStrong_raw (rerase a)"
+          by (rule Cons.prems) simp
+        have tail:
+          "rflts (map (\<lambda>x. rerase (bsimpStrong x)) xs) =
+            rflts (map (\<lambda>x. rsimpStrong_raw (rerase x)) xs)"
+          by (rule Cons.hyps) (use Cons.prems in simp)
+        show ?case
+          by (cases "rsimpStrong_raw (rerase a)") (simp_all add: head tail)
+      qed
+    qed
+    show ?thesis
+      by (rule aux) (use AALTs in simp)
+  qed
+  show ?case
+    by (simp add: rerase_bsimpStrong_AALTs_raw rerase_flts flat_mapped
+        map_map comp_def)
+next
+  case (ASTAR bs r)
+  have ih: "rerase (bsimpStrong r) = rsimpStrong_raw (rerase r)"
+    by (rule ASTAR)
+  show ?case
+    by (cases "bsimpStrong r") (simp_all add: ih[symmetric])
+next
+  case (ANTIMES bs r n)
+  then show ?case
+    by simp
+next
+  case (ABACKREF4 bs r1 r2 r3 r4 cs)
+  then show ?case
+    by simp
+next
+  case (AHALF bs r cs rep)
+  then show ?case
+    by simp
+next
+  case (ARESIDUE bs cs rep)
+  then show ?case
+    by simp
+qed
+
 lemma RL_rerase_bsimpStrong_prune_pair_with_earlier:
   "RL (rerase earlier) \<union>
     RL (rerase (bsimpStrong_prune_pair earlier later)) =
@@ -3004,6 +3131,51 @@ lemma bp_der_norm7_rerase:
   shows "rerase (bp_der_norm7 c r) = rpd_der_norm7 c (rerase r)"
   by (simp add: bp_der_norm7_def rpd_der_norm7_def rerase_bsimp_AALTs
       map_rerase_distinctWith_eq1 rerase_flts rerase_bpder_norm7_list)
+
+lemma map_rerase_bpder_strong_list_raw:
+  "map rerase (bpder_strong_list c r) =
+    rpder_strong_list_raw c (rerase r)"
+proof -
+  have "map rerase (bpder_strong_list c r) =
+      map (\<lambda>x. rsimpStrong_raw (rerase x)) (bpder_norm_list c r)"
+    by (simp add: bpder_strong_list_def rerase_bsimpStrong_raw)
+  also have "... = map rsimpStrong_raw (map rerase (bpder_norm_list c r))"
+    by (simp add: map_map comp_def)
+  also have "... = rpder_strong_list_raw c (rerase r)"
+    by (simp add: rpder_strong_list_raw_def rerase_bpder_norm_list)
+  finally show ?thesis .
+qed
+
+lemma rerase_concat_map_bpder_strong_list_raw:
+  "map rerase (concat (map (bpder_strong_list c) rs)) =
+    concat (map (\<lambda>r. rpder_strong_list_raw c (rerase r)) rs)"
+  by (induct rs) (simp_all add: map_rerase_bpder_strong_list_raw)
+
+lemma map_rerase_bpder_strong_rows_raw:
+  "map rerase (bpder_strong_rows c rs) =
+    rpder_strong_rows_raw c (map rerase rs)"
+  by (simp add: bpder_strong_rows_def rpder_strong_rows_raw_def
+      map_rerase_distinctWith_eq1 rerase_flts map_rerase_bsimpStrong_prune_rows_raw
+      rerase_concat_map_bpder_strong_list_raw map_map comp_def)
+
+lemma map_rerase_bpders_strong_rows_raw:
+  "map rerase (bpders_strong_rows rs s) =
+    rpders_strong_rows_raw (map rerase rs) s"
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  show ?case
+    by (simp add: Cons.hyps map_rerase_bpder_strong_rows_raw)
+qed
+
+lemma map_rerase_bpders_strong1_rows_raw:
+  "map rerase (bpders_strong1_rows r s) =
+    rpders_strong1_rows_raw (rerase r) s"
+  by (simp add: bpders_strong1_rows_def rpders_strong1_rows_raw_def
+      map_rerase_bpders_strong_rows_raw)
 
 lemma RLS_set_map_rerase_strong_rows_cleanup:
   "RLS (set (map rerase

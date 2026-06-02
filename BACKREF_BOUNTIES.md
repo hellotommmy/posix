@@ -63,6 +63,14 @@ immutability.
 
 ## Open Artifact Notes
 
+- Raw strong skeleton bridge: `GeneralRegexBound.thy` now has
+  `rsimpStrong_raw` and raw strong row derivative entry points that mirror the
+  annotated delayed-normalization shape. `FBound.thy` proves exact erasure
+  bridges from annotated `bsimpStrong`/`bpder_strong_rows` to this raw layer,
+  including `rerase_bsimpStrong_raw` and
+  `map_rerase_bpders_strong1_rows_raw`. This repairs the usable erased-carrier
+  interface after the normalized exact-erasure counterexample, but remains
+  infrastructure only; it is not a BR-039 or BR-040 payout.
 - Strong prune exact-erasure caveat: `FBound.thy` now has the checked
   counterexample `rerase_bsimpStrong_prune_pair_not_exact`. It shows that
   annotated `bsimpStrong_prune_pair` does not syntactically erase to

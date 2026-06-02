@@ -132,6 +132,14 @@ normalizes the pruned row internally with `rdistinct/rflts`. Future row-universe
 work must use language/coverage subset interfaces, or introduce an explicit
 normalized/shared-row representation plus reconstruction theorem.
 
+When an exact erased carrier is needed, use the raw strong skeleton bridge, not
+the normalized skeleton shortcut. `GeneralRegexBound.thy` defines
+`rsimpStrong_raw` and raw strong row derivatives, and `FBound.thy` proves
+`rerase_bsimpStrong_raw` plus row-level `map_rerase` bridges. This raw layer
+mirrors annotated delayed normalization and is suitable as the proof-facing
+carrier before a separate shared-row/reconstruction theorem. It is not itself
+a cubic simplifier bounty.
+
 Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
 `bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
 value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,
