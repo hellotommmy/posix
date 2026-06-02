@@ -17210,6 +17210,19 @@ lemma distinct_rpder_strong_rows [simp]:
   "distinct (rpder_strong_rows c rs)"
   by (simp add: rpder_strong_rows_def rdistinct_does_the_job)
 
+lemma rpder_strong_rows_shared_suffix:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+  shows "rpder_strong_rows c rs =
+    rdistinct
+      (rflts
+        [RSEQ (RALTS lrs) k,
+         rsimp7_SEQ_atom
+          (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+          k]) {}"
+  by (simp add: rpder_strong_rows_def raw rsimpStrong_prune_rows_def
+      rsimpStrong_prune_pair_def)
+
 lemma rpder_strong_rows_full_cover_shared_suffix:
   assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
       [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
