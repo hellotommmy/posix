@@ -201,6 +201,12 @@ table. The current stable CE is
 gate is `StrongDeferredMemo`, which preserves the Chapter 7 `bsimpStrong`
 tree sequence while reconstructing exact values from spans.
 
+The optional smoke guard `-CheckStrongFullKnownCE` now fixes this CE as a
+route-level regression: local `StrongFullCert` must fail it, while
+`StrongDeferredMemo` must match the baseline value. This keeps the old local
+certificate route from being accidentally treated as solved without a new
+reconstruction theorem.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

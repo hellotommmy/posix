@@ -1817,6 +1817,54 @@ object PosixCubicSmoke {
     println(s"checked strong memo-deferred known CE grid on $checked cases")
   }
 
+  def checkStrongFullKnownBoundaryCounterexample(): Unit = {
+    val r = SEQ(STAR(ALT(STAR(CH('b')), SEQ(CH('b'), CH('a')))), STAR(CH('a')))
+    val input = "bba"
+    val base = baselineValue(r, input)
+    val full = strongFullCertifiedValue(r, input)
+    val memo = strongDeferredMemoValue(r, input)
+    val finalFull = bdersStrongFullCert(intern(r), input)
+    val finalStrong = bdersStrong(intern(r), input)
+    if (base.isEmpty) {
+      throw new AssertionError("known greedy-boundary CE unexpectedly has no baseline POSIX value")
+    }
+    if (base == full) {
+      throw new AssertionError(
+        s"""known greedy-boundary CE no longer fails StrongFullCert
+           |regex     = $r
+           |input     = $input
+           |base      = $base
+           |full      = $full
+           |fullSize  = ${asize(finalFull)}
+           |""".stripMargin
+      )
+    }
+    if (base != memo) {
+      throw new AssertionError(
+        s"""strong memo-deferred failed known greedy-boundary CE
+           |regex     = $r
+           |input     = $input
+           |base      = $base
+           |memo      = $memo
+           |""".stripMargin
+      )
+    }
+    if (asize(finalFull) != asize(finalStrong)) {
+      throw new AssertionError(
+        s"""StrongFullCert no longer preserves the strong-tree size on the known CE
+           |regex      = $r
+           |input      = $input
+           |fullSize   = ${asize(finalFull)}
+           |strongSize = ${asize(finalStrong)}
+           |""".stripMargin
+      )
+    }
+    println(
+      s"checked known greedy-boundary CE: StrongFullCert fails as expected, " +
+        s"StrongDeferredMemo matches baseline, tree=${asize(finalFull)}"
+    )
+  }
+
   def checkStrongSafeValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
@@ -2828,6 +2876,7 @@ object PosixCubicSmoke {
     val checkStrongCoreLoop = boolSetting("posix.smoke.checkStrongCoreLoop", "POSIX_SMOKE_CHECK_STRONG_CORE_LOOP", false)
     val checkStrongFullLoop = boolSetting("posix.smoke.checkStrongFullLoop", "POSIX_SMOKE_CHECK_STRONG_FULL_LOOP", false)
     val traceStrongFullLoop = boolSetting("posix.smoke.traceStrongFullLoop", "POSIX_SMOKE_TRACE_STRONG_FULL_LOOP", false)
+    val checkStrongFullKnownCE = boolSetting("posix.smoke.checkStrongFullKnownCE", "POSIX_SMOKE_CHECK_STRONG_FULL_KNOWN_CE", false)
     val findStrongDirectCE = boolSetting("posix.smoke.findStrongDirectCE", "POSIX_SMOKE_FIND_STRONG_DIRECT_CE", false)
     val findStrongCoreCE = boolSetting("posix.smoke.findStrongCoreCE", "POSIX_SMOKE_FIND_STRONG_CORE_CE", false)
     val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
@@ -2891,6 +2940,9 @@ object PosixCubicSmoke {
       if (randomCases > 0) {
         checkStrongFullCertifiedValueRandom(randomCases, randomDepth, randomInputMax, randomSeed)
       }
+    }
+    if (checkStrongFullKnownCE) {
+      checkStrongFullKnownBoundaryCounterexample()
     }
     if (findStrongDirectCE) {
       findStrongDirectValueCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)

@@ -1,6 +1,21 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (countdown-aware span universe)
+Last updated: 2026-06-03 (strong-full CE guard)
+
+## Cubic Candidate Prototype: StrongFull Known-CE Guard (2026-06-03)
+
+- Added a Scala smoke gate `-CheckStrongFullKnownCE` for the minimal
+  greedy-boundary CE:
+  `SEQ(STAR(ALT(STAR(CH b), SEQ(CH b, CH a))), STAR(CH a))` on `bba`.
+- The guard intentionally checks both sides of the CEGAR story:
+  - `StrongFullCert` still fails this case, so local final-state
+    reconstruction is not accidentally treated as the proof target;
+  - `StrongDeferredMemo` matches the baseline POSIX value on the same case;
+  - the strong/full tree size remains `13`, confirming that the issue is
+    value-boundary reconstruction, not recognition-state size.
+- Wired the guard into `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` as
+  `-CheckStrongFullKnownCE` / `-ScalaSmokeCheckStrongFullKnownCE`.
+- This is a route guard, not a bounty claim.
 
 ## Cubic Candidate Prototype: Countdown-Aware Span Inversion (2026-06-03)
 

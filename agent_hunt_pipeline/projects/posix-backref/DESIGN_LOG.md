@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: StrongFull known-CE guard
+
+- Added optional smoke gate `-CheckStrongFullKnownCE` to
+  `scala_cubic_smoke.ps1` and `-ScalaSmokeCheckStrongFullKnownCE` to
+  `isabelle_ci.ps1`.
+- The guard checks the minimal greedy-boundary CE
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`.
+- It is intentionally a two-sided guard: `StrongFullCert` must still fail this
+  known local-certificate case, while `StrongDeferredMemo` must match the
+  baseline POSIX value. If `StrongFullCert` is later repaired, this guard should
+  be updated with the new reconstruction theorem/story rather than silently
+  letting the old route be mistaken for proved.
+- Current checked diagnostic: the local-certificate tree remains size `13`, so
+  the blocker is greedy boundary reconstruction, not small-state recognition.
+
 ## 2026-06-03: Countdown-aware original span universe
 
 - The original-root span table cannot be bounded by plain syntactic subterms

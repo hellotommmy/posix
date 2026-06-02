@@ -89,6 +89,11 @@ immutability.
   syntactic subterms are too weak. `rexp_span_posix_ALT1E`,
   `rexp_span_posix_ALT2E`, and `rexp_span_posix_SEQE` are checked inversion
   infrastructure only.
+- StrongFull known-CE guard: optional smoke gate `-CheckStrongFullKnownCE`
+  checks that the minimal greedy-boundary case still blocks local
+  `StrongFullCert` reconstruction while `StrongDeferredMemo` matches baseline.
+  This prevents accidental payout or proof work on the old local-certificate
+  route. It is a diagnostic guard only.
 - Checked span constructor support now includes alternatives, unit/empty,
   nonempty star, and counted-repetition intro rules:
   `rspan_accepts_RALTSI`, `rspan_accepts_RONE_emptyI`,
