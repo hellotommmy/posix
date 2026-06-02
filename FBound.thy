@@ -2057,6 +2057,52 @@ proof -
   qed
 qed
 
+definition strong_deferred_span_value :: "rexp \<Rightarrow> string \<Rightarrow> val \<Rightarrow> bool" where
+  "strong_deferred_span_value r s v \<equiv>
+    bnullable (bders_simpStrong (intern r) s) \<and>
+    (r, 0, length s, v) \<in> rexp_span_posix r s"
+
+lemma strong_deferred_span_value_iff_Posix:
+  "strong_deferred_span_value r s v \<longleftrightarrow> s \<in> r \<rightarrow> v"
+proof
+  assume "strong_deferred_span_value r s v"
+  then have "(r, 0, length s, v) \<in> rexp_span_posix r s"
+    by (simp add: strong_deferred_span_value_def)
+  then show "s \<in> r \<rightarrow> v"
+    by (simp add: rexp_span_posix_root_iff)
+next
+  assume pos: "s \<in> r \<rightarrow> v"
+  have nullable: "bnullable (bders_simpStrong (intern r) s)"
+    using pos bnullable_bders_simpStrong_intern_iff_Posix by blast
+  have entry: "(r, 0, length s, v) \<in> rexp_span_posix r s"
+    using pos by (simp add: rexp_span_posix_root_iff)
+  show "strong_deferred_span_value r s v"
+    using nullable entry by (simp add: strong_deferred_span_value_def)
+qed
+
+lemma strong_deferred_span_value_iff_lexer:
+  "strong_deferred_span_value r s v \<longleftrightarrow> lexer r s = Some v"
+  by (simp add: strong_deferred_span_value_iff_Posix lexer_correctness(1))
+
+lemma strong_deferred_span_value_defined_iff:
+  "(\<exists>v. strong_deferred_span_value r s v) \<longleftrightarrow>
+    bnullable (bders_simpStrong (intern r) s)"
+  by (simp add: strong_deferred_span_value_iff_Posix
+      bnullable_bders_simpStrong_intern_iff_Posix)
+
+lemma strong_deferred_span_value_unique:
+  assumes "strong_deferred_span_value r s v"
+    and "strong_deferred_span_value r s w"
+  shows "v = w"
+  using assms
+  by (simp add: strong_deferred_span_value_iff_Posix Posix_determ)
+
+lemma strong_deferred_span_value_flat:
+  assumes "strong_deferred_span_value r s v"
+  shows "flat v = s"
+  using assms Posix1(2)
+  by (simp add: strong_deferred_span_value_iff_Posix)
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

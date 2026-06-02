@@ -28,6 +28,9 @@ The current positive candidate is the deferred/generalized route:
 - If that state is nullable, exact POSIX value reconstruction is deferred to a
   relation over the original regex and consumed string.
 - The Scala reference implementation is `strongDeferredValue`.
+- The Isabelle proof-facing relation is now `strong_deferred_span_value r s v`.
+  It uses `bders_simpStrong (intern r) s` as the nullable gate and the unique
+  root entry of `rexp_span_posix r s` as the value.
 - The Isabelle acceptance bridge is now checked in `FBound.thy`:
   `bnullable_bders_simpStrong_iff_Ders` and
   `bnullable_bders_simpStrong_iff_member`.
@@ -170,6 +173,13 @@ The original-`rexp` POSIX value side now has a checked root interface in
 - `card_rexp_span_posix_states_bound`;
 - `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`;
 - `bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root`.
+- `strong_deferred_span_value`, with checked equivalences to original POSIX
+  values and the original `lexer`:
+  `strong_deferred_span_value_iff_Posix`,
+  `strong_deferred_span_value_iff_lexer`,
+  `strong_deferred_span_value_defined_iff`,
+  `strong_deferred_span_value_unique`, and
+  `strong_deferred_span_value_flat`.
 
 This is the first checked statement that says the small strong derivative
 acceptance result is the gate for a unique original POSIX root span entry. The

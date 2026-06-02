@@ -1,6 +1,24 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (span flat/index boundary)
+Last updated: 2026-06-03 (deferred span value interface)
+
+## Cubic Candidate Prototype: Deferred Span Value Interface (2026-06-03)
+
+- Added `strong_deferred_span_value` in `FBound.thy`, the proof-facing
+  Isabelle analogue of the Scala `strongDeferredMemoValue` route:
+  the final `bders_simpStrong (intern r) s` state is used only as the nullable
+  gate, and the exact value is the unique root entry in `rexp_span_posix r s`.
+- Checked bridges:
+  - `strong_deferred_span_value_iff_Posix`;
+  - `strong_deferred_span_value_iff_lexer`;
+  - `strong_deferred_span_value_defined_iff`;
+  - `strong_deferred_span_value_unique`;
+  - `strong_deferred_span_value_flat`.
+- Meaning: the current positive route is no longer just a Scala convention or
+  prose plan. It has a named Isabelle relation equivalent to the original
+  POSIX/lexer semantics, while retaining `bsimpStrong` as the small acceptance
+  certificate.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Span Flat/Index Boundary (2026-06-03)
 

@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Named deferred span value relation
+
+- Added `strong_deferred_span_value r s v` in `FBound.thy`.
+- This is now the Isabelle-level object corresponding to the positive Scala
+  route: `bsimpStrong` supplies the small nullable recognition state, while
+  `rexp_span_posix` supplies the original POSIX value.
+- Checked facts show this relation is equivalent to both original `Posix` and
+  original `lexer` semantics, is defined exactly when the strong state is
+  nullable, is unique, and has `flat v = s`.
+- Design consequence: proof attempts should target this relation and its
+  bounded span table, not direct ordinary decoding from the final
+  `bsimpStrong` regex.
+
 ## 2026-06-03: Span flat/index boundary and slow inversion lesson
 
 - Added checked `FBound.thy` boundary facts for `rexp_span_posix`:
