@@ -165,6 +165,14 @@ immutability.
   certificate gives the final `a` to the right star instead of the left POSIX
   greedy star. This CE must be repaired or bypassed by a checked span/memo
   reconstruction theorem before any full-strong candidate can pay out.
+- Checked span-universe support: `GeneralRegexBound.thy` now contains
+  `rspan_states`, `rspan_split_probes`, and subset/cardinality bounds matching
+  the Scala memo reconstruction accounting (`rsize(r) * (|s|+1)^2` states and
+  `rsize(r) * (|s|+1)^3` split probes). This is proof infrastructure for
+  BR-040-style reconstruction interfaces, not a payout by itself: the actual
+  POSIX reconstruction relation still needs to prove that its memo table and
+  split probes are subsets of these universes and agree with the existing
+  POSIX value relation.
 - Proof-facing bridge: `CERTIFIED_STRONG_CORE.md` records the intended
   `cert_recon` relation, loop invariant, certificate constructors, and
   loop-size trace. This is planning evidence, not payout.

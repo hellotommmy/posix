@@ -3,6 +3,25 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Checked span-universe bounds for deferred reconstruction
+
+- Added `rspan_states` and `rspan_split_probes` in `GeneralRegexBound.thy`.
+  These are proof-facing finite universes for the Scala `posixMemoValue`
+  reconstruction route:
+  - `rspan_states r s` contains `(subregex, i, j)` states;
+  - `rspan_split_probes r s` contains `(subregex, i, k, j)` split probes.
+- Checked bounds:
+  - `card_rspan_states_bound` and `card_subset_rspan_states_bound` give
+    `rsize r * Suc (length s) * Suc (length s)`;
+  - `card_rspan_split_probes_bound` and
+    `card_subset_rspan_split_probes_bound` give the corresponding cubic
+    input-span split-probe bound.
+- Design consequence: the next theorem should define a POSIX reconstruction
+  relation/table and prove its queried states are subsets of these universes.
+  This avoids relying on direct decoding from `bdersStrong` and directly
+  addresses left-greedy boundary CEs such as
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`.
+
 ## 2026-06-02: CE-driven full strong certificate route
 
 - Added an experimental `StrongFullCert` route to

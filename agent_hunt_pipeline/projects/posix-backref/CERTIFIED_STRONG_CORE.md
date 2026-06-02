@@ -98,6 +98,23 @@ The current smoke enforces accepts/value states below
 reconstruction layer; the separate derivative-state proof still needs the
 regex-size cubic frontier argument.
 
+The first checked Isabelle support for this route is now in
+`GeneralRegexBound.thy`:
+
+- `rspan_states r s` and `finite_rspan_states`;
+- `rspan_statesI` / `rspan_statesE`;
+- `card_rspan_states_bound`;
+- `card_subset_rspan_states_bound`;
+- `rspan_split_probes r s` and `finite_rspan_split_probes`;
+- `rspan_split_probesI` / `rspan_split_probesE`;
+- `card_rspan_split_probes_bound`;
+- `card_subset_rspan_split_probes_bound`.
+
+The next proof-facing reconstruction relation should prove that its memo table
+and split-probe set are subsets of these universes. This gives the same
+accounting discipline as the Scala `posixMemoValue` smoke without committing
+to direct value decoding from the simplified derivative state.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

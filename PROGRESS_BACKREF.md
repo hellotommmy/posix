@@ -1,6 +1,28 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (CE-driven full strong certificate smoke)
+Last updated: 2026-06-02 (checked span reconstruction universe)
+
+## Cubic Candidate Prototype: Checked Span Reconstruction Universe (2026-06-02)
+
+- Added checked Isabelle definitions in `GeneralRegexBound.thy`:
+  - `rspan_states r s`, the finite universe of reconstruction states
+    `(subregex, i, j)`;
+  - `rspan_split_probes r s`, the finite universe of split probes
+    `(subregex, i, k, j)`.
+- Added checked cardinality bounds:
+  - `card_rspan_states_bound`:
+    `card (rspan_states r s) <= rsize r * (|s|+1)^2`;
+  - `card_subset_rspan_states_bound`, for any concrete memo table subset;
+  - `card_rspan_split_probes_bound`:
+    `card (rspan_split_probes r s) <= rsize r * (|s|+1)^3`;
+  - `card_subset_rspan_split_probes_bound`, for any concrete split-probe set.
+- This is the first Isabelle-facing version of the Scala memo reconstruction
+  accounting. It does not prove POSIX reconstruction correctness yet. Its role
+  is to make the deferred/memo route proof-shaped: future reconstruction
+  relations can prove their memo states are subsets of these universes and
+  inherit polynomial input-span bounds while the strong derivative state keeps
+  the regex-size bound.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Full Strong Tree With Certificates (2026-06-02)
 

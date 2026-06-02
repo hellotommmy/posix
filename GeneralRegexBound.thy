@@ -2678,6 +2678,99 @@ next
   then show ?case by simp
 qed
 
+definition rspan_states :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat) set" where
+  "rspan_states r s =
+    (\<lambda>(q, (i, j)). (q, i, j)) ` (rsubterms r \<times> ({..length s} \<times> {..length s}))"
+
+lemma finite_rspan_states [simp]:
+  "finite (rspan_states r s)"
+  by (simp add: rspan_states_def)
+
+lemma rspan_statesI:
+  assumes "q \<in> rsubterms r" "i \<le> length s" "j \<le> length s"
+  shows "(q, i, j) \<in> rspan_states r s"
+  using assms by (auto simp: rspan_states_def)
+
+lemma rspan_statesE:
+  assumes "(q, i, j) \<in> rspan_states r s"
+  obtains "q \<in> rsubterms r" "i \<le> length s" "j \<le> length s"
+  using assms by (auto simp: rspan_states_def)
+
+lemma card_rspan_states_bound:
+  "card (rspan_states r s) \<le> rsize r * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rspan_states r s) \<le>
+      card (rsubterms r \<times> ({..length s} \<times> {..length s}))"
+    by (simp add: rspan_states_def card_image_le)
+  also have "... = card (rsubterms r) * Suc (length s) * Suc (length s)"
+    by (simp add: algebra_simps)
+  also have "... \<le> rsize r * Suc (length s) * Suc (length s)"
+    using card_rsubterms_le_rsize[of r]
+    by (intro mult_mono; simp)
+  finally show ?thesis .
+qed
+
+lemma card_subset_rspan_states_bound:
+  assumes "A \<subseteq> rspan_states r s"
+  shows "card A \<le> rsize r * Suc (length s) * Suc (length s)"
+proof -
+  have "card A \<le> card (rspan_states r s)"
+    using assms by (meson card_mono finite_rspan_states)
+  also have "... \<le> rsize r * Suc (length s) * Suc (length s)"
+    by (rule card_rspan_states_bound)
+  finally show ?thesis .
+qed
+
+definition rspan_split_probes :: "rrexp \<Rightarrow> string \<Rightarrow> (rrexp * nat * nat * nat) set" where
+  "rspan_split_probes r s =
+    (\<lambda>(q, (i, (k, j))). (q, i, k, j)) `
+      (rsubterms r \<times> ({..length s} \<times> ({..length s} \<times> {..length s})))"
+
+lemma finite_rspan_split_probes [simp]:
+  "finite (rspan_split_probes r s)"
+  by (simp add: rspan_split_probes_def)
+
+lemma rspan_split_probesI:
+  assumes "q \<in> rsubterms r"
+    and "i \<le> length s"
+    and "k \<le> length s"
+    and "j \<le> length s"
+  shows "(q, i, k, j) \<in> rspan_split_probes r s"
+  using assms by (auto simp: rspan_split_probes_def)
+
+lemma rspan_split_probesE:
+  assumes "(q, i, k, j) \<in> rspan_split_probes r s"
+  obtains "q \<in> rsubterms r" "i \<le> length s" "k \<le> length s" "j \<le> length s"
+  using assms by (auto simp: rspan_split_probes_def)
+
+lemma card_rspan_split_probes_bound:
+  "card (rspan_split_probes r s) \<le>
+    rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rspan_split_probes r s) \<le>
+      card (rsubterms r \<times> ({..length s} \<times> ({..length s} \<times> {..length s})))"
+    by (simp add: rspan_split_probes_def card_image_le)
+  also have "... =
+      card (rsubterms r) * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (simp add: algebra_simps)
+  also have "... \<le>
+      rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    using card_rsubterms_le_rsize[of r]
+    by (intro mult_mono; simp)
+  finally show ?thesis .
+qed
+
+lemma card_subset_rspan_split_probes_bound:
+  assumes "A \<subseteq> rspan_split_probes r s"
+  shows "card A \<le> rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have "card A \<le> card (rspan_split_probes r s)"
+    using assms by (meson card_mono finite_rspan_split_probes)
+  also have "... \<le> rsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule card_rspan_split_probes_bound)
+  finally show ?thesis .
+qed
+
 lemma rsize_member_le_rsizes:
   assumes "r \<in> set rs"
   shows "rsize r \<le> rsizes rs"
