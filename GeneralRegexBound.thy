@@ -17210,6 +17210,21 @@ lemma distinct_rpder_strong_rows [simp]:
   "distinct (rpder_strong_rows c rs)"
   by (simp add: rpder_strong_rows_def rdistinct_does_the_job)
 
+lemma rpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+    and cover: "set rrs \<subseteq> set lrs"
+  shows "rpder_strong_rows c rs = [RSEQ (RALTS lrs) k]"
+  by (simp add: rpder_strong_rows_def raw
+      rdistinct_rflts_rsimpStrong_prune_rows_full_cover_shared_suffix[OF cover])
+
+lemma rsizes_rpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "rflts (concat (map (rpder_strong_list c) rs)) =
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]"
+    and cover: "set rrs \<subseteq> set lrs"
+  shows "rsizes (rpder_strong_rows c rs) = rsize (RSEQ (RALTS lrs) k)"
+  using assms by (simp add: rpder_strong_rows_full_cover_shared_suffix)
+
 lemma distinct_rpders_strong_rows:
   assumes "distinct rs"
   shows "distinct (rpders_strong_rows rs s)"

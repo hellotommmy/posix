@@ -860,6 +860,17 @@ definition bpders_norm17_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp
 definition bpders_strong1_rows :: "arexp \<Rightarrow> string \<Rightarrow> arexp list" where
   "bpders_strong1_rows r s = bpders_strong_rows [r] s"
 
+lemma bpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and cover: "\<forall>r \<in> set rrs. eq1_member r lrs"
+    and suffix: "k1 ~1 k2"
+  shows "bpder_strong_rows c rs = [ASEQ bs1 (AALTs lbs lrs) k1]"
+  by (simp add: bpder_strong_rows_def raw
+      distinctWith_flts_bsimpStrong_prune_rows_full_cover_shared_suffix
+        [OF cover suffix])
+
 
 fun 
   bders_simp :: "arexp \<Rightarrow> string \<Rightarrow> arexp"

@@ -1260,6 +1260,20 @@ to be read before continuing long-running agent work.
   show that a fully covered later row disappears after pruning, flattening,
   and duplicate removal; they are the facts to reach for when proving
   cardinality decrease or row-count control.
+- The same deletion mechanism is now exposed at the real row-derivative
+  surfaces. Use `rpder_strong_rows_full_cover_shared_suffix` and
+  `bpder_strong_rows_full_cover_shared_suffix` when the raw derivative rows
+  flatten to `[shared-earlier, shared-later]`; under the full-cover premise,
+  the actual `*_strong_rows` output is exactly the earlier row. This avoids a
+  fragile proof style where future bounds reason about helper functions but
+  forget to reconnect to the row pipeline that `rpd_der_strong` and
+  `bp_der_strong` actually use.
+- The matching accounting lemmas are
+  `rsizes_rpder_strong_rows_full_cover_shared_suffix` and
+  `asizes_bpder_strong_rows_full_cover_shared_suffix`. They expose the same
+  full-cover deletion as a one-row size equation, which is the form future
+  cardinality/member-size proofs should use when counting the Chapter-7
+  overlap family.
 - Proof-performance rule reinforced: avoid `then show ... by simp` in
   constructor cases when `then` carries large or irrelevant induction
   hypotheses. In this checkpoint the `RBACKREF4` case of

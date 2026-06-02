@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong full-cover row output)
+Last updated: 2026-06-02 (strong full-cover derivative surface)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -148,6 +148,20 @@ Last updated: 2026-06-02 (strong full-cover row output)
   same for `arexp` using `eq1_member`. These facts are closer to
   `rpder_strong_rows`/`bpder_strong_rows`, whose definitions inspect the
   flattened pruned row list directly.
+- Connected that deletion atom to the actual derivative-row surfaces. The new
+  checked lemmas `rpder_strong_rows_full_cover_shared_suffix` and
+  `bpder_strong_rows_full_cover_shared_suffix` say that if the raw one-step
+  derivative rows flatten to two shared-suffix rows and the later row is fully
+  covered by the earlier row, then the real strong-row derivative output is
+  exactly the earlier row. This is a small but important accounting bridge:
+  future row-count bounds can cite the executable/proof pipeline itself,
+  rather than only the internal prune helper.
+- Added direct size-accounting views of the same bridge:
+  `rsizes_rpder_strong_rows_full_cover_shared_suffix` and
+  `asizes_bpder_strong_rows_full_cover_shared_suffix`. These are deliberately
+  narrow facts for the Chapter-7 overlap atom: they turn full-cover deletion
+  into a one-row `rsizes`/`asizes` equation without unfolding the whole
+  derivative-row pipeline in later bound proofs.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

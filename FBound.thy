@@ -2010,6 +2010,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma asizes_bpder_strong_rows_full_cover_shared_suffix:
+  assumes raw: "flts (concat (map (bpder_strong_list c) rs)) =
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]"
+    and cover: "\<forall>r \<in> set rrs. eq1_member r lrs"
+    and suffix: "k1 ~1 k2"
+  shows "asizes (bpder_strong_rows c rs) =
+    asize (ASEQ bs1 (AALTs lbs lrs) k1)"
+proof -
+  have rows:
+    "bpder_strong_rows c rs = [ASEQ bs1 (AALTs lbs lrs) k1]"
+    by (rule bpder_strong_rows_full_cover_shared_suffix
+        [OF raw cover suffix])
+  show ?thesis
+    by (simp add: rows asizes_def)
+qed
+
 lemma asize_bp_der_strong_le_asizes:
   "asize (bp_der_strong c r) \<le> Suc (asizes (bpder_norm_list c r))"
 proof -
