@@ -2058,10 +2058,49 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
-  def checkStrongDeferredMemoEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
+  def checkStrongDeferredMemoEvilFamilyTrace(
+      k: Int,
+      lengths: List[Int],
+      treeThreshold: Int,
+      dagThreshold: Int,
+      shapeThreshold: Int
+  ): Unit = {
     val r = thesisCh7Evil(k)
     val trace = lengths.map { n =>
-      n -> strongDeferredMemoResult(r, "a" * n)
+      val input = "a" * n
+      val result = strongDeferredMemoResult(r, input)
+      checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
+      if (!result.value.exists(flatVal(_) == input)) {
+        throw new AssertionError(
+          s"""Chapter 7 strong memo-deferred value reconstruction failed
+             |k          = $k
+             |n          = $n
+             |regex      = $r
+             |input      = $input
+             |memo       = ${result.value}
+             |strongTree = ${result.strongTree}
+             |strongDag  = ${result.strongDag}
+             |""".stripMargin
+        )
+      }
+      if (treeThreshold > 0 && result.strongTree >= treeThreshold) {
+        val out = bdersStrong(intern(r), input)
+        println(s"Chapter 7 strong failed-shape n=$n: ${shortCounts(out)}")
+        throw new AssertionError(
+          s"Chapter 7 strong tree threshold failed at n=$n: asize=${result.strongTree} threshold=$treeThreshold"
+        )
+      }
+      if (dagThreshold > 0 && result.strongDag >= dagThreshold) {
+        throw new AssertionError(
+          s"Chapter 7 strong DAG threshold failed at n=$n: adagSize=${result.strongDag} threshold=$dagThreshold"
+        )
+      }
+      if (shapeThreshold > 0 && result.strongShapeDag >= shapeThreshold) {
+        throw new AssertionError(
+          s"Chapter 7 strong shape-DAG threshold failed at n=$n: ashapeDagSize=${result.strongShapeDag} threshold=$shapeThreshold"
+        )
+      }
+      n -> result
     }
     println(s"Chapter 7 k=$k strong deferred memo trace: " +
       trace.map { case (n, s) =>
@@ -2966,7 +3005,7 @@ object PosixCubicSmoke {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
     }
     if (traceStrongDeferredMemo) {
-      checkStrongDeferredMemoEvilFamilyTrace(ch7K, ch7Lengths)
+      checkStrongDeferredMemoEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     }
     if (traceStrongSafe) {
       checkStrongSafeEvilFamilyTrace(ch7K, ch7Lengths)

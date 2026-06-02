@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong deferred trace is a guard, not just a report
+
+- The current counterexample-driven route is: keep the small thesis
+  `bsimpStrong` tree for recognition, and recover the exact POSIX value from
+  the original-root span/memo table.
+- `-TraceStrongDeferredMemo` now enforces this discipline on the Chapter 7
+  evil family: it checks reconstructed value flatness, checks optional
+  tree/DAG/shape thresholds, and verifies the memo span/split universe bound.
+  Exact baseline value comparison remains in the bounded exhaustive/random and
+  known-CE smoke grids; running the old baseline derivative on the full Ch7
+  trace is itself heap-explosive.
+- Design consequence: future simplifier experiments should be judged by both
+  constraints at once. A small final tree with a bad value is a counterexample;
+  a correct value with an exploding tree is also a counterexample for the cubic
+  route.
+
 ## 2026-06-03: Full span value table is key-bounded
 
 - Added `rexp_span_posix_key` and proved it is injective over

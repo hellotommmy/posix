@@ -187,6 +187,17 @@ reconstructed from original `(regex, input)` spans. This gate now includes the
 known nested-star and greedy-sequence CEs, so keep it green before trying any
 Isabelle proof route based on the strong tree plateau.
 
+When measuring this route on the Chapter 7 family, use
+`scala_cubic_smoke.ps1 -TraceStrongDeferredMemo` with explicit tree/DAG/shape
+thresholds. This trace is a guard, not just a report: it checks reconstructed
+value flatness, memo span/split universe bounds, and the selected size
+thresholds. Do not run the old baseline derivative lexer on the full Chapter 7
+trace; that path is heap-explosive and recreates the old growth problem. Exact
+baseline POSIX value equality belongs in the bounded exhaustive/random and
+known-CE smoke grids. Treat either a small tree with a bad value or a correct
+value with an exploding tree as the next counterexample to repair before proof
+work.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

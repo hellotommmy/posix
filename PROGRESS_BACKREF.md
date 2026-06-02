@@ -1,6 +1,29 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (span value-table bound)
+Last updated: 2026-06-03 (strong deferred Ch7 guard)
+
+## Cubic Candidate Prototype: Strong Deferred Ch7 Guard (2026-06-03)
+
+- Tightened the Scala CEGAR pipeline for the user's preferred route: keep the
+  thesis `bsimpStrong` tree as the small recognition state, but recover the
+  exact POSIX value through the original-root span/memo table.
+- `-TraceStrongDeferredMemo` is no longer just a printer. On the Chapter 7
+  evil family it now:
+  - checks that `StrongDeferredMemo` reconstructs a defined value whose
+    `flat` is the traced input;
+  - enforces optional strong-tree, DAG, and shape-DAG thresholds;
+  - checks the memo span/split universe bound for every traced input length.
+- A first version compared against the old baseline derivative lexer on the
+  full Chapter 7 trace. That immediately ran out of heap because the baseline
+  route is exactly the explosive behavior under study. Therefore exact
+  baseline value comparison remains in the bounded exhaustive/random/known-CE
+  smoke grids, while the large Ch7 trace uses the span/memo spec plus flatness
+  and universe checks.
+- This means a future algorithm tweak can only survive the smoke gate if it
+  keeps the small `bsimpStrong`-style tree and preserves the exact POSIX
+  value. Local certificate routes that fail greedy-boundary CEs remain useful
+  as counterexample miners, not as bounty targets.
+- This is a smoke-discipline checkpoint, not a cubic-bound proof claim.
 
 ## Cubic Candidate Prototype: Checked Span Value-Table Bound (2026-06-03)
 
