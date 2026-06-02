@@ -2154,8 +2154,9 @@ lemma asizes_bsimpStrong_prune_rows_le:
   using asizes_bsimpStrong_prune_rows_acc_le[of "[]" rs]
   by (simp add: bsimpStrong_prune_rows_def)
 
-lemma asize_bsimpStrong_AALTs_le:
-  "asize (bsimpStrong_AALTs bs rs) \<le> asize (AALTs bs rs)"
+lemma asize_bsimpStrong_AALTs_le_pruned:
+  "asize (bsimpStrong_AALTs bs rs) \<le>
+    Suc (asizes (bsimpStrong_prune_rows rs))"
 proof -
   have "asize (bsimpStrong_AALTs bs rs) \<le>
       Suc (asizes (distinctWith (flts (bsimpStrong_prune_rows rs)) eq1 {}))"
@@ -2165,8 +2166,43 @@ proof -
     by simp
   also have "... \<le> Suc (asizes (bsimpStrong_prune_rows rs))"
     using asizes_flts_le[of "bsimpStrong_prune_rows rs"] by simp
+  finally show ?thesis .
+qed
+
+lemma asize_bsimpStrong_AALTs_le:
+  "asize (bsimpStrong_AALTs bs rs) \<le> asize (AALTs bs rs)"
+proof -
+  have "asize (bsimpStrong_AALTs bs rs) \<le>
+      Suc (asizes (bsimpStrong_prune_rows rs))"
+    by (rule asize_bsimpStrong_AALTs_le_pruned)
   also have "... \<le> Suc (asizes rs)"
     using asizes_bsimpStrong_prune_rows_le[of rs] by simp
+  finally show ?thesis
+    by (simp add: asizes_def)
+qed
+
+lemma asize_bsimpStrong_AALTs_two_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. eq1_member r lrs"
+      and suffix: "k1 ~1 k2"
+  shows "asize (bsimpStrong_AALTs bs
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]) <
+    asize (AALTs bs
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2])"
+proof -
+  have "asize (bsimpStrong_AALTs bs
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]) \<le>
+    Suc (asizes (bsimpStrong_prune_rows
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2]))"
+    by (rule asize_bsimpStrong_AALTs_le_pruned)
+  also have "... < Suc (asizes
+      [ASEQ bs1 (AALTs lbs lrs) k1,
+       ASEQ bs2 (AALTs rbs rrs) k2])"
+    using asizes_bsimpStrong_prune_rows_two_shared_suffix_lt[OF hit suffix]
+    by simp
   finally show ?thesis
     by (simp add: asizes_def)
 qed

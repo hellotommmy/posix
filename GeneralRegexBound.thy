@@ -17131,8 +17131,8 @@ lemma rsizes_rsimpStrong_prune_rows_le:
   using rsizes_rsimpStrong_prune_rows_acc_le[of "[]" rs]
   by (simp add: rsimpStrong_prune_rows_def)
 
-lemma rsize_rsimpStrong_ALTs_le:
-  "rsize (rsimpStrong_ALTs rs) \<le> rsize (RALTS rs)"
+lemma rsize_rsimpStrong_ALTs_le_pruned:
+  "rsize (rsimpStrong_ALTs rs) \<le> Suc (rsizes (rsimpStrong_prune_rows rs))"
 proof -
   have "rsize (rsimpStrong_ALTs rs) \<le>
       Suc (rsizes
@@ -17143,8 +17143,35 @@ proof -
     by simp
   also have "... \<le> Suc (rsizes (rsimpStrong_prune_rows rs))"
     using rflts_mono[of "rsimpStrong_prune_rows rs"] by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_rsimpStrong_ALTs_le:
+  "rsize (rsimpStrong_ALTs rs) \<le> rsize (RALTS rs)"
+proof -
+  have "rsize (rsimpStrong_ALTs rs) \<le> Suc (rsizes (rsimpStrong_prune_rows rs))"
+    by (rule rsize_rsimpStrong_ALTs_le_pruned)
   also have "... \<le> Suc (rsizes rs)"
     using rsizes_rsimpStrong_prune_rows_le[of rs] by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_rsimpStrong_ALTs_two_shared_suffix_lt:
+  assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
+  shows "rsize (rsimpStrong_ALTs
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]) <
+    rsize (RALTS [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k])"
+proof -
+  have "rsize (rsimpStrong_ALTs
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]) \<le>
+    Suc (rsizes (rsimpStrong_prune_rows
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k]))"
+    by (rule rsize_rsimpStrong_ALTs_le_pruned)
+  also have "... < Suc (rsizes
+      [RSEQ (RALTS lrs) k, RSEQ (RALTS rrs) k])"
+    using rsizes_rsimpStrong_prune_rows_two_shared_suffix_lt[OF hit]
+    by simp
   finally show ?thesis
     by simp
 qed

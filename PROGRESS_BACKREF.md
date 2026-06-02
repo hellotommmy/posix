@@ -267,6 +267,15 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   when the second row shares the suffix and has any alternative covered by the
   first. This is the direct row-scanner potential fact needed before trying to
   generalize strict shrinkage to longer row lists.
+- Lifted the same strict-decrease fact to the actual alternative simplifier
+  surface. The new bridge lemmas `rsize_rsimpStrong_ALTs_le_pruned` and
+  `asize_bsimpStrong_AALTs_le_pruned` expose the size bound after the
+  `*_prune_rows` pass but before the final alternative constructor cap. The
+  checked theorems `rsize_rsimpStrong_ALTs_two_shared_suffix_lt` and
+  `asize_bsimpStrong_AALTs_two_shared_suffix_lt` then show that a two-row
+  shared-suffix overlap strictly shrinks the proof-level `rsimpStrong_ALTs`
+  and executable `bsimpStrong_AALTs` surfaces themselves. This connects the
+  Chapter-7 potential decrease to the actual stronger simplifier entry point.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
