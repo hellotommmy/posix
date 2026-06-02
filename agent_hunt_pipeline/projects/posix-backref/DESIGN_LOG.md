@@ -3,6 +3,34 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Cubic route must be smoke-first and POSIX-aware
+
+- Cubic-bound proof work is now explicitly smoke-gated. A simplifier candidate
+  must first pass checked regression tests for shared-suffix pruning, including
+  `(a+b).c + (a+d).c`, and for the thesis Chapter 7 three-layer-star family
+  `((a* + (aa)* + ... + (a...a)*)*)*`. A candidate with a known missing pruning
+  operation is diagnostic only; do not spend proof effort trying to certify it
+  as the final cubic route.
+- The reason is conceptual, not only engineering. Antimirov partial derivatives
+  get their finite/set-based behavior by organizing derivative results as rows
+  or linear forms, where exposing `(a+b).c` as comparable `a.c`/`b.c` rows lets
+  set reasoning remove duplicates or covered rows. The reference point is
+  Antimirov 1996, "Partial derivatives of regular expressions and finite
+  automaton constructions", DOI `10.1016/0304-3975(95)00182-4`, whose bounded
+  partial-derivative set theorem is the model for the desired state-space
+  accounting. POSIX lexing cannot simply distribute syntax this way, because
+  language-equivalent expressions can carry different value shapes.
+- In particular, `(a+b).c` and `a.c + b.c` can correspond to values shaped like
+  `Seq (Left x) y` versus `Left (Seq x y)`. Future candidates therefore need a
+  real pruning/reconstruction story: shared-suffix row pruning that preserves
+  POSIX values, delayed/indexed linear forms that compare rows without
+  destructively expanding the executable regex, proof-only normalization with
+  executable reconstruction, or a generalized POSIX-value equivalence with a
+  transfer theorem back to the original semantics.
+- `rsimp9` remains historical technical evidence only. It does not solve this
+  Antimirov/POSIX tension and must not be treated as a cubic-bound payout
+  candidate.
+
 ## 2026-05-31: Cubic non-backref size-bound direction
 
 - `rsimp7`/`bsimp7` is not safe as the root normalizer for an

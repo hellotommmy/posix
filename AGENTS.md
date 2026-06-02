@@ -25,6 +25,16 @@ Short version:
   or inductive case first, expose the relevant assumptions, and move complex
   branches into named helper lemmas. Do not fire broad `auto` at an undigested
   goal; it can rewrite or split the state into a harder, less recoverable form.
+- Cubic-bound candidates must pass extensive checked smoke tests before proof
+  work. At minimum test shared-suffix pruning like `(a+b)c + (a+d)c` and the
+  thesis Chapter 7 three-layer-star family. If a candidate is known to miss a
+  required pruning rule, retire or re-scope it instead of proving around the
+  defect.
+- The cubic route must reconcile Antimirov-style row/set deduplication with
+  POSIX value preservation. Naively distributing `(a+b)c` to `ac+bc` can change
+  value shape (`Seq (Left x) y` vs `Left (Seq x y)`), so use pruning,
+  delayed/indexed linear forms, reconstruction, or a generalized POSIX-value
+  equivalence before claiming a proof route.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

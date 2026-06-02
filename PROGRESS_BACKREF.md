@@ -1,6 +1,22 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (smoke-first cubic route)
+Last updated: 2026-06-02 (smoke-first Antimirov/POSIX rule)
+
+## Cubic Bound Guidance Update: Smoke Before Proof (2026-06-02)
+
+- Added a hard rule to the project instructions: cubic-bound proof routes are
+  forbidden until the proposed simplifier has passed checked smoke tests for
+  shared-suffix pruning and the thesis Chapter 7 three-layer-star family. A
+  simplifier with a known missing pruning rule is diagnostic work only, not a
+  proof/bounty target.
+- Recorded the Antimirov/POSIX design tension. Antimirov partial derivatives
+  gain their small-state behavior by using sets/linear forms that can expose
+  and deduplicate rows such as the `a.c` overlap in `(a+b).c + (a+d).c`.
+  POSIX value semantics cannot blindly distribute `(a+b).c` into `a.c+b.c`,
+  because this changes value shape (`Seq (Left x) y` versus
+  `Left (Seq x y)`). Future cubic candidates must provide pruning without
+  destructive value loss, or introduce a generalized POSIX-value equivalence
+  with a transfer theorem back to the original semantics.
 
 ## Cubic Bound Checkpoint: Smoke-First Route Reset (2026-06-02)
 

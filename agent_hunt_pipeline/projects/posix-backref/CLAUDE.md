@@ -63,6 +63,69 @@ parallel regex datatypes. The final regex datatypes should be the original
 `rexp` and annotated `arexp`; pilot-only `brexp`, `gbrexp`, `barexp`, and
 `gabexp` are migration scaffolding only.
 
+## Cubic Bound Smoke-First Rule
+
+The non-backref cubic size-bound project is smoke-test gated. Do not try to
+prove a cubic theorem for a simplifier candidate until the candidate has first
+passed an extensive checked smoke/regression suite in `FBound.thy`.
+
+Minimum smoke coverage for a serious cubic candidate:
+
+- Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated
+  `a.c` contribution without losing the `b.c` and `d.c` alternatives.
+- Thesis Chapter 7 evil family: the three-layer star shape
+  `((a* + (aa)* + ... + (a...a)*)*)*` must not exhibit the old exponential
+  growth behavior under repeated derivatives.
+- Counterexample pressure tests C/D/E/F or later successors must expose
+  concrete weaknesses of older simplifiers and show the new candidate fixing
+  them by checked evaluation lemmas.
+
+If the candidate is already known to lack a necessary pruning/simplification
+operation, stop and re-scope it as diagnostic work. Do not continue with a
+proof route just because Isabelle can state conditional cubic hooks. Bounty for
+a proof route may only be locked after the smoke suite passes; failed smoke
+tests revoke or block the proof bounty.
+
+`rsimp9` is historical evidence only. It repaired some root-safe and counted
+repetition issues, but it is not the shared-suffix/Chapter-7 pruning candidate
+and must not be used as a payout artifact for the cubic theorem.
+
+## Antimirov/POSIX Pruning Insight
+
+The cubic route must take Antimirov partial derivatives seriously, but cannot
+copy the set construction naively. Antimirov-style partial derivatives and
+linear forms gain their small-state behavior by viewing derivative results as
+sets of rows/continuations. In that setting it is natural to expose the shared
+suffix structure of `(a+b).c` by treating it like the rows `a.c` and `b.c`, so
+duplicate or covered rows can be removed by set reasoning.
+
+Reference point: Valentin Antimirov, "Partial derivatives of regular
+expressions and finite automaton constructions", Theoretical Computer Science
+155(2), 1996, DOI `10.1016/0304-3975(95)00182-4`. The relevant proof idea is
+that all partial derivatives of a regex form a finite set bounded by the number
+of letter occurrences plus one; our POSIX problem is how to recover comparable
+deduplication without losing value shape.
+
+The POSIX lexer setting has an extra invariant: the parse value/bitcode shape
+matters. Blindly distributing `(a+b).c` to `a.c + b.c` can preserve language but
+change POSIX values, for example from `Seq (Left x) y` to `Left (Seq x y)`.
+Therefore the central research problem is to get Antimirov-like deduplication
+without destructively changing the value semantics.
+
+Acceptable design routes include, but are not limited to:
+
+- a stronger `bsimp`/`rsimp` that performs shared-suffix pruning while keeping
+  a proof of POSIX value reconstruction;
+- delayed or indexed linear forms that can compare rows across associative
+  boundaries without expanding the executable regex structure;
+- proof-only normalization plus executable reconstruction;
+- a generalized POSIX value/equivalence layer where shapes such as
+  `Seq (Left x) y` and `Left (Seq x y)` are related, followed by a transfer
+  theorem back to the original POSIX value semantics.
+
+Every cubic proof attempt must state which route it is using and how POSIX
+value preservation or reconstruction is handled.
+
 ## Strict Prohibitions
 
 - Do not store or print GitHub PATs or other secrets.
@@ -81,6 +144,9 @@ parallel regex datatypes. The final regex datatypes should be the original
 - Do not use destructive git commands such as `git reset --hard`.
 - Do not introduce axioms that duplicate theorems you want to prove.
 - Do not add definitions or lemmas that already exist -- always search first.
+- Do not pursue a cubic-bound proof for a simplifier that has not passed the
+  required smoke suite or is known to miss a required shared-suffix/pruning
+  rule.
 
 ## ABSOLUTE RULE: Never Throw Away Useful Work
 
