@@ -1194,3 +1194,13 @@ to be read before continuing long-running agent work.
   Chapter-7 shared-suffix replacement is grouped-row normal. Future work should
   refine this into a finite root-owned universe and cardinality/member-size
   proof, rather than using the infinite predicate directly.
+- The same grouped-row shape is now preserved by the proof-level strong
+  simplifier itself. The pair/prune scanner lemmas
+  `row_group_nf_rsimpStrong_prune_pair`,
+  `row_group_nf_rsimpStrong_prune_against_rows`, and
+  `row_group_nf_rsimpStrong_prune_rows` use the shared-prune bridge above,
+  while `row_group_nf_rsimpStrong_ALTs` packages the final normalize step.
+  The recursive theorem `row_group_nf_rsimpStrong` is the useful entry point
+  for the remaining closure work: after a normalized derivative member is
+  shown to have grouped-row shape, `rsimpStrong` will preserve it. What is
+  still missing is finite root-owned membership, not shape preservation.

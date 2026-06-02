@@ -73,6 +73,16 @@ Last updated: 2026-06-02 (strong-row grouped-row normal form)
   the later row alternatives and suffix are grouped-row normal. This is not a
   finite-universe proof yet; it is the checked shape invariant the finite
   root-owned universe should refine.
+- Proved that the proof-level stronger simplifier preserves this grouped-row
+  shape. The checked chain
+  `row_group_nf_rsimpStrong_prune_pair`,
+  `row_group_nf_rsimpStrong_prune_against_rows`,
+  `row_group_nf_rsimpStrong_prune_rows`,
+  `row_group_nf_rsimpStrong_ALTs`, and `row_group_nf_rsimpStrong` shows the
+  Chapter-7 prune scanner and recursive `rsimpStrong` do not leave the
+  enlarged normal-form class. This narrows the remaining concrete-universe
+  work to proving that normalized derivative members enter a finite
+  root-owned subset of this shape class.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
