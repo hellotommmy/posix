@@ -50,9 +50,9 @@ immutability.
 | BR-031 | Cubic non-backref size-bound blueprint | 5,000 | 120 | 8 | 5,000 | OPEN | - | PROGRESS_BACKREF.md;BasicIdentities.thy;ClosedFormsBounds.thy;FBound.thy | AdminReview | State the cubic target, fragment invariant, and Antimirov-style frontier plan; no theorem payout for wrapper-only restatements |
 | BR-033 | Prove partial-derivative universe cubic bound | 12,000 | 300 | 10 | 12,000 | OPEN | - | GeneralRegexBound.thy:partial_derivative_path_universe,partial_derivative_live_row_universe,rfrontier_path_continuation_subset_path_universe,partial_derivative_live_row_universe_subset_path,rsizes_distinct_live_row_universe_cubic,rsizes_rpders_norm17_rows_live_row_universe_cubic,raw_live_row_universe_not_closed_under_norm7 | Isabelle:Posix | Replace `card(sizeNregex N)` reasoning with a finite universe generated from subterms/continuations of the original non-backref regex; corrected live-row accounting is checked and inherits the path-universe cubic bound; remaining work is the normalized-root live-row one-step closure for `rpder_norm7_list` |
 | BR-034 | Transfer cubic bound to annotated lexer states | 8,000 | 260 | 10 | 8,000 | OPEN | - | FBound.thy:asize_bp_der_norm_cubic,RL_rerase_bders_pder_norm,rpders_norm1_rows_rerase,annotated_size_bound_cubic_nonbackref | Isabelle:Posix | Final non-backref theorem for normalized row-list `bpders_norm1_rows`/future production `bsimp`; backref constructors explicitly excluded from the fragment |
-| BR-038 | Cubic smoke and counterexample suite | 6,000 | 120 | 8 | 6,000 | OPEN | - | FBound.thy:thesis_cubic_smoke_A_shared_suffix,thesis_cubic_smoke_B_ch7_three_star,thesis_cubic_counterexample_C,thesis_cubic_counterexample_D,thesis_cubic_counterexample_E,thesis_cubic_counterexample_F | Isabelle:Posix | Build a checked smoke suite before any new cubic proof attempt. A is `(a+b)c + (a+d)c`; B is the thesis Chapter 7 three-star family. Also add at least four C/D/E/F examples that expose current `bsimp`/weak-simp growth or missed pruning. No proof bounty may depend on a simplifier that fails this suite. |
+| BR-038 | Cubic smoke and counterexample suite | 6,000 | 120 | 8 | 6,000 | OPEN | - | FBound.thy:thesis_cubic_smoke_A_shared_suffix,thesis_cubic_smoke_B_ch7_three_star,thesis_cubic_smoke_B_ch7_three_star_grid,thesis_cubic_counterexample_C,thesis_cubic_counterexample_D,thesis_cubic_counterexample_E,thesis_cubic_counterexample_F,thesis_cubic_counterexample_G,thesis_cubic_counterexample_H | Isabelle:Posix | Build a checked smoke suite before any new cubic proof attempt. A is `(a+b)c + (a+d)c`; B is the thesis Chapter 7 three-star family. Also add at least four C/D/E/F examples that expose current `bsimp`/weak-simp growth or missed pruning. No proof bounty may depend on a simplifier that fails this suite. |
 | BR-039 | Define smoke-tested cubic simplifier candidate | 25,000 | 260 | 10 | 25,000 | OPEN | - | GeneralRegexBound.thy:rsimpCubic,rders_simpCubic;BlexerSimp.thy:bsimpCubic,bders_simpCubic;FBound.thy:thesis_cubic_smoke_suite_bsimpCubic | Isabelle:Posix | Define a new candidate, not `rsimp9`, that passes BR-038 smoke tests including shared-suffix pruning and the three-star family under explicit checked size thresholds. Existing `rsimp9` lemmas may be mined only as technical ideas, not as bounty artifacts or proof targets. |
-| BR-040 | Post-smoke cubic proof interface | 8,000 | 180 | 9 | 8,000 | OPEN | - | GeneralRegexBound.thy:rsimpCubic_size_le,RL_rsimpCubic,rsizes_rpders_cubic_rows_smoke_universe_boundI;FBound.thy:RL_rerase_bders_simpCubic | Isabelle:Posix | Only after BR-038 and BR-039: state the first proof interface for the smoke-tested simplifier. This is not a final cubic theorem; it must not mention `rsimp9` as the candidate simplifier. |
+| BR-040 | Post-smoke cubic proof interface | 8,000 | 180 | 9 | 8,000 | OPEN | - | GeneralRegexBound.thy:rsimpCubic_size_le,RL_rsimpCubic,rsizes_rpders_cubic_rows_smoke_universe_boundI;FBound.thy:L_bsimpCubic,RL_rerase_bsimpCubic,RL_rerase_bders_simpCubic | Isabelle:Posix | Only after BR-038 and BR-039: state the first proof interface for the smoke-tested simplifier. This is not a final cubic theorem; it must not mention `rsimp9` as the candidate simplifier. |
 
 ## Retired / Revoked
 
@@ -68,6 +68,16 @@ immutability.
   not active bounty targets, cannot be locked, and cannot be collected. New
   cubic work must pass the BR-038 smoke suite before any proof-oriented bounty
   can be attempted.
+- BR-038/BR-039 now have a stronger checked smoke checkpoint, still not a
+  payout: `thesis_cubic_smoke_B_ch7_three_star_grid` checks the Chapter 7
+  `k=5` family at derivative lengths `4`, `8`, `12`, `16`, and `20` under the
+  same `bsimpCubic` candidate; `thesis_cubic_counterexample_G` and
+  `thesis_cubic_counterexample_H` check that `bsimpCubic` is not merely a
+  `bsimpStrong` wrapper because it cleans counted repetitions (`ANTIMES`) that
+  `bsimpStrong` leaves untouched. The erased-language bridges `L_bsimpCubic`,
+  `RL_rerase_bsimpCubic`, and `RL_rerase_bders_simpCubic` are checked support
+  facts only; the full cubic theorem and POSIX/bitcode-preserving route remain
+  open.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

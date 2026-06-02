@@ -1,6 +1,24 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (smoke-first Antimirov/POSIX rule)
+Last updated: 2026-06-02 (checked bsimpCubic smoke extensions)
+
+## Cubic Candidate Checkpoint: bsimpCubic Smoke Extensions (2026-06-02)
+
+- Strengthened the checked `FBound.thy` smoke suite for the current
+  `bsimpCubic`/`bders_simpCubic` candidate without marking any cubic bounty as
+  done. The Chapter 7 `k=5` three-layer-star family is now checked at
+  derivative lengths `4`, `8`, `12`, `16`, and `20`, all under the explicit
+  `asize < 1000` smoke threshold.
+- Added two counted-repetition pressure tests:
+  `thesis_cubic_counterexample_G` and `thesis_cubic_counterexample_H`. These
+  show that `bsimpCubic` is not just a `bsimpStrong` wrapper: it simplifies
+  `ANTIMES` bodies/zero counts that `bsimpStrong` deliberately leaves alone.
+- Added erased-language preservation support for the candidate:
+  `L_bsimpCubic`, `RL_rerase_bsimpCubic`, and
+  `RL_rerase_bders_simpCubic`. This is a necessary correctness bridge for the
+  candidate, not the final POSIX value/bitcode preservation theorem and not a
+  cubic-bound payout.
+- Build evidence: focused Isabelle `Posix` build PASS via bundled Cygwin bash.
 
 ## Cubic Bound Guidance Update: Smoke Before Proof (2026-06-02)
 

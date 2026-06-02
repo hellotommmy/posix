@@ -888,6 +888,71 @@ next
   qed (use ih in simp_all)
 qed simp_all
 
+lemma L_bsimpCubic:
+  "L (erase (bsimpCubic r)) = L (erase r)"
+proof (induct r rule: bsimpCubic.induct)
+  case (1 bs r1 r2)
+  then show ?case
+    by (simp add: L_bsimp7_ASEQ_atom)
+next
+  case (2 bs rs)
+  have rows:
+    "L (erase (AALTs bs (map bsimpCubic rs))) =
+      L (erase (AALTs bs rs))"
+    using 2 by (auto simp add: L_erase_AALTs_set)
+  show ?case
+    by (simp add: L_bsimpStrong_AALTs L_flts_AALTs rows)
+next
+  case (3 bs r)
+  note ih = 3
+  show ?case
+  proof (cases "bsimpCubic r")
+    case AZERO
+    have body: "L (erase r) = {}"
+      using ih AZERO by simp
+    then show ?thesis
+      using AZERO body by simp
+  next
+    case (AONE x2)
+    have body: "L (erase r) = {[]}"
+      using ih AONE by simp
+    then show ?thesis
+      using AONE body by simp
+  next
+    case (ASTAR x61 x62)
+    have body: "L (erase r) = (L (erase x62))\<star>"
+      using ih ASTAR by simp
+    then show ?thesis
+      using ASTAR body by (simp add: Star_idem)
+  qed (use ih in simp_all)
+next
+  case (4 bs r n)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc m)
+    have ih_body: "L (erase (bsimpCubic r)) = L (erase r)"
+      using 4 Suc by simp
+    show ?thesis
+    proof (cases "bsimpCubic r")
+      case AZERO
+      have body: "{} = L (erase r)"
+        using ih_body AZERO by simp
+      then show ?thesis
+        using Suc AZERO body[symmetric] by (simp add: lang_pow_empty)
+    next
+      case (AONE bs')
+      have body: "{[]} = L (erase r)"
+        using ih_body AONE by simp
+      then show ?thesis
+        using Suc AONE body[symmetric] by (simp add: lang_pow_epsilon)
+    qed (use 4 Suc in simp_all)
+  qed
+qed simp_all
+
 lemma RL_rerase_AALTs:
   assumes "\<And>r. r \<in> set rs \<Longrightarrow> RL (rerase r) = L (erase r)"
   shows "RL (RALTS (map rerase rs)) = L (erase (AALTs bs rs))"
@@ -941,6 +1006,10 @@ lemma RL_rerase_bsimpStrong:
   "RL (rerase (bsimpStrong r)) = RL (rerase r)"
   by (simp add: RL_rerase L_bsimpStrong)
 
+lemma RL_rerase_bsimpCubic:
+  "RL (rerase (bsimpCubic r)) = RL (rerase r)"
+  by (simp add: RL_rerase L_bsimpCubic)
+
 lemma RL_rerase_bsimpStrong_rsimpStrong:
   "RL (rerase (bsimpStrong r)) = RL (rsimpStrong (rerase r))"
   by (simp add: RL_rerase_bsimpStrong RL_rsimpStrong)
@@ -960,6 +1029,28 @@ next
     by (rule Cons.hyps)
   also have "... = Ders s (RL (rerase (bder c r)))"
     by (simp add: RL_rerase_bsimpStrong)
+  also have "... = Ders s (Der c (RL (rerase r)))"
+    by (simp add: rder_bder_rerase[symmetric] RL_rder)
+  also have "... = Ders (c # s) (RL (rerase r))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RL_rerase_bders_simpCubic:
+  "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have "RL (rerase (bders_simpCubic r (c # s))) =
+      RL (rerase (bders_simpCubic (bsimpCubic (bder c r)) s))"
+    by simp
+  also have "... = Ders s (RL (rerase (bsimpCubic (bder c r))))"
+    by (rule Cons.hyps)
+  also have "... = Ders s (RL (rerase (bder c r)))"
+    by (simp add: RL_rerase_bsimpCubic)
   also have "... = Ders s (Der c (RL (rerase r)))"
     by (simp add: rder_bder_rerase[symmetric] RL_rder)
   also have "... = Ders (c # s) (RL (rerase r))"
@@ -3178,6 +3269,19 @@ lemma thesis_cubic_smoke_B_ch7_three_star:
       (replicate 16 thesis_ch7_a)) < 825"
   by eval+
 
+lemma thesis_cubic_smoke_B_ch7_three_star_grid:
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 4 thesis_ch7_a)) < 1000"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 8 thesis_ch7_a)) < 1000"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 12 thesis_ch7_a)) < 1000"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 1000"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 20 thesis_ch7_a)) < 1000"
+  by eval+
+
 definition thesis_cubic_counterexample_C :: arexp where
   "thesis_cubic_counterexample_C =
     AALTs []
@@ -3276,10 +3380,44 @@ lemma thesis_cubic_counterexample_F_checks:
     asize thesis_cubic_counterexample_F"
   by eval+
 
+definition thesis_cubic_counterexample_G :: arexp where
+  "thesis_cubic_counterexample_G =
+    ANTIMES [] (AALTs [] [AZERO, AONE []]) 3"
+
+definition thesis_cubic_counterexample_G_pruned :: arexp where
+  "thesis_cubic_counterexample_G_pruned = AONE []"
+
+lemma thesis_cubic_counterexample_G_checks:
+  "bsimpStrong thesis_cubic_counterexample_G =
+    thesis_cubic_counterexample_G"
+  "bsimpCubic thesis_cubic_counterexample_G =
+    thesis_cubic_counterexample_G_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_G) <
+    asize thesis_cubic_counterexample_G"
+  by eval+
+
+definition thesis_cubic_counterexample_H :: arexp where
+  "thesis_cubic_counterexample_H =
+    ANTIMES [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b]) 0"
+
+definition thesis_cubic_counterexample_H_pruned :: arexp where
+  "thesis_cubic_counterexample_H_pruned = AONE []"
+
+lemma thesis_cubic_counterexample_H_checks:
+  "bsimpStrong thesis_cubic_counterexample_H =
+    thesis_cubic_counterexample_H"
+  "bsimpCubic thesis_cubic_counterexample_H =
+    thesis_cubic_counterexample_H_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_H) <
+    asize thesis_cubic_counterexample_H"
+  by eval+
+
 lemma thesis_cubic_smoke_suite_bsimpCubic:
   "bsimpCubic thesis_ch7_overlap = thesis_ch7_overlap_pruned"
   "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
       (replicate 16 thesis_ch7_a)) < 825"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 20 thesis_ch7_a)) < 1000"
   "bsimpCubic thesis_cubic_counterexample_C =
     thesis_cubic_counterexample_C_pruned"
   "bsimpCubic thesis_cubic_counterexample_D =
@@ -3288,6 +3426,10 @@ lemma thesis_cubic_smoke_suite_bsimpCubic:
     thesis_cubic_counterexample_E_pruned"
   "bsimpCubic thesis_cubic_counterexample_F =
     thesis_cubic_counterexample_F_pruned"
+  "bsimpCubic thesis_cubic_counterexample_G =
+    thesis_cubic_counterexample_G_pruned"
+  "bsimpCubic thesis_cubic_counterexample_H =
+    thesis_cubic_counterexample_H_pruned"
   by eval+
 
 lemma rders_simp3_size:
