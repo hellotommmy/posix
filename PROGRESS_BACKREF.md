@@ -1,6 +1,22 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong cubic worst-witness smoke)
+Last updated: 2026-06-03 (strong cubic budget CE finder)
+
+## Cubic Candidate Prototype: Strong Cubic Budget CE Finder (2026-06-03)
+
+- Added optional `-FindStrongCubicBudgetCE` /
+  `-ScalaSmokeFindStrongCubicBudgetCE`.
+- Given a positive `-StrongCubicFactor`, the finder searches random
+  `(regex, input)` pairs for
+  `asize(final bsimpStrong tree) > factor * rsize(regex)^3`.
+- When a hit is found, it prints the witness before and after greedy shrinking.
+  The shrinker uses a visited `(regex,input)` set, because same-size rewrites
+  such as alternation child replacement can otherwise cycle.
+- Sanity check: with deliberately tight factor `0.03`, seed `20260602`, the
+  finder reports a witness at random case `13` and shrinks it to a three-node
+  alternation. This is expected: too-small constants can be refuted by small
+  regexes before the asymptotic frontier becomes interesting.
+- This is a CE-mining tool, not a proof claim or a default CI gate.
 
 ## Cubic Candidate Prototype: Strong Cubic Worst-Witness Reporting (2026-06-03)
 

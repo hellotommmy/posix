@@ -1060,6 +1060,37 @@ object PosixCubicSmoke {
     }
   }
 
+  def strongCubicBudgetExceeded(r: Rexp, input: String, factor: Double): Boolean = {
+    if (factor <= 0.0) false
+    else {
+      val result = strongDeferredMemoResult(r, input)
+      result.strongTree.toLong > strongCubicTreeBound(r, factor)
+    }
+  }
+
+  def strongCubicBudgetReport(r: Rexp, input: String, label: String, factor: Double): String = {
+    val result = strongDeferredMemoResult(r, input)
+    val budget = strongCubicTreeBound(r, factor)
+    val obs = strongCubicObservation(r, input, result, label)
+    val base = baselineValue(r, input)
+    s"""strong cubic budget witness
+       |label        = $label
+       |regex        = $r
+       |input        = $input
+       |rsize        = ${obs.regexSize}
+       |factor       = $factor
+       |budget       = $budget
+       |strongTree   = ${result.strongTree}
+       |strongDag    = ${result.strongDag}
+       |ratio        = ${obs.ratio}
+       |base         = $base
+       |memo         = ${result.value}
+       |valueOK      = ${base == result.value}
+       |memoStates   = ${result.memo.acceptsStates}+${result.memo.valueStates}
+       |splitProbes  = ${result.memo.splitProbes}
+       |""".stripMargin
+  }
+
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrongSafe)
 
@@ -2768,6 +2799,27 @@ object PosixCubicSmoke {
     loop(startR, startInput)
   }
 
+  def shrinkStrongCubicBudgetCE(startR: Rexp, startInput: String, factor: Double): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
+      val nextSeen = seen + ((r, s))
+      val inputHit = inputShrinkCandidates(s)
+        .filterNot(t => nextSeen.contains((r, t)))
+        .find(t => strongCubicBudgetExceeded(r, t, factor))
+      inputHit match {
+        case Some(t) => loop(r, t, nextSeen)
+        case None =>
+          regexShrinkCandidates(r)
+            .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .find(candidate => strongCubicBudgetExceeded(candidate, s, factor)) match {
+            case Some(candidate) => loop(candidate, s, nextSeen)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput, Set.empty)
+  }
+
   def findStrongDirectValueCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
     val rng = new Random(seed)
     var found = false
@@ -2860,6 +2912,31 @@ object PosixCubicSmoke {
     }
     if (!found) {
       println(s"no raw inject loop CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    }
+  }
+
+  def findStrongCubicBudgetCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long, factor: Double): Unit = {
+    if (factor <= 0.0) {
+      throw new IllegalArgumentException("FindStrongCubicBudgetCE requires -StrongCubicFactor / POSIX_SMOKE_STRONG_CUBIC_FACTOR > 0")
+    }
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (strongCubicBudgetExceeded(r, s, factor)) {
+          found = true
+          println(strongCubicBudgetReport(r, s, s"strong cubic budget CE before shrinking (seed=$seed case=$checked)", factor))
+          val (shrunkR, shrunkS) = shrinkStrongCubicBudgetCE(r, s, factor)
+          println(strongCubicBudgetReport(shrunkR, shrunkS, "strong cubic budget CE after greedy shrinking", factor))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor)")
     }
   }
 
@@ -3024,6 +3101,7 @@ object PosixCubicSmoke {
     val findStrongCoreCE = boolSetting("posix.smoke.findStrongCoreCE", "POSIX_SMOKE_FIND_STRONG_CORE_CE", false)
     val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
+    val findStrongCubicBudgetCE = boolSetting("posix.smoke.findStrongCubicBudgetCE", "POSIX_SMOKE_FIND_STRONG_CUBIC_BUDGET_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
     val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
     val skipLegacyCubic = boolSetting("posix.smoke.skipLegacyCubic", "POSIX_SMOKE_SKIP_LEGACY_CUBIC", false)
@@ -3098,6 +3176,9 @@ object PosixCubicSmoke {
     }
     if (findRawInjectCE) {
       findRawInjectCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
+    }
+    if (findStrongCubicBudgetCE) {
+      findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor)
     }
     if (checkStrongCoreHand) {
       checkStrongCoreHandCases()

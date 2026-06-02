@@ -116,10 +116,26 @@ This suggests the reconstruction proof should talk about a span-indexed parser
 universe, not about decoding ordinary values from the final simplified regex.
 The current smoke enforces accepts/value states below
 `rsize(r) * (|s| + 1)^2` and split probes below
-`rsize(r) * (|s| + 1)^3`; when `-Ch7StrongCubicFactor` is enabled it also
+  `rsize(r) * (|s| + 1)^3`; when `-Ch7StrongCubicFactor` is enabled it also
 checks the strong recognition tree against `factor * rsize(root)^3`. These are
 intentionally smoke guards, not a replacement for the separate Isabelle
 regex-size cubic frontier argument.
+
+When tightening the constant, use the dedicated CE finder rather than relying
+on a failing CI line:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
+  -SkipLegacyCubic `
+  -FindStrongCubicBudgetCE `
+  -StrongCubicFactor 0.03 `
+  -RandomCases 1000 `
+  -RandomDepth 6 `
+  -RandomInputLength 7
+```
+
+The example factor is intentionally too tight; it verifies that the finder can
+report and greedily shrink a size-budget witness.
 
 The first checked Isabelle support for this route is now in
 `GeneralRegexBound.thy`:

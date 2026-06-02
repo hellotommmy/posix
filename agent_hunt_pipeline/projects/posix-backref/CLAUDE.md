@@ -217,6 +217,14 @@ checking them for budget failure. Use the reported witness as the next thing to
 shrink, explain, or turn into a compact regression when tightening constants
 or modifying the simplifier.
 
+When a tightened constant is suspected to fail, run
+`scala_cubic_smoke.ps1 -SkipLegacyCubic -FindStrongCubicBudgetCE
+-StrongCubicFactor <factor> ...`. The finder searches random cases and greedily
+shrinks the first budget violation. It tracks visited `(regex,input)` pairs to
+avoid same-size replacement loops; if it reports a tiny witness, that usually
+means the factor is too small as a universal finite-size constant, not that the
+asymptotic route failed.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

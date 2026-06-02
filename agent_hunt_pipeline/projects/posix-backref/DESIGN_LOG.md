@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong cubic budget finder shrinks CEs
+
+- Added optional `-FindStrongCubicBudgetCE` for the strong-deferred route.
+  It searches random regex/input pairs for a violation of
+  `factor * rsize(regex)^3`, then greedily shrinks the witness.
+- The shrinker tracks visited `(regex,input)` pairs. This matters because
+  same-size replacements can cycle even when every individual candidate looks
+  harmless.
+- Design consequence: use this before proof work when tightening constants or
+  changing the strong simplifier. A size-budget failure should come with a
+  compact witness, not just a large random term.
+
 ## 2026-06-03: Strong cubic smoke reports worst witnesses
 
 - The `StrongDeferredMemo` smoke now reports the largest observed
