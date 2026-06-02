@@ -100,9 +100,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
 Observed checkpoints:
 
 - depth 2 / input 3 exhaustive grid: `84,300` regex/input pairs preserve
-  exact POSIX values and satisfy the factor-1 strong cubic tree budget.
+  exact POSIX values and satisfy the factor-1 strong cubic tree budget. The
+  current worst non-tiny ratio is `0.112`, from
+  `NTIMES(STAR(CH a), 2)` on `aa`.
 - deterministic random grid: depth 6 / input 7 / seed `20260602` passes
-  factor-1 strong cubic budget on `1,000` cases.
+  factor-1 strong cubic budget on `1,000` cases; current worst non-tiny ratio
+  is `0.040`.
 - k=5, n=30: strong tree `958`, accepts states `1577`, value states `126`,
   split probes `6011`, span bound `44206`, split bound `1370386`; with
   `rsize=46`, the factor-1 cubic tree budget is `97336`.

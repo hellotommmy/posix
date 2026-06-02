@@ -211,6 +211,12 @@ budget to the exhaustive, known-CE, and random `StrongDeferredMemo` smoke
 cases. A candidate that only passes the Chapter 7 family but fails this general
 grid should be treated as a fresh CE, not as a proof target.
 
+Read the "worst strong cubic ratio" summaries printed by these smoke runs.
+They deliberately ignore `rsize < 5` examples in the summary, while still
+checking them for budget failure. Use the reported witness as the next thing to
+shrink, explain, or turn into a compact regression when tightening constants
+or modifying the simplifier.
+
 Before proof work, read
 `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
 the current proof-facing spec for replacing Scala closures with an Isabelle

@@ -1,6 +1,28 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (global strong-deferred cubic smoke)
+Last updated: 2026-06-03 (strong cubic worst-witness smoke)
+
+## Cubic Candidate Prototype: Strong Cubic Worst-Witness Reporting (2026-06-03)
+
+- Added worst-witness summaries to the `StrongDeferredMemo` smoke grids.
+  Budget checks still cover all regexes, but the summary ignores tiny
+  `rsize < 5` observations so `ZERO`/`ONE` do not dominate the report.
+- Each exhaustive, known-CE, random, and Chapter 7 trace now reports the
+  largest observed ratio `asize(final bsimpStrong tree) / rsize(regex)^3`.
+- Representative checked observations with factor `1.0`:
+  - exhaustive depth `2` / input `3`: worst ratio `0.112`, witness
+    `NTIMES(STAR(CH a), 2)` on `aa`, tree `14`, rsize `5`;
+  - known CE grid: worst ratio `0.029`, witness
+    `SEQ(STAR(ALT(STAR b, SEQ b a)), STAR a)` on `bb`, tree `29`, rsize
+    `10`;
+  - random depth `6` / input `7` / seed `20260602`: worst ratio `0.040`,
+    witness `ALT(SEQ(ZERO, ONE), ZERO)` on empty input in the `1,000`-case
+    run;
+  - Chapter 7 k=5 length 30: ratio `0.009842`;
+  - Chapter 7 k=8 length 32: ratio `0.003154`.
+- This makes the counterexample loop more actionable: the smoke no longer only
+  says pass/fail, it identifies the current size-pressure frontier to shrink or
+  generalize if the cubic budget is tightened later.
 
 ## Cubic Candidate Prototype: Global Strong-Deferred Cubic Smoke (2026-06-03)
 

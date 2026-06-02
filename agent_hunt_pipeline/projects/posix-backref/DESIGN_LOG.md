@@ -3,6 +3,17 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong cubic smoke reports worst witnesses
+
+- The `StrongDeferredMemo` smoke now reports the largest observed
+  `asize(final strong tree) / rsize(regex)^3` ratio in the exhaustive,
+  known-CE, random, and Chapter 7 grids.
+- Tiny regexes with `rsize < 5` are still checked against the budget but are
+  ignored for the summary so that `ZERO`/`ONE` do not hide useful witnesses.
+- Design consequence: use this as the next CEGAR steering signal. If the cubic
+  factor is tightened or a future simplifier changes the frontier, the reported
+  witness should be minimized/analyzed before moving to proof work.
+
 ## 2026-06-03: Strong-deferred cubic budget is now global smoke
 
 - Added `-StrongCubicFactor` / `-ScalaSmokeStrongCubicFactor` to check the

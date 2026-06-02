@@ -838,6 +838,17 @@ object PosixCubicSmoke {
       memo: PosixMemoResult
   )
 
+  final case class StrongCubicObservation(
+      label: String,
+      regex: Rexp,
+      input: String,
+      regexSize: Int,
+      strongTree: Int,
+      ratio: Double
+  )
+
+  val StrongCubicWorstMinRegexSize = 5
+
   def posixMemoResult(r: Rexp, input: String): PosixMemoResult = {
     val acceptsMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Boolean]
     val valueMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Option[Val]]
@@ -998,6 +1009,31 @@ object PosixCubicSmoke {
       math.ceil(factor * n * n * n).toLong
     } else {
       0L
+    }
+
+  def strongCubicObservation(r: Rexp, input: String, result: StrongDeferredMemoResult, label: String): StrongCubicObservation = {
+    val n = rsize(r)
+    val denom = math.max(1.0, n.toDouble * n.toDouble * n.toDouble)
+    StrongCubicObservation(label, r, input, n, result.strongTree, result.strongTree.toDouble / denom)
+  }
+
+  def strongerCubicWorst(
+      current: Option[StrongCubicObservation],
+      next: StrongCubicObservation
+  ): Option[StrongCubicObservation] =
+    if (next.regexSize < StrongCubicWorstMinRegexSize) current
+    else current match {
+      case None => Some(next)
+      case Some(old) =>
+        if (next.ratio > old.ratio || (next.ratio == old.ratio && next.strongTree > old.strongTree)) Some(next)
+        else current
+    }
+
+  def strongCubicWorstSummary(worst: Option[StrongCubicObservation]): String =
+    worst match {
+      case None => s"no strong cubic observations with rsize >= $StrongCubicWorstMinRegexSize"
+      case Some(w) =>
+        f"worst strong cubic ratio=${w.ratio}%.6f label=${w.label} tree=${w.strongTree} rsize=${w.regexSize} input=${w.input} regex=${w.regex}"
     }
 
   def checkStrongCubicTreeBudget(
@@ -1762,6 +1798,7 @@ object PosixCubicSmoke {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
+    var worst: Option[StrongCubicObservation] = None
     regexes.foreach { r =>
       inputs.foreach { s =>
         checked += 1
@@ -1769,6 +1806,7 @@ object PosixCubicSmoke {
         val result = strongDeferredMemoResult(r, s)
         val deferred = result.value
         checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
+        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"exhaustive case $checked"))
         checkStrongCubicTreeBudget(r, s, result, s"exhaustive case $checked", treeCubicFactor)
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
@@ -1786,7 +1824,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor)")
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
   }
 
   def checkStrongDeferredMemoRandomValuePreservation(
@@ -1798,6 +1836,7 @@ object PosixCubicSmoke {
   ): Unit = {
     val rng = new Random(seed)
     var checked = 0
+    var worst: Option[StrongCubicObservation] = None
     (0 until cases).foreach { _ =>
       checked += 1
       val r = randomRegex(rng, maxDepth)
@@ -1806,6 +1845,7 @@ object PosixCubicSmoke {
       val result = strongDeferredMemoResult(r, s)
       val deferred = result.value
       checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
+      worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"random seed=$seed case=$checked"))
       checkStrongCubicTreeBudget(r, s, result, s"random seed=$seed case=$checked", treeCubicFactor)
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
@@ -1823,7 +1863,7 @@ object PosixCubicSmoke {
         )
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor)")
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
   }
 
   def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double): Unit = {
@@ -1837,12 +1877,14 @@ object PosixCubicSmoke {
         List("", "a", "b", "bab", "abaaabab")
     )
     var checked = 0
+    var worst: Option[StrongCubicObservation] = None
     cases.foreach { case ((name, r), inputs) =>
       inputs.foreach { s =>
         checked += 1
         val base = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
         checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
+        worst = strongerCubicWorst(worst, strongCubicObservation(r, s, result, s"known CE $name input=$s"))
         checkStrongCubicTreeBudget(r, s, result, s"known CE $name input=$s", treeCubicFactor)
         if (base != result.value) {
           throw new AssertionError(
@@ -1860,7 +1902,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor)")
+    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor); ${strongCubicWorstSummary(worst)}")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {
@@ -2115,9 +2157,11 @@ object PosixCubicSmoke {
     val r = thesisCh7Evil(k)
     val rootSize = rsize(r).toLong
     val cubicTreeBound = strongCubicTreeBound(r, treeCubicFactor)
+    var worst: Option[StrongCubicObservation] = None
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
+      worst = strongerCubicWorst(worst, strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n"))
       checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
       if (!result.value.exists(flatVal(_) == input)) {
         throw new AssertionError(
@@ -2162,7 +2206,8 @@ object PosixCubicSmoke {
           s"/spanBound=$spanBound" +
           s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
           s"/splits=${s.memo.splitProbes}/splitBound=$splitBound"
-      }.mkString(", "))
+      }.mkString(", ") +
+      s"; ${strongCubicWorstSummary(worst)}")
   }
 
   def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
