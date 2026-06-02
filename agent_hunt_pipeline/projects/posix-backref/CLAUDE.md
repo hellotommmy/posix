@@ -174,6 +174,11 @@ certificate smoke. It composes `bder`, `bsimpStrongCoreCert`, `injectA`, and an
 accumulated continuation to reconstruct the original POSIX value. This is the
 main executable gate for the certified-core route.
 
+Before proof work, read
+`agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`. It is
+the current proof-facing spec for replacing Scala closures with an Isabelle
+relation and loop invariant.
+
 Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated

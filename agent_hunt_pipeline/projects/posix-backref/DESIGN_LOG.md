@@ -80,6 +80,12 @@ to be read before continuing long-running agent work.
   random depth `5`/input `6` (`3,000` cases, seed `20260602`). The remaining
   design task is no longer finding an executable value path; it is extracting a
   proof-facing invariant suitable for Isabelle.
+- Added `CERTIFIED_STRONG_CORE.md` as the proof-facing route document. It names
+  the relation-style invariant (`cert_recon`) that should replace Scala
+  closures in Isabelle, lists the certificate constructors, and records the
+  loop-level size trace. The new `-TraceStrongCoreLoop` smoke shows `maxCore`
+  stabilizing at `721` on Chapter 7 k=5 by input length `12`, which is the
+  current concrete size target for the proof-facing frontier argument.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

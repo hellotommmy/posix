@@ -100,6 +100,8 @@ Short version:
   reconstruction smoke: `bder`, certified simplification, `injectA`, and the
   accumulated continuation must reconstruct the same POSIX value as
   `baselineValue`.
+- Read `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`
+  before attempting Isabelle proof work for this route.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

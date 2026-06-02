@@ -128,6 +128,14 @@ Last updated: 2026-06-02 (derivative-loop certificate smoke added)
   exact POSIX values across a whole lexer run, not just for one simplification
   step. It remains a prototype until the corresponding invariant is stated and
   checked in Isabelle.
+- Added `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`,
+  the proof-facing spec for the certificate route. It records the intended
+  Isabelle relation `cert_recon`, the loop invariant shape, the certificate
+  constructors, and the current smoke commands.
+- Added `-TraceStrongCoreLoop`, a loop-size diagnostic. On the Chapter 7 k=5
+  family, `maxCore` stabilizes at `721` by input length `12`, while final sizes
+  stay below `678` through length `30`. This is the current evidence that the
+  proof should bound every certified loop state, not just the final regex.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 

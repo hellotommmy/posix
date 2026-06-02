@@ -1103,6 +1103,22 @@ object PosixCubicSmoke {
     } else None
   }
 
+  final case class LoopSizeSummary(finalSize: Int, finalDag: Int, maxRaw: Int, maxCore: Int)
+
+  def strongCoreLoopSizeSummary(r: Rexp, input: String): LoopSizeSummary = {
+    var current = intern(r)
+    var maxRaw = asize(current)
+    var maxCore = asize(current)
+    input.foreach { c =>
+      val raw = bder(c, current)
+      val cert = bsimpStrongCoreCert(raw)
+      maxRaw = math.max(maxRaw, asize(raw))
+      maxCore = math.max(maxCore, asize(cert.regex))
+      current = cert.regex
+    }
+    LoopSizeSummary(asize(current), adagSize(current), maxRaw, maxCore)
+  }
+
   def charPower(c: Char, n: Int): Rexp =
     if (n == 0) ONE else SEQ(CH(c), charPower(c, n - 1))
 
@@ -1514,6 +1530,18 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
+  def checkStrongCoreLoopSizeTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      val summary = strongCoreLoopSizeSummary(r, "a" * n)
+      n -> summary
+    }
+    println(s"Chapter 7 k=$k bsimpStrongCore loop summary: " +
+      trace.map { case (n, s) =>
+        s"$n->final=${s.finalSize}/dag=${s.finalDag}/maxRaw=${s.maxRaw}/maxCore=${s.maxCore}"
+      }.mkString(", "))
+  }
+
   def checkCounterexamples(): Unit = {
     val a = ACHAR(Nil, 'a')
     val b = ACHAR(Nil, 'b')
@@ -1863,6 +1891,7 @@ object PosixCubicSmoke {
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
     val traceStrongCore = boolSetting("posix.smoke.traceStrongCore", "POSIX_SMOKE_TRACE_STRONG_CORE", false)
+    val traceStrongCoreLoop = boolSetting("posix.smoke.traceStrongCoreLoop", "POSIX_SMOKE_TRACE_STRONG_CORE_LOOP", false)
     val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
     val checkStrongCoreLoop = boolSetting("posix.smoke.checkStrongCoreLoop", "POSIX_SMOKE_CHECK_STRONG_CORE_LOOP", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
@@ -1907,6 +1936,9 @@ object PosixCubicSmoke {
     }
     if (traceStrongCore) {
       checkStrongCoreEvilFamilyTrace(ch7K, ch7Lengths)
+    }
+    if (traceStrongCoreLoop) {
+      checkStrongCoreLoopSizeTrace(ch7K, ch7Lengths)
     }
     checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     if (sharedNoReassoc) {

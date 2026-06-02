@@ -155,6 +155,9 @@ immutability.
   cases. This upgrades the route from local certificates to whole-lexer Scala
   evidence, but Isabelle proof-facing invariants are still required before
   payout.
+- Proof-facing bridge: `CERTIFIED_STRONG_CORE.md` records the intended
+  `cert_recon` relation, loop invariant, certificate constructors, and
+  loop-size trace. This is planning evidence, not payout.
 - BR-036/BR-037 route correction: a proof based only on `rsimp9`/`bsimp9`
   does not address the thesis Chapter 7 three-star evil family
   `STAR (STAR (ALTs [a*, (aa)*, ...]))`. That family is designed to require

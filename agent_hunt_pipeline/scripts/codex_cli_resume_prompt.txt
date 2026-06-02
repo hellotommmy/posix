@@ -77,6 +77,9 @@ Current override, 2026-06-02:
   `bsimpStrongCoreCert`, `injectA`, and the accumulated continuation reconstruct
   `baselineValue` across the whole input. This passes the default exhaustive
   grid and deterministic random smoke; next target is a proof-facing invariant.
+- Read `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`
+  before proof work. It names the intended `cert_recon` relation and loop
+  invariant.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.
