@@ -822,6 +822,55 @@ object PosixCubicSmoke {
     case _ => None
   }
 
+  def splitAltChoice(total: Int, v: Val): Option[(Int, Val)] =
+    if (total <= 0) None
+    else if (total == 1) Some((0, v))
+    else v match {
+      case LeftVal(v0) => Some((0, v0))
+      case RightVal(vs) => splitAltChoice(total - 1, vs).map { case (i, w) => (i + 1, w) }
+      case _ => None
+    }
+
+  def injectA(r: ARexp, c: Char, v: Val): Option[Val] = r match {
+    case AZERO => None
+    case AONE(_) => None
+    case ACHAR(_, d) =>
+      if (c == d && v == Void) Some(CharVal(d)) else None
+    case AALTs(_, rs) =>
+      splitAltChoice(rs.length, v).flatMap { case (index, rowValue) =>
+        rs.lift(index).flatMap(row => injectA(row, c, rowValue).map(altValueAt(index, rs.length, _)))
+      }
+    case ASEQ(_, r1, r2) =>
+      if (bnullable(r1)) {
+        v match {
+          case LeftVal(SeqVal(v1, v2)) =>
+            injectA(r1, c, v1).map(SeqVal(_, v2))
+          case RightVal(v2) =>
+            for {
+              eps1 <- decodeAEpsValue(r1, bmkeps(r1))
+              w2 <- injectA(r2, c, v2)
+            } yield SeqVal(eps1, w2)
+          case _ => None
+        }
+      } else {
+        v match {
+          case SeqVal(v1, v2) => injectA(r1, c, v1).map(SeqVal(_, v2))
+          case _ => None
+        }
+      }
+    case ASTAR(_, body) =>
+      v match {
+        case SeqVal(v1, StarsVal(vs)) => injectA(body, c, v1).map(w => StarsVal(w :: vs))
+        case _ => None
+      }
+    case ANTIMES(_, body, n) =>
+      if (n <= 0) None
+      else v match {
+        case SeqVal(v1, StarsVal(vs)) => injectA(body, c, v1).map(w => StarsVal(w :: vs))
+        case _ => None
+      }
+  }
+
   final case class ValueCert(regex: ARexp, recon: Val => Option[Val])
   final case class AltRowCert(regex: ARexp, originalIndex: Int, recon: Val => Option[Val])
 
@@ -1032,6 +1081,27 @@ object PosixCubicSmoke {
 
   def bdersStrongCore(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bsimpStrongCore(bder(c, acc)))
+
+  final case class LoopValueCert(regex: ARexp, recon: Val => Option[Val])
+
+  def strongCoreCertifiedValue(r: Rexp, input: String): Option[Val] = {
+    val finalCert = input.foldLeft(LoopValueCert(intern(r), v => Some(v): Option[Val])) {
+      case (state, c) =>
+        val raw = bder(c, state.regex)
+        val cert = bsimpStrongCoreCert(raw)
+        val previousRecon = state.recon
+        val previousRegex = state.regex
+        LoopValueCert(
+          cert.regex,
+          v => cert.recon(v)
+            .flatMap(rawValue => injectA(previousRegex, c, rawValue))
+            .flatMap(previousRecon)
+        )
+    }
+    if (bnullable(finalCert.regex)) {
+      decodeAEpsValue(finalCert.regex, bmkeps(finalCert.regex)).flatMap(finalCert.recon)
+    } else None
+  }
 
   def charPower(c: Char, n: Int): Rexp =
     if (n == 0) ONE else SEQ(CH(c), charPower(c, n - 1))
@@ -1684,6 +1754,60 @@ object PosixCubicSmoke {
     println(s"checked strong core certificates on $checked random derivative expressions (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
+  def checkStrongCoreCertifiedValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        checked += 1
+        val base = baselineValue(r, s)
+        val certified = strongCoreCertifiedValue(r, s)
+        if (base != certified) {
+          throw new AssertionError(
+            s"""strong core certified loop value mismatch
+               |case      = $checked
+               |regex     = $r
+               |input     = $s
+               |base      = $base
+               |certified = $certified
+               |finalCore = ${bdersStrongCore(intern(r), s)}
+               |baseFinal = ${bders(intern(r), s)}
+               |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked strong core certified loop values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongCoreCertifiedValueRandom(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      checked += 1
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val base = baselineValue(r, s)
+      val certified = strongCoreCertifiedValue(r, s)
+      if (base != certified) {
+        throw new AssertionError(
+          s"""strong core certified loop random value mismatch
+             |seed      = $seed
+             |case      = $checked
+             |regex     = $r
+             |input     = $s
+             |base      = $base
+             |certified = $certified
+             |finalCore = ${bdersStrongCore(intern(r), s)}
+             |baseFinal = ${bders(intern(r), s)}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked strong core certified loop values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
   def intSetting(prop: String, env: String, default: Int): Int =
     sys.props.get(prop)
       .orElse(sys.env.get(env))
@@ -1740,6 +1864,7 @@ object PosixCubicSmoke {
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
     val traceStrongCore = boolSetting("posix.smoke.traceStrongCore", "POSIX_SMOKE_TRACE_STRONG_CORE", false)
     val checkStrongCoreCert = boolSetting("posix.smoke.checkStrongCoreCert", "POSIX_SMOKE_CHECK_STRONG_CORE_CERT", false)
+    val checkStrongCoreLoop = boolSetting("posix.smoke.checkStrongCoreLoop", "POSIX_SMOKE_CHECK_STRONG_CORE_LOOP", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
     checkValuePreservation(maxDepth, maxInput, maxRegexes)
     if (randomCases > 0) {
@@ -1766,6 +1891,12 @@ object PosixCubicSmoke {
       checkStrongCoreCertOnDerivatives(maxDepth, maxInput, maxRegexes)
       if (randomCases > 0) {
         checkStrongCoreCertRandom(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+    }
+    if (checkStrongCoreLoop) {
+      checkStrongCoreCertifiedValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongCoreCertifiedValueRandom(randomCases, randomDepth, randomInputMax, randomSeed)
       }
     }
     if (traceStrong) {

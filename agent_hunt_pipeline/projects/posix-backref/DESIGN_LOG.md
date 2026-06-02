@@ -70,6 +70,16 @@ to be read before continuing long-running agent work.
   at `958`. This is strong evidence that the certificate route can preserve the
   desired tree-size behavior, but it is still Scala smoke: the next semantic
   artifact must compose certificates through the derivative loop.
+- Added the first derivative-loop certificate smoke. A loop state carries the
+  current simplified derivative regex and a continuation from values of that
+  regex back to the original POSIX value. Each character composes the
+  simplification certificate with `injectA`, an executable annotated-regex
+  derivative injection function. This closes the main executable gap between
+  one-step simplification certificates and whole-lexer POSIX values.
+- Current loop smoke passes exhaustive depth `2`/input `3` and deterministic
+  random depth `5`/input `6` (`3,000` cases, seed `20260602`). The remaining
+  design task is no longer finding an executable value path; it is extracting a
+  proof-facing invariant suitable for Isabelle.
 
 ## 2026-06-02: Virtual expanded keys complement hash-consing
 

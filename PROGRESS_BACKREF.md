@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (certified row-pruning prototype added)
+Last updated: 2026-06-02 (derivative-loop certificate smoke added)
 
 ## Cubic Candidate Prototype: CE-Driven Strong Value Safety (2026-06-02)
 
@@ -107,11 +107,27 @@ Last updated: 2026-06-02 (certified row-pruning prototype added)
     `bsimpStrongCore` are now `46,438,618,612,612,632,579,678`, down from
     `46,420,718,1012,1308,1600,1898,2342`. This is the first certified route
     that beats the thesis Figure 7.6 tree trace on this smoke.
-- Remaining gap to a bounty candidate: this is still a one-step simplification
-  certificate over derivative-generated expressions. The next required object
-  is a derivative-loop certificate that composes `bder`, simplification, and
-  reconstruction across the whole lexer run, plus a proof-facing statement of
-  the row-pruning invariant.
+- Remaining gap before proof/bounty work: state the proof-facing invariant for
+  certified row pruning and for composing `bder`, simplification, `injectA`,
+  and reconstruction across the whole lexer run.
+- Added the first derivative-loop certificate smoke for certified
+  `bsimpStrongCore`. The loop maintains a continuation from the current
+  simplified derivative state's value back to the original POSIX value. At each
+  character it composes:
+  1. `bder` on the current simplified state;
+  2. `bsimpStrongCoreCert` for that derivative;
+  3. `injectA`, the executable derivative-value reconstruction for annotated
+     regexes;
+  4. the previous continuation.
+- Loop smoke evidence:
+  - exhaustive depth `2`, input length `3`: `84,300` regex/input pairs match
+    `baselineValue`;
+  - deterministic random with `expanded-keyed-no-reassoc`, depth `5`, input
+    length `6`, seed `20260602`: `3,000` cases match `baselineValue`.
+  This is the first Scala evidence that the small certified core can preserve
+  exact POSIX values across a whole lexer run, not just for one simplification
+  step. It remains a prototype until the corresponding invariant is stated and
+  checked in Isabelle.
 
 ## Cubic Candidate Prototype: Shared State plus Virtual Expanded Keys (2026-06-02)
 

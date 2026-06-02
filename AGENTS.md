@@ -96,6 +96,10 @@ Short version:
 - Certified row pruning is contextual to the surrounding `AALTs`: a deleted
   later row is justified by an earlier row with the same suffix. Do not present
   it as a standalone row equivalence.
+- `scala_cubic_smoke.ps1 -CheckStrongCoreLoop` checks the current whole-input
+  reconstruction smoke: `bder`, certified simplification, `injectA`, and the
+  accumulated continuation must reconstruct the same POSIX value as
+  `baselineValue`.
 - Never store tokens or secrets.
 
 Reusable pipeline files, scripts, and templates live in `agent_hunt_pipeline/`.

@@ -166,8 +166,13 @@ Certified row pruning is contextual to the surrounding `AALTs`: a deleted later
 row is justified by an earlier row with the same suffix and POSIX priority.
 Never state this as a standalone equivalence of the later row. After the first
 prototype, Chapter 7 k=5,n=30 certified core is `678`, below thesis
-`bsimpStrong` at `958`; the remaining semantic gap is composing certificates
-through the derivative loop.
+`bsimpStrong` at `958`; the remaining semantic gap is stating and checking the
+proof-facing invariant.
+
+Use `scala_cubic_smoke.ps1 -CheckStrongCoreLoop` for the current whole-input
+certificate smoke. It composes `bder`, `bsimpStrongCoreCert`, `injectA`, and an
+accumulated continuation to reconstruct the original POSIX value. This is the
+main executable gate for the certified-core route.
 
 Minimum smoke coverage for a serious cubic candidate:
 

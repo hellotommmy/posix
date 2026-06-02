@@ -72,8 +72,11 @@ Current override, 2026-06-02:
   missing certificate layer.
 - Direct shared-suffix row pruning is now certificate-smoked in the surrounding
   `AALTs` context. It is not a standalone row equivalence. Current k=5,n=30
-  certified-core size is `678`; next target is composing certificates through
-  the derivative loop.
+  certified-core size is `678`.
+- `scala_cubic_smoke.ps1 -CheckStrongCoreLoop` now checks that `bder`,
+  `bsimpStrongCoreCert`, `injectA`, and the accumulated continuation reconstruct
+  `baselineValue` across the whole input. This passes the default exhaustive
+  grid and deterministic random smoke; next target is a proof-facing invariant.
 
 At the start of each iteration:
 1. Run `git fetch origin codex/backref-values`.
