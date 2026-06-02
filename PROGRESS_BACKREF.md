@@ -1,27 +1,35 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (deferred strong POSIX bridge checked)
+Last updated: 2026-06-02 (memoized deferred POSIX reconstruction smoke)
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 
 - Added Scala smoke route `strongDeferredValue` and wrapper switch
   `-CheckStrongDeferred`.
+- Added Scala smoke route `strongDeferredMemoValue` and wrapper switch
+  `-CheckStrongDeferredMemo`.
 - Definition idea:
   - run the full thesis-style `bdersStrong` derivative loop as the small
     recognition state;
   - if the final strong derivative is nullable, reconstruct the exact POSIX
-    value from the original regex/input (`baselineValue`) rather than decoding
-    ordinary values from the simplified derivative state.
+    value from the original regex/input rather than decoding ordinary values
+    from the simplified derivative state;
+  - the new memo prototype `posixMemoValue` performs that reconstruction by
+    dynamic programming over `(regex, start, end)` spans, using left-priority
+    alternatives and longest-left splits for `SEQ`, `STAR`, and `NTIMES`.
 - This is deliberately a research route, not a bounty claim and not yet a
-  runtime implementation. It represents a generalized/deferred-value semantics:
-  the small derivative state proves acceptance and keeps the cubic-size route
-  alive; the exact POSIX value is recovered by a separate reconstruction
-  theorem over the original regex and consumed flat string.
+  cubic theorem. It represents a generalized/deferred-value semantics: the
+  small derivative state proves acceptance and keeps the cubic-size route alive;
+  the exact POSIX value is recovered by a separate reconstruction theorem over
+  the original regex and consumed flat string.
 - Smoke evidence:
   - exact POSIX values pass exhaustive depth `2`, input length `3`
     (`84,300` regex/input pairs);
   - deterministic random smoke passes `50,000` cases at depth `7`, input
     length `8`, seed `20260602`;
+  - memoized deferred reconstruction passes exhaustive depth `2`, input length
+    `3`, and `10,000` deterministic random cases at depth `6`, input length
+    `7`, seed `20260602`;
   - the hand CE grid from the nullable-star failures remains checked.
 - Size evidence from the full `bsimpStrong` state is back to the thesis-scale
   plateau:

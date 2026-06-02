@@ -821,6 +821,104 @@ object PosixCubicSmoke {
     if (bnullable(finalRegex)) baselineValue(r, input) else None
   }
 
+  def posixMemoValue(r: Rexp, input: String): Option[Val] = {
+    val acceptsMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Boolean]
+    val valueMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Option[Val]]
+
+    def span(i: Int, j: Int): String =
+      input.substring(i, j)
+
+    def accepts(re: Rexp, i: Int, j: Int): Boolean =
+      acceptsMemo.getOrElseUpdate((re, i, j), re match {
+        case ZERO => false
+        case ONE => i == j
+        case CH(c) => i + 1 == j && input.charAt(i) == c
+        case ALT(r1, r2) => accepts(r1, i, j) || accepts(r2, i, j)
+        case SEQ(r1, r2) =>
+          (i to j).exists(k => accepts(r1, i, k) && accepts(r2, k, j))
+        case STAR(body) =>
+          i == j || ((i + 1) to j).exists(k => accepts(body, i, k) && accepts(STAR(body), k, j))
+        case NTIMES(body, n) =>
+          if (n == 0) i == j
+          else (i to j).exists(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j))
+      })
+
+    def emptyNTimesValue(body: Rexp, n: Int, i: Int): Option[Val] =
+      if (n == 0) Some(StarsVal(Nil))
+      else {
+        for {
+          head <- value(body, i, i)
+          tail <- emptyNTimesValue(body, n - 1, i)
+          out <- tail match {
+            case StarsVal(vs) => Some(StarsVal(head :: vs))
+            case _ => None
+          }
+        } yield out
+      }
+
+    def value(re: Rexp, i: Int, j: Int): Option[Val] =
+      valueMemo.getOrElseUpdate((re, i, j), re match {
+        case ZERO => None
+        case ONE => if (i == j) Some(Void) else None
+        case CH(c) => if (i + 1 == j && input.charAt(i) == c) Some(CharVal(c)) else None
+        case ALT(r1, r2) =>
+          value(r1, i, j).map(LeftVal.apply).orElse {
+            if (accepts(r1, i, j)) None else value(r2, i, j).map(RightVal.apply)
+          }
+        case SEQ(r1, r2) =>
+          (i to j).reverseIterator
+            .find(k => accepts(r1, i, k) && accepts(r2, k, j))
+            .flatMap { k =>
+              for {
+                v1 <- value(r1, i, k)
+                v2 <- value(r2, k, j)
+              } yield SeqVal(v1, v2)
+            }
+        case STAR(body) =>
+          if (i == j) Some(StarsVal(Nil))
+          else {
+            ((i + 1) to j).reverseIterator
+              .find(k => accepts(body, i, k) && accepts(STAR(body), k, j))
+              .flatMap { k =>
+                for {
+                  head <- value(body, i, k)
+                  if flatVal(head).nonEmpty
+                  tail <- value(STAR(body), k, j)
+                  out <- tail match {
+                    case StarsVal(vs) => Some(StarsVal(head :: vs))
+                    case _ => None
+                  }
+                } yield out
+              }
+          }
+        case NTIMES(body, n) =>
+          if (i == j) emptyNTimesValue(body, n, i)
+          else if (n == 0) None
+          else {
+            ((i + 1) to j).reverseIterator
+              .find(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j))
+              .flatMap { k =>
+                for {
+                  head <- value(body, i, k)
+                  if flatVal(head).nonEmpty
+                  tail <- value(NTIMES(body, n - 1), k, j)
+                  out <- tail match {
+                    case StarsVal(vs) => Some(StarsVal(head :: vs))
+                    case _ => None
+                  }
+                } yield out
+              }
+          }
+      })
+
+    value(r, 0, input.length).filter(v => flatVal(v) == span(0, input.length))
+  }
+
+  def strongDeferredMemoValue(r: Rexp, input: String): Option[Val] = {
+    val finalRegex = bdersStrong(intern(r), input)
+    if (bnullable(finalRegex)) posixMemoValue(r, input) else None
+  }
+
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrongSafe)
 
@@ -1381,6 +1479,62 @@ object PosixCubicSmoke {
       }
     }
     println(s"checked strong deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+  }
+
+  def checkStrongDeferredMemoValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val b = baselineValue(r, s)
+        val deferred = strongDeferredMemoValue(r, s)
+        checked += 1
+        if (b != deferred) {
+          val strongFinal = bdersStrong(intern(r), s)
+          throw new AssertionError(
+            s"""strong memo-deferred POSIX value mismatch
+               |case       = $checked
+               |regex      = $r
+               |input      = $s
+               |base       = $b
+               |memo       = $deferred
+               |strongSize = ${asize(strongFinal)}
+               |strongNull = ${bnullable(strongFinal)}
+               |""".stripMargin
+          )
+        }
+      }
+    }
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+  }
+
+  def checkStrongDeferredMemoRandomValuePreservation(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val b = baselineValue(r, s)
+      val deferred = strongDeferredMemoValue(r, s)
+      checked += 1
+      if (b != deferred) {
+        val strongFinal = bdersStrong(intern(r), s)
+        throw new AssertionError(
+          s"""strong memo-deferred random POSIX value mismatch
+             |seed       = $seed
+             |case       = $checked
+             |regex      = $r
+             |input      = $s
+             |base       = $b
+             |memo       = $deferred
+             |strongSize = ${asize(strongFinal)}
+             |strongNull = ${bnullable(strongFinal)}
+             |""".stripMargin
+        )
+      }
+    }
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
   }
 
   def checkStrongSafeValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
@@ -2183,6 +2337,7 @@ object PosixCubicSmoke {
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
     val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
+    val checkStrongDeferredMemo = boolSetting("posix.smoke.checkStrongDeferredMemo", "POSIX_SMOKE_CHECK_STRONG_DEFERRED_MEMO", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -2212,6 +2367,12 @@ object PosixCubicSmoke {
       checkStrongDeferredValuePreservation(maxDepth, maxInput, maxRegexes)
       if (randomCases > 0) {
         checkStrongDeferredRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
+      }
+    }
+    if (checkStrongDeferredMemo) {
+      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes)
+      if (randomCases > 0) {
+        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed)
       }
     }
     if (checkStrongSafe) {

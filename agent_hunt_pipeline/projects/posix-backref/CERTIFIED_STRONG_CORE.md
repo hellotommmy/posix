@@ -54,6 +54,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
 It also passes the default exhaustive depth `2`, input length `3` grid with
 `84,300` regex/input pairs.
 
+The fallback-free memoized reconstruction smoke gate is:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
+  -SkipLegacyCubic `
+  -CheckStrongDeferredMemo `
+  -RandomCases 10000 `
+  -RandomDepth 6 `
+  -RandomInputLength 7 `
+  -Ch7TreeThreshold 1000000
+```
+
+`strongDeferredMemoValue` uses the same full `bdersStrong` nullable gate, then
+calls `posixMemoValue` to reconstruct the original POSIX value from
+`(r, s)` by span dynamic programming. This is now the preferred executable
+prototype over `strongDeferredValue`, whose `baselineValue` fallback still runs
+the derivative lexer.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

@@ -3,6 +3,30 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-02: Memoized deferred POSIX reconstruction prototype
+
+- Added `posixMemoValue` in `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.
+  It reconstructs the original POSIX value from the original regex and consumed
+  input using dynamic programming over `(regex, start, end)` spans, rather than
+  running the derivative lexer as a fallback.
+- The parser mirrors the existing POSIX rules directly: alternatives are
+  left-priority; `SEQ`, `STAR`, and `NTIMES` choose the longest left component;
+  `STAR` and positive `NTIMES` only consume nonempty heads, with empty
+  `NTIMES` values handled by repeated empty-body values.
+- Added `strongDeferredMemoValue`, gated by the full thesis-style
+  `bdersStrong` nullable state. This keeps the current separation:
+  `bsimpStrong` is the small recognition certificate, and memoized POSIX
+  reconstruction supplies the exact value from the original syntax/input.
+- Added smoke switch `-CheckStrongDeferredMemo` in both Scala wrappers. Current
+  evidence:
+  - exhaustive depth `2`, input length `3`: `84,300` regex/input pairs pass;
+  - deterministic random depth `6`, input length `7`: `10,000` cases pass with
+    seed `20260602`.
+- This is not yet the cubic regex-size proof. Its value is that it replaces the
+  earlier `baselineValue` fallback by an explicit reconstruction algorithm that
+  can be specified and optimized. The next step is to expose its table/universe
+  size and relate it to the non-backref cubic frontier argument.
+
 ## 2026-06-02: Deferred strong route gets a checked acceptance bridge
 
 - The current viable way to preserve thesis `bsimpStrong` tree behavior is not
