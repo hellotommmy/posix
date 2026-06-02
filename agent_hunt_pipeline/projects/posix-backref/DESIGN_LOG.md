@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Full span value table is key-bounded
+
+- Added `rexp_span_posix_key` and proved it is injective over
+  `rexp_span_posix` because `Posix` values are deterministic for a fixed
+  `(q, i, j)` slice.
+- The checked theorem `card_rexp_span_posix_bound` now bounds the full value
+  table by the same quadratic state-key universe as `rexp_span_posix_states`.
+- Design consequence: the deferred reconstruction proof can treat the value
+  table as a memo map keyed by `(subregex, start, stop)`, matching the Scala
+  `valueStates` accounting. Values do not introduce a separate unbounded
+  cardinality dimension for a fixed regex/input.
+
 ## 2026-06-03: Named deferred span value relation
 
 - Added `strong_deferred_span_value r s v` in `FBound.thy`.

@@ -1985,6 +1985,65 @@ proof -
     using ij by simp
 qed
 
+definition rexp_span_posix_key :: "(rexp * nat * nat * val) \<Rightarrow> (rexp * nat * nat)" where
+  "rexp_span_posix_key x =
+    (case x of (q, i, j, v) \<Rightarrow> (q, i, j))"
+
+lemma rexp_span_posix_value_unique:
+  assumes "(q, i, j, v) \<in> rexp_span_posix root s"
+    and "(q, i, j, w) \<in> rexp_span_posix root s"
+  shows "v = w"
+proof -
+  have v: "rslice s i j \<in> q \<rightarrow> v"
+    using assms(1) by (auto simp: rexp_span_posix_def)
+  have w: "rslice s i j \<in> q \<rightarrow> w"
+    using assms(2) by (auto simp: rexp_span_posix_def)
+  show ?thesis
+    by (rule Posix_determ[OF v w])
+qed
+
+lemma inj_on_rexp_span_posix_key:
+  "inj_on rexp_span_posix_key (rexp_span_posix r s)"
+proof (rule inj_onI)
+  fix x y
+  assume x: "x \<in> rexp_span_posix r s"
+    and y: "y \<in> rexp_span_posix r s"
+    and key_eq: "rexp_span_posix_key x = rexp_span_posix_key y"
+  obtain q i j v where x_def: "x = (q, i, j, v)"
+    by (cases x) auto
+  obtain q' i' j' w where y_def: "y = (q', i', j', w)"
+    by (cases y) auto
+  have keys: "q = q'" "i = i'" "j = j'"
+    using key_eq by (simp_all add: x_def y_def rexp_span_posix_key_def)
+  have "v = w"
+    using x y keys
+    by (simp add: x_def y_def rexp_span_posix_value_unique)
+  then show "x = y"
+    using keys by (simp add: x_def y_def)
+qed
+
+lemma rexp_span_posix_key_image:
+  "rexp_span_posix_key ` rexp_span_posix r s = rexp_span_posix_states r s"
+proof
+  show "rexp_span_posix_key ` rexp_span_posix r s \<subseteq> rexp_span_posix_states r s"
+    by (auto simp: rexp_span_posix_key_def rexp_span_posix_states_def)
+next
+  show "rexp_span_posix_states r s \<subseteq>
+      rexp_span_posix_key ` rexp_span_posix r s"
+  proof
+    fix x
+    assume "x \<in> rexp_span_posix_states r s"
+    then obtain q i j v where
+      x: "x = (q, i, j)" and
+      entry: "(q, i, j, v) \<in> rexp_span_posix r s"
+      by (auto simp: rexp_span_posix_states_def)
+    have "rexp_span_posix_key (q, i, j, v) = x"
+      by (simp add: x rexp_span_posix_key_def)
+    then show "x \<in> rexp_span_posix_key ` rexp_span_posix r s"
+      using entry by blast
+  qed
+qed
+
 lemma rexp_span_posix_states_subset:
   "rexp_span_posix_states r s \<subseteq> rexp_span_states r s"
 proof
@@ -2008,6 +2067,15 @@ lemma finite_rexp_span_posix_states [simp]:
   "finite (rexp_span_posix_states r s)"
   using rexp_span_posix_states_subset finite_rexp_span_states finite_subset by blast
 
+lemma finite_rexp_span_posix [simp]:
+  "finite (rexp_span_posix r s)"
+proof -
+  have "finite (rexp_span_posix_key ` rexp_span_posix r s)"
+    by (simp add: rexp_span_posix_key_image)
+  then show ?thesis
+    using inj_on_rexp_span_posix_key finite_imageD by blast
+qed
+
 lemma card_rexp_span_posix_states_bound:
   "card (rexp_span_posix_states r s) \<le>
     rxsize r * Suc (length s) * Suc (length s)"
@@ -2017,6 +2085,20 @@ proof -
     by (meson card_mono finite_rexp_span_states)
   also have "... \<le> rxsize r * Suc (length s) * Suc (length s)"
     by (rule card_rexp_span_states_bound)
+  finally show ?thesis .
+qed
+
+lemma card_rexp_span_posix_bound:
+  "card (rexp_span_posix r s) \<le>
+    rxsize r * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rexp_span_posix r s) =
+      card (rexp_span_posix_key ` rexp_span_posix r s)"
+    using card_image[OF inj_on_rexp_span_posix_key] by simp
+  also have "... = card (rexp_span_posix_states r s)"
+    by (simp add: rexp_span_posix_key_image)
+  also have "... \<le> rxsize r * Suc (length s) * Suc (length s)"
+    by (rule card_rexp_span_posix_states_bound)
   finally show ?thesis .
 qed
 

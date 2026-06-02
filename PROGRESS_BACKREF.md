@@ -1,6 +1,24 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (deferred span value interface)
+Last updated: 2026-06-03 (span value-table bound)
+
+## Cubic Candidate Prototype: Checked Span Value-Table Bound (2026-06-03)
+
+- Added a key projection `rexp_span_posix_key` from full value entries
+  `(q, i, j, v)` to memo keys `(q, i, j)`.
+- Proved POSIX value determinism for every span-table key:
+  `rexp_span_posix_value_unique`.
+- Proved the key projection is injective over `rexp_span_posix` and has image
+  exactly `rexp_span_posix_states`:
+  `inj_on_rexp_span_posix_key` and `rexp_span_posix_key_image`.
+- Added `finite_rexp_span_posix` and `card_rexp_span_posix_bound`, showing the
+  full value table has the same quadratic state bound as the value-erased
+  table:
+  `rxsize r * Suc (length s) * Suc (length s)`.
+- Meaning: the deferred span/memo reconstruction route now has a checked
+  value-table size bound, not merely a state-key bound. This matches the Scala
+  `valueStates` accounting discipline.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Deferred Span Value Interface (2026-06-03)
 

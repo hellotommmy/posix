@@ -171,6 +171,9 @@ The original-`rexp` POSIX value side now has a checked root interface in
 - `rexp_span_posix`;
 - `rexp_span_posix_states`;
 - `card_rexp_span_posix_states_bound`;
+- `rexp_span_posix_key`, `rexp_span_posix_value_unique`,
+  `inj_on_rexp_span_posix_key`, `rexp_span_posix_key_image`,
+  `finite_rexp_span_posix`, and `card_rexp_span_posix_bound`;
 - `bnullable_bders_simpStrong_intern_iff_rexp_span_posix_root`;
 - `bnullable_bders_simpStrong_intern_unique_rexp_span_posix_root`.
 - `strong_deferred_span_value`, with checked equivalences to original POSIX
@@ -186,6 +189,11 @@ acceptance result is the gate for a unique original POSIX root span entry. The
 next relation should refine `rexp_span_posix` with constructor rules mirroring
 the Scala memo algorithm's left-priority alternatives and longest-left
 sequence/star/countdown splits.
+
+The full `rexp_span_posix` value table is now also checked finite with the same
+quadratic key bound as `rexp_span_posix_states`: POSIX determinism makes the
+projection `(q, i, j, v) -> (q, i, j)` injective. This is the Isabelle analogue
+of the Scala `valueStates` count staying below the span-key universe.
 
 That refinement has now started. `FBound.thy` also has:
 
