@@ -76,6 +76,13 @@ immutability.
   uniqueness theorem for the root span POSIX entry. This is useful BR-040
   proof infrastructure only; it does not pay until constructor-level
   reconstruction correctness is checked.
+- Checked original split probes: `FBound.thy` now also has
+  `rexp_span_split_probes`, `rexp_span_all_split_probes`, their cardinality
+  bounds, and one-directional original POSIX constructor rules for `ONE`, `CH`,
+  `ALT`, `SEQ`, `STAR`, and `NTIMES`. This supports the current CEGAR route:
+  keep the `bsimpStrong` tree as the nullable gate, mine local-certificate CEs,
+  and prove exact values through bounded original-root span reconstruction.
+  It is still infrastructure, not a BR-039/BR-040 payout.
 - Checked span constructor support now includes alternatives, unit/empty,
   nonempty star, and counted-repetition intro rules:
   `rspan_accepts_RALTSI`, `rspan_accepts_RONE_emptyI`,

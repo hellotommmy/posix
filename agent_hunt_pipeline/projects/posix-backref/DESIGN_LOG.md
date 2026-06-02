@@ -3,6 +3,41 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong tree plus CE-driven span values
+
+- The current preferred route matches the user's counterexample-driven
+  requirement: keep the `bsimpStrong` tree-size behavior, mine exact-value CEs,
+  and repair the semantic layer without inflating the emitted tree.
+- Latest negative CE for direct/local certificates:
+  `SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`. The small final tree
+  is preserved, but the local certificate chooses the right-star boundary
+  incorrectly. This confirms that derivative-time local `Val => Option[Val]`
+  transformers do not carry enough POSIX longest-left split information.
+- Latest positive evidence for the span/memo route:
+  `-CheckStrongDeferredMemo` passes exhaustive depth `2`/input `3`, the known
+  CE grid, and `10,000` deterministic random cases at depth `7`/input `8`.
+  Chapter 7 `k=5` keeps the thesis-scale strong tree sequence
+  `46,474,730,771,820,875,918,958`.
+- Design consequence: the small derivative tree should be proved as a nullable
+  acceptance certificate. Exact POSIX values should be reconstructed by a
+  bounded original-root span relation, where greedy sequence/star/countdown
+  split choices are explicit table facts.
+
+## 2026-06-03: Checked original split probes and POSIX constructors
+
+- Added original-`rexp` split-probe universes in `FBound.thy`:
+  `rexp_span_split_probes`, `rexp_span_all_split_probes`, and their cardinality
+  bounds.
+- Added original-value constructor introduction rules:
+  `rexp_span_posix_ONE_emptyI`, `rexp_span_posix_CHI`,
+  `rexp_span_posix_ALT1I`, `rexp_span_posix_ALT2I`,
+  `rexp_span_posix_SEQI`, `rexp_span_posix_STAR_emptyI`,
+  `rexp_span_posix_STAR_stepI`, `rexp_span_posix_NTIMES_zero_emptyI`, and
+  `rexp_span_posix_NTIMES_SucI`.
+- Design consequence: future reconstruction correctness can proceed by
+  bounded split-probe induction/table construction rather than broad proof
+  search or direct decoding from a simplified final regex.
+
 ## 2026-06-03: Checked root span POSIX bridge
 
 - Added original-`rexp` span/value proof infrastructure in `FBound.thy`.

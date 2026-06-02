@@ -1,6 +1,48 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (checked root span POSIX bridge)
+Last updated: 2026-06-03 (strong tree plus checked split probes)
+
+## Cubic Candidate Prototype: Strong Tree with CE-Driven Span Values (2026-06-03)
+
+- Re-ran the user-requested route: keep the `bsimpStrong` tree as the small
+  acceptance state, but recover exact POSIX values through original-root span
+  reconstruction instead of direct final-state decoding.
+- Negative CE for local certificates remains stable and useful:
+  `SEQ(STAR(ALT(STAR(CH b), SEQ(CH b, CH a))), STAR(CH a))` on `bba`.
+  `StrongFullCert` keeps the exact small tree (`13` nodes after shrinking),
+  but assigns the final `a` to the right star; POSIX greediness assigns
+  `bba` to the left star and leaves the right star empty.
+- Positive smoke for the span/memo route:
+  - exhaustive depth `2`, input length `3`: `84,300` pairs pass;
+  - known CE grid: `15` cases pass;
+  - deterministic random depth `7`, input length `8`, seed `20260602`:
+    `10,000` cases pass;
+  - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30` keeps the
+    `bsimpStrong` tree sequence
+    `46,474,730,771,820,875,918,958`.
+- Design conclusion: the CEGAR loop should keep mining local-certificate CEs,
+  but the proof target should be a span-indexed POSIX reconstruction relation.
+  The small strong derivative tree is the nullable gate; the root-span table is
+  where longest-left split information lives.
+
+## Cubic Candidate Prototype: Checked Original Split Probes (2026-06-03)
+
+- Added original-`rexp` split-probe universes in `FBound.thy`:
+  - `rexp_span_split_probes` and `card_rexp_span_split_probes_bound`;
+  - `rexp_span_all_split_probes` and
+    `card_rexp_span_all_split_probes_bound`.
+- Added one-directional POSIX constructor rules for original span values:
+  - `rexp_span_posix_ONE_emptyI`;
+  - `rexp_span_posix_CHI`;
+  - `rexp_span_posix_ALT1I` and `rexp_span_posix_ALT2I`;
+  - `rexp_span_posix_SEQI`;
+  - `rexp_span_posix_STAR_emptyI` and `rexp_span_posix_STAR_stepI`;
+  - `rexp_span_posix_NTIMES_zero_emptyI` and
+    `rexp_span_posix_NTIMES_SucI`.
+- Meaning: the proof-facing span table now has bounded split probes and
+  constructor-introduction rules matching the Scala memo algorithm's
+  left-priority alternatives and longest-left sequence/star/countdown splits.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Checked Root Span POSIX Bridge (2026-06-03)
 

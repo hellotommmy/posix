@@ -177,6 +177,26 @@ next relation should refine `rexp_span_posix` with constructor rules mirroring
 the Scala memo algorithm's left-priority alternatives and longest-left
 sequence/star/countdown splits.
 
+That refinement has now started. `FBound.thy` also has:
+
+- `rexp_span_split_probes` and `card_rexp_span_split_probes_bound`;
+- `rexp_span_all_split_probes` and
+  `card_rexp_span_all_split_probes_bound`;
+- constructor rules `rexp_span_posix_ONE_emptyI`,
+  `rexp_span_posix_CHI`, `rexp_span_posix_ALT1I`,
+  `rexp_span_posix_ALT2I`, `rexp_span_posix_SEQI`,
+  `rexp_span_posix_STAR_emptyI`, `rexp_span_posix_STAR_stepI`,
+  `rexp_span_posix_NTIMES_zero_emptyI`, and
+  `rexp_span_posix_NTIMES_SucI`.
+
+The intended proof direction is now counterexample-driven: keep using
+`StrongFullCert` to mine cases where local reconstruction chooses the wrong
+boundary, but prove the positive route through the bounded original-root span
+table. The current stable CE is
+`SEQ(STAR(ALT(STAR(b), SEQ(b,a))), STAR(a))` on `bba`; the current positive
+gate is `StrongDeferredMemo`, which preserves the Chapter 7 `bsimpStrong`
+tree sequence while reconstructing exact values from spans.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell

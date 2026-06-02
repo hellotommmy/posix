@@ -1533,6 +1533,89 @@ proof -
   finally show ?thesis .
 qed
 
+definition rexp_span_split_probes :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat * nat) set" where
+  "rexp_span_split_probes r s =
+    (\<lambda>(q, (i, (k, j))). (q, i, k, j)) `
+      (rexp_subterms r \<times> ({..length s} \<times> ({..length s} \<times> {..length s})))"
+
+lemma finite_rexp_span_split_probes [simp]:
+  "finite (rexp_span_split_probes r s)"
+  by (simp add: rexp_span_split_probes_def)
+
+lemma rexp_span_split_probesI:
+  assumes "q \<in> rexp_subterms r"
+    and "i \<le> length s"
+    and "k \<le> length s"
+    and "j \<le> length s"
+  shows "(q, i, k, j) \<in> rexp_span_split_probes r s"
+  using assms by (auto simp: rexp_span_split_probes_def)
+
+lemma rexp_span_split_probesE:
+  assumes "(q, i, k, j) \<in> rexp_span_split_probes r s"
+  obtains "q \<in> rexp_subterms r" "i \<le> length s" "k \<le> length s" "j \<le> length s"
+  using assms by (auto simp: rexp_span_split_probes_def)
+
+lemma card_rexp_span_split_probes_bound:
+  "card (rexp_span_split_probes r s) \<le>
+    rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rexp_span_split_probes r s) \<le>
+      card (rexp_subterms r \<times> ({..length s} \<times> ({..length s} \<times> {..length s})))"
+    by (simp add: rexp_span_split_probes_def card_image_le)
+  also have "... =
+      card (rexp_subterms r) * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (simp add: algebra_simps)
+  also have "... \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    using card_rexp_subterms_le_rxsize[of r]
+    by (intro mult_mono; simp)
+  finally show ?thesis .
+qed
+
+definition rexp_span_all_split_probes :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat * nat) set" where
+  "rexp_span_all_split_probes r s =
+    {(q, i, k, j). q \<in> rexp_subterms r \<and> i \<le> k \<and> k \<le> j \<and> j \<le> length s}"
+
+lemma finite_rexp_span_all_split_probes [simp]:
+  "finite (rexp_span_all_split_probes r s)"
+proof -
+  have "rexp_span_all_split_probes r s \<subseteq> rexp_span_split_probes r s"
+    by (auto simp: rexp_span_all_split_probes_def intro: rexp_span_split_probesI)
+  then show ?thesis
+    using finite_rexp_span_split_probes finite_subset by blast
+qed
+
+lemma rexp_span_all_split_probes_subset:
+  "rexp_span_all_split_probes r s \<subseteq> rexp_span_split_probes r s"
+  by (auto simp: rexp_span_all_split_probes_def intro: rexp_span_split_probesI)
+
+lemma rexp_span_all_split_probesI:
+  assumes "q \<in> rexp_subterms r"
+    and "i \<le> k"
+    and "k \<le> j"
+    and "j \<le> length s"
+  shows "(q, i, k, j) \<in> rexp_span_all_split_probes r s"
+  using assms by (auto simp: rexp_span_all_split_probes_def)
+
+lemma rexp_span_all_split_probesE:
+  assumes "(q, i, k, j) \<in> rexp_span_all_split_probes r s"
+  obtains "q \<in> rexp_subterms r" "i \<le> k" "k \<le> j" "j \<le> length s"
+  using assms by (auto simp: rexp_span_all_split_probes_def)
+
+lemma card_rexp_span_all_split_probes_bound:
+  "card (rexp_span_all_split_probes r s) \<le>
+    rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have "card (rexp_span_all_split_probes r s) \<le>
+      card (rexp_span_split_probes r s)"
+    using rexp_span_all_split_probes_subset
+    by (meson card_mono finite_rexp_span_split_probes)
+  also have "... \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule card_rexp_span_split_probes_bound)
+  finally show ?thesis .
+qed
+
 definition rexp_span_posix :: "rexp \<Rightarrow> string \<Rightarrow> (rexp * nat * nat * val) set" where
   "rexp_span_posix r s =
     {(q, i, j, v).
@@ -1560,6 +1643,177 @@ lemma rexp_span_posixE:
 lemma rexp_span_posix_root_iff:
   "(r, 0, length s, v) \<in> rexp_span_posix r s \<longleftrightarrow> s \<in> r \<rightarrow> v"
   by (auto simp: rexp_span_posix_def)
+
+lemma rexp_span_posix_ONE_emptyI:
+  assumes "ONE \<in> rexp_subterms r" "i \<le> length s"
+  shows "(ONE, i, i, Void) \<in> rexp_span_posix r s"
+proof -
+  have "rslice s i i \<in> ONE \<rightarrow> Void"
+    using assms by (simp add: Posix_ONE)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF assms(1) order_refl assms(2)])
+qed
+
+lemma rexp_span_posix_CHI:
+  assumes "CH c \<in> rexp_subterms r"
+    and "i \<le> j"
+    and "j \<le> length s"
+    and "rslice s i j = [c]"
+  shows "(CH c, i, j, Char c) \<in> rexp_span_posix r s"
+proof -
+  have "rslice s i j \<in> CH c \<rightarrow> Char c"
+    using assms by (simp add: Posix_CH)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF assms(1-3)])
+qed
+
+lemma rexp_span_posix_ALT1I:
+  assumes sub: "ALT r1 r2 \<in> rexp_subterms root"
+    and left: "(r1, i, j, v) \<in> rexp_span_posix root s"
+  shows "(ALT r1 r2, i, j, Left v) \<in> rexp_span_posix root s"
+proof -
+  have ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and pos: "rslice s i j \<in> r1 \<rightarrow> v"
+    using left by (auto simp: rexp_span_posix_def)
+  have "rslice s i j \<in> ALT r1 r2 \<rightarrow> Left v"
+    using pos by (rule Posix_ALT1)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF sub ij jl])
+qed
+
+lemma rexp_span_posix_ALT2I:
+  assumes sub: "ALT r1 r2 \<in> rexp_subterms root"
+    and right: "(r2, i, j, v) \<in> rexp_span_posix root s"
+    and no_left: "rslice s i j \<notin> L r1"
+  shows "(ALT r1 r2, i, j, Right v) \<in> rexp_span_posix root s"
+proof -
+  have ij: "i \<le> j"
+    and jl: "j \<le> length s"
+    and pos: "rslice s i j \<in> r2 \<rightarrow> v"
+    using right by (auto simp: rexp_span_posix_def)
+  have "rslice s i j \<in> ALT r1 r2 \<rightarrow> Right v"
+    using pos no_left by (rule Posix_ALT2)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF sub ij jl])
+qed
+
+lemma rexp_span_posix_SEQI:
+  assumes split: "(SEQ r1 r2, i, k, j) \<in> rexp_span_all_split_probes root s"
+    and left: "(r1, i, k, v1) \<in> rexp_span_posix root s"
+    and right: "(r2, k, j, v2) \<in> rexp_span_posix root s"
+    and longest:
+      "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+        (rslice s i k @ s3) \<in> L r1 \<and> s4 \<in> L r2)"
+  shows "(SEQ r1 r2, i, j, Seq v1 v2) \<in> rexp_span_posix root s"
+proof -
+  obtain sub ik kj jl where
+    sub: "SEQ r1 r2 \<in> rexp_subterms root" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rexp_span_all_split_probesE)
+  have left_pos: "rslice s i k \<in> r1 \<rightarrow> v1"
+    using left by (auto simp: rexp_span_posix_def)
+  have right_pos: "rslice s k j \<in> r2 \<rightarrow> v2"
+    using right by (auto simp: rexp_span_posix_def)
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have slice: "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  have "(rslice s i k @ rslice s k j) \<in> SEQ r1 r2 \<rightarrow> Seq v1 v2"
+    by (rule Posix_SEQ[OF left_pos right_pos longest])
+  then have "rslice s i j \<in> SEQ r1 r2 \<rightarrow> Seq v1 v2"
+    by (simp add: slice)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF sub ij jl])
+qed
+
+lemma rexp_span_posix_STAR_emptyI:
+  assumes "STAR q \<in> rexp_subterms r" "i \<le> length s"
+  shows "(STAR q, i, i, Stars []) \<in> rexp_span_posix r s"
+proof -
+  have "rslice s i i \<in> STAR q \<rightarrow> Stars []"
+    using assms by (simp add: Posix_STAR2)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF assms(1) order_refl assms(2)])
+qed
+
+lemma rexp_span_posix_STAR_stepI:
+  assumes split: "(STAR q, i, k, j) \<in> rexp_span_all_split_probes root s"
+    and head: "(q, i, k, v) \<in> rexp_span_posix root s"
+    and tail: "(STAR q, k, j, Stars vs) \<in> rexp_span_posix root s"
+    and nonempty: "flat v \<noteq> []"
+    and longest:
+      "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+        (rslice s i k @ s3) \<in> L q \<and> s4 \<in> L (STAR q))"
+  shows "(STAR q, i, j, Stars (v # vs)) \<in> rexp_span_posix root s"
+proof -
+  obtain sub ik kj jl where
+    sub: "STAR q \<in> rexp_subterms root" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rexp_span_all_split_probesE)
+  have head_pos: "rslice s i k \<in> q \<rightarrow> v"
+    using head by (auto simp: rexp_span_posix_def)
+  have tail_pos: "rslice s k j \<in> STAR q \<rightarrow> Stars vs"
+    using tail by (auto simp: rexp_span_posix_def)
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have slice: "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  have "(rslice s i k @ rslice s k j) \<in> STAR q \<rightarrow> Stars (v # vs)"
+    by (rule Posix_STAR1[OF head_pos tail_pos nonempty longest])
+  then have "rslice s i j \<in> STAR q \<rightarrow> Stars (v # vs)"
+    by (simp add: slice)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF sub ij jl])
+qed
+
+lemma rexp_span_posix_NTIMES_zero_emptyI:
+  assumes "NTIMES q 0 \<in> rexp_subterms r" "i \<le> length s"
+  shows "(NTIMES q 0, i, i, Stars []) \<in> rexp_span_posix r s"
+proof -
+  have "rslice s i i \<in> NTIMES q 0 \<rightarrow> Stars []"
+    using assms by (simp add: Posix_NTIMES2)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF assms(1) order_refl assms(2)])
+qed
+
+lemma rexp_span_posix_NTIMES_SucI:
+  assumes split: "(NTIMES q (Suc n), i, k, j) \<in> rexp_span_all_split_probes root s"
+    and head: "(q, i, k, v) \<in> rexp_span_posix root s"
+    and tail: "(NTIMES q n, k, j, Stars vs) \<in> rexp_span_posix root s"
+    and nonempty: "flat v \<noteq> []"
+    and longest:
+      "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+        (rslice s i k @ s3) \<in> L q \<and> s4 \<in> L (NTIMES q n))"
+  shows "(NTIMES q (Suc n), i, j, Stars (v # vs)) \<in> rexp_span_posix root s"
+proof -
+  obtain sub ik kj jl where
+    sub: "NTIMES q (Suc n) \<in> rexp_subterms root" and
+    ik: "i \<le> k" and kj: "k \<le> j" and jl: "j \<le> length s"
+    using split by (rule rexp_span_all_split_probesE)
+  have head_pos: "rslice s i k \<in> q \<rightarrow> v"
+    using head by (auto simp: rexp_span_posix_def)
+  have tail_pos: "rslice s k j \<in> NTIMES q n \<rightarrow> Stars vs"
+    using tail by (auto simp: rexp_span_posix_def)
+  have tail_pos': "rslice s k j \<in> NTIMES q (Suc n - 1) \<rightarrow> Stars vs"
+    using tail_pos by simp
+  have longest':
+      "\<not>(\<exists>s3 s4. s3 \<noteq> [] \<and> s3 @ s4 = rslice s k j \<and>
+        (rslice s i k @ s3) \<in> L q \<and> s4 \<in> L (NTIMES q (Suc n - 1)))"
+    using longest by simp
+  have positive: "0 < Suc n"
+    by simp
+  have ij: "i \<le> j"
+    using ik kj by simp
+  have slice: "rslice s i j = rslice s i k @ rslice s k j"
+    by (rule rslice_append[OF ik kj jl])
+  have "(rslice s i k @ rslice s k j) \<in> NTIMES q (Suc n) \<rightarrow> Stars (v # vs)"
+    by (rule Posix_NTIMES1[OF head_pos tail_pos' nonempty positive longest'])
+  then have "rslice s i j \<in> NTIMES q (Suc n) \<rightarrow> Stars (v # vs)"
+    by (simp add: slice)
+  then show ?thesis
+    by (rule rexp_span_posixI[OF sub ij jl])
+qed
 
 lemma rexp_span_posix_states_subset:
   "rexp_span_posix_states r s \<subseteq> rexp_span_states r s"
