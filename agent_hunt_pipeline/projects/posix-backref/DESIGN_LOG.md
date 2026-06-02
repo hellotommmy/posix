@@ -3,6 +3,20 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Raw-row closure is now the preferred cubic obligation
+
+- Added raw-row finite-universe bookkeeping for `rpders_strong_rows_raw`:
+  subset induction, distinct preservation, length bounds, and `rsizes` bounds.
+- Added `strong_deferred_original_raw_row_cubic_universe_interface`. It says
+  that a finite universe closed under raw one-step rows
+  `rpder_strong_rows_raw` yields the annotated
+  `bpders_strong1_rows (intern r) s` size bound and keeps the exact
+  `map rerase` bridge plus deferred POSIX value gate.
+- Design consequence: when proving the next cubic closure theorem, do not
+  phrase the primary step premise over annotated witnesses unless necessary.
+  Prove closure for raw erased rows first; annotated bounds now follow from
+  the checked erasure bridge.
+
 ## 2026-06-03: Raw strong skeleton restores exact erasure
 
 - Added a raw skeleton mirror of the annotated strong simplifier:

@@ -63,6 +63,14 @@ immutability.
 
 ## Open Artifact Notes
 
+- Raw-row universe interface: `GeneralRegexBound.thy` now has finite-universe
+  subset/distinct/length/`rsizes` bookkeeping for `rpders_strong_rows_raw`.
+  `FBound.thy` adds `strong_deferred_original_raw_row_cubic_universe_interface`,
+  which transfers a raw one-step closure premise for
+  `rpder_strong_rows_raw` to the annotated `bpders_strong1_rows` size bound,
+  exact `map rerase` equality, and deferred POSIX value gate. This is the
+  preferred BR-040 proof interface for the next closure attempt, but it is not
+  a payout until a concrete cubic raw/shared universe is checked.
 - Raw strong skeleton bridge: `GeneralRegexBound.thy` now has
   `rsimpStrong_raw` and raw strong row derivative entry points that mirror the
   annotated delayed-normalization shape. `FBound.thy` proves exact erasure

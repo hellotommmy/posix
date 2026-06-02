@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (raw strong skeleton bridge)
+Last updated: 2026-06-03 (raw strong row universe interface)
+
+## Cubic Candidate Prototype: Raw Strong Row Universe Interface (2026-06-03)
+
+- Added checked raw-row finite-universe bookkeeping in `GeneralRegexBound.thy`:
+  - `distinct_rpder_strong_rows_raw`;
+  - `distinct_rpders_strong_rows_raw`;
+  - `rpders_strong_rows_raw_subsetI`;
+  - `length_rpders_strong1_rows_raw_finite_universe_boundI`;
+  - `rsizes_rpders_strong1_rows_raw_finite_universe_boundI`;
+  - `rsizes_rpders_strong1_rows_raw_cubic_universe_boundI`.
+- Added checked annotated transfer interfaces in `FBound.thy`:
+  - `asizes_bpders_strong1_rows_raw_cubic_universe_boundI`;
+  - `strong_deferred_original_raw_row_cubic_universe_interface`.
+- Design result:
+  - Future cubic work can now state the hard closure obligation purely on the
+    raw erased skeleton:
+    `set xs \<subseteq> U \<Longrightarrow> set (rpder_strong_rows_raw c xs) \<subseteq> U`.
+  - The checked bridge then transfers the resulting raw `rsizes` bound back to
+    the annotated `bpders_strong1_rows (intern r) s` size bound, preserves the
+    exact `map rerase` equality, and keeps the nullable-row iff unique deferred
+    POSIX value gate.
+  - This narrows the next missing theorem to constructing a finite raw/shared
+    row universe with cubic card/member bounds. It does not itself prove that
+    universe exists and does not pay BR-039 or BR-040.
+- Build: focused `Posix` and `BackRefPilot` builds passed after this
+  checkpoint.
 
 ## Cubic Candidate Prototype: Raw Strong Skeleton Bridge (2026-06-03)
 

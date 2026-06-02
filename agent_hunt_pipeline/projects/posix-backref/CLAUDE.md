@@ -140,6 +140,13 @@ mirrors annotated delayed normalization and is suitable as the proof-facing
 carrier before a separate shared-row/reconstruction theorem. It is not itself
 a cubic simplifier bounty.
 
+The preferred proof obligation after that bridge is raw-row closure. Use
+`strong_deferred_original_raw_row_cubic_universe_interface` as the current
+contract: prove a finite universe `U` is closed by
+`rpder_strong_rows_raw`, with cubic card/member-size bounds, and the annotated
+`bpders_strong1_rows (intern r) s` size bound plus deferred-value gate follows.
+This keeps later universe construction away from annotated bit payloads.
+
 Keep the measurement honest. On the thesis Figure 7.6 `k=5` family,
 `bsimpStrong` gives the expected hundreds-scale ordinary tree trace; the
 value-safe `expanded-keyed-no-reassoc` mode still has larger ordinary trees,
