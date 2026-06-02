@@ -192,6 +192,15 @@ That refinement has now started. `FBound.thy` also has:
   `rexp_span_posix_NTIMES_SucI`.
 - inversion rules `rexp_span_posix_ALT1E`, `rexp_span_posix_ALT2E`, and
   `rexp_span_posix_SEQE`, supported by `rslice_prefix_split`.
+- flat/index boundary rules `rexp_span_posix_flat_eq`,
+  `rexp_span_posix_flat_length`, `rexp_span_posix_empty_flat_index_eq`, and
+  `rexp_span_posix_nonempty_flat_index_lt`.
+
+The attempted direct STAR/NTIMES nonempty inversion lemmas were not kept:
+generated `Posix` eliminators for those cases caused long-running proof
+commands. The next STAR/NTIMES extraction layer should use bespoke structured
+helper lemmas, with the flat/index boundary facts above handling the cheap
+empty/nonempty interval reasoning.
 
 The intended proof direction is now counterexample-driven: keep using
 `StrongFullCert` to mine cases where local reconstruction chooses the wrong

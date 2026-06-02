@@ -1,6 +1,26 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong-full CE guard)
+Last updated: 2026-06-03 (span flat/index boundary)
+
+## Cubic Candidate Prototype: Checked Span Flat/Index Boundary (2026-06-03)
+
+- Added cheap checked facts in `FBound.thy` for original-root POSIX span
+  entries:
+  - `rexp_span_posix_flat_eq`;
+  - `rexp_span_posix_flat_length`;
+  - `rexp_span_posix_empty_flat_index_eq`;
+  - `rexp_span_posix_nonempty_flat_index_lt`.
+- Meaning: every span value carries exactly the slice it claims to parse; an
+  empty flat value must be an empty interval, and a nonempty flat value must
+  consume a nonempty interval. These are small but useful boundary facts for
+  the deferred span/memo route, especially around STAR/NTIMES split
+  reconstruction.
+- Tried to add direct STAR/NTIMES nonempty inversion lemmas, but both the
+  generic `Posix_elims(6/7)` route and specialized generated
+  `inductive_cases` route produced long-running commands. Those lemmas were
+  deliberately not kept. Future STAR/NTIMES extraction should use bespoke,
+  structured helper facts rather than generated eliminators.
+- Focused `Posix` build passed after this checkpoint.
 
 ## Cubic Candidate Prototype: StrongFull Known-CE Guard (2026-06-03)
 

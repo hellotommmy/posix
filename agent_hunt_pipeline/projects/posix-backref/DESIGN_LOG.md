@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Span flat/index boundary and slow inversion lesson
+
+- Added checked `FBound.thy` boundary facts for `rexp_span_posix`:
+  `rexp_span_posix_flat_eq`, `rexp_span_posix_flat_length`,
+  `rexp_span_posix_empty_flat_index_eq`, and
+  `rexp_span_posix_nonempty_flat_index_lt`.
+- These facts are the lightweight side of the span/memo reconstruction route:
+  before proving full STAR/NTIMES longest-left extraction, we can already use
+  value flatness to show whether a span consumed an empty or nonempty input
+  interval.
+- Attempted direct nonempty STAR/NTIMES extraction from `Posix` values. Both
+  broad `Posix_elims(6/7)` and specialized `inductive_cases` variants produced
+  long-running proof commands, so those lemmas were removed before commit.
+  Future attempts should build bespoke helper lemmas with explicit cases in
+  `PosixSpec.thy` or a small dedicated inversion layer; do not reintroduce
+  generated eliminator lines that run for tens of seconds.
+
 ## 2026-06-03: StrongFull known-CE guard
 
 - Added optional smoke gate `-CheckStrongFullKnownCE` to

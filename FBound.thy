@@ -1939,6 +1939,52 @@ proof -
     by (rule that[OF split left right longest])
 qed
 
+lemma rexp_span_posix_flat_eq:
+  assumes entry: "(q, i, j, v) \<in> rexp_span_posix root s"
+  shows "flat v = rslice s i j"
+proof -
+  have "rslice s i j \<in> q \<rightarrow> v"
+    using entry by (auto simp: rexp_span_posix_def)
+  then show ?thesis
+    using Posix1(2) by blast
+qed
+
+lemma rexp_span_posix_flat_length:
+  assumes entry: "(q, i, j, v) \<in> rexp_span_posix root s"
+  shows "length (flat v) = j - i"
+proof -
+  have ij: "i \<le> j" and jl: "j \<le> length s"
+    using entry by (auto simp: rexp_span_posix_def)
+  show ?thesis
+    using rexp_span_posix_flat_eq[OF entry] length_rslice[OF ij jl] by simp
+qed
+
+lemma rexp_span_posix_empty_flat_index_eq:
+  assumes entry: "(q, i, j, v) \<in> rexp_span_posix root s"
+    and empty: "flat v = []"
+  shows "i = j"
+proof -
+  have ij: "i \<le> j"
+    using entry by (auto simp: rexp_span_posix_def)
+  have "j - i = 0"
+    using rexp_span_posix_flat_length[OF entry] empty by simp
+  then show ?thesis
+    using ij by simp
+qed
+
+lemma rexp_span_posix_nonempty_flat_index_lt:
+  assumes entry: "(q, i, j, v) \<in> rexp_span_posix root s"
+    and nonempty: "flat v \<noteq> []"
+  shows "i < j"
+proof -
+  have ij: "i \<le> j"
+    using entry by (auto simp: rexp_span_posix_def)
+  have "j - i \<noteq> 0"
+    using rexp_span_posix_flat_length[OF entry] nonempty by auto
+  then show ?thesis
+    using ij by simp
+qed
+
 lemma rexp_span_posix_states_subset:
   "rexp_span_posix_states r s \<subseteq> rexp_span_states r s"
 proof
