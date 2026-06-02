@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row row-normal cubic hook)
+Last updated: 2026-06-02 (strong-row row-normal obstruction)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -56,6 +56,14 @@ Last updated: 2026-06-02 (strong-row row-normal cubic hook)
   cubic bound hooks. This makes the next concrete universe instantiation
   cleaner: maintain row normal form, then focus only on normalized derivative
   closure and shared-suffix prune closure.
+- Strengthened that row-normal layer with the checked helper
+  `row_nf_rsimp7_SEQ_atom` and the singleton bridge
+  `row_nf_rflts_singleton`. The same checkpoint also records the obstruction
+  `strong_shared_prune_result_can_leave_row_nf`: shared-suffix pruning can
+  produce a row of shape `RSEQ (RALTS [...]) k`, so a future concrete universe
+  cannot consist only of strict `row_nf` rows unless the prune result is
+  separately collapsed or the universe explicitly admits grouped left
+  alternatives.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that

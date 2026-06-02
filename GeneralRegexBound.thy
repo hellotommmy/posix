@@ -5147,6 +5147,43 @@ next
     by (cases y) simp_all
 qed
 
+lemma row_nf_rsimp7_SEQ_atom:
+  assumes "row_nf x" "row_nf y"
+  shows "row_nf (rsimp7_SEQ_atom x y) \<or> rsimp7_SEQ_atom x y = RZERO"
+proof -
+  have fallback:
+    "row_nf (rsimp4_SEQ_atom x y) \<or> rsimp4_SEQ_atom x y = RZERO"
+    by (rule row_nf_rsimp4_SEQ_atom[OF assms])
+  show ?thesis
+  proof (cases x)
+    case (RSTAR r)
+    note x_star = RSTAR
+    show ?thesis
+    proof (cases y)
+      case (RSTAR s)
+      then show ?thesis
+        using x_star fallback by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RSEQ y1 y2)
+      note y_seq = RSEQ
+      show ?thesis
+      proof (cases y1)
+        case (RSTAR s)
+        have y2_nf: "row_nf y2"
+          using assms y_seq by simp
+        have y2_not_zero: "y2 \<noteq> RZERO"
+          using assms y_seq by simp
+        have y2_not_one: "y2 \<noteq> RONE"
+          using assms y_seq by simp
+        show ?thesis
+          using x_star y_seq RSTAR y2_nf y2_not_zero y2_not_one fallback
+          by (simp add: rsimp7_SEQ_atom_def)
+      qed (use x_star y_seq fallback in
+        \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+    qed (use x_star fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed (use fallback in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+qed
+
 lemma row_nf_rsimp5_seq_products:
   assumes "\<forall>x \<in> set xs. row_nf x"
       and "\<forall>y \<in> set ys. row_nf y"
@@ -5172,6 +5209,16 @@ lemma rows_nf_rflts:
   shows "\<forall>x \<in> set (rflts rs). row_nf x"
   using assms
   by (induct rs rule: rflts.induct) (auto simp add: rows_nf_def)
+
+lemma row_nf_rflts_singleton:
+  assumes "row_nf r \<or> r = RZERO"
+  shows "\<forall>x \<in> set (rflts [r]). row_nf x"
+proof -
+  have "rows_nf r"
+    by (rule rows_nf_of_row_nf_or_zero[OF assms])
+  then show ?thesis
+    by (rule rows_nf_rflts[of "[r]", simplified])
+qed
 
 lemma rows_nf_rdistinct:
   assumes "\<forall>x \<in> set rs. row_nf x"
@@ -17382,6 +17429,16 @@ lemma rsizes_rpders_strong_rows_norm_shared_row_nf_cubic_universe_boundI:
   by (rule rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI
       [OF init _ norm shared finite card_bound member_size distinct cubic])
     (rule rflts_singleton_row_nf_subsetI[OF row_nf])
+
+lemma strong_shared_prune_result_can_leave_row_nf:
+  assumes "b \<noteq> a" "c \<noteq> a" "b \<noteq> c"
+  shows "\<not> row_nf
+    (rsimp7_SEQ_atom
+      (rsimp_ALTs
+        (rdistinct
+          (rflts (rprune_eq_against [RCHAR a] [RCHAR b, RCHAR c])) {}))
+      (RCHAR d))"
+  using assms by (simp add: rsimp7_SEQ_atom_def)
 
 lemma thesis_ch7_rsimpStrong_ALTs_prunes_overlap:
   assumes "d \<noteq> a" "d \<noteq> b"

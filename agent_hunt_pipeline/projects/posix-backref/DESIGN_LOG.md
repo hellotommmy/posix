@@ -1174,3 +1174,12 @@ to be read before continuing long-running agent work.
   branch from future root-owned universe instantiations: the universe proof can
   maintain row normal form and spend its effort on the normalized derivative
   and shared-suffix prune cases.
+- Row-normality is useful but not sufficient as the whole concrete universe.
+  `row_nf_rsimp7_SEQ_atom` shows `rsimp7_SEQ_atom` preserves row-normal rows
+  up to `RZERO`, and `row_nf_rflts_singleton` packages singleton flattening.
+  However `strong_shared_prune_result_can_leave_row_nf` gives a checked
+  obstruction: a shared-suffix prune may build
+  `rsimp7_SEQ_atom (RALTS [...]) k`, which is outside strict `row_nf`. Future
+  closure work should either enlarge the root-owned universe to include these
+  grouped-left rows or prove a stronger local collapse for the prune result;
+  do not spend time trying to close the composed hook with `row_nf` alone.
