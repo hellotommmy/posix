@@ -769,6 +769,33 @@ where
 | "bders_simpStrong r (c # s) =
     bders_simpStrong (bsimpStrong (bder c r)) s"
 
+fun bsimpCubic :: "arexp \<Rightarrow> arexp"
+where
+  "bsimpCubic (ASEQ bs r1 r2) =
+    bsimp7_ASEQ_atom bs (bsimpCubic r1) (bsimpCubic r2)"
+| "bsimpCubic (AALTs bs rs) =
+    bsimpStrong_AALTs bs (flts (map bsimpCubic rs))"
+| "bsimpCubic (ASTAR bs r) =
+    (case bsimpCubic r of
+      AZERO \<Rightarrow> AONE []
+    | AONE bs' \<Rightarrow> AONE []
+    | ASTAR bs' s \<Rightarrow> ASTAR bs' s
+    | s \<Rightarrow> ASTAR bs s)"
+| "bsimpCubic (ANTIMES bs r n) =
+    (if n = 0 then AONE [] else
+      (case bsimpCubic r of
+        AZERO \<Rightarrow> AZERO
+      | AONE bs' \<Rightarrow> AONE []
+      | s \<Rightarrow> ANTIMES bs s n))"
+| "bsimpCubic r = r"
+
+fun
+  bders_simpCubic :: "arexp \<Rightarrow> string \<Rightarrow> arexp"
+where
+  "bders_simpCubic r [] = r"
+| "bders_simpCubic r (c # s) =
+    bders_simpCubic (bsimpCubic (bder c r)) s"
+
 fun bpder_list :: "char \<Rightarrow> arexp \<Rightarrow> arexp list" where
   "bpder_list c AZERO = []"
 | "bpder_list c (AONE bs) = []"

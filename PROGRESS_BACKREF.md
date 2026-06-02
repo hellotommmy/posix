@@ -1,20 +1,24 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong-row cubic route correction)
+Last updated: 2026-06-02 (smoke-first cubic route)
 
-## Cubic Bound Checkpoint: Root-Normalized Strong Rows (2026-06-02)
+## Cubic Bound Checkpoint: Smoke-First Route Reset (2026-06-02)
 
-- Added checked proof-level bridge `RLS_rpders_strong1_rows_rsimp9`: starting
-  the strong row pipeline from `rsimp9 r` still denotes the ordinary repeated
-  derivatives of `r`. This records the intended composition: `rsimp9` supplies
-  root/tail/countdown normalization, while `rpders_strong1_rows` supplies the
-  Chapter-7 shared-suffix row pruning route.
-- Added checked cubic-universe hooks
-  `rsizes_rpders_strong1_rows_rsimp9_cubic_universe_boundI` and
-  `rsizes_rpders_strong1_rows_rsimp9_norm_later_shared_cubic_universe_boundI`.
-  These do not close the finite universe theorem; they repackage the remaining
-  proof obligation around the correct initial state `rsimp9 r`.
-- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Revoked the old proof-first `rsimp9` bounty route in `BACKREF_BOUNTIES.md`.
+  `BR-036` and the old root-safe transfer `BR-037` are retired and cannot pay
+  out. Historical lemmas may remain as technical evidence, but `rsimp9` is no
+  longer a candidate simplifier or proof target.
+- Added new smoke-gated bounties: `BR-038` for a checked counterexample/smoke
+  suite, `BR-039` for a new simplifier candidate that passes that suite, and
+  `BR-040` for proof interfaces only after the suite passes.
+- Added new candidate definitions `rsimpCubic`/`rders_simpCubic` and
+  `bsimpCubic`/`bders_simpCubic`. The candidate uses strong shared-suffix row
+  pruning for alternatives and has its own recursive counted-repetition
+  normalization; it is not an `rsimp9` wrapper.
+- Added the first smoke suite in `FBound.thy`: A checks
+  `(a+b)c + (a+d)c`; B checks the thesis Chapter 7 three-star family; C-F are
+  small checked counterexamples where current `bsimp` misses shared-suffix or
+  coverage pruning and `bsimpCubic` shrinks the state.
 
 ## Cubic Bound Route Correction: Strong-Row Route Is The Target (2026-06-02)
 
@@ -34,12 +38,9 @@ Last updated: 2026-06-02 (strong-row cubic route correction)
   `thesis_ch7_bsimpStrong_prunes_overlap`,
   `thesis_ch7_evil5_bders_simpStrong_lt_simp8_size_16`, and
   `thesis_ch7_evil5_bders_simpStrong_size_16_under_825`.
-- Hence the cubic-bound payout target should be the strong row pipeline
-  `rpder_strong_rows`/`bpder_strong_rows`, with `rsimp9` retained only as
-  normalization scaffold for tails/countdowns and diagnostics. The remaining
-  hard theorem is the finite universe and one-step closure theorem for strong
-  rows, including the shared-suffix prune result, followed by the annotated
-  transfer.
+- Hence the cubic-bound payout target must be a smoke-tested strong pruning
+  route. `rsimp9` is historical scaffolding only and should not be used as a
+  candidate or payout artifact.
 
 ## Cubic Bound Research Checkpoint: Path9 Tight-Budget Root-Linear Hooks (2026-06-02)
 

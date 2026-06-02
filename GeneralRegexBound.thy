@@ -17142,6 +17142,34 @@ fun rders_simpStrong :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
 | "rders_simpStrong r (c # s) =
     rders_simpStrong (rsimpStrong (rder c r)) s"
 
+fun rsimpCubic :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimpCubic (RSEQ r1 r2) =
+    rsimp7_SEQ_atom (rsimpCubic r1) (rsimpCubic r2)"
+| "rsimpCubic (RALTS rs) =
+    rsimpStrong_ALTs (rflts (map rsimpCubic rs))"
+| "rsimpCubic (RSTAR r) =
+    (case rsimpCubic r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimpCubic (RNTIMES r n) =
+    (if n = 0 then RONE else
+      (case rsimpCubic r of
+        RZERO \<Rightarrow> RZERO
+      | RONE \<Rightarrow> RONE
+      | s \<Rightarrow> RNTIMES s n))"
+| "rsimpCubic (RBACKREF4 r1 r2 r3 r4 cs) = RBACKREF4 r1 r2 r3 r4 cs"
+| "rsimpCubic (RHALF r cs rep) = RHALF r cs rep"
+| "rsimpCubic (RRESIDUE cs rep) = RRESIDUE cs rep"
+| "rsimpCubic r = r"
+
+fun rders_simpCubic :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "rders_simpCubic r [] = r"
+| "rders_simpCubic r (c # s) =
+    rders_simpCubic (rsimpCubic (rder c r)) s"
+
 lemma RL_rders_simpStrong:
   "RL (rders_simpStrong r s) = Ders s (RL r)"
 proof (induct s arbitrary: r)
@@ -18866,20 +18894,6 @@ lemma RLS_rpders_strong1_rows:
   using RLS_rpders_strong_rows[of "[r]" s] assms
   by (simp add: rpders_strong1_rows_def RLS_def)
 
-lemma RLS_rpders_strong1_rows_rsimp9:
-  assumes "legacy_rrexp r"
-  shows "RLS (set (rpders_strong1_rows (rsimp9 r) s)) = Ders s (RL r)"
-proof -
-  have norm_legacy: "legacy_rrexp (rsimp9 r)"
-    by (rule legacy_rsimp9[OF assms])
-  have "RLS (set (rpders_strong1_rows (rsimp9 r) s)) =
-      Ders s (RL (rsimp9 r))"
-    by (rule RLS_rpders_strong1_rows[OF norm_legacy])
-  also have "... = Ders s (RL r)"
-    using RL_rsimp9[of r] by simp
-  finally show ?thesis .
-qed
-
 lemma rpders_strong_rows_subsetI:
   assumes init: "set rs \<subseteq> U"
       and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
@@ -19497,37 +19511,6 @@ proof -
     by (rule cubic)
   finally show ?thesis .
 qed
-
-lemma rsizes_rpders_strong1_rows_rsimp9_cubic_universe_boundI:
-  assumes init: "rsimp9 r \<in> U"
-      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
-        set (rpder_strong_rows c xs) \<subseteq> U"
-      and finite: "finite U"
-      and card_bound: "card U \<le> C"
-      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
-      and cubic: "C * M \<le> B"
-  shows "rsizes (rpders_strong1_rows (rsimp9 r) s) \<le> B"
-  by (rule rsizes_rpders_strong1_rows_cubic_universe_boundI
-      [OF init step finite card_bound member_size cubic])
-
-lemma rsizes_rpders_strong1_rows_rsimp9_norm_later_shared_cubic_universe_boundI:
-  assumes init: "rsimp9 r \<in> U"
-    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
-    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
-      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
-      set (rflts [rsimpStrong p]) \<subseteq> U"
-    and shared: "\<And>lrs rrs k.
-      RSEQ (RALTS rrs) k \<in> U \<Longrightarrow>
-      set (rflts [rsimp7_SEQ_atom
-        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
-        k]) \<subseteq> U"
-    and finite: "finite U"
-    and card_bound: "card U \<le> C"
-    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
-    and cubic: "C * M \<le> B"
-  shows "rsizes (rpders_strong1_rows (rsimp9 r) s) \<le> B"
-  by (rule rsizes_rpders_strong1_rows_norm_later_shared_cubic_universe_boundI
-      [OF init flat_closed norm shared finite card_bound member_size cubic])
 
 lemma rsizes_rpders_strong_rows_norm_shared_flat_rows_finite_universe_boundI:
   assumes init: "set rs \<subseteq> U"

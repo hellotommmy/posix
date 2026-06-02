@@ -3163,6 +3163,133 @@ lemma thesis_ch7_bsimpStrong_overlap_same_language:
   by (simp add: thesis_ch7_bsimpStrong_prunes_overlap
       thesis_ch7_overlap_pruned_same_language)
 
+lemma thesis_cubic_smoke_A_shared_suffix:
+  "bsimp thesis_ch7_overlap = thesis_ch7_overlap"
+  "bsimpCubic thesis_ch7_overlap = thesis_ch7_overlap_pruned"
+  "asize (bsimpCubic thesis_ch7_overlap) < asize thesis_ch7_overlap"
+  by eval+
+
+lemma thesis_cubic_smoke_B_ch7_three_star:
+  "asize (bders_simp (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) = 14876"
+  "asize (bders_simp8 (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) = 1308"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 825"
+  by eval+
+
+definition thesis_cubic_counterexample_C :: arexp where
+  "thesis_cubic_counterexample_C =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+          ACHAR [] thesis_ch7_d])
+          (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ACHAR [] thesis_ch7_c)]"
+
+definition thesis_cubic_counterexample_C_pruned :: arexp where
+  "thesis_cubic_counterexample_C_pruned =
+    ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+        ACHAR [] thesis_ch7_d])
+      (ACHAR [] thesis_ch7_c)"
+
+lemma thesis_cubic_counterexample_C_checks:
+  "bsimp thesis_cubic_counterexample_C = thesis_cubic_counterexample_C"
+  "bsimpCubic thesis_cubic_counterexample_C =
+    thesis_cubic_counterexample_C_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_C) <
+    asize thesis_cubic_counterexample_C"
+  by eval+
+
+definition thesis_cubic_counterexample_D :: arexp where
+  "thesis_cubic_counterexample_D =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_d])
+          (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_e])
+          (ACHAR [] thesis_ch7_c)]"
+
+definition thesis_cubic_counterexample_D_pruned :: arexp where
+  "thesis_cubic_counterexample_D_pruned =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ACHAR [] thesis_ch7_c),
+       ASEQ [] (ACHAR [] thesis_ch7_d) (ACHAR [] thesis_ch7_c),
+       ASEQ [] (ACHAR [] thesis_ch7_e) (ACHAR [] thesis_ch7_c)]"
+
+lemma thesis_cubic_counterexample_D_checks:
+  "bsimp thesis_cubic_counterexample_D = thesis_cubic_counterexample_D"
+  "bsimpCubic thesis_cubic_counterexample_D =
+    thesis_cubic_counterexample_D_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_D) <
+    asize thesis_cubic_counterexample_D"
+  by eval+
+
+definition thesis_cubic_counterexample_E :: arexp where
+  "thesis_cubic_counterexample_E =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ASEQ [] (ACHAR [] thesis_ch7_c) (ACHAR [] thesis_ch7_d)),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_e])
+          (ASEQ [] (ACHAR [] thesis_ch7_c) (ACHAR [] thesis_ch7_d))]"
+
+definition thesis_cubic_counterexample_E_pruned :: arexp where
+  "thesis_cubic_counterexample_E_pruned =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ASEQ [] (ACHAR [] thesis_ch7_c) (ACHAR [] thesis_ch7_d)),
+       ASEQ [] (ACHAR [] thesis_ch7_e)
+          (ASEQ [] (ACHAR [] thesis_ch7_c) (ACHAR [] thesis_ch7_d))]"
+
+lemma thesis_cubic_counterexample_E_checks:
+  "bsimp thesis_cubic_counterexample_E = thesis_cubic_counterexample_E"
+  "bsimpCubic thesis_cubic_counterexample_E =
+    thesis_cubic_counterexample_E_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_E) <
+    asize thesis_cubic_counterexample_E"
+  by eval+
+
+definition thesis_cubic_counterexample_F :: arexp where
+  "thesis_cubic_counterexample_F =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+          ACHAR [] thesis_ch7_d]) (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b])
+          (ACHAR [] thesis_ch7_c),
+       ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_e])
+          (ACHAR [] thesis_ch7_c)]"
+
+definition thesis_cubic_counterexample_F_pruned :: arexp where
+  "thesis_cubic_counterexample_F_pruned =
+    AALTs []
+      [ASEQ [] (AALTs [] [ACHAR [] thesis_ch7_a, ACHAR [] thesis_ch7_b,
+          ACHAR [] thesis_ch7_d]) (ACHAR [] thesis_ch7_c),
+       ASEQ [] (ACHAR [] thesis_ch7_e) (ACHAR [] thesis_ch7_c)]"
+
+lemma thesis_cubic_counterexample_F_checks:
+  "bsimp thesis_cubic_counterexample_F = thesis_cubic_counterexample_F"
+  "bsimpCubic thesis_cubic_counterexample_F =
+    thesis_cubic_counterexample_F_pruned"
+  "asize (bsimpCubic thesis_cubic_counterexample_F) <
+    asize thesis_cubic_counterexample_F"
+  by eval+
+
+lemma thesis_cubic_smoke_suite_bsimpCubic:
+  "bsimpCubic thesis_ch7_overlap = thesis_ch7_overlap_pruned"
+  "asize (bders_simpCubic (intern (thesis_ch7_evil 5))
+      (replicate 16 thesis_ch7_a)) < 825"
+  "bsimpCubic thesis_cubic_counterexample_C =
+    thesis_cubic_counterexample_C_pruned"
+  "bsimpCubic thesis_cubic_counterexample_D =
+    thesis_cubic_counterexample_D_pruned"
+  "bsimpCubic thesis_cubic_counterexample_E =
+    thesis_cubic_counterexample_E_pruned"
+  "bsimpCubic thesis_cubic_counterexample_F =
+    thesis_cubic_counterexample_F_pruned"
+  by eval+
+
 lemma rders_simp3_size:
   shows "rders_simp3 (rerase r) s = rerase (bders_simp3 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp3_rerase[symmetric])
