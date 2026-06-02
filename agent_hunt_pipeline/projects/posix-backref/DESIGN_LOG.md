@@ -26,6 +26,22 @@ to be read before continuing long-running agent work.
   earlier `baselineValue` fallback by an explicit reconstruction algorithm that
   can be specified and optimized. The next step is to expose its table/universe
   size and relate it to the non-backref cubic frontier argument.
+- Added `posixMemoResult`, `strongDeferredMemoResult`, and
+  `-TraceStrongDeferredMemo` to expose the table/universe size. On the Chapter
+  7 family:
+  - k=5, n=30: strong tree `958`, memo accepts states `1577`, memo value states
+    `126`, split probes `6011`;
+  - k=8, n=48: strong tree `2963`, memo accepts states `3818`, memo value
+    states `198`, split probes `22145`.
+  The accepts table grows like a span-indexed parser universe in these traces,
+  while value states stay close to the chosen POSIX path. This is useful
+  positive evidence for proving a reconstruction universe bound separately from
+  the strong derivative state bound.
+- Design consequence: the next Isabelle-facing artifact should not be another
+  output simplifier. It should specify a span-indexed reconstruction relation
+  over `(subregex, i, j)` and prove that it agrees with the existing POSIX value
+  relation, then pair that relation with the checked `bders_simpStrong`
+  acceptance bridge.
 
 ## 2026-06-02: Deferred strong route gets a checked acceptance bridge
 

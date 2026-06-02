@@ -821,27 +821,55 @@ object PosixCubicSmoke {
     if (bnullable(finalRegex)) baselineValue(r, input) else None
   }
 
-  def posixMemoValue(r: Rexp, input: String): Option[Val] = {
+  final case class PosixMemoResult(
+      value: Option[Val],
+      acceptsStates: Int,
+      valueStates: Int,
+      acceptsQueries: Int,
+      valueQueries: Int,
+      splitProbes: Int
+  )
+
+  final case class StrongDeferredMemoResult(
+      value: Option[Val],
+      strongTree: Int,
+      strongDag: Int,
+      strongShapeDag: Int,
+      memo: PosixMemoResult
+  )
+
+  def posixMemoResult(r: Rexp, input: String): PosixMemoResult = {
     val acceptsMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Boolean]
     val valueMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Option[Val]]
+    var acceptsQueries = 0
+    var valueQueries = 0
+    var splitProbes = 0
 
-    def span(i: Int, j: Int): String =
-      input.substring(i, j)
+    def firstSplit(candidates: Iterator[Int])(p: Int => Boolean): Option[Int] = {
+      while (candidates.hasNext) {
+        val k = candidates.next()
+        splitProbes += 1
+        if (p(k)) return Some(k)
+      }
+      None
+    }
 
-    def accepts(re: Rexp, i: Int, j: Int): Boolean =
+    def accepts(re: Rexp, i: Int, j: Int): Boolean = {
+      acceptsQueries += 1
       acceptsMemo.getOrElseUpdate((re, i, j), re match {
         case ZERO => false
         case ONE => i == j
         case CH(c) => i + 1 == j && input.charAt(i) == c
         case ALT(r1, r2) => accepts(r1, i, j) || accepts(r2, i, j)
         case SEQ(r1, r2) =>
-          (i to j).exists(k => accepts(r1, i, k) && accepts(r2, k, j))
+          firstSplit((i to j).iterator)(k => accepts(r1, i, k) && accepts(r2, k, j)).isDefined
         case STAR(body) =>
-          i == j || ((i + 1) to j).exists(k => accepts(body, i, k) && accepts(STAR(body), k, j))
+          i == j || firstSplit(((i + 1) to j).iterator)(k => accepts(body, i, k) && accepts(STAR(body), k, j)).isDefined
         case NTIMES(body, n) =>
           if (n == 0) i == j
-          else (i to j).exists(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j))
+          else firstSplit((i to j).iterator)(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j)).isDefined
       })
+    }
 
     def emptyNTimesValue(body: Rexp, n: Int, i: Int): Option[Val] =
       if (n == 0) Some(StarsVal(Nil))
@@ -856,7 +884,8 @@ object PosixCubicSmoke {
         } yield out
       }
 
-    def value(re: Rexp, i: Int, j: Int): Option[Val] =
+    def value(re: Rexp, i: Int, j: Int): Option[Val] = {
+      valueQueries += 1
       valueMemo.getOrElseUpdate((re, i, j), re match {
         case ZERO => None
         case ONE => if (i == j) Some(Void) else None
@@ -866,8 +895,7 @@ object PosixCubicSmoke {
             if (accepts(r1, i, j)) None else value(r2, i, j).map(RightVal.apply)
           }
         case SEQ(r1, r2) =>
-          (i to j).reverseIterator
-            .find(k => accepts(r1, i, k) && accepts(r2, k, j))
+          firstSplit((i to j).reverseIterator)(k => accepts(r1, i, k) && accepts(r2, k, j))
             .flatMap { k =>
               for {
                 v1 <- value(r1, i, k)
@@ -877,8 +905,7 @@ object PosixCubicSmoke {
         case STAR(body) =>
           if (i == j) Some(StarsVal(Nil))
           else {
-            ((i + 1) to j).reverseIterator
-              .find(k => accepts(body, i, k) && accepts(STAR(body), k, j))
+            firstSplit(((i + 1) to j).reverseIterator)(k => accepts(body, i, k) && accepts(STAR(body), k, j))
               .flatMap { k =>
                 for {
                   head <- value(body, i, k)
@@ -895,8 +922,7 @@ object PosixCubicSmoke {
           if (i == j) emptyNTimesValue(body, n, i)
           else if (n == 0) None
           else {
-            ((i + 1) to j).reverseIterator
-              .find(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j))
+            firstSplit(((i + 1) to j).reverseIterator)(k => accepts(body, i, k) && accepts(NTIMES(body, n - 1), k, j))
               .flatMap { k =>
                 for {
                   head <- value(body, i, k)
@@ -910,13 +936,31 @@ object PosixCubicSmoke {
               }
           }
       })
+    }
 
-    value(r, 0, input.length).filter(v => flatVal(v) == span(0, input.length))
+    val out = value(r, 0, input.length).filter(v => flatVal(v) == input)
+    PosixMemoResult(out, acceptsMemo.size, valueMemo.size, acceptsQueries, valueQueries, splitProbes)
+  }
+
+  def posixMemoValue(r: Rexp, input: String): Option[Val] =
+    posixMemoResult(r, input).value
+
+  def strongDeferredMemoResult(r: Rexp, input: String): StrongDeferredMemoResult = {
+    val finalRegex = bdersStrong(intern(r), input)
+    val memo =
+      if (bnullable(finalRegex)) posixMemoResult(r, input)
+      else PosixMemoResult(None, 0, 0, 0, 0, 0)
+    StrongDeferredMemoResult(
+      memo.value,
+      asize(finalRegex),
+      adagSize(finalRegex),
+      ashapeDagSize(finalRegex),
+      memo
+    )
   }
 
   def strongDeferredMemoValue(r: Rexp, input: String): Option[Val] = {
-    val finalRegex = bdersStrong(intern(r), input)
-    if (bnullable(finalRegex)) posixMemoValue(r, input) else None
+    strongDeferredMemoResult(r, input).value
   }
 
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
@@ -1730,6 +1774,19 @@ object PosixCubicSmoke {
       }.mkString(", "))
   }
 
+  def checkStrongDeferredMemoEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
+    val r = thesisCh7Evil(k)
+    val trace = lengths.map { n =>
+      n -> strongDeferredMemoResult(r, "a" * n)
+    }
+    println(s"Chapter 7 k=$k strong deferred memo trace: " +
+      trace.map { case (n, s) =>
+        s"$n->strong=${s.strongTree}/dag=${s.strongDag}/shape=${s.strongShapeDag}" +
+          s"/memoA=${s.memo.acceptsStates}/memoV=${s.memo.valueStates}" +
+          s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}/splits=${s.memo.splitProbes}"
+      }.mkString(", "))
+  }
+
   def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
     val r = thesisCh7Evil(k)
     val trace = lengths.map { n =>
@@ -2338,6 +2395,7 @@ object PosixCubicSmoke {
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
     val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
     val checkStrongDeferredMemo = boolSetting("posix.smoke.checkStrongDeferredMemo", "POSIX_SMOKE_CHECK_STRONG_DEFERRED_MEMO", false)
+    val traceStrongDeferredMemo = boolSetting("posix.smoke.traceStrongDeferredMemo", "POSIX_SMOKE_TRACE_STRONG_DEFERRED_MEMO", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -2414,6 +2472,9 @@ object PosixCubicSmoke {
     }
     if (traceStrong) {
       checkStrongEvilFamilyTrace(ch7K, ch7Lengths)
+    }
+    if (traceStrongDeferredMemo) {
+      checkStrongDeferredMemoEvilFamilyTrace(ch7K, ch7Lengths)
     }
     if (traceStrongSafe) {
       checkStrongSafeEvilFamilyTrace(ch7K, ch7Lengths)

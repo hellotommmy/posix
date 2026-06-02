@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (memoized deferred POSIX reconstruction smoke)
+Last updated: 2026-06-02 (memoized reconstruction size trace)
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 
@@ -30,6 +30,17 @@ Last updated: 2026-06-02 (memoized deferred POSIX reconstruction smoke)
   - memoized deferred reconstruction passes exhaustive depth `2`, input length
     `3`, and `10,000` deterministic random cases at depth `6`, input length
     `7`, seed `20260602`;
+  - `-TraceStrongDeferredMemo` now reports the reconstruction table size.
+    Chapter 7 k=5, lengths `0,4,8,12,16,20,24,30`:
+    strong tree `46,474,730,771,820,875,918,958`;
+    memo accepts states `0,56,158,308,506,752,1046,1577`;
+    memo value states `1,22,38,54,70,86,102,126`;
+    split probes `0,57,225,569,1153,2041,3297,6011`.
+    Chapter 7 k=8, lengths `0,4,8,16,32,48`:
+    strong tree `97,1164,1816,2691,2879,2963`;
+    memo accepts states `0,56,158,506,1778,3818`;
+    memo value states `1,22,38,70,134,198`;
+    split probes `0,57,225,1153,7169,22145`.
   - the hand CE grid from the nullable-star failures remains checked.
 - Size evidence from the full `bsimpStrong` state is back to the thesis-scale
   plateau:
@@ -59,6 +70,14 @@ Last updated: 2026-06-02 (memoized deferred POSIX reconstruction smoke)
   the original `lexer r s` supplies the unique POSIX value. A future cubic
   runtime must replace that fallback by an efficient reconstruction relation,
   but the semantic target is now checked.
+- New proof target suggested by the memo trace:
+  - define the reconstruction universe as span-indexed states
+    `(subregex, i, j)`;
+  - prove that POSIX reconstruction only queries this universe, with split
+    probes bounded by a polynomial in input length times the relevant regex
+    frontier;
+  - then combine it with the checked `bders_simpStrong` acceptance bridge and
+    the separate strong-state size argument.
 - Added CE-driven Scala gate `-FindStrongDirectCE` for the unsafe direct decode
   route. It finds and greedily shrinks counterexamples before any proof attempt.
   Current minimal CE:

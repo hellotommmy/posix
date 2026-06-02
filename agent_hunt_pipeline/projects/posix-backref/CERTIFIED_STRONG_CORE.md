@@ -72,6 +72,27 @@ calls `posixMemoValue` to reconstruct the original POSIX value from
 prototype over `strongDeferredValue`, whose `baselineValue` fallback still runs
 the derivative lexer.
 
+The memoized reconstruction table-size trace is:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 `
+  -SkipLegacyCubic `
+  -TraceStrongDeferredMemo `
+  -Ch7K 5 `
+  -Ch7Lengths "0,4,8,12,16,20,24,30" `
+  -Ch7TreeThreshold 1000000
+```
+
+Observed checkpoints:
+
+- k=5, n=30: strong tree `958`, accepts states `1577`, value states `126`,
+  split probes `6011`.
+- k=8, n=48: strong tree `2963`, accepts states `3818`, value states `198`,
+  split probes `22145`.
+
+This suggests the reconstruction proof should talk about a span-indexed parser
+universe, not about decoding ordinary values from the final simplified regex.
+
 The new CE-driven direct-decode guard is:
 
 ```powershell
