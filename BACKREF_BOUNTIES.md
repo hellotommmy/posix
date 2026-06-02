@@ -65,12 +65,15 @@ immutability.
 
 - Direct-DAG shared smoke prototype: `PosixCubicSmoke.scala` now has an
   optional direct hash-consed derivative/simplifier path, exposed by
-  `-SharedDirectDag` / `-ScalaSmokeSharedDirectDag`. It preserves exact POSIX
-  values for value-safe no-reassociation modes in the current exhaustive and
-  random smoke, and reports both final reachable DAG size and prefix
-  `statePool`. Current Chapter 7 evidence suggests `statePool`, not the raw
-  total allocation pool, is the proof-facing shared universe measure. This is
-  BR-038/BR-039 tooling evidence only, not a payout.
+  `-SharedDirectDag` / `-ScalaSmokeSharedDirectDag`. The optional
+  `-SharedDirectCompareTree` / `-ScalaSmokeSharedDirectCompareTree` gate checks
+  every prefix derivative root for exact syntactic equality with the existing
+  tree-step reference algorithm. It preserves exact POSIX values for
+  value-safe no-reassociation modes in the current exhaustive and random smoke,
+  and reports both final reachable DAG size and prefix `statePool`. Current
+  Chapter 7 evidence suggests `statePool`, not the raw total allocation pool,
+  is the proof-facing shared universe measure. This is BR-038/BR-039 tooling
+  evidence only, not a payout.
 - Concrete raw shared-prune sanity universe: `GeneralRegexBound.thy` now has
   `raw_shared_prune_closed_sizeNregex`, supported by raw size/legacy lemmas.
   This proves that the raw delayed shared-prune result stays inside every

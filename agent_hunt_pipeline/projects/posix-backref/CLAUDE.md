@@ -117,7 +117,10 @@ it is still not a theorem. The direct report distinguishes final reachable DAG
 size, prefix `statePool`, and raw total allocation pool; proof work should
 target the prefix reachable state/row universe, while raw dead temporaries
 need either garbage-free construction, garbage collection, or separate
-accounting.
+accounting. Use `-SharedDirectCompareTree` when validating direct-DAG changes:
+it checks every prefix derivative root for exact syntactic equality against
+the existing tree-step reference algorithm, so direct-DAG remains a
+hash-consed execution form rather than an untracked new simplifier.
 
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a

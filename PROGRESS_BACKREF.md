@@ -14,11 +14,16 @@ Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
   direct derivative/simplification step.
 - Added wrapper flags:
   - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedDirectDag`;
+  - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedDirectCompareTree`;
   - `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -ScalaSmokeSharedDirectDag`.
 - Smoke evidence:
   - Direct `no-reassoc`: exhaustive depth `2`, input length `3`, and random
     `1,000` cases at depth `5`/input `6` preserve exact POSIX values.
   - Direct `expanded-keyed-no-reassoc`: same value smoke also passes.
+  - With `-SharedDirectCompareTree`, both `no-reassoc` and
+    `expanded-keyed-no-reassoc` pass the same exhaustive/random grid while
+    checking every prefix derivative root for exact syntactic equality against
+    the existing tree-step reference algorithm.
   - Chapter 7 `k=5`, lengths `0,4,8,12,16,20,24,30` under direct
     `expanded-keyed-no-reassoc`:
     final DAG `18,57,97,130,161,197,227,276`;
@@ -34,6 +39,9 @@ Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
 - Design result:
   - The direct-DAG prototype preserves the value-safe no-reassociation output
     story while moving the smoke harness closer to a real shared-row algorithm.
+    The exact tree-step comparison means it is currently a hash-consed
+    execution form of the reference simplifier, not a semantically different
+    simplifier.
   - The proof-facing universe should target prefix reachable states/rows, not
     the naive total node pool. Dead temporary nodes need either garbage-free
     construction, GC, or a separate implementation accounting theorem.

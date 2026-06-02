@@ -18,6 +18,11 @@ to be read before continuing long-running agent work.
   shape DAG `132`, `statePool` `1042`, and total temporary pool `4005`;
   `k=8,n=32` gives final DAG `408`, shape DAG `173`, `statePool` `1400`,
   and total temporary pool `5292`.
+- Added `SharedDirectCompareTree`: when enabled, the direct-DAG path compares
+  every prefix derivative root against the old tree-step reference algorithm
+  for exact `arexp` syntax. The current direct `no-reassoc` and
+  `expanded-keyed-no-reassoc` modes pass exhaustive depth `2`/input `3` plus
+  random `1,000` cases at depth `5`/input `6` under this stricter check.
 - Design consequence: the next proof-facing universe should bound prefix
   reachable rows/nodes, not the whole allocation pool. If an eventual
   executable algorithm exposes the raw pool, it will need garbage-free

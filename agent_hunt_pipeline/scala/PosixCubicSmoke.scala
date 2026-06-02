@@ -963,15 +963,39 @@ object PosixCubicSmoke {
       poolSize: Int
   )
 
-  def sharedModeResult(seqMode: String, r: Rexp, input: String, directDag: Boolean = false): SharedResult = {
+  def sharedModeResult(
+      seqMode: String,
+      r: Rexp,
+      input: String,
+      directDag: Boolean = false,
+      compareTree: Boolean = false
+  ): SharedResult = {
     val store = new DagStore
     val root0 = store.fromARexp(intern(r))
     var root = root0
+    var treeRegex = intern(r)
     var prefixRoots = List(root0)
-    input.foreach { c =>
+    input.zipWithIndex.foreach { case (c, index) =>
       root =
         if (directDag) store.stepDirectWithMode(seqMode, c, root)
         else store.stepWithMode(seqMode, c, root)
+      if (directDag && compareTree) {
+        treeRegex = bsimpCubicWithMode(seqMode, bder(c, treeRegex))
+        val directRegex = store.toARexp(root)
+        if (directRegex != treeRegex) {
+          throw new AssertionError(
+            s"""direct-DAG/tree-step mismatch
+               |seqMode = $seqMode
+               |regex   = $r
+               |input   = $input
+               |prefix  = ${index + 1}
+               |char    = $c
+               |direct  = $directRegex
+               |tree    = $treeRegex
+               |""".stripMargin
+          )
+        }
+      }
       prefixRoots = root :: prefixRoots
     }
     val finalRegex = store.toARexp(root)
@@ -2485,7 +2509,8 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       maxRegexes: Int,
-      directDag: Boolean = false
+      directDag: Boolean = false,
+      compareTree: Boolean = false
   ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
@@ -2494,7 +2519,7 @@ object PosixCubicSmoke {
     regexes.foreach { r =>
       inputs.foreach { s =>
         val b = baselineValue(r, s)
-        val shared = sharedModeResult(seqMode, r, s, directDag)
+        val shared = sharedModeResult(seqMode, r, s, directDag, compareTree)
         checked += 1
         if (b != shared.value) {
           throw new AssertionError(
@@ -2518,7 +2543,8 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       seed: Long,
-      directDag: Boolean = false
+      directDag: Boolean = false,
+      compareTree: Boolean = false
   ): Unit = {
     val rng = new Random(seed)
     var checked = 0
@@ -2527,7 +2553,7 @@ object PosixCubicSmoke {
       val r = randomRegex(rng, maxDepth)
       val s = randomInput(rng, maxInput)
       val b = baselineValue(r, s)
-      val shared = sharedModeResult(seqMode, r, s, directDag)
+      val shared = sharedModeResult(seqMode, r, s, directDag, compareTree)
       checked += 1
       if (b != shared.value) {
         throw new AssertionError(
@@ -2552,12 +2578,13 @@ object PosixCubicSmoke {
       lengths: List[Int],
       dagThreshold: Int,
       shapeThreshold: Int,
-      directDag: Boolean = false
+      directDag: Boolean = false,
+      compareTree: Boolean = false
   ): Unit = {
     val r = thesisCh7Evil(k)
     val label = if (directDag) "direct-shared" else "shared"
     val trace = lengths.map { n =>
-      val out = sharedModeResult(seqMode, r, "a" * n, directDag)
+      val out = sharedModeResult(seqMode, r, "a" * n, directDag, compareTree)
       n -> out
     }
     println(s"Chapter 7 k=$k $label $seqMode trace: " +
@@ -3555,6 +3582,7 @@ object PosixCubicSmoke {
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val sharedDirectDag = boolSetting("posix.smoke.sharedDirectDag", "POSIX_SMOKE_SHARED_DIRECT_DAG", false)
+    val sharedDirectCompareTree = boolSetting("posix.smoke.sharedDirectCompareTree", "POSIX_SMOKE_SHARED_DIRECT_COMPARE_TREE", false)
     val traceStrong = boolSetting("posix.smoke.traceStrong", "POSIX_SMOKE_TRACE_STRONG", false)
     val checkStrong = boolSetting("posix.smoke.checkStrong", "POSIX_SMOKE_CHECK_STRONG", false)
     val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
@@ -3690,11 +3718,11 @@ object PosixCubicSmoke {
       checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     }
     if (sharedNoReassoc || sharedDirectDag) {
-      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes, sharedDirectDag)
+      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes, sharedDirectDag, sharedDirectCompareTree)
       if (randomCases > 0) {
-        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed, sharedDirectDag)
+        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed, sharedDirectDag, sharedDirectCompareTree)
       }
-      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold, sharedDirectDag)
+      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold, sharedDirectDag, sharedDirectCompareTree)
     }
   }
 
