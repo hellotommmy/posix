@@ -3,6 +3,18 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong-deferred reconstruction package is checked
+
+- Added a small package of `FBound.thy` facts around
+  `strong_deferred_span_value`.
+- The main interface is `strong_deferred_reconstruction_budget`: the final
+  `bsimpStrong` derivative state has a unique deferred POSIX value exactly
+  when it is nullable, and the original-root POSIX value table/split probes
+  stay within the checked span budgets.
+- Design consequence: future proof work can cite one theorem for the current
+  route's semantic skeleton instead of reassembling it from prose and Scala
+  smoke. This still leaves the true regex-size cubic tree/share bound open.
+
 ## 2026-06-03: Frontier reports include structurally distinct regexes
 
 - `StrongDeferredMemo` top-N reporting now prints a second top-N list that is

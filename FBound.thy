@@ -2185,6 +2185,110 @@ lemma strong_deferred_span_value_flat:
   using assms Posix1(2)
   by (simp add: strong_deferred_span_value_iff_Posix)
 
+lemma strong_deferred_span_value_nullable:
+  assumes "strong_deferred_span_value r s v"
+  shows "bnullable (bders_simpStrong (intern r) s)"
+  using assms by (simp add: strong_deferred_span_value_def)
+
+lemma strong_deferred_span_value_root_entry:
+  assumes "strong_deferred_span_value r s v"
+  shows "(r, 0, length s, v) \<in> rexp_span_posix r s"
+  using assms by (simp add: strong_deferred_span_value_def)
+
+lemma finite_strong_deferred_span_values [simp]:
+  "finite {v. strong_deferred_span_value r s v}"
+proof -
+  have "{v. strong_deferred_span_value r s v} \<subseteq>
+      (\<lambda>(q, i, j, v). v) ` rexp_span_posix r s"
+  proof
+    fix v
+    assume sv: "v \<in> {v. strong_deferred_span_value r s v}"
+    then have entry: "(r, 0, length s, v) \<in> rexp_span_posix r s"
+      by (simp add: strong_deferred_span_value_root_entry)
+    show "v \<in> (\<lambda>(q, i, j, v). v) ` rexp_span_posix r s"
+    proof (rule image_eqI)
+      show "v = (case (r, 0, length s, v) of (q, i, j, w) \<Rightarrow> w)"
+        by simp
+      show "(r, 0, length s, v) \<in> rexp_span_posix r s"
+        by (rule entry)
+    qed
+  qed
+  then show ?thesis
+    using finite_rexp_span_posix finite_subset by blast
+qed
+
+lemma card_strong_deferred_span_values_le_1:
+  "card {v. strong_deferred_span_value r s v} \<le> 1"
+proof (cases "\<exists>v. strong_deferred_span_value r s v")
+  case False
+  then show ?thesis by simp
+next
+  case True
+  then obtain v where v: "strong_deferred_span_value r s v"
+    by blast
+  have "{w. strong_deferred_span_value r s w} = {v}"
+  proof
+    show "{w. strong_deferred_span_value r s w} \<subseteq> {v}"
+    proof
+      fix w
+      assume "w \<in> {w. strong_deferred_span_value r s w}"
+      then have w: "strong_deferred_span_value r s w"
+        by simp
+      have "w = v"
+        by (rule strong_deferred_span_value_unique[OF w v])
+      then show "w \<in> {v}"
+        by simp
+    qed
+    show "{v} \<subseteq> {w. strong_deferred_span_value r s w}"
+      using v by simp
+  qed
+  then show ?thesis by simp
+qed
+
+lemma strong_deferred_span_value_ex1_iff:
+  "(\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+    bnullable (bders_simpStrong (intern r) s)"
+proof
+  assume "\<exists>!v. strong_deferred_span_value r s v"
+  then obtain v where "strong_deferred_span_value r s v"
+    by blast
+  then show "bnullable (bders_simpStrong (intern r) s)"
+    by (rule strong_deferred_span_value_nullable)
+next
+  assume nullable: "bnullable (bders_simpStrong (intern r) s)"
+  then obtain v where v: "strong_deferred_span_value r s v"
+    using strong_deferred_span_value_defined_iff by blast
+  show "\<exists>!v. strong_deferred_span_value r s v"
+  proof (rule ex1I)
+    show "strong_deferred_span_value r s v"
+      by (rule v)
+  next
+    fix w
+    assume "strong_deferred_span_value r s w"
+    then show "w = v"
+      by (rule strong_deferred_span_value_unique[OF _ v])
+  qed
+qed
+
+lemma strong_deferred_reconstruction_budget:
+  shows "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "card (rexp_span_posix r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_span_value_ex1_iff)
+  show "card (rexp_span_posix r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s)"
+    by (rule card_rexp_span_posix_bound)
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule card_rexp_span_all_split_probes_bound)
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

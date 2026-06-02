@@ -82,6 +82,11 @@ immutability.
   uniqueness theorem for the root span POSIX entry. This is useful BR-040
   proof infrastructure only; it does not pay until constructor-level
   reconstruction correctness is checked.
+- Strong-deferred reconstruction package: `FBound.thy` now also has
+  `strong_deferred_reconstruction_budget`, packaging the nullable gate,
+  unique deferred value, bounded POSIX value table, and bounded split-probe
+  table for the current span/memo route. This is BR-040 infrastructure only;
+  the regex-size cubic tree/share bound remains open.
 - Checked original split probes: `FBound.thy` now also has
   `rexp_span_split_probes`, `rexp_span_all_split_probes`, their cardinality
   bounds, and one-directional original POSIX constructor rules for `ONE`, `CH`,

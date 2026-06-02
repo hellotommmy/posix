@@ -1,6 +1,27 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (distinct top-N strong cubic frontier)
+Last updated: 2026-06-03 (checked strong-deferred reconstruction package)
+
+## Cubic Candidate Prototype: Checked Strong-Deferred Reconstruction Package (2026-06-03)
+
+- Added proof-facing `FBound.thy` lemmas around the current positive route:
+  - `strong_deferred_span_value_nullable`;
+  - `strong_deferred_span_value_root_entry`;
+  - `finite_strong_deferred_span_values`;
+  - `card_strong_deferred_span_values_le_1`;
+  - `strong_deferred_span_value_ex1_iff`;
+  - `strong_deferred_reconstruction_budget`.
+- The package states the intended division of labor in checked Isabelle form:
+  `bders_simpStrong (intern r) s` is the nullable acceptance gate, while the
+  exact POSIX value lives as the unique root value in `rexp_span_posix r s`.
+  The value table and split-probe table keep their existing quadratic/cubic in
+  input-length table bounds:
+  `rxsize r * (|s|+1)^2` and `rxsize r * (|s|+1)^3`.
+- This is not the final regex-size cubic theorem for the derivative state.
+  It is a reusable proof interface for the current route: small strong tree
+  for recognition, bounded original-root span table for exact POSIX value
+  reconstruction.
+- Focused `Posix` and `BackRefPilot` builds passed after this checkpoint.
 
 ## Cubic Candidate Prototype: Distinct-Regex Frontier Reporting (2026-06-03)
 
