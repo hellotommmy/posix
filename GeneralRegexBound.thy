@@ -16118,6 +16118,44 @@ lemma thesis_ch7_rstrong_prunes_overlap:
     RSEQ (RCHAR d) (RCHAR c)"
   using assms by (simp add: rsimpStrong_prune_pair_def rsimp7_SEQ_atom_def)
 
+definition strong_prune_universe_bad_root :: rrexp where
+  "strong_prune_universe_bad_root =
+    RALTS
+      [RSEQ (RALTS [RCHAR (CHR ''a'')]) (RCHAR (CHR ''z'')),
+       RSEQ
+        (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b''), RCHAR (CHR ''c'')])
+        (RCHAR (CHR ''z''))]"
+
+definition strong_prune_universe_bad_result :: rrexp where
+  "strong_prune_universe_bad_result =
+    RSEQ (RALTS [RCHAR (CHR ''b''), RCHAR (CHR ''c'')])
+      (RCHAR (CHR ''z''))"
+
+lemma rsimpStrong_prune_pair_leaves_partial_derivative_universe:
+  shows "rsimpStrong_prune_pair
+      (RSEQ (RALTS [RCHAR (CHR ''a'')]) (RCHAR (CHR ''z'')))
+      (RSEQ
+        (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b''), RCHAR (CHR ''c'')])
+        (RCHAR (CHR ''z''))) =
+    strong_prune_universe_bad_result"
+    and "strong_prune_universe_bad_result \<notin>
+      partial_derivative_universe strong_prune_universe_bad_root"
+proof -
+  show "rsimpStrong_prune_pair
+      (RSEQ (RALTS [RCHAR (CHR ''a'')]) (RCHAR (CHR ''z'')))
+      (RSEQ
+        (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b''), RCHAR (CHR ''c'')])
+        (RCHAR (CHR ''z''))) =
+    strong_prune_universe_bad_result"
+    by (simp add: strong_prune_universe_bad_result_def
+        rsimpStrong_prune_pair_def rsimp7_SEQ_atom_def)
+next
+  show "strong_prune_universe_bad_result \<notin>
+      partial_derivative_universe strong_prune_universe_bad_root"
+    by (auto simp add: strong_prune_universe_bad_root_def
+        strong_prune_universe_bad_result_def partial_derivative_universe_def)
+qed
+
 lemma rsimpStrong_prune_pair_full_cover:
   assumes "set rrs \<subseteq> set lrs"
   shows "rsimpStrong_prune_pair

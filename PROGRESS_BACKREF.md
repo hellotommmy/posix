@@ -231,6 +231,16 @@ Last updated: 2026-06-02 (strong shared-suffix accounting)
   `length_bpders_strong1_rows_card_boundI` prove the same fact through
   `rerase`. This separates the cardinality half of the cubic argument from
   the member-size half already handled by the `rsizes`/`asizes` hooks.
+- Checked a design no-go for reusing the old cubic
+  `partial_derivative_universe` as the strong-row closure target:
+  `rsimpStrong_prune_pair_leaves_partial_derivative_universe`. The witness has
+  two shared-suffix rows whose later left alternative list is partially
+  covered; pruning produces a new grouped-left row
+  `RSEQ (RALTS [b,c]) z` that is neither a root subterm nor an allowed
+  `RSEQ p k` with `p` from the old subterm set. This confirms that the next
+  viable finite universe must explicitly account for pruned grouped
+  alternatives or use a different potential/accounting argument; simply
+  pointing the strong-row hooks at `partial_derivative_universe` is false.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
