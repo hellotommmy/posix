@@ -86,12 +86,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\
 Observed checkpoints:
 
 - k=5, n=30: strong tree `958`, accepts states `1577`, value states `126`,
-  split probes `6011`.
+  split probes `6011`, span bound `44206`, split bound `1370386`.
 - k=8, n=48: strong tree `2963`, accepts states `3818`, value states `198`,
-  split probes `22145`.
+  split probes `22145`, span bound `232897`, split bound `11411953`.
 
 This suggests the reconstruction proof should talk about a span-indexed parser
 universe, not about decoding ordinary values from the final simplified regex.
+The current smoke enforces accepts/value states below
+`rsize(r) * (|s| + 1)^2` and split probes below
+`rsize(r) * (|s| + 1)^3`. These are intentionally about the value
+reconstruction layer; the separate derivative-state proof still needs the
+regex-size cubic frontier argument.
 
 The new CE-driven direct-decode guard is:
 

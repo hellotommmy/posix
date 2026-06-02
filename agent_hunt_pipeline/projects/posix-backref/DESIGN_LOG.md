@@ -30,13 +30,20 @@ to be read before continuing long-running agent work.
   `-TraceStrongDeferredMemo` to expose the table/universe size. On the Chapter
   7 family:
   - k=5, n=30: strong tree `958`, memo accepts states `1577`, memo value states
-    `126`, split probes `6011`;
+    `126`, split probes `6011`, span bound `44206`, split bound `1370386`;
   - k=8, n=48: strong tree `2963`, memo accepts states `3818`, memo value
-    states `198`, split probes `22145`.
+    states `198`, split probes `22145`, span bound `232897`, split bound
+    `11411953`.
   The accepts table grows like a span-indexed parser universe in these traces,
   while value states stay close to the chosen POSIX path. This is useful
   positive evidence for proving a reconstruction universe bound separately from
   the strong derivative state bound.
+- `-CheckStrongDeferredMemo` now enforces the conservative universe checks on
+  every smoke case: accepts/value states must be below
+  `rsize(r) * (|s| + 1)^2`, and split probes below
+  `rsize(r) * (|s| + 1)^3`. These are deliberately input-span bounds for the
+  reconstruction layer, not a replacement for the regex-size bound on the
+  derivative state.
 - Design consequence: the next Isabelle-facing artifact should not be another
   output simplifier. It should specify a span-indexed reconstruction relation
   over `(subregex, i, j)` and prove that it agrees with the existing POSIX value

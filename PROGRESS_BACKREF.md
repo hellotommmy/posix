@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (memoized reconstruction size trace)
+Last updated: 2026-06-02 (memoized reconstruction span bound smoke)
 
 ## Cubic Candidate Prototype: Deferred Strong Reconstruction Route (2026-06-02)
 
@@ -31,16 +31,22 @@ Last updated: 2026-06-02 (memoized reconstruction size trace)
     `3`, and `10,000` deterministic random cases at depth `6`, input length
     `7`, seed `20260602`;
   - `-TraceStrongDeferredMemo` now reports the reconstruction table size.
+    `-CheckStrongDeferredMemo` also checks the conservative reconstruction
+    universe bounds:
+    accepts/value states `<= rsize(r) * (|s| + 1)^2`, and split probes
+    `<= rsize(r) * (|s| + 1)^3`.
     Chapter 7 k=5, lengths `0,4,8,12,16,20,24,30`:
     strong tree `46,474,730,771,820,875,918,958`;
     memo accepts states `0,56,158,308,506,752,1046,1577`;
     memo value states `1,22,38,54,70,86,102,126`;
-    split probes `0,57,225,569,1153,2041,3297,6011`.
+    split probes `0,57,225,569,1153,2041,3297,6011`;
+    at n=30 the span bound is `44206` and split bound is `1370386`.
     Chapter 7 k=8, lengths `0,4,8,16,32,48`:
     strong tree `97,1164,1816,2691,2879,2963`;
     memo accepts states `0,56,158,506,1778,3818`;
     memo value states `1,22,38,70,134,198`;
-    split probes `0,57,225,1153,7169,22145`.
+    split probes `0,57,225,1153,7169,22145`;
+    at n=48 the span bound is `232897` and split bound is `11411953`.
   - the hand CE grid from the nullable-star failures remains checked.
 - Size evidence from the full `bsimpStrong` state is back to the thesis-scale
   plateau:

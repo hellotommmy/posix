@@ -963,6 +963,35 @@ object PosixCubicSmoke {
     strongDeferredMemoResult(r, input).value
   }
 
+  def memoSpanBound(r: Rexp, inputLength: Int): Long =
+    rsize(r).toLong * (inputLength.toLong + 1L) * (inputLength.toLong + 1L)
+
+  def memoSplitProbeBound(r: Rexp, inputLength: Int): Long =
+    memoSpanBound(r, inputLength) * (inputLength.toLong + 1L)
+
+  def checkMemoUniverseBound(r: Rexp, input: String, result: StrongDeferredMemoResult, label: String): Unit = {
+    val spanBound = memoSpanBound(r, input.length)
+    val splitBound = memoSplitProbeBound(r, input.length)
+    val memo = result.memo
+    if (memo.acceptsStates > spanBound || memo.valueStates > spanBound || memo.splitProbes > splitBound) {
+      throw new AssertionError(
+        s"""strong memo-deferred universe bound failed
+           |label         = $label
+           |regex         = $r
+           |input         = $input
+           |rsize         = ${rsize(r)}
+           |spanBound     = $spanBound
+           |splitBound    = $splitBound
+           |acceptsStates = ${memo.acceptsStates}
+           |valueStates   = ${memo.valueStates}
+           |splitProbes   = ${memo.splitProbes}
+           |strongTree    = ${result.strongTree}
+           |strongDag     = ${result.strongDag}
+           |""".stripMargin
+      )
+    }
+  }
+
   def strongSafeValue(r: Rexp, input: String): Option[Val] =
     blexerValue(r, input, bdersStrongSafe)
 
@@ -1531,9 +1560,11 @@ object PosixCubicSmoke {
     var checked = 0
     regexes.foreach { r =>
       inputs.foreach { s =>
-        val b = baselineValue(r, s)
-        val deferred = strongDeferredMemoValue(r, s)
         checked += 1
+        val b = baselineValue(r, s)
+        val result = strongDeferredMemoResult(r, s)
+        val deferred = result.value
+        checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
           throw new AssertionError(
@@ -1557,11 +1588,13 @@ object PosixCubicSmoke {
     val rng = new Random(seed)
     var checked = 0
     (0 until cases).foreach { _ =>
+      checked += 1
       val r = randomRegex(rng, maxDepth)
       val s = randomInput(rng, maxInput)
       val b = baselineValue(r, s)
-      val deferred = strongDeferredMemoValue(r, s)
-      checked += 1
+      val result = strongDeferredMemoResult(r, s)
+      val deferred = result.value
+      checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
         throw new AssertionError(
@@ -1781,9 +1814,13 @@ object PosixCubicSmoke {
     }
     println(s"Chapter 7 k=$k strong deferred memo trace: " +
       trace.map { case (n, s) =>
+        val spanBound = memoSpanBound(r, n)
+        val splitBound = memoSplitProbeBound(r, n)
         s"$n->strong=${s.strongTree}/dag=${s.strongDag}/shape=${s.strongShapeDag}" +
           s"/memoA=${s.memo.acceptsStates}/memoV=${s.memo.valueStates}" +
-          s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}/splits=${s.memo.splitProbes}"
+          s"/spanBound=$spanBound" +
+          s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
+          s"/splits=${s.memo.splitProbes}/splitBound=$splitBound"
       }.mkString(", "))
   }
 
