@@ -1158,3 +1158,12 @@ to be read before continuing long-running agent work.
   k`. The row scanner itself is now just induction/bookkeeping. This is the
   right shape for a root-owned universe proof because the Chapter-7 operation
   can be admitted or bounded locally.
+- The proof-level route now has a composed conditional cubic hook for that
+  shape. `rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI` takes
+  a root-owned universe `U` with three obligations: `U` is closed under
+  singleton flattening, every normalized partial-derivative member remains in
+  `U` after `rsimpStrong` and flattening, and the isolated shared-suffix
+  prune result remains in `U`. Together with finite/cardinality/member-size
+  bounds, this yields the repeated-row cubic bound. The remaining research is
+  now to instantiate these three obligations for a concrete universe, then
+  transfer the same shape through the annotated/bit-coded layer.

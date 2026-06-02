@@ -17030,6 +17030,75 @@ proof (rule rpder_strong_rows_local_subsetI[OF _ prune])
       (use norm[OF q] in blast)
 qed
 
+lemma rpder_strong_rows_norm_shared_subsetI:
+  assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rpder_strong_rows c rs) \<subseteq> U"
+proof (rule rpder_strong_rows_local_subsetI)
+  fix q
+  assume q: "q \<in> set rs"
+  show "set (rflts (rpder_strong_list c q)) \<subseteq> U"
+    by (rule rflts_rpder_strong_list_subsetI)
+      (use norm[OF q] in blast)
+next
+  fix xs
+  assume xs: "set xs \<subseteq> U"
+  show "set (rflts (rsimpStrong_prune_rows xs)) \<subseteq> U"
+  proof (rule rsimpStrong_prune_rows_shared_subsetI)
+    fix r
+    assume r: "r \<in> set xs"
+    show "set (rflts [r]) \<subseteq> U"
+      by (rule flat_closed) (use xs r in blast)
+  next
+    fix lrs rrs k
+    show "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+      k]) \<subseteq> U"
+      by (rule shared)
+  qed
+qed
+
+lemma rpders_strong_rows_norm_shared_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+  shows "set (rpders_strong_rows rs s) \<subseteq> U"
+proof (rule rpders_strong_rows_subsetI[OF init])
+  fix xs c
+  assume xs: "set xs \<subseteq> U"
+  show "set (rpder_strong_rows c xs) \<subseteq> U"
+  proof (rule rpder_strong_rows_norm_shared_subsetI)
+    fix q p
+    assume q: "q \<in> set xs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    show "set (rflts [rsimpStrong p]) \<subseteq> U"
+      by (rule norm[OF xs q p])
+  next
+    fix q
+    assume "q \<in> U"
+    show "set (rflts [q]) \<subseteq> U"
+      by (rule flat_closed[OF \<open>q \<in> U\<close>])
+  next
+    fix lrs rrs k
+    show "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+      k]) \<subseteq> U"
+      by (rule shared)
+  qed
+qed
+
 lemma rsizes_distinct_finite_universe_bound:
   assumes finite: "finite U"
       and rows: "set rs \<subseteq> U"
@@ -17120,6 +17189,56 @@ proof -
   have "rsizes (rpders_strong1_rows r s) \<le> card U * M"
     by (rule rsizes_rpders_strong1_rows_finite_universe_boundI
         [OF init step finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+  shows "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+proof (rule rsizes_rpders_strong_rows_finite_universe_boundI
+    [OF init _ finite member_size distinct])
+  fix xs c
+  assume xs: "set xs \<subseteq> U"
+  show "set (rpder_strong_rows c xs) \<subseteq> U"
+    by (rule rpder_strong_rows_norm_shared_subsetI)
+      (use xs flat_closed norm shared in blast)+
+qed
+
+lemma rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI:
+  assumes init: "set rs \<subseteq> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong p]) \<subseteq> U"
+    and shared: "\<And>lrs rrs k.
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rdistinct (rflts (rprune_eq_against lrs rrs)) {}))
+        k]) \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and distinct: "distinct rs"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong_rows rs s) \<le> B"
+proof -
+  have "rsizes (rpders_strong_rows rs s) \<le> card U * M"
+    by (rule rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI
+        [OF init flat_closed norm shared finite member_size distinct])
   also have "... \<le> C * M"
     by (rule mult_right_mono[OF card_bound]) simp
   also have "... \<le> B"

@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-02 (strong row-prune closure splitters)
+Last updated: 2026-06-02 (strong-row composed cubic hook)
 
 ## Strong-Row Cubic Interface (2026-06-02)
 
@@ -38,6 +38,14 @@ Last updated: 2026-06-02 (strong row-prune closure splitters)
   now focus exactly on the Chapter-7 shared-suffix result
   `rsimp7_SEQ_atom (rsimp_ALTs (...rprune_eq_against...)) k`, rather than on
   the surrounding row scanner.
+- Added the direct composed strong-row closure/cubic hooks
+  `rpder_strong_rows_norm_shared_subsetI`,
+  `rpders_strong_rows_norm_shared_subsetI`,
+  `rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI`, and
+  `rsizes_rpders_strong_rows_norm_shared_cubic_universe_boundI`. These package
+  the remaining proof-level target as three explicit universe obligations:
+  flat closure of `U`, closure of normalized derivative members after
+  `rsimpStrong`, and closure of the isolated shared-suffix prune result.
 - Added the checked direct no-go corollary
   `current_path_frontier_universe_not_closed_under_rsimp4_derivative`. This
   packages the existing middle-alternative witness into the statement that
