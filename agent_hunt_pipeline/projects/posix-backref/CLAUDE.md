@@ -258,6 +258,22 @@ The optional `langAtomicContPruneShapeStatePool` metric is deliberately not a
 default plot metric because it collapses the all-unary Chapter 7 family too
 coarsely and currently has no POSIX reconstruction meaning.
 
+For the currently most promising tree-level route, also plot the deferred
+memo reconstruction metrics:
+`ch7_size_grid.ps1 -Metrics
+"strongMemoTree,strongMemoStates,strongMemoSplitProbes,strongMemoSpanBound,strongMemoSplitBound"
+-OutDir agent_hunt_pipeline/reports/ch7_deferred_memo_grid`.
+This uses thesis-strength `bsimpStrong` as the derivative/nullability gate and
+recovers exact POSIX values from the original regex via span/memo
+reconstruction. Current evidence is encouraging: on the Chapter 7 grid
+`k=1..8,n=0..30`, `strongMemoTree` matches `strongTree`; at `k=5,n=30` it is
+`958`, and at `k=8,n=30` it is `2747`. The same grid has
+`strongMemoStates=1703` and `strongMemoSplitProbes=6011` for both k=5 and k=8.
+Run `scala_cubic_smoke.ps1 -SkipLegacyCubic -CheckStrongDeferredMemo` before
+proof work on this route; it must pass exact POSIX value comparison, known CEs,
+and memo universe bounds. This route is still not a bounty payout until the
+Isabelle reconstruction and cubic tree/share theorem are checked.
+
 The CE-driven `bsimpStrongSafe` diagnostic is useful but not the destination.
 It disables nested-star collapse, nonempty right-unit deletion, star absorption,
 and sequence reassociation in output syntax; this passes deeper exact-value

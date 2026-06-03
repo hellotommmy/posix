@@ -3,6 +3,28 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Deferred POSIX memo keeps the thesis-strength tree line
+
+- Extended the Chapter 7 plot pipeline with metrics for the existing
+  `StrongDeferredMemo` route: strong tree/DAG/shape plus POSIX memo states,
+  split probes, and their coarse span/split bounds.
+- New report:
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/index.html`.
+- Evidence on `k=1..8,n=0..30`: `strongMemoTree` matches the thesis-style
+  `bsimpStrong` tree line. At `k=5,n=30`, `strongMemoTree=958`; at
+  `k=8,n=30`, `strongMemoTree=2747`.
+- The value-reconstruction memo is small on the same family: at `n=30`,
+  k=5 and k=8 both have `strongMemoStates=1703` and
+  `strongMemoSplitProbes=6011`, far below the coarse bounds.
+- Smoke evidence: `-CheckStrongDeferredMemo` passes exact POSIX value
+  comparison on the exhaustive depth `2` / input `3` grid, the known CE grid,
+  and 500 deterministic random cases.
+- Design consequence: the best current tree-level route is not current
+  `cubicTree`. It is thesis-strength `bsimpStrong` as the nullable/size gate,
+  plus original-regex span/memo reconstruction for POSIX values. The next
+  proof work should package this route rather than trying to make the weaker
+  emitted `cubicTree` look thesis-good.
+
 ## 2026-06-03: Chapter 7 size-grid plots are now a required intuition check
 
 - Added `agent_hunt_pipeline/scripts/ch7_size_grid.ps1` and

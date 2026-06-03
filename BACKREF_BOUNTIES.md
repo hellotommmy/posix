@@ -73,6 +73,16 @@ immutability.
   strong as thesis Chapter 7 ordinary tree simplification: at `k=5,n=30`,
   `strongTree=958` versus `cubicTree=3245`; at `k=8,n=30`, `strongTree=2747`
   versus `cubicTree=7587`.
+- Deferred memo route evidence: the same plotting infrastructure now supports
+  `strongMemoTree`, memo-state, and memo-probe metrics, with the report
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/`. On the default
+  `k=1..8,n=0..30` grid, `strongMemoTree` preserves the thesis-style tree
+  line (`958` at `k=5,n=30`, `2747` at `k=8,n=30`) while the memo table is
+  modest on this family (`strongMemoStates=1703`, `strongMemoSplitProbes=6011`
+  at `n=30` for k=5 and k=8). This makes the strong nullable gate plus
+  original-regex span/memo reconstruction the leading tree-level route, but it
+  is still only tooling/evidence until checked Isabelle reconstruction and
+  cubic theorem interfaces are complete.
 - Direct-DAG shared smoke prototype: `PosixCubicSmoke.scala` now has an
   optional direct hash-consed derivative/simplifier path, exposed by
   `-SharedDirectDag` / `-ScalaSmokeSharedDirectDag`. The optional

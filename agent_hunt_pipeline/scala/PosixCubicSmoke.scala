@@ -3756,6 +3756,20 @@ object PosixCubicSmoke {
       case "strongTree" => asize(bdersStrong(intern(r), input)).toLong
       case "strongDag" => adagSize(bdersStrong(intern(r), input)).toLong
       case "strongShape" => ashapeDagSize(bdersStrong(intern(r), input)).toLong
+      case "strongMemoTree" => strongDeferredMemoResult(r, input).strongTree.toLong
+      case "strongMemoDag" => strongDeferredMemoResult(r, input).strongDag.toLong
+      case "strongMemoShape" => strongDeferredMemoResult(r, input).strongShapeDag.toLong
+      case "strongMemoAcceptsStates" => strongDeferredMemoResult(r, input).memo.acceptsStates.toLong
+      case "strongMemoValueStates" => strongDeferredMemoResult(r, input).memo.valueStates.toLong
+      case "strongMemoStates" =>
+        val memo = strongDeferredMemoResult(r, input).memo
+        memo.acceptsStates.toLong + memo.valueStates.toLong
+      case "strongMemoSplitProbes" => strongDeferredMemoResult(r, input).memo.splitProbes.toLong
+      case "strongMemoQueries" =>
+        val memo = strongDeferredMemoResult(r, input).memo
+        memo.acceptsQueries.toLong + memo.valueQueries.toLong
+      case "strongMemoSpanBound" => memoSpanBound(r, input.length)
+      case "strongMemoSplitBound" => memoSplitProbeBound(r, input.length)
       case "strongSafeTree" => asize(bdersStrongSafe(intern(r), input)).toLong
       case "strongSafeDag" => adagSize(bdersStrongSafe(intern(r), input)).toLong
       case "strongSafeShape" => ashapeDagSize(bdersStrongSafe(intern(r), input)).toLong
@@ -3773,7 +3787,7 @@ object PosixCubicSmoke {
         sharedModeResult(seqMode, r, input, directDag = true).langAtomicContPruneShapeStatePoolSize.toLong
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
+          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongMemoTree, strongMemoDag, strongMemoShape, strongMemoAcceptsStates, strongMemoValueStates, strongMemoStates, strongMemoSplitProbes, strongMemoQueries, strongMemoSpanBound, strongMemoSplitBound, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
         )
     }
 

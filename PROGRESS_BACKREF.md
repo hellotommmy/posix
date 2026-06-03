@@ -1,6 +1,45 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (Chapter 7 size-grid plots)
+Last updated: 2026-06-03 (deferred strong memo plots)
+
+## Cubic Route Evidence: Thesis-Strong Tree With Deferred POSIX Memo (2026-06-03)
+
+- Extended the Chapter 7 size-grid metrics with the existing
+  strong-deferred POSIX reconstruction route:
+  - `strongMemoTree`, `strongMemoDag`, `strongMemoShape`;
+  - `strongMemoAcceptsStates`, `strongMemoValueStates`, `strongMemoStates`;
+  - `strongMemoSplitProbes`, `strongMemoQueries`;
+  - `strongMemoSpanBound`, `strongMemoSplitBound`.
+- Added the report
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/index.html`, generated
+  with `k=1..8`, `n=0..30`.
+- Key Chapter 7 data:
+  - `strongMemoTree` matches the thesis-style `strongTree` line:
+    - k=5: `n=30 -> 958`, max `960`;
+    - k=8: `n=30 -> 2747`, max `2778`.
+  - Memo overhead on this family is modest at `n=30`:
+    - k=5: `strongMemoStates=1703`, `strongMemoSplitProbes=6011`;
+    - k=8: `strongMemoStates=1703`, `strongMemoSplitProbes=6011`;
+    - compared with bounds k=5:
+      `strongMemoSpanBound=44206`, `strongMemoSplitBound=1370386`;
+    - compared with bounds k=8:
+      `strongMemoSpanBound=93217`, `strongMemoSplitBound=2889727`.
+- Value evidence:
+  - Ran `scala_cubic_smoke.ps1 -SkipLegacyCubic -CheckStrongDeferredMemo
+    -Depth 2 -InputLength 3 -RandomCases 500 -RandomDepth 5
+    -RandomInputLength 6 -StrongCubicTop 4`.
+  - Passed exact POSIX value comparison on `84,300` exhaustive pairs, the
+    known CE grid, and 500 deterministic random cases; memo universe bounds
+    also passed.
+- Design consequence:
+  - The most promising tree-level path is currently not the emitted
+    `cubicTree` simplifier. It is the thesis-strength `bsimpStrong` nullable
+    gate paired with original-regex span/memo POSIX reconstruction.
+  - This route keeps the ordinary tree-size behavior closest to thesis
+    Chapter 7 while avoiding the known direct `bsimpStrong` value mismatch.
+  - It remains a prototype route, not BR-039/BR-040 payout, until the
+    reconstruction interface and cubic tree/share theorem are checked in
+    Isabelle.
 
 ## Cubic Diagnostic: Chapter 7 Size-Grid Side Task (2026-06-03)
 
