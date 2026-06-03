@@ -34,11 +34,17 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `strong_deferred_original_final_active_row_dag_finite_universe_contract`.
   It reduces the row-DAG bound to constructing a finite original-size universe
   `U` that covers final-active rows and is closed under `rsubterms`.
+- Added the more flexible two-universe handoff
+  `strong_deferred_original_final_active_row_dag_two_universe_contract`.
+  `RowU` controls final-active row count and therefore pair budget, while
+  `DagU` controls exact-DAG nodes via `rsubterms` closure. This avoids forcing
+  the hash-consed DAG universe itself to have the same tight cardinality as the
+  row universe.
 - Verification:
   focused `isabelle build -v -d . Posix` passed.
 - This is BR-040 infrastructure. The missing theorem is now concrete: define
-  an original-regex-owned `U`, prove row coverage, `rsubterms` closure, and
-  `card U <= K * rxsize r`.
+  original-regex-owned universes, prove row coverage, prove `rsubterms`
+  closure for the DAG universe, and prove linear/cardinality bounds for them.
 
 ## Cubic Route Checkpoint: Isabelle Row-DAG Universe (2026-06-04)
 

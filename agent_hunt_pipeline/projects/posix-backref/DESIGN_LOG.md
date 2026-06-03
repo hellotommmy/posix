@@ -5,6 +5,12 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
+  It separates the accounting objects: `RowU` bounds the number of
+  final-active rows and hence the pair budget, while `DagU` is closed under
+  `rsubterms` and bounds exact-DAG nodes. This matches the smoke evidence
+  better than forcing a single universe to be both a tight row-count universe
+  and a closed hash-cons universe.
 - Added a finite-universe bridge for row-DAG accounting. At the raw layer,
   `raw_final_active_suffix_row_dag_universe_closed_subsetI` says that if a
   candidate universe covers final-active rows and is closed under `rsubterms`,
@@ -31,8 +37,8 @@ to be read before continuing long-running agent work.
   POSIX values and `card (rsubterms q) <= K * rxsize r` for every final-active
   row.
 - Design consequence: the remaining cubic proof should focus on original-size
-  control of the row-DAG universe, not on raw emitted-tree simplification and
-  not on raw row tree size.
+  control of row and row-DAG universes, not on raw emitted-tree simplification
+  and not on raw row tree size.
 
 ## 2026-06-04: Isabelle row-DAG universe replaces raw member-size target
 
