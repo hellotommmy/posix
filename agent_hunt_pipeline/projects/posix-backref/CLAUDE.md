@@ -150,33 +150,37 @@ It keeps exact POSIX value smoke enabled and checks optional linear rows and
 member-size gates plus a quadratic pair-budget gate for the final derivative
 state. A failing run prints a greedy-shrunk counterexample. A passing run is
 smoke evidence only; it does not authorize a bounty claim without the
-corresponding checked Isabelle theorem. Current known-too-strong member factors
-are `1.0`, `2.0`, and `4.0`; the `4.0` failure appears at seed `20260602`,
-random case `4784`, with `rsize=30` and `finalActiveMaxRowSize=195`.
-Keep the proof target parameterized by `K` until a larger scout stabilizes a
-working constant. The current larger scout-passing candidate is
-`RowsFactor=1.0`, `MemberFactor=8.0`, `PairFactor=1.0` on seeds
-`20260602,20260603,20260604`, `5000` random cases each at depth `6`, input
-length `8`; worst member ratio is `6.5`.
+corresponding checked Isabelle theorem. The default scout now matches the
+proof-facing exact-DAG target: `RowsFactor=1.0`, `PairFactor=1.0`,
+`MemberFactor=0.0`, `MemberDagFactor=2.0`, and
+`MemberShapeDagFactor=2.0`. Raw member-tree factors `1.0`, `2.0`, and `4.0`
+are known too strong and should be treated as negative evidence for the wrong
+metric, not as counterexamples to the memo/hash-consed route. The current
+default three-seed scout passes on seeds `20260602,20260603,20260604`, `5000`
+random cases each at depth `6`, input length `8`; worst exact-DAG/shape-DAG
+ratio is `1.266667`.
 Use
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_factor_sweep.ps1`
 to compare member factors without overwriting the main scout report. The
-current sweep report shows factors `4` and `6` fail on seed `20260602`, case
-`4784`, while `8` passes the three-seed `5000`-case grid.
+legacy raw-member sweep report shows factors `4` and `6` fail on seed
+`20260602`, case `4784`, while `8` passes the three-seed `5000`-case grid.
 A deeper sweep under
 `agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep_deep/`
 checks factors `8,10,12` on seeds
 `20260602,20260603,20260604,20260605,20260606`, `10000` random cases each,
 depth `7`, input length `10`. All pass, with worst member ratio `6.809524`.
-This makes `K = 8` the current smoke-backed constant, but it is still only a
-proof hypothesis until Isabelle derives it from the original regex structure.
+This is historical raw-member evidence only. The active exact-DAG scout uses
+`K = 2` as the current smoke-backed DAG/shape-DAG constant, and it is still
+only a proof hypothesis until Isabelle derives it from the original regex
+structure.
 On the Isabelle side, the current handoff theorem for this route is
-`FBound.thy:strong_deferred_original_final_active_row_metrics_contract`.
+`FBound.thy:strong_deferred_original_final_active_max_row_dag_metrics_contract`.
 It mirrors the Scala final-active row metrics: assume final row count `R` and
-per-row exact-DAG size `M`, then obtain exact POSIX reconstruction, pair budget
-`R * R`, row-DAG universe size `R * M`, and the span/split memo budgets. To
-obtain the desired cubic theorem, prove original-regex-owned bounds for these
-two quantities, for example `R <= C * rxsize r` and `M <= K * rxsize r`.
+`strong_deferred_final_active_suffix_max_row_dag r s <= M`, then obtain exact
+POSIX reconstruction, pair budget `R * R`, row-DAG universe size `R * M`, and
+the span/split memo budgets. To obtain the desired cubic theorem, prove
+original-regex-owned bounds for these two quantities, for example
+`R <= C * rxsize r` and `M <= K * rxsize r`.
 For final-active proof work, prefer the syntax-facing lemmas
 `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
 `raw_final_active_suffix_bucket_iff`, plus their lifted

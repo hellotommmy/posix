@@ -144,6 +144,18 @@ immutability.
   exact-DAG size `M`, then yields exact POSIX reconstruction plus pair and
   row-DAG budgets. It narrows BR-040's target but does not prove the
   original-regex-owned `R`/`M` bounds, so no payout is claimed.
+- Scalar max-row-DAG handoff checkpoint: checked
+  `FBound.thy:strong_deferred_final_active_suffix_max_row_dag` and
+  `FBound.thy:strong_deferred_original_final_active_max_row_dag_metrics_contract`.
+  This makes the BR-040 proof target match the Scala metric `finalMaxRowDag`
+  directly. It is infrastructure only and claims no payout.
+- Final-active DAG scout checkpoint: `strong_memo_final_active_scout.ps1`
+  now defaults to the metric that BR-040 actually needs: exact-DAG and
+  shape-DAG member budgets `2.0 * rsize`, with raw member tree size disabled
+  as a failing gate. The default three-seed scout passes with no CE; the
+  strongest seed-`20260602` witness has raw member ratio `5.633333` but
+  exact-DAG/shape-DAG ratio `1.266667`. This supports the memo/hash-consed
+  route and claims no payout.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

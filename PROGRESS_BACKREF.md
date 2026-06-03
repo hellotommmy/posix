@@ -2,6 +2,35 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong DAG Scout Default (2026-06-04)
+
+- Followed the derivative-size graphs and retired emitted-tree `bsimpCubic` as
+  the active route. The current route is memo strong tree: use
+  `bders_simpStrong` as the nullable recognition gate, reconstruct exact
+  POSIX values from `strong_deferred_span_value`, and account for final-active
+  row exact-DAG size rather than raw row tree size.
+- Updated `agent_hunt_pipeline/scripts/strong_memo_final_active_scout.ps1` so
+  its default budget matches the proof contract: rows `1.0 * rsize`,
+  pair-budget `1.0 * rsize^2`, raw member budget disabled, and exact-DAG plus
+  shape-DAG member budgets `2.0 * rsize`.
+- Re-ran the default scout on seeds `20260602,20260603,20260604`, `5000`
+  random cases each, depth `6`, input length `8`. No final-active budget CE
+  was found. Worst observed exact-DAG/shape-DAG ratio is `1.266667` on seed
+  `20260602` case `4784`; the raw row-tree ratio on the same witness is
+  `5.633333`, confirming that raw emitted-tree member size is the wrong
+  theorem target.
+- Added the Isabelle scalar metric
+  `strong_deferred_final_active_suffix_max_row_dag` and the handoff theorem
+  `strong_deferred_original_final_active_max_row_dag_metrics_contract`. This
+  is the closest proof-side match to Scala's `finalMaxRowDag`: prove
+  `card finalRows <= R` and `finalMaxRowDag <= M`, then obtain exact POSIX
+  reconstruction, row-DAG universe size `R * M`, pair budget `R * R`, and the
+  span/split memo budgets.
+- The report is in
+  `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
+  This is smoke evidence only; BR-040 still requires an Isabelle derivation of
+  original-regex-owned bounds for the row count and exact-DAG member size.
+
 ## Cubic Route Checkpoint: Row-DAG POSIX Handoff (2026-06-04)
 
 - Continued the memo-strong route after retiring emitted-tree `bsimpCubic`.
@@ -55,6 +84,10 @@ Last updated: 2026-06-04 (strong-memo route is default)
   and the span/split memo budgets. It is deliberately not a cubic theorem:
   the remaining proof target is to derive original-regex-owned bounds for
   those final-active row metrics.
+- Added `strong_deferred_original_final_active_max_row_dag_metrics_contract`
+  as a scalar form of the same handoff: a bound on
+  `strong_deferred_final_active_suffix_max_row_dag r s` supplies the per-row
+  exact-DAG member premise.
 - Verification:
   focused `isabelle build -v -d . Posix` passed.
 - This is BR-040 infrastructure. The missing theorem is now concrete: define

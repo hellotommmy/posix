@@ -5,6 +5,14 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- The active size target is now final-active row exact-DAG size, not raw row
+  tree size. `strong_memo_final_active_scout.ps1` defaults to rows
+  `1.0 * rsize`, pair budget `1.0 * rsize^2`, and exact-DAG/shape-DAG member
+  budgets `2.0 * rsize`, with raw member size disabled as a gate. The latest
+  three-seed scout passes and shows the key separation: a raw row-tree ratio
+  of `5.633333` can correspond to exact-DAG and shape-DAG ratios `1.266667`.
+  Future proof work should explain this sharing, not try to bound the raw
+  emitted member tree.
 - Added `rsubterm_closure U = (\<Union>q\<in>U. rsubterms q)` and proved it is
   finite, extensive, closed under `rsubterms`, and bounded by
   `card U * M` when every member's exact-DAG size is at most `M`.
@@ -20,6 +28,11 @@ to be read before continuing long-running agent work.
   exact-DAG size `M`, pair budget `R * R`, and row-DAG universe size `R * M`.
   This is a handoff contract only; the cubic proof still has to derive `R`
   and `M` from the original regex, not from the emitted tree.
+- Added the scalar metric
+  `strong_deferred_final_active_suffix_max_row_dag` and theorem
+  `strong_deferred_original_final_active_max_row_dag_metrics_contract`. This
+  is now the preferred statement shape for BR-040 because it matches the
+  executable `finalMaxRowDag` report directly.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under
