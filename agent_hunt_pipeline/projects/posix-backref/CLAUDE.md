@@ -159,6 +159,13 @@ metric, not as counterexamples to the memo/hash-consed route. The current
 default three-seed scout passes on seeds `20260602,20260603,20260604`, `5000`
 random cases each at depth `6`, input length `8`; worst exact-DAG/shape-DAG
 ratio is `1.266667`.
+If you want to probe the whole final memo-strong exact-DAG metric, use
+`scala_cubic_smoke.ps1 -FindStrongMemoDagBudgetCE -StrongMemoDagFactor K`.
+This is a diagnostic only. Recent smoke shows `K=2` is already false, shrinking
+to `STAR(NTIMES(STAR(CH(b)),2))` on input `bb` while preserving exact POSIX
+values. Do not turn this into a bounty target unless the intended theorem is
+explicitly about the whole final DAG; the proof-facing target remains the
+final-active row-DAG universe.
 Use
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_factor_sweep.ps1`
 to compare member factors without overwriting the main scout report. The

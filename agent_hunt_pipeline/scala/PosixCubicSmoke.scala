@@ -2911,6 +2911,17 @@ object PosixCubicSmoke {
     }
   }
 
+  def strongMemoDagLinearBound(r: Rexp, factor: Double): Long =
+    if (factor > 0.0) math.ceil(factor * rsize(r).toDouble).toLong else 0L
+
+  def strongMemoDagBudgetExceeded(r: Rexp, input: String, factor: Double): Boolean = {
+    if (factor <= 0.0) false
+    else {
+      val result = strongDeferredMemoResult(r, input)
+      result.strongDag.toLong > strongMemoDagLinearBound(r, factor)
+    }
+  }
+
   def strongCubicBudgetReport(r: Rexp, input: String, label: String, factor: Double): String = {
     val result = strongDeferredMemoResult(r, input)
     val budget = strongCubicTreeBound(r, factor)
@@ -2926,6 +2937,31 @@ object PosixCubicSmoke {
        |strongTree   = ${result.strongTree}
        |strongDag    = ${result.strongDag}
        |ratio        = ${obs.ratio}
+       |base         = $base
+       |memo         = ${result.value}
+       |valueOK      = ${base == result.value}
+       |memoStates   = ${result.memo.acceptsStates}+${result.memo.valueStates}
+       |splitProbes  = ${result.memo.splitProbes}
+       |""".stripMargin
+  }
+
+  def strongMemoDagBudgetReport(r: Rexp, input: String, label: String, factor: Double): String = {
+    val result = strongDeferredMemoResult(r, input)
+    val budget = strongMemoDagLinearBound(r, factor)
+    val base = baselineValue(r, input)
+    s"""strong memo DAG budget witness
+       |label        = $label
+       |regex        = $r
+       |input        = $input
+       |rsize        = ${rsize(r)}
+       |factor       = $factor
+       |budget       = $budget
+       |strongTree   = ${result.strongTree}
+       |strongDag    = ${result.strongDag}
+       |strongShape  = ${result.strongShapeDag}
+       |dagRatio     = ${result.strongDag.toDouble / math.max(1.0, rsize(r).toDouble)}
+       |finalRows    = ${result.finalActiveSuffix.rows}
+       |finalMaxRowDag = ${result.finalActiveSuffix.maxRowDagSize}
        |base         = $base
        |memo         = ${result.value}
        |valueOK      = ${base == result.value}
@@ -5408,6 +5444,33 @@ object PosixCubicSmoke {
     loop(startR, startInput, Set.empty)
   }
 
+  def shrinkStrongMemoDagBudgetCE(
+      startR: Rexp,
+      startInput: String,
+      factor: Double,
+      minRegexSize: Int
+  ): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
+      val nextSeen = seen + ((r, s))
+      val inputHit = inputShrinkCandidates(s)
+        .filterNot(t => nextSeen.contains((r, t)))
+        .find(t => strongMemoDagBudgetExceeded(r, t, factor))
+      inputHit match {
+        case Some(t) => loop(r, t, nextSeen)
+        case None =>
+          regexShrinkCandidates(r)
+            .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .filter(candidate => rsize(candidate) >= minRegexSize)
+            .find(candidate => strongMemoDagBudgetExceeded(candidate, s, factor)) match {
+            case Some(candidate) => loop(candidate, s, nextSeen)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput, Set.empty)
+  }
+
   def shrinkFinalActiveBudgetCE(
       startR: Rexp,
       startInput: String,
@@ -5579,6 +5642,38 @@ object PosixCubicSmoke {
     }
     if (!found) {
       println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor, minRegexSize=$minRegexSize)")
+    }
+  }
+
+  def findStrongMemoDagBudgetCounterexample(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      factor: Double,
+      minRegexSize: Int
+  ): Unit = {
+    if (factor <= 0.0) {
+      throw new IllegalArgumentException("FindStrongMemoDagBudgetCE requires -StrongMemoDagFactor / POSIX_SMOKE_STRONG_MEMO_DAG_FACTOR > 0")
+    }
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (rsize(r) >= minRegexSize && strongMemoDagBudgetExceeded(r, s, factor)) {
+          found = true
+          println(strongMemoDagBudgetReport(r, s, s"strong memo DAG budget CE before shrinking (seed=$seed case=$checked)", factor))
+          val (shrunkR, shrunkS) = shrinkStrongMemoDagBudgetCE(r, s, factor, minRegexSize)
+          println(strongMemoDagBudgetReport(shrunkR, shrunkS, s"strong memo DAG budget CE after greedy shrinking (minRegexSize=$minRegexSize)", factor))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no strong memo DAG budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor, minRegexSize=$minRegexSize)")
     }
   }
 
@@ -5804,6 +5899,8 @@ object PosixCubicSmoke {
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
+    val strongMemoDagFactor = doubleSetting("posix.smoke.strongMemoDagFactor", "POSIX_SMOKE_STRONG_MEMO_DAG_FACTOR", 0.0)
+    val strongMemoDagMinRegexSize = intSetting("posix.smoke.strongMemoDagMinRegexSize", "POSIX_SMOKE_STRONG_MEMO_DAG_MIN_REGEX_SIZE", 5)
     val strongFinalActiveRowsFactor = doubleSetting("posix.smoke.strongFinalActiveRowsFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_ROWS_FACTOR", 0.0)
     val strongFinalActivePairFactor = doubleSetting("posix.smoke.strongFinalActivePairFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_PAIR_FACTOR", 0.0)
     val strongFinalActiveMemberFactor = doubleSetting("posix.smoke.strongFinalActiveMemberFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_MEMBER_FACTOR", 0.0)
@@ -5857,6 +5954,7 @@ object PosixCubicSmoke {
     val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
     val findStrongCubicBudgetCE = boolSetting("posix.smoke.findStrongCubicBudgetCE", "POSIX_SMOKE_FIND_STRONG_CUBIC_BUDGET_CE", false)
+    val findStrongMemoDagBudgetCE = boolSetting("posix.smoke.findStrongMemoDagBudgetCE", "POSIX_SMOKE_FIND_STRONG_MEMO_DAG_BUDGET_CE", false)
     val findStrongFinalActiveBudgetCE = boolSetting("posix.smoke.findStrongFinalActiveBudgetCE", "POSIX_SMOKE_FIND_STRONG_FINAL_ACTIVE_BUDGET_CE", false)
     val findStrongRowsBridgeCE = boolSetting("posix.smoke.findStrongRowsBridgeCE", "POSIX_SMOKE_FIND_STRONG_ROWS_BRIDGE_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
@@ -5951,6 +6049,9 @@ object PosixCubicSmoke {
     }
     if (findStrongCubicBudgetCE) {
       findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize)
+    }
+    if (findStrongMemoDagBudgetCE) {
+      findStrongMemoDagBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongMemoDagFactor, strongMemoDagMinRegexSize)
     }
     if (findStrongFinalActiveBudgetCE) {
       findFinalActiveBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongFinalActiveConfig)

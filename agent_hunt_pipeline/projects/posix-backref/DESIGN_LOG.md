@@ -5,6 +5,21 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Latest route decision: emitted-tree `bsimpCubic` should be treated as
+  negative evidence and tooling residue. The active route is memo strong tree
+  plus exact original-regex POSIX reconstruction and final-active row-DAG
+  accounting.
+- Added a whole-final-DAG budget shrinker to the Scala smoke gate. It is
+  useful for falsifying over-tight constants, not for replacing the
+  proof-facing row-DAG target. Recent runs found no CE for factors `4` and `3`
+  on random grids, but factor `2` shrinks to
+  `STAR(NTIMES(STAR(CH(b)),2))` on input `bb`, where exact POSIX values still
+  agree and `strongDag=13` for `rsize=6`.
+- The default final-active scout remains the main executable gate. The
+  refreshed three-seed run has no CE for rows `1.0 * rsize`, pair budget
+  `1.0 * rsize^2`, and exact-DAG/shape-DAG row-member budget
+  `2.0 * rsize`. The Chapter 7 report now extends to `n=80`; for `k=5/8`,
+  final rows are `5/9` and final max row-DAG is `31/61`.
 - Added `strong_deferred_final_raw_dag_size`, the erased exact-DAG size of the
   final memo-strong recognition tree. The bridge
   `strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound` means a

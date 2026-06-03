@@ -1,11 +1,9 @@
 k,metric,n_max,value_at_n_max,baseline_at_n_max,ratio_at_n_max,max_ratio_to_baseline,verdict
-5,strongTree,64,959,959,1,1,baseline
-5,strongMemoTree,64,959,959,1,1,within baseline
-5,strongMemoDag,64,72,959,0.07508,0.3913,within baseline
-5,strongMemoFinalActiveMaxRowDag,64,31,959,0.03233,0.0654,within baseline
-5,strongMemoFinalActiveRows,64,5,959,0.005214,0.01055,within baseline
-8,strongTree,64,3245,3245,1,1,baseline
-8,strongMemoTree,64,3245,3245,1,1,within baseline
-8,strongMemoDag,64,133,3245,0.04099,0.2784,within baseline
-8,strongMemoFinalActiveMaxRowDag,64,61,3245,0.0188,0.05241,within baseline
-8,strongMemoFinalActiveRows,64,9,3245,0.002773,0.004956,within baseline
+5,strongTree,80,957,957,1,1,baseline
+5,strongMemoDag,80,69,957,0.0721,0.3913,within baseline
+5,strongMemoFinalActiveMaxRowDag,80,31,957,0.03239,0.0654,within baseline
+5,strongMemoFinalActiveRows,80,5,957,0.005225,0.01055,within baseline
+8,strongTree,80,3233,3233,1,1,baseline
+8,strongMemoDag,80,133,3233,0.04114,0.2784,within baseline
+8,strongMemoFinalActiveMaxRowDag,80,61,3233,0.01887,0.05241,within baseline
+8,strongMemoFinalActiveRows,80,9,3233,0.002784,0.004956,within baseline

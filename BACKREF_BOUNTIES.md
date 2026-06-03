@@ -122,6 +122,21 @@ immutability.
   Chapter 7 report was refreshed for `k=5,8,n<=64`, with `strongMemoDag`
   `72/133` and final max row-DAG `31/61` at `n=64`. This is BR-040
   infrastructure only, not a payout.
+- Whole-DAG budget scout: `scala_cubic_smoke.ps1` now exposes
+  `-FindStrongMemoDagBudgetCE`, `-StrongMemoDagFactor`, and
+  `-StrongMemoDagMinRegexSize`. The scout found no whole-final-DAG CE for
+  factors `4` and `3` on recent random grids, but factor `2` shrinks to
+  `STAR(NTIMES(STAR(CH(b)),2))` on input `bb` with correct POSIX value
+  preservation. Therefore whole-final-DAG constants are diagnostics only; the
+  active BR-040 proof target remains the final-active row-DAG universe and its
+  POSIX reconstruction contract. No bounty is claimed.
+- Final-active route refresh: the default
+  `strong_memo_final_active_scout.ps1` three-seed run still finds no CE for
+  rows `1.0 * rsize`, pair budget `1.0 * rsize^2`, and exact-DAG/shape-DAG
+  member budgets `2.0 * rsize` across seeds `20260602,20260603,20260604`,
+  `5,000` cases each at depth `6`, input length `8`. The Chapter 7 comparison
+  was refreshed to `n<=80`; final-active max row-DAG stays at `31/61` for
+  `k=5/8`. Smoke evidence only; no payout.
 - Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
   for the row-DAG universe, plus
   `strong_deferred_memo_tree_value_final_active_row_dag_interface` and

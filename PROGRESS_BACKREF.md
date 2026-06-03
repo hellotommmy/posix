@@ -2,6 +2,35 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong DAG Scout and Final-Active Gate (2026-06-04)
+
+- Added a Scala smoke switch for the whole final memo-strong exact-DAG metric:
+  `-FindStrongMemoDagBudgetCE`, with `-StrongMemoDagFactor` and
+  `-StrongMemoDagMinRegexSize` exposed by
+  `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`.
+- Smoke result: `strongMemoDag <= 4 * rsize` found no CE in `1,000`
+  random depth-6/input-8 cases on seed `20260602`, and
+  `strongMemoDag <= 3 * rsize` found no CE in `5,000` cases on seed
+  `20260603`. However `strongMemoDag <= 2 * rsize` is false: the shrinker
+  reduces a CE to `STAR(NTIMES(STAR(CH(b)),2))` on input `bb`, with
+  `rsize=6`, `strongDag=13`, and exact POSIX value preservation still true.
+  This keeps the whole-final-DAG metric useful as a diagnostic, but too tight
+  linear constants should not be the main proof target.
+- Re-ran the proof-facing final-active scout on seeds
+  `20260602,20260603,20260604`, `5,000` random cases each, depth `6`, input
+  length `8`. No CE was found for final rows `<= 1.0 * rsize`, pair budget
+  `<= 1.0 * rsize^2`, and exact-DAG/shape-DAG row-member budget
+  `<= 2.0 * rsize`. The refreshed report is
+  `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
+- Refreshed the Chapter 7 derivative-size report for `k=5,8`, `n=0..80`.
+  At `n=80`, `strongMemoDag` is `69` for `k=5` and `133` for `k=8`, while
+  `strongMemoFinalActiveMaxRowDag` is `31` and `61`, and final rows are `5`
+  and `9`. This strengthens the route decision: prove the final-active
+  row-DAG universe contract and exact POSIX reconstruction, not an emitted-tree
+  `bsimpCubic` theorem.
+- No BR-039/BR-040 bounty is claimed. This is smoke and route-selection
+  infrastructure only.
+
 ## Cubic Route Checkpoint: Final Raw DAG Metric Bridge (2026-06-04)
 
 - Added the Isabelle metric `strong_deferred_final_raw_dag_size`, defined as
