@@ -181,6 +181,12 @@ POSIX reconstruction, pair budget `R * R`, row-DAG universe size `R * M`, and
 the span/split memo budgets. To obtain the desired cubic theorem, prove
 original-regex-owned bounds for these two quantities, for example
 `R <= C * rxsize r` and `M <= K * rxsize r`.
+If the proof naturally constructs a row-DAG universe instead of the scalar
+maximum, use
+`FBound.thy:strong_deferred_original_final_active_row_dag_universe_metrics_contract`:
+a bound on
+`card (strong_deferred_final_active_suffix_row_dag_universe r s)` implies the
+same `finalMaxRowDag` bound via the checked raw/strong bridge.
 For final-active proof work, prefer the syntax-facing lemmas
 `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
 `raw_final_active_suffix_bucket_iff`, plus their lifted

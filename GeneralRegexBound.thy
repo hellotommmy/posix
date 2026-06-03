@@ -21197,6 +21197,11 @@ definition raw_final_active_suffix_row_dag_universe :: "rrexp \<Rightarrow> rrex
   "raw_final_active_suffix_row_dag_universe r =
     (\<Union>q\<in>raw_final_active_suffix_rows r. rsubterms q)"
 
+definition raw_final_active_suffix_max_row_dag :: "rrexp \<Rightarrow> nat" where
+  "raw_final_active_suffix_max_row_dag r =
+    Max (insert 0
+      ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r))"
+
 lemma raw_shared_prune_active_suffix_keys_mono:
   assumes "U \<subseteq> V"
   shows "raw_shared_prune_active_suffix_keys U \<subseteq>
@@ -21423,6 +21428,53 @@ proof -
   also have "... \<le> rsize r"
     by (rule card_raw_final_active_suffix_row_dag_universe_le_rsize)
   finally show ?thesis .
+qed
+
+lemma raw_final_active_suffix_row_member_le_max_row_dag:
+  assumes "q \<in> raw_final_active_suffix_rows r"
+  shows "card (rsubterms q) \<le> raw_final_active_suffix_max_row_dag r"
+  unfolding raw_final_active_suffix_max_row_dag_def
+  by (rule Max_ge) (use assms in auto)
+
+lemma raw_final_active_suffix_max_row_dag_le_row_dag_universe:
+  "raw_final_active_suffix_max_row_dag r \<le>
+    card (raw_final_active_suffix_row_dag_universe r)"
+proof -
+  have bound: "\<And>n. n \<in> insert 0
+      ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r) \<Longrightarrow>
+      n \<le> card (raw_final_active_suffix_row_dag_universe r)"
+  proof -
+    fix n
+    assume n: "n \<in> insert 0
+      ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r)"
+    show "n \<le> card (raw_final_active_suffix_row_dag_universe r)"
+    proof (cases "n = 0")
+      case True
+      then show ?thesis by simp
+    next
+      case False
+      then obtain q where q: "q \<in> raw_final_active_suffix_rows r"
+        "n = card (rsubterms q)"
+        using n by auto
+      then show ?thesis
+        by (simp add: card_raw_final_active_suffix_row_dag_le_universe)
+    qed
+  qed
+  show ?thesis
+    unfolding raw_final_active_suffix_max_row_dag_def
+  proof (rule Max.boundedI)
+    show "finite (insert 0
+        ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r))"
+      by simp
+    show "insert 0
+        ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r) \<noteq>
+        {}"
+      by simp
+    show "\<And>n. n \<in> insert 0
+        ((\<lambda>q. card (rsubterms q)) ` raw_final_active_suffix_rows r) \<Longrightarrow>
+        n \<le> card (raw_final_active_suffix_row_dag_universe r)"
+      by (rule bound)
+  qed
 qed
 
 lemma raw_final_active_suffix_row_dag_universe_subsetI:

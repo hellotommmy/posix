@@ -33,6 +33,12 @@ to be read before continuing long-running agent work.
   `strong_deferred_original_final_active_max_row_dag_metrics_contract`. This
   is now the preferred statement shape for BR-040 because it matches the
   executable `finalMaxRowDag` report directly.
+- Added the bridge
+  `strong_deferred_original_final_active_row_dag_universe_metrics_contract`:
+  a cardinality bound for `strong_deferred_final_active_suffix_row_dag_universe`
+  implies the scalar `finalMaxRowDag` bound. This keeps the proof route
+  flexible: either prove the scalar metric directly or prove the row-DAG
+  universe bound and inherit the scalar one.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under

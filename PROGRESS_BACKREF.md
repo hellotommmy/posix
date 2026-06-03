@@ -26,6 +26,15 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `card finalRows <= R` and `finalMaxRowDag <= M`, then obtain exact POSIX
   reconstruction, row-DAG universe size `R * M`, pair budget `R * R`, and the
   span/split memo budgets.
+- Added the raw/strong bridge from row-DAG universe cardinality to the scalar
+  max metric:
+  `raw_final_active_suffix_max_row_dag_le_row_dag_universe`,
+  `strong_deferred_final_active_suffix_max_row_dag_le_row_dag_universe`, and
+  `strong_deferred_original_final_active_row_dag_universe_metrics_contract`.
+  Hence proving
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D`
+  immediately yields `finalMaxRowDag <= D` plus the POSIX reconstruction
+  contract.
 - The report is in
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
   This is smoke evidence only; BR-040 still requires an Isabelle derivation of

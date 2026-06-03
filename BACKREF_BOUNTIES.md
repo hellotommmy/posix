@@ -149,6 +149,13 @@ immutability.
   `FBound.thy:strong_deferred_original_final_active_max_row_dag_metrics_contract`.
   This makes the BR-040 proof target match the Scala metric `finalMaxRowDag`
   directly. It is infrastructure only and claims no payout.
+- Row-DAG universe to max-row-DAG bridge checkpoint: checked
+  `GeneralRegexBound.thy:raw_final_active_suffix_max_row_dag_le_row_dag_universe`,
+  `FBound.thy:strong_deferred_final_active_suffix_max_row_dag_le_row_dag_universe`,
+  and
+  `FBound.thy:strong_deferred_original_final_active_row_dag_universe_metrics_contract`.
+  This shows a future row-DAG universe bound is enough to control the scalar
+  `finalMaxRowDag` metric. Infrastructure only; no payout is claimed.
 - Final-active DAG scout checkpoint: `strong_memo_final_active_scout.ps1`
   now defaults to the metric that BR-040 actually needs: exact-DAG and
   shape-DAG member budgets `2.0 * rsize`, with raw member tree size disabled
