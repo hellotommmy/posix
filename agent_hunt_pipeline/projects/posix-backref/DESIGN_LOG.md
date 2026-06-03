@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong memo POSIX value is a theorem, not a wrapper
+
+- Added `FBound.thy:strong_deferred_span_value_THE_lexer` and
+  `FBound.thy:strong_deferred_memo_exact_value_budget`.
+- The theorem states the intended architecture directly: the strong derivative
+  tree is the nullable gate, and the original-regex span/memo table supplies
+  the unique POSIX value. The resulting option value is exactly `lexer r s`.
+- Added `GeneralRegexBound.thy:path9_atom_frontier_not_raw_shared_prune_closed`
+  and `GeneralRegexBound.thy:carry9_atom_frontier_not_raw_shared_prune_closed`.
+  These are small checked counterexamples showing that current path9/carry9
+  atom-frontier universes do not survive raw strong shared-prune.
+- Design consequence: the next successful cubic universe must include a
+  principled representation of same-suffix ALT row differences, or prove an
+  equivalent memo/shared representation that avoids emitting those difference
+  rows as ordinary frontier members. Reusing the old frontier universe directly
+  is now checked-false.
+
 ## 2026-06-03: StrongDeferredMemo replaces bsimpCubic as the main route
 
 - The Chapter 7 comparison plots made the call: current emitted-tree

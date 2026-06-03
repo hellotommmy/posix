@@ -20363,6 +20363,128 @@ definition raw_shared_prune_closed :: "rrexp set \<Rightarrow> bool" where
       set (rflts [rsimp7_SEQ_atom
         (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U)"
 
+lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
+  "strong_prune_universe_bad_result \<notin>
+    partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
+  by (simp add: strong_prune_universe_bad_root_def
+      strong_prune_universe_bad_result_def
+      partial_derivative_path9_atom_frontier_universe_def
+      rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+lemma strong_prune_universe_bad_result_notin_carry9_atom_frontier:
+  "strong_prune_universe_bad_result \<notin>
+    partial_derivative_carry9_atom_frontier_universe strong_prune_universe_bad_root"
+  by (simp add: strong_prune_universe_bad_root_def
+      strong_prune_universe_bad_result_def
+      partial_derivative_carry9_atom_frontier_universe_def
+      rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+definition raw_shared_prune_bad_root :: rrexp where
+  "raw_shared_prune_bad_root =
+    RALTS
+      [RSEQ
+        (RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b''), RCHAR (CHR ''c'')])
+        (RCHAR (CHR ''z'')),
+       RSEQ
+        (RALTS
+          [RCHAR (CHR ''a''), RCHAR (CHR ''b''), RCHAR (CHR ''c''),
+           RCHAR (CHR ''d'')])
+        (RCHAR (CHR ''z''))]"
+
+definition raw_shared_prune_bad_result :: rrexp where
+  "raw_shared_prune_bad_result =
+    RSEQ (RCHAR (CHR ''d'')) (RCHAR (CHR ''z''))"
+
+lemma raw_shared_prune_bad_result_notin_path9_atom_frontier:
+  "raw_shared_prune_bad_result \<notin>
+    partial_derivative_path9_atom_frontier_universe raw_shared_prune_bad_root"
+  by (simp add: raw_shared_prune_bad_root_def
+      raw_shared_prune_bad_result_def
+      partial_derivative_path9_atom_frontier_universe_def
+      rpath9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+lemma raw_shared_prune_bad_result_notin_carry9_atom_frontier:
+  "raw_shared_prune_bad_result \<notin>
+    partial_derivative_carry9_atom_frontier_universe raw_shared_prune_bad_root"
+  by (simp add: raw_shared_prune_bad_root_def
+      raw_shared_prune_bad_result_def
+      partial_derivative_carry9_atom_frontier_universe_def
+      rcarry9_atom_frontiers_def rsimp7_SEQ_atom_def)
+
+lemma path9_atom_frontier_not_raw_shared_prune_closed:
+  "\<not> raw_shared_prune_closed
+    (partial_derivative_path9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?U = "partial_derivative_path9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  assume closed: "raw_shared_prune_closed ?U"
+  have earlier: "RSEQ (RALTS [?a, ?b, ?c]) ?z \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have closedD:
+    "\<And>lrs rrs k. RSEQ (RALTS lrs) k \<in> ?U \<Longrightarrow>
+      RSEQ (RALTS rrs) k \<in> ?U \<Longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> ?U"
+    using closed by (simp add: raw_shared_prune_closed_def)
+  have result: "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against [?a, ?b, ?c] [?a, ?b, ?c, ?d])) ?z])
+      \<subseteq> ?U"
+    by (rule closedD[OF earlier later])
+  have "raw_shared_prune_bad_result \<in> ?U"
+    using result by (simp add: raw_shared_prune_bad_result_def
+        rsimp7_SEQ_atom_def)
+  then show False
+    using raw_shared_prune_bad_result_notin_path9_atom_frontier by blast
+qed
+
+lemma carry9_atom_frontier_not_raw_shared_prune_closed:
+  "\<not> raw_shared_prune_closed
+    (partial_derivative_carry9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?U = "partial_derivative_carry9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  assume closed: "raw_shared_prune_closed ?U"
+  have earlier: "RSEQ (RALTS [?a, ?b, ?c]) ?z \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have closedD:
+    "\<And>lrs rrs k. RSEQ (RALTS lrs) k \<in> ?U \<Longrightarrow>
+      RSEQ (RALTS rrs) k \<in> ?U \<Longrightarrow>
+      set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> ?U"
+    using closed by (simp add: raw_shared_prune_closed_def)
+  have result: "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against [?a, ?b, ?c] [?a, ?b, ?c, ?d])) ?z])
+      \<subseteq> ?U"
+    by (rule closedD[OF earlier later])
+  have "raw_shared_prune_bad_result \<in> ?U"
+    using result by (simp add: raw_shared_prune_bad_result_def
+        rsimp7_SEQ_atom_def)
+  then show False
+    using raw_shared_prune_bad_result_notin_carry9_atom_frontier by blast
+qed
+
 lemma rsimpStrong_prune_pair_raw_closed_subsetI:
   assumes closed: "raw_shared_prune_closed U"
     and earlier: "set (rflts [earlier]) \<subseteq> U"

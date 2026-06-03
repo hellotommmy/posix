@@ -2493,6 +2493,62 @@ proof -
     by (rule strong_deferred_reconstruction_budget(3))
 qed
 
+lemma strong_deferred_span_value_THE_lexer:
+  "(if bnullable (bders_simpStrong (intern r) s)
+    then Some (THE v. strong_deferred_span_value r s v)
+    else None) = lexer r s"
+proof (cases "bnullable (bders_simpStrong (intern r) s)")
+  case True
+  then obtain v where v: "strong_deferred_span_value r s v"
+    using strong_deferred_span_value_defined_iff by blast
+  have unique: "\<exists>!w. strong_deferred_span_value r s w"
+    using True by (simp add: strong_deferred_span_value_ex1_iff)
+  have the_v: "(THE w. strong_deferred_span_value r s w) = v"
+    by (rule the1_equality[OF unique v])
+  have "lexer r s = Some v"
+    using v by (simp add: strong_deferred_span_value_iff_lexer)
+  then show ?thesis
+    using True the_v by simp
+next
+  case False
+  have no_value: "\<not> (\<exists>v. strong_deferred_span_value r s v)"
+    using False by (simp add: strong_deferred_span_value_defined_iff)
+  have "lexer r s = None"
+  proof (cases "lexer r s")
+    case None
+    then show ?thesis .
+  next
+    case (Some v)
+    then have "strong_deferred_span_value r s v"
+      by (simp add: strong_deferred_span_value_iff_lexer)
+    then show ?thesis
+      using no_value by blast
+  qed
+  then show ?thesis
+    using False by simp
+qed
+
+lemma strong_deferred_memo_exact_value_budget:
+  shows "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    by (rule strong_deferred_span_value_THE_lexer)
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_budget(3))
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

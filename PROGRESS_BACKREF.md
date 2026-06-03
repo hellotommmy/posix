@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong Memo POSIX Value Is Now Packaged (2026-06-03)
+
+- Added `FBound.thy:strong_deferred_span_value_THE_lexer` and
+  `FBound.thy:strong_deferred_memo_exact_value_budget`.
+- This is the checked theorem shape for the current main route:
+  `bders_simpStrong (intern r) s` is only the nullable recognition gate; when
+  it accepts, the unique `strong_deferred_span_value` extracted from the
+  original-regex span/memo table is exactly `lexer r s`.
+- Added proof-facing negative guards in `GeneralRegexBound.thy`:
+  `path9_atom_frontier_not_raw_shared_prune_closed` and
+  `carry9_atom_frontier_not_raw_shared_prune_closed`.
+- These guards show that the existing path9/carry9 atom-frontier universes are
+  not closed under the raw strong shared-prune operation. The next universe
+  must explicitly account for same-suffix ALT row differences; simply wiring
+  `StrongDeferredMemo` into those old frontier universes is not enough.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Pivot: StrongDeferredMemo Is The Main Candidate (2026-06-03)
 
 - Promoted the `StrongDeferredMemo` route to the default Scala smoke route:
