@@ -96,6 +96,15 @@ candidate/current emitted tree size by `k` and input length `n`. A simplifier
 that is visibly worse than thesis Chapter 7 on this grid is a diagnostic only,
 not a proof or bounty candidate.
 
+For the current deferred-memo route, use
+`FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:
+it packages the unique deferred-value gate, the quadratic combined
+accept/value span-state budget, and the cubic split-probe budget. Do not
+re-prove those bounds ad hoc in later files.
+When starting from the non-backref fragment, prefer
+`FBound.thy:strong_deferred_original_memo_budget`; it adds the legacy-subterm
+closure facts needed by downstream original-file bound statements.
+
 Do not count destructive sequence reassociation as a POSIX-value-preserving
 output simplification. The Scala diagnostic mode localized a current
 `bsimpCubic` gap to `(x.y).z -> x.(y.z)`: full reassociation controls the

@@ -2465,6 +2465,34 @@ proof -
     by (rule card_rexp_span_all_split_probes_bound)
 qed
 
+lemma strong_deferred_memo_budget:
+  shows "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  let ?B = "rxsize r * Suc (length s) * Suc (length s)"
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_reconstruction_budget(1))
+  have states: "card (rexp_span_states r s) \<le> ?B"
+    by (rule card_rexp_span_states_bound)
+  have posix_states: "card (rexp_span_posix_states r s) \<le> ?B"
+    by (rule card_rexp_span_posix_states_bound)
+  have "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      ?B + ?B"
+    using add_mono[OF states posix_states] .
+  also have "... = 2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (simp add: algebra_simps)
+  finally show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)" .
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_reconstruction_budget(3))
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)
@@ -2952,6 +2980,59 @@ proof -
   show "card (rexp_span_all_split_probes r s) \<le>
       rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
     by (rule strong_deferred_reconstruction_budget(3))
+qed
+
+lemma strong_deferred_original_memo_budget:
+  assumes "legacy_rexp r"
+  shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    using assms by (rule strong_deferred_original_legacy_budget(1))
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_memo_budget(1))
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+  proof (intro allI impI)
+    fix q i j
+    assume "(q, i, j) \<in> rexp_span_states r s"
+    then show "legacy_rexp q"
+      by (rule legacy_rexp_span_states[OF assms])
+  qed
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+  proof (intro allI impI)
+    fix q i j
+    assume "(q, i, j) \<in> rexp_span_posix_states r s"
+    then show "legacy_rexp q"
+      by (rule legacy_rexp_span_posix_states[OF assms])
+  qed
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_budget(2))
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+  proof (intro allI impI)
+    fix q i k j
+    assume "(q, i, k, j) \<in> rexp_span_all_split_probes r s"
+    then show "legacy_rexp q"
+      by (rule legacy_rexp_span_all_split_probes[OF assms])
+  qed
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_budget(3))
 qed
 
 lemma rerase_map_fuse:

@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Deferred memo budget has a checked theorem
+
+- Added `FBound.thy:strong_deferred_memo_budget` and
+  `FBound.thy:strong_deferred_original_memo_budget`.
+- The theorem mirrors the Scala `StrongDeferredMemo` accounting at proof
+  level: acceptance span states plus POSIX value span states are bounded by a
+  quadratic span table over original subterms, while split probes are bounded
+  by a cubic table.
+- It also keeps the crucial semantic gate: there is a unique deferred POSIX
+  value exactly when the final `bders_simpStrong (intern r) s` state is
+  nullable.
+- The original/legacy variant additionally records that the accept/value span
+  states and split probes are still over legacy subterms when the input regex
+  is in the non-backref fragment.
+- Design consequence: future cubic-bound statements should cite this theorem
+  for memo reconstruction accounting instead of restating ad hoc bounds. The
+  remaining proof problem is not the span/memo table size; it is the bridge
+  from thesis-strength recognition/share representation to this bounded
+  reconstruction table.
+
 ## 2026-06-03: Direct derivative-size compare plots for Chapter 7
 
 - Added a side-task report:

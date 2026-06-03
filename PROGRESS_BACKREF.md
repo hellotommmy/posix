@@ -1,6 +1,30 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (derivative-size compare plots)
+Last updated: 2026-06-03 (checked deferred memo budget)
+
+## Cubic Route Checkpoint: Deferred Memo Budget Is Checked (2026-06-03)
+
+- Added `FBound.thy:strong_deferred_memo_budget` and
+  `FBound.thy:strong_deferred_original_memo_budget`.
+- The theorem packages the current strong-deferred route in the same shape as
+  the Scala memo report:
+  - unique deferred POSIX value exists exactly when
+    `bnullable (bders_simpStrong (intern r) s)`;
+  - `card (rexp_span_states r s) + card (rexp_span_posix_states r s)` is
+    bounded by `2 * rxsize r * Suc (length s) * Suc (length s)`;
+  - `card (rexp_span_all_split_probes r s)` is bounded by
+    `rxsize r * Suc (length s) * Suc (length s) * Suc (length s)`.
+- This connects the plotted `strongMemoStates` / `strongMemoSplitProbes`
+  intuition to a checked Isabelle interface. It is still not the final cubic
+  theorem: the remaining hard part is tying the thesis-strength recognition
+  tree/share representation to this bounded reconstruction interface with the
+  right POSIX value theorem.
+- The `legacy_rexp` variant also records that span states, POSIX value states,
+  and split-probe states stay inside legacy subterms when the original regex is
+  in the non-backref fragment.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including Scala smoke, `Posix`, and `BackRefPilot`.
 
 ## Cubic Diagnostic: Direct k/n Derivative-Size Compare Report (2026-06-03)
 

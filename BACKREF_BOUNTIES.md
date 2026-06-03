@@ -83,6 +83,16 @@ immutability.
   original-regex span/memo reconstruction the leading tree-level route, but it
   is still only tooling/evidence until checked Isabelle reconstruction and
   cubic theorem interfaces are complete.
+- Checked deferred memo budget: `FBound.thy:strong_deferred_memo_budget`
+  now packages the route as a proof-facing interface, and
+  `FBound.thy:strong_deferred_original_memo_budget` adds the corresponding
+  `legacy_rexp` closure package. They state the nullable gate/unique deferred
+  value equivalence, bound the combined accept/value span memo table by
+  `2 * rxsize r * Suc (length s)^2`, bound split probes by
+  `rxsize r * Suc (length s)^3`, and keep memo/split states inside the
+  non-backref fragment when the root is legacy. This is useful BR-040
+  infrastructure, but it does not by itself pay a final cubic theorem bounty
+  because the tree/share-representation reconstruction theorem is still open.
 - Direct k/n derivative-size compare side task:
   `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1` generates
   `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.
