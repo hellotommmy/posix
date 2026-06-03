@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Raw Strong Normal-Form Preservation (2026-06-03)
+
+- Followed the graph evidence and kept emitted-tree `bsimpCubic` retired as a
+  proof target. The active route is now the memo strong tree: `bsimpStrong`
+  supplies the small nullable recognition state, while exact POSIX values come
+  from the original regex span/memo reconstruction.
+- Added checked raw preservation lemmas for the strong simplifier:
+  `row_group_deep_nf_rsimpStrong_prune_pair_raw`,
+  `row_group_deep_nf_rsimpStrong_prune_against_rows_raw`,
+  `row_group_deep_nf_rsimpStrong_prune_rows_raw`,
+  `row_group_deep_nf_rsimpStrong_ALTs_raw`, and
+  `row_group_deep_nf_rsimpStrong_raw` in `GeneralRegexBound.thy`.
+- Lifted this through erasure with
+  `FBound.thy:row_group_deep_nf_rerase_bsimpStrong`. This is the right proof
+  side for `bsimpStrong`, because annotated strong simplification erases to
+  `rsimpStrong_raw`, not to the older non-raw simplifier.
+- This is proof infrastructure only. It does not prove the cubic theorem and
+  claims no BR-039/BR-040 bounty. The next target is a derivative-step
+  invariant of the form
+  `row_group_deep_nf (rerase r) ==> row_group_deep_nf (rerase (bsimpStrong (bder c r)))`,
+  followed by final-active row/member bounds for the memo strong tree.
+
 ## Cubic Route Checkpoint: Final-Active Proof Contract (2026-06-03)
 
 - Added and checked

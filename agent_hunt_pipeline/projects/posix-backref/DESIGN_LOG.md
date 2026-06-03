@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Memo strong tree normal-form route
+
+- The derivative-size graphs make `bsimpCubic` a negative result for the
+  current proof effort. Do not try to rescue it as an emitted-tree theorem
+  target unless a future candidate first beats the thesis Chapter 7 grid and
+  preserves exact POSIX values.
+- Added raw normal-form preservation for the actual erased form of
+  `bsimpStrong`: annotated `bsimpStrong` erases to `rsimpStrong_raw`, so the
+  proof route must preserve `row_group_deep_nf` through the raw shared-prune
+  functions, not through a convenient non-raw wrapper.
+- Checked lemmas now cover raw pair pruning, pruning against seen rows, row
+  pruning, strong raw alternatives, full `rsimpStrong_raw`, and the annotated
+  lift `row_group_deep_nf_rerase_bsimpStrong`.
+- Design consequence: the next theorem should be a derivative-step invariant
+  for `bsimpStrong (bder c r)` and then a final-active row/member-size bound
+  for the memo strong tree. POSIX values remain delegated to the already
+  checked span/memo reconstruction theorem.
+
 ## 2026-06-03: Final-active member-size bound is parameterized
 
 - Added `strong_deferred_original_final_active_budget_contract_with_member_bound`

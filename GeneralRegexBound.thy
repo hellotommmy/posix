@@ -19114,6 +19114,168 @@ next
   then show ?case by simp
 qed
 
+lemma row_group_deep_nf_rsimpStrong_raw_shared_prune_result:
+  assumes rrs: "\<forall>r \<in> set rrs. row_group_deep_nf r"
+    and k: "row_group_deep_nf k"
+  shows "row_group_deep_nf
+    (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+proof -
+  have pruned: "\<forall>r \<in> set (rprune_eq_against lrs rrs). row_group_deep_nf r"
+    by (rule row_group_deep_nf_rprune_eq_against[OF rrs])
+  have alt: "row_group_deep_nf (rsimp_ALTs (rprune_eq_against lrs rrs))"
+    by (rule row_group_deep_nf_rsimp_ALTs[OF pruned])
+  show ?thesis
+    by (rule row_group_deep_nf_rsimp7_SEQ_atom[OF alt k])
+qed
+
+lemma row_group_deep_nf_rsimpStrong_prune_pair_raw:
+  assumes "row_group_deep_nf later"
+  shows "row_group_deep_nf (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have rrs_nf: "\<forall>r \<in> set rrs. row_group_deep_nf r"
+      using assms shared by simp
+    have k_nf: "row_group_deep_nf k"
+      using assms shared by simp
+    show ?thesis
+      using shared
+      by (simp add: rsimpStrong_prune_pair_raw_def
+          row_group_deep_nf_rsimpStrong_raw_shared_prune_result
+            [OF rrs_nf k_nf])
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma row_group_deep_nf_rsimpStrong_prune_against_rows_raw:
+  assumes "row_group_deep_nf r"
+  shows "row_group_deep_nf (rsimpStrong_prune_against_rows_raw seen r)"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have pair: "row_group_deep_nf (rsimpStrong_prune_pair_raw x r)"
+    by (rule row_group_deep_nf_rsimpStrong_prune_pair_raw[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF pair])
+qed
+
+lemma row_group_deep_nf_rsimpStrong_prune_rows_acc_raw:
+  assumes "\<forall>x \<in> set rs. row_group_deep_nf x"
+  shows "\<forall>x \<in> set (rsimpStrong_prune_rows_acc_raw seen rs).
+    row_group_deep_nf x"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have r_nf: "row_group_deep_nf r"
+    using Cons.prems by simp
+  have rs_nf: "\<forall>x \<in> set rs. row_group_deep_nf x"
+    using Cons.prems by simp
+  have r'_nf: "row_group_deep_nf ?r'"
+    by (rule row_group_deep_nf_rsimpStrong_prune_against_rows_raw[OF r_nf])
+  have tail: "\<forall>x \<in> set (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs).
+      row_group_deep_nf x"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using r'_nf tail by (simp add: Let_def)
+qed
+
+lemma row_group_deep_nf_rsimpStrong_prune_rows_raw:
+  assumes "\<forall>x \<in> set rs. row_group_deep_nf x"
+  shows "\<forall>x \<in> set (rsimpStrong_prune_rows_raw rs). row_group_deep_nf x"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule row_group_deep_nf_rsimpStrong_prune_rows_acc_raw[OF assms])
+
+lemma row_group_deep_nf_rsimpStrong_ALTs_raw:
+  assumes "\<forall>x \<in> set rs. row_group_deep_nf x"
+  shows "row_group_deep_nf (rsimpStrong_ALTs_raw rs)"
+proof -
+  have pruned:
+    "\<forall>x \<in> set (rsimpStrong_prune_rows_raw rs). row_group_deep_nf x"
+    by (rule row_group_deep_nf_rsimpStrong_prune_rows_raw[OF assms])
+  show ?thesis
+    unfolding rsimpStrong_ALTs_raw_def
+    by (rule row_group_deep_nf_normalize[OF pruned])
+qed
+
+lemma row_group_deep_nf_rsimpStrong_raw:
+  assumes "row_group_deep_nf r"
+  shows "row_group_deep_nf (rsimpStrong_raw r)"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have left: "row_group_deep_nf (rsimpStrong_raw r1)"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in simp)
+  have right: "row_group_deep_nf (rsimpStrong_raw r2)"
+    by (rule RSEQ.hyps(2)) (use RSEQ.prems in simp)
+  show ?case
+    by (simp add: row_group_deep_nf_rsimp7_SEQ_atom[OF left right])
+next
+  case (RALTS rs)
+  have elems: "\<forall>r \<in> set rs. row_group_deep_nf (rsimpStrong_raw r)"
+  proof
+    fix r
+    assume r: "r \<in> set rs"
+    have "row_group_deep_nf r"
+      using RALTS.prems r by simp
+    then show "row_group_deep_nf (rsimpStrong_raw r)"
+      by (rule RALTS.hyps[OF r])
+  qed
+  have flat: "\<forall>x \<in> set (rflts (map rsimpStrong_raw rs)).
+      row_group_deep_nf x"
+    by (rule row_group_deep_nf_rflts) (use elems in auto)
+  show ?case
+    by (simp add: row_group_deep_nf_rsimpStrong_ALTs_raw[OF flat])
+next
+  case (RSTAR r)
+  have inner: "row_group_deep_nf (rsimpStrong_raw r)"
+    by (rule RSTAR.hyps) (use RSTAR.prems in simp)
+  show ?case
+    using inner by (cases "rsimpStrong_raw r") simp_all
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma row_group_deep_nf_rsimp9:
   "row_group_deep_nf (rsimp9 r)"
 proof (induction r rule: rsimp9.induct)

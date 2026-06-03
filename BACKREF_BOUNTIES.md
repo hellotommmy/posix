@@ -63,6 +63,11 @@ immutability.
 
 ## Open Artifact Notes
 
+- Raw strong normal-form preservation checkpoint: `GeneralRegexBound.thy` now
+  checks `row_group_deep_nf_rsimpStrong_raw` through the raw shared-prune
+  machinery, and `FBound.thy` lifts it as
+  `row_group_deep_nf_rerase_bsimpStrong`. This supports BR-039/BR-040 but is
+  infrastructure only; no payout is claimed.
 - Chapter 7 plotting side task: `agent_hunt_pipeline/scripts/ch7_size_grid.ps1`
   now generates CSV and SVG plots under
   `agent_hunt_pipeline/reports/ch7_size_grid/`, using the Scala smoke model as

@@ -3249,6 +3249,12 @@ next
     by simp
 qed
 
+lemma row_group_deep_nf_rerase_bsimpStrong:
+  assumes "row_group_deep_nf (rerase r)"
+  shows "row_group_deep_nf (rerase (bsimpStrong r))"
+  using assms
+  by (simp add: rerase_bsimpStrong_raw row_group_deep_nf_rsimpStrong_raw)
+
 lemma RL_rerase_bsimpStrong_prune_pair_with_earlier:
   "RL (rerase earlier) \<union>
     RL (rerase (bsimpStrong_prune_pair earlier later)) =
