@@ -73,9 +73,14 @@ immutability.
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
   This lets BR-040 split the final-active row-DAG theorem into row-node,
   alt-node, payload-DAG, and suffix-key-DAG component bounds instead of using
-  the coarse `rows * maxRowDag` bridge. Fresh `strong-memo` Scala smoke passed
-  exact POSIX checks on the default exhaustive grid, known CE grid, and
-  1,000 deterministic random depth-6/input-8 cases. This is proof
+  the coarse `rows * maxRowDag` bridge. The alt-node component is already
+  tightened away by
+  `card_strong_deferred_final_active_suffix_alt_nodes_le_rows`, yielding the
+  checked interface
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`
+  for `2 * rows + payload-DAG + suffix-key-DAG`. Fresh `strong-memo` Scala
+  smoke passed exact POSIX checks on the default exhaustive grid, known CE
+  grid, and 1,000 deterministic random depth-6/input-8 cases. This is proof
   infrastructure only; no bounty is claimed.
 - Direct final-active row-DAG smoke metric: `PosixCubicSmoke.scala` now reports
   the executable analogue of

@@ -24,6 +24,12 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
   Future BR-040 work can now prove bounds for the four components instead of
   falling back to the coarse `rows * maxRowDag` factorization.
+- Tightened the decomposition with checked
+  `card_raw_final_active_suffix_alt_nodes_le_rows` and
+  `card_strong_deferred_final_active_suffix_alt_nodes_le_rows`, plus the
+  direct row-count interface
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`:
+  it is now enough to bound `2 * rows + payload-DAG + suffix-key-DAG`.
 - Focused Isabelle `Posix` build passed after splitting the proof into
   explicit subterm and suffix-key witnesses; no broad slow automation was
   introduced.

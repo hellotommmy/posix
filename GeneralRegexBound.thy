@@ -21860,6 +21860,52 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_raw_final_active_suffix_alt_nodes_le_rows:
+  "card (raw_final_active_suffix_alt_nodes r) \<le>
+    card (raw_final_active_suffix_rows r)"
+proof -
+  let ?Rows = "raw_final_active_suffix_rows r"
+  let ?alt_of =
+    "\<lambda>q. case q of RSEQ (RALTS rows) k \<Rightarrow> RALTS rows | _ \<Rightarrow> q"
+  have sub: "raw_final_active_suffix_alt_nodes r \<subseteq> ?alt_of ` ?Rows"
+  proof
+    fix p
+    assume p: "p \<in> raw_final_active_suffix_alt_nodes r"
+    then obtain rows k where p_def: "p = RALTS rows"
+      and row: "RSEQ (RALTS rows) k \<in> ?Rows"
+      by (auto simp add: raw_final_active_suffix_alt_nodes_def)
+    have "?alt_of (RSEQ (RALTS rows) k) = p"
+      by (simp add: p_def)
+    then show "p \<in> ?alt_of ` ?Rows"
+      using row by blast
+  qed
+  have "card (raw_final_active_suffix_alt_nodes r) \<le> card (?alt_of ` ?Rows)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?Rows"
+    by (rule card_image_le) simp
+  finally show ?thesis .
+qed
+
+lemma card_raw_final_active_suffix_row_dag_universe_decomp_rows_boundI:
+  assumes rows: "card (raw_final_active_suffix_rows r) \<le> R"
+    and payload:
+      "card (raw_final_active_suffix_payload_dag_universe r) \<le> P"
+    and keys: "card (raw_final_active_suffix_key_dag_universe r) \<le> K"
+  shows "card (raw_final_active_suffix_row_dag_universe r) \<le>
+    2 * R + P + K"
+proof -
+  have alts_le_rows: "card (raw_final_active_suffix_alt_nodes r) \<le>
+      card (raw_final_active_suffix_rows r)"
+    by (rule card_raw_final_active_suffix_alt_nodes_le_rows)
+  have alts: "card (raw_final_active_suffix_alt_nodes r) \<le> R"
+    using rows alts_le_rows by linarith
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le>
+      R + R + P + K"
+    by (rule card_raw_final_active_suffix_row_dag_universe_decomp_boundI
+        [OF rows alts payload keys])
+  then show ?thesis by simp
+qed
+
 lemma raw_final_active_suffix_bucket_subset_rsubterms:
   "raw_shared_prune_active_suffix_bucket
       (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"

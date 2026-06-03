@@ -2773,6 +2773,39 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_strong_deferred_final_active_suffix_alt_nodes_le_rows:
+  "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le>
+    card (strong_deferred_final_active_suffix_rows r s)"
+  unfolding strong_deferred_final_active_suffix_alt_nodes_def
+    strong_deferred_final_active_suffix_rows_def
+  by (rule card_raw_final_active_suffix_alt_nodes_le_rows)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> K"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+    \<le> 2 * R + P + K"
+proof -
+  have alts_le_rows:
+      "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le>
+        card (strong_deferred_final_active_suffix_rows r s)"
+    by (rule card_strong_deferred_final_active_suffix_alt_nodes_le_rows)
+  have alts: "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le> R"
+    using rows alts_le_rows by linarith
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      R + R + P + K"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI
+        [OF rows alts payload keys])
+  then show ?thesis by simp
+qed
+
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
   shows "RSEQ (RALTS rows) k \<in>

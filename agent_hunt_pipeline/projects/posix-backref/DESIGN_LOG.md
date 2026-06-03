@@ -17,6 +17,11 @@ to be read before continuing long-running agent work.
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
   This is sharper than the earlier `rows * maxRowDag` bridge and better
   matches the hash-consed/memo interpretation seen in the Scala data.
+- The `alt-nodes` component is now checked to be bounded by the row count.
+  Use the tighter interface
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`
+  when possible: the remaining accounting target is
+  `2 * rows + payload-DAG + suffix-key-DAG`.
 - The proof style matters: the checked bridge uses explicit `rsubterms`
   witnesses and explicit suffix-key membership, not large `auto`/`blast`
   searches. Keep this style for the remaining component bounds.
