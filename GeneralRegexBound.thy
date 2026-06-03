@@ -21689,6 +21689,177 @@ proof
     using rsubterms_trans[OF row] by blast
 qed
 
+definition raw_final_active_suffix_alt_nodes :: "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_alt_nodes r =
+    {RALTS rows | rows k.
+      RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r}"
+
+definition raw_final_active_suffix_payload_dag_universe ::
+  "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_payload_dag_universe r =
+    {p. \<exists>rows k q.
+      RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r \<and>
+      q \<in> set rows \<and> p \<in> rsubterms q}"
+
+definition raw_final_active_suffix_key_dag_universe ::
+  "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_key_dag_universe r =
+    (\<Union>k\<in>raw_final_active_suffix_keys r. rsubterms k)"
+
+lemma raw_final_active_suffix_alt_nodes_subset_rsubterms:
+  "raw_final_active_suffix_alt_nodes r \<subseteq> rsubterms r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_alt_nodes r"
+  then obtain rows k where p_def: "p = RALTS rows"
+    and row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    by (auto simp add: raw_final_active_suffix_alt_nodes_def)
+  have row_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using row raw_final_active_suffix_rows_subset_rsubterms by blast
+  have "p \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by (simp add: p_def)
+  then show "p \<in> rsubterms r"
+    by (rule rsubterms_trans[OF row_sub])
+qed
+
+lemma raw_final_active_suffix_payload_dag_universe_subset_rsubterms:
+  "raw_final_active_suffix_payload_dag_universe r \<subseteq> rsubterms r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_payload_dag_universe r"
+  then obtain rows k q where row:
+      "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and q: "q \<in> set rows"
+    and p_sub: "p \<in> rsubterms q"
+    by (auto simp add: raw_final_active_suffix_payload_dag_universe_def)
+  have row_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using row raw_final_active_suffix_rows_subset_rsubterms by blast
+  have q_alt: "q \<in> rsubterms (RALTS rows)"
+  proof -
+    have "q \<in> (\<Union> (set (map rsubterms rows)))"
+      using q self_rsubterm by force
+    then show ?thesis by simp
+  qed
+  have q_sub: "q \<in> rsubterms (RSEQ (RALTS rows) k)"
+    using q_alt by auto
+  have "q \<in> rsubterms r"
+    by (rule rsubterms_trans[OF row_sub q_sub])
+  then show "p \<in> rsubterms r"
+    by (rule rsubterms_trans[OF _ p_sub])
+qed
+
+lemma raw_final_active_suffix_key_dag_universe_subset_rsubterms:
+  "raw_final_active_suffix_key_dag_universe r \<subseteq> rsubterms r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_key_dag_universe r"
+  then obtain k where k: "k \<in> raw_final_active_suffix_keys r"
+    and p_sub: "p \<in> rsubterms k"
+    by (auto simp add: raw_final_active_suffix_key_dag_universe_def)
+  have "k \<in> rsubterms r"
+    using k raw_final_active_suffix_keys_subset_rsubterms by blast
+  then show "p \<in> rsubterms r"
+    by (rule rsubterms_trans[OF _ p_sub])
+qed
+
+lemma finite_raw_final_active_suffix_alt_nodes [simp]:
+  "finite (raw_final_active_suffix_alt_nodes r)"
+  by (rule finite_subset[OF raw_final_active_suffix_alt_nodes_subset_rsubterms])
+    simp
+
+lemma finite_raw_final_active_suffix_payload_dag_universe [simp]:
+  "finite (raw_final_active_suffix_payload_dag_universe r)"
+  by (rule finite_subset
+      [OF raw_final_active_suffix_payload_dag_universe_subset_rsubterms])
+    simp
+
+lemma finite_raw_final_active_suffix_key_dag_universe [simp]:
+  "finite (raw_final_active_suffix_key_dag_universe r)"
+  by (rule finite_subset
+      [OF raw_final_active_suffix_key_dag_universe_subset_rsubterms])
+    simp
+
+lemma raw_final_active_suffix_row_dag_universe_decomp_subset:
+  "raw_final_active_suffix_row_dag_universe r \<subseteq>
+    raw_final_active_suffix_rows r \<union>
+    raw_final_active_suffix_alt_nodes r \<union>
+    raw_final_active_suffix_payload_dag_universe r \<union>
+    raw_final_active_suffix_key_dag_universe r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_row_dag_universe r"
+  then obtain q rows k where q_def: "q = RSEQ (RALTS rows) k"
+    and row: "q \<in> raw_final_active_suffix_rows r"
+    and p_sub: "p \<in> rsubterms q"
+    by (elim raw_final_active_suffix_row_dag_universeE)
+  have row_sub: "q \<in> rsubterms r"
+    using row raw_final_active_suffix_rows_subset_rsubterms by blast
+  have row_shape_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using q_def row_sub by simp
+  have key: "k \<in> raw_final_active_suffix_keys r"
+    using row_shape_sub raw_final_active_suffix_keys_iff by blast
+  show "p \<in> raw_final_active_suffix_rows r \<union>
+      raw_final_active_suffix_alt_nodes r \<union>
+      raw_final_active_suffix_payload_dag_universe r \<union>
+      raw_final_active_suffix_key_dag_universe r"
+    using row p_sub key q_def
+    by (auto simp add: raw_final_active_suffix_alt_nodes_def
+        raw_final_active_suffix_payload_dag_universe_def
+        raw_final_active_suffix_key_dag_universe_def)
+qed
+
+lemma card_raw_final_active_suffix_row_dag_universe_decomp:
+  "card (raw_final_active_suffix_row_dag_universe r) \<le>
+    card (raw_final_active_suffix_rows r) +
+    card (raw_final_active_suffix_alt_nodes r) +
+    card (raw_final_active_suffix_payload_dag_universe r) +
+    card (raw_final_active_suffix_key_dag_universe r)"
+proof -
+  let ?Rows = "raw_final_active_suffix_rows r"
+  let ?Alts = "raw_final_active_suffix_alt_nodes r"
+  let ?Payload = "raw_final_active_suffix_payload_dag_universe r"
+  let ?Keys = "raw_final_active_suffix_key_dag_universe r"
+  let ?Parts = "?Rows \<union> ?Alts \<union> ?Payload \<union> ?Keys"
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le> card ?Parts"
+    by (rule card_mono)
+      (simp_all add: raw_final_active_suffix_row_dag_universe_decomp_subset)
+  also have "card ?Parts \<le>
+      card ?Rows + card ?Alts + card ?Payload + card ?Keys"
+  proof -
+    have a: "card ?Parts \<le> card (?Rows \<union> ?Alts \<union> ?Payload) +
+        card ?Keys"
+      by (rule card_Un_le)
+    have b: "card (?Rows \<union> ?Alts \<union> ?Payload) \<le>
+        card (?Rows \<union> ?Alts) + card ?Payload"
+      by (rule card_Un_le)
+    have c: "card (?Rows \<union> ?Alts) \<le> card ?Rows + card ?Alts"
+      by (rule card_Un_le)
+    show ?thesis
+      using a b c by linarith
+  qed
+  finally show ?thesis .
+qed
+
+lemma card_raw_final_active_suffix_row_dag_universe_decomp_boundI:
+  assumes rows: "card (raw_final_active_suffix_rows r) \<le> R"
+    and alts: "card (raw_final_active_suffix_alt_nodes r) \<le> A"
+    and payload:
+      "card (raw_final_active_suffix_payload_dag_universe r) \<le> P"
+    and keys: "card (raw_final_active_suffix_key_dag_universe r) \<le> K"
+  shows "card (raw_final_active_suffix_row_dag_universe r) \<le>
+    R + A + P + K"
+proof -
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le>
+      card (raw_final_active_suffix_rows r) +
+      card (raw_final_active_suffix_alt_nodes r) +
+      card (raw_final_active_suffix_payload_dag_universe r) +
+      card (raw_final_active_suffix_key_dag_universe r)"
+    by (rule card_raw_final_active_suffix_row_dag_universe_decomp)
+  also have "... \<le> R + A + P + K"
+    using rows alts payload keys by linarith
+  finally show ?thesis .
+qed
+
 lemma raw_final_active_suffix_bucket_subset_rsubterms:
   "raw_shared_prune_active_suffix_bucket
       (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"

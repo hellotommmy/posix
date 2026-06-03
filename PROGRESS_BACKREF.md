@@ -2,6 +2,40 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Row-DAG Decomposition Bridge (2026-06-04)
+
+- Accepted the graph evidence that direct `bsimpCubic` tree-size control is
+  hopeless as the main theorem route. The active route is memo strong tree:
+  use `bsimpStrong` as the nullable recognition tree, reconstruct exact POSIX
+  values from the original regex through the span/memo table, and prove the
+  size theorem over final-active shared rows.
+- Added checked raw row-DAG decomposition infrastructure in
+  `GeneralRegexBound.thy`:
+  `raw_final_active_suffix_alt_nodes`,
+  `raw_final_active_suffix_payload_dag_universe`,
+  `raw_final_active_suffix_key_dag_universe`,
+  their `rsubterms`/finite facts, and
+  `card_raw_final_active_suffix_row_dag_universe_decomp_boundI`.
+  This decomposes a final-active `RSEQ (RALTS rows) k` row-DAG into four
+  separately countable components: row nodes, the `RALTS` payload nodes,
+  payload-member DAG subterms, and suffix-key DAG subterms.
+- Lifted the same bridge to `FBound.thy` as
+  `strong_deferred_final_active_suffix_*` definitions and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
+  Future BR-040 work can now prove bounds for the four components instead of
+  falling back to the coarse `rows * maxRowDag` factorization.
+- Focused Isabelle `Posix` build passed after splitting the proof into
+  explicit subterm and suffix-key witnesses; no broad slow automation was
+  introduced.
+- Re-ran `strong-memo` Scala smoke with exact POSIX value checking on the
+  default exhaustive grid (`84,300` regex/input pairs), the known CE grid, and
+  `1,000` deterministic random depth-6/input-8 cases with seed `20260602`.
+  The factor-`3` final-active row-DAG universe gate still passed; the strongest
+  random observation in this run was seed `20260602` case `995`, with
+  `rsize=28`, `rowDagUniverse=57`, ratio `2.035714`.
+- No BR-039/BR-040 bounty is claimed. This is a proof-bridge checkpoint toward
+  the memo-strong POSIX/cubic interface, not the final theorem.
+
 ## Cubic Route Smoke: Direct Final-Active Row-DAG Metric (2026-06-04)
 
 - Retired `bsimpCubic` as a theorem candidate after the graphs: its emitted

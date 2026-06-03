@@ -63,6 +63,20 @@ immutability.
 
 ## Open Artifact Notes
 
+- Row-DAG decomposition bridge: `GeneralRegexBound.thy` now checks raw
+  `raw_final_active_suffix_alt_nodes`,
+  `raw_final_active_suffix_payload_dag_universe`,
+  `raw_final_active_suffix_key_dag_universe`, and
+  `card_raw_final_active_suffix_row_dag_universe_decomp_boundI`.
+  `FBound.thy` lifts the bridge to
+  `strong_deferred_final_active_suffix_*` and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
+  This lets BR-040 split the final-active row-DAG theorem into row-node,
+  alt-node, payload-DAG, and suffix-key-DAG component bounds instead of using
+  the coarse `rows * maxRowDag` bridge. Fresh `strong-memo` Scala smoke passed
+  exact POSIX checks on the default exhaustive grid, known CE grid, and
+  1,000 deterministic random depth-6/input-8 cases. This is proof
+  infrastructure only; no bounty is claimed.
 - Direct final-active row-DAG smoke metric: `PosixCubicSmoke.scala` now reports
   the executable analogue of
   `strong_deferred_final_active_suffix_row_dag_universe`, and

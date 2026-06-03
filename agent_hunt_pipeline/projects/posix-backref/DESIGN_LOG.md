@@ -3,6 +3,30 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Memo-strong proof route uses row-DAG decomposition
+
+- Treat emitted-tree `bsimpCubic` as negative evidence and stop optimizing it
+  as a theorem candidate. The promising route is memo strong tree: preserve
+  exact POSIX values by reconstructing from the original regex and bound a
+  shared final-active row universe.
+- The new proof-facing decomposition is:
+  `final row-DAG <= rows + alt-nodes + payload-DAG + suffix-key-DAG`.
+  At the raw level this is checked by
+  `card_raw_final_active_suffix_row_dag_universe_decomp_boundI`; at the lifted
+  memo-strong level by
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI`.
+  This is sharper than the earlier `rows * maxRowDag` bridge and better
+  matches the hash-consed/memo interpretation seen in the Scala data.
+- The proof style matters: the checked bridge uses explicit `rsubterms`
+  witnesses and explicit suffix-key membership, not large `auto`/`blast`
+  searches. Keep this style for the remaining component bounds.
+- The latest smoke after the bridge still preserves exact POSIX values on the
+  default exhaustive grid, known CE grid, and `1,000` deterministic random
+  depth-6/input-8 cases. The worst random final-active row-DAG universe ratio
+  in that run was `57 / 28 = 2.035714`, so the factor-`3` gate remains the
+  current executable guard while the theorem statement stays parameterized by
+  a small constant.
+
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
 - The active executable metric is now wired directly into the Scala smoke

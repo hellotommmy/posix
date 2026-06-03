@@ -2582,6 +2582,23 @@ definition strong_deferred_final_active_suffix_row_dag_universe ::
   "strong_deferred_final_active_suffix_row_dag_universe r s =
     raw_final_active_suffix_row_dag_universe (strong_deferred_final_raw r s)"
 
+definition strong_deferred_final_active_suffix_alt_nodes ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_alt_nodes r s =
+    raw_final_active_suffix_alt_nodes (strong_deferred_final_raw r s)"
+
+definition strong_deferred_final_active_suffix_payload_dag_universe ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_payload_dag_universe r s =
+    raw_final_active_suffix_payload_dag_universe
+      (strong_deferred_final_raw r s)"
+
+definition strong_deferred_final_active_suffix_key_dag_universe ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_key_dag_universe r s =
+    raw_final_active_suffix_key_dag_universe
+      (strong_deferred_final_raw r s)"
+
 definition strong_deferred_final_active_suffix_max_row_dag ::
   "rexp \<Rightarrow> string \<Rightarrow> nat" where
   "strong_deferred_final_active_suffix_max_row_dag r s =
@@ -2602,6 +2619,19 @@ lemma finite_strong_deferred_final_active_suffix_closure [simp]:
 lemma finite_strong_deferred_final_active_suffix_row_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_row_dag_universe r s)"
   by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
+
+lemma finite_strong_deferred_final_active_suffix_alt_nodes [simp]:
+  "finite (strong_deferred_final_active_suffix_alt_nodes r s)"
+  by (simp add: strong_deferred_final_active_suffix_alt_nodes_def)
+
+lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
+  "finite (strong_deferred_final_active_suffix_payload_dag_universe r s)"
+  by (simp add:
+      strong_deferred_final_active_suffix_payload_dag_universe_def)
+
+lemma finite_strong_deferred_final_active_suffix_key_dag_universe [simp]:
+  "finite (strong_deferred_final_active_suffix_key_dag_universe r s)"
+  by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def)
 
 lemma strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
   "strong_deferred_final_active_suffix_row_dag_universe r s =
@@ -2691,6 +2721,57 @@ lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_ma
       strong_deferred_final_active_suffix_rows_def
       strong_deferred_final_active_suffix_max_row_dag_def
       card_raw_final_active_suffix_row_dag_universe_le_rows_times_max)
+
+lemma strong_deferred_final_active_suffix_row_dag_universe_decomp_subset:
+  "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+    strong_deferred_final_active_suffix_rows r s \<union>
+    strong_deferred_final_active_suffix_alt_nodes r s \<union>
+    strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+    strong_deferred_final_active_suffix_key_dag_universe r s"
+  unfolding strong_deferred_final_active_suffix_row_dag_universe_def
+    strong_deferred_final_active_suffix_rows_def
+    strong_deferred_final_active_suffix_alt_nodes_def
+    strong_deferred_final_active_suffix_payload_dag_universe_def
+    strong_deferred_final_active_suffix_key_dag_universe_def
+  by (rule raw_final_active_suffix_row_dag_universe_decomp_subset)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    card (strong_deferred_final_active_suffix_rows r s) +
+    card (strong_deferred_final_active_suffix_alt_nodes r s) +
+    card (strong_deferred_final_active_suffix_payload_dag_universe r s) +
+    card (strong_deferred_final_active_suffix_key_dag_universe r s)"
+  unfolding strong_deferred_final_active_suffix_row_dag_universe_def
+    strong_deferred_final_active_suffix_rows_def
+    strong_deferred_final_active_suffix_alt_nodes_def
+    strong_deferred_final_active_suffix_payload_dag_universe_def
+    strong_deferred_final_active_suffix_key_dag_universe_def
+  by (rule card_raw_final_active_suffix_row_dag_universe_decomp)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and alts:
+      "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le> A"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> K"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+    \<le> R + A + P + K"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      card (strong_deferred_final_active_suffix_rows r s) +
+      card (strong_deferred_final_active_suffix_alt_nodes r s) +
+      card (strong_deferred_final_active_suffix_payload_dag_universe r s) +
+      card (strong_deferred_final_active_suffix_key_dag_universe r s)"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_universe_decomp)
+  also have "... \<le> R + A + P + K"
+    using rows alts payload keys by linarith
+  finally show ?thesis .
+qed
 
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
