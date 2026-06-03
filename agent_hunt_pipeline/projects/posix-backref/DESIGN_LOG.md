@@ -23,11 +23,31 @@ to be read before continuing long-running agent work.
   for exact `arexp` syntax. The current direct `no-reassoc` and
   `expanded-keyed-no-reassoc` modes pass exhaustive depth `2`/input `3` plus
   random `1,000` cases at depth `5`/input `6` under this stricter check.
+- Added an optional shared `statePool` cubic budget/frontier gate. Use
+  `-SharedStatePoolCubicFactor` or
+  `-ScalaSmokeSharedStatePoolCubicFactor` to make the smoke fail when
+  `statePool > factor * rsize(r)^3` for regexes above the configured size
+  floor; use the matching `Top` option to report the highest-ratio witnesses.
+  With direct `expanded-keyed-no-reassoc`, factor `1.0` passes the current
+  exhaustive/random smoke and the Chapter 7 `k=5` grid, whose worst logged
+  trace point is `statePool=1042`, `rsize=46`, ratio `0.010705`.
+- Added a long-tail plateau check with selectable metric. The most relevant
+  metric for the current Isabelle proof side is `shapeStatePool`, because
+  `rsimpStrong_raw` and `rpder_strong_rows_raw` operate on erased `rrexp`
+  terms rather than exact annotated nodes. Results are mixed and important:
+  Chapter 7 `k=5` first stops strictly increasing at `n=124`
+  (`shapeStatePool 523 -> 523`), while Chapter 7 `k=8` remains strictly
+  increasing through `n=500` (`shapeStatePool=3257`, exact
+  `statePool=139153`). This is negative evidence for any claim that the
+  current direct-DAG/reference simplifier already provides a constant
+  root-owned proof universe.
 - Design consequence: the next proof-facing universe should bound prefix
   reachable rows/nodes, not the whole allocation pool. If an eventual
   executable algorithm exposes the raw pool, it will need garbage-free
   construction, garbage collection, or a separate dead-temporary accounting
-  argument.
+  argument. Because `k=8` still grows in the erased/shape prefix pool, future
+  work must add a stronger quotient/pruning/indexed-row universe rather than
+  merely hash-consing the current syntax.
 
 ## 2026-06-03: sizeNregex closes raw shared pruning
 

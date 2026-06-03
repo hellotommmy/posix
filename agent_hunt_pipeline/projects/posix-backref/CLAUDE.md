@@ -121,6 +121,25 @@ accounting. Use `-SharedDirectCompareTree` when validating direct-DAG changes:
 it checks every prefix derivative root for exact syntactic equality against
 the existing tree-step reference algorithm, so direct-DAG remains a
 hash-consed execution form rather than an untracked new simplifier.
+When steering the shared route, also enable the `statePool` cubic frontier:
+`scala_cubic_smoke.ps1 -SharedStatePoolCubicFactor 1.0
+-SharedStatePoolCubicTop 4`, or the corresponding
+`isabelle_ci.ps1 -ScalaSmokeSharedStatePoolCubicFactor 1.0
+-ScalaSmokeSharedStatePoolCubicTop 4`. This is not a theorem, but it is the
+current regression gate for the proof-facing prefix-reachable universe idea.
+Do not claim a cubic candidate is improving unless the top-ratio witnesses are
+stable or better under this gate.
+For constant-state claims, short Chapter 7 traces are not enough. Run a
+long-tail plateau check, normally with
+`-SharedPlateauMaxLength <N> -SharedPlateauStep 4 -SharedPlateauMetric
+shapeStatePool`, and keep increasing `<N>` until the chosen metric first
+fails to strictly increase or the run gives explicit negative evidence. The
+proof-side raw route is erased `rrexp`, so `shapeStatePool` is the closest
+smoke metric; exact `statePool` also distinguishes bit annotations and may
+continue growing after the erased/shape universe stabilizes. Current evidence:
+`k=5` first stops increasing at `n=124`, but `k=8` remains strictly increasing
+through `n=500`, so the current direct-DAG route is not a completed constant
+universe argument.
 
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a

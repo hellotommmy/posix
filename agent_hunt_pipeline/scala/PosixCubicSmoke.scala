@@ -960,7 +960,17 @@ object PosixCubicSmoke {
       dagSize: Int,
       shapeDagSize: Int,
       statePoolSize: Int,
+      shapeStatePoolSize: Int,
       poolSize: Int
+  )
+
+  final case class SharedStatePoolObservation(
+      label: String,
+      regex: Rexp,
+      input: String,
+      regexSize: Int,
+      statePoolSize: Int,
+      ratio: Double
   )
 
   def sharedModeResult(
@@ -1000,13 +1010,16 @@ object PosixCubicSmoke {
     }
     val finalRegex = store.toARexp(root)
     val value = if (bnullable(finalRegex)) decodeBits(r, bmkeps(finalRegex)) else None
-    val statePool = prefixRoots.flatMap(store.reachableIds).toSet.size
+    val prefixIds = prefixRoots.flatMap(store.reachableIds)
+    val statePool = prefixIds.toSet.size
+    val shapeStatePool = prefixIds.map(store.shapeKey).toSet.size
     SharedResult(
       value,
       asize(finalRegex),
       store.reachableIds(root).size,
       store.reachableShapeSize(root),
       statePool,
+      shapeStatePool,
       store.totalSize
     )
   }
@@ -1481,6 +1494,140 @@ object PosixCubicSmoke {
         strongCubicFrontierListSummary("distinct-regex strong cubic ratios", distinctRegexTop, minRegexSize)
       s"$topSummary; $distinctSummary"
     }
+
+  def sharedStatePoolCubicBound(r: Rexp, factor: Double): Long =
+    if (factor > 0.0) {
+      val n = rsize(r).toDouble
+      math.ceil(factor * n * n * n).toLong
+    } else {
+      0L
+    }
+
+  def sharedStatePoolObservation(
+      r: Rexp,
+      input: String,
+      result: SharedResult,
+      label: String
+  ): SharedStatePoolObservation = {
+    val n = rsize(r)
+    val denom = math.max(1.0, n.toDouble * n.toDouble * n.toDouble)
+    SharedStatePoolObservation(label, r, input, n, result.statePoolSize, result.statePoolSize.toDouble / denom)
+  }
+
+  def sharedStatePoolObservationBetter(
+      a: SharedStatePoolObservation,
+      b: SharedStatePoolObservation
+  ): Boolean =
+    a.ratio > b.ratio ||
+      (a.ratio == b.ratio && (a.statePoolSize > b.statePoolSize ||
+        (a.statePoolSize == b.statePoolSize && (a.regexSize > b.regexSize ||
+          (a.regexSize == b.regexSize && (a.input < b.input ||
+            (a.input == b.input && a.regex.toString < b.regex.toString)))))))
+
+  def sharedStatePoolTop(
+      current: Vector[SharedStatePoolObservation],
+      next: SharedStatePoolObservation,
+      minRegexSize: Int,
+      limit: Int
+  ): Vector[SharedStatePoolObservation] =
+    if (limit <= 0 || next.regexSize < minRegexSize) current
+    else {
+      (current :+ next)
+        .sortBy(o => (-o.ratio, -o.statePoolSize, -o.regexSize, o.input, o.regex.toString))
+        .take(limit)
+    }
+
+  def sharedStatePoolTopDistinctRegex(
+      current: Vector[SharedStatePoolObservation],
+      next: SharedStatePoolObservation,
+      minRegexSize: Int,
+      limit: Int
+  ): Vector[SharedStatePoolObservation] =
+    if (limit <= 0 || next.regexSize < minRegexSize) current
+    else {
+      current.find(_.regex == next.regex) match {
+        case Some(old) if !sharedStatePoolObservationBetter(next, old) => current
+        case _ =>
+          (current.filterNot(_.regex == next.regex) :+ next)
+            .sortBy(o => (-o.ratio, -o.statePoolSize, -o.regexSize, o.input, o.regex.toString))
+            .take(limit)
+      }
+    }
+
+  def sharedStatePoolWorstSummary(
+      worst: Option[SharedStatePoolObservation],
+      minRegexSize: Int
+  ): String =
+    worst match {
+      case None => s"no shared statePool observations with rsize >= $minRegexSize"
+      case Some(w) =>
+        f"worst shared statePool cubic ratio=${w.ratio}%.6f label=${w.label} statePool=${w.statePoolSize} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
+    }
+
+  def sharedStatePoolFrontierListSummary(
+      prefix: String,
+      top: Vector[SharedStatePoolObservation],
+      minRegexSize: Int
+  ): String =
+    if (top.isEmpty) s"no shared statePool observations with rsize >= $minRegexSize"
+    else {
+      top.zipWithIndex.map { case (w, i) =>
+        f"#${i + 1}:ratio=${w.ratio}%.6f label=${w.label} statePool=${w.statePoolSize} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
+      }.mkString(s"$prefix: ", "; ", "")
+    }
+
+  def sharedStatePoolFrontierSummary(
+      top: Vector[SharedStatePoolObservation],
+      minRegexSize: Int
+  ): String =
+    if (top.isEmpty) s"no shared statePool observations with rsize >= $minRegexSize"
+    else if (top.length == 1) sharedStatePoolWorstSummary(top.headOption, minRegexSize)
+    else sharedStatePoolFrontierListSummary("top shared statePool cubic ratios", top, minRegexSize)
+
+  def sharedStatePoolFrontiersSummary(
+      top: Vector[SharedStatePoolObservation],
+      distinctRegexTop: Vector[SharedStatePoolObservation],
+      minRegexSize: Int
+  ): String =
+    if (top.length <= 1) sharedStatePoolFrontierSummary(top, minRegexSize)
+    else {
+      val topSummary = sharedStatePoolFrontierListSummary("top shared statePool cubic ratios", top, minRegexSize)
+      val distinctSummary =
+        sharedStatePoolFrontierListSummary("distinct-regex shared statePool cubic ratios", distinctRegexTop, minRegexSize)
+      s"$topSummary; $distinctSummary"
+    }
+
+  def checkSharedStatePoolCubicBudget(
+      r: Rexp,
+      input: String,
+      result: SharedResult,
+      label: String,
+      seqMode: String,
+      minRegexSize: Int,
+      factor: Double
+  ): Unit = {
+    val budget = sharedStatePoolCubicBound(r, factor)
+    if (budget > 0L && rsize(r) >= minRegexSize && result.statePoolSize.toLong > budget) {
+      throw new AssertionError(
+        s"""shared statePool cubic budget failed
+           |label     = $label
+           |seqMode   = $seqMode
+           |regex     = $r
+           |input     = $input
+           |rsize     = ${rsize(r)}
+           |minRsize  = $minRegexSize
+           |factor    = $factor
+           |budget    = $budget
+           |tree      = ${result.treeSize}
+           |dag       = ${result.dagSize}
+           |shapeDag  = ${result.shapeDagSize}
+           |statePool = ${result.statePoolSize}
+           |shapePool = ${result.shapeStatePoolSize}
+           |pool      = ${result.poolSize}
+           |""".stripMargin
+      )
+    }
+  }
 
   def checkStrongCubicTreeBudget(
       r: Rexp,
@@ -2510,17 +2657,26 @@ object PosixCubicSmoke {
       maxInput: Int,
       maxRegexes: Int,
       directDag: Boolean = false,
-      compareTree: Boolean = false
+      compareTree: Boolean = false,
+      statePoolCubicFactor: Double = 0.0,
+      statePoolMinRegexSize: Int = 5,
+      statePoolTopLimit: Int = 1
   ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
     val label = if (directDag) "direct-shared" else "shared"
+    var frontier = Vector.empty[SharedStatePoolObservation]
+    var distinctFrontier = Vector.empty[SharedStatePoolObservation]
     regexes.foreach { r =>
       inputs.foreach { s =>
         val b = baselineValue(r, s)
         val shared = sharedModeResult(seqMode, r, s, directDag, compareTree)
         checked += 1
+        val obs = sharedStatePoolObservation(r, s, shared, s"$label $seqMode exhaustive case $checked")
+        frontier = sharedStatePoolTop(frontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+        distinctFrontier = sharedStatePoolTopDistinctRegex(distinctFrontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+        checkSharedStatePoolCubicBudget(r, s, shared, obs.label, seqMode, statePoolMinRegexSize, statePoolCubicFactor)
         if (b != shared.value) {
           throw new AssertionError(
             s"""$label $seqMode POSIX value mismatch
@@ -2528,13 +2684,13 @@ object PosixCubicSmoke {
                |input   = $s
                |base    = $b
                |shared  = ${shared.value}
-               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, pool=${shared.poolSize}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, pool=${shared.poolSize}
                |""".stripMargin
           )
         }
       }
     }
-    println(s"checked $label $seqMode POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput)")
+    println(s"checked $label $seqMode POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, sharedStatePoolCubicFactor=$statePoolCubicFactor, sharedStatePoolMinRegexSize=$statePoolMinRegexSize, sharedStatePoolTop=$statePoolTopLimit); ${sharedStatePoolFrontiersSummary(frontier, distinctFrontier, statePoolMinRegexSize)}")
   }
 
   def checkSharedRandomValuePreservation(
@@ -2544,17 +2700,26 @@ object PosixCubicSmoke {
       maxInput: Int,
       seed: Long,
       directDag: Boolean = false,
-      compareTree: Boolean = false
+      compareTree: Boolean = false,
+      statePoolCubicFactor: Double = 0.0,
+      statePoolMinRegexSize: Int = 5,
+      statePoolTopLimit: Int = 1
   ): Unit = {
     val rng = new Random(seed)
     var checked = 0
     val label = if (directDag) "direct-shared" else "shared"
+    var frontier = Vector.empty[SharedStatePoolObservation]
+    var distinctFrontier = Vector.empty[SharedStatePoolObservation]
     (0 until cases).foreach { _ =>
       val r = randomRegex(rng, maxDepth)
       val s = randomInput(rng, maxInput)
       val b = baselineValue(r, s)
       val shared = sharedModeResult(seqMode, r, s, directDag, compareTree)
       checked += 1
+      val obs = sharedStatePoolObservation(r, s, shared, s"$label $seqMode random seed=$seed case=$checked")
+      frontier = sharedStatePoolTop(frontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+      distinctFrontier = sharedStatePoolTopDistinctRegex(distinctFrontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+      checkSharedStatePoolCubicBudget(r, s, shared, obs.label, seqMode, statePoolMinRegexSize, statePoolCubicFactor)
       if (b != shared.value) {
         throw new AssertionError(
           s"""$label $seqMode random POSIX value mismatch
@@ -2564,12 +2729,12 @@ object PosixCubicSmoke {
              |input   = $s
              |base    = $b
              |shared  = ${shared.value}
-             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, pool=${shared.poolSize}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, pool=${shared.poolSize}
              |""".stripMargin
         )
       }
     }
-    println(s"checked $label $seqMode random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
+    println(s"checked $label $seqMode random POSIX values on $checked cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, sharedStatePoolCubicFactor=$statePoolCubicFactor, sharedStatePoolMinRegexSize=$statePoolMinRegexSize, sharedStatePoolTop=$statePoolTopLimit); ${sharedStatePoolFrontiersSummary(frontier, distinctFrontier, statePoolMinRegexSize)}")
   }
 
   def checkSharedEvilFamilyTrace(
@@ -2579,7 +2744,10 @@ object PosixCubicSmoke {
       dagThreshold: Int,
       shapeThreshold: Int,
       directDag: Boolean = false,
-      compareTree: Boolean = false
+      compareTree: Boolean = false,
+      statePoolCubicFactor: Double = 0.0,
+      statePoolMinRegexSize: Int = 5,
+      statePoolTopLimit: Int = 1
   ): Unit = {
     val r = thesisCh7Evil(k)
     val label = if (directDag) "direct-shared" else "shared"
@@ -2589,7 +2757,7 @@ object PosixCubicSmoke {
     }
     println(s"Chapter 7 k=$k $label $seqMode trace: " +
       trace.map { case (n, out) =>
-        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/pool=${out.poolSize}"
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/pool=${out.poolSize}"
       }.mkString(", "))
     trace.foreach { case (n, out) =>
       if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
@@ -2598,6 +2766,143 @@ object PosixCubicSmoke {
       if (shapeThreshold > 0 && out.shapeDagSize >= shapeThreshold) {
         throw new AssertionError(s"$label $seqMode shape-DAG threshold failed at n=$n: shape=${out.shapeDagSize} threshold=$shapeThreshold")
       }
+      val input = "a" * n
+      val obs = sharedStatePoolObservation(r, input, out, s"Chapter 7 k=$k n=$n")
+      checkSharedStatePoolCubicBudget(r, input, out, obs.label, seqMode, statePoolMinRegexSize, statePoolCubicFactor)
+    }
+    val frontier = trace.foldLeft(Vector.empty[SharedStatePoolObservation]) { case (acc, (n, out)) =>
+      sharedStatePoolTop(acc, sharedStatePoolObservation(r, "a" * n, out, s"Chapter 7 k=$k n=$n"), statePoolMinRegexSize, statePoolTopLimit)
+    }
+    val distinctFrontier = trace.foldLeft(Vector.empty[SharedStatePoolObservation]) { case (acc, (n, out)) =>
+      sharedStatePoolTopDistinctRegex(acc, sharedStatePoolObservation(r, "a" * n, out, s"Chapter 7 k=$k n=$n"), statePoolMinRegexSize, statePoolTopLimit)
+    }
+    println(s"Chapter 7 k=$k $label $seqMode shared statePool cubic frontier (factor=$statePoolCubicFactor, minRegexSize=$statePoolMinRegexSize, top=$statePoolTopLimit): ${sharedStatePoolFrontiersSummary(frontier, distinctFrontier, statePoolMinRegexSize)}")
+  }
+
+  def sharedResultMetric(metric: String, out: SharedResult): Int =
+    metric match {
+      case "tree" => out.treeSize
+      case "dag" => out.dagSize
+      case "shape" | "shapeDag" => out.shapeDagSize
+      case "statePool" => out.statePoolSize
+      case "shapeStatePool" | "shapePool" => out.shapeStatePoolSize
+      case "pool" => out.poolSize
+      case other =>
+        throw new IllegalArgumentException(
+          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, or pool"
+        )
+    }
+
+  def checkSharedEvilFamilyPlateau(
+      seqMode: String,
+      k: Int,
+      maxLength: Int,
+      step: Int,
+      metric: String,
+      requirePlateau: Boolean,
+      directDag: Boolean = false,
+      compareTree: Boolean = false,
+      statePoolCubicFactor: Double = 0.0,
+      statePoolMinRegexSize: Int = 5,
+      statePoolTopLimit: Int = 1
+  ): Unit = {
+    if (maxLength <= 0) return
+    if (step <= 0) {
+      throw new IllegalArgumentException(s"shared plateau step must be positive, got $step")
+    }
+    val r = thesisCh7Evil(k)
+    val label = if (directDag) "direct-shared" else "shared"
+    val store = new DagStore
+    var root = store.fromARexp(intern(r))
+    var treeRegex = intern(r)
+    var statePoolIds = store.reachableIds(root)
+    var shapeStatePoolKeys = statePoolIds.map(store.shapeKey)
+
+    def snapshot(length: Int): SharedResult = {
+      val finalRegex = store.toARexp(root)
+      SharedResult(
+        None,
+        asize(finalRegex),
+        store.reachableIds(root).size,
+        store.reachableShapeSize(root),
+        statePoolIds.size,
+        shapeStatePoolKeys.size,
+        store.totalSize
+      )
+    }
+
+    val points = scala.collection.mutable.ArrayBuffer.empty[(Int, SharedResult, Int)]
+    var frontier = Vector.empty[SharedStatePoolObservation]
+    var distinctFrontier = Vector.empty[SharedStatePoolObservation]
+    var previous = Option.empty[(Int, Int)]
+    var nonIncrease = Option.empty[(Int, Int, Int)]
+    var currentLength = 0
+    while (currentLength <= maxLength && nonIncrease.isEmpty) {
+      val input = "a" * currentLength
+      val out = snapshot(currentLength)
+      val value = sharedResultMetric(metric, out)
+      points += ((currentLength, out, value))
+      val obs = sharedStatePoolObservation(r, input, out, s"Chapter 7 plateau k=$k n=$currentLength")
+      frontier = sharedStatePoolTop(frontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+      distinctFrontier = sharedStatePoolTopDistinctRegex(distinctFrontier, obs, statePoolMinRegexSize, statePoolTopLimit)
+      checkSharedStatePoolCubicBudget(r, input, out, obs.label, seqMode, statePoolMinRegexSize, statePoolCubicFactor)
+      previous.foreach { case (prevN, prevValue) =>
+        if (value <= prevValue) {
+          nonIncrease = Some((currentLength, prevValue, value))
+        }
+      }
+      previous = Some((currentLength, value))
+      if (currentLength >= maxLength) {
+        currentLength = maxLength + 1
+      } else {
+        var advanced = 0
+        while (advanced < step && currentLength < maxLength && nonIncrease.isEmpty) {
+          root =
+            if (directDag) store.stepDirectWithMode(seqMode, 'a', root)
+            else store.stepWithMode(seqMode, 'a', root)
+          if (directDag && compareTree) {
+            treeRegex = bsimpCubicWithMode(seqMode, bder('a', treeRegex))
+            val directRegex = store.toARexp(root)
+            if (directRegex != treeRegex) {
+              throw new AssertionError(
+                s"""direct-DAG/tree-step mismatch in long-tail plateau
+                   |seqMode = $seqMode
+                   |regex   = $r
+                   |prefix  = ${currentLength + 1}
+                   |direct  = $directRegex
+                   |tree    = $treeRegex
+                   |""".stripMargin
+              )
+            }
+          }
+          val ids = store.reachableIds(root)
+          statePoolIds = statePoolIds ++ ids
+          shapeStatePoolKeys = shapeStatePoolKeys ++ ids.map(store.shapeKey)
+          currentLength += 1
+          advanced += 1
+        }
+      }
+    }
+    val renderedPoints = points.map { case (len, out, value) =>
+      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/pool=${out.poolSize}"
+    }.toVector
+    val compact =
+      if (renderedPoints.length <= 24) renderedPoints.mkString(", ")
+      else ((renderedPoints.take(12) :+ "...") ++ renderedPoints.takeRight(8)).mkString(", ")
+    println(s"Chapter 7 k=$k $label $seqMode long-tail metric=$metric step=$step max=$maxLength: $compact")
+    println(s"Chapter 7 k=$k $label $seqMode long-tail statePool frontier (factor=$statePoolCubicFactor, minRegexSize=$statePoolMinRegexSize, top=$statePoolTopLimit): ${sharedStatePoolFrontiersSummary(frontier, distinctFrontier, statePoolMinRegexSize)}")
+    nonIncrease match {
+      case Some((len, prevValue, value)) =>
+        println(s"Chapter 7 k=$k $label $seqMode long-tail metric=$metric first non-increase at n=$len: previous=$prevValue current=$value")
+      case None =>
+        val last = points.lastOption.map { case (len, _, value) => s"n=$len value=$value" }.getOrElse("no points")
+        val msg =
+          s"Chapter 7 k=$k $label $seqMode long-tail metric=$metric remained strictly increasing through $last (step=$step, max=$maxLength)"
+        if (requirePlateau) {
+          throw new AssertionError(msg)
+        } else {
+          println(msg)
+        }
     }
   }
 
@@ -3580,6 +3885,13 @@ object PosixCubicSmoke {
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
+    val sharedStatePoolCubicFactor = doubleSetting("posix.smoke.sharedStatePoolCubicFactor", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_FACTOR", 0.0)
+    val sharedStatePoolMinRegexSize = intSetting("posix.smoke.sharedStatePoolCubicMinRegexSize", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_MIN_REGEX_SIZE", 5)
+    val sharedStatePoolTop = intSetting("posix.smoke.sharedStatePoolCubicTop", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_TOP", 1)
+    val sharedPlateauMaxLength = intSetting("posix.smoke.sharedPlateauMaxLength", "POSIX_SMOKE_SHARED_PLATEAU_MAX_LENGTH", 0)
+    val sharedPlateauStep = intSetting("posix.smoke.sharedPlateauStep", "POSIX_SMOKE_SHARED_PLATEAU_STEP", 4)
+    val sharedPlateauMetric = stringSetting("posix.smoke.sharedPlateauMetric", "POSIX_SMOKE_SHARED_PLATEAU_METRIC", "shapeStatePool")
+    val sharedPlateauRequire = boolSetting("posix.smoke.sharedPlateauRequire", "POSIX_SMOKE_SHARED_PLATEAU_REQUIRE", false)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val sharedDirectDag = boolSetting("posix.smoke.sharedDirectDag", "POSIX_SMOKE_SHARED_DIRECT_DAG", false)
     val sharedDirectCompareTree = boolSetting("posix.smoke.sharedDirectCompareTree", "POSIX_SMOKE_SHARED_DIRECT_COMPARE_TREE", false)
@@ -3718,11 +4030,56 @@ object PosixCubicSmoke {
       checkEvilFamilyTrace(ch7K, ch7Lengths, ch7TreeThreshold, ch7DagThreshold, ch7ShapeThreshold)
     }
     if (sharedNoReassoc || sharedDirectDag) {
-      checkSharedValuePreservation(cubicSeqMode, maxDepth, maxInput, maxRegexes, sharedDirectDag, sharedDirectCompareTree)
+      checkSharedValuePreservation(
+        cubicSeqMode,
+        maxDepth,
+        maxInput,
+        maxRegexes,
+        sharedDirectDag,
+        sharedDirectCompareTree,
+        sharedStatePoolCubicFactor,
+        sharedStatePoolMinRegexSize,
+        sharedStatePoolTop
+      )
       if (randomCases > 0) {
-        checkSharedRandomValuePreservation(cubicSeqMode, randomCases, randomDepth, randomInputMax, randomSeed, sharedDirectDag, sharedDirectCompareTree)
+        checkSharedRandomValuePreservation(
+          cubicSeqMode,
+          randomCases,
+          randomDepth,
+          randomInputMax,
+          randomSeed,
+          sharedDirectDag,
+          sharedDirectCompareTree,
+          sharedStatePoolCubicFactor,
+          sharedStatePoolMinRegexSize,
+          sharedStatePoolTop
+        )
       }
-      checkSharedEvilFamilyTrace(cubicSeqMode, ch7K, ch7Lengths, ch7DagThreshold, ch7ShapeThreshold, sharedDirectDag, sharedDirectCompareTree)
+      checkSharedEvilFamilyTrace(
+        cubicSeqMode,
+        ch7K,
+        ch7Lengths,
+        ch7DagThreshold,
+        ch7ShapeThreshold,
+        sharedDirectDag,
+        sharedDirectCompareTree,
+        sharedStatePoolCubicFactor,
+        sharedStatePoolMinRegexSize,
+        sharedStatePoolTop
+      )
+      checkSharedEvilFamilyPlateau(
+        cubicSeqMode,
+        ch7K,
+        sharedPlateauMaxLength,
+        sharedPlateauStep,
+        sharedPlateauMetric,
+        sharedPlateauRequire,
+        sharedDirectDag,
+        sharedDirectCompareTree,
+        sharedStatePoolCubicFactor,
+        sharedStatePoolMinRegexSize,
+        sharedStatePoolTop
+      )
     }
   }
 

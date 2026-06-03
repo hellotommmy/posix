@@ -70,9 +70,19 @@ immutability.
   every prefix derivative root for exact syntactic equality with the existing
   tree-step reference algorithm. It preserves exact POSIX values for
   value-safe no-reassociation modes in the current exhaustive and random smoke,
-  and reports both final reachable DAG size and prefix `statePool`. Current
-  Chapter 7 evidence suggests `statePool`, not the raw total allocation pool,
-  is the proof-facing shared universe measure. This is BR-038/BR-039 tooling
+  and reports both final reachable DAG size and prefix `statePool`. The
+  optional `-SharedStatePoolCubicFactor` /
+  `-ScalaSmokeSharedStatePoolCubicFactor` gate now fails the smoke if
+  `statePool` exceeds the configured multiple of `rsize(r)^3` above the size
+  floor, while `-SharedStatePoolCubicTop` reports the highest-ratio witnesses.
+  The long-tail `-SharedPlateauMaxLength` /
+  `-ScalaSmokeSharedPlateauMaxLength` gate defaults to `shapeStatePool`, the
+  erased/shape prefix-pool metric closest to the current raw proof side.
+  Current evidence is not sufficient for a payout: `k=5` stops increasing at
+  `n=124`, but `k=8` remains strictly increasing through `n=500`.
+  Current Chapter 7 evidence suggests `shapeStatePool`, not the raw total
+  allocation pool or exact annotated `statePool`, is the closest smoke proxy
+  for the proof-facing erased shared universe. This is BR-038/BR-039 tooling
   evidence only, not a payout.
 - Concrete raw shared-prune sanity universe: `GeneralRegexBound.thy` now has
   `raw_shared_prune_closed_sizeNregex`, supported by raw size/legacy lemmas.

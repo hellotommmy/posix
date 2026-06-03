@@ -1,6 +1,6 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
+Last updated: 2026-06-03 (direct-DAG shared long-tail smoke)
 
 ## Cubic Candidate Prototype: Direct-DAG Shared Smoke (2026-06-03)
 
@@ -12,10 +12,16 @@ Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
   reachable from every prefix derivative root, and is distinct from the raw
   total node pool, which also includes dead temporary nodes produced during a
   direct derivative/simplification step.
+- Added `shapeStatePool`, the union of erased/shape keys reachable from every
+  prefix derivative root. This is closer to the current proof-side
+  `rrexp`/`rsimpStrong_raw` universe than exact annotated `statePool`, because
+  exact nodes distinguish bit annotations.
 - Added wrapper flags:
   - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedDirectDag`;
   - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedDirectCompareTree`;
-  - `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -ScalaSmokeSharedDirectDag`.
+  - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SharedStatePoolCubicFactor`;
+  - `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -ScalaSmokeSharedDirectDag`;
+  - `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -ScalaSmokeSharedStatePoolCubicFactor`.
 - Smoke evidence:
   - Direct `no-reassoc`: exhaustive depth `2`, input length `3`, and random
     `1,000` cases at depth `5`/input `6` preserve exact POSIX values.
@@ -30,12 +36,25 @@ Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
     shape DAG `18,43,63,76,87,103,113,132`;
     prefix `statePool` `18,90,187,310,445,598,767,1042`;
     raw total pool `18,242,599,1055,1569,2171,2859,4005`.
+    The new `statePool <= 1.0 * rsize(r)^3` gate passes this grid; the worst
+    reported ratio is `1042 / 46^3 = 0.010705` at `n=30`.
+  - Long-tail Chapter 7 `k=5`, step `4`, metric `shapeStatePool`, under
+    direct `expanded-keyed-no-reassoc`: first non-increase appears at `n=124`,
+    with `shapeStatePool 523 -> 523` from `n=120` to `n=124`. Exact
+    `statePool` still grows there (`7729 -> 8046`), so exact annotated nodes
+    are not the right proof-side constant-state measure.
   - Chapter 7 `k=8`, lengths `0,4,8,16,32` under direct
     `expanded-keyed-no-reassoc`:
     final DAG `27,78,130,232,408`;
     shape DAG `27,61,87,125,173`;
     prefix `statePool` `27,120,229,550,1400`;
     raw total pool `27,350,752,1957,5292`.
+  - Long-tail Chapter 7 `k=8`, step `4`, metric `shapeStatePool`, under
+    direct `expanded-keyed-no-reassoc`: no non-increase by `n=500`.
+    The last logged point is `shapeStatePool=3257`, exact `statePool=139153`,
+    final DAG `5555`, and shape DAG `1576`. This is negative evidence against
+    treating the current direct-DAG/hash-consed reference simplifier as already
+    having a fixed finite proof universe for larger evil-family roots.
 - Design result:
   - The direct-DAG prototype preserves the value-safe no-reassociation output
     story while moving the smoke harness closer to a real shared-row algorithm.
@@ -45,6 +64,11 @@ Last updated: 2026-06-03 (direct-DAG shared smoke prototype)
   - The proof-facing universe should target prefix reachable states/rows, not
     the naive total node pool. Dead temporary nodes need either garbage-free
     construction, GC, or a separate implementation accounting theorem.
+  - The `statePool`/`shapeStatePool` cubic and plateau gates are
+    smoke/prototype guards. They can catch regressions and report high-ratio
+    witnesses, but they are not the final root-owned finite-universe theorem.
+    The `k=8` long-tail failure means future work still needs a stronger
+    quotient, pruning, or row-universe construction.
   - This is smoke evidence and tooling only; no BR-039/BR-040 payout is
     claimed.
 
