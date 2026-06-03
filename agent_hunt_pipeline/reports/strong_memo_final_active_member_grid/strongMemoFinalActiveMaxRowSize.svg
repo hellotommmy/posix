@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="82" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700">Chapter 7 derivative size: strongMemoFinalActiveMaxRowSize</text>
+<text x="82" y="48" font-family="Arial, sans-serif" font-size="12" fill="#555">x: input length n, lines: Chapter 7 evil family parameter k, y: value</text>
+<rect x="82" y="54" width="688" height="450" fill="#fbfbfb" stroke="#222" stroke-width="1"/>
+<line x1="-16.29" y1="54" x2="-16.29" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="-16.29" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">0</text>
+<line x1="229.43" y1="54" x2="229.43" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="229.43" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">10</text>
+<line x1="475.14" y1="54" x2="475.14" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="475.14" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">20</text>
+<line x1="720.86" y1="54" x2="720.86" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="720.86" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">30</text>
+<line x1="82" y1="504.00" x2="770" y2="504.00" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="508.00" text-anchor="end" font-family="Arial, sans-serif" font-size="11">0</text>
+<line x1="82" y1="352.48" x2="770" y2="352.48" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="356.48" text-anchor="end" font-family="Arial, sans-serif" font-size="11">100</text>
+<line x1="82" y1="200.97" x2="770" y2="200.97" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="204.97" text-anchor="end" font-family="Arial, sans-serif" font-size="11">200</text>
+<line x1="82" y1="49.45" x2="770" y2="49.45" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="53.45" text-anchor="end" font-family="Arial, sans-serif" font-size="11">300</text>
+<text x="426.00" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">n</text>
+<text x="18" y="279.00" transform="rotate(-90 18,279.00)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">size</text>
+<path d="M82.00,313.09 L180.29,313.09 L278.57,313.09 L376.86,313.09 L475.14,313.09 L573.43,313.09 L671.71,313.09 L770.00,313.09" fill="none" stroke="#1f77b4" stroke-width="2.2"/>
+<circle cx="82.00" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="180.29" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="278.57" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="376.86" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="475.14" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="573.43" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="671.71" cy="313.09" r="2.6" fill="#1f77b4"/>
+<circle cx="770.00" cy="313.09" r="2.6" fill="#1f77b4"/>
+<path d="M82.00,54.00 L180.29,54.00 L278.57,54.00 L376.86,54.00 L475.14,54.00 L573.43,54.00 L671.71,54.00 L770.00,54.00" fill="none" stroke="#d62728" stroke-width="2.2"/>
+<circle cx="82.00" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="180.29" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="278.57" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="376.86" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="475.14" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="573.43" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="671.71" cy="54.00" r="2.6" fill="#d62728"/>
+<circle cx="770.00" cy="54.00" r="2.6" fill="#d62728"/>
+<text x="794" y="62" font-family="Arial, sans-serif" font-size="13" font-weight="700">k</text>
+<line x1="794" y1="80" x2="820" y2="80" stroke="#1f77b4" stroke-width="2.2"/>
+<text x="828" y="84" font-family="Arial, sans-serif" font-size="12">k=5</text>
+<line x1="794" y1="102" x2="820" y2="102" stroke="#d62728" stroke-width="2.2"/>
+<text x="828" y="106" font-family="Arial, sans-serif" font-size="12">k=8</text>
+</svg>

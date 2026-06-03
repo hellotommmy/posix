@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="82" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700">Chapter 7 derivative size: deferred strong tree</text>
+<text x="82" y="48" font-family="Arial, sans-serif" font-size="12" fill="#555">x: input length n, lines: Chapter 7 evil family parameter k, y: value</text>
+<rect x="82" y="54" width="688" height="450" fill="#fbfbfb" stroke="#222" stroke-width="1"/>
+<line x1="-16.29" y1="54" x2="-16.29" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="-16.29" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">0</text>
+<line x1="229.43" y1="54" x2="229.43" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="229.43" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">10</text>
+<line x1="475.14" y1="54" x2="475.14" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="475.14" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">20</text>
+<line x1="720.86" y1="54" x2="720.86" y2="504" stroke="#e5e5e5" stroke-width="1"/>
+<text x="720.86" y="528" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">30</text>
+<line x1="82" y1="504.00" x2="770" y2="504.00" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="508.00" text-anchor="end" font-family="Arial, sans-serif" font-size="11">0</text>
+<line x1="82" y1="347.70" x2="770" y2="347.70" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="351.70" text-anchor="end" font-family="Arial, sans-serif" font-size="11">1000</text>
+<line x1="82" y1="191.39" x2="770" y2="191.39" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="195.39" text-anchor="end" font-family="Arial, sans-serif" font-size="11">2000</text>
+<line x1="82" y1="35.09" x2="770" y2="35.09" stroke="#e5e5e5" stroke-width="1"/>
+<text x="72" y="39.09" text-anchor="end" font-family="Arial, sans-serif" font-size="11">3000</text>
+<text x="426.00" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">n</text>
+<text x="18" y="279.00" transform="rotate(-90 18,279.00)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">size</text>
+<path d="M82.00,429.91 L180.29,389.90 L278.57,383.49 L376.86,375.83 L475.14,367.23 L573.43,360.51 L671.71,362.08 L770.00,369.89" fill="none" stroke="#1f77b4" stroke-width="2.2"/>
+<circle cx="82.00" cy="429.91" r="2.6" fill="#1f77b4"/>
+<circle cx="180.29" cy="389.90" r="2.6" fill="#1f77b4"/>
+<circle cx="278.57" cy="383.49" r="2.6" fill="#1f77b4"/>
+<circle cx="376.86" cy="375.83" r="2.6" fill="#1f77b4"/>
+<circle cx="475.14" cy="367.23" r="2.6" fill="#1f77b4"/>
+<circle cx="573.43" cy="360.51" r="2.6" fill="#1f77b4"/>
+<circle cx="671.71" cy="362.08" r="2.6" fill="#1f77b4"/>
+<circle cx="770.00" cy="369.89" r="2.6" fill="#1f77b4"/>
+<path d="M82.00,322.06 L180.29,220.15 L278.57,149.35 L376.86,83.39 L475.14,91.20 L573.43,69.79 L671.71,91.04 L770.00,54.00" fill="none" stroke="#d62728" stroke-width="2.2"/>
+<circle cx="82.00" cy="322.06" r="2.6" fill="#d62728"/>
+<circle cx="180.29" cy="220.15" r="2.6" fill="#d62728"/>
+<circle cx="278.57" cy="149.35" r="2.6" fill="#d62728"/>
+<circle cx="376.86" cy="83.39" r="2.6" fill="#d62728"/>
+<circle cx="475.14" cy="91.20" r="2.6" fill="#d62728"/>
+<circle cx="573.43" cy="69.79" r="2.6" fill="#d62728"/>
+<circle cx="671.71" cy="91.04" r="2.6" fill="#d62728"/>
+<circle cx="770.00" cy="54.00" r="2.6" fill="#d62728"/>
+<text x="794" y="62" font-family="Arial, sans-serif" font-size="13" font-weight="700">k</text>
+<line x1="794" y1="80" x2="820" y2="80" stroke="#1f77b4" stroke-width="2.2"/>
+<text x="828" y="84" font-family="Arial, sans-serif" font-size="12">k=5</text>
+<line x1="794" y1="102" x2="820" y2="102" stroke="#d62728" stroke-width="2.2"/>
+<text x="828" y="106" font-family="Arial, sans-serif" font-size="12">k=8</text>
+</svg>

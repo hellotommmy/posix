@@ -5,20 +5,23 @@ Last updated: 2026-06-03 (strong-memo route is default)
 ## Cubic Route Checkpoint: Final-Active Proof Contract (2026-06-03)
 
 - Added and checked
-  `FBound.thy:strong_deferred_original_final_active_budget_contract`.
+  `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`;
+  the older `strong_deferred_original_final_active_budget_contract` remains as
+  the special `M = rxsize r` instance.
 - The theorem matches the current Scala final-active scout: for a legacy
   non-backref regex, if the final derivative state satisfies
   `finalActiveRows <= rxsize r`, `finalActivePairBudget <= rxsize r^2`, and
-  each final-active row has raw size `<= rxsize r`, then the memo strong-tree
-  route yields:
+  each final-active row has raw size `<= M`, then the memo strong-tree route
+  yields:
   - exact POSIX `Some`/`None` correctness and `flat v = s`;
   - a legacy final raw recognition state;
   - final-active closure size
-    `<= rxsize r + rxsize r * rxsize r * rxsize r`;
+    `<= rxsize r + rxsize r * rxsize r * M`;
   - the existing quadratic span-state and cubic split-probe memo budgets.
 - This is not a wrapper payout and does not prove the cubic theorem. It turns
-  the next proof obligation into the three root-owned final-active size
-  premises that the Scala scout is now testing.
+  the next proof obligation into root-owned final-active size premises. A
+  future cubic theorem can instantiate this with `M = K * rxsize r` once a
+  checked linear member-size proof is available.
 - Verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
   passed, including default `strong-memo` Scala smoke, `Posix`, and
@@ -33,7 +36,8 @@ Last updated: 2026-06-03 (strong-memo route is default)
 - Added final-active budget smoke plumbing to
   `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` and
   `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`. The new optional gate
-  checks `strongMemoFinalActiveRows <= rowsFactor * rsize(r)` and
+  checks `strongMemoFinalActiveRows <= rowsFactor * rsize(r)`,
+  `strongMemoFinalActiveMaxRowSize <= memberFactor * rsize(r)`, and
   `strongMemoFinalActivePairBudget <= pairFactor * rsize(r)^2`, while keeping
   the existing exact POSIX value comparison enabled.
 - Added `agent_hunt_pipeline/scripts/strong_memo_final_active_scout.ps1`, a
@@ -42,10 +46,15 @@ Last updated: 2026-06-03 (strong-memo route is default)
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
 - Initial checked scout run:
   `Seeds=20260602,20260603`, `RandomCases=2000`, `RandomDepth=6`,
-  `RandomInputLength=8`, `RowsFactor=1.0`, `PairFactor=1.0`,
-  `MinRegexSize=5`. Both seeds found no final-active witness above the linear
-  rows or quadratic pair-budget. The worst reported rows ratio was `0.571429`;
-  the worst pair ratio was `0.040000`.
+  `RandomInputLength=8`, `RowsFactor=1.0`, `MemberFactor=4.0`,
+  `PairFactor=1.0`, `MinRegexSize=5`. Both seeds found no final-active witness
+  above the linear rows, linear member-size, or quadratic pair-budget. The
+  worst reported rows ratio was `0.571429`; the worst member ratio was
+  `3.451613`; the worst pair ratio was `0.040000`.
+- The rejected `MemberFactor=1.0` and `2.0` runs are useful negative evidence:
+  a known greedy-sequence CE needs `15/10 = 1.5`, and Chapter 7 `k=5,n=4`
+  needs `126/46 ~= 2.74`. A separate `k=5,8`, `n=4..32` grid shows the
+  final-active max row size plateaus at `126` for `k=5` and `297` for `k=8`.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

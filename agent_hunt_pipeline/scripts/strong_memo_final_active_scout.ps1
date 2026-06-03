@@ -5,6 +5,7 @@ param(
   [int]$RandomInputLength = 8,
   [double]$RowsFactor = 1.0,
   [double]$PairFactor = 1.0,
+  [double]$MemberFactor = 1.0,
   [int]$MinRegexSize = 5,
   [int]$Top = 5,
   [string]$OutDir = "agent_hunt_pipeline/reports/strong_memo_final_active_scout",
@@ -31,8 +32,8 @@ if ($SeedList.Count -eq 0) {
   throw "At least one seed is required."
 }
 
-if ($RowsFactor -le 0.0 -and $PairFactor -le 0.0) {
-  throw "At least one of RowsFactor or PairFactor must be positive."
+if ($RowsFactor -le 0.0 -and $PairFactor -le 0.0 -and $MemberFactor -le 0.0) {
+  throw "At least one of RowsFactor, PairFactor, or MemberFactor must be positive."
 }
 
 $Rows = New-Object System.Collections.Generic.List[object]
@@ -48,6 +49,7 @@ foreach ($SeedText in $SeedList) {
     -FindStrongFinalActiveBudgetCE `
     -StrongFinalActiveRowsFactor $RowsFactor `
     -StrongFinalActivePairFactor $PairFactor `
+    -StrongFinalActiveMemberFactor $MemberFactor `
     -StrongFinalActiveMinRegexSize $MinRegexSize `
     -StrongFinalActiveTop $Top `
     -RandomCases $RandomCases `
@@ -65,6 +67,7 @@ foreach ($SeedText in $SeedList) {
   $NoCE = $Text.Contains("no strong final-active budget CE found")
   $RowsMatches = [regex]::Matches($Text, "rowsRatio=([0-9.]+) rows=([0-9]+) label=([^;`r`n]+)")
   $PairMatches = [regex]::Matches($Text, "pairRatio=([0-9.]+) pairBudget=([0-9]+) label=([^;`r`n]+)")
+  $MemberMatches = [regex]::Matches($Text, "memberRatio=([0-9.]+) maxRowSize=([0-9]+) label=([^;`r`n]+)")
   $WorstRowsRatio = ""
   $WorstRowsLabel = ""
   if ($RowsMatches.Count -gt 0) {
@@ -83,12 +86,23 @@ foreach ($SeedText in $SeedList) {
     $WorstPairRatio = $BestPair.Groups[1].Value
     $WorstPairLabel = $BestPair.Groups[3].Value
   }
+  $WorstMemberRatio = ""
+  $WorstMemberLabel = ""
+  if ($MemberMatches.Count -gt 0) {
+    $BestMember = $MemberMatches |
+      Sort-Object { [double]$_.Groups[1].Value } -Descending |
+      Select-Object -First 1
+    $WorstMemberRatio = $BestMember.Groups[1].Value
+    $WorstMemberLabel = $BestMember.Groups[3].Value
+  }
 
   $Rows.Add([pscustomobject]@{
     Seed = $Seed
     NoBudgetCE = $NoCE
     WorstRowsRatio = $WorstRowsRatio
     WorstRowsLabel = $WorstRowsLabel
+    WorstMemberRatio = $WorstMemberRatio
+    WorstMemberLabel = $WorstMemberLabel
     WorstPairRatio = $WorstPairRatio
     WorstPairLabel = $WorstPairLabel
     Log = "seed_$Seed.log"
@@ -105,11 +119,12 @@ $Lines.Add("- Route: strong-memo")
 $Lines.Add("- Random cases per seed: $RandomCases")
 $Lines.Add("- Random depth/input length: $RandomDepth / $RandomInputLength")
 $Lines.Add("- Rows budget: $RowsFactor * rsize(r)")
+$Lines.Add("- Member-size budget: $MemberFactor * rsize(r)")
 $Lines.Add("- Pair budget: $PairFactor * rsize(r)^2")
 $Lines.Add("- Minimum regex size: $MinRegexSize")
 $Lines.Add("")
-$Lines.Add("| Seed | Budget CE? | Worst rows ratio | Rows witness | Worst pair ratio | Pair witness | Log |")
-$Lines.Add("| ---: | --- | ---: | --- | ---: | --- | --- |")
+$Lines.Add("| Seed | Budget CE? | Worst rows ratio | Rows witness | Worst member ratio | Member witness | Worst pair ratio | Pair witness | Log |")
+$Lines.Add("| ---: | --- | ---: | --- | ---: | --- | ---: | --- | --- |")
 foreach ($Row in $Rows) {
   $CeText = if ($Row.NoBudgetCE) { "no" } else { "yes or unknown" }
   $RowsWitness = if ($Row.WorstRowsLabel.Length -gt 0) {
@@ -122,11 +137,16 @@ foreach ($Row in $Rows) {
   } else {
     "-"
   }
-  $Lines.Add("| $($Row.Seed) | $CeText | $($Row.WorstRowsRatio) | $RowsWitness | $($Row.WorstPairRatio) | $PairWitness | $($Row.Log) |")
+  $MemberWitness = if ($Row.WorstMemberLabel.Length -gt 0) {
+    $Row.WorstMemberLabel.Replace("|", "\|")
+  } else {
+    "-"
+  }
+  $Lines.Add("| $($Row.Seed) | $CeText | $($Row.WorstRowsRatio) | $RowsWitness | $($Row.WorstMemberRatio) | $MemberWitness | $($Row.WorstPairRatio) | $PairWitness | $($Row.Log) |")
 }
 $Lines.Add("")
 $Lines.Add("A no entry means the smoke run found no final-active witness above")
-$Lines.Add("the configured linear rows or quadratic pair-budget. This is smoke")
+$Lines.Add("the configured linear rows, linear member-size, or quadratic pair-budget. This is smoke")
 $Lines.Add("evidence for the strong-memo proof route, not an Isabelle proof.")
 
 $Lines | Set-Content -LiteralPath $SummaryPath

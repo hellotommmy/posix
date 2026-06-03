@@ -3466,6 +3466,73 @@ proof -
     by (rule strong_deferred_memo_budget(3))
 qed
 
+lemma strong_deferred_original_final_active_budget_contract_with_member_bound:
+  assumes legacy: "legacy_rexp r"
+    and rows_bound:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and pair_budget:
+      "strong_deferred_final_active_suffix_pair_budget r s \<le>
+        rxsize r * rxsize r"
+    and member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> M"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      rxsize r + rxsize r * rxsize r * M"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_tree_POSIX_flat)
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    using strong_deferred_original_memo_budget(1)[OF legacy]
+    by (simp add: strong_deferred_final_raw_def)
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    by (rule rows_bound)
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    by (rule pair_budget)
+  have closure_bound:
+    "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      rxsize r + (rxsize r * rxsize r) * M"
+    by (rule
+        strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound
+        [OF rows_bound pair_budget member_size])
+  then show "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      rxsize r + rxsize r * rxsize r * M"
+    by (simp add: algebra_simps)
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(3))
+qed
+
 lemma strong_deferred_original_final_active_budget_contract:
   assumes legacy: "legacy_rexp r"
     and rows_bound:
@@ -3495,43 +3562,9 @@ lemma strong_deferred_original_final_active_budget_contract:
       2 * rxsize r * Suc (length s) * Suc (length s)"
     and "card (rexp_span_all_split_probes r s) \<le>
       rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
-proof -
-  show "((if bnullable (bders_simpStrong (intern r) s)
-      then Some (THE v. strong_deferred_span_value r s v)
-      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
-    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
-  show "((if bnullable (bders_simpStrong (intern r) s)
-      then Some (THE v. strong_deferred_span_value r s v)
-      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
-    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
-  show "((if bnullable (bders_simpStrong (intern r) s)
-      then Some (THE v. strong_deferred_span_value r s v)
-      else None) = Some v) \<Longrightarrow> flat v = s"
-    by (rule strong_deferred_memo_tree_POSIX_flat)
-  show "legacy_rrexp (strong_deferred_final_raw r s)"
-    using strong_deferred_original_memo_budget(1)[OF legacy]
-    by (simp add: strong_deferred_final_raw_def)
-  show "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
-    by (rule rows_bound)
-  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
-      rxsize r * rxsize r"
-    by (rule pair_budget)
-  have closure_bound:
-    "card (strong_deferred_final_active_suffix_closure r s) \<le>
-      rxsize r + (rxsize r * rxsize r) * rxsize r"
-    by (rule
-        strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound
-        [OF rows_bound pair_budget member_size])
-  then show "card (strong_deferred_final_active_suffix_closure r s) \<le>
-      rxsize r + rxsize r * rxsize r * rxsize r"
-    by (simp add: algebra_simps)
-  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
-      2 * rxsize r * Suc (length s) * Suc (length s)"
-    by (rule strong_deferred_memo_exact_value_budget(2))
-  show "card (rexp_span_all_split_probes r s) \<le>
-      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
-    by (rule strong_deferred_memo_exact_value_budget(3))
-qed
+  using strong_deferred_original_final_active_budget_contract_with_member_bound
+    [OF legacy rows_bound pair_budget member_size]
+  by (simp_all add: algebra_simps)
 
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"

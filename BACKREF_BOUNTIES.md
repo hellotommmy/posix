@@ -112,10 +112,13 @@ immutability.
   deterministic seeds and writes
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
   The current initial report (`20260602,20260603`, 2,000 random cases each at
-  depth 6/input 8, `rows <= 1.0 * rsize`, `pairBudget <= 1.0 * rsize^2`) finds
-  no final-active budget CE. The worst rows ratio was `0.571429`; the worst
-  pair ratio was `0.040000`. This is smoke evidence for the final-active proof
-  route only; no BR-039/BR-040 payout is claimed.
+  depth 6/input 8, `rows <= 1.0 * rsize`, `maxRowSize <= 4.0 * rsize`,
+  `pairBudget <= 1.0 * rsize^2`) finds no final-active budget CE. The worst
+  rows ratio was `0.571429`; the worst member ratio was `3.451613`; the worst
+  pair ratio was `0.040000`. The `1.0 * rsize` member-size premise is known too
+  strong, so proof work should use the parameterized member-bound contract in
+  `FBound.thy`. This is smoke evidence for the final-active proof route only;
+  no BR-039/BR-040 payout is claimed.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
@@ -127,15 +130,18 @@ immutability.
   until the final-active row/pair-budget cubic theorem or equivalent quotient
   theorem is checked.
 - Original-size final-active contract checkpoint:
-  `FBound.thy:strong_deferred_original_final_active_budget_contract` now states
-  the proof target corresponding to the Scala final-active scout. For a legacy
-  root, if final-active rows, final-active pair-budget, and final-active row
-  member size are bounded by `rxsize r`, the memo strong-tree route already
-  yields exact POSIX `Some`/`None` correctness, `flat v = s`, a legacy final
-  raw recognition state, final-active closure size
-  `<= rxsize r + rxsize r * rxsize r * rxsize r`, and the existing memo-table
-  budgets. This is a checked handoff theorem, not a payout; the actual
-  original-size final-active bounds remain open.
+  `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`
+  now states the proof target corresponding to the Scala final-active scout.
+  For a legacy root, if final-active rows and final-active pair-budget are
+  bounded by the original `rxsize r`, and final-active row member size is
+  bounded by an explicit `M`, the memo strong-tree route already yields exact
+  POSIX `Some`/`None` correctness, `flat v = s`, a legacy final raw recognition
+  state, final-active closure size `<= rxsize r + rxsize r * rxsize r * M`,
+  and the existing memo-table budgets. The older
+  `strong_deferred_original_final_active_budget_contract` remains as the
+  special `M = rxsize r` case, but smoke shows that case is too optimistic for
+  the current route. This is a checked handoff theorem, not a payout; the
+  actual linear member-size bound remains open.
 - Final-active pair-budget square checkpoint:
   `raw_shared_prune_active_suffix_pair_budget_eq_pairs` proves the active
   pair-budget is exactly the active pair-relation cardinality, and

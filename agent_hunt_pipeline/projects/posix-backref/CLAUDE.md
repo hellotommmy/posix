@@ -132,23 +132,28 @@ active-prefix metrics as diagnostics, not as the final root-owned cubic
 universe unless a quotient/periodic/indexed bound is added.
 The same report now includes final-state metrics
 `strongMemoFinalActiveRows`, `strongMemoFinalActiveKeys`,
-`strongMemoFinalActiveMaxBucket`, and `strongMemoFinalActivePairBudget`.
+`strongMemoFinalActiveMaxBucket`, `strongMemoFinalActiveMaxRowSize`, and
+`strongMemoFinalActivePairBudget`.
 Prefer these when reasoning about the size of the final derivative tree; on
 the current `k=5,8,10,12,n<=200` grid they stay tiny while the prefix pool
 grows.
 Before trying to prove the final-active route, run the dedicated budget scout:
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_scout.ps1`.
 It keeps exact POSIX value smoke enabled and checks optional linear rows and
-quadratic pair-budget gates for the final derivative state. A failing run
-prints a greedy-shrunk counterexample. A passing run is smoke evidence only;
-it does not authorize a bounty claim without the corresponding checked
-Isabelle theorem.
+member-size gates plus a quadratic pair-budget gate for the final derivative
+state. A failing run prints a greedy-shrunk counterexample. A passing run is
+smoke evidence only; it does not authorize a bounty claim without the
+corresponding checked Isabelle theorem. Current recommended factors are
+`RowsFactor=1.0`, `MemberFactor=4.0`, `PairFactor=1.0`; `MemberFactor=1.0`
+and `2.0` are known too strong on existing smoke/Chapter 7 witnesses.
 On the Isabelle side, the current handoff theorem for this route is
-`FBound.thy:strong_deferred_original_final_active_budget_contract`: prove the
-final-active rows, pair-budget, and row member-size bounds against the original
-`rxsize r`, and that theorem supplies exact POSIX correctness, legacy final
-state preservation, cubic final-active closure size, and the span/split memo
-budgets.
+`FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`:
+prove the final-active rows and pair-budget bounds against the original
+`rxsize r`, and prove row member-size `<= M`. The theorem supplies exact POSIX
+correctness, legacy final state preservation, final-active closure size
+`<= rxsize r + rxsize r * rxsize r * M`, and the span/split memo budgets. To
+obtain the desired cubic theorem, instantiate this with a checked linear
+member-size bound such as `M <= K * rxsize r`.
 On the Isabelle side, prefer
 `GeneralRegexBound.thy:card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`
 when possible: it uses the aggregate active pair-budget directly and is sharper

@@ -3,15 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
-## 2026-06-03: Final-active proof contract mirrors the scout
+## 2026-06-03: Final-active member-size bound is parameterized
 
-- Added `strong_deferred_original_final_active_budget_contract` in
-  `FBound.thy`.
+- Added `strong_deferred_original_final_active_budget_contract_with_member_bound`
+  in `FBound.thy`; kept `strong_deferred_original_final_active_budget_contract`
+  as the special case where `M = rxsize r`.
 - The theorem packages the current intended handoff: for a legacy root, once
-  final-active rows, final-active pair-budget, and final-active member size are
-  all bounded by the original `rxsize r`, the memo strong-tree route already
-  gives exact POSIX correctness, `flat` correctness, a legacy final raw state,
-  cubic final-active closure size, and the existing span/split memo budgets.
+  final-active rows and final-active pair-budget are bounded by the original
+  `rxsize r`, and final-active row member size is bounded by an explicit `M`,
+  the memo strong-tree route already gives exact POSIX correctness, `flat`
+  correctness, a legacy final raw state, final-active closure size
+  `<= rxsize r + rxsize r * rxsize r * M`, and the existing span/split memo
+  budgets.
+- The original `M = rxsize r` premise is too strong: Scala smoke found
+  `rsize=10`, final-active max row size `15` on the known full-cert greedy
+  sequence CE. The Chapter 7 grid gives stable `maxRowSize=126` for `k=5`
+  (`126/46 ~= 2.74`) and `maxRowSize=297` for `k=8` (`297/91 ~= 3.26`) on
+  lengths `4..32`. Current scout therefore uses `MemberFactor=4.0`.
 - This keeps the proof obligation aligned with the Scala scout instead of
   letting value reconstruction, memo accounting, and size accounting drift into
   separate ad hoc targets.
@@ -21,13 +29,15 @@ to be read before continuing long-running agent work.
 - Added a dedicated final-active budget gate to the Scala smoke harness. It
   checks exact POSIX values first, then optionally enforces
   `finalActiveRows <= rowsFactor * rsize(r)` and
+  `finalActiveMaxRowSize <= memberFactor * rsize(r)` and
   `finalActivePairBudget <= pairFactor * rsize(r)^2`.
 - Added `strong_memo_final_active_scout.ps1`, which runs the gate across
   deterministic seeds and writes logs under
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/`.
-- Initial smoke (`20260602,20260603`, `2000` random cases each, depth `6`,
-  input length `8`, factors `1.0/1.0`) found no final-active budget CE. The
-  worst rows ratio was `0.571429`, and the worst pair ratio was `0.040000`.
+- Current smoke (`20260602,20260603`, `2000` random cases each, depth `6`,
+  input length `8`, factors rows/member/pair `1.0/4.0/1.0`) found no
+  final-active budget CE. The worst rows ratio was `0.571429`, the worst
+  member ratio was `3.451613`, and the worst pair ratio was `0.040000`.
 - The Chapter 7 trace now prints both cumulative active-prefix metrics and
   final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
   grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.
