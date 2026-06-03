@@ -21418,6 +21418,33 @@ lemma raw_final_active_suffix_row_dag_contains_row:
   by (rule raw_final_active_suffix_row_dag_universeI
       [OF row self_rsubterm])
 
+lemma raw_final_active_suffix_row_dag_universe_empty:
+  assumes "raw_final_active_suffix_rows r = {}"
+  shows "raw_final_active_suffix_row_dag_universe r = {}"
+  using assms
+  by (simp add: raw_final_active_suffix_row_dag_universe_def)
+
+lemma raw_final_active_suffix_row_dag_universe_empty_iff:
+  "raw_final_active_suffix_row_dag_universe r = {} \<longleftrightarrow>
+    raw_final_active_suffix_rows r = {}"
+proof
+  assume empty: "raw_final_active_suffix_row_dag_universe r = {}"
+  show "raw_final_active_suffix_rows r = {}"
+  proof (rule ccontr)
+    assume "raw_final_active_suffix_rows r \<noteq> {}"
+    then obtain q where q: "q \<in> raw_final_active_suffix_rows r"
+      by blast
+    then have "q \<in> raw_final_active_suffix_row_dag_universe r"
+      by (rule raw_final_active_suffix_row_dag_contains_row)
+    then show False
+      using empty by simp
+  qed
+next
+  assume "raw_final_active_suffix_rows r = {}"
+  then show "raw_final_active_suffix_row_dag_universe r = {}"
+    by (rule raw_final_active_suffix_row_dag_universe_empty)
+qed
+
 lemma raw_final_active_suffix_rows_subset_row_dag_universe:
   "raw_final_active_suffix_rows r \<subseteq>
     raw_final_active_suffix_row_dag_universe r"
@@ -21520,6 +21547,32 @@ proof -
     by (rule card_raw_final_active_suffix_row_dag_universe_le_rsize)
   finally show ?thesis .
 qed
+
+lemma raw_final_active_suffix_keys_empty:
+  assumes "raw_final_active_suffix_rows r = {}"
+  shows "raw_final_active_suffix_keys r = {}"
+  using assms
+  by (simp add: raw_final_active_suffix_keys_def
+      raw_shared_prune_active_suffix_keys_def)
+
+lemma raw_final_active_suffix_pair_budget_empty:
+  assumes "raw_final_active_suffix_rows r = {}"
+  shows "raw_final_active_suffix_pair_budget r = 0"
+proof -
+  have "raw_shared_prune_active_suffix_keys
+      (raw_final_active_suffix_rows r) = {}"
+    using assms
+    by (simp add: raw_shared_prune_active_suffix_keys_def)
+  then show ?thesis
+    by (simp add: raw_final_active_suffix_pair_budget_def
+        raw_shared_prune_active_suffix_pair_budget_def)
+qed
+
+lemma raw_final_active_suffix_max_row_dag_empty:
+  assumes "raw_final_active_suffix_rows r = {}"
+  shows "raw_final_active_suffix_max_row_dag r = 0"
+  using assms
+  by (simp add: raw_final_active_suffix_max_row_dag_def)
 
 lemma card_raw_final_active_suffix_row_dag_universe_le_rows_times_max:
   "card (raw_final_active_suffix_row_dag_universe r) \<le>

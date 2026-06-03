@@ -63,6 +63,13 @@ immutability.
 
 ## Open Artifact Notes
 
+- Empty final-active budget bridge: `GeneralRegexBound.thy` and `FBound.thy`
+  now check that if the final-active row set is empty, then its row-DAG
+  universe is empty and the corresponding key, pair-budget, and max-row-DAG
+  metrics are zero. This records the route decision after the graphs:
+  emitted-tree `bsimpCubic` is negative evidence, and the active target is
+  memo strong tree plus exact POSIX reconstruction and final-active row-DAG
+  accounting. This is infrastructure only; no bounty is claimed.
 - Final raw DAG handoff: `FBound.thy` now checks
   `strong_deferred_final_raw_dag_size_empty_le_rxsize`,
   `strong_deferred_final_raw_dag_size_singleton_le_rxsize_square`, and

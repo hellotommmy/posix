@@ -2610,6 +2610,50 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
       strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure)
 
+lemma strong_deferred_final_active_suffix_row_dag_universe_empty:
+  assumes "strong_deferred_final_active_suffix_rows r s = {}"
+  shows "strong_deferred_final_active_suffix_row_dag_universe r s = {}"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_dag_universe_empty)
+
+lemma strong_deferred_final_active_suffix_row_dag_universe_empty_iff:
+  "strong_deferred_final_active_suffix_row_dag_universe r s = {} \<longleftrightarrow>
+    strong_deferred_final_active_suffix_rows r s = {}"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_dag_universe_empty_iff)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_eq_zero_iff:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) = 0 \<longleftrightarrow>
+    strong_deferred_final_active_suffix_rows r s = {}"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_empty_iff)
+
+lemma strong_deferred_final_active_suffix_keys_empty:
+  assumes "strong_deferred_final_active_suffix_rows r s = {}"
+  shows "strong_deferred_final_active_suffix_keys r s = {}"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_keys_empty)
+
+lemma strong_deferred_final_active_suffix_pair_budget_empty:
+  assumes "strong_deferred_final_active_suffix_rows r s = {}"
+  shows "strong_deferred_final_active_suffix_pair_budget r s = 0"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_pair_budget_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_pair_budget_empty)
+
+lemma strong_deferred_final_active_suffix_max_row_dag_empty:
+  assumes "strong_deferred_final_active_suffix_rows r s = {}"
+  shows "strong_deferred_final_active_suffix_max_row_dag r s = 0"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_max_row_dag_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_max_row_dag_empty)
+
 lemma strong_deferred_final_active_suffix_row_member_le_max_row_dag:
   assumes "q \<in> strong_deferred_final_active_suffix_rows r s"
   shows "card (rsubterms q) \<le>

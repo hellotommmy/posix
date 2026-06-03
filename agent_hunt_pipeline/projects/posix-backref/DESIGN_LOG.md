@@ -5,6 +5,23 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Current route after the derivative-size graphs: do not rescue emitted-tree
+  `bsimpCubic`. The proof target is memo strong tree as a nullable recognition
+  gate, exact original-regex POSIX reconstruction via
+  `strong_deferred_span_value`, and final-active row-DAG accounting.
+- Added empty-row bridge facts at both raw and lifted levels, including
+  `raw_final_active_suffix_row_dag_universe_empty_iff`,
+  `raw_final_active_suffix_pair_budget_empty`,
+  `raw_final_active_suffix_max_row_dag_empty`,
+  `strong_deferred_final_active_suffix_row_dag_universe_empty_iff`,
+  `strong_deferred_final_active_suffix_pair_budget_empty`, and
+  `strong_deferred_final_active_suffix_max_row_dag_empty`. This formalizes why
+  a large inactive whole-final DAG with `finalRows=0` should not block the
+  primary row-DAG theorem.
+- Do not revive linear raw-tree one-step bounds such as
+  `asize (bder c (intern r)) <= K * rxsize r` as the main route; they miss the
+  sharing that the final-active row-DAG metric is designed to expose. Raw tree
+  bounds may be useful as diagnostics only.
 - Added the final raw DAG handoff
   `strong_deferred_original_final_raw_dag_linear_contract`, plus the checked
   base facts `strong_deferred_final_raw_dag_size_empty_le_rxsize` and

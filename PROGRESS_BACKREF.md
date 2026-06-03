@@ -2,6 +2,37 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Empty Final-Active Budget Bridge (2026-06-04)
+
+- Accepted the graph/smoke evidence: emitted-tree `bsimpCubic` is no longer a
+  theorem candidate. Future work should make the memo strong tree route work
+  for exact POSIX values, then prove the final-active row-DAG accounting
+  theorem.
+- Removed an uncommitted attempt to prove a linear raw-tree one-step theorem
+  for `asize (bder c (intern r))`; that target is the wrong metric because it
+  loses the sharing that makes the memo route plausible.
+- Added checked raw and lifted empty-row bridge facts:
+  - `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universe_empty`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universe_empty_iff`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_keys_empty`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_pair_budget_empty`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_max_row_dag_empty`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_empty`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_empty_iff`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_eq_zero_iff`
+  - `FBound.thy:strong_deferred_final_active_suffix_keys_empty`
+  - `FBound.thy:strong_deferred_final_active_suffix_pair_budget_empty`
+  - `FBound.thy:strong_deferred_final_active_suffix_max_row_dag_empty`
+- Design meaning: examples with large whole-final DAG but `finalRows=0` are
+  now formally separated from the active metric. The BR-040 target remains:
+  exact POSIX reconstruction via `strong_deferred_span_value`, with size
+  controlled by final-active row-DAG universe/max-row-DAG facts.
+- Verification: focused Isabelle `Posix` build passed. Full local CI passed.
+  A follow-up strong-memo Scala smoke with seed `20260602`, `1,000` random
+  depth-5/input-6 cases, and Chapter 7 `k=5` lengths through `80` also passed.
+  At `k=5,n=80`, the strong tree is `957`, `finalRows=5`,
+  `finalMaxRowDag=31`, and `finalPairs=17`. No bounty is claimed.
+
 ## Cubic Route Checkpoint: Final Raw DAG Handoff (2026-06-04)
 
 - Added checked metric base facts for the memo-strong final recognition DAG:
