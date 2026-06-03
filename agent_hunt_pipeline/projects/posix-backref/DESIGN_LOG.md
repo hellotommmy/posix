@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Same-suffix closure is the active proof contract
+
+- Added `raw_shared_prune_same_suffix_closure_subsetI` and
+  `raw_shared_prune_closed_iff_same_suffix_closure_subset`.
+- Under the existing `flat_closed` premise, the old abstract
+  `raw_shared_prune_closed U` proof obligation is equivalent to the concrete
+  same-suffix closure obligation
+  `raw_shared_prune_same_suffix_closure U \<subseteq> U`.
+- Added same-suffix variants of the raw row-size and memo cubic interfaces,
+  ending in
+  `FBound.thy:strong_deferred_original_raw_row_norm_same_suffix_memo_cubic_interface`.
+- Design consequence: future universe work should not prove an undirected
+  global pair-closure property first. It should organize the universe by
+  continuation/suffix bucket, prove same-suffix row-difference closure in each
+  bucket, and then instantiate this interface.
+
 ## 2026-06-03: Memo strong tree is the proof target
 
 - Decision: stop treating emitted-tree `bsimpCubic` as the main cubic-bound

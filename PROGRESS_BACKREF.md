@@ -2,6 +2,31 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Same-Suffix Memo Interface (2026-06-03)
+
+- Added proof-side bridge lemmas in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_same_suffix_closure_subsetI`;
+  - `raw_shared_prune_closed_iff_same_suffix_closure_subset`.
+- Under the existing singleton-flattening closure premise, the old abstract
+  `raw_shared_prune_closed U` obligation is now equivalent to the concrete
+  same-suffix closure obligation
+  `raw_shared_prune_same_suffix_closure U \<subseteq> U`.
+- Added same-suffix row-size interfaces:
+  - `rsizes_rpders_strong1_rows_raw_norm_same_suffix_finite_universe_boundI`;
+  - `rsizes_rpders_strong1_rows_raw_norm_same_suffix_cubic_universe_boundI`.
+- Added corresponding `FBound.thy` interfaces:
+  - `asizes_bpders_strong1_rows_raw_norm_same_suffix_cubic_universe_boundI`;
+  - `strong_deferred_original_raw_row_norm_same_suffix_cubic_universe_interface`;
+  - `strong_deferred_original_raw_row_norm_same_suffix_memo_cubic_interface`.
+- This is the current preferred theorem shape for the memo strong tree route.
+  A future concrete universe should prove finite/card/member-size/cubic
+  accounting plus this same-suffix closure premise, then instantiate the memo
+  interface directly.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Decision: Focus Memo Strong Tree (2026-06-03)
 
 - Current decision: do not invest more proof effort in the emitted-tree

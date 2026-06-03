@@ -20534,6 +20534,39 @@ proof (unfold raw_shared_prune_closed_def, intro allI impI)
         rsimpStrong_prune_pair_raw_def)
 qed
 
+lemma raw_shared_prune_same_suffix_closure_subsetI:
+  assumes flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+proof -
+  have "raw_shared_prune_pair_closure U \<subseteq> U"
+    by (rule raw_shared_prune_pair_closure_subsetI[OF flat_closed closed])
+  then show ?thesis
+    using raw_shared_prune_same_suffix_closure_subset_pair_closure by blast
+qed
+
+lemma raw_shared_prune_closed_iff_same_suffix_closure_subset:
+  assumes flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+  shows "raw_shared_prune_closed U \<longleftrightarrow>
+    raw_shared_prune_same_suffix_closure U \<subseteq> U"
+proof
+  assume closed: "raw_shared_prune_closed U"
+  show "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+  proof (rule raw_shared_prune_same_suffix_closure_subsetI)
+    fix q
+    assume "q \<in> U"
+    then show "set (rflts [q]) \<subseteq> U"
+      by (rule flat_closed)
+  next
+    show "raw_shared_prune_closed U"
+      by (rule closed)
+  qed
+next
+  assume "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+  then show "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_same_suffix_closure_subset)
+qed
+
 lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
   "strong_prune_universe_bad_result \<notin>
     partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
@@ -21140,6 +21173,49 @@ proof -
   have "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
     by (rule rsizes_rpders_strong1_rows_raw_norm_closed_finite_universe_boundI
         [OF init flat_closed norm closed finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpders_strong1_rows_raw_norm_same_suffix_finite_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and same_suffix_closed: "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+proof -
+  have closed: "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_same_suffix_closure_subset
+        [OF same_suffix_closed])
+  show ?thesis
+    by (rule rsizes_rpders_strong1_rows_raw_norm_closed_finite_universe_boundI
+        [OF init flat_closed norm closed finite member_size])
+qed
+
+lemma rsizes_rpders_strong1_rows_raw_norm_same_suffix_cubic_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and same_suffix_closed: "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+proof -
+  have "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_same_suffix_finite_universe_boundI
+        [OF init flat_closed norm same_suffix_closed finite member_size])
   also have "... \<le> C * M"
     by (rule mult_right_mono[OF card_bound]) simp
   also have "... \<le> B"
