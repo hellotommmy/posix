@@ -1,6 +1,41 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (metric-only long-tail diagnostics)
+Last updated: 2026-06-03 (Chapter 7 size-grid plots)
+
+## Cubic Diagnostic: Chapter 7 Size-Grid Side Task (2026-06-03)
+
+- Added a reusable plot pipeline:
+  - `agent_hunt_pipeline/scripts/ch7_size_grid.ps1`
+  - `agent_hunt_pipeline/scripts/plot_ch7_size_grid.py`
+  - output directory `agent_hunt_pipeline/reports/ch7_size_grid/`
+- The Scala side now has a CSV-only mode controlled by
+  `POSIX_SMOKE_CH7_SIZE_CSV`, so plots use the same executable definitions as
+  the smoke suite rather than a second reimplementation.
+- Default command:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\ch7_size_grid.ps1`
+  generates `k=1..8`, `n=0..30` charts for:
+  - `strongTree`: thesis-style `bsimpStrong` ordinary tree size;
+  - `cubicTree`: current `bsimpCubic` ordinary tree size under
+    `unary-cover-no-reassoc`;
+  - `sharedShapeStatePool`: current shared direct-DAG erased shape pool;
+  - `langContPruneShapeStatePool`: current language-continuation diagnostic.
+- Current Figure-7.6-style result, `k=1..8`, `n=0..30`:
+  - `strongTree`, k=5: `n=30 -> 958`, max `960`;
+  - `strongTree`, k=8: `n=30 -> 2747`, max `2778`;
+  - `cubicTree`, k=5: `n=30 -> 3245`;
+  - `cubicTree`, k=8: `n=30 -> 7587`;
+  - `sharedShapeStatePool`, k=5/k=8 at `n=30`: `159` / `192`;
+  - `langContPruneShapeStatePool`, k=5/k=8 at `n=30`: `52` / `76`.
+- Design consequence:
+  - By ordinary tree size, the current `bsimpCubic` attempt is not yet as
+    strong as the thesis Chapter 7 `bsimpStrong` simplification.
+  - The shared metrics are much smaller, but they are a different
+    representation-level measure and cannot be presented as a tree-size
+    reproduction without a reconstruction theorem.
+  - The experimental `langAtomicContPruneShapeStatePool` was kept available
+    as an optional metric, but it collapses the all-unary Chapter 7 family too
+    aggressively and is currently only a warning example of over-quotienting.
+  - No BR-039/BR-040 payout is claimed.
 
 ## Cubic Diagnostic: Metric-Only Language-Continuation Long Tail (2026-06-03)
 

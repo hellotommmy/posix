@@ -1053,6 +1053,7 @@ object PosixCubicSmoke {
     private val contPruneShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
     private val unaryPatsApproxMemo = scala.collection.mutable.HashMap.empty[Int, Option[List[UnaryPat]]]
     private val langContPruneShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
+    private val langAtomicContPruneShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
     private val shapeIntern = scala.collection.mutable.HashMap.empty[ShapeForm, Int]
     private var nextShapeId = 0
 
@@ -1529,6 +1530,51 @@ object PosixCubicSmoke {
       seenShapes.toSet
     }
 
+    def langAtomicContPruneShapeId(id: Int): Int =
+      langAtomicContPruneShapeIdMemo.getOrElseUpdate(id,
+        unaryPatsApproxId(id) match {
+          case Some(ps) => patSetShapeId(ps)
+          case None =>
+            node(id) match {
+              case DZero => patSetShapeId(Nil)
+              case DOne(_) => patSetShapeId(List(UFinite(0)))
+              case DChar(_, 'a') => patSetShapeId(List(UFinite(1)))
+              case DChar(_, c) => internShape(FChar(c))
+              case DSeq(_, r1, r2) =>
+                internShape(FSeq(langAtomicContPruneShapeId(r1), langAtomicContPruneShapeId(r2)))
+              case DAlts(_, rs) =>
+                internShape(FAlts(pruneLangContinuationCoveredIds(rs).map(langAtomicContPruneShapeId).toVector))
+              case DStar(_, body) => internShape(FStar(langAtomicContPruneShapeId(body)))
+              case DNTimes(_, body, n) => internShape(FNTimes(langAtomicContPruneShapeId(body), n))
+            }
+        })
+
+    def reachableLangAtomicContPruneShapeIds(root: Int): Set[Int] = {
+      val seenNodes = scala.collection.mutable.Set.empty[Int]
+      val seenShapes = scala.collection.mutable.Set.empty[Int]
+      def visit(id: Int): Unit = {
+        if (seenNodes.add(id)) {
+          seenShapes += langAtomicContPruneShapeId(id)
+          if (unaryPatsApproxId(id).isEmpty) {
+            node(id) match {
+              case DSeq(_, r1, r2) =>
+                visit(r1)
+                visit(r2)
+              case DAlts(_, rs) =>
+                pruneLangContinuationCoveredIds(rs).foreach(visit)
+              case DStar(_, body) =>
+                visit(body)
+              case DNTimes(_, body, _) =>
+                visit(body)
+              case _ => ()
+            }
+          }
+        }
+      }
+      visit(root)
+      seenShapes.toSet
+    }
+
     def compactShapeKey(id: Int): String =
       aRunLen(id) match {
         case Some(0) => "1"
@@ -1562,6 +1608,7 @@ object PosixCubicSmoke {
       unaryPruneShapeStatePoolSize: Int,
       contPruneShapeStatePoolSize: Int,
       langContPruneShapeStatePoolSize: Int,
+      langAtomicContPruneShapeStatePoolSize: Int,
       poolSize: Int
   )
 
@@ -1619,6 +1666,7 @@ object PosixCubicSmoke {
     val unaryPruneShapeStatePool = prefixRoots.flatMap(store.reachableUnaryPruneShapeIds).toSet.size
     val contPruneShapeStatePool = prefixRoots.flatMap(store.reachableContPruneShapeIds).toSet.size
     val langContPruneShapeStatePool = prefixRoots.flatMap(store.reachableLangContPruneShapeIds).toSet.size
+    val langAtomicContPruneShapeStatePool = prefixRoots.flatMap(store.reachableLangAtomicContPruneShapeIds).toSet.size
     SharedResult(
       value,
       asize(finalRegex),
@@ -1631,6 +1679,7 @@ object PosixCubicSmoke {
       unaryPruneShapeStatePool,
       contPruneShapeStatePool,
       langContPruneShapeStatePool,
+      langAtomicContPruneShapeStatePool,
       store.totalSize
     )
   }
@@ -3300,7 +3349,7 @@ object PosixCubicSmoke {
                |input   = $s
                |base    = $b
                |shared  = ${shared.value}
-               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, langContPruneShapeStatePool=${shared.langContPruneShapeStatePoolSize}, pool=${shared.poolSize}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, langContPruneShapeStatePool=${shared.langContPruneShapeStatePoolSize}, langAtomicContPruneShapeStatePool=${shared.langAtomicContPruneShapeStatePoolSize}, pool=${shared.poolSize}
                |""".stripMargin
           )
         }
@@ -3345,7 +3394,7 @@ object PosixCubicSmoke {
              |input   = $s
              |base    = $b
              |shared  = ${shared.value}
-             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, langContPruneShapeStatePool=${shared.langContPruneShapeStatePoolSize}, pool=${shared.poolSize}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, langContPruneShapeStatePool=${shared.langContPruneShapeStatePoolSize}, langAtomicContPruneShapeStatePool=${shared.langAtomicContPruneShapeStatePoolSize}, pool=${shared.poolSize}
              |""".stripMargin
         )
       }
@@ -3373,7 +3422,7 @@ object PosixCubicSmoke {
     }
     println(s"Chapter 7 k=$k $label $seqMode trace: " +
       trace.map { case (n, out) =>
-        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize}/pool=${out.poolSize}"
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize}/langAtomicContPruneShapeStatePool=${out.langAtomicContPruneShapeStatePoolSize}/pool=${out.poolSize}"
       }.mkString(", "))
     trace.foreach { case (n, out) =>
       if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
@@ -3407,10 +3456,12 @@ object PosixCubicSmoke {
       case "unaryPruneShapeStatePool" | "unaryPruneShapePool" => out.unaryPruneShapeStatePoolSize
       case "contPruneShapeStatePool" | "contPruneShapePool" => out.contPruneShapeStatePoolSize
       case "langContPruneShapeStatePool" | "langContPruneShapePool" => out.langContPruneShapeStatePoolSize
+      case "langAtomicContPruneShapeStatePool" | "langAtomicContPruneShapePool" =>
+        out.langAtomicContPruneShapeStatePoolSize
       case "pool" => out.poolSize
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, altSetShapeStatePool, altSetShapePool, unaryModShapeStatePool, unaryModShapePool, unaryPruneShapeStatePool, unaryPruneShapePool, contPruneShapeStatePool, contPruneShapePool, langContPruneShapeStatePool, langContPruneShapePool, or pool"
+          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, altSetShapeStatePool, altSetShapePool, unaryModShapeStatePool, unaryModShapePool, unaryPruneShapeStatePool, unaryPruneShapePool, contPruneShapeStatePool, contPruneShapePool, langContPruneShapeStatePool, langContPruneShapePool, langAtomicContPruneShapeStatePool, langAtomicContPruneShapePool, or pool"
         )
     }
 
@@ -3453,6 +3504,8 @@ object PosixCubicSmoke {
         case "unaryPruneShapeStatePool" | "unaryPruneShapePool" => store.reachableUnaryPruneShapeIds(id)
         case "contPruneShapeStatePool" | "contPruneShapePool" => store.reachableContPruneShapeIds(id)
         case "langContPruneShapeStatePool" | "langContPruneShapePool" => store.reachableLangContPruneShapeIds(id)
+        case "langAtomicContPruneShapeStatePool" | "langAtomicContPruneShapePool" =>
+          store.reachableLangAtomicContPruneShapeIds(id)
         case "dag" | "shape" | "shapeDag" | "pool" => Set.empty
         case _ => Set.empty
       }
@@ -3464,6 +3517,8 @@ object PosixCubicSmoke {
     var unaryPruneShapeStatePoolKeys = if (metricOnly) Set.empty[Int] else store.reachableUnaryPruneShapeIds(root)
     var contPruneShapeStatePoolKeys = if (metricOnly) Set.empty[Int] else store.reachableContPruneShapeIds(root)
     var langContPruneShapeStatePoolKeys = if (metricOnly) Set.empty[Int] else store.reachableLangContPruneShapeIds(root)
+    var langAtomicContPruneShapeStatePoolKeys =
+      if (metricOnly) Set.empty[Int] else store.reachableLangAtomicContPruneShapeIds(root)
     var metricOnlyKeys = if (metricOnly) metricOnlyRootKeys(root) else Set.empty[Int]
     var shapeWitnesses = statePoolIds.iterator.map(id => store.shapeId(id) -> id).toMap
 
@@ -3488,6 +3543,7 @@ object PosixCubicSmoke {
         if (metric == "unaryPruneShapeStatePool" || metric == "unaryPruneShapePool") value else -1,
         if (metric == "contPruneShapeStatePool" || metric == "contPruneShapePool") value else -1,
         if (metric == "langContPruneShapeStatePool" || metric == "langContPruneShapePool") value else -1,
+        if (metric == "langAtomicContPruneShapeStatePool" || metric == "langAtomicContPruneShapePool") value else -1,
         if (metric == "pool") value else store.totalSize
       )
 
@@ -3508,6 +3564,7 @@ object PosixCubicSmoke {
           unaryPruneShapeStatePoolKeys.size,
           contPruneShapeStatePoolKeys.size,
           langContPruneShapeStatePoolKeys.size,
+          langAtomicContPruneShapeStatePoolKeys.size,
           store.totalSize
         )
       }
@@ -3528,7 +3585,7 @@ object PosixCubicSmoke {
       points += ((currentLength, out, value))
       if (progress) {
         println(
-          s"Chapter 7 k=$k $label $seqMode long-tail-progress n=$currentLength metric=$metric value=$value tree=${out.treeSize} dag=${out.dagSize} shape=${out.shapeDagSize} statePool=${out.statePoolSize} shapeStatePool=${out.shapeStatePoolSize} altSetShapeStatePool=${out.altSetShapeStatePoolSize} unaryModShapeStatePool=${out.unaryModShapeStatePoolSize} unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize} contPruneShapeStatePool=${out.contPruneShapeStatePoolSize} langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize} pool=${out.poolSize}"
+          s"Chapter 7 k=$k $label $seqMode long-tail-progress n=$currentLength metric=$metric value=$value tree=${out.treeSize} dag=${out.dagSize} shape=${out.shapeDagSize} statePool=${out.statePoolSize} shapeStatePool=${out.shapeStatePoolSize} altSetShapeStatePool=${out.altSetShapeStatePoolSize} unaryModShapeStatePool=${out.unaryModShapeStatePoolSize} unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize} contPruneShapeStatePool=${out.contPruneShapeStatePoolSize} langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize} langAtomicContPruneShapeStatePool=${out.langAtomicContPruneShapeStatePoolSize} pool=${out.poolSize}"
         )
       }
       if (!metricOnly) {
@@ -3588,6 +3645,8 @@ object PosixCubicSmoke {
             unaryPruneShapeStatePoolKeys = unaryPruneShapeStatePoolKeys ++ store.reachableUnaryPruneShapeIds(root)
             contPruneShapeStatePoolKeys = contPruneShapeStatePoolKeys ++ store.reachableContPruneShapeIds(root)
             langContPruneShapeStatePoolKeys = langContPruneShapeStatePoolKeys ++ store.reachableLangContPruneShapeIds(root)
+            langAtomicContPruneShapeStatePoolKeys =
+              langAtomicContPruneShapeStatePoolKeys ++ store.reachableLangAtomicContPruneShapeIds(root)
             ids.foreach { id =>
               val key = store.shapeId(id)
               if (!shapeWitnesses.contains(key)) {
@@ -3601,7 +3660,7 @@ object PosixCubicSmoke {
       }
     }
     val renderedPoints = points.map { case (len, out, value) =>
-      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize}/pool=${out.poolSize}"
+      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/langContPruneShapeStatePool=${out.langContPruneShapeStatePoolSize}/langAtomicContPruneShapeStatePool=${out.langAtomicContPruneShapeStatePoolSize}/pool=${out.poolSize}"
     }.toVector
     val compact =
       if (renderedPoints.length <= 24) renderedPoints.mkString(", ")
@@ -3687,6 +3746,65 @@ object PosixCubicSmoke {
       trace.map { case (n, (tree, dag, shape)) =>
         s"$n->$tree/dag=$dag/shape=$shape"
       }.mkString(", "))
+  }
+
+  private def csvEscape(s: String): String =
+    "\"" + s.replace("\"", "\"\"") + "\""
+
+  private def ch7SizeValue(metric: String, seqMode: String, r: Rexp, input: String): Long =
+    metric match {
+      case "strongTree" => asize(bdersStrong(intern(r), input)).toLong
+      case "strongDag" => adagSize(bdersStrong(intern(r), input)).toLong
+      case "strongShape" => ashapeDagSize(bdersStrong(intern(r), input)).toLong
+      case "strongSafeTree" => asize(bdersStrongSafe(intern(r), input)).toLong
+      case "strongSafeDag" => adagSize(bdersStrongSafe(intern(r), input)).toLong
+      case "strongSafeShape" => ashapeDagSize(bdersStrongSafe(intern(r), input)).toLong
+      case "cubicTree" => asize(bdersSimpCubic(intern(r), input)).toLong
+      case "cubicDag" => adagSize(bdersSimpCubic(intern(r), input)).toLong
+      case "cubicShape" => ashapeDagSize(bdersSimpCubic(intern(r), input)).toLong
+      case "sharedTree" => sharedModeResult(seqMode, r, input, directDag = true).treeSize.toLong
+      case "sharedDag" => sharedModeResult(seqMode, r, input, directDag = true).dagSize.toLong
+      case "sharedShape" => sharedModeResult(seqMode, r, input, directDag = true).shapeDagSize.toLong
+      case "sharedStatePool" => sharedModeResult(seqMode, r, input, directDag = true).statePoolSize.toLong
+      case "sharedShapeStatePool" => sharedModeResult(seqMode, r, input, directDag = true).shapeStatePoolSize.toLong
+      case "langContPruneShapeStatePool" =>
+        sharedModeResult(seqMode, r, input, directDag = true).langContPruneShapeStatePoolSize.toLong
+      case "langAtomicContPruneShapeStatePool" =>
+        sharedModeResult(seqMode, r, input, directDag = true).langAtomicContPruneShapeStatePoolSize.toLong
+      case other =>
+        throw new IllegalArgumentException(
+          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
+        )
+    }
+
+  def writeCh7SizeCsv(
+      path: String,
+      ks: List[Int],
+      lengths: List[Int],
+      metrics: List[String],
+      seqMode: String
+  ): Unit = {
+    val p = java.nio.file.Paths.get(path)
+    val parent = p.getParent
+    if (parent != null) java.nio.file.Files.createDirectories(parent)
+    val out = new java.io.PrintWriter(java.nio.file.Files.newBufferedWriter(p))
+    try {
+      out.println("k,n,metric,value,seqMode")
+      for {
+        k <- ks
+        n <- lengths
+      } {
+        val r = thesisCh7Evil(k)
+        val input = "a" * n
+        metrics.foreach { metric =>
+          val value = ch7SizeValue(metric, seqMode, r, input)
+          out.println(s"$k,$n,${csvEscape(metric)},$value,${csvEscape(seqMode)}")
+        }
+      }
+    } finally {
+      out.close()
+    }
+    println(s"wrote Chapter 7 size CSV: $path")
   }
 
   def checkStrongDeferredMemoEvilFamilyTrace(
@@ -4578,6 +4696,13 @@ object PosixCubicSmoke {
       .orElse(sys.env.get(env))
       .getOrElse(default)
 
+  def stringListSetting(prop: String, env: String, default: List[String]): List[String] =
+    stringSetting(prop, env, default.mkString(","))
+      .split(",")
+      .toList
+      .map(_.trim)
+      .filter(_.nonEmpty)
+
   def intListSetting(prop: String, env: String, default: List[Int]): List[Int] =
     stringSetting(prop, env, default.mkString(","))
       .split(",")
@@ -4604,6 +4729,23 @@ object PosixCubicSmoke {
     val randomDepth = intSetting("posix.smoke.randomDepth", "POSIX_SMOKE_RANDOM_DEPTH", 5)
     val randomInputMax = intSetting("posix.smoke.randomInput", "POSIX_SMOKE_RANDOM_INPUT", 6)
     val randomSeed = longSetting("posix.smoke.seed", "POSIX_SMOKE_SEED", 20260602L)
+    val ch7SizeCsv = stringSetting("posix.smoke.ch7SizeCsv", "POSIX_SMOKE_CH7_SIZE_CSV", "")
+    val ch7SizeKs = intListSetting("posix.smoke.ch7SizeKs", "POSIX_SMOKE_CH7_SIZE_KS", List(3, 5, 8))
+    val ch7SizeLengths = intListSetting(
+      "posix.smoke.ch7SizeLengths",
+      "POSIX_SMOKE_CH7_SIZE_LENGTHS",
+      (0 to 30).toList
+    )
+    val ch7SizeMetrics = stringListSetting(
+      "posix.smoke.ch7SizeMetrics",
+      "POSIX_SMOKE_CH7_SIZE_METRICS",
+      List(
+        "strongTree",
+        "cubicTree",
+        "sharedShapeStatePool",
+        "langContPruneShapeStatePool"
+      )
+    )
     val ch7K = intSetting("posix.smoke.ch7K", "POSIX_SMOKE_CH7_K", 5)
     val ch7Lengths = intListSetting("posix.smoke.ch7Lengths", "POSIX_SMOKE_CH7_LENGTHS", List(4, 8, 12, 16, 20))
     val ch7TreeThreshold = intSetting("posix.smoke.ch7TreeThreshold", "POSIX_SMOKE_CH7_TREE_THRESHOLD", 1000)
@@ -4650,6 +4792,10 @@ object PosixCubicSmoke {
     val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
     val skipLegacyCubic = boolSetting("posix.smoke.skipLegacyCubic", "POSIX_SMOKE_SKIP_LEGACY_CUBIC", false)
     println(s"bsimpCubic sequence mode: $cubicSeqMode")
+    if (ch7SizeCsv.nonEmpty) {
+      writeCh7SizeCsv(ch7SizeCsv, ch7SizeKs, ch7SizeLengths, ch7SizeMetrics, cubicSeqMode)
+      return
+    }
     if (!skipLegacyCubic) {
       checkValuePreservation(maxDepth, maxInput, maxRegexes)
       if (randomCases > 0) {

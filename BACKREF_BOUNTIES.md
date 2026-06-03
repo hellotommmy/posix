@@ -63,6 +63,16 @@ immutability.
 
 ## Open Artifact Notes
 
+- Chapter 7 plotting side task: `agent_hunt_pipeline/scripts/ch7_size_grid.ps1`
+  now generates CSV and SVG plots under
+  `agent_hunt_pipeline/reports/ch7_size_grid/`, using the Scala smoke model as
+  the source of truth. The current default grid compares thesis-style
+  `strongTree`, current `cubicTree`, `sharedShapeStatePool`, and
+  `langContPruneShapeStatePool` for `k=1..8,n=0..30`. This is BR-038
+  visualization/tooling only. It shows current `cubicTree` is not yet as
+  strong as thesis Chapter 7 ordinary tree simplification: at `k=5,n=30`,
+  `strongTree=958` versus `cubicTree=3245`; at `k=8,n=30`, `strongTree=2747`
+  versus `cubicTree=7587`.
 - Direct-DAG shared smoke prototype: `PosixCubicSmoke.scala` now has an
   optional direct hash-consed derivative/simplifier path, exposed by
   `-SharedDirectDag` / `-ScalaSmokeSharedDirectDag`. The optional

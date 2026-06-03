@@ -242,6 +242,22 @@ structure. A future tree-level strong route must repair that simplifier or add
 a checked generalized-value reconstruction theorem before any POSIX/cubic
 bounty can rely on it.
 
+Keep the Chapter 7 size intuition visible. Use
+`agent_hunt_pipeline/scripts/ch7_size_grid.ps1` to generate CSV and SVG plots
+of simplified derivative size as `k` and input length `n` vary. The default
+report goes to `agent_hunt_pipeline/reports/ch7_size_grid/` and compares
+`strongTree` (the thesis-style `bsimpStrong` ordinary tree baseline),
+`cubicTree` (current `bsimpCubic` ordinary tree size),
+`sharedShapeStatePool`, and `langContPruneShapeStatePool`. Before claiming
+that a new simplifier is at least as strong as thesis Chapter 7, regenerate
+this report and compare ordinary tree sizes, not only shared/DAG metrics.
+Current baseline: for `k=5,n=30`, `strongTree=958` while current
+`cubicTree=3245`; for `k=8,n=30`, `strongTree=2747` while current
+`cubicTree=7587`. The current tree simplifier is therefore not yet thesis-good.
+The optional `langAtomicContPruneShapeStatePool` metric is deliberately not a
+default plot metric because it collapses the all-unary Chapter 7 family too
+coarsely and currently has no POSIX reconstruction meaning.
+
 The CE-driven `bsimpStrongSafe` diagnostic is useful but not the destination.
 It disables nested-star collapse, nonempty right-unit deletion, star absorption,
 and sequence reassociation in output syntax; this passes deeper exact-value

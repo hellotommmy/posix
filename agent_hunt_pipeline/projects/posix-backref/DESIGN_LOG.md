@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Chapter 7 size-grid plots are now a required intuition check
+
+- Added `agent_hunt_pipeline/scripts/ch7_size_grid.ps1` and
+  `plot_ch7_size_grid.py`. The script asks the Scala smoke model to emit a
+  CSV and then renders dependency-free SVG plots over Chapter 7 parameters
+  `k` and input length `n`.
+- Default report:
+  `agent_hunt_pipeline/reports/ch7_size_grid/index.html`.
+- Current default grid is `k=1..8`, `n=0..30`, with metrics
+  `strongTree`, `cubicTree`, `sharedShapeStatePool`, and
+  `langContPruneShapeStatePool`.
+- The result is sobering and useful: the thesis-style `bsimpStrong` baseline
+  is still better by ordinary tree size. At `k=5,n=30`,
+  `strongTree=958` while current `cubicTree=3245`; at `k=8,n=30`,
+  `strongTree=2747` while current `cubicTree=7587`.
+- Design consequence: shared diagnostics may be promising, but the current
+  emitted tree simplifier is not yet Chapter-7-good. Any future candidate
+  should regenerate the plot before theorem work, and must distinguish ordinary
+  tree-size claims from shared-representation claims.
+
 ## 2026-06-03: Metric-only long-tail tests expose a stronger but still incomplete quotient
 
 - Added `-SharedPlateauMetricOnly` and the matching CI flag
