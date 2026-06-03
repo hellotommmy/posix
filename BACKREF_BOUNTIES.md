@@ -97,6 +97,16 @@ immutability.
   `strongMemoFinalActivePairBudget` maxes at `17`, `65`, `101`, and `145`.
   This suggests the next proof should target final-state active rows, not raw
   prefix-pool rows.
+- Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
+  `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
+  `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
+  `bders_simpStrong (intern r) s` tree via
+  `strong_deferred_final_active_suffix_rows` and packages the checked route in
+  `strong_deferred_memo_tree_value_final_active_interface`. This links exact
+  POSIX reconstruction, span/split memo budgets, and the final-active row
+  bound by final `asize`. It is BR-040 infrastructure only; it does not pay
+  until the final-active row/pair-budget cubic theorem or equivalent quotient
+  theorem is checked.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.

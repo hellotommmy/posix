@@ -2,6 +2,37 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Active Strong Tree Bridge (2026-06-03)
+
+- Retired `bsimpCubic` as the active candidate after the derivative-size
+  graphs: it is useful negative evidence, not the route to optimize now.
+- Added proof-facing final-active definitions for the memo-strong route:
+  - `GeneralRegexBound.thy:raw_final_active_suffix_rows`;
+  - `GeneralRegexBound.thy:raw_final_active_suffix_keys`;
+  - `GeneralRegexBound.thy:raw_final_active_suffix_pair_budget`;
+  - `FBound.thy:strong_deferred_final_raw`;
+  - `FBound.thy:strong_deferred_final_active_suffix_rows`;
+  - `FBound.thy:strong_deferred_final_active_suffix_keys`;
+  - `FBound.thy:strong_deferred_final_active_suffix_pair_budget`.
+- Checked bridge lemmas now state that final active rows are filtered
+  subterms of the final strong tree, hence finite and bounded by the final
+  `asize`; the theorem
+  `strong_deferred_memo_tree_value_final_active_interface` packages exact
+  POSIX reconstruction via `lexer`, the final-active row bound, and the
+  existing span/split memo budgets.
+- Extra smoke:
+  - k=5, lengths `4..80`: strong memo tree peak `959`, under threshold `1000`;
+  - k=8, lengths `4..80`: strong memo tree peak `3245`, under threshold `4000`;
+  - deterministic random smoke: `1000` cases at depth `5`, input length `6`,
+    seed `20260602`, exact POSIX values preserved.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- No BR-039/BR-040 payout is claimed. The next hard proof target is a cubic
+  bound for final-active rows/pair-budget, or an indexed quotient explaining
+  the prefix pool without counting every prefix row separately.
+
 ## Cubic Route Checkpoint: Final Active Metrics Added and Stressed (2026-06-03)
 
 - Added Scala smoke metrics for the active suffix rows reachable in only the

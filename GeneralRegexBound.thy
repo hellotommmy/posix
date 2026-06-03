@@ -20542,6 +20542,19 @@ definition raw_shared_prune_active_suffix_pair_budget :: "rrexp set \<Rightarrow
       card (raw_shared_prune_active_suffix_bucket U k) *
       card (raw_shared_prune_active_suffix_bucket U k))"
 
+definition raw_final_active_suffix_rows :: "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_rows r =
+    {q \<in> rsubterms r. raw_shared_prune_suffix_key q \<noteq> None}"
+
+definition raw_final_active_suffix_keys :: "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_keys r =
+    raw_shared_prune_active_suffix_keys (raw_final_active_suffix_rows r)"
+
+definition raw_final_active_suffix_pair_budget :: "rrexp \<Rightarrow> nat" where
+  "raw_final_active_suffix_pair_budget r =
+    raw_shared_prune_active_suffix_pair_budget
+      (raw_final_active_suffix_rows r)"
+
 lemma raw_shared_prune_active_suffix_keys_mono:
   assumes "U \<subseteq> V"
   shows "raw_shared_prune_active_suffix_keys U \<subseteq>
@@ -20631,6 +20644,35 @@ proof -
   then show ?thesis
     using assms finite_subset by blast
 qed
+
+lemma raw_final_active_suffix_rows_subset_rsubterms:
+  "raw_final_active_suffix_rows r \<subseteq> rsubterms r"
+  by (auto simp add: raw_final_active_suffix_rows_def)
+
+lemma finite_raw_final_active_suffix_rows [simp]:
+  "finite (raw_final_active_suffix_rows r)"
+proof -
+  have "raw_final_active_suffix_rows r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_rows_subset_rsubterms)
+  then show ?thesis
+    by (rule finite_subset) simp
+qed
+
+lemma card_raw_final_active_suffix_rows_le_rsize:
+  "card (raw_final_active_suffix_rows r) \<le> rsize r"
+proof -
+  have rows_sub: "raw_final_active_suffix_rows r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_rows_subset_rsubterms)
+  have "card (raw_final_active_suffix_rows r) \<le> card (rsubterms r)"
+    by (rule card_mono) (simp_all add: rows_sub)
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
+lemma finite_raw_final_active_suffix_keys [simp]:
+  "finite (raw_final_active_suffix_keys r)"
+  by (simp add: raw_final_active_suffix_keys_def)
 
 lemma raw_shared_prune_active_suffix_pair_budget_mono:
   assumes sub: "U \<subseteq> V"
@@ -20969,6 +21011,36 @@ proof -
     by (rule mult_right_mono[OF keys_bound]) simp
   finally show ?thesis
     by simp
+qed
+
+lemma card_raw_final_active_suffix_pairs_le_pair_budget:
+  "card (raw_shared_prune_active_suffix_pairs
+      (raw_final_active_suffix_rows r)) \<le>
+    raw_final_active_suffix_pair_budget r"
+  by (simp add: raw_final_active_suffix_pair_budget_def
+      card_raw_shared_prune_active_suffix_pairs_le_pair_budget)
+
+lemma raw_final_active_suffix_pair_budget_bucket_bound:
+  assumes keys_bound: "card (raw_final_active_suffix_keys r) \<le> K"
+    and bucket_bound: "\<And>k. k \<in> raw_final_active_suffix_keys r \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k) \<le> B"
+  shows "raw_final_active_suffix_pair_budget r \<le> K * B * B"
+proof -
+  have keys: "card (raw_shared_prune_active_suffix_keys
+      (raw_final_active_suffix_rows r)) \<le> K"
+    using keys_bound by (simp add: raw_final_active_suffix_keys_def)
+  have buckets: "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+      (raw_final_active_suffix_rows r) \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k) \<le> B"
+    using bucket_bound by (simp add: raw_final_active_suffix_keys_def)
+  have "raw_shared_prune_active_suffix_pair_budget
+      (raw_final_active_suffix_rows r) \<le> K * B * B"
+    by (rule raw_shared_prune_active_suffix_pair_budget_bucket_bound)
+      (simp_all add: keys buckets)
+  then show ?thesis
+    by (simp add: raw_final_active_suffix_pair_budget_def)
 qed
 
 lemma card_raw_shared_prune_same_suffix_closure_bound:

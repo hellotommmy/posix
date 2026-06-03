@@ -393,6 +393,14 @@ reconstructed from original `(regex, input)` spans. This gate now includes the
 known nested-star and greedy-sequence CEs, so keep it green before trying any
 Isabelle proof route based on the strong tree plateau.
 
+After the 2026-06-03 derivative-size graphs, do not optimize the old
+emitted-tree `bsimpCubic` route. The proof-facing route is now the final
+active strong tree bridge: `raw_final_active_suffix_rows` on the erased final
+tree and `strong_deferred_final_active_suffix_rows` on
+`bders_simpStrong (intern r) s`. Future proof work should bound these
+final-active rows/pair-budgets, or introduce an indexed quotient for prefix
+rows, while preserving the checked deferred POSIX reconstruction theorem.
+
 When measuring this route on the Chapter 7 family, use
 `scala_cubic_smoke.ps1 -TraceStrongDeferredMemo` with explicit tree/DAG/shape
 thresholds. This trace is a guard, not just a report: it checks reconstructed

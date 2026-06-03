@@ -2549,6 +2549,104 @@ proof -
     by (rule strong_deferred_memo_budget(3))
 qed
 
+definition strong_deferred_final_raw :: "rexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "strong_deferred_final_raw r s =
+    rerase (bders_simpStrong (intern r) s)"
+
+definition strong_deferred_final_active_suffix_rows ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_rows r s =
+    raw_final_active_suffix_rows (strong_deferred_final_raw r s)"
+
+definition strong_deferred_final_active_suffix_keys ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_keys r s =
+    raw_final_active_suffix_keys (strong_deferred_final_raw r s)"
+
+definition strong_deferred_final_active_suffix_pair_budget ::
+  "rexp \<Rightarrow> string \<Rightarrow> nat" where
+  "strong_deferred_final_active_suffix_pair_budget r s =
+    raw_final_active_suffix_pair_budget (strong_deferred_final_raw r s)"
+
+lemma finite_strong_deferred_final_active_suffix_rows [simp]:
+  "finite (strong_deferred_final_active_suffix_rows r s)"
+  by (simp add: strong_deferred_final_active_suffix_rows_def)
+
+lemma finite_strong_deferred_final_active_suffix_keys [simp]:
+  "finite (strong_deferred_final_active_suffix_keys r s)"
+  by (simp add: strong_deferred_final_active_suffix_keys_def)
+
+lemma card_strong_deferred_final_active_suffix_rows_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_rows r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      card_raw_final_active_suffix_rows_le_rsize)
+
+lemma card_strong_deferred_final_active_suffix_rows_le_final_asize:
+  "card (strong_deferred_final_active_suffix_rows r s) \<le>
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      rsize (strong_deferred_final_raw r s)"
+    by (rule card_strong_deferred_final_active_suffix_rows_le_final_rsize)
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_final_active_suffix_pair_budget_bucket_bound:
+  assumes keys_bound:
+    "card (strong_deferred_final_active_suffix_keys r s) \<le> K"
+    and bucket_bound: "\<And>k. k \<in>
+      strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket
+        (strong_deferred_final_active_suffix_rows r s) k) \<le> B"
+  shows "strong_deferred_final_active_suffix_pair_budget r s \<le>
+    K * B * B"
+proof -
+  let ?raw = "strong_deferred_final_raw r s"
+  have keys: "card (raw_final_active_suffix_keys ?raw) \<le> K"
+    using keys_bound
+    by (simp add: strong_deferred_final_active_suffix_keys_def)
+  have buckets: "\<And>k. k \<in> raw_final_active_suffix_keys ?raw \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows ?raw) k) \<le> B"
+    using bucket_bound
+    by (simp add: strong_deferred_final_active_suffix_rows_def
+        strong_deferred_final_active_suffix_keys_def)
+  have "raw_final_active_suffix_pair_budget ?raw \<le> K * B * B"
+    by (rule raw_final_active_suffix_pair_budget_bucket_bound
+        [OF keys buckets])
+  then show ?thesis
+    by (simp add: strong_deferred_final_active_suffix_pair_budget_def)
+qed
+
+lemma strong_deferred_memo_tree_value_final_active_interface:
+  shows "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    by (rule strong_deferred_memo_exact_value_budget(1))
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule card_strong_deferred_final_active_suffix_rows_le_final_asize)
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(3))
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)

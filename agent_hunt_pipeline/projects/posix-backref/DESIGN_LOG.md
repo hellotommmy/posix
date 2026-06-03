@@ -3,6 +3,25 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong memo tree is now the active proof route
+
+- The derivative-size graphs make the emitted-tree `bsimpCubic` route
+  unattractive: it does not reproduce the thesis Chapter 7 tree plateau, so do
+  not spend proof effort optimizing it unless a new smoke-tested design
+  replaces it.
+- The active route is `StrongDeferredMemo`: run the thesis-strength
+  `bders_simpStrong` tree as a nullable/recognition gate, then reconstruct the
+  exact POSIX value from the original regex and input span relation.
+- Added checked final-active bridge definitions and lemmas:
+  `raw_final_active_suffix_rows`,
+  `raw_final_active_suffix_pair_budget`,
+  `strong_deferred_final_active_suffix_rows`, and
+  `strong_deferred_memo_tree_value_final_active_interface`.
+- Design consequence: future cubic work should prove a small final-active
+  row/pair-budget invariant for the final strong tree, or a quotient for the
+  prefix pool. It must not count the unquotiented cumulative prefix pool as the
+  final cubic proof object.
+
 ## 2026-06-03: Active closure is monotone
 
 - Added monotonicity lemmas for active suffix keys, buckets, pairs, closure,
