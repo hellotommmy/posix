@@ -75,14 +75,16 @@ large Isabelle `eval` lemmas. For this project the gate is
 `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, runnable via
 `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1` and by full
 `isabelle_ci.ps1`. The Scala model intentionally mirrors the non-backref
-lexer/simplifier definitions and performs exact POSIX value comparisons:
-`bsimpCubic` must produce the same decoded POSIX value/bitcode result as the
-baseline derivative lexer on bounded generated regexes and inputs. Language
-preservation alone is not enough for a cubic candidate.
+lexer/simplifier definitions and performs exact POSIX value comparisons.
+The current default route is `strong-memo`: `bsimpStrong` is used only as a
+small recognition tree, and exact POSIX values are reconstructed from the
+original regex via span/memo tables. Language preservation alone is not enough
+for a cubic candidate.
 
-Default CI runs the bounded exhaustive smoke only. Before any cubic proof or
-bounty attempt, also run deterministic deeper random smoke, for example
-`scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`.
+Default CI runs the bounded exhaustive `strong-memo` smoke plus the Chapter 7
+memo trace. Before any cubic proof or bounty attempt, also run deterministic
+deeper random smoke, for example
+`scala_cubic_smoke.ps1 -Route strong-memo -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`.
 If random smoke finds a POSIX value mismatch, the candidate is diagnostic only
 until the simplifier or value-reconstruction story is repaired.
 
@@ -95,6 +97,9 @@ the thesis `strongTree` baseline, the deferred `strongMemoTree` route, and the
 candidate/current emitted tree size by `k` and input length `n`. A simplifier
 that is visibly worse than thesis Chapter 7 on this grid is a diagnostic only,
 not a proof or bounty candidate.
+Current graphs show that emitted-tree `bsimpCubic` is not the main route; keep
+it as historical/negative evidence unless a future variant both matches the
+thesis baseline and preserves POSIX values.
 
 For the current deferred-memo route, use
 `FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:

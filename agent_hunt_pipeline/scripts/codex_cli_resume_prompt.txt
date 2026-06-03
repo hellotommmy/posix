@@ -10,19 +10,35 @@ Read these files first, in this order:
 3. PROGRESS_BACKREF.md
 4. BACKREF_BOUNTIES.md
 5. agent_hunt_pipeline/scala/PosixCubicSmoke.scala
-6. BlexerSimp.thy around `bsimpCubic`
-7. FBound.thy around `L_bsimpCubic` and `thesis_cubic_smoke_suite_bsimpCubic`
+6. FBound.thy around `strong_deferred_span_value`,
+   `strong_deferred_memo_budget`, and
+   `strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`
+7. agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 and
+   agent_hunt_pipeline/scripts/isabelle_ci.ps1 around `Route strong-memo`
 
-Current override, 2026-06-02:
+Current override, 2026-06-03:
 - The old BR-036/BR-037 `rsimp9` proof-first route is revoked historical
   context. Do not pursue it as a bounty or production cubic candidate.
-- The active cubic candidate work is smoke-gated `bsimpCubic` with exact POSIX
-  value smoke in Scala. Broad grid/enumeration tests belong in
-  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`, not in large Isabelle
-  `eval` lemmas.
-- The current production/default candidate still uses `POSIX_SMOKE_SEQ_MODE=full`.
-  It passes default CI but fails optional deterministic random value smoke.
-  This means it is diagnostic only, not a bounty artifact.
+- The active cubic candidate route is now `StrongDeferredMemo`: keep
+  `bsimpStrong` as the small recognition tree, and reconstruct exact POSIX
+  values from the original regex through span/memo tables.
+- `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` default to route
+  `strong-memo`. This skips the old emitted-tree `bsimpCubic` gate, checks
+  exact POSIX values for `StrongDeferredMemo`, runs the known CE grid, and
+  traces the Chapter 7 memo/tree data.
+- `bsimpCubic` is historical/negative diagnostic evidence only. Do not spend
+  proof effort rescuing its ordinary emitted tree size unless a future variant
+  first beats the thesis Chapter 7 baseline and passes exact POSIX value smoke.
+- The current proof-facing route is
+  `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
+  It packages raw strong-row cubic-universe premises, POSIX value
+  reconstruction, recognition-state legacy closure, quadratic memo-state
+  budget, cubic split-probe budget, and legacy-subterm closure.
+- The next real proof problem is to instantiate the raw/shared universe `U`
+  with a POSIX-safe quotient that is strong enough for Chapter 7, then prove
+  closure and cubic cardinality/member-size bounds.
+
+Historical negative evidence, 2026-06-02:
 - The known random diagnostic with seed `20260602`, case `99`, exposes a POSIX
   value mismatch for
   `STAR (ALT ONE (STAR (STAR (STAR (STAR (STAR (CH a)))))))` on input `aaa`.

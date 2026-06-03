@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: StrongDeferredMemo replaces bsimpCubic as the main route
+
+- The Chapter 7 comparison plots made the call: current emitted-tree
+  `bsimpCubic` is not competitive with the thesis `bsimpStrong` baseline.
+- Updated `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` so the default route is
+  now `strong-memo`: `bsimpStrong` supplies the small recognition tree and the
+  original regex supplies POSIX values through span/memo reconstruction.
+- The legacy `bsimpCubic` checks remain runnable via `-Route legacy-cubic` or
+  `-ScalaSmokeRoute legacy-cubic`; they are no longer the route that future
+  proof work should optimize.
+- Design consequence: future proof work should not try to rescue
+  `bsimpCubic` ordinary tree size. It should make the `StrongDeferredMemo`
+  reconstruction theorem stronger and instantiate the concrete raw/shared
+  universe required by
+  `strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
+
 ## 2026-06-03: Row-universe and memo accounting now share one interface
 
 - Added

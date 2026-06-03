@@ -1,6 +1,32 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (combined row/memo cubic interface)
+Last updated: 2026-06-03 (strong-memo route is default)
+
+## Cubic Route Pivot: StrongDeferredMemo Is The Main Candidate (2026-06-03)
+
+- Promoted the `StrongDeferredMemo` route to the default Scala smoke route:
+  - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1` now defaults to
+    `-Route strong-memo`;
+  - `agent_hunt_pipeline/scripts/isabelle_ci.ps1` now defaults to
+    `-ScalaSmokeRoute strong-memo`.
+- Default `strong-memo` route:
+  - skips the legacy emitted-tree `bsimpCubic` smoke;
+  - checks exact POSIX value preservation for `StrongDeferredMemo`;
+  - checks the known counterexample grid;
+  - traces the Chapter 7 family with `strongMemoTree` plus memo-state and
+    split-probe budgets.
+- The old emitted-tree route remains available explicitly with
+  `-Route legacy-cubic` or `-ScalaSmokeRoute legacy-cubic`, and both routes can
+  be run together with `both`.
+- Reason for the pivot:
+  - The direct derivative-size graphs show `bsimpCubic` is worse than the
+    thesis Chapter 7 baseline by ordinary tree size.
+  - `StrongDeferredMemo` keeps the thesis-strength `bsimpStrong` tree while
+    reconstructing exact POSIX values through original-regex span/memo tables.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -TimeoutSeconds 240`
+  passed the new default route on `84,300` exhaustive pairs, the known CE grid,
+  and the Chapter 7 `k=5` memo trace.
 
 ## Cubic Route Checkpoint: Row Universe And Memo Budget Are Packaged (2026-06-03)
 

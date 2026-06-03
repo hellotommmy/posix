@@ -4805,7 +4805,9 @@ object PosixCubicSmoke {
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
     val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
     val skipLegacyCubic = boolSetting("posix.smoke.skipLegacyCubic", "POSIX_SMOKE_SKIP_LEGACY_CUBIC", false)
-    println(s"bsimpCubic sequence mode: $cubicSeqMode")
+    if (!skipLegacyCubic || ch7SizeCsv.nonEmpty || sharedNoReassoc || sharedDirectDag) {
+      println(s"bsimpCubic sequence mode: $cubicSeqMode")
+    }
     if (ch7SizeCsv.nonEmpty) {
       writeCh7SizeCsv(ch7SizeCsv, ch7SizeKs, ch7SizeLengths, ch7SizeMetrics, cubicSeqMode)
       return

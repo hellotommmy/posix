@@ -14,6 +14,8 @@ param(
   [int]$ScalaSmokeRandomDepth = 5,
   [int]$ScalaSmokeRandomInputLength = 6,
   [long]$ScalaSmokeSeed = 20260602,
+  [ValidateSet("strong-memo", "legacy-cubic", "both", "custom")]
+  [string]$ScalaSmokeRoute = "strong-memo",
   [string]$ScalaSmokeSeqMode = "full",
   [int]$ScalaSmokeCh7K = 5,
   [string]$ScalaSmokeCh7Lengths = "4,8,12,16,20",
@@ -115,8 +117,24 @@ try {
     $SharedDirectCompareTreeFlag = if ($ScalaSmokeSharedDirectCompareTree) { 1 } else { 0 }
     $CheckStrongFlag = if ($ScalaSmokeCheckStrong) { 1 } else { 0 }
     $CheckStrongDeferredFlag = if ($ScalaSmokeCheckStrongDeferred) { 1 } else { 0 }
-    $CheckStrongDeferredMemoFlag = if ($ScalaSmokeCheckStrongDeferredMemo) { 1 } else { 0 }
-    $TraceStrongDeferredMemoFlag = if ($ScalaSmokeTraceStrongDeferredMemo) { 1 } else { 0 }
+    $RouteSkipLegacyCubic = $ScalaSmokeSkipLegacyCubic.IsPresent
+    $RouteCheckStrongDeferredMemo = $ScalaSmokeCheckStrongDeferredMemo.IsPresent
+    $RouteTraceStrongDeferredMemo = $ScalaSmokeTraceStrongDeferredMemo.IsPresent
+    switch ($ScalaSmokeRoute) {
+      "strong-memo" {
+        $RouteSkipLegacyCubic = $true
+        $RouteCheckStrongDeferredMemo = $true
+        $RouteTraceStrongDeferredMemo = $true
+      }
+      "both" {
+        $RouteCheckStrongDeferredMemo = $true
+        $RouteTraceStrongDeferredMemo = $true
+      }
+      "legacy-cubic" {}
+      "custom" {}
+    }
+    $CheckStrongDeferredMemoFlag = if ($RouteCheckStrongDeferredMemo) { 1 } else { 0 }
+    $TraceStrongDeferredMemoFlag = if ($RouteTraceStrongDeferredMemo) { 1 } else { 0 }
     $CheckStrongSafeFlag = if ($ScalaSmokeCheckStrongSafe) { 1 } else { 0 }
     $TraceStrongReconFlag = if ($ScalaSmokeTraceStrongRecon) { 1 } else { 0 }
     $TraceStrongCoreFlag = if ($ScalaSmokeTraceStrongCore) { 1 } else { 0 }
@@ -129,11 +147,11 @@ try {
     $FindRawInjectCEFlag = if ($ScalaSmokeFindRawInjectCE) { 1 } else { 0 }
     $FindStrongCubicBudgetCEFlag = if ($ScalaSmokeFindStrongCubicBudgetCE) { 1 } else { 0 }
     $CheckStrongCoreHandFlag = if ($ScalaSmokeCheckStrongCoreHand) { 1 } else { 0 }
-    $SkipLegacyCubicFlag = if ($ScalaSmokeSkipLegacyCubic) { 1 } else { 0 }
+    $SkipLegacyCubicFlag = if ($RouteSkipLegacyCubic) { 1 } else { 0 }
     $SharedPlateauRequireFlag = if ($ScalaSmokeSharedPlateauRequire) { 1 } else { 0 }
     $SharedPlateauProgressFlag = if ($ScalaSmokeSharedPlateauProgress) { 1 } else { 0 }
     $SharedPlateauMetricOnlyFlag = if ($ScalaSmokeSharedPlateauMetricOnly) { 1 } else { 0 }
-    Write-Host "== Scala cubic smoke: depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag sharedDirectDag=$SharedDirectDagFlag sharedDirectCompareTree=$SharedDirectCompareTreeFlag skipLegacy=$SkipLegacyCubicFlag checkStrong=$CheckStrongFlag checkStrongDeferred=$CheckStrongDeferredFlag checkStrongDeferredMemo=$CheckStrongDeferredMemoFlag traceStrongDeferredMemo=$TraceStrongDeferredMemoFlag checkStrongSafe=$CheckStrongSafeFlag strongRecon=$TraceStrongReconFlag strongCore=$TraceStrongCoreFlag strongCoreLoopTrace=$TraceStrongCoreLoopFlag strongCoreCert=$CheckStrongCoreCertFlag strongCoreLoop=$CheckStrongCoreLoopFlag strongFullKnownCE=$CheckStrongFullKnownCEFlag findStrongDirectCE=$FindStrongDirectCEFlag findCoreCE=$FindStrongCoreCEFlag findRawInjectCE=$FindRawInjectCEFlag findStrongCubicBudgetCE=$FindStrongCubicBudgetCEFlag handCore=$CheckStrongCoreHandFlag strongCubicFactor=$ScalaSmokeStrongCubicFactor strongCubicMinRegexSize=$ScalaSmokeStrongCubicMinRegexSize strongCubicTop=$ScalaSmokeStrongCubicTop sharedStatePoolCubicFactor=$ScalaSmokeSharedStatePoolCubicFactor sharedStatePoolCubicMinRegexSize=$ScalaSmokeSharedStatePoolCubicMinRegexSize sharedStatePoolCubicTop=$ScalaSmokeSharedStatePoolCubicTop sharedPlateau=$ScalaSmokeSharedPlateauMaxLength/$ScalaSmokeSharedPlateauStep/$ScalaSmokeSharedPlateauMetric growthTop=$ScalaSmokeSharedPlateauGrowthTop progress=$SharedPlateauProgressFlag require=$SharedPlateauRequireFlag metricOnly=$SharedPlateauMetricOnlyFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold ch7StrongCubicFactor=$ScalaSmokeCh7StrongCubicFactor =="
+    Write-Host "== Scala cubic smoke: route=$ScalaSmokeRoute depth=$ScalaSmokeDepth input=$ScalaSmokeInputLength random=$ScalaSmokeRandomCases/$ScalaSmokeRandomDepth seed=$ScalaSmokeSeed seq=$ScalaSmokeSeqMode shared=$SharedNoReassocFlag sharedDirectDag=$SharedDirectDagFlag sharedDirectCompareTree=$SharedDirectCompareTreeFlag skipLegacy=$SkipLegacyCubicFlag checkStrong=$CheckStrongFlag checkStrongDeferred=$CheckStrongDeferredFlag checkStrongDeferredMemo=$CheckStrongDeferredMemoFlag traceStrongDeferredMemo=$TraceStrongDeferredMemoFlag checkStrongSafe=$CheckStrongSafeFlag strongRecon=$TraceStrongReconFlag strongCore=$TraceStrongCoreFlag strongCoreLoopTrace=$TraceStrongCoreLoopFlag strongCoreCert=$CheckStrongCoreCertFlag strongCoreLoop=$CheckStrongCoreLoopFlag strongFullKnownCE=$CheckStrongFullKnownCEFlag findStrongDirectCE=$FindStrongDirectCEFlag findCoreCE=$FindStrongCoreCEFlag findRawInjectCE=$FindRawInjectCEFlag findStrongCubicBudgetCE=$FindStrongCubicBudgetCEFlag handCore=$CheckStrongCoreHandFlag strongCubicFactor=$ScalaSmokeStrongCubicFactor strongCubicMinRegexSize=$ScalaSmokeStrongCubicMinRegexSize strongCubicTop=$ScalaSmokeStrongCubicTop sharedStatePoolCubicFactor=$ScalaSmokeSharedStatePoolCubicFactor sharedStatePoolCubicMinRegexSize=$ScalaSmokeSharedStatePoolCubicMinRegexSize sharedStatePoolCubicTop=$ScalaSmokeSharedStatePoolCubicTop sharedPlateau=$ScalaSmokeSharedPlateauMaxLength/$ScalaSmokeSharedPlateauStep/$ScalaSmokeSharedPlateauMetric growthTop=$ScalaSmokeSharedPlateauGrowthTop progress=$SharedPlateauProgressFlag require=$SharedPlateauRequireFlag metricOnly=$SharedPlateauMetricOnlyFlag ch7=$ScalaSmokeCh7K/$ScalaSmokeCh7Lengths tree=$ScalaSmokeCh7TreeThreshold dag=$ScalaSmokeCh7DagThreshold shape=$ScalaSmokeCh7ShapeThreshold ch7StrongCubicFactor=$ScalaSmokeCh7StrongCubicFactor =="
     & $Bash -lc "cd '$RepoCyg' && timeout ${SessionTimeoutSeconds}s env POSIX_SMOKE_DEPTH=$ScalaSmokeDepth POSIX_SMOKE_INPUT=$ScalaSmokeInputLength POSIX_SMOKE_MAX_REGEXES=$ScalaSmokeMaxRegexes POSIX_SMOKE_RANDOM_CASES=$ScalaSmokeRandomCases POSIX_SMOKE_RANDOM_DEPTH=$ScalaSmokeRandomDepth POSIX_SMOKE_RANDOM_INPUT=$ScalaSmokeRandomInputLength POSIX_SMOKE_SEED=$ScalaSmokeSeed POSIX_SMOKE_SEQ_MODE='$ScalaSmokeSeqMode' POSIX_SMOKE_SHARED_NO_REASSOC=$SharedNoReassocFlag POSIX_SMOKE_SHARED_DIRECT_DAG=$SharedDirectDagFlag POSIX_SMOKE_SHARED_DIRECT_COMPARE_TREE=$SharedDirectCompareTreeFlag POSIX_SMOKE_SKIP_LEGACY_CUBIC=$SkipLegacyCubicFlag POSIX_SMOKE_CHECK_STRONG=$CheckStrongFlag POSIX_SMOKE_CHECK_STRONG_DEFERRED=$CheckStrongDeferredFlag POSIX_SMOKE_CHECK_STRONG_DEFERRED_MEMO=$CheckStrongDeferredMemoFlag POSIX_SMOKE_TRACE_STRONG_DEFERRED_MEMO=$TraceStrongDeferredMemoFlag POSIX_SMOKE_CHECK_STRONG_SAFE=$CheckStrongSafeFlag POSIX_SMOKE_TRACE_STRONG_RECON=$TraceStrongReconFlag POSIX_SMOKE_TRACE_STRONG_CORE=$TraceStrongCoreFlag POSIX_SMOKE_TRACE_STRONG_CORE_LOOP=$TraceStrongCoreLoopFlag POSIX_SMOKE_CHECK_STRONG_CORE_CERT=$CheckStrongCoreCertFlag POSIX_SMOKE_CHECK_STRONG_CORE_LOOP=$CheckStrongCoreLoopFlag POSIX_SMOKE_CHECK_STRONG_FULL_KNOWN_CE=$CheckStrongFullKnownCEFlag POSIX_SMOKE_FIND_STRONG_DIRECT_CE=$FindStrongDirectCEFlag POSIX_SMOKE_FIND_STRONG_CORE_CE=$FindStrongCoreCEFlag POSIX_SMOKE_FIND_RAW_INJECT_CE=$FindRawInjectCEFlag POSIX_SMOKE_FIND_STRONG_CUBIC_BUDGET_CE=$FindStrongCubicBudgetCEFlag POSIX_SMOKE_CHECK_STRONG_CORE_HAND=$CheckStrongCoreHandFlag POSIX_SMOKE_STRONG_CUBIC_FACTOR=$ScalaSmokeStrongCubicFactor POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE=$ScalaSmokeStrongCubicMinRegexSize POSIX_SMOKE_STRONG_CUBIC_TOP=$ScalaSmokeStrongCubicTop POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_FACTOR=$ScalaSmokeSharedStatePoolCubicFactor POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_MIN_REGEX_SIZE=$ScalaSmokeSharedStatePoolCubicMinRegexSize POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_TOP=$ScalaSmokeSharedStatePoolCubicTop POSIX_SMOKE_SHARED_PLATEAU_MAX_LENGTH=$ScalaSmokeSharedPlateauMaxLength POSIX_SMOKE_SHARED_PLATEAU_STEP=$ScalaSmokeSharedPlateauStep POSIX_SMOKE_SHARED_PLATEAU_METRIC='$ScalaSmokeSharedPlateauMetric' POSIX_SMOKE_SHARED_PLATEAU_GROWTH_TOP=$ScalaSmokeSharedPlateauGrowthTop POSIX_SMOKE_SHARED_PLATEAU_PROGRESS=$SharedPlateauProgressFlag POSIX_SMOKE_SHARED_PLATEAU_REQUIRE=$SharedPlateauRequireFlag POSIX_SMOKE_SHARED_PLATEAU_METRIC_ONLY=$SharedPlateauMetricOnlyFlag POSIX_SMOKE_CH7_K=$ScalaSmokeCh7K POSIX_SMOKE_CH7_LENGTHS='$ScalaSmokeCh7Lengths' POSIX_SMOKE_CH7_TREE_THRESHOLD=$ScalaSmokeCh7TreeThreshold POSIX_SMOKE_CH7_DAG_THRESHOLD=$ScalaSmokeCh7DagThreshold POSIX_SMOKE_CH7_SHAPE_THRESHOLD=$ScalaSmokeCh7ShapeThreshold POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR=$ScalaSmokeCh7StrongCubicFactor '$Isabelle' scala agent_hunt_pipeline/scala/PosixCubicSmoke.scala"
     if ($LASTEXITCODE -ne 0) {
       if ($LASTEXITCODE -eq 124) {
