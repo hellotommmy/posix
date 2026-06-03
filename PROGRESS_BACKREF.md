@@ -2,6 +2,24 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: RowU + DagU Owner Contract (2026-06-04)
+
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_final_active_rowU_dag_owner_contract`.
+- The proof interface now separates the two objects that match the memoized
+  implementation picture:
+  - `RowU` covers final-active rows and controls row count/pair budget;
+  - `DagU` is any finite owner table containing
+    `strong_deferred_final_active_suffix_row_dag_universe r s`.
+- Under `card RowU <= R` and `card DagU <= D`, the theorem yields exact
+  memo-strong POSIX `Some`/`None`, `flat`, legacy preservation, row budget
+  `<= R`, pair budget `<= R * R`, row-DAG/max-row-DAG bounds `<= D`, and the
+  payload/key root plus payload/key DAG coverage facts into `DagU`.
+- Design meaning: future work can prove a hash-consed over-approximation
+  `DagU` directly. It does not need to prove `DagU` is syntactically
+  subterm-closed, as long as it contains the final row-DAG table.
+- Verification: focused Isabelle `Posix` build passed.
+
 ## Cubic Route Checkpoint: Row-DAG Owns Roots/Keys (2026-06-04)
 
 - Added raw and lifted coverage lemmas showing that the final-active row-DAG

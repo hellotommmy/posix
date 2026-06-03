@@ -63,6 +63,13 @@ immutability.
 
 ## Open Artifact Notes
 
+- RowU/DagU owner contract: `FBound.thy` now checks
+  `strong_deferred_original_final_active_rowU_dag_owner_contract`.
+  A future proof may separately bound a row-count universe `RowU` and a finite
+  hash-cons owner table `DagU` containing the final-active row-DAG universe.
+  The theorem gives exact memo-strong POSIX reconstruction, `flat`, legacy,
+  row/pair budgets, row-DAG/max-row-DAG bounds, and payload/key coverage into
+  `DagU`. This is BR-040 infrastructure only; no payout is claimed.
 - Row-DAG owns roots/keys: `GeneralRegexBound.thy` and `FBound.thy` now check
   raw and lifted facts showing payload roots, suffix keys, payload DAG nodes,
   and key DAG nodes are all contained in the final-active row-DAG universe.

@@ -3,6 +3,20 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: RowU + DagU owner contract matches hash-consing
+
+- Added `strong_deferred_original_final_active_rowU_dag_owner_contract`.
+  It is now the preferred handoff when the candidate proof constructs a finite
+  hash-consed owner table `DagU` that contains the final-active row-DAG
+  universe.
+- `RowU` controls only the number of final-active rows and therefore the pair
+  budget. `DagU` controls exact-DAG/max-row-DAG size and, via the previous
+  root/key containment lemmas, also owns payload roots, suffix keys, and their
+  DAG components.
+- This is slightly more implementation-shaped than the subterm-closed
+  universe handoff: future proofs may show `row_dag_universe ⊆ DagU` directly
+  without also proving `DagU` is closed under all `rsubterms`.
+
 ## 2026-06-04: Final row-DAG owns payload/key roots
 
 - Added raw and lifted subset facts showing that final-active payload roots,
