@@ -3843,6 +3843,23 @@ proof
     by (rule rsubterm_closure_memberI[OF root(1)])
 qed
 
+lemma rsubterm_closure_subsetI:
+  assumes roots: "U \<subseteq> V"
+    and closed: "\<And>q. q \<in> V \<Longrightarrow> rsubterms q \<subseteq> V"
+  shows "rsubterm_closure U \<subseteq> V"
+proof
+  fix p
+  assume "p \<in> rsubterm_closure U"
+  then obtain q where q: "q \<in> U" and p: "p \<in> rsubterms q"
+    by (auto simp add: rsubterm_closure_def)
+  have "q \<in> V"
+    using roots q by blast
+  then have "rsubterms q \<subseteq> V"
+    by (rule closed)
+  then show "p \<in> V"
+    using p by blast
+qed
+
 lemma card_rsubterm_closure_le:
   assumes finite: "finite U"
     and member_bound: "\<And>q. q \<in> U \<Longrightarrow> card (rsubterms q) \<le> M"

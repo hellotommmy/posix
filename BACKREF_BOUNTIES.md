@@ -72,6 +72,13 @@ immutability.
   `finalRowDag <= (C + 2) * rxsize r`. This is the preferred next BR-040
   interface for a root-owned shared-universe proof, but it is not a payout
   until such a universe is constructed and checked.
+  The root-owned variant
+  `strong_deferred_original_final_active_shared_root_universe_linear_contract`
+  now further reduces the premise to
+  `payload_roots ∪ suffix_keys ⊆ U`, `U` closed under `rsubterms`, and
+  `card U <= C * rxsize r`; it uses
+  `GeneralRegexBound.thy:rsubterm_closure_subsetI` to lift roots/keys to DAG
+  coverage. This is the sharper BR-040 handoff, still infrastructure only.
 - Memo-strong focus reconfirmed: the current active route is `StrongDeferredMemo`
   / `bders_simpStrong` as a nullable recognition tree plus exact original-regex
   POSIX reconstruction through `strong_deferred_span_value`. A fresh

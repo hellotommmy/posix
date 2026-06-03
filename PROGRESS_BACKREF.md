@@ -26,6 +26,30 @@ Last updated: 2026-06-04 (strong-memo route is default)
 - Verification: focused Isabelle `Posix` build passed.
 - No BR-039/BR-040 bounty is claimed; this is proof-interface infrastructure.
 
+## Cubic Route Checkpoint: Root-Owned Shared Universe Handoff (2026-06-04)
+
+- Added the general helper
+  `GeneralRegexBound.thy:rsubterm_closure_subsetI`.
+  If roots are contained in `U` and `U` is closed under `rsubterms`, then the
+  full `rsubterm_closure` of those roots is contained in `U`.
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_final_active_shared_root_universe_linear_contract`.
+  This lowers the shared-universe premise one more step: future work may prove
+  coverage only for
+  `strong_deferred_final_active_suffix_payload_roots r s` and
+  `strong_deferred_final_active_suffix_keys r s`, plus subterm closure of `U`.
+  The theorem internally lifts that to payload/key DAG coverage and then
+  reuses the shared row-DAG POSIX contract.
+- Design meaning: the preferred BR-040 target is now a root-owned finite
+  universe `U` satisfying:
+  `payload_roots ∪ suffix_keys ⊆ U`,
+  `q ∈ U ==> rsubterms q ⊆ U`, and `card U <= C * rxsize r`, plus the final
+  active row-count bound. Under those assumptions, exact POSIX reconstruction
+  and `finalRowDag <= (C + 2) * rxsize r` follow.
+- Verification: focused Isabelle `Posix` build passed.
+- No BR-039/BR-040 bounty is claimed; this is still proof-interface
+  infrastructure.
+
 ## Cubic Route Smoke: Memo-Strong Focus Reconfirmed (2026-06-04)
 
 - Reconfirmed the route decision after inspecting the new derivative-size

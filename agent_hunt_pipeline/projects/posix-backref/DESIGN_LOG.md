@@ -17,6 +17,13 @@ to be read before continuing long-running agent work.
   `card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI`
   with POSIX reconstruction in future proofs. It avoids duplicating the same
   arithmetic and keeps the proof target visibly about constructing `U`.
+- Added `rsubterm_closure_subsetI` and
+  `strong_deferred_original_final_active_shared_root_universe_linear_contract`.
+  Prefer this even higher-level handoff when possible: prove that the
+  payload-root set and suffix-key set are contained in a finite root-owned
+  universe `U`, and prove `U` is closed under `rsubterms`. The theorem lifts
+  this to payload/key DAG coverage automatically and then supplies the same
+  exact POSIX and `(C + 2) * rxsize r` row-DAG conclusions.
 
 ## 2026-06-04: Memo-strong tree is the only active cubic route
 
