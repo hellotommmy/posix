@@ -106,6 +106,14 @@ immutability.
   bounded by this universe, with final-rsize/final-asize fallback bounds. The
   remaining BR-040 proof target is an original-size bound for this universe
   plus the POSIX reconstruction bridge; no payout is claimed here.
+- Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
+  for the row-DAG universe, plus
+  `strong_deferred_memo_tree_value_final_active_row_dag_interface` and
+  `strong_deferred_original_final_active_row_dag_linear_contract`. These
+  connect a future `K * rxsize r` row-DAG universe bound to exact memo-strong
+  POSIX reconstruction and per-row exact-DAG bounds. This narrows BR-040's
+  remaining proof obligation but does not itself prove the original-size
+  universe bound, so no bounty is claimed.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

@@ -1,6 +1,29 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (strong-memo route is default)
+Last updated: 2026-06-04 (strong-memo route is default)
+
+## Cubic Route Checkpoint: Row-DAG POSIX Handoff (2026-06-04)
+
+- Continued the memo-strong route after retiring emitted-tree `bsimpCubic`.
+- Added raw row-DAG universe closure facts:
+  `legacy_raw_final_active_suffix_row_dag_universe` and
+  `row_group_deep_nf_raw_final_active_suffix_row_dag_universe`.
+- Lifted those facts to the final memo-strong state as
+  `legacy_strong_deferred_final_active_suffix_row_dag_universe` and
+  `row_group_deep_nf_strong_deferred_final_active_suffix_row_dag_universe_nonempty`.
+- Added `strong_deferred_memo_tree_value_final_active_row_dag_interface`,
+  which packages exact POSIX value reconstruction, final-active rows/pairs,
+  row-DAG universe fallback bounds, and span/split memo budgets.
+- Added the proof handoff
+  `strong_deferred_original_final_active_row_dag_linear_contract`: for a
+  non-backref regex, if the final-active row count is bounded by `rxsize r`
+  and the row-DAG universe is bounded by `K * rxsize r`, then the memo-strong
+  nullable gate returns the exact POSIX value and every final-active row has
+  exact-DAG size at most `K * rxsize r`.
+- Verification:
+  focused `isabelle build -v -d . Posix` passed.
+- This is BR-040 infrastructure. The missing theorem remains the original-size
+  bound for `strong_deferred_final_active_suffix_row_dag_universe`.
 
 ## Cubic Route Checkpoint: Isabelle Row-DAG Universe (2026-06-04)
 

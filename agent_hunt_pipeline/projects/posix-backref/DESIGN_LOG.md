@@ -3,6 +3,27 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
+
+- Added raw closure facts for the row-DAG universe:
+  `legacy_raw_final_active_suffix_row_dag_universe` and
+  `row_group_deep_nf_raw_final_active_suffix_row_dag_universe`. Any node in
+  the exact-DAG accounting universe remains inside the non-backref fragment
+  and inherits the final strong tree's grouped normal form.
+- Lifted those facts to `strong_deferred_final_active_suffix_row_dag_universe`.
+  For nonempty inputs, the row-DAG universe can now be used in later
+  normal-form/budget arguments without reopening the final tree.
+- Added `strong_deferred_memo_tree_value_final_active_row_dag_interface` and
+  `strong_deferred_original_final_active_row_dag_linear_contract`. The latter
+  is the current proof handoff: prove
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= K *
+  rxsize r` plus the row-count bound, and the memo-strong route gives exact
+  POSIX values and `card (rsubterms q) <= K * rxsize r` for every final-active
+  row.
+- Design consequence: the remaining cubic proof should focus on original-size
+  control of the row-DAG universe, not on raw emitted-tree simplification and
+  not on raw row tree size.
+
 ## 2026-06-04: Isabelle row-DAG universe replaces raw member-size target
 
 - Added `raw_final_active_suffix_row_dag_universe`: the union of exact

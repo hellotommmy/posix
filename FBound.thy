@@ -3096,6 +3096,50 @@ proof -
     by (rule strong_deferred_memo_exact_value_budget(3))
 qed
 
+lemma strong_deferred_memo_tree_value_final_active_row_dag_interface:
+  shows "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    and "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> asize (bders_simpStrong (intern r) s)"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = lexer r s"
+    by (rule strong_deferred_memo_tree_value_final_active_interface(1))
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule strong_deferred_memo_tree_value_final_active_interface(2))
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    by (rule strong_deferred_memo_tree_value_final_active_interface(3))
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_le_final_asize)
+  show "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> asize (bders_simpStrong (intern r) s)"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_le_final_asize)
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_tree_value_final_active_interface(4))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_tree_value_final_active_interface(5))
+qed
+
 lemma strong_deferred_memo_tree_POSIX_correctness:
   shows "((if bnullable (bders_simpStrong (intern r) s)
       then Some (THE v. strong_deferred_span_value r s v)
@@ -3789,6 +3833,24 @@ proof -
         [OF final_legacy raw_row])
 qed
 
+lemma legacy_strong_deferred_final_active_suffix_row_dag_universe:
+  assumes legacy: "legacy_rexp r"
+    and member:
+      "q \<in> strong_deferred_final_active_suffix_row_dag_universe r s"
+  shows "legacy_rrexp q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have raw_member:
+      "q \<in> raw_final_active_suffix_row_dag_universe
+        (strong_deferred_final_raw r s)"
+    using member
+    by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
+  show ?thesis
+    by (rule legacy_raw_final_active_suffix_row_dag_universe
+        [OF final_legacy raw_member])
+qed
+
 lemma row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_intern:
   assumes "legacy_rexp r"
   shows "row_group_deep_nf
@@ -3912,6 +3974,26 @@ proof -
   show ?thesis
     by (rule row_group_deep_nf_raw_final_active_suffix_row_key
         [OF final_legacy final_nf raw_row])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_row_dag_universe_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and member:
+      "q \<in> strong_deferred_final_active_suffix_row_dag_universe r (c # s)"
+  shows "row_group_deep_nf q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have raw_member:
+      "q \<in> raw_final_active_suffix_row_dag_universe
+        (strong_deferred_final_raw r (c # s))"
+    using member
+    by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
+  show ?thesis
+    by (rule row_group_deep_nf_raw_final_active_suffix_row_dag_universe
+        [OF final_legacy final_nf raw_member])
 qed
 
 lemma strong_deferred_original_legacy_budget:
@@ -4197,6 +4279,78 @@ proof -
     using strong_deferred_original_final_active_linear_member_cubic_contract
       [OF legacy rows_bound pair_budget member_size]
     by simp_all
+qed
+
+lemma strong_deferred_original_final_active_row_dag_linear_contract:
+  assumes legacy: "legacy_rexp r"
+    and rows_bound:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and row_dag_universe_bound:
+      "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        K * rxsize r"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+    and "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> K * rxsize r"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_tree_POSIX_flat)
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  show "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    by (rule legacy_strong_deferred_final_active_suffix_row_dag_universe
+        [OF legacy])
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    by (rule rows_bound)
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    by (rule strong_deferred_final_active_suffix_pair_budget_le_rxsize_square
+        [OF rows_bound])
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+    by (rule row_dag_universe_bound)
+  show "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> K * rxsize r"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_boundI
+        [OF row_dag_universe_bound])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(3))
 qed
 
 lemma rerase_map_fuse:
