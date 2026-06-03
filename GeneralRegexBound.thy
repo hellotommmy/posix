@@ -20620,6 +20620,26 @@ next
     by (rule finite_subset[OF sub fin])
 qed
 
+lemma card_raw_shared_prune_active_suffix_keys_le:
+  assumes finite: "finite U"
+  shows "card (raw_shared_prune_active_suffix_keys U) \<le> card U"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  have some_sub:
+    "Some ` ?keys \<subseteq> raw_shared_prune_suffix_key ` U"
+    by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+  have card_some:
+    "card (Some ` ?keys) = card ?keys"
+    by (rule card_image) simp
+  have "card (Some ` ?keys) \<le>
+      card (raw_shared_prune_suffix_key ` U)"
+    by (rule card_mono) (simp_all add: finite some_sub)
+  also have "... \<le> card U"
+    by (rule card_image_le[OF finite])
+  finally show ?thesis
+    using card_some by simp
+qed
+
 lemma finite_raw_shared_prune_active_suffix_pairs [simp]:
   assumes "finite U"
   shows "finite (raw_shared_prune_active_suffix_pairs U)"
@@ -20768,6 +20788,12 @@ qed
 lemma finite_raw_final_active_suffix_keys [simp]:
   "finite (raw_final_active_suffix_keys r)"
   by (simp add: raw_final_active_suffix_keys_def)
+
+lemma card_raw_final_active_suffix_keys_le_rows:
+  "card (raw_final_active_suffix_keys r) \<le>
+    card (raw_final_active_suffix_rows r)"
+  by (simp add: raw_final_active_suffix_keys_def
+      card_raw_shared_prune_active_suffix_keys_le)
 
 lemma card_raw_final_active_suffix_keys_le_rsize:
   "card (raw_final_active_suffix_keys r) \<le> rsize r"

@@ -2660,6 +2660,13 @@ lemma card_strong_deferred_final_active_suffix_keys_le_final_rsize:
   by (simp add: strong_deferred_final_active_suffix_keys_def
       card_raw_final_active_suffix_keys_le_rsize)
 
+lemma card_strong_deferred_final_active_suffix_keys_le_rows:
+  "card (strong_deferred_final_active_suffix_keys r s) \<le>
+    card (strong_deferred_final_active_suffix_rows r s)"
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      strong_deferred_final_active_suffix_rows_def
+      card_raw_final_active_suffix_keys_le_rows)
+
 lemma card_strong_deferred_final_active_suffix_keys_le_final_asize:
   "card (strong_deferred_final_active_suffix_keys r s) \<le>
     asize (bders_simpStrong (intern r) s)"
