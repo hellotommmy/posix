@@ -2568,6 +2568,11 @@ definition strong_deferred_final_active_suffix_pair_budget ::
   "strong_deferred_final_active_suffix_pair_budget r s =
     raw_final_active_suffix_pair_budget (strong_deferred_final_raw r s)"
 
+definition strong_deferred_final_active_suffix_closure ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_closure r s =
+    raw_final_active_suffix_closure (strong_deferred_final_raw r s)"
+
 lemma finite_strong_deferred_final_active_suffix_rows [simp]:
   "finite (strong_deferred_final_active_suffix_rows r s)"
   by (simp add: strong_deferred_final_active_suffix_rows_def)
@@ -2575,6 +2580,10 @@ lemma finite_strong_deferred_final_active_suffix_rows [simp]:
 lemma finite_strong_deferred_final_active_suffix_keys [simp]:
   "finite (strong_deferred_final_active_suffix_keys r s)"
   by (simp add: strong_deferred_final_active_suffix_keys_def)
+
+lemma finite_strong_deferred_final_active_suffix_closure [simp]:
+  "finite (strong_deferred_final_active_suffix_closure r s)"
+  by (simp add: strong_deferred_final_active_suffix_closure_def)
 
 lemma card_strong_deferred_final_active_suffix_rows_le_final_rsize:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
@@ -2650,6 +2659,81 @@ proof -
     by (rule mult_mono[OF rows_le rows_le]) simp_all
   then show ?thesis
     using budget_le by linarith
+qed
+
+lemma strong_deferred_final_active_suffix_closure_member_pair_budget_bound:
+  assumes pair_budget:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le> P"
+    and member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> M"
+  shows "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    card (strong_deferred_final_active_suffix_rows r s) + P * M"
+proof -
+  let ?raw = "strong_deferred_final_raw r s"
+  have raw_pair:
+    "raw_final_active_suffix_pair_budget ?raw \<le> P"
+    using pair_budget
+    by (simp add: strong_deferred_final_active_suffix_pair_budget_def)
+  have raw_member: "\<And>q. q \<in> raw_final_active_suffix_rows ?raw \<Longrightarrow>
+      rsize q \<le> M"
+    using member_size
+    by (simp add: strong_deferred_final_active_suffix_rows_def)
+  have "card (raw_final_active_suffix_closure ?raw) \<le>
+      card (raw_final_active_suffix_rows ?raw) + P * M"
+    by (rule card_raw_final_active_suffix_closure_member_pair_budget_bound
+        [OF raw_pair raw_member])
+  then show ?thesis
+    by (simp add: strong_deferred_final_active_suffix_closure_def
+        strong_deferred_final_active_suffix_rows_def)
+qed
+
+lemma strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound:
+  assumes rows_bound:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le> C"
+    and pair_budget:
+      "strong_deferred_final_active_suffix_pair_budget r s \<le> P"
+    and member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> M"
+  shows "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    C + P * M"
+proof -
+  have closure_bound:
+    "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      card (strong_deferred_final_active_suffix_rows r s) + P * M"
+    by (rule
+        strong_deferred_final_active_suffix_closure_member_pair_budget_bound
+        [OF pair_budget member_size])
+  have "card (strong_deferred_final_active_suffix_rows r s) + P * M \<le>
+      C + P * M"
+    by (rule add_right_mono[OF rows_bound])
+  with closure_bound show ?thesis
+    by linarith
+qed
+
+lemma strong_deferred_final_active_suffix_closure_le_final_asize_square_member:
+  assumes member_size: "\<And>q.
+    q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow> rsize q \<le> M"
+  shows "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    asize (bders_simpStrong (intern r) s) +
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s) * M"
+proof -
+  have rows_bound:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule card_strong_deferred_final_active_suffix_rows_le_final_asize)
+  have pair_budget:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    by (rule
+        strong_deferred_final_active_suffix_pair_budget_le_final_asize_square)
+  show ?thesis
+    by (rule
+        strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound
+        [OF rows_bound pair_budget member_size])
 qed
 
 lemma strong_deferred_memo_tree_value_final_active_interface:
@@ -2765,6 +2849,28 @@ proof -
   show "card (rexp_span_all_split_probes r s) \<le>
       rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
     by (rule strong_deferred_memo_exact_value_budget(3))
+qed
+
+lemma strong_deferred_memo_tree_bounded_active_closure_contract:
+  assumes tree_bound: "asize (bders_simpStrong (intern r) s) \<le> T"
+    and member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> M"
+  shows "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    T + T * T * M"
+proof -
+  have rows_bound:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le> T"
+    by (rule strong_deferred_memo_tree_bounded_contract(3)
+        [OF tree_bound])
+  have pair_budget:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le> T * T"
+    by (rule strong_deferred_memo_tree_bounded_contract(4)
+        [OF tree_bound])
+  show ?thesis
+    by (rule
+        strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound
+        [OF rows_bound pair_budget member_size])
 qed
 
 lemma RL_rerase_bders_simpCubic:

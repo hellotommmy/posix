@@ -20555,6 +20555,11 @@ definition raw_final_active_suffix_pair_budget :: "rrexp \<Rightarrow> nat" wher
     raw_shared_prune_active_suffix_pair_budget
       (raw_final_active_suffix_rows r)"
 
+definition raw_final_active_suffix_closure :: "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_closure r =
+    raw_shared_prune_active_suffix_closure
+      (raw_final_active_suffix_rows r)"
+
 lemma raw_shared_prune_active_suffix_keys_mono:
   assumes "U \<subseteq> V"
   shows "raw_shared_prune_active_suffix_keys U \<subseteq>
@@ -20764,6 +20769,10 @@ proof -
     using assms fin_union
     by (simp add: raw_shared_prune_active_suffix_closure_def)
 qed
+
+lemma finite_raw_final_active_suffix_closure [simp]:
+  "finite (raw_final_active_suffix_closure r)"
+  by (simp add: raw_final_active_suffix_closure_def)
 
 lemma raw_shared_prune_same_suffix_pairs_bucket_union:
   "raw_shared_prune_same_suffix_pairs U =
@@ -22802,6 +22811,64 @@ proof -
     by (rule add_right_mono[OF card_bound])
   with closure_bound show ?thesis
     by linarith
+qed
+
+lemma card_raw_final_active_suffix_closure_member_pair_budget_bound:
+  assumes pair_budget: "raw_final_active_suffix_pair_budget r \<le> P"
+    and member_size: "\<And>q. q \<in> raw_final_active_suffix_rows r \<Longrightarrow>
+      rsize q \<le> M"
+  shows "card (raw_final_active_suffix_closure r) \<le>
+    card (raw_final_active_suffix_rows r) + P * M"
+proof -
+  have "card (raw_shared_prune_active_suffix_closure
+      (raw_final_active_suffix_rows r)) \<le>
+      card (raw_final_active_suffix_rows r) + P * M"
+  proof (rule card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound)
+    show "finite (raw_final_active_suffix_rows r)"
+      by simp
+    show "raw_shared_prune_active_suffix_pair_budget
+        (raw_final_active_suffix_rows r) \<le> P"
+      using pair_budget
+      by (simp add: raw_final_active_suffix_pair_budget_def)
+    show "\<And>q. q \<in> raw_final_active_suffix_rows r \<Longrightarrow> rsize q \<le> M"
+      by (rule member_size)
+  qed
+  then show ?thesis
+    by (simp add: raw_final_active_suffix_closure_def)
+qed
+
+lemma card_raw_final_active_suffix_closure_member_pair_budget_card_bound:
+  assumes rows_bound: "card (raw_final_active_suffix_rows r) \<le> C"
+    and pair_budget: "raw_final_active_suffix_pair_budget r \<le> P"
+    and member_size: "\<And>q. q \<in> raw_final_active_suffix_rows r \<Longrightarrow>
+      rsize q \<le> M"
+  shows "card (raw_final_active_suffix_closure r) \<le> C + P * M"
+proof -
+  have closure_bound:
+    "card (raw_final_active_suffix_closure r) \<le>
+      card (raw_final_active_suffix_rows r) + P * M"
+    by (rule card_raw_final_active_suffix_closure_member_pair_budget_bound
+        [OF pair_budget member_size])
+  have "card (raw_final_active_suffix_rows r) + P * M \<le> C + P * M"
+    by (rule add_right_mono[OF rows_bound])
+  with closure_bound show ?thesis
+    by linarith
+qed
+
+lemma card_raw_final_active_suffix_closure_le_rsize_plus_square_member:
+  assumes member_size: "\<And>q. q \<in> raw_final_active_suffix_rows r \<Longrightarrow>
+    rsize q \<le> M"
+  shows "card (raw_final_active_suffix_closure r) \<le>
+    rsize r + rsize r * rsize r * M"
+proof -
+  have rows_bound: "card (raw_final_active_suffix_rows r) \<le> rsize r"
+    by (rule card_raw_final_active_suffix_rows_le_rsize)
+  have pair_budget:
+    "raw_final_active_suffix_pair_budget r \<le> rsize r * rsize r"
+    by (rule raw_final_active_suffix_pair_budget_le_rsize_square)
+  show ?thesis
+    by (rule card_raw_final_active_suffix_closure_member_pair_budget_card_bound
+        [OF rows_bound pair_budget member_size])
 qed
 
 

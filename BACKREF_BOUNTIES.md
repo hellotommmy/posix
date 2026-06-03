@@ -125,6 +125,17 @@ immutability.
   `<= T`, pair-budget `<= T*T`, and the existing cubic memo-table budgets.
   This is BR-040 infrastructure only; the tree or indexed-universe bound is
   still open.
+- Final-active closure contract checkpoint:
+  `GeneralRegexBound.thy:raw_final_active_suffix_closure` and
+  `FBound.thy:strong_deferred_final_active_suffix_closure` expose the one-step
+  active shared-prune closure of the final strong tree's active rows. The
+  checked theorem
+  `strong_deferred_memo_tree_bounded_active_closure_contract` states that a
+  future final-tree bound `asize <= T` plus a final-active member-size bound
+  `rsize q <= M` yields
+  `card strong_deferred_final_active_suffix_closure <= T + T*T*M`. This is the
+  current proof-facing shape for the indexed/final-active universe route, but
+  it is still infrastructure until the final tree/member-size bound is checked.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
@@ -163,9 +174,10 @@ immutability.
 - Direct k/n derivative-size compare side task:
   `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1` generates
   `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.
-  Unlike the per-metric grid, this report overlays thesis `strongTree`,
-  deferred `strongMemoTree`, and current `cubicTree` on one plot per `k`.
-  The generated `comparison_summary.csv` gives the baseline ratios directly:
+  The default report overlays thesis `strongTree` and deferred
+  `strongMemoTree` on one plot per `k`; `cubicTree` remains available only as
+  an explicit opt-in negative-evidence metric. Older generated summaries showed
+  the baseline ratios directly:
   at k=5,n=30, `cubicTree=3245` versus `strongTree=958` (`3.387x`);
   at k=8,n=30, `cubicTree=7587` versus `strongTree=2747` (`2.762x`).
   This is visualization/tooling under BR-038, not a theorem payout.
