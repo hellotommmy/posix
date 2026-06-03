@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final-active member DAG is now measured directly
+
+- Added erased `Rexp` exact-DAG and shape-DAG size metrics to the Scala smoke
+  harness, and threaded them through `ActiveSuffixStats`. The final-active
+  row-member reports now show raw tree size, exact DAG size, and shape-DAG
+  size side by side.
+- Added optional budget gates for final-active member DAG and member shape-DAG.
+  A seed-`20260602` scout with rows `1.0`, pair `1.0`, raw member disabled,
+  and DAG/shape-DAG factors `2.0` found no CE in 5,000 random depth-6/input-8
+  cases while preserving exact POSIX values.
+- The same scout preserves the important separation: the raw tree CE at
+  random case `4784` has `rsize=30` and raw row tree size `169`, but exact
+  row DAG/shape-DAG size `38`. Chapter 7 k=`5`, n=`4,8,12` shows raw final
+  row size `126` versus DAG/shape-DAG `31`.
+- Design consequence: future Isabelle work should prove a finite
+  hash-consed/indexed row-member universe and a reconstruction theorem over
+  that universe. Do not interpret raw-tree row-member failures as failures of
+  the memo-strong route; they are precisely the evidence for using DAG/indexed
+  accounting.
+
 ## 2026-06-03: Raw row-member tree size is not the final metric
 
 - Added checked subterm/size handles for final-active row payloads and suffix

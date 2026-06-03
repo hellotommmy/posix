@@ -2,6 +2,43 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final-Active Member DAG Metrics (2026-06-03)
+
+- Continued the route requested by Chengsong: focus on memo/hash-consed strong
+  tree with exact POSIX reconstruction, not the retired emitted-tree
+  `bsimpCubic`.
+- Extended `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` with erased
+  `Rexp` exact DAG and shape-DAG size functions, and added final-active row
+  member DAG/shape-DAG metrics:
+  `maxRowDagSize` and `maxRowShapeDagSize`.
+- Extended the smoke wrapper with optional final-active DAG budget gates:
+  `-StrongFinalActiveMemberDagFactor` and
+  `-StrongFinalActiveMemberShapeDagFactor`. Existing raw tree member-factor
+  behavior is unchanged and remains available as negative evidence.
+- Extended the Chapter 7 deferred-memo grid script so it can plot
+  `strongMemoActiveMaxRowDag`, `strongMemoActiveMaxRowShapeDag`,
+  `strongMemoFinalActiveMaxRowDag`, and
+  `strongMemoFinalActiveMaxRowShapeDag` by default.
+- Smoke results:
+  - default strong-memo smoke still passed exact POSIX values on 84,300
+    exhaustive cases, the known CE grid, and a small random compile check;
+  - a DAG budget scout with rows `1.0`, pair `1.0`, raw member disabled, and
+    DAG/shape-DAG member factors `2.0` found no CE in 5,000 deterministic
+    random cases at depth `6`, input length `8`, seed `20260602`;
+  - the previous raw-tree counterexample remains informative: random case
+    `4784` has `rsize=30`, raw final-active max row size `169`, but
+    max row DAG and shape-DAG are both `38`.
+- Chapter 7 probe:
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_dag_probe/` records k=`5`,
+  n=`4,8,12`: final-active max row raw tree size is constantly `126`, while
+  final-active max row DAG and shape-DAG are constantly `31`.
+- Design consequence: the next Isabelle target should be a finite
+  hash-consed/indexed final-active member universe and POSIX reconstruction
+  bridge. Proving raw row-member tree size linear is explicitly the wrong
+  target.
+- This is BR-038/BR-039/BR-040 testing infrastructure only. No bounty is
+  claimed.
+
 ## Cubic Route Checkpoint: Strong-Memo Row Subterm Handles (2026-06-03)
 
 - Continued the memo-strong route and kept emitted-tree `bsimpCubic` retired.

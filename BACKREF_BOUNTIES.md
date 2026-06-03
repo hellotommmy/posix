@@ -92,6 +92,13 @@ immutability.
   and `3` all have counterexamples, while the same cases often have compact
   strong DAGs. Future BR-040 work should target a hash-consed/member-DAG or
   indexed/quotiented final-active universe preserving POSIX values.
+- Final-active member-DAG smoke checkpoint: `PosixCubicSmoke.scala` now reports
+  exact DAG and shape-DAG sizes for final-active row members, and
+  `scala_cubic_smoke.ps1` exposes `-StrongFinalActiveMemberDagFactor` and
+  `-StrongFinalActiveMemberShapeDagFactor`. A seed-`20260602` scout with
+  rows/pair factors `1.0`, raw member disabled, and DAG/shape-DAG member
+  factors `2.0` found no CE in 5,000 random depth-6/input-8 cases. This is
+  evidence and tooling for BR-038/BR-039/BR-040, not a bounty payout.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

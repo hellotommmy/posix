@@ -6,6 +6,8 @@ param(
   [double]$RowsFactor = 1.0,
   [double]$PairFactor = 1.0,
   [double]$MemberFactor = 1.0,
+  [double]$MemberDagFactor = 0.0,
+  [double]$MemberShapeDagFactor = 0.0,
   [int]$MinRegexSize = 5,
   [int]$Top = 5,
   [string]$OutDir = "agent_hunt_pipeline/reports/strong_memo_final_active_scout",
@@ -32,8 +34,9 @@ if ($SeedList.Count -eq 0) {
   throw "At least one seed is required."
 }
 
-if ($RowsFactor -le 0.0 -and $PairFactor -le 0.0 -and $MemberFactor -le 0.0) {
-  throw "At least one of RowsFactor, PairFactor, or MemberFactor must be positive."
+if ($RowsFactor -le 0.0 -and $PairFactor -le 0.0 -and $MemberFactor -le 0.0 -and
+    $MemberDagFactor -le 0.0 -and $MemberShapeDagFactor -le 0.0) {
+  throw "At least one final-active budget factor must be positive."
 }
 
 $Rows = New-Object System.Collections.Generic.List[object]
@@ -53,6 +56,8 @@ foreach ($SeedText in $SeedList) {
     "-StrongFinalActiveRowsFactor", $RowsFactor,
     "-StrongFinalActivePairFactor", $PairFactor,
     "-StrongFinalActiveMemberFactor", $MemberFactor,
+    "-StrongFinalActiveMemberDagFactor", $MemberDagFactor,
+    "-StrongFinalActiveMemberShapeDagFactor", $MemberShapeDagFactor,
     "-StrongFinalActiveMinRegexSize", $MinRegexSize,
     "-StrongFinalActiveTop", $Top,
     "-RandomCases", $RandomCases,
@@ -87,7 +92,7 @@ foreach ($SeedText in $SeedList) {
   $NoCE = $Text.Contains("no strong final-active budget CE found")
   $RowsMatches = [regex]::Matches($Text, "rowsRatio=([0-9.]+) rows=([0-9]+) label=([^;`r`n]+)")
   $PairMatches = [regex]::Matches($Text, "pairRatio=([0-9.]+) pairBudget=([0-9]+) label=([^;`r`n]+)")
-  $MemberMatches = [regex]::Matches($Text, "memberRatio=([0-9.]+) maxRowSize=([0-9]+) label=([^;`r`n]+)")
+  $MemberMatches = [regex]::Matches($Text, "memberRatio=([0-9.]+) maxRowSize=([0-9]+).*? label=([^;`r`n]+)")
   $WorstRowsRatio = ""
   $WorstRowsLabel = ""
   if ($RowsMatches.Count -gt 0) {
@@ -140,6 +145,8 @@ $Lines.Add("- Random cases per seed: $RandomCases")
 $Lines.Add("- Random depth/input length: $RandomDepth / $RandomInputLength")
 $Lines.Add("- Rows budget: $RowsFactor * rsize(r)")
 $Lines.Add("- Member-size budget: $MemberFactor * rsize(r)")
+$Lines.Add("- Member DAG budget: $MemberDagFactor * rsize(r)")
+$Lines.Add("- Member shape-DAG budget: $MemberShapeDagFactor * rsize(r)")
 $Lines.Add("- Pair budget: $PairFactor * rsize(r)^2")
 $Lines.Add("- Minimum regex size: $MinRegexSize")
 $Lines.Add("")

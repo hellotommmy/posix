@@ -1,0 +1,10 @@
+k,n,metric,value,seqMode
+5,4,"strongMemoFinalActiveMaxRowSize",126,"unary-cover-no-reassoc"
+5,4,"strongMemoFinalActiveMaxRowDag",31,"unary-cover-no-reassoc"
+5,4,"strongMemoFinalActiveMaxRowShapeDag",31,"unary-cover-no-reassoc"
+5,8,"strongMemoFinalActiveMaxRowSize",126,"unary-cover-no-reassoc"
+5,8,"strongMemoFinalActiveMaxRowDag",31,"unary-cover-no-reassoc"
+5,8,"strongMemoFinalActiveMaxRowShapeDag",31,"unary-cover-no-reassoc"
+5,12,"strongMemoFinalActiveMaxRowSize",126,"unary-cover-no-reassoc"
+5,12,"strongMemoFinalActiveMaxRowDag",31,"unary-cover-no-reassoc"
+5,12,"strongMemoFinalActiveMaxRowShapeDag",31,"unary-cover-no-reassoc"
