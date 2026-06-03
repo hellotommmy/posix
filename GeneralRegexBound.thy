@@ -18083,6 +18083,39 @@ proof -
   qed
 qed
 
+lemma rsize_rsimpStrong_prune_pair_raw_le:
+  "rsize (rsimpStrong_prune_pair_raw earlier later) \<le> rsize later"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have "rsize (rsimpStrong_prune_pair_raw earlier later) =
+        rsize (rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+      using shared by (simp add: rsimpStrong_prune_pair_raw_def)
+    also have "... \<le> rsize (RSEQ (RALTS rrs) k)"
+      by (rule rsize_rsimpStrong_raw_shared_prune_result_le)
+    also have "... = rsize later"
+      using shared by simp
+    finally show ?thesis .
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      by simp
+  qed
+qed
+
 lemma rsize_rsimpStrong_prune_pair_shared_suffix_lt:
   assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
   shows "rsize (rsimpStrong_prune_pair
@@ -21830,6 +21863,16 @@ lemma sum_list_len:
   shows "rsizes rs \<le> n \<Longrightarrow> length rs \<le> n"
   by (meson order.trans size_sum_more_than_len)
 
+lemma card_set_le_rsizes:
+  "card (set rs) \<le> rsizes rs"
+proof -
+  have "card (set rs) \<le> length rs"
+    by (rule card_length)
+  also have "... \<le> rsizes rs"
+    by (rule size_sum_more_than_len)
+  finally show ?thesis .
+qed
+
 
 lemma t2:
   shows "RALTs_set A n \<subseteq> RALTs_set_length A n n"
@@ -21945,6 +21988,45 @@ proof clarify
     using x_size_le_p p_size_le_later later_size by linarith
   then show "x \<in> sizeNregex N"
     using x_legacy unfolding sizeNregex_def by simp
+qed
+
+lemma card_raw_shared_prune_pair_outputs_le_later_size:
+  "card (raw_shared_prune_pair_outputs earlier later) \<le> rsize later"
+proof -
+  let ?p = "rsimpStrong_prune_pair_raw earlier later"
+  have "card (raw_shared_prune_pair_outputs earlier later) =
+      card (set (rflts [?p]))"
+    by (simp add: raw_shared_prune_pair_outputs_def)
+  also have "... \<le> rsizes (rflts [?p])"
+    by (rule card_set_le_rsizes)
+  also have "... \<le> rsizes [?p]"
+    by (rule rflts_mono)
+  also have "... = rsize ?p"
+    by simp
+  also have "... \<le> rsize later"
+    by (rule rsize_rsimpStrong_prune_pair_raw_le)
+  finally show ?thesis .
+qed
+
+lemma card_raw_shared_prune_same_suffix_closure_member_bucket_bound:
+  assumes finite: "finite U"
+    and keys_bound: "card (raw_shared_prune_suffix_key ` U) \<le> S"
+    and bucket_bound: "\<And>k. k \<in> raw_shared_prune_suffix_key ` U \<Longrightarrow>
+      card (raw_shared_prune_suffix_bucket U k) \<le> K"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "card (raw_shared_prune_same_suffix_closure U) \<le>
+    card U + S * K * K * M"
+proof (rule card_raw_shared_prune_same_suffix_closure_bucket_bound
+    [OF finite keys_bound bucket_bound])
+  fix earlier later
+  assume pair: "(earlier, later) \<in> raw_shared_prune_same_suffix_pairs U"
+  have later: "later \<in> U"
+    using pair by (simp add: raw_shared_prune_same_suffix_pairs_def)
+  have "card (raw_shared_prune_pair_outputs earlier later) \<le> rsize later"
+    by (rule card_raw_shared_prune_pair_outputs_le_later_size)
+  also have "... \<le> M"
+    by (rule member_size[OF later])
+  finally show "card (raw_shared_prune_pair_outputs earlier later) \<le> M" .
 qed
 
 

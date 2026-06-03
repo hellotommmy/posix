@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Same-suffix pair output is member-size bounded
+
+- Added `rsize_rsimpStrong_prune_pair_raw_le` and
+  `card_raw_shared_prune_pair_outputs_le_later_size`.
+- Consequence: in same-suffix closure accounting, the output of one raw prune
+  pair is bounded by the size of the later row. If the universe has a member
+  size bound `M`, then the one-pair output bound is automatically `M`.
+- Added
+  `card_raw_shared_prune_same_suffix_closure_member_bucket_bound`, reducing the
+  closure cardinality task to suffix-key count, per-key bucket size, and the
+  existing member-size bound.
+- Design consequence: the next concrete universe proof only needs to explain
+  how many continuation buckets there are and how large each bucket can get.
+  Pair-output size is no longer a separate source of growth.
+
 ## 2026-06-03: Same-suffix accounting is bucketized
 
 - Added `raw_shared_prune_same_suffix_pairs` and

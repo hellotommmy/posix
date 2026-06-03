@@ -2,6 +2,27 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Pair Output Bound Removed (2026-06-03)
+
+- Added `GeneralRegexBound.thy:rsize_rsimpStrong_prune_pair_raw_le`.
+- Added `GeneralRegexBound.thy:card_set_le_rsizes` as a reusable list-size
+  counting lemma.
+- Proved `card_raw_shared_prune_pair_outputs_le_later_size`: the output of
+  one raw prune pair has cardinality at most the size of the later row.
+- Proved
+  `card_raw_shared_prune_same_suffix_closure_member_bucket_bound`, specializing
+  the earlier bucket accounting theorem so the one-pair output bound is
+  discharged by the ordinary universe member-size bound.
+- The active closure cardinality obligation is now reduced to:
+  - number of suffix keys;
+  - maximum bucket size per suffix key;
+  - ordinary member-size bound for the universe.
+  There is no longer a separate same-suffix pair-output size parameter.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Same-Suffix Bucket Accounting (2026-06-03)
 
 - Added `GeneralRegexBound.thy:raw_shared_prune_same_suffix_pairs` and
