@@ -129,21 +129,36 @@ active suffix-key count, active bucket size, and ordinary universe member-size
 bound.
 Use
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\ch7_deferred_memo_grid.ps1`
-to refresh the current deferred-memo plots. The report includes
+from the repository root to refresh the current deferred-memo plots. If the
+PowerShell current directory is elsewhere, use the absolute script path:
+`powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\agent_hunt_pipeline\scripts\ch7_deferred_memo_grid.ps1`.
+The report includes
 `strongMemoActiveRows`, `strongMemoActiveKeys`,
-`strongMemoActiveMaxBucket`, and `strongMemoActivePairBudget`; inspect these
-before changing the proof universe.
+`strongMemoActiveMaxBucket`, `strongMemoActivePairBudget`, and the
+active owner decomposition metrics `strongMemoActiveAltNodes`,
+`strongMemoActivePayloadRoots`, `strongMemoActivePayloadDag`,
+`strongMemoActiveKeyDag`, `strongMemoActiveComponentOwner`, and
+`strongMemoActiveRowDagUniverse`; inspect these before changing the proof
+universe.
 The `n=200` long-tail grid shows `strongMemoTree` is still promising, but the
 unquotiented cumulative active prefix pool keeps growing for `k=8`. Treat
 active-prefix metrics as diagnostics, not as the final root-owned cubic
 universe unless a quotient/periodic/indexed bound is added.
 The same report now includes final-state metrics
 `strongMemoFinalActiveRows`, `strongMemoFinalActiveKeys`,
-`strongMemoFinalActiveMaxBucket`, `strongMemoFinalActiveMaxRowSize`, and
-`strongMemoFinalActivePairBudget`.
+`strongMemoFinalActiveMaxBucket`, `strongMemoFinalActiveMaxRowSize`,
+`strongMemoFinalActivePairBudget`, `strongMemoFinalActiveAltNodes`,
+`strongMemoFinalActivePayloadRoots`, `strongMemoFinalActivePayloadDag`,
+`strongMemoFinalActiveKeyDag`, `strongMemoFinalActiveComponentOwner`, and
+`strongMemoFinalActiveRowDagUniverse`.
 Prefer these when reasoning about the size of the final derivative tree; on
 the current `k=5,8,10,12,n<=200` grid they stay tiny while the prefix pool
 grows.
+The current route is smoke-first memo-strong: `bders_simpStrong` is a
+recognition gate, exact POSIX values come from original-regex span memoization,
+and the size object is the final-active row-DAG owner table. Do not spend new
+proof effort on `bsimpCubic` emitted-tree bounds unless a future implementation
+first beats the memo-strong owner traces and passes exact POSIX value smoke.
 Before trying to prove the final-active route, run the dedicated budget scout:
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_scout.ps1`.
 It keeps exact POSIX value smoke enabled and checks optional linear rows and

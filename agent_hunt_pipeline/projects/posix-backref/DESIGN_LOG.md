@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Memo-strong owner metrics replace bsimpCubic proof attempts
+
+- The graph evidence is now treated as decisive negative evidence for direct
+  `bsimpCubic` emitted-tree cubic proofs. The active route is memo-strong:
+  keep `bders_simpStrong` as the nullable recognition gate, reconstruct exact
+  POSIX values with original-regex span memoization, and prove size through the
+  final-active row-DAG owner table.
+- Extended the Scala smoke metrics to decompose active/final rows into
+  ALT nodes, payload roots, payload DAG universe, suffix-key DAG universe, and
+  their component owner union. The key proof-facing metrics are now
+  `strongMemoFinalActiveRowDagUniverse` and
+  `strongMemoFinalActiveComponentOwner`; emitted tree size is diagnostic only.
+- Future proof work should target linear component/owner bounds feeding
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`. Do not
+  claim a cubic bounty for a reassociated or emitted-tree simplifier unless it
+  also has exact POSIX value reconstruction checked.
+
 ## 2026-06-04: The main memo-strong proof target is linear final row-DAG
 
 - Added

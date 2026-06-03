@@ -2,6 +2,38 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong Owner Decomposition Metrics (2026-06-04)
+
+- Accepted the plot evidence that direct `bsimpCubic` emitted-tree bounds are
+  not the current proof route. It remains a negative/regression target.
+- Extended `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` so active and
+  final strong rows now report component owner metrics:
+  `altNodes`, `payloadRoots`, `payloadDagUniverse`, `keyDagUniverse`, and
+  `componentOwnerSize`.
+- Updated the Chapter 7 deferred-memo grid defaults so plots include
+  `strongMemoFinalActiveRowDagUniverse`,
+  `strongMemoFinalActiveComponentOwner`,
+  `strongMemoFinalActivePayloadDag`, and
+  `strongMemoFinalActiveKeyDag`, along with the existing row/pair/memo metrics.
+- Quick smoke passed with exact POSIX value reconstruction enabled. On the
+  thesis Chapter 7 `k=5` trace, final row-DAG universe stayed at `44,41` for
+  `n=4,8`, while final component owner stayed at `36,36`; the emitted strong
+  tree was already `474,730`. This supports the current proof target: a
+  hash-consed final-active owner bound, not emitted tree size.
+- Generated the focused owner-decomposition report at
+  `agent_hunt_pipeline/reports/ch7_memo_strong_owner_decomp/index.html` for
+  `k=5,8`, `n=0..80`. At `n=80`, `k=5` has final component owner `36`,
+  final row-DAG universe `41` (max `44`), and strong tree `957` (max `959`);
+  `k=8` has final component owner `71`, final row-DAG universe `91`
+  (max `97`), and strong tree `3233` (max `3245`).
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including exact strong-memo Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- No BR-039/BR-040 bounty is claimed. The remaining proof obligation is still
+  a checked linear bound for
+  `strong_deferred_final_active_suffix_row_dag_universe`.
+
 ## Cubic Route Checkpoint: Linear Row-DAG Target Named (2026-06-04)
 
 - Added the checked theorem
