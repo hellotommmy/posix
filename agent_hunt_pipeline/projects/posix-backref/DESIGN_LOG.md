@@ -5,6 +5,14 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added `strong_deferred_original_final_active_single_row_dag_linear_contract`.
+  It states the current proof objective in its cleanest form: prove one
+  original-regex-owned linear bound on
+  `strong_deferred_final_active_suffix_row_dag_universe`, and the existing
+  memo-strong route yields exact POSIX reconstruction plus all final-active
+  row/pair/max-DAG budgets. Future work should try to prove this single
+  premise, not reintroduce a separate row-count proof unless that split is
+  genuinely easier.
 - Latest route decision: emitted-tree `bsimpCubic` should be treated as
   negative evidence and tooling residue. The active route is memo strong tree
   plus exact original-regex POSIX reconstruction and final-active row-DAG

@@ -137,6 +137,14 @@ immutability.
   `5,000` cases each at depth `6`, input length `8`. The Chapter 7 comparison
   was refreshed to `n<=80`; final-active max row-DAG stays at `31/61` for
   `k=5/8`. Smoke evidence only; no payout.
+- Single row-DAG linear handoff: checked
+  `FBound.thy:strong_deferred_original_final_active_single_row_dag_linear_contract`.
+  This packages the current BR-040 proof target as one obligation,
+  `card strong_deferred_final_active_suffix_row_dag_universe <= K * rxsize r`,
+  and then supplies exact POSIX reconstruction plus final rows, pair budget,
+  max row-DAG, and row-member exact-DAG budgets. It is proof infrastructure
+  only; the original-regex-owned universe bound remains open and no bounty is
+  claimed.
 - Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
   for the row-DAG universe, plus
   `strong_deferred_memo_tree_value_final_active_row_dag_interface` and

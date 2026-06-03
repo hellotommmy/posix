@@ -2,6 +2,24 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Single Row-DAG Linear Handoff (2026-06-04)
+
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_final_active_single_row_dag_linear_contract`.
+  It matches the current memo-strong proof target directly: for a legacy root,
+  one bound
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <=
+   K * rxsize r`
+  yields exact POSIX `Some`/`None` correctness, `flat v = s`, final row count
+  `<= K * rxsize r`, pair budget `<= (K * rxsize r)^2`, max row-DAG
+  `<= K * rxsize r`, and the existing span/split memo budgets.
+- This removes the older need to state a separate final-row bound when the
+  proof route constructs a single row-DAG universe. The theorem is still a
+  handoff: BR-040 remains open until Isabelle derives the row-DAG universe
+  bound from the original non-backref regex structure.
+- Verification: focused Isabelle `Posix` build passed.
+- No bounty is claimed.
+
 ## Cubic Route Checkpoint: Memo-Strong DAG Scout and Final-Active Gate (2026-06-04)
 
 - Added a Scala smoke switch for the whole final memo-strong exact-DAG metric:
