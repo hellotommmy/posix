@@ -3255,6 +3255,12 @@ lemma row_group_deep_nf_rerase_bsimpStrong:
   using assms
   by (simp add: rerase_bsimpStrong_raw row_group_deep_nf_rsimpStrong_raw)
 
+lemma row_group_deep_nf_rerase_bsimpStrong_legacy:
+  assumes "legacy_rrexp (rerase r)"
+  shows "row_group_deep_nf (rerase (bsimpStrong r))"
+  using assms
+  by (simp add: rerase_bsimpStrong_raw row_group_deep_nf_rsimpStrong_raw_legacy)
+
 lemma row_group_deep_nf_rerase_bsimpStrong_bder:
   assumes "legacy_rrexp (rerase r)"
     and "row_group_deep_nf (rerase r)"
@@ -3527,6 +3533,35 @@ next
     by (simp add: Cons.hyps[OF step_legacy step_nf])
 qed
 
+lemma row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_start:
+  assumes "legacy_rrexp (rerase r)"
+  shows "row_group_deep_nf (rerase (bders_simpStrong (bsimpStrong r) s))"
+proof -
+  have start_legacy: "legacy_rrexp (rerase (bsimpStrong r))"
+    by (rule legacy_rerase_bsimpStrong[OF assms])
+  have start_nf: "row_group_deep_nf (rerase (bsimpStrong r))"
+    by (rule row_group_deep_nf_rerase_bsimpStrong_legacy[OF assms])
+  show ?thesis
+    by (rule row_group_deep_nf_rerase_bders_simpStrong
+        [OF start_legacy start_nf])
+qed
+
+lemma row_group_deep_nf_rerase_bders_simpStrong_nonempty:
+  assumes "legacy_rrexp (rerase r)"
+  shows "row_group_deep_nf (rerase (bders_simpStrong r (c # s)))"
+proof -
+  have der_legacy: "legacy_rrexp (rerase (bder c r))"
+    using legacy_rder[OF assms, of c] rder_bder_rerase[of c r]
+    by simp
+  have start_legacy: "legacy_rrexp (rerase (bsimpStrong (bder c r)))"
+    by (rule legacy_rerase_bsimpStrong[OF der_legacy])
+  have start_nf: "row_group_deep_nf (rerase (bsimpStrong (bder c r)))"
+    by (rule row_group_deep_nf_rerase_bsimpStrong_legacy[OF der_legacy])
+  show ?thesis
+    by (simp add: row_group_deep_nf_rerase_bders_simpStrong
+        [OF start_legacy start_nf])
+qed
+
 lemma legacy_rexp_rerase_bders_simpStrong_intern:
   assumes "legacy_rexp r"
   shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
@@ -3535,6 +3570,29 @@ proof -
     using assms by (simp add: legacy_rerase_intern)
   then show ?thesis
     by (rule legacy_rerase_bders_simpStrong)
+qed
+
+lemma row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_intern:
+  assumes "legacy_rexp r"
+  shows "row_group_deep_nf
+    (rerase (bders_simpStrong (bsimpStrong (intern r)) s))"
+proof -
+  have legacy: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  show ?thesis
+    by (rule row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_start
+        [OF legacy])
+qed
+
+lemma row_group_deep_nf_rerase_bders_simpStrong_intern_nonempty:
+  assumes "legacy_rexp r"
+  shows "row_group_deep_nf
+    (rerase (bders_simpStrong (intern r) (c # s)))"
+proof -
+  have legacy: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  show ?thesis
+    by (rule row_group_deep_nf_rerase_bders_simpStrong_nonempty[OF legacy])
 qed
 
 lemma strong_deferred_original_legacy_budget:
@@ -6796,12 +6854,16 @@ definition thesis_cubic_counterexample_G :: arexp where
   "thesis_cubic_counterexample_G =
     ANTIMES [] (AALTs [] [AZERO, AONE []]) 3"
 
+definition thesis_cubic_counterexample_G_strong :: arexp where
+  "thesis_cubic_counterexample_G_strong =
+    ANTIMES [] (AONE []) 3"
+
 definition thesis_cubic_counterexample_G_pruned :: arexp where
   "thesis_cubic_counterexample_G_pruned = AONE [Z, Z, Z, S]"
 
 lemma thesis_cubic_counterexample_G_checks:
   "bsimpStrong thesis_cubic_counterexample_G =
-    thesis_cubic_counterexample_G"
+    thesis_cubic_counterexample_G_strong"
   "bsimpCubic thesis_cubic_counterexample_G =
     thesis_cubic_counterexample_G_pruned"
   "asize (bsimpCubic thesis_cubic_counterexample_G) <

@@ -760,6 +760,7 @@ where
     | AONE bs' \<Rightarrow> AONE []
     | ASTAR bs' s \<Rightarrow> ASTAR bs' s
     | s \<Rightarrow> ASTAR bs s)"
+| "bsimpStrong (ANTIMES bs r n) = ANTIMES bs (bsimpStrong r) n"
 | "bsimpStrong r = r"
 
 fun

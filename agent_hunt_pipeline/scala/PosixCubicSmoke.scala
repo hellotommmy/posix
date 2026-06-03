@@ -524,6 +524,7 @@ object PosixCubicSmoke {
       case ASTAR(bs2, s) => ASTAR(bs2, s)
       case s => ASTAR(bs, s)
     }
+    case ANTIMES(bs, body, n) => ANTIMES(bs, bsimpStrong(body), n)
     case other => other
   }
 

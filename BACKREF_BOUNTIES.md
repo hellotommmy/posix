@@ -72,6 +72,13 @@ immutability.
   `row_group_deep_nf_rerase_bsimpStrong_bder`, and
   `row_group_deep_nf_rerase_bders_simpStrong`. This supports BR-039/BR-040
   but is infrastructure only; no payout is claimed.
+- Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
+  into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
+  model. Checked entry lemmas include
+  `row_group_deep_nf_rerase_bsimpStrong_legacy`,
+  `row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_intern`, and
+  `row_group_deep_nf_rerase_bders_simpStrong_intern_nonempty`. This removes a
+  proof-route precondition but remains BR-039/BR-040 infrastructure only.
 - Chapter 7 plotting side task: `agent_hunt_pipeline/scripts/ch7_size_grid.ps1`
   now generates CSV and SVG plots under
   `agent_hunt_pipeline/reports/ch7_size_grid/`, using the Scala smoke model as

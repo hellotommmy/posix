@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Strong simplification enters `NTIMES` bodies
+
+- Updated `bsimpStrong`, `rsimpStrong`, `rsimpStrong_raw`, and the Scala smoke
+  model so strong simplification recurses into `ANTIMES`/`RNTIMES` bodies.
+- The rule is intentionally weaker than `bsimpCubic`: it normalizes the body
+  only. It does not collapse `n = 0`, zero bodies, or epsilon bodies to a
+  value-carrying `ONE`, because the memo-strong route uses `bsimpStrong` as a
+  recognition tree and keeps POSIX values reconstructed from the original
+  regex.
+- This closes the initial-normalization gap from the previous checkpoint:
+  checked lemmas now show a legacy state becomes `row_group_deep_nf` after
+  `bsimpStrong`, and the invariant holds for both `bsimpStrong (intern r)`
+  starts and nonempty existing `bders_simpStrong (intern r) (c # s)` runs.
+- Smoke consequence: exact `StrongDeferredMemo` POSIX reconstruction still
+  passes deterministic random testing after the change. The Chapter 7 strong
+  trace is unchanged on the default k=5 grid.
+
 ## 2026-06-03: Memo strong tree normal-form route
 
 - The derivative-size graphs make `bsimpCubic` a negative result for the

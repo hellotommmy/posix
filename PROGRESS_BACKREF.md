@@ -2,6 +2,35 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong `NTIMES` Entry Normalization (2026-06-03)
+
+- Strengthened `bsimpStrong`/`rsimpStrong`/`rsimpStrong_raw` so they recurse
+  into `ANTIMES`/`RNTIMES` bodies. This is deliberately conservative: it does
+  not collapse `n = 0` repetitions or epsilon bodies into `ONE`, so the strong
+  recognition tree keeps the repetition/value framing while eliminating the
+  previous unnormalized-body gap.
+- Synchronized the Scala smoke model (`PosixCubicSmoke.scala`) with the same
+  `ANTIMES` body-recursion rule. The historical counterexample G now records
+  the new strong result `ANTIMES [] (AONE []) 3`, while `bsimpCubic` still
+  folds the whole repetition to `AONE [Z,Z,Z,S]`.
+- Added checked entry-normalization lemmas:
+  `row_group_deep_nf_rsimpStrong_raw_legacy`,
+  `row_group_deep_nf_rerase_bsimpStrong_legacy`,
+  `row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_start`,
+  `row_group_deep_nf_rerase_bders_simpStrong_nonempty`,
+  `row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_intern`, and
+  `row_group_deep_nf_rerase_bders_simpStrong_intern_nonempty`.
+- Design effect: the memo-strong proof route no longer has to pretend that
+  raw `intern r` is already deep-normal. Either start the recognition state at
+  `bsimpStrong (intern r)`, or use the nonempty-input theorem for the existing
+  derivative loop.
+- Verification:
+  - full local CI passed:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`;
+  - deterministic random `strong-memo` Scala smoke passed:
+    `scala_cubic_smoke.ps1 -Route strong-memo -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`.
+- This is still infrastructure for BR-039/BR-040, not a cubic theorem payout.
+
 ## Cubic Route Checkpoint: Raw Strong Normal-Form Preservation (2026-06-03)
 
 - Followed the graph evidence and kept emitted-tree `bsimpCubic` retired as a
