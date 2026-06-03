@@ -81,6 +81,11 @@ Last updated: 2026-06-03 (strong-memo route is default)
   lifted `strong_deferred_final_active_suffix_*` versions in `FBound.thy`.
   These reduce final-active row/key/bucket reasoning to concrete
   `RSEQ (RALTS rows) k` subterms of the final strong tree.
+- Added checked key/bucket support lemmas for the same route:
+  final-active keys and buckets are subsets of final-tree `rsubterms`, with
+  card and member-size bounds by the final raw tree size/asize. These are not
+  original-size bounds yet; they are proof plumbing for the next step, where
+  the final active rows must be related back to the root regex.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

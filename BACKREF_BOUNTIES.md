@@ -149,6 +149,11 @@ immutability.
   concrete `RSEQ (RALTS rows) k` subterms, with lifted
   `strong_deferred_final_active_suffix_*` versions in `FBound.thy`. This is
   proof infrastructure for BR-040, not a payout.
+- Final-active key/bucket checkpoint:
+  active keys and buckets now have checked subset, card, and member-size
+  support lemmas against the final raw tree. This is useful proof
+  infrastructure for the memo strong-tree route, but it is still not the
+  original-size cubic theorem and pays no bounty.
 - Original-size final-active contract checkpoint:
   `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`
   now states the proof target corresponding to the Scala final-active scout.

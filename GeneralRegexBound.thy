@@ -20734,6 +20734,25 @@ lemma raw_final_active_suffix_bucket_iff:
   by (auto simp add: raw_shared_prune_active_suffix_bucket_def
       raw_final_active_suffix_rows_iff raw_shared_prune_suffix_key_def)
 
+lemma raw_final_active_suffix_keys_subset_rsubterms:
+  "raw_final_active_suffix_keys r \<subseteq> rsubterms r"
+proof
+  fix k
+  assume k: "k \<in> raw_final_active_suffix_keys r"
+  then obtain rows where row:
+    "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using raw_final_active_suffix_keys_iff by blast
+  have "k \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by simp
+  then show "k \<in> rsubterms r"
+    using rsubterms_trans[OF row] by blast
+qed
+
+lemma raw_final_active_suffix_bucket_subset_rsubterms:
+  "raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"
+  by (auto simp add: raw_final_active_suffix_bucket_iff)
+
 lemma card_raw_final_active_suffix_rows_le_rsize:
   "card (raw_final_active_suffix_rows r) \<le> rsize r"
 proof -
@@ -20749,6 +20768,47 @@ qed
 lemma finite_raw_final_active_suffix_keys [simp]:
   "finite (raw_final_active_suffix_keys r)"
   by (simp add: raw_final_active_suffix_keys_def)
+
+lemma card_raw_final_active_suffix_keys_le_rsize:
+  "card (raw_final_active_suffix_keys r) \<le> rsize r"
+proof -
+  have keys_sub: "raw_final_active_suffix_keys r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_keys_subset_rsubterms)
+  have "card (raw_final_active_suffix_keys r) \<le> card (rsubterms r)"
+    by (rule card_mono) (simp_all add: keys_sub)
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
+lemma raw_final_active_suffix_keys_member_size_le_rsize:
+  assumes "k \<in> raw_final_active_suffix_keys r"
+  shows "rsize k \<le> rsize r"
+  using assms raw_final_active_suffix_keys_subset_rsubterms
+  by (meson contra_subsetD rsubterms_member_size_le_rsize)
+
+lemma card_raw_final_active_suffix_bucket_le_rsize:
+  "card (raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k) \<le> rsize r"
+proof -
+  have bucket_sub:
+    "raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_bucket_subset_rsubterms)
+  have "card (raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k) \<le> card (rsubterms r)"
+    by (rule card_mono) (simp_all add: bucket_sub)
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
+lemma raw_final_active_suffix_bucket_member_size_le_rsize:
+  assumes "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k"
+  shows "rsize q \<le> rsize r"
+  using assms raw_final_active_suffix_bucket_subset_rsubterms
+  by (meson contra_subsetD rsubterms_member_size_le_rsize)
 
 lemma raw_shared_prune_active_suffix_pair_budget_mono:
   assumes sub: "U \<subseteq> V"

@@ -65,6 +65,10 @@ to be read before continuing long-running agent work.
   `strong_deferred_final_active_suffix_*` lifts. The proof route should use
   these to reason about concrete `RSEQ (RALTS rows) k` subterms instead of
   repeatedly unfolding image/filter definitions.
+- Added key/bucket support for the final-active route: active keys and active
+  buckets are now exposed as final-tree subterms, with card/member-size bounds
+  by the final raw tree size. This deliberately does not claim the desired
+  original-size cubic bound; it gives the next proof step syntax-level handles.
 - The Chapter 7 trace now prints both cumulative active-prefix metrics and
   final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
   grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.

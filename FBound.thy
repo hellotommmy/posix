@@ -2623,6 +2623,19 @@ lemma strong_deferred_final_active_suffix_bucket_iff:
   by (simp add: strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_bucket_iff)
 
+lemma strong_deferred_final_active_suffix_keys_subset_final_rsubterms:
+  "strong_deferred_final_active_suffix_keys r s \<subseteq>
+    rsubterms (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      raw_final_active_suffix_keys_subset_rsubterms)
+
+lemma strong_deferred_final_active_suffix_bucket_subset_final_rsubterms:
+  "raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k \<subseteq>
+    rsubterms (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_bucket_subset_rsubterms)
+
 lemma card_strong_deferred_final_active_suffix_rows_le_final_rsize:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
     rsize (strong_deferred_final_raw r s)"
@@ -2640,6 +2653,60 @@ proof -
     by (simp add: strong_deferred_final_raw_def asize_rsize)
   finally show ?thesis .
 qed
+
+lemma card_strong_deferred_final_active_suffix_keys_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_keys r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      card_raw_final_active_suffix_keys_le_rsize)
+
+lemma card_strong_deferred_final_active_suffix_keys_le_final_asize:
+  "card (strong_deferred_final_active_suffix_keys r s) \<le>
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have "card (strong_deferred_final_active_suffix_keys r s) \<le>
+      rsize (strong_deferred_final_raw r s)"
+    by (rule card_strong_deferred_final_active_suffix_keys_le_final_rsize)
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_bucket_le_final_rsize:
+  "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      card_raw_final_active_suffix_bucket_le_rsize)
+
+lemma card_strong_deferred_final_active_suffix_bucket_le_final_asize:
+  "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+      rsize (strong_deferred_final_raw r s)"
+    by (rule card_strong_deferred_final_active_suffix_bucket_le_final_rsize)
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_final_active_suffix_keys_member_size_le_final_rsize:
+  assumes "k \<in> strong_deferred_final_active_suffix_keys r s"
+  shows "rsize k \<le> rsize (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      raw_final_active_suffix_keys_member_size_le_rsize)
+
+lemma strong_deferred_final_active_suffix_bucket_member_size_le_final_rsize:
+  assumes "q \<in> raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k"
+  shows "rsize q \<le> rsize (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_bucket_member_size_le_rsize)
 
 lemma strong_deferred_final_active_suffix_pair_budget_bucket_bound:
   assumes keys_bound:
