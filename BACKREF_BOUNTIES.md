@@ -63,6 +63,15 @@ immutability.
 
 ## Open Artifact Notes
 
+- Shared-universe POSIX handoff: `FBound.thy` now checks
+  `strong_deferred_original_final_active_shared_row_dag_linear_contract`.
+  If final-active rows are linear in `rxsize r` and a finite shared universe
+  `U` covers both payload and key DAG components with
+  `card U <= C * rxsize r`, the theorem yields exact memo-strong POSIX
+  correctness, `flat`, legacy preservation, pair/span/split budgets, and
+  `finalRowDag <= (C + 2) * rxsize r`. This is the preferred next BR-040
+  interface for a root-owned shared-universe proof, but it is not a payout
+  until such a universe is constructed and checked.
 - Memo-strong focus reconfirmed: the current active route is `StrongDeferredMemo`
   / `bders_simpStrong` as a nullable recognition tree plus exact original-regex
   POSIX reconstruction through `strong_deferred_span_value`. A fresh

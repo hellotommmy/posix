@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Shared-Universe POSIX Contract (2026-06-04)
+
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_final_active_shared_row_dag_linear_contract`.
+  It connects the shared row-DAG component handoff directly to the memo-strong
+  POSIX reconstruction contract.
+- New proof obligation shape:
+  - `legacy_rexp r`;
+  - final-active row count is linear:
+    `card (strong_deferred_final_active_suffix_rows r s) <= rxsize r`;
+  - one finite shared universe `U` covers both
+    `strong_deferred_final_active_suffix_payload_dag_universe r s` and
+    `strong_deferred_final_active_suffix_key_dag_universe r s`;
+  - `card U <= C * rxsize r`.
+- Under those assumptions the theorem yields exact `Some`/`None` POSIX
+  correctness, `flat v = s`, legacy preservation for the final raw state and
+  row-DAG nodes, pair budget `<= rxsize r * rxsize r`, and
+  `card finalRowDag <= (C + 2) * rxsize r`.
+- Design meaning: the remaining BR-040 proof can focus on constructing this
+  shared root-owned `U`, instead of separately summing payload and key DAG
+  components or proving POSIX value preservation again.
+- Verification: focused Isabelle `Posix` build passed.
+- No BR-039/BR-040 bounty is claimed; this is proof-interface infrastructure.
+
 ## Cubic Route Smoke: Memo-Strong Focus Reconfirmed (2026-06-04)
 
 - Reconfirmed the route decision after inspecting the new derivative-size

@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Shared universe plugs directly into POSIX contract
+
+- Added `strong_deferred_original_final_active_shared_row_dag_linear_contract`.
+  This is now the preferred BR-040 handoff when a candidate proof can build a
+  single shared universe for payload/key DAG components.
+- The remaining obligations are exactly: final-active row count linear in
+  `rxsize r`, payload/key DAG components included in a finite `U`, and
+  `card U <= C * rxsize r`. The theorem then gives
+  `finalRowDag <= (C + 2) * rxsize r` plus exact POSIX `Some`/`None`,
+  `flat`, legacy, pair-budget, span-state, and split-probe facts.
+- Prefer this theorem over manually chaining
+  `card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI`
+  with POSIX reconstruction in future proofs. It avoids duplicating the same
+  arithmetic and keeps the proof target visibly about constructing `U`.
+
 ## 2026-06-04: Memo-strong tree is the only active cubic route
 
 - The derivative-size graphs and the latest smoke run make the decision
