@@ -52,6 +52,12 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `row_group_deep_nf_strong_deferred_final_active_suffix_payload_roots_nonempty`.
   This makes payload roots usable in the same original-owned universe proof
   style as rows and suffix keys.
+- Added a shared-universe row-DAG handoff:
+  `card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI`.
+  If a finite universe `U` covers both payload-DAG and key-DAG components,
+  then `finalRowDag <= 2*rows + card U`. This is the hash-consed proof shape
+  suggested by the Scala evidence and is sharper than summing payload and key
+  DAG components separately.
 - Focused Isabelle `Posix` build passed after splitting the proof into
   explicit subterm and suffix-key witnesses; no broad slow automation was
   introduced.

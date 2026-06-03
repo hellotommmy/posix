@@ -22103,6 +22103,40 @@ proof -
   then show ?thesis .
 qed
 
+lemma card_raw_final_active_suffix_row_dag_universe_shared_component_boundI:
+  assumes rows: "card (raw_final_active_suffix_rows r) \<le> R"
+    and shared:
+      "raw_final_active_suffix_payload_dag_universe r \<union>
+       raw_final_active_suffix_key_dag_universe r \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (raw_final_active_suffix_row_dag_universe r) \<le> 2 * R + D"
+proof -
+  let ?Rows = "raw_final_active_suffix_rows r"
+  let ?Alts = "raw_final_active_suffix_alt_nodes r"
+  have sub: "raw_final_active_suffix_row_dag_universe r \<subseteq>
+      ?Rows \<union> ?Alts \<union> U"
+    using raw_final_active_suffix_row_dag_universe_decomp_subset shared
+    by blast
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le>
+      card (?Rows \<union> ?Alts \<union> U)"
+    by (rule card_mono) (simp_all add: finite sub)
+  also have "... \<le> card (?Rows \<union> ?Alts) + card U"
+    by (rule card_Un_le)
+  also have "... \<le> card ?Rows + card ?Alts + card U"
+    using card_Un_le[of ?Rows ?Alts] by linarith
+  also have "... \<le> R + R + D"
+  proof -
+    have alts_le_rows: "card ?Alts \<le> card ?Rows"
+      by (rule card_raw_final_active_suffix_alt_nodes_le_rows)
+    have alts: "card ?Alts \<le> R"
+      using rows alts_le_rows by linarith
+    show ?thesis
+      using rows alts card_bound by linarith
+  qed
+  finally show ?thesis by simp
+qed
+
 lemma raw_final_active_suffix_bucket_subset_rsubterms:
   "raw_shared_prune_active_suffix_bucket
       (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"

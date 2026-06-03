@@ -89,6 +89,10 @@ immutability.
   `finalRowDag <= 2*R + P*PM + K*KM`.
   Payload roots now also inherit checked legacy and nonempty deep-normal-form
   invariants, matching the existing row/key invariant hooks.
+  A sharper shared-universe handoff
+  `card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI`
+  shows that one universe covering both payload/key DAG components is enough
+  for `finalRowDag <= 2*rows + card U`.
   Fresh `strong-memo` Scala smoke passed exact POSIX checks on the default
   exhaustive grid, known CE grid, and 1,000 deterministic random
   depth-6/input-8 cases. This is proof infrastructure only; no bounty is

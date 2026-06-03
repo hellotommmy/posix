@@ -46,6 +46,12 @@ to be read before continuing long-running agent work.
   `row_group_deep_nf_strong_deferred_final_active_suffix_payload_roots_nonempty`
   for nonempty derivative runs. Use these when building the original-owned
   row universe; do not re-split `RSEQ (RALTS rows) k` by hand in every proof.
+- When possible, prefer the shared-universe handoff
+  `card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI`
+  over the product-style component handoff. It says that a single finite
+  universe `U` covering both payload-DAG and key-DAG components gives
+  `finalRowDag <= 2*rows + card U`, which better matches hash-consing and
+  avoids double-counting shared subterms.
 - The proof style matters: the checked bridge uses explicit `rsubterms`
   witnesses and explicit suffix-key membership, not large `auto`/`blast`
   searches. Keep this style for the remaining component bounds.

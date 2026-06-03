@@ -2962,6 +2962,43 @@ proof -
   then show ?thesis .
 qed
 
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_shared_component_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and shared:
+      "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+       strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+    \<le> 2 * R + D"
+proof -
+  let ?Rows = "strong_deferred_final_active_suffix_rows r s"
+  let ?Alts = "strong_deferred_final_active_suffix_alt_nodes r s"
+  have sub: "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      ?Rows \<union> ?Alts \<union> U"
+    using strong_deferred_final_active_suffix_row_dag_universe_decomp_subset
+      shared
+    by blast
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      card (?Rows \<union> ?Alts \<union> U)"
+    by (rule card_mono) (simp_all add: finite sub)
+  also have "... \<le> card (?Rows \<union> ?Alts) + card U"
+    by (rule card_Un_le)
+  also have "... \<le> card ?Rows + card ?Alts + card U"
+    using card_Un_le[of ?Rows ?Alts] by linarith
+  also have "... \<le> R + R + D"
+  proof -
+    have alts_le_rows: "card ?Alts \<le> card ?Rows"
+      by (rule card_strong_deferred_final_active_suffix_alt_nodes_le_rows)
+    have alts: "card ?Alts \<le> R"
+      using rows alts_le_rows by linarith
+    show ?thesis
+      using rows alts card_bound by linarith
+  qed
+  finally show ?thesis by simp
+qed
+
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
   shows "RSEQ (RALTS rows) k \<in>
