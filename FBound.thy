@@ -5985,6 +5985,86 @@ proof -
         [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
 qed
 
+lemma strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_contract:
+  assumes legacy: "legacy_rexp r"
+      and init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_tree_POSIX_flat)
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+qed
+
 lemma strong_deferred_original_sizeNregex_memo_cubic_interface:
   assumes legacy: "legacy_rexp r"
       and init_size: "rxsize r \<le> N"

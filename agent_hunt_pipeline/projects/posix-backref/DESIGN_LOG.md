@@ -2798,3 +2798,21 @@ to be read before continuing long-running agent work.
   problem is therefore no longer a separate row-size proof; it is the final
   strong-tree/indexed-representation bound while preserving the
   `strong_deferred_span_value` POSIX reconstruction contract.
+- Active-suffix POSIX contract update (2026-06-03): the checked theorem
+  `strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_contract`
+  is now the most convenient proof-facing statement for the current route.
+  Under the active-suffix cubic-universe premises it exposes exact POSIX
+  reconstruction, exact failure, `flat v = s`, row-list and raw-row size
+  bounds, the row nullable gate, and the span/split memo budgets in one place.
+  This is still infrastructure, not a bounty payout, but it prevents future
+  work from accidentally proving only language recognition while forgetting
+  the POSIX value contract.
+- Long-tail smoke update (2026-06-03): regenerated
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/` for k=`5,8,10,12`,
+  n=`0..200`. The strong memo tree remains thesis-scale: peaks are
+  `959`, `3425`, `5940`, and `9686` respectively. Final-active pair budgets
+  stay tiny on this family: `17`, `65`, `101`, and `145`. By contrast,
+  cumulative active pair-budget still grows with n for k=`8,10,12`, so it
+  remains diagnostic only. The final proof should target the final strong tree
+  or a quotiented/indexed final-active representation, not the cumulative
+  prefix pool.

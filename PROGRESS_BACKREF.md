@@ -2,6 +2,41 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Active-Suffix POSIX Contract (2026-06-03)
+
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_contract`.
+  Under the current active-suffix cubic-universe premises it now packages:
+  exact POSIX value correctness for the strong nullable gate plus
+  `strong_deferred_span_value`, exact `None` iff no POSIX value exists,
+  `flat v = s` for successful reconstruction, the `bpders_strong1_rows`
+  row-size bound `<= B`, the raw row-size bound `<= B`, the row nullable gate,
+  and the existing span/split memo budgets.
+- Regenerated the deferred memo Chapter 7 grid report:
+  `agent_hunt_pipeline/scripts/ch7_deferred_memo_grid.ps1 -Ks "5,8,10,12" -MaxN 200 -Step 4`.
+  The report lives under
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/`.
+- Long-tail smoke summary from the CSV:
+  - k=5: `strongMemoTree` peaks at `959`, tail n=80/120/160/200 is
+    `957/957/957/957`; final active pair-budget stays at `17`.
+  - k=8: `strongMemoTree` peaks at `3425`; final active pair-budget stays at
+    `65`.
+  - k=10: `strongMemoTree` peaks at `5940`; final active pair-budget peaks at
+    `101`.
+  - k=12: `strongMemoTree` peaks at `9686`; final active pair-budget peaks at
+    `145`.
+- Design result: `strongMemoTree` and final-active metrics look like the
+  viable proof objects. The cumulative active rows/pair-budget still grow with
+  n on k=8/10/12, so they remain diagnostic only and must not be used as the
+  final cubic proof object.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- No BR-039/BR-040 payout is claimed. The remaining hard theorem is still a
+  final strong-tree bound or an equivalent indexed/quotiented representation
+  bound.
+
 ## Cubic Route Checkpoint: Final Active Closure Contract (2026-06-03)
 
 - Added proof-facing final-active closure definitions:
