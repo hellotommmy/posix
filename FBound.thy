@@ -5244,6 +5244,27 @@ proof -
     using raw_bound by simp
 qed
 
+lemma asizes_bpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI:
+  assumes init: "rerase r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "asizes (bpders_strong1_rows r s) \<le> B"
+proof -
+  have closed: "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_active_suffix_closure_subset
+        [OF active_suffix_closed])
+  show ?thesis
+    by (rule asizes_bpders_strong1_rows_raw_norm_closed_cubic_universe_boundI
+        [OF init flat_closed norm closed finite card_bound member_size cubic])
+qed
+
 lemma strong_deferred_original_raw_row_norm_closed_cubic_universe_interface:
   assumes legacy: "legacy_rexp r"
       and init: "rerase (intern r) \<in> U"
@@ -5454,6 +5475,92 @@ proof -
   have closed: "raw_shared_prune_closed U"
     by (rule raw_shared_prune_closedI_same_suffix_closure_subset
         [OF same_suffix_closed])
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+  show "asize (intern r) = rxsize r"
+    by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
+        [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+qed
+
+lemma strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface:
+  assumes legacy: "legacy_rexp r"
+      and init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  have closed: "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_active_suffix_closure_subset
+        [OF active_suffix_closed])
   show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
     by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface
         [OF legacy init flat_closed norm closed finite card_bound member_size cubic])

@@ -2,6 +2,38 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Active-Suffix Memo Contract (2026-06-03)
+
+- Decision confirmed from the graphs: do not push the emitted-tree
+  `bsimpCubic` route. The active theorem route is memo strong tree:
+  `bsimpStrong` supplies the small nullable-recognition tree, and POSIX values
+  are reconstructed from the original regex by the checked span/memo semantics.
+- Added an active shared-prune closure in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_active_suffix_keys`;
+  - `raw_shared_prune_active_suffix_bucket`;
+  - `raw_shared_prune_active_suffix_pairs`;
+  - `raw_shared_prune_active_suffix_closure`.
+- The active closure only counts real shared-prune rows of shape
+  `RSEQ (RALTS rows) k` with the same suffix `k`; it excludes the old broad
+  `None` bucket for non-row terms.
+- Proved checked bridges and accounting:
+  - `raw_shared_prune_closedI_active_suffix_closure_subset`;
+  - `card_raw_shared_prune_active_suffix_pairs_bucket_bound`;
+  - `card_raw_shared_prune_active_suffix_closure_member_bucket_bound`.
+- Added `FBound.thy` forwarding interfaces:
+  - `asizes_bpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI`;
+  - `strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface`.
+- Regenerated the Chapter 7 deferred-memo plots to length `80` for `k=5,8`:
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/index.html`.
+  Summary: `k=5` strong tree is `474,730,820,875,958,918,957,957` at
+  `n=4,8,16,20,30,40,60,80`; `k=8` is
+  `1164,1816,2691,2641,2747,2968,3120,3233`. Memo states/probes remain below
+  their span/split bounds.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Pair Output Bound Removed (2026-06-03)
 
 - Added `GeneralRegexBound.thy:rsize_rsimpStrong_prune_pair_raw_le`.

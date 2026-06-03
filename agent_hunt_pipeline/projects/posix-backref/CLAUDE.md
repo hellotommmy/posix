@@ -104,6 +104,13 @@ As of 2026-06-03, do not assign proof work to rescuing `bsimpCubic`; assign
 testing and proof work to the memo strong tree route: POSIX value
 reconstruction over the original regex plus a cubic shared/memo universe for
 the `bsimpStrong` recognition states.
+For the shared-prune universe, prefer the active-suffix proof contract:
+`FBound.thy:strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface`
+and `GeneralRegexBound.thy:raw_shared_prune_active_suffix_closure`. This
+counts only real `RSEQ (RALTS rows) k` shared-suffix rows and avoids the broad
+`None` bucket from the older same-suffix closure. The remaining proof burden is
+active suffix-key count, active bucket size, and ordinary universe member-size
+bound.
 
 For the current deferred-memo route, use
 `FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:

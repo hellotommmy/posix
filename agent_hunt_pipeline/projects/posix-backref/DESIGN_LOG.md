@@ -3,6 +3,31 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Active-suffix closure replaces broad same-suffix buckets
+
+- The emitted-tree `bsimpCubic` route remains retired. The current proof target
+  is memo strong tree: `bsimpStrong` is a recognition tree, while POSIX values
+  come from original-regex span/memo reconstruction.
+- Added `raw_shared_prune_active_suffix_keys`,
+  `raw_shared_prune_active_suffix_bucket`,
+  `raw_shared_prune_active_suffix_pairs`, and
+  `raw_shared_prune_active_suffix_closure`.
+- This active closure only counts pairs that can actually trigger raw
+  shared-suffix pruning: both sides must be `RSEQ (RALTS rows) k` for the same
+  concrete suffix `k`. Non-row `None` key pairs are not part of the preferred
+  accounting contract.
+- Checked bridge:
+  `raw_shared_prune_closedI_active_suffix_closure_subset`.
+- Checked accounting:
+  `card_raw_shared_prune_active_suffix_closure_member_bucket_bound`. The next
+  concrete universe proof should bound active suffix-key count, max active
+  bucket size, and ordinary member size.
+- Added the proof-facing memo interface
+  `FBound.thy:strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface`.
+- Regenerated deferred-memo Chapter 7 plots to `n=80` for `k=5,8`. The `k=5`
+  strong tree plateaus around the thesis-strength few-hundred/near-thousand
+  range; `k=8` still rises slowly but is far below the old emitted-tree blowup.
+
 ## 2026-06-03: Same-suffix pair output is member-size bounded
 
 - Added `rsize_rsimpStrong_prune_pair_raw_le` and
