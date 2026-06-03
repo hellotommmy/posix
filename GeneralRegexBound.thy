@@ -19276,6 +19276,141 @@ next
   then show ?case by simp
 qed
 
+lemma row_group_deep_nf_rsimpStrong_raw_rder:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "row_group_deep_nf r"
+  shows "row_group_deep_nf (rsimpStrong_raw (rder c r))"
+  using legacy nf
+proof (induct r arbitrary: c)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have elems: "\<forall>r \<in> set rs. row_group_deep_nf (rsimpStrong_raw (rder c r))"
+  proof
+    fix r
+    assume r: "r \<in> set rs"
+    have r_legacy: "legacy_rrexp r"
+      using RALTS.prems r by simp
+    have r_nf: "row_group_deep_nf r"
+      using RALTS.prems r by simp
+    show "row_group_deep_nf (rsimpStrong_raw (rder c r))"
+      by (rule RALTS.hyps[OF r r_legacy r_nf])
+  qed
+  have flat: "\<forall>x \<in> set (rflts (map (rsimpStrong_raw \<circ> rder c) rs)).
+      row_group_deep_nf x"
+    by (rule row_group_deep_nf_rflts) (use elems in auto)
+  show ?case
+    by (simp add: row_group_deep_nf_rsimpStrong_ALTs_raw[OF flat])
+next
+  case (RSEQ r1 r2)
+  have r1_legacy: "legacy_rrexp r1"
+    using RSEQ.prems by simp
+  have r2_legacy: "legacy_rrexp r2"
+    using RSEQ.prems by simp
+  have r1_nf: "row_group_deep_nf r1"
+    using RSEQ.prems by simp
+  have r2_nf: "row_group_deep_nf r2"
+    using RSEQ.prems by simp
+  have der1_nf: "row_group_deep_nf (rsimpStrong_raw (rder c r1))"
+    by (rule RSEQ.hyps(1)[OF r1_legacy r1_nf])
+  have der2_nf: "row_group_deep_nf (rsimpStrong_raw (rder c r2))"
+    by (rule RSEQ.hyps(2)[OF r2_legacy r2_nf])
+  have r2_strong_nf: "row_group_deep_nf (rsimpStrong_raw r2)"
+    by (rule row_group_deep_nf_rsimpStrong_raw[OF r2_nf])
+  have seq_nf: "row_group_deep_nf (rsimpStrong_raw (RSEQ (rder c r1) r2))"
+    by (simp add: row_group_deep_nf_rsimp7_SEQ_atom
+        [OF der1_nf r2_strong_nf])
+  show ?case
+  proof (cases "rnullable r1")
+    case True
+    have mapped:
+      "\<forall>x \<in> set (map rsimpStrong_raw [RSEQ (rder c r1) r2, rder c r2]).
+        row_group_deep_nf x"
+      using seq_nf der2_nf by simp
+    have flat:
+      "\<forall>x \<in> set (rflts
+        (map rsimpStrong_raw [RSEQ (rder c r1) r2, rder c r2])).
+        row_group_deep_nf x"
+      by (rule row_group_deep_nf_rflts[OF mapped])
+    have flat':
+      "\<forall>x \<in> set (rflts
+        [rsimp7_SEQ_atom (rsimpStrong_raw (rder c r1))
+          (rsimpStrong_raw r2),
+         rsimpStrong_raw (rder c r2)]).
+        row_group_deep_nf x"
+      using flat by simp
+    have alts:
+      "row_group_deep_nf (rsimpStrong_ALTs_raw
+        (rflts
+          [rsimp7_SEQ_atom (rsimpStrong_raw (rder c r1))
+            (rsimpStrong_raw r2),
+           rsimpStrong_raw (rder c r2)]))"
+      by (rule row_group_deep_nf_rsimpStrong_ALTs_raw[OF flat'])
+    show ?thesis
+      using True
+      by (simp add: alts)
+  next
+    case False
+    then show ?thesis
+      using seq_nf by simp
+  qed
+next
+  case (RSTAR r)
+  have r_legacy: "legacy_rrexp r"
+    using RSTAR.prems by simp
+  have r_nf: "row_group_deep_nf r"
+    using RSTAR.prems by simp
+  have der_nf: "row_group_deep_nf (rsimpStrong_raw (rder c r))"
+    by (rule RSTAR.hyps[OF r_legacy r_nf])
+  have body_nf: "row_group_deep_nf (rsimpStrong_raw r)"
+    by (rule row_group_deep_nf_rsimpStrong_raw) (use r_nf in simp)
+  show ?case
+    using der_nf body_nf
+    by (cases "rsimpStrong_raw r")
+      (simp_all add: row_group_deep_nf_rsimp7_SEQ_atom)
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    have r_legacy: "legacy_rrexp r"
+      using RNTIMES.prems by simp
+    have r_nf: "row_group_deep_nf r"
+      using RNTIMES.prems by simp
+    have der_nf: "row_group_deep_nf (rsimpStrong_raw (rder c r))"
+      by (rule RNTIMES.hyps[OF r_legacy r_nf])
+    have tail_nf: "row_group_deep_nf (RNTIMES r m)"
+      using r_nf by simp
+    have seq_nf:
+      "row_group_deep_nf
+        (rsimp7_SEQ_atom (rsimpStrong_raw (rder c r))
+          (RNTIMES r m))"
+      by (rule row_group_deep_nf_rsimp7_SEQ_atom[OF der_nf tail_nf])
+    show ?thesis
+      using Suc
+      by (simp add: seq_nf)
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma row_group_deep_nf_rsimp9:
   "row_group_deep_nf (rsimp9 r)"
 proof (induction r rule: rsimp9.induct)

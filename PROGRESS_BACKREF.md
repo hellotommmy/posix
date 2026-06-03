@@ -23,6 +23,20 @@ Last updated: 2026-06-03 (strong-memo route is default)
   invariant of the form
   `row_group_deep_nf (rerase r) ==> row_group_deep_nf (rerase (bsimpStrong (bder c r)))`,
   followed by final-active row/member bounds for the memo strong tree.
+- Added and checked that derivative-step invariant for the legacy non-backref
+  fragment:
+  `GeneralRegexBound.thy:row_group_deep_nf_rsimpStrong_raw_rder`,
+  `FBound.thy:row_group_deep_nf_rerase_bsimpStrong_bder`, and the loop lift
+  `FBound.thy:row_group_deep_nf_rerase_bders_simpStrong`.
+- Important limitation: the loop theorem assumes the current annotated state
+  already erases to `legacy_rrexp` and `row_group_deep_nf`. Raw `intern r` is
+  not claimed to be deep-normal for arbitrary original regex syntax. A future
+  entry theorem should either normalize the start state first or state the
+  first-step/final-active bound with this precondition explicit.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
 
 ## Cubic Route Checkpoint: Final-Active Proof Contract (2026-06-03)
 

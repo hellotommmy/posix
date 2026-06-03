@@ -20,6 +20,16 @@ to be read before continuing long-running agent work.
   for `bsimpStrong (bder c r)` and then a final-active row/member-size bound
   for the memo strong tree. POSIX values remain delegated to the already
   checked span/memo reconstruction theorem.
+- That derivative-step invariant is now checked for the legacy non-backref
+  fragment:
+  `row_group_deep_nf_rsimpStrong_raw_rder`,
+  `row_group_deep_nf_rerase_bsimpStrong_bder`, and
+  `row_group_deep_nf_rerase_bders_simpStrong`.
+- Do not silently remove the starting-state precondition. `intern r` preserves
+  legacy syntax for legacy `rexp`, but arbitrary source syntax is not yet
+  proved to erase to `row_group_deep_nf`. The next bridge should either start
+  from `bsimpStrong (intern r)` or prove a separate initial-normalization
+  theorem before applying the loop invariant.
 
 ## 2026-06-03: Final-active member-size bound is parameterized
 

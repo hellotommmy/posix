@@ -3255,6 +3255,14 @@ lemma row_group_deep_nf_rerase_bsimpStrong:
   using assms
   by (simp add: rerase_bsimpStrong_raw row_group_deep_nf_rsimpStrong_raw)
 
+lemma row_group_deep_nf_rerase_bsimpStrong_bder:
+  assumes "legacy_rrexp (rerase r)"
+    and "row_group_deep_nf (rerase r)"
+  shows "row_group_deep_nf (rerase (bsimpStrong (bder c r)))"
+  using assms
+  by (simp add: rerase_bsimpStrong_raw rder_bder_rerase[symmetric]
+      row_group_deep_nf_rsimpStrong_raw_rder)
+
 lemma RL_rerase_bsimpStrong_prune_pair_with_earlier:
   "RL (rerase earlier) \<union>
     RL (rerase (bsimpStrong_prune_pair earlier later)) =
@@ -3495,6 +3503,28 @@ next
     by (rule legacy_rerase_bsimpStrong[OF der])
   show ?case
     by (simp add: Cons.hyps[OF step])
+qed
+
+lemma row_group_deep_nf_rerase_bders_simpStrong:
+  assumes "legacy_rrexp (rerase r)"
+    and "row_group_deep_nf (rerase r)"
+  shows "row_group_deep_nf (rerase (bders_simpStrong r s))"
+  using assms
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have der_legacy: "legacy_rrexp (rerase (bder c r))"
+    using legacy_rder[OF Cons.prems(1), of c] rder_bder_rerase[of c r]
+    by simp
+  have step_legacy: "legacy_rrexp (rerase (bsimpStrong (bder c r)))"
+    by (rule legacy_rerase_bsimpStrong[OF der_legacy])
+  have step_nf: "row_group_deep_nf (rerase (bsimpStrong (bder c r)))"
+    by (rule row_group_deep_nf_rerase_bsimpStrong_bder[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF step_legacy step_nf])
 qed
 
 lemma legacy_rexp_rerase_bders_simpStrong_intern:
