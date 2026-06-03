@@ -21366,6 +21366,49 @@ proof -
   finally show ?thesis .
 qed
 
+lemma raw_final_active_suffix_row_dag_universe_subsetI:
+  assumes rows: "raw_final_active_suffix_rows r \<subseteq> U"
+    and subterms: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> V"
+  shows "raw_final_active_suffix_row_dag_universe r \<subseteq> V"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_row_dag_universe r"
+  then obtain q where q:
+      "q \<in> raw_final_active_suffix_rows r"
+      "p \<in> rsubterms q"
+    by (auto simp add: raw_final_active_suffix_row_dag_universe_def)
+  have "q \<in> U"
+    using rows q(1) by blast
+  then have "rsubterms q \<subseteq> V"
+    by (rule subterms)
+  then show "p \<in> V"
+    using q(2) by blast
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_closed_subsetI:
+  assumes rows: "raw_final_active_suffix_rows r \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "raw_final_active_suffix_row_dag_universe r \<subseteq> U"
+  by (rule raw_final_active_suffix_row_dag_universe_subsetI
+      [OF rows subterm_closed])
+
+lemma card_raw_final_active_suffix_row_dag_universe_boundI:
+  assumes rows: "raw_final_active_suffix_rows r \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (raw_final_active_suffix_row_dag_universe r) \<le> D"
+proof -
+  have sub: "raw_final_active_suffix_row_dag_universe r \<subseteq> U"
+    by (rule raw_final_active_suffix_row_dag_universe_closed_subsetI
+        [OF rows subterm_closed])
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le> card U"
+    by (rule card_mono[OF finite sub])
+  also have "... \<le> D"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
 lemma raw_final_active_suffix_keys_iff:
   "k \<in> raw_final_active_suffix_keys r \<longleftrightarrow>
     (\<exists>rows. RSEQ (RALTS rows) k \<in> rsubterms r)"

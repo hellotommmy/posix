@@ -114,6 +114,15 @@ immutability.
   POSIX reconstruction and per-row exact-DAG bounds. This narrows BR-040's
   remaining proof obligation but does not itself prove the original-size
   universe bound, so no bounty is claimed.
+- Row-DAG finite-universe handoff checkpoint: checked
+  `raw_final_active_suffix_row_dag_universe_closed_subsetI`,
+  `card_raw_final_active_suffix_row_dag_universe_boundI`, their lifted
+  `strong_deferred_*` versions, and
+  `strong_deferred_original_final_active_row_dag_finite_universe_contract`.
+  The current BR-040 target is therefore not final-tree size accounting, but a
+  finite original-regex universe `U` that covers final-active rows, is closed
+  under `rsubterms`, and has `card U <= K * rxsize r`. This is still
+  infrastructure only and claims no payout.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

@@ -5,6 +5,16 @@ Last updated: 2026-06-04 (strong-memo route is default)
 ## Cubic Route Checkpoint: Row-DAG POSIX Handoff (2026-06-04)
 
 - Continued the memo-strong route after retiring emitted-tree `bsimpCubic`.
+- Added a raw finite-universe bridge:
+  `raw_final_active_suffix_row_dag_universe_subsetI`,
+  `raw_final_active_suffix_row_dag_universe_closed_subsetI`, and
+  `card_raw_final_active_suffix_row_dag_universe_boundI`. If a universe `U`
+  covers final-active rows and is closed under `rsubterms`, then the whole
+  row-DAG universe is contained in `U`.
+- Lifted this to the memo-strong final tree as
+  `strong_deferred_final_active_suffix_row_dag_universe_subsetI`,
+  `strong_deferred_final_active_suffix_row_dag_universe_closed_subsetI`, and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_boundI`.
 - Added raw row-DAG universe closure facts:
   `legacy_raw_final_active_suffix_row_dag_universe` and
   `row_group_deep_nf_raw_final_active_suffix_row_dag_universe`.
@@ -20,10 +30,15 @@ Last updated: 2026-06-04 (strong-memo route is default)
   and the row-DAG universe is bounded by `K * rxsize r`, then the memo-strong
   nullable gate returns the exact POSIX value and every final-active row has
   exact-DAG size at most `K * rxsize r`.
+- Added the more proof-directed handoff
+  `strong_deferred_original_final_active_row_dag_finite_universe_contract`.
+  It reduces the row-DAG bound to constructing a finite original-size universe
+  `U` that covers final-active rows and is closed under `rsubterms`.
 - Verification:
   focused `isabelle build -v -d . Posix` passed.
-- This is BR-040 infrastructure. The missing theorem remains the original-size
-  bound for `strong_deferred_final_active_suffix_row_dag_universe`.
+- This is BR-040 infrastructure. The missing theorem is now concrete: define
+  an original-regex-owned `U`, prove row coverage, `rsubterms` closure, and
+  `card U <= K * rxsize r`.
 
 ## Cubic Route Checkpoint: Isabelle Row-DAG Universe (2026-06-04)
 

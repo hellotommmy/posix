@@ -5,6 +5,16 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added a finite-universe bridge for row-DAG accounting. At the raw layer,
+  `raw_final_active_suffix_row_dag_universe_closed_subsetI` says that if a
+  candidate universe covers final-active rows and is closed under `rsubterms`,
+  then it contains every exact-DAG node of those rows. `FBound.thy` lifts this
+  to `strong_deferred_final_active_suffix_row_dag_universe_closed_subsetI`.
+- Added `strong_deferred_original_final_active_row_dag_finite_universe_contract`.
+  This is the sharper handoff for the next proof stage: build a finite
+  original-regex-owned universe `U`, prove final-active row coverage, prove
+  `rsubterms` closure, and prove `card U <= K * rxsize r`. The memo-strong
+  route then inherits exact POSIX reconstruction plus per-row exact-DAG bounds.
 - Added raw closure facts for the row-DAG universe:
   `legacy_raw_final_active_suffix_row_dag_universe` and
   `row_group_deep_nf_raw_final_active_suffix_row_dag_universe`. Any node in
