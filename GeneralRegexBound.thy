@@ -22130,6 +22130,18 @@ proof -
     by (rule legacy_rrexp_rsubterms[OF assms(1)])
 qed
 
+lemma legacy_raw_final_active_suffix_payload_roots:
+  assumes "legacy_rrexp r"
+    and "q \<in> raw_final_active_suffix_payload_roots r"
+  shows "legacy_rrexp q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(2) raw_final_active_suffix_payload_roots_subset_rsubterms
+    by blast
+  then show ?thesis
+    by (rule legacy_rrexp_rsubterms[OF assms(1)])
+qed
+
 lemma legacy_raw_final_active_suffix_bucket:
   assumes "legacy_rrexp r"
     and "q \<in> raw_shared_prune_active_suffix_bucket
@@ -22174,6 +22186,19 @@ lemma row_group_deep_nf_raw_final_active_suffix_keys:
 proof -
   have "k \<in> rsubterms r"
     using assms(3) raw_final_active_suffix_keys_subset_rsubterms by blast
+  then show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms[OF assms(1) assms(2)])
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_payload_roots:
+  assumes "legacy_rrexp r"
+    and "row_group_deep_nf r"
+    and "q \<in> raw_final_active_suffix_payload_roots r"
+  shows "row_group_deep_nf q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(3) raw_final_active_suffix_payload_roots_subset_rsubterms
+    by blast
   then show ?thesis
     by (rule row_group_deep_nf_legacy_rsubterms[OF assms(1) assms(2)])
 qed

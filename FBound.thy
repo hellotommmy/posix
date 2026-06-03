@@ -4339,6 +4339,22 @@ proof -
     by (rule legacy_raw_final_active_suffix_keys[OF final_legacy raw_key])
 qed
 
+lemma legacy_strong_deferred_final_active_suffix_payload_roots:
+  assumes legacy: "legacy_rexp r"
+    and root: "q \<in> strong_deferred_final_active_suffix_payload_roots r s"
+  shows "legacy_rrexp q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have raw_root: "q \<in>
+      raw_final_active_suffix_payload_roots (strong_deferred_final_raw r s)"
+    using root
+    by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
+  show ?thesis
+    by (rule legacy_raw_final_active_suffix_payload_roots
+        [OF final_legacy raw_root])
+qed
+
 lemma legacy_strong_deferred_final_active_suffix_bucket:
   assumes legacy: "legacy_rexp r"
     and row: "q \<in> raw_shared_prune_active_suffix_bucket
@@ -4440,6 +4456,25 @@ proof -
   show ?thesis
     by (rule row_group_deep_nf_legacy_rsubterms
         [OF final_legacy final_nf k_sub])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_payload_roots_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and root: "q \<in>
+      strong_deferred_final_active_suffix_payload_roots r (c # s)"
+  shows "row_group_deep_nf q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have raw_root: "q \<in> raw_final_active_suffix_payload_roots
+      (strong_deferred_final_raw r (c # s))"
+    using root
+    by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
+  show ?thesis
+    by (rule row_group_deep_nf_raw_final_active_suffix_payload_roots
+        [OF final_legacy final_nf raw_root])
 qed
 
 lemma row_group_deep_nf_strong_deferred_final_active_suffix_bucket_nonempty:

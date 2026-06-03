@@ -45,6 +45,13 @@ Last updated: 2026-06-04 (strong-memo route is default)
   row count `R`, payload-root count `P`, payload-root DAG bound `PM`, key
   count `K`, and key DAG bound `KM`; together they imply
   `finalRowDag <= 2*R + P*PM + K*KM`.
+- Added invariant bridges for the new payload-root component:
+  `legacy_raw_final_active_suffix_payload_roots`,
+  `row_group_deep_nf_raw_final_active_suffix_payload_roots`,
+  `legacy_strong_deferred_final_active_suffix_payload_roots`, and
+  `row_group_deep_nf_strong_deferred_final_active_suffix_payload_roots_nonempty`.
+  This makes payload roots usable in the same original-owned universe proof
+  style as rows and suffix keys.
 - Focused Isabelle `Posix` build passed after splitting the proof into
   explicit subterm and suffix-key witnesses; no broad slow automation was
   introduced.

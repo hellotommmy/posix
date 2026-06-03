@@ -40,6 +40,12 @@ to be read before continuing long-running agent work.
   `finalRowDag <= 2*R + P*PM + K*KM`. Future proof attempts should try to
   instantiate this theorem with original-regex-owned bounds rather than
   reopening the whole row-DAG definition.
+- Payload roots now have the same invariant hooks as rows and keys:
+  `legacy_strong_deferred_final_active_suffix_payload_roots` for all inputs
+  and
+  `row_group_deep_nf_strong_deferred_final_active_suffix_payload_roots_nonempty`
+  for nonempty derivative runs. Use these when building the original-owned
+  row universe; do not re-split `RSEQ (RALTS rows) k` by hand in every proof.
 - The proof style matters: the checked bridge uses explicit `rsubterms`
   witnesses and explicit suffix-key membership, not large `auto`/`blast`
   searches. Keep this style for the remaining component bounds.
