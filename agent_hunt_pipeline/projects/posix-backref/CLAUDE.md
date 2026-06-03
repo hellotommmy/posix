@@ -457,6 +457,12 @@ shrinks the first budget violation. It tracks visited `(regex,input)` pairs to
 avoid same-size replacement loops; if it reports a tiny witness, that usually
 means the factor is too small as a universal finite-size constant, not that the
 asymptotic route failed.
+For a reproducible multi-seed budget scout, run
+`agent_hunt_pipeline/scripts/strong_memo_budget_scout.ps1`. It keeps exact
+POSIX `strong-memo` smoke enabled, runs `-FindStrongCubicBudgetCE`, and writes
+`agent_hunt_pipeline/reports/strong_memo_budget_scout/summary.md` plus per-seed
+logs. Use this before proposing a concrete final-tree or indexed-universe
+bound, and record any new budget CE in `PROGRESS_BACKREF.md`.
 
 Use `-StrongCubicMinRegexSize <n>` to focus the report/finder on larger
 frontiers. The budget checks still cover all regexes, but the worst-witness

@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Direct strong-tree budget scout added
+
+- Added `strong_memo_budget_scout.ps1`, a reproducible smoke harness for the
+  direct memo strong-tree budget. It runs exact POSIX `strong-memo` smoke plus
+  `-FindStrongCubicBudgetCE` across one or more deterministic seeds and writes
+  a markdown report under `agent_hunt_pipeline/reports/strong_memo_budget_scout/`.
+- Current smoke evidence is positive but still non-proof: seeds `20260602` and
+  `20260603`, `2000` random cases each at depth `6`, input length `8`, find no
+  witness above `1.0 * rsize(r)^3`. A larger one-off seed `20260602` run with
+  `10000` random cases also found no witness; its worst random ratio was
+  `0.143519`.
+- Design consequence: the direct `bders_simpStrong` final tree remains the
+  route to explain. Do not interpret the scout as a payout artifact; use it as
+  a guard before attempting a concrete indexed/quotiented universe theorem.
+
 ## 2026-06-03: Memo strong tree, not rowRoot, is the proof target
 
 - Added a dedicated Scala shrinker for row-list/factoring bridge failures:

@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong-Memo Budget Scout (2026-06-03)
+
+- Added `agent_hunt_pipeline/scripts/strong_memo_budget_scout.ps1`, a reusable
+  smoke driver for the direct memo strong-tree route. It loops over seeds,
+  runs `scala_cubic_smoke.ps1 -Route strong-memo -FindStrongCubicBudgetCE`,
+  keeps exact POSIX value smoke enabled, and writes logs plus
+  `agent_hunt_pipeline/reports/strong_memo_budget_scout/summary.md`.
+- Initial checked scout run:
+  `Seeds=20260602,20260603`, `RandomCases=2000`, `RandomDepth=6`,
+  `RandomInputLength=8`, `StrongCubicFactor=1.0`,
+  `StrongCubicMinRegexSize=5`. Both seeds found no final strong-tree witness
+  above `rsize(r)^3`; the report's top global ratio is `0.112000` from the
+  bounded exhaustive smoke.
+- A separate larger manual run on seed `20260602` with `10000` random cases at
+  depth `6`, input length `8`, also found no `rsize(r)^3` budget CE; the worst
+  random ratio printed there was `0.143519` for
+  `STAR(STAR(NTIMES(STAR(CH(b)),1)))` on `bb`.
+- Design result: this strengthens the smoke evidence for the direct
+  `bders_simpStrong` final-tree bound, but it is not a theorem. The next proof
+  move should still be a root-owned indexed/quotiented universe or a direct
+  final strong-tree bound that can explain these observations.
+
 ## Cubic Route Checkpoint: Row-List Bridge CE Shrinker (2026-06-03)
 
 - Added an explicit Scala CE finder for the optional row-list/factoring bridge:

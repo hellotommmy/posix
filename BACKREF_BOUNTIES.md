@@ -97,6 +97,15 @@ immutability.
   `strongMemoFinalActivePairBudget` maxes at `17`, `65`, `101`, and `145`.
   This suggests the next proof should target final-state active rows, not raw
   prefix-pool rows.
+- Strong-memo budget scout:
+  `agent_hunt_pipeline/scripts/strong_memo_budget_scout.ps1` runs exact POSIX
+  `strong-memo` smoke plus `-FindStrongCubicBudgetCE` across deterministic
+  seeds and writes
+  `agent_hunt_pipeline/reports/strong_memo_budget_scout/summary.md`. The
+  current small report (`20260602,20260603`, 2,000 random cases each at depth
+  6/input 8, factor `1.0 * rsize^3`) finds no budget CE. This is smoke
+  evidence only; BR-039/BR-040 still require a checked final-tree or
+  indexed/quotiented universe theorem.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
