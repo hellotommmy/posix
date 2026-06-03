@@ -6218,6 +6218,122 @@ proof -
         [OF legacy rows_bound row_dag_universe_bound])
 qed
 
+lemma strong_deferred_memo_lexer_final_active_dag_owner_contract:
+  assumes legacy: "legacy_rexp r"
+    and dag_subset:
+      "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq> DagU"
+    and finite_dag: "finite DagU"
+    and dag_card: "card DagU \<le> D"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    and "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq> DagU"
+    and "strong_deferred_final_active_suffix_payload_roots r s \<union>
+      strong_deferred_final_active_suffix_keys r s \<subseteq> DagU"
+    and "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+      strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq> DagU"
+    and "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      rsubterm_closure (strong_deferred_final_active_suffix_rows r s)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> D"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le> D * D"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+    and "strong_deferred_final_active_suffix_max_row_dag r s \<le> D"
+    and "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> D"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have row_dag_bound:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+  proof -
+    have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        card DagU"
+      by (rule card_mono[OF finite_dag dag_subset])
+    also have "... \<le> D"
+      by (rule dag_card)
+    finally show ?thesis .
+  qed
+  have roots_keys_subset:
+    "strong_deferred_final_active_suffix_payload_roots r s \<union>
+      strong_deferred_final_active_suffix_keys r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule strong_deferred_final_active_suffix_roots_keys_subset_row_dag_universe)
+  have payload_key_dag_subset:
+    "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+      strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe)
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_lexer_POSIX_correctness(1))
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_lexer_POSIX_correctness(2))
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule strong_deferred_memo_lexer_eq_lexer)
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_lexer_flat)
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(4)
+        [OF legacy row_dag_bound])
+  show "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    by (rule legacy_strong_deferred_final_active_suffix_row_dag_universe
+        [OF legacy])
+  show "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq> DagU"
+    by (rule dag_subset)
+  show "strong_deferred_final_active_suffix_payload_roots r s \<union>
+      strong_deferred_final_active_suffix_keys r s \<subseteq> DagU"
+    by (rule subset_trans[OF roots_keys_subset dag_subset])
+  show "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+      strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq> DagU"
+    by (rule subset_trans[OF payload_key_dag_subset dag_subset])
+  show "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      rsubterm_closure (strong_deferred_final_active_suffix_rows r s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(5)
+        [OF legacy row_dag_bound])
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le> D"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(6)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le> D * D"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(7)
+        [OF legacy row_dag_bound])
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+    by (rule row_dag_bound)
+  show "strong_deferred_final_active_suffix_max_row_dag r s \<le> D"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(9)
+        [OF legacy row_dag_bound])
+  show "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> D"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(10)
+        [OF legacy row_dag_bound])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(11)
+        [OF legacy row_dag_bound])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(12)
+        [OF legacy row_dag_bound])
+qed
+
 lemma strong_deferred_original_final_active_empty_rows_contract:
   assumes legacy: "legacy_rexp r"
     and rows_empty: "strong_deferred_final_active_suffix_rows r s = {}"

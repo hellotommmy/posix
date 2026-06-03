@@ -63,6 +63,15 @@ immutability.
 
 ## Open Artifact Notes
 
+- Memo-strong single-DagU owner contract: `FBound.thy` now checks
+  `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
+  graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040
+  interface: `strong_deferred_memo_lexer` carries exact POSIX values, while a
+  finite owner table `DagU` containing the final-active row-DAG universe
+  controls rows, pair budget, payload/root/key coverage, row-DAG/max-row-DAG
+  size, and span/split memo budgets. The remaining theorem target is a
+  concrete cubic/linear-in-regex-size bound for such a `DagU`. Infrastructure
+  only; no bounty is paid.
 - Strong-memo smoke gate hardened: `PosixCubicSmoke.scala` now explicitly
   checks the recognition gate
   `bnullable (bdersStrong (intern r) s) = baselineValue(r,s).isDefined`

@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong Single Dag Owner Contract (2026-06-04)
+
+- After the derivative-size graphs, the direct emitted-tree `bsimpCubic`
+  route is treated as negative evidence. The active proof target is now:
+  keep the thesis-style `bsimpStrong` recognition tree, reconstruct exact
+  POSIX values from the original regex/string, and prove size through a
+  hash-consed final-active row-DAG owner table.
+- Added the checked Isabelle theorem
+  `FBound.thy:strong_deferred_memo_lexer_final_active_dag_owner_contract`.
+  It exposes this target directly through the named
+  `strong_deferred_memo_lexer`.
+- Under `legacy_rexp r` and a finite `DagU` containing
+  `strong_deferred_final_active_suffix_row_dag_universe r s` with
+  `card DagU <= D`, the theorem gives:
+  exact `Some`/`None` POSIX correctness for `strong_deferred_memo_lexer`,
+  equality with `lexer`, `flat`, legacy preservation, payload/root/key
+  coverage into `DagU`, row count `<= D`, pair budget `<= D * D`,
+  row-DAG/max-row-DAG `<= D`, and the existing span/split memo budgets.
+- Design consequence: the remaining main proof can focus on constructing a
+  concrete owner table `DagU` and proving its size. It no longer has to talk
+  about the hopeless emitted `bsimpCubic` tree as the output value carrier.
+- Verification: focused Isabelle `Posix` build passed. Infrastructure only;
+  no BR-039/BR-040 bounty is claimed.
+
 ## Cubic Route Smoke: Memo-Strong Recognition Gate Hardened (2026-06-04)
 
 - Strengthened `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` so the

@@ -3,6 +3,25 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Memo-strong size proof uses one final row-DAG owner
+
+- The derivative-size graphs make direct emitted-tree `bsimpCubic` the wrong
+  object to prove cubic bounds about. Treat it as negative evidence unless a
+  future implementation first beats the memo-strong traces and preserves exact
+  POSIX values.
+- The current proof architecture is: `bders_simpStrong (intern r) s` is a
+  recognition gate, `strong_deferred_memo_lexer` is the exact POSIX value
+  interface, and `strong_deferred_final_active_suffix_row_dag_universe r s`
+  is the hash-consed size object.
+- Added
+  `strong_deferred_memo_lexer_final_active_dag_owner_contract`. A finite
+  owner table `DagU` containing the final-active row-DAG universe now controls
+  the named lexer value theorem, row count, pair budget, payload/root/key
+  coverage, row-DAG/max-row-DAG size, and span/split memo budgets.
+- Future BR-040 work should therefore prove a concrete bound on `DagU`. Do
+  not return to proof-first `bsimpCubic` tree-size attempts unless smoke tests
+  and exact POSIX reconstruction are already green.
+
 ## 2026-06-04: Strong-memo smoke checks the nullable gate directly
 
 - The Scala `strong-memo` route now has an explicit
