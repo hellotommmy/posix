@@ -100,6 +100,10 @@ not a proof or bounty candidate.
 Current graphs show that emitted-tree `bsimpCubic` is not the main route; keep
 it as historical/negative evidence unless a future variant both matches the
 thesis baseline and preserves POSIX values.
+As of 2026-06-03, do not assign proof work to rescuing `bsimpCubic`; assign
+testing and proof work to the memo strong tree route: POSIX value
+reconstruction over the original regex plus a cubic shared/memo universe for
+the `bsimpStrong` recognition states.
 
 For the current deferred-memo route, use
 `FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:

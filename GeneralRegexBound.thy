@@ -20456,6 +20456,84 @@ proof
   qed
 qed
 
+definition raw_shared_prune_suffix_key :: "rrexp \<Rightarrow> rrexp option" where
+  "raw_shared_prune_suffix_key r =
+    (case r of RSEQ (RALTS rows) k \<Rightarrow> Some k | _ \<Rightarrow> None)"
+
+definition raw_shared_prune_same_suffix_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "raw_shared_prune_same_suffix_closure U =
+    U \<union>
+    \<Union> ((\<lambda>(earlier, later).
+      raw_shared_prune_pair_outputs earlier later) `
+      {(earlier, later). earlier \<in> U \<and> later \<in> U \<and>
+        raw_shared_prune_suffix_key earlier =
+        raw_shared_prune_suffix_key later})"
+
+lemma finite_raw_shared_prune_same_suffix_closure [simp]:
+  assumes "finite U"
+  shows "finite (raw_shared_prune_same_suffix_closure U)"
+proof -
+  let ?P = "{(earlier, later). earlier \<in> U \<and> later \<in> U \<and>
+        raw_shared_prune_suffix_key earlier =
+        raw_shared_prune_suffix_key later}"
+  let ?F = "\<lambda>(earlier, later). raw_shared_prune_pair_outputs earlier later"
+  have pairs_eq:
+    "?P = {p \<in> U \<times> U. raw_shared_prune_suffix_key (fst p) =
+        raw_shared_prune_suffix_key (snd p)}"
+    by auto
+  have finP: "finite ?P"
+    using assms by (simp add: pairs_eq)
+  have fin_union: "finite (\<Union>p\<in>?P. ?F p)"
+    using finP by (rule finite_UN_I) (simp split: prod.splits)
+  show ?thesis
+    using assms fin_union
+    by (simp add: raw_shared_prune_same_suffix_closure_def)
+qed
+
+lemma raw_shared_prune_same_suffix_closure_extensive:
+  "U \<subseteq> raw_shared_prune_same_suffix_closure U"
+  by (simp add: raw_shared_prune_same_suffix_closure_def)
+
+lemma raw_shared_prune_same_suffix_closure_subset_pair_closure:
+  "raw_shared_prune_same_suffix_closure U \<subseteq>
+    raw_shared_prune_pair_closure U"
+  by (auto simp add: raw_shared_prune_same_suffix_closure_def
+      raw_shared_prune_pair_closure_def)
+
+lemma raw_shared_prune_same_suffix_pair_outputs_subset_closureI:
+  assumes "earlier \<in> U" "later \<in> U"
+    and "raw_shared_prune_suffix_key earlier =
+      raw_shared_prune_suffix_key later"
+  shows "raw_shared_prune_pair_outputs earlier later \<subseteq>
+    raw_shared_prune_same_suffix_closure U"
+  using assms by (auto simp add: raw_shared_prune_same_suffix_closure_def)
+
+lemma raw_shared_prune_closedI_same_suffix_closure_subset:
+  assumes closure: "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+  shows "raw_shared_prune_closed U"
+proof (unfold raw_shared_prune_closed_def, intro allI impI)
+  fix lrs rrs k
+  assume earlier: "RSEQ (RALTS lrs) k \<in> U"
+  assume later: "RSEQ (RALTS rrs) k \<in> U"
+  have same_key:
+    "raw_shared_prune_suffix_key (RSEQ (RALTS lrs) k) =
+      raw_shared_prune_suffix_key (RSEQ (RALTS rrs) k)"
+    by (simp add: raw_shared_prune_suffix_key_def)
+  have outputs:
+    "raw_shared_prune_pair_outputs
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) \<subseteq>
+      raw_shared_prune_same_suffix_closure U"
+    by (rule raw_shared_prune_same_suffix_pair_outputs_subset_closureI
+        [OF earlier later same_key])
+  have "raw_shared_prune_pair_outputs
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) \<subseteq> U"
+    using outputs closure by blast
+  then show "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def)
+qed
+
 lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
   "strong_prune_universe_bad_result \<notin>
     partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
@@ -20644,6 +20722,84 @@ proof -
   have "raw_shared_prune_pair_outputs ?earlier ?later \<subseteq>
       raw_shared_prune_pair_closure ?U"
     by (rule raw_shared_prune_pair_outputs_subset_closureI[OF earlier later])
+  then show ?thesis
+    using out by blast
+qed
+
+lemma raw_shared_prune_bad_result_in_path9_same_suffix_closure:
+  "raw_shared_prune_bad_result \<in>
+    raw_shared_prune_same_suffix_closure
+      (partial_derivative_path9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof -
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?earlier = "RSEQ (RALTS [?a, ?b, ?c]) ?z"
+  let ?later = "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z"
+  let ?U = "partial_derivative_path9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  have earlier: "?earlier \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "?later \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have same_key: "raw_shared_prune_suffix_key ?earlier =
+      raw_shared_prune_suffix_key ?later"
+    by (simp add: raw_shared_prune_suffix_key_def)
+  have out:
+    "raw_shared_prune_bad_result \<in>
+      raw_shared_prune_pair_outputs ?earlier ?later"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        raw_shared_prune_bad_result_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+  have "raw_shared_prune_pair_outputs ?earlier ?later \<subseteq>
+      raw_shared_prune_same_suffix_closure ?U"
+    by (rule raw_shared_prune_same_suffix_pair_outputs_subset_closureI
+        [OF earlier later same_key])
+  then show ?thesis
+    using out by blast
+qed
+
+lemma raw_shared_prune_bad_result_in_carry9_same_suffix_closure:
+  "raw_shared_prune_bad_result \<in>
+    raw_shared_prune_same_suffix_closure
+      (partial_derivative_carry9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof -
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?earlier = "RSEQ (RALTS [?a, ?b, ?c]) ?z"
+  let ?later = "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z"
+  let ?U = "partial_derivative_carry9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  have earlier: "?earlier \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "?later \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have same_key: "raw_shared_prune_suffix_key ?earlier =
+      raw_shared_prune_suffix_key ?later"
+    by (simp add: raw_shared_prune_suffix_key_def)
+  have out:
+    "raw_shared_prune_bad_result \<in>
+      raw_shared_prune_pair_outputs ?earlier ?later"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        raw_shared_prune_bad_result_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+  have "raw_shared_prune_pair_outputs ?earlier ?later \<subseteq>
+      raw_shared_prune_same_suffix_closure ?U"
+    by (rule raw_shared_prune_same_suffix_pair_outputs_subset_closureI
+        [OF earlier later same_key])
   then show ?thesis
     using out by blast
 qed

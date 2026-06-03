@@ -2,6 +2,39 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Decision: Focus Memo Strong Tree (2026-06-03)
+
+- Current decision: do not invest more proof effort in the emitted-tree
+  `bsimpCubic` route. The derivative-size comparison graphs show that its
+  ordinary tree output is not competitive with the thesis Chapter 7
+  `bsimpStrong` baseline on the evil family.
+- Main route from here:
+  - keep the thesis-strength `bsimpStrong` tree as the recognition object;
+  - reconstruct exact POSIX values through original-regex span/memo tables;
+  - prove the cubic theorem through a memo/shared representation and a finite
+    raw-row universe, not by forcing a new emitted regex tree to be both tiny
+    and value-identical.
+- Checked today: `GeneralRegexBound.thy` now includes
+  `raw_shared_prune_suffix_key` and
+  `raw_shared_prune_same_suffix_closure`. This narrows the previous global
+  pair closure to same-continuation buckets, matching the shape of the
+  same-suffix row-difference operation required by strong pruning.
+- The same-suffix closure is finite for finite `U`, extensive, included in the
+  broader pair closure, and strong enough to derive `raw_shared_prune_closed U`
+  from the local closure premise
+  `raw_shared_prune_same_suffix_closure U \<subseteq> U`.
+- The old path9/carry9 atom-frontier counterexample witness is now checked to
+  be included by the same-suffix closure:
+  `raw_shared_prune_bad_result_in_path9_same_suffix_closure` and
+  `raw_shared_prune_bad_result_in_carry9_same_suffix_closure`.
+- This is still not the final cubic theorem. The next proof obligation is to
+  instantiate this same-suffix/memo closure with a concrete root-owned universe
+  and prove its cardinality and member-size accounting are cubic.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Row-Difference Closure Operator (2026-06-03)
 
 - Added `GeneralRegexBound.thy:raw_shared_prune_pair_outputs` and

@@ -3,6 +3,30 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Memo strong tree is the proof target
+
+- Decision: stop treating emitted-tree `bsimpCubic` as the main cubic-bound
+  candidate. The comparison graphs show it is not as good as the thesis
+  Chapter 7 `bsimpStrong` tree on the evil family, so proving it would prove
+  the wrong object.
+- The main target is now the memo strong tree architecture:
+  `bsimpStrong` remains the small nullable-recognition tree, while exact POSIX
+  values are reconstructed from the original regex by a span/memo table.
+- This avoids the central conflict that broke `bsimpCubic`: destructive
+  reassociation/pruning can make trees small, but it changes POSIX values.
+  The memo route keeps the value-producing structure in the reconstruction
+  theorem instead of demanding that the simplified emitted tree itself carry
+  the original POSIX value shape.
+- Added `GeneralRegexBound.thy:raw_shared_prune_suffix_key` and
+  `GeneralRegexBound.thy:raw_shared_prune_same_suffix_closure`. This is a
+  narrower proof-facing closure than arbitrary pair closure: row-difference
+  pruning is only required inside same-continuation buckets.
+- Checked consequence: same-suffix closure is sufficient for
+  `raw_shared_prune_closed`, and it includes the known path9/carry9 missing
+  row-difference witness. The final cubic proof should instantiate this idea
+  with a root-owned memo/frontier universe and prove cubic cardinality/member
+  size bounds.
+
 ## 2026-06-03: Row-difference closure is now explicit
 
 - Added `GeneralRegexBound.thy:raw_shared_prune_pair_outputs` and
