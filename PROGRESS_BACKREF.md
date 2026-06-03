@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Raw DAG Handoff (2026-06-04)
+
+- Added checked metric base facts for the memo-strong final recognition DAG:
+  - `FBound.thy:strong_deferred_final_raw_dag_size_empty_le_rxsize`
+  - `FBound.thy:strong_deferred_final_raw_dag_size_singleton_le_rxsize_square`
+- Refactored the one-character row-DAG theorem to go through the stronger
+  final raw DAG metric:
+  `strong_deferred_final_raw_dag_size r [c] <= rxsize r * rxsize r`
+  implies the existing final-active row-DAG universe bound.
+- Added the checked handoff
+  `FBound.thy:strong_deferred_original_final_raw_dag_linear_contract`.
+  It states the current memo-strong route in Scala/proof terms: for a legacy
+  root, a future linear bound on
+  `strong_deferred_final_raw_dag_size r s` is enough to get exact POSIX
+  `Some`/`None` reconstruction, `flat v = s`, legacy final raw, final rows,
+  final pair budget, final row-DAG universe, max row-DAG, and span/split memo
+  budgets.
+- Design meaning: BR-040 can now be attacked either by proving the final-active
+  row-DAG universe bound directly or by proving the whole final memo-DAG bound.
+  This is still infrastructure; no bounty is claimed.
+- Verification: focused Isabelle `Posix` build passed.
+
 ## Cubic Route Checkpoint: One-Step Row-DAG Base Case (2026-06-04)
 
 - Added the checked legacy one-character derivative-size theorem

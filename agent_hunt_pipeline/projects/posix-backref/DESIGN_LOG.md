@@ -5,6 +5,14 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added the final raw DAG handoff
+  `strong_deferred_original_final_raw_dag_linear_contract`, plus the checked
+  base facts `strong_deferred_final_raw_dag_size_empty_le_rxsize` and
+  `strong_deferred_final_raw_dag_size_singleton_le_rxsize_square`. The proof
+  route can now target the Scala `strongMemoDag` metric directly: a future
+  linear bound on the exact DAG of the whole final memo-strong recognition
+  tree implies exact POSIX reconstruction and the final-active row/pair/DAG
+  budgets through existing contracts.
 - Added the one-character base case
   `card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`,
   supported by `asize_bder_intern_legacy_le_rxsize_square`. This extends the
