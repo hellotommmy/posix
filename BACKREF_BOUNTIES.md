@@ -63,6 +63,21 @@ immutability.
 
 ## Open Artifact Notes
 
+- Named memo-strong value candidate: `FBound.thy` now checks
+  `strong_deferred_memo_lexer` and its exact POSIX bridges
+  `strong_deferred_memo_lexer_eq_lexer`,
+  `strong_deferred_memo_lexer_POSIX_correctness`,
+  `strong_deferred_memo_lexer_flat`,
+  `strong_deferred_memo_lexer_Some_iff_span_value`,
+  `strong_deferred_memo_lexer_defined_iff`, and
+  `strong_deferred_memo_lexer_exact_value_budget`. This names the BR-039/BR-040
+  candidate after the graphs ruled out emitted-tree `bsimpCubic`: the strong
+  derivative tree is only a nullable gate, and exact POSIX values are recovered
+  from `strong_deferred_span_value`. A dedicated route-specific smoke command
+  now exists at `agent_hunt_pipeline/scripts/strong_memo_value_gate.ps1`.
+  Latest run passed exhaustive depth-2/input-3, known CE, 2,000 random
+  depth-7/input-8 cases, and Chapter 7 `k=5,n<=80` with final-active
+  row-DAG universe in `40..44`. Infrastructure only; no bounty is paid.
 - RowU/DagU owner contract: `FBound.thy` now checks
   `strong_deferred_original_final_active_rowU_dag_owner_contract`.
   A future proof may separately bound a row-count universe `RowU` and a finite

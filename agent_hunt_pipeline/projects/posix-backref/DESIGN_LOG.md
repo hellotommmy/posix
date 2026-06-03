@@ -3,6 +3,31 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Memo-strong lexer is the named value candidate
+
+- Treat emitted-tree `bsimpCubic` as negative evidence. Do not spend proof
+  effort on it unless a future implementation first passes the strong smoke
+  suite and beats the memo-strong final-active row-DAG traces.
+- The proof-facing value candidate is now named
+  `strong_deferred_memo_lexer`. Its implementation is intentionally the
+  memo-strong architecture:
+  `bders_simpStrong (intern r) s` is only the nullable recognition gate, and
+  the returned POSIX value is reconstructed from the original regex/string via
+  `strong_deferred_span_value`.
+- The checked facts
+  `strong_deferred_memo_lexer_eq_lexer`,
+  `strong_deferred_memo_lexer_POSIX_correctness`,
+  `strong_deferred_memo_lexer_flat`, and
+  `strong_deferred_memo_lexer_Some_iff_span_value` are the main semantic entry
+  points. Future size theorems should state their value conclusion through
+  this named function, then separately account for the final-active row-DAG
+  owner table.
+- Added `agent_hunt_pipeline/scripts/strong_memo_value_gate.ps1` as the
+  route-specific smoke command. It calls the Scala `strong-memo` route and
+  checks exact POSIX values, known counterexamples, deterministic random
+  cases, and the final-active row-DAG universe metric. Use this before
+  attempting any new cubic proof candidate.
+
 ## 2026-06-04: RowU + DagU owner contract matches hash-consing
 
 - Added `strong_deferred_original_final_active_rowU_dag_owner_contract`.

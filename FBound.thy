@@ -2549,6 +2549,81 @@ proof -
     by (rule strong_deferred_memo_budget(3))
 qed
 
+definition strong_deferred_memo_lexer :: "rexp \<Rightarrow> string \<Rightarrow> val option" where
+  "strong_deferred_memo_lexer r s =
+    (if bnullable (bders_simpStrong (intern r) s)
+     then Some (THE v. strong_deferred_span_value r s v)
+     else None)"
+
+lemma strong_deferred_memo_lexer_eq_lexer:
+  "strong_deferred_memo_lexer r s = lexer r s"
+  by (simp add: strong_deferred_memo_lexer_def
+      strong_deferred_span_value_THE_lexer)
+
+lemma strong_deferred_memo_lexer_POSIX_correctness:
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+  by (simp_all add: strong_deferred_memo_lexer_eq_lexer lexer_correctness)
+
+lemma strong_deferred_memo_lexer_flat:
+  assumes "strong_deferred_memo_lexer r s = Some v"
+  shows "flat v = s"
+  using assms
+  by (simp add: strong_deferred_memo_lexer_POSIX_correctness(1) Posix1(2))
+
+lemma strong_deferred_memo_lexer_Some_iff_span_value:
+  "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow>
+    strong_deferred_span_value r s v"
+  by (simp add: strong_deferred_memo_lexer_eq_lexer
+      strong_deferred_span_value_iff_lexer)
+
+lemma strong_deferred_memo_lexer_defined_iff:
+  "(\<exists>v. strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow>
+    (\<exists>!v. strong_deferred_span_value r s v)"
+proof
+  assume "\<exists>v. strong_deferred_memo_lexer r s = Some v"
+  then obtain v where v:
+      "strong_deferred_memo_lexer r s = Some v"
+    by blast
+  have span: "strong_deferred_span_value r s v"
+    using v by (simp add: strong_deferred_memo_lexer_Some_iff_span_value)
+  show "\<exists>!v. strong_deferred_span_value r s v"
+  proof
+    show "strong_deferred_span_value r s v"
+      by (rule span)
+    fix w
+    assume "strong_deferred_span_value r s w"
+    then show "w = v"
+      by (rule strong_deferred_span_value_unique[OF _ span])
+  qed
+next
+  assume "\<exists>!v. strong_deferred_span_value r s v"
+  then obtain v where span: "strong_deferred_span_value r s v"
+    by blast
+  have "strong_deferred_memo_lexer r s = Some v"
+    using span by (simp add: strong_deferred_memo_lexer_Some_iff_span_value)
+  then show "\<exists>v. strong_deferred_memo_lexer r s = Some v"
+    by blast
+qed
+
+lemma strong_deferred_memo_lexer_exact_value_budget:
+  shows "strong_deferred_memo_lexer r s = lexer r s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule strong_deferred_memo_lexer_eq_lexer)
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(3))
+qed
+
 definition strong_deferred_final_raw :: "rexp \<Rightarrow> string \<Rightarrow> rrexp" where
   "strong_deferred_final_raw r s =
     rerase (bders_simpStrong (intern r) s)"

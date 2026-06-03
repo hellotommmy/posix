@@ -2,6 +2,36 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Named Memo-Strong POSIX Candidate (2026-06-04)
+
+- Accepted the graph evidence that emitted-tree `bsimpCubic` is not the cubic
+  proof candidate. It remains only negative evidence and a regression source.
+- Added the checked Isabelle definition
+  `FBound.thy:strong_deferred_memo_lexer`. This names the actual current
+  candidate:
+  run `bders_simpStrong (intern r) s` as a nullable recognition gate, then
+  return the unique original-regex `strong_deferred_span_value` when the gate
+  accepts.
+- Checked the exact value bridge:
+  - `strong_deferred_memo_lexer_eq_lexer`;
+  - `strong_deferred_memo_lexer_POSIX_correctness`;
+  - `strong_deferred_memo_lexer_flat`;
+  - `strong_deferred_memo_lexer_Some_iff_span_value`;
+  - `strong_deferred_memo_lexer_defined_iff`;
+  - `strong_deferred_memo_lexer_exact_value_budget`.
+- Added `agent_hunt_pipeline/scripts/strong_memo_value_gate.ps1`, a dedicated
+  smoke command for this route. It runs the `strong-memo` Scala route with
+  exact POSIX value checks, known counterexamples, deterministic random cases,
+  and the final-active row-DAG universe gate.
+- Fresh run:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_value_gate.ps1`.
+  It passed `84,300` exhaustive regex/input pairs, `15` known counterexample
+  cases, and `2,000` random depth-`7`/input-`8` cases with seed `20260602`.
+  On Chapter 7 `k=5,n<=80`, final-active row-DAG universe stayed in
+  `40..44` while exact POSIX values were preserved.
+- This is BR-039/BR-040 infrastructure and route cleanup, not a final cubic
+  theorem payout.
+
 ## Cubic Route Checkpoint: RowU + DagU Owner Contract (2026-06-04)
 
 - Added the checked theorem
