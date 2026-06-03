@@ -63,6 +63,17 @@ immutability.
 
 ## Open Artifact Notes
 
+- Linear final row-DAG target: `FBound.thy` now checks
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`. The
+  remaining BR-040 obligation is isolated to
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s)
+   <= K * rxsize r`; under that single bound, the theorem yields exact
+  `strong_deferred_memo_lexer` POSIX correctness, `lexer` equality, `flat`,
+  legacy preservation, row/pair budgets, final row-DAG/max-row-DAG budgets,
+  root/key coverage, and span/split memo budgets. The final-active scout and
+  factor sweep scripts now expose and report the row-DAG universe factor so
+  smoke evidence tracks this exact target. Infrastructure only; no bounty is
+  paid.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040

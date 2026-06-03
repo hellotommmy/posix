@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: The main memo-strong proof target is linear final row-DAG
+
+- Added
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+  This is the preferred BR-040 statement shape until it is discharged:
+  prove
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s)
+   <= K * rxsize r`, then exact POSIX correctness and the relevant row/pair
+  budgets follow through the named `strong_deferred_memo_lexer`.
+- This deliberately avoids proving over the emitted recognition tree. The tree
+  may be useful operationally, but the bounded object is the final-active
+  hash-consed row-DAG owner table.
+- The final-active scout script now exposes `RowDagUniverseFactor` and reports
+  the worst row-DAG universe ratio. Future smoke summaries must include this
+  metric because it is the one matching the Isabelle theorem target.
+
 ## 2026-06-04: Memo-strong size proof uses one final row-DAG owner
 
 - The derivative-size graphs make direct emitted-tree `bsimpCubic` the wrong

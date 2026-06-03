@@ -2,6 +2,27 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Linear Row-DAG Target Named (2026-06-04)
+
+- Added the checked theorem
+  `FBound.thy:strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+- This is the current proof-facing target for the memo-strong route. It says:
+  if the final-active row-DAG universe satisfies
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s)
+   <= K * rxsize r`, then the named `strong_deferred_memo_lexer` has exact
+  POSIX `Some`/`None` correctness, equals `lexer`, preserves `flat`, and gets
+  row, pair, row-DAG, max-row-DAG, root/key coverage, and span/split budgets.
+- The remaining hard theorem is now sharply isolated: construct or characterize
+  the final-active hash-consed owner table and prove its `K * rxsize r` bound.
+  This is stronger and more useful than proving a bound on the emitted
+  `bsimpStrong` or retired `bsimpCubic` tree.
+- Updated `agent_hunt_pipeline/scripts/strong_memo_final_active_scout.ps1`
+  and the factor sweep wrapper so their reports explicitly parameterize and
+  display `Row-DAG universe budget`. This keeps the smoke pipeline aligned
+  with the Isabelle theorem target.
+- Verification so far: focused Isabelle `Posix` build passed; script self-test
+  wrote an ignored report under `agent_hunt_pipeline/run/`.
+
 ## Cubic Route Checkpoint: Memo-Strong Single Dag Owner Contract (2026-06-04)
 
 - After the derivative-size graphs, the direct emitted-tree `bsimpCubic`
