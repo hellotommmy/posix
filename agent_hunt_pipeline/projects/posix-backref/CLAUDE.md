@@ -117,6 +117,10 @@ to refresh the current deferred-memo plots. The report includes
 `strongMemoActiveRows`, `strongMemoActiveKeys`,
 `strongMemoActiveMaxBucket`, and `strongMemoActivePairBudget`; inspect these
 before changing the proof universe.
+The `n=200` long-tail grid shows `strongMemoTree` is still promising, but the
+unquotiented cumulative active prefix pool keeps growing for `k=8`. Treat
+active-prefix metrics as diagnostics, not as the final root-owned cubic
+universe unless a quotient/periodic/indexed bound is added.
 On the Isabelle side, prefer
 `GeneralRegexBound.thy:card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`
 when possible: it uses the aggregate active pair-budget directly and is sharper

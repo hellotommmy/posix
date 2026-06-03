@@ -87,6 +87,11 @@ immutability.
   original-regex span/memo reconstruction the leading tree-level route, but it
   is still only tooling/evidence until checked Isabelle reconstruction and
   cubic theorem interfaces are complete.
+  The longer `k=5,8,n<=200` grid strengthens the tree-side evidence
+  (`strongMemoTree` peaks at `959` for `k=5` and `3425` for `k=8`), but also
+  shows that the unquotiented cumulative active prefix pool is not the final
+  cubic proof object (`k=8` active pair-budget still grows to `96722` at
+  `n=200`). This remains diagnostic BR-038/BR-040 infrastructure, not a payout.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.

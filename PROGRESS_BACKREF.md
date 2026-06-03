@@ -18,6 +18,26 @@ Last updated: 2026-06-03 (strong-memo route is default)
   passed, including default `strong-memo` Scala smoke, `Posix`, and
   `BackRefPilot`.
 
+## Cubic Route Checkpoint: Deferred-Memo Long-Tail Grid to n=200 (2026-06-03)
+
+- Regenerated `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/` for
+  `k=5,8`, `n=0..200`, step `4`.
+- Positive evidence for the main route:
+  - `strongMemoTree` stays thesis-like and bounded in this grid;
+  - `k=5` maximum is `959`;
+  - `k=8` maximum is `3425`.
+- Negative evidence for the naive proof universe:
+  - the cumulative/prefix active pool for `k=8` keeps growing through
+    `n=200`;
+  - `strongMemoActiveRows` reaches `312`;
+  - `strongMemoActiveMaxBucket` reaches `311`;
+  - `strongMemoActivePairBudget` reaches `96722`.
+- Design consequence: memo strong tree is still the right recognition/value
+  route, but a naive root-owned universe containing every prefix active row is
+  not yet the final cubic proof object. The next proof attempt should use a
+  quotient/periodic/indexed row universe, or a final-state/tree invariant that
+  does not count all prefixes as distinct states.
+
 ## Cubic Route Checkpoint: Active Pair-Budget Bound (2026-06-03)
 
 - Added proof-facing pair-budget accounting in `GeneralRegexBound.thy`:

@@ -16,6 +16,18 @@ to be read before continuing long-running agent work.
    raw_shared_prune_active_suffix_pair_budget V`. This is the shape needed by
   future finite universe proofs.
 
+## 2026-06-03: Long-tail deferred-memo grid separates tree from prefix pool
+
+- Regenerated the deferred-memo Chapter 7 grid to `n=200` for `k=5,8`.
+- The recognition tree remains promising: `strongMemoTree` peaks at `959` for
+  `k=5` and `3425` for `k=8` on this grid.
+- The cumulative active prefix pool is not a final proof universe by itself:
+  for `k=8`, active rows/max bucket/pair-budget still grow through `n=200`.
+- Design consequence: do not try to prove the final regex-size theorem by
+  bounding the unquotiented prefix active pool. Use it as diagnostics only.
+  The proof object probably needs a periodic/indexed/quotiented row universe,
+  or a final-state invariant closer to the bounded `strongMemoTree` itself.
+
 ## 2026-06-03: Active pair-budget is a proof-facing quantity
 
 - Added `raw_shared_prune_active_suffix_pair_budget`, the exact sum of
