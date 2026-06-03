@@ -13,6 +13,13 @@ to be read before continuing long-running agent work.
   `DagU = rsubterm_closure RowU`. The next proof target can therefore focus
   on one original-regex-owned row universe: cover final-active rows, bound
   its cardinality, and bound each member's exact-DAG size.
+- Added `strong_deferred_original_final_active_row_metrics_contract`, the
+  direct proof-side mirror of the Scala final-active metrics. It sets
+  `RowU = strong_deferred_final_active_suffix_rows r s`, so the proof
+  obligations now match the smoke columns: final row count `R`, per-row
+  exact-DAG size `M`, pair budget `R * R`, and row-DAG universe size `R * M`.
+  This is a handoff contract only; the cubic proof still has to derive `R`
+  and `M` from the original regex, not from the emitted tree.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under

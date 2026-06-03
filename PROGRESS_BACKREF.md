@@ -47,6 +47,14 @@ Last updated: 2026-06-04 (strong-memo route is default)
   exact-DAG size at most `M`, then `rsubterm_closure RowU` is a valid `DagU`,
   the whole row-DAG universe has size at most `R * M`, and each final-active
   row keeps the sharper bound `M`.
+- Added the metric-facing handoff
+  `strong_deferred_original_final_active_row_metrics_contract`. This
+  instantiates `RowU` to the actual final-active row set measured by Scala
+  (`finalRows` plus `finalMaxRowDag`) and packages exact POSIX reconstruction,
+  row count, pair budget, row-DAG size `R * M`, per-row exact-DAG bound `M`,
+  and the span/split memo budgets. It is deliberately not a cubic theorem:
+  the remaining proof target is to derive original-regex-owned bounds for
+  those final-active row metrics.
 - Verification:
   focused `isabelle build -v -d . Posix` passed.
 - This is BR-040 infrastructure. The missing theorem is now concrete: define

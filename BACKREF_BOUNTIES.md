@@ -137,6 +137,13 @@ immutability.
   The next BR-040 target can focus on a single original-regex-owned `RowU`;
   `DagU` can be instantiated as `rsubterm_closure RowU`. This is still
   infrastructure only and claims no payout.
+- Metric-facing row handoff checkpoint: checked
+  `FBound.thy:strong_deferred_original_final_active_row_metrics_contract`.
+  This is the proof-side version of the Scala final-active row metrics: it
+  uses the actual final-active row set, assumes row count `R` and per-row
+  exact-DAG size `M`, then yields exact POSIX reconstruction plus pair and
+  row-DAG budgets. It narrows BR-040's target but does not prove the
+  original-regex-owned `R`/`M` bounds, so no payout is claimed.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

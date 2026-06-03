@@ -171,13 +171,12 @@ depth `7`, input length `10`. All pass, with worst member ratio `6.809524`.
 This makes `K = 8` the current smoke-backed constant, but it is still only a
 proof hypothesis until Isabelle derives it from the original regex structure.
 On the Isabelle side, the current handoff theorem for this route is
-`FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`:
-prove the final-active rows and pair-budget bounds against the original
-`rxsize r`, and prove row member-size `<= M`. The theorem supplies exact POSIX
-correctness, legacy final state preservation, final-active closure size
-`<= rxsize r + rxsize r * rxsize r * M`, and the span/split memo budgets. To
-obtain the desired cubic theorem, instantiate this with a checked linear
-member-size bound such as `M <= K * rxsize r`.
+`FBound.thy:strong_deferred_original_final_active_row_metrics_contract`.
+It mirrors the Scala final-active row metrics: assume final row count `R` and
+per-row exact-DAG size `M`, then obtain exact POSIX reconstruction, pair budget
+`R * R`, row-DAG universe size `R * M`, and the span/split memo budgets. To
+obtain the desired cubic theorem, prove original-regex-owned bounds for these
+two quantities, for example `R <= C * rxsize r` and `M <= K * rxsize r`.
 For final-active proof work, prefer the syntax-facing lemmas
 `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
 `raw_final_active_suffix_bucket_iff`, plus their lifted
