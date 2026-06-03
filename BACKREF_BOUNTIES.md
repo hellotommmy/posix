@@ -78,10 +78,15 @@ immutability.
   `card_strong_deferred_final_active_suffix_alt_nodes_le_rows`, yielding the
   checked interface
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`
-  for `2 * rows + payload-DAG + suffix-key-DAG`. Fresh `strong-memo` Scala
-  smoke passed exact POSIX checks on the default exhaustive grid, known CE
-  grid, and 1,000 deterministic random depth-6/input-8 cases. This is proof
-  infrastructure only; no bounty is claimed.
+  for `2 * rows + payload-DAG + suffix-key-DAG`. The payload/key DAG
+  components are now further exposed through checked rsubterm-closure
+  interfaces and parameterized bounds:
+  `card_strong_deferred_final_active_suffix_key_dag_universe_boundI` and
+  `card_strong_deferred_final_active_suffix_payload_dag_universe_boundI`.
+  Fresh `strong-memo` Scala smoke passed exact POSIX checks on the default
+  exhaustive grid, known CE grid, and 1,000 deterministic random
+  depth-6/input-8 cases. This is proof infrastructure only; no bounty is
+  claimed.
 - Direct final-active row-DAG smoke metric: `PosixCubicSmoke.scala` now reports
   the executable analogue of
   `strong_deferred_final_active_suffix_row_dag_universe`, and

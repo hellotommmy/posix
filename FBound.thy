@@ -2587,6 +2587,12 @@ definition strong_deferred_final_active_suffix_alt_nodes ::
   "strong_deferred_final_active_suffix_alt_nodes r s =
     raw_final_active_suffix_alt_nodes (strong_deferred_final_raw r s)"
 
+definition strong_deferred_final_active_suffix_payload_roots ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_payload_roots r s =
+    raw_final_active_suffix_payload_roots
+      (strong_deferred_final_raw r s)"
+
 definition strong_deferred_final_active_suffix_payload_dag_universe ::
   "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
   "strong_deferred_final_active_suffix_payload_dag_universe r s =
@@ -2623,6 +2629,10 @@ lemma finite_strong_deferred_final_active_suffix_row_dag_universe [simp]:
 lemma finite_strong_deferred_final_active_suffix_alt_nodes [simp]:
   "finite (strong_deferred_final_active_suffix_alt_nodes r s)"
   by (simp add: strong_deferred_final_active_suffix_alt_nodes_def)
+
+lemma finite_strong_deferred_final_active_suffix_payload_roots [simp]:
+  "finite (strong_deferred_final_active_suffix_payload_roots r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
 
 lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_payload_dag_universe r s)"
@@ -2805,6 +2815,118 @@ proof -
         [OF rows alts payload keys])
   then show ?thesis by simp
 qed
+
+lemma strong_deferred_final_active_suffix_key_dag_universe_eq_rsubterm_closure:
+  "strong_deferred_final_active_suffix_key_dag_universe r s =
+    rsubterm_closure (strong_deferred_final_active_suffix_keys r s)"
+  by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def
+      strong_deferred_final_active_suffix_keys_def
+      raw_final_active_suffix_key_dag_universe_eq_rsubterm_closure)
+
+lemma strong_deferred_final_active_suffix_payload_dag_universe_eq_rsubterm_closure:
+  "strong_deferred_final_active_suffix_payload_dag_universe r s =
+    rsubterm_closure (strong_deferred_final_active_suffix_payload_roots r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
+      strong_deferred_final_active_suffix_payload_roots_def
+      raw_final_active_suffix_payload_dag_universe_eq_rsubterm_closure)
+
+lemma card_strong_deferred_final_active_suffix_key_dag_universe_boundI:
+  assumes keys:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le> K"
+    and member_bound:
+      "\<And>k. k \<in> strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+        card (rsubterms k) \<le> M"
+  shows "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+    \<le> K * M"
+proof -
+  have raw:
+      "card (raw_final_active_suffix_key_dag_universe
+          (strong_deferred_final_raw r s)) \<le> K * M"
+  proof (rule card_raw_final_active_suffix_key_dag_universe_boundI)
+    show "card (raw_final_active_suffix_keys
+        (strong_deferred_final_raw r s)) \<le> K"
+      using keys by (simp add: strong_deferred_final_active_suffix_keys_def)
+    show "\<And>k. k \<in> raw_final_active_suffix_keys
+        (strong_deferred_final_raw r s) \<Longrightarrow> card (rsubterms k) \<le> M"
+      using member_bound
+      by (simp add: strong_deferred_final_active_suffix_keys_def)
+  qed
+  then show ?thesis
+    by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def)
+qed
+
+lemma card_strong_deferred_final_active_suffix_key_dag_universe_le_keys_times_final_rsize:
+  "card (strong_deferred_final_active_suffix_key_dag_universe r s) \<le>
+    card (strong_deferred_final_active_suffix_keys r s) *
+    rsize (strong_deferred_final_raw r s)"
+proof (rule card_strong_deferred_final_active_suffix_key_dag_universe_boundI)
+  fix k
+  assume k: "k \<in> strong_deferred_final_active_suffix_keys r s"
+  have raw_k: "k \<in> raw_final_active_suffix_keys
+      (strong_deferred_final_raw r s)"
+    using k by (simp add: strong_deferred_final_active_suffix_keys_def)
+  have "card (rsubterms k) \<le> rsize k"
+    by (rule card_rsubterms_le_rsize)
+  also have "... \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule raw_final_active_suffix_keys_member_size_le_rsize[OF raw_k])
+  finally show "card (rsubterms k) \<le>
+      rsize (strong_deferred_final_raw r s)" .
+qed simp
+
+lemma card_strong_deferred_final_active_suffix_key_dag_universe_le_final_rsize_square:
+  "card (strong_deferred_final_active_suffix_key_dag_universe r s) \<le>
+    rsize (strong_deferred_final_raw r s) *
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def
+      card_raw_final_active_suffix_key_dag_universe_le_rsize_square)
+
+lemma card_strong_deferred_final_active_suffix_payload_dag_universe_boundI:
+  assumes roots:
+      "card (strong_deferred_final_active_suffix_payload_roots r s) \<le> P"
+    and member_bound:
+      "\<And>q. q \<in> strong_deferred_final_active_suffix_payload_roots r s \<Longrightarrow>
+        card (rsubterms q) \<le> M"
+  shows "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+    \<le> P * M"
+proof -
+  have raw:
+      "card (raw_final_active_suffix_payload_dag_universe
+          (strong_deferred_final_raw r s)) \<le> P * M"
+  proof (rule card_raw_final_active_suffix_payload_dag_universe_boundI)
+    show "card (raw_final_active_suffix_payload_roots
+        (strong_deferred_final_raw r s)) \<le> P"
+      using roots
+      by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
+    show "\<And>q. q \<in> raw_final_active_suffix_payload_roots
+        (strong_deferred_final_raw r s) \<Longrightarrow> card (rsubterms q) \<le> M"
+      using member_bound
+      by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
+  qed
+  then show ?thesis
+    by (simp add:
+        strong_deferred_final_active_suffix_payload_dag_universe_def)
+qed
+
+lemma card_strong_deferred_final_active_suffix_payload_roots_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_payload_roots r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_roots_def
+      card_raw_final_active_suffix_payload_roots_le_rsize)
+
+lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_roots_times_final_rsize:
+  "card (strong_deferred_final_active_suffix_payload_dag_universe r s) \<le>
+    card (strong_deferred_final_active_suffix_payload_roots r s) *
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
+      strong_deferred_final_active_suffix_payload_roots_def
+      card_raw_final_active_suffix_payload_dag_universe_le_roots_times_rsize)
+
+lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_final_rsize_square:
+  "card (strong_deferred_final_active_suffix_payload_dag_universe r s) \<le>
+    rsize (strong_deferred_final_raw r s) *
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
+      card_raw_final_active_suffix_payload_dag_universe_le_rsize_square)
 
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"

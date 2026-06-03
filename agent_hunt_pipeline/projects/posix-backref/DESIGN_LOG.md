@@ -22,6 +22,18 @@ to be read before continuing long-running agent work.
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`
   when possible: the remaining accounting target is
   `2 * rows + payload-DAG + suffix-key-DAG`.
+- The payload/key DAG components are now closure interfaces rather than opaque
+  sets. For keys, use
+  `strong_deferred_final_active_suffix_key_dag_universe_eq_rsubterm_closure`
+  and `card_strong_deferred_final_active_suffix_key_dag_universe_boundI`.
+  For payloads, use
+  `strong_deferred_final_active_suffix_payload_roots`,
+  `strong_deferred_final_active_suffix_payload_dag_universe_eq_rsubterm_closure`,
+  and
+  `card_strong_deferred_final_active_suffix_payload_dag_universe_boundI`.
+  This leaves the real BR-040 work in two concrete obligations: bound the
+  number of roots/keys and bound each root/key DAG by an original-owned
+  universe.
 - The proof style matters: the checked bridge uses explicit `rsubterms`
   witnesses and explicit suffix-key membership, not large `auto`/`blast`
   searches. Keep this style for the remaining component bounds.

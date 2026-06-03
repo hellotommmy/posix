@@ -30,6 +30,15 @@ Last updated: 2026-06-04 (strong-memo route is default)
   direct row-count interface
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI`:
   it is now enough to bound `2 * rows + payload-DAG + suffix-key-DAG`.
+- Split the two DAG components into closure-style accounting interfaces:
+  `raw_final_active_suffix_key_dag_universe_eq_rsubterm_closure` and
+  `raw_final_active_suffix_payload_dag_universe_eq_rsubterm_closure`, plus
+  the lifted `strong_deferred_final_active_suffix_*` versions. The checked
+  bounds
+  `card_strong_deferred_final_active_suffix_key_dag_universe_boundI` and
+  `card_strong_deferred_final_active_suffix_payload_dag_universe_boundI`
+  reduce these components to cardinality bounds for keys/payload roots and
+  local subterm-size bounds for each member.
 - Focused Isabelle `Posix` build passed after splitting the proof into
   explicit subterm and suffix-key witnesses; no broad slow automation was
   introduced.
