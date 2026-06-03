@@ -94,7 +94,14 @@ immutability.
   The first such diagnostic, `contPruneShapeStatePool`, improves smaller roots
   (`k=3` stops at `n=12`; `k=5` stops at `n=68`) but still matches the
   modulo metric at `k=8,n=624` (`2552`) and remains strictly increasing, so it
-  is not a BR-039 payout either.
+  is not a BR-039 payout either. The newer
+  `langContPruneShapeStatePool` diagnostic is stronger on `k=8`: with
+  metric-only bit erasure and step `64`, it first stops increasing at `n=960`
+  (`885 -> 885`). But a `k=10` run sampled every `128` characters timed out at
+  `n=1664` while still strictly increasing (`1731`), so this is still
+  diagnostic evidence only. It does not pay BR-039/BR-040 unless it is replaced
+  by a checked POSIX-safe indexed/periodic row universe or reconstruction
+  theorem.
   Current Chapter 7 evidence suggests `shapeStatePool`, not the raw total
   allocation pool or exact annotated `statePool`, is the closest smoke proxy
   for the proof-facing erased shared universe. This is BR-038/BR-039 tooling

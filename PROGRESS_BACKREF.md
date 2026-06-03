@@ -1,6 +1,46 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (long-tail plateau discipline)
+Last updated: 2026-06-03 (metric-only long-tail diagnostics)
+
+## Cubic Diagnostic: Metric-Only Language-Continuation Long Tail (2026-06-03)
+
+- Added `-SharedPlateauMetricOnly` /
+  `-ScalaSmokeSharedPlateauMetricOnly` for long-tail smoke. In this mode the
+  plateau runner does not reconstruct the full final `arexp` tree and uses a
+  bit-erased diagnostic `DagStore`, so shape/row-universe metrics are not
+  killed by irrelevant POSIX bit payload growth. Normal value smoke still uses
+  the ordinary bit-preserving store.
+- Added `langContPruneShapeStatePool`, a Scala-only diagnostic metric that
+  keys continuation coverage by approximate unary language patterns rather
+  than by raw continuation syntax.
+- Positive but limited evidence:
+  - Chapter 7 `k=3`, step `4`, first non-increase at `n=12`, with
+    `langContPruneShapeStatePool 16 -> 16`;
+  - Chapter 7 `k=5`, step `4`, first non-increase at `n=64`, with
+    `81 -> 81`;
+  - Chapter 7 `k=8`, step `64`, metric-only first non-increase at `n=960`,
+    with `885 -> 885`. The sampled prefix was
+    `4,110,174,238,302,366,430,494,558,622,686,750,814,878,885,885`.
+- Negative/insufficient evidence:
+  - Chapter 7 `k=10`, step `128`, metric-only stayed strictly increasing
+    through the last checked point before timeout:
+    `n=1664`, `langContPruneShapeStatePool=1731`.
+  - Therefore the current language-continuation diagnostic is not yet a
+    general constant-universe argument. It is stronger than the earlier
+    `shapeStatePool`, `unaryModShapeStatePool`, and
+    `contPruneShapeStatePool` diagnostics on `k=8`, but the `k=10` tail says
+    the quotient is still too fine or the construction is still not the right
+    indexed family.
+- Design consequence:
+  - The proof-side target is not an ordinary tree simplifier yet. The current
+    controlled object is an erased/shared row-universe diagnostic for
+    `unary-cover-no-reassoc`; it is only controlled by
+    `langContPruneShapeStatePool` after metric-only bit erasure.
+  - A real BR-039 candidate still needs either a periodic/indexed
+    continuation family with a checked reconstruction theorem, or a stronger
+    POSIX-safe simplifier that passes the same long-tail tests without relying
+    on diagnostic-only erasure.
+  - No BR-039/BR-040 payout is claimed.
 
 ## Cubic Candidate Prototype: Long-Tail Plateau Discipline (2026-06-03)
 

@@ -167,6 +167,20 @@ as evidence that the continuation key itself needs a stronger quotient or an
 indexed linear-form representation; do not treat `contPruneShapeStatePool` as
 a BR-039 candidate.
 
+The strongest current diagnostic is `langContPruneShapeStatePool`, normally
+run with `-SharedPlateauMetricOnly` /
+`-ScalaSmokeSharedPlateauMetricOnly`. Metric-only mode intentionally skips
+full-tree reconstruction and erases bit payloads inside the diagnostic
+`DagStore`; it is for long-tail shape/row-universe measurement only, not for
+POSIX value preservation. Ordinary exact-value smoke remains mandatory and
+bit-preserving. Current evidence is mixed: Chapter 7 `k=8`, sampled every 64
+characters, first stops increasing at `n=960` (`885 -> 885`), but Chapter 7
+`k=10`, sampled every 128 characters, timed out at `n=1664` with the metric
+still strictly increasing (`1731`). Therefore this is not a BR-039 candidate
+yet. It points toward a real periodic/indexed continuation-family universe,
+or a reconstruction theorem that justifies the same quotient without
+diagnostic-only erasure.
+
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a
 prior row has shape `(a+b).c`, but it still emits `no-reassoc` output syntax.

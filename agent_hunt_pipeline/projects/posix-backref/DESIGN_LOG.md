@@ -3,6 +3,29 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Metric-only long-tail tests expose a stronger but still incomplete quotient
+
+- Added `-SharedPlateauMetricOnly` and the matching CI flag
+  `-ScalaSmokeSharedPlateauMetricOnly`. This mode is only for long-tail
+  diagnostics: it skips full `arexp` reconstruction and uses a bit-erased
+  diagnostic `DagStore`, while ordinary value smoke remains bit-preserving.
+- Added `langContPruneShapeStatePool`, which keys row-continuation coverage by
+  approximate unary language patterns instead of raw continuation syntax.
+- This metric finally gives a checked non-increase for the larger Chapter 7
+  `k=8` root: sampled every 64 characters, it reaches
+  `... 878,885,885`, first non-increase at `n=960`.
+- The result is not general enough. A harder `k=10` run, sampled every 128
+  characters, timed out after reaching `n=1664` with the metric still strictly
+  increasing (`1731`). This is negative evidence against claiming a constant
+  universe from the current quotient.
+- Design consequence: the current proof side is not about a final
+  `bsimpCubic` tree simplifier. It is about whether an erased/shared
+  row-family representation for value-safe `unary-cover-no-reassoc` can be
+  bounded. The only metric currently giving `k=8` plateau evidence is
+  `langContPruneShapeStatePool` under metric-only bit erasure; any theorem
+  candidate must replace this diagnostic with a real indexed/periodic row
+  universe plus reconstruction/value theorem.
+
 ## 2026-06-03: Long-tail smoke must reach plateau or report failure
 
 - Strengthened the Scala smoke harness for long-tail plateau work. The
