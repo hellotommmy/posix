@@ -20654,6 +20654,27 @@ lemma raw_final_active_suffix_rows_subset_rsubterms:
   "raw_final_active_suffix_rows r \<subseteq> rsubterms r"
   by (auto simp add: raw_final_active_suffix_rows_def)
 
+lemma raw_final_active_suffix_rowsI:
+  assumes "RSEQ (RALTS rows) k \<in> rsubterms r"
+  shows "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+  using assms
+  by (simp add: raw_final_active_suffix_rows_def
+      raw_shared_prune_suffix_key_def)
+
+lemma raw_final_active_suffix_rowsE:
+  assumes "q \<in> raw_final_active_suffix_rows r"
+  obtains rows k where "q = RSEQ (RALTS rows) k" "q \<in> rsubterms r"
+  using assms
+  by (cases q)
+    (auto simp add: raw_final_active_suffix_rows_def
+      raw_shared_prune_suffix_key_def split: rrexp.splits)
+
+lemma raw_final_active_suffix_rows_iff:
+  "q \<in> raw_final_active_suffix_rows r \<longleftrightarrow>
+    (\<exists>rows k. q = RSEQ (RALTS rows) k \<and> q \<in> rsubterms r)"
+  by (auto intro: raw_final_active_suffix_rowsI
+      elim: raw_final_active_suffix_rowsE)
+
 lemma finite_raw_final_active_suffix_rows [simp]:
   "finite (raw_final_active_suffix_rows r)"
 proof -
@@ -20662,6 +20683,56 @@ proof -
   then show ?thesis
     by (rule finite_subset) simp
 qed
+
+lemma raw_final_active_suffix_keys_iff:
+  "k \<in> raw_final_active_suffix_keys r \<longleftrightarrow>
+    (\<exists>rows. RSEQ (RALTS rows) k \<in> rsubterms r)"
+proof
+  assume k: "k \<in> raw_final_active_suffix_keys r"
+  then obtain q where q:
+      "q \<in> raw_final_active_suffix_rows r"
+      "raw_shared_prune_suffix_key q = Some k"
+    by (auto simp add: raw_final_active_suffix_keys_def
+        raw_shared_prune_active_suffix_keys_def)
+  obtain rows k' where q_def: "q = RSEQ (RALTS rows) k'"
+    and q_sub: "q \<in> rsubterms r"
+    by (rule raw_final_active_suffix_rowsE[OF q(1)])
+  have "k' = k"
+    using q(2) q_def by (simp add: raw_shared_prune_suffix_key_def)
+  then show "\<exists>rows. RSEQ (RALTS rows) k \<in> rsubterms r"
+    using q_sub q_def by blast
+next
+  assume "\<exists>rows. RSEQ (RALTS rows) k \<in> rsubterms r"
+  then obtain rows where row:
+    "RSEQ (RALTS rows) k \<in> rsubterms r"
+    by blast
+  have active:
+    "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    by (rule raw_final_active_suffix_rowsI[OF row])
+  have key:
+    "raw_shared_prune_suffix_key (RSEQ (RALTS rows) k) = Some k"
+    by (simp add: raw_shared_prune_suffix_key_def)
+  have image_key: "Some k \<in> raw_shared_prune_suffix_key `
+      raw_final_active_suffix_rows r"
+  proof (rule image_eqI)
+    show "Some k =
+        raw_shared_prune_suffix_key (RSEQ (RALTS rows) k)"
+      by (simp add: key)
+    show "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+      by (rule active)
+  qed
+  show "k \<in> raw_final_active_suffix_keys r"
+    using image_key
+    by (simp add: raw_final_active_suffix_keys_def
+        raw_shared_prune_active_suffix_keys_def)
+qed
+
+lemma raw_final_active_suffix_bucket_iff:
+  "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k \<longleftrightarrow>
+    q \<in> rsubterms r \<and> (\<exists>rows. q = RSEQ (RALTS rows) k)"
+  by (auto simp add: raw_shared_prune_active_suffix_bucket_def
+      raw_final_active_suffix_rows_iff raw_shared_prune_suffix_key_def)
 
 lemma card_raw_final_active_suffix_rows_le_rsize:
   "card (raw_final_active_suffix_rows r) \<le> rsize r"

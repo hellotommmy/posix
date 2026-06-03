@@ -55,6 +55,16 @@ to be read before continuing long-running agent work.
   and `8` as passed on the three-seed `5000`-case grid. The script keeps
   per-factor logs so future agents can extend the factor/depth grid without
   overwriting the main scout report.
+- A deeper sweep over `8,10,12` with seeds
+  `20260602,20260603,20260604,20260605,20260606`, `10000` cases per seed,
+  depth `7`, input length `10`, also passes. Worst observed member ratio is
+  `6.809524`. Keep `K=8` as a plausible candidate, not a checked constant.
+- Added syntax-facing final-active lemmas:
+  `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`,
+  `raw_final_active_suffix_bucket_iff`, and their
+  `strong_deferred_final_active_suffix_*` lifts. The proof route should use
+  these to reason about concrete `RSEQ (RALTS rows) k` subterms instead of
+  repeatedly unfolding image/filter definitions.
 - The Chapter 7 trace now prints both cumulative active-prefix metrics and
   final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
   grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.

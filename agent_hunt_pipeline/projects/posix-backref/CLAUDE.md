@@ -104,6 +104,13 @@ As of 2026-06-03, do not assign proof work to rescuing `bsimpCubic`; assign
 testing and proof work to the memo strong tree route: POSIX value
 reconstruction over the original regex plus a cubic shared/memo universe for
 the `bsimpStrong` recognition states.
+Treat this as a hard route switch, not a naming preference. A candidate that
+only makes the emitted derivative tree small but cannot produce exact POSIX
+values is not a cubic-bound candidate for this project. The active target is:
+keep `bders_simpStrong` as the small recognition tree, reconstruct exact POSIX
+values from the original regex via span/memo tables, then prove the
+final-active rows, pair-budget, and row member-size bounds needed by
+`FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`.
 Do not silently replace the memo strong tree by the partial-derivative row
 list. The optional row-list/factoring bridge has a dedicated shrinker,
 `scala_cubic_smoke.ps1 -FindStrongRowsBridgeCE`, and currently still shrinks a
@@ -156,6 +163,13 @@ Use
 to compare member factors without overwriting the main scout report. The
 current sweep report shows factors `4` and `6` fail on seed `20260602`, case
 `4784`, while `8` passes the three-seed `5000`-case grid.
+A deeper sweep under
+`agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep_deep/`
+checks factors `8,10,12` on seeds
+`20260602,20260603,20260604,20260605,20260606`, `10000` random cases each,
+depth `7`, input length `10`. All pass, with worst member ratio `6.809524`.
+This makes `K = 8` the current smoke-backed constant, but it is still only a
+proof hypothesis until Isabelle derives it from the original regex structure.
 On the Isabelle side, the current handoff theorem for this route is
 `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`:
 prove the final-active rows and pair-budget bounds against the original
@@ -164,6 +178,12 @@ correctness, legacy final state preservation, final-active closure size
 `<= rxsize r + rxsize r * rxsize r * M`, and the span/split memo budgets. To
 obtain the desired cubic theorem, instantiate this with a checked linear
 member-size bound such as `M <= K * rxsize r`.
+For final-active proof work, prefer the syntax-facing lemmas
+`raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
+`raw_final_active_suffix_bucket_iff`, plus their lifted
+`strong_deferred_final_active_suffix_*` versions. They characterize the active
+objects as concrete `RSEQ (RALTS rows) k` subterms of the final strong tree,
+which is the right shape for a structural proof.
 On the Isabelle side, prefer
 `GeneralRegexBound.thy:card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`
 when possible: it uses the aggregate active pair-budget directly and is sharper

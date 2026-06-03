@@ -2585,6 +2585,44 @@ lemma finite_strong_deferred_final_active_suffix_closure [simp]:
   "finite (strong_deferred_final_active_suffix_closure r s)"
   by (simp add: strong_deferred_final_active_suffix_closure_def)
 
+lemma strong_deferred_final_active_suffix_rowsI:
+  assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
+  shows "RSEQ (RALTS rows) k \<in>
+    strong_deferred_final_active_suffix_rows r s"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_rowsI)
+
+lemma strong_deferred_final_active_suffix_rowsE:
+  assumes "q \<in> strong_deferred_final_active_suffix_rows r s"
+  obtains rows k where "q = RSEQ (RALTS rows) k"
+    "q \<in> rsubterms (strong_deferred_final_raw r s)"
+  using assms
+  by (auto simp add: strong_deferred_final_active_suffix_rows_def
+      elim: raw_final_active_suffix_rowsE)
+
+lemma strong_deferred_final_active_suffix_rows_iff:
+  "q \<in> strong_deferred_final_active_suffix_rows r s \<longleftrightarrow>
+    (\<exists>rows k. q = RSEQ (RALTS rows) k \<and>
+      q \<in> rsubterms (strong_deferred_final_raw r s))"
+  by (auto intro: strong_deferred_final_active_suffix_rowsI
+      elim: strong_deferred_final_active_suffix_rowsE)
+
+lemma strong_deferred_final_active_suffix_keys_iff:
+  "k \<in> strong_deferred_final_active_suffix_keys r s \<longleftrightarrow>
+    (\<exists>rows. RSEQ (RALTS rows) k \<in>
+      rsubterms (strong_deferred_final_raw r s))"
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      raw_final_active_suffix_keys_iff)
+
+lemma strong_deferred_final_active_suffix_bucket_iff:
+  "q \<in> raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k \<longleftrightarrow>
+    q \<in> rsubterms (strong_deferred_final_raw r s) \<and>
+      (\<exists>rows. q = RSEQ (RALTS rows) k)"
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_bucket_iff)
+
 lemma card_strong_deferred_final_active_suffix_rows_le_final_rsize:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
     rsize (strong_deferred_final_raw r s)"

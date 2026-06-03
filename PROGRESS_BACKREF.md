@@ -68,6 +68,19 @@ Last updated: 2026-06-03 (strong-memo route is default)
   member factors `4,6,8` on seeds `20260602,20260603,20260604`, `5000` random
   cases each. It records `4` and `6` as failed by the same `6.5x` witness, and
   `8` as the current smoke-passing candidate.
+- A deeper follow-up report under
+  `agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep_deep/`
+  sweeps member factors `8,10,12` on seeds
+  `20260602,20260603,20260604,20260605,20260606`, `10000` random cases each,
+  depth `7`, input length `10`. All three factors pass; the worst member
+  ratio observed is `6.809524`. This strengthens smoke evidence for using
+  `K = 8` as the next candidate, but it is still not a theorem.
+- Added checked structural lemmas for the final-active proof route:
+  `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
+  `raw_final_active_suffix_bucket_iff` in `GeneralRegexBound.thy`, with
+  lifted `strong_deferred_final_active_suffix_*` versions in `FBound.thy`.
+  These reduce final-active row/key/bucket reasoning to concrete
+  `RSEQ (RALTS rows) k` subterms of the final strong tree.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

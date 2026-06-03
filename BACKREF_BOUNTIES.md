@@ -127,6 +127,12 @@ immutability.
   current sweep (`4,6,8`) records `4` and `6` as failed by seed `20260602`,
   case `4784`, and `8` as the current smoke-passing candidate. This is BR-038
   tooling/evidence, not a payout.
+- Deeper member-factor smoke:
+  `agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep_deep/`
+  records a `8,10,12` sweep over five seeds and `10000` cases per seed at
+  depth `7`/input length `10`. `8` still passes with worst observed member
+  ratio `6.809524`. This raises confidence in the candidate constant but pays
+  no bounty without a checked proof.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
@@ -137,6 +143,12 @@ immutability.
   bound by final `asize`. It is BR-040 infrastructure only; it does not pay
   until the final-active row/pair-budget cubic theorem or equivalent quotient
   theorem is checked.
+- Final-active syntax checkpoint:
+  `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
+  `raw_final_active_suffix_bucket_iff` now characterize final-active sets as
+  concrete `RSEQ (RALTS rows) k` subterms, with lifted
+  `strong_deferred_final_active_suffix_*` versions in `FBound.thy`. This is
+  proof infrastructure for BR-040, not a payout.
 - Original-size final-active contract checkpoint:
   `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`
   now states the proof target corresponding to the Scala final-active scout.
