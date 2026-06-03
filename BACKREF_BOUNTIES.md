@@ -99,6 +99,13 @@ immutability.
   rows/pair factors `1.0`, raw member disabled, and DAG/shape-DAG member
   factors `2.0` found no CE in 5,000 random depth-6/input-8 cases. This is
   evidence and tooling for BR-038/BR-039/BR-040, not a bounty payout.
+- Isabelle row-DAG universe checkpoint: `GeneralRegexBound.thy` now defines
+  `raw_final_active_suffix_row_dag_universe`, and `FBound.thy` lifts it as
+  `strong_deferred_final_active_suffix_row_dag_universe`. Checked lemmas show
+  every final-active row's exact-DAG cardinality `card (rsubterms q)` is
+  bounded by this universe, with final-rsize/final-asize fallback bounds. The
+  remaining BR-040 proof target is an original-size bound for this universe
+  plus the POSIX reconstruction bridge; no payout is claimed here.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

@@ -21134,6 +21134,10 @@ definition raw_final_active_suffix_closure :: "rrexp \<Rightarrow> rrexp set" wh
     raw_shared_prune_active_suffix_closure
       (raw_final_active_suffix_rows r)"
 
+definition raw_final_active_suffix_row_dag_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "raw_final_active_suffix_row_dag_universe r =
+    (\<Union>q\<in>raw_final_active_suffix_rows r. rsubterms q)"
+
 lemma raw_shared_prune_active_suffix_keys_mono:
   assumes "U \<subseteq> V"
   shows "raw_shared_prune_active_suffix_keys U \<subseteq>
@@ -21276,6 +21280,90 @@ proof -
     by (rule raw_final_active_suffix_rows_subset_rsubterms)
   then show ?thesis
     by (rule finite_subset) simp
+qed
+
+lemma raw_final_active_suffix_row_dag_universeI:
+  assumes row: "q \<in> raw_final_active_suffix_rows r"
+    and sub: "p \<in> rsubterms q"
+  shows "p \<in> raw_final_active_suffix_row_dag_universe r"
+  using assms
+  by (auto simp add: raw_final_active_suffix_row_dag_universe_def)
+
+lemma raw_final_active_suffix_row_dag_universe_subset_rsubterms:
+  "raw_final_active_suffix_row_dag_universe r \<subseteq> rsubterms r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_row_dag_universe r"
+  then obtain q where q:
+      "q \<in> raw_final_active_suffix_rows r"
+      "p \<in> rsubterms q"
+    by (auto simp add: raw_final_active_suffix_row_dag_universe_def)
+  have q_sub: "q \<in> rsubterms r"
+    using q(1) raw_final_active_suffix_rows_subset_rsubterms by blast
+  show "p \<in> rsubterms r"
+    by (rule rsubterms_trans[OF q_sub q(2)])
+qed
+
+lemma finite_raw_final_active_suffix_row_dag_universe [simp]:
+  "finite (raw_final_active_suffix_row_dag_universe r)"
+proof -
+  have "raw_final_active_suffix_row_dag_universe r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_row_dag_universe_subset_rsubterms)
+  then show ?thesis
+    by (rule finite_subset) simp
+qed
+
+lemma card_raw_final_active_suffix_row_dag_universe_le_rsize:
+  "card (raw_final_active_suffix_row_dag_universe r) \<le> rsize r"
+proof -
+  have sub: "raw_final_active_suffix_row_dag_universe r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_row_dag_universe_subset_rsubterms)
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le>
+      card (rsubterms r)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
+lemma raw_final_active_suffix_row_dag_contains_row:
+  assumes row: "q \<in> raw_final_active_suffix_rows r"
+  shows "q \<in> raw_final_active_suffix_row_dag_universe r"
+  by (rule raw_final_active_suffix_row_dag_universeI
+      [OF row self_rsubterm])
+
+lemma raw_final_active_suffix_row_dag_subterms_subset_universe:
+  assumes row: "q \<in> raw_final_active_suffix_rows r"
+  shows "rsubterms q \<subseteq> raw_final_active_suffix_row_dag_universe r"
+proof
+  fix p
+  assume "p \<in> rsubterms q"
+  then show "p \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row])
+qed
+
+lemma card_raw_final_active_suffix_row_dag_le_universe:
+  assumes row: "q \<in> raw_final_active_suffix_rows r"
+  shows "card (rsubterms q) \<le>
+    card (raw_final_active_suffix_row_dag_universe r)"
+proof -
+  have sub: "rsubterms q \<subseteq> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_subterms_subset_universe
+        [OF row])
+  show ?thesis
+    by (rule card_mono) (simp_all add: sub)
+qed
+
+lemma card_raw_final_active_suffix_row_dag_le_rsize:
+  assumes row: "q \<in> raw_final_active_suffix_rows r"
+  shows "card (rsubterms q) \<le> rsize r"
+proof -
+  have "card (rsubterms q) \<le>
+      card (raw_final_active_suffix_row_dag_universe r)"
+    by (rule card_raw_final_active_suffix_row_dag_le_universe[OF row])
+  also have "... \<le> rsize r"
+    by (rule card_raw_final_active_suffix_row_dag_universe_le_rsize)
+  finally show ?thesis .
 qed
 
 lemma raw_final_active_suffix_keys_iff:

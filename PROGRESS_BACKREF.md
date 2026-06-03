@@ -2,6 +2,31 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Isabelle Row-DAG Universe (2026-06-04)
+
+- Moved the Scala row-DAG observation into Isabelle as a proof-facing object.
+- Added `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universe`,
+  defined as the union of `rsubterms q` over all final-active rows `q`.
+  This corresponds to the exact-DAG nodes of final-active rows, not their raw
+  tree expansion.
+- Checked raw facts:
+  `raw_final_active_suffix_row_dag_universe_subset_rsubterms`,
+  `card_raw_final_active_suffix_row_dag_universe_le_rsize`,
+  `raw_final_active_suffix_row_dag_subterms_subset_universe`,
+  `card_raw_final_active_suffix_row_dag_le_universe`, and
+  `card_raw_final_active_suffix_row_dag_le_rsize`.
+- Lifted the universe to the memo-strong final tree in `FBound.thy` as
+  `strong_deferred_final_active_suffix_row_dag_universe`, with final-rsize and
+  final-asize bounds plus the key interface
+  `card_strong_deferred_final_active_suffix_row_dag_boundI`.
+- Design effect: future proof work can now target
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= K *
+  rxsize r`, then obtain a linear exact-DAG bound for every final-active row.
+  This is the Isabelle counterpart of the new Scala `maxRowDag` smoke metric.
+- Verification:
+  focused `isabelle build -v -d . Posix` passed.
+- This remains BR-040 infrastructure. No cubic theorem or bounty is claimed.
+
 ## Cubic Route Checkpoint: Final-Active Member DAG Metrics (2026-06-03)
 
 - Continued the route requested by Chengsong: focus on memo/hash-consed strong

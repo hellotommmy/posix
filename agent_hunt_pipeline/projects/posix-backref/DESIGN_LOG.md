@@ -3,6 +3,25 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Isabelle row-DAG universe replaces raw member-size target
+
+- Added `raw_final_active_suffix_row_dag_universe`: the union of exact
+  `rsubterms` of all final-active rows. This is the proof-side analogue of the
+  Scala `maxRowDag` metric.
+- Checked that the raw row-DAG universe is a subset of the final raw tree's
+  `rsubterms`, is finite, and has cardinality bounded by final raw `rsize`.
+  For any final-active row `q`, `card (rsubterms q)` is bounded by this
+  universe.
+- Lifted the same interface to the memo-strong final state as
+  `strong_deferred_final_active_suffix_row_dag_universe`. The important future
+  target is now:
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= K *
+  rxsize r`.
+- Design consequence: row-DAG cardinality is now an explicit Isabelle proof
+  object. Future cubic work should prove an original-size bound for this
+  object, then connect it to POSIX reconstruction. Do not try to prove a
+  linear bound for raw `rsize q` of final-active rows.
+
 ## 2026-06-03: Final-active member DAG is now measured directly
 
 - Added erased `Rexp` exact-DAG and shape-DAG size metrics to the Scala smoke

@@ -2573,6 +2573,11 @@ definition strong_deferred_final_active_suffix_closure ::
   "strong_deferred_final_active_suffix_closure r s =
     raw_final_active_suffix_closure (strong_deferred_final_raw r s)"
 
+definition strong_deferred_final_active_suffix_row_dag_universe ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_row_dag_universe r s =
+    raw_final_active_suffix_row_dag_universe (strong_deferred_final_raw r s)"
+
 lemma finite_strong_deferred_final_active_suffix_rows [simp]:
   "finite (strong_deferred_final_active_suffix_rows r s)"
   by (simp add: strong_deferred_final_active_suffix_rows_def)
@@ -2584,6 +2589,10 @@ lemma finite_strong_deferred_final_active_suffix_keys [simp]:
 lemma finite_strong_deferred_final_active_suffix_closure [simp]:
   "finite (strong_deferred_final_active_suffix_closure r s)"
   by (simp add: strong_deferred_final_active_suffix_closure_def)
+
+lemma finite_strong_deferred_final_active_suffix_row_dag_universe [simp]:
+  "finite (strong_deferred_final_active_suffix_row_dag_universe r s)"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
 
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
@@ -2636,6 +2645,12 @@ lemma strong_deferred_final_active_suffix_bucket_subset_final_rsubterms:
   by (simp add: strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_bucket_subset_rsubterms)
 
+lemma strong_deferred_final_active_suffix_row_dag_universe_subset_final_rsubterms:
+  "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+    rsubterms (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_row_dag_universe_subset_rsubterms)
+
 lemma card_strong_deferred_final_active_suffix_rows_le_final_rsize:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
     rsize (strong_deferred_final_raw r s)"
@@ -2679,6 +2694,25 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
+      card_raw_final_active_suffix_row_dag_universe_le_rsize)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_asize:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      rsize (strong_deferred_final_raw r s)"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize)
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
 lemma card_strong_deferred_final_active_suffix_bucket_le_final_rsize:
   "card (raw_shared_prune_active_suffix_bucket
       (strong_deferred_final_active_suffix_rows r s) k) \<le>
@@ -2714,6 +2748,78 @@ lemma strong_deferred_final_active_suffix_bucket_member_size_le_final_rsize:
   using assms
   by (simp add: strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_bucket_member_size_le_rsize)
+
+lemma strong_deferred_final_active_suffix_row_dag_contains_row:
+  assumes row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "q \<in> strong_deferred_final_active_suffix_row_dag_universe r s"
+  using row
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_row_dag_contains_row)
+
+lemma strong_deferred_final_active_suffix_row_dag_subterms_subset_universe:
+  assumes row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "rsubterms q \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  using row
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_row_dag_subterms_subset_universe)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_le_universe:
+  assumes row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "card (rsubterms q) \<le>
+    card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+proof -
+  have sub: "rsubterms q \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_final_active_suffix_row_dag_subterms_subset_universe
+        [OF row])
+  show ?thesis
+    by (rule card_mono) (simp_all add: sub)
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_boundI:
+  assumes universe:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+    and row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "card (rsubterms q) \<le> D"
+proof -
+  have "card (rsubterms q) \<le>
+      card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_le_universe
+        [OF row])
+  also have "... \<le> D"
+    by (rule universe)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_le_final_rsize:
+  assumes row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "card (rsubterms q) \<le> rsize (strong_deferred_final_raw r s)"
+proof -
+  have "card (rsubterms q) \<le>
+      card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_le_universe
+        [OF row])
+  also have "... \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_le_final_asize:
+  assumes row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "card (rsubterms q) \<le> asize (bders_simpStrong (intern r) s)"
+proof -
+  have "card (rsubterms q) \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_le_final_rsize
+        [OF row])
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
 
 lemma strong_deferred_final_active_suffix_row_elem_final_rsubterms:
   assumes row: "RSEQ (RALTS rows) k \<in>
