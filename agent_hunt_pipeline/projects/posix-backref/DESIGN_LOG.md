@@ -5,6 +5,13 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added the one-character base case
+  `card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`,
+  supported by `asize_bder_intern_legacy_le_rxsize_square`. This extends the
+  checked row-DAG evidence from `s = []` to `s = [c]` for legacy roots. The
+  proof intentionally uses constructor-local arithmetic helper lemmas instead
+  of broad nonlinear automation. It is proof infrastructure only; it does not
+  close BR-040 or justify any bounty payout.
 - Added the empty-input base case
   `card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize`.
   This checks the target row-DAG universe inequality at `s = []` with

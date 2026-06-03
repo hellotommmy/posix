@@ -63,6 +63,12 @@ immutability.
 
 ## Open Artifact Notes
 
+- Memo-strong one-step row-DAG base: `FBound.thy` now checks
+  `asize_bder_intern_legacy_le_rxsize_square` and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`.
+  This extends the active BR-040 row-DAG universe evidence from empty input to
+  one consumed character for legacy roots. It is infrastructure only; no bounty
+  is claimed until the arbitrary-input row-DAG/cubic theorem is checked.
 - Raw strong normal-form preservation checkpoint: `GeneralRegexBound.thy` now
   checks `row_group_deep_nf_rsimpStrong_raw` through the raw shared-prune
   machinery, and `FBound.thy` lifts it as

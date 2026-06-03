@@ -2,6 +2,27 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: One-Step Row-DAG Base Case (2026-06-04)
+
+- Added the checked legacy one-character derivative-size theorem
+  `FBound.thy:asize_bder_intern_legacy_le_rxsize_square`:
+  for non-backref roots,
+  `asize (bder c (intern r)) <= rxsize r * rxsize r`.
+  The proof is deliberately split by constructor and uses small named nat
+  arithmetic helpers instead of broad nonlinear automation.
+- Added the checked final-active row-DAG theorem
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`:
+  for legacy roots,
+  `card (strong_deferred_final_active_suffix_row_dag_universe r [c]) <=
+   rxsize r * rxsize r`.
+- Design meaning: the memo-strong proof route now has both `[]` and `[c]`
+  checked base evidence for the final-active row-DAG universe. This is still
+  not the full BR-040 cubic theorem; the next proof obligation is the general
+  path/induction step for arbitrary input while preserving the deferred POSIX
+  value reconstruction contract.
+- Verification: focused Isabelle `Posix` build passed.
+- No bounty is claimed.
+
 ## Cubic Route Checkpoint: Empty Row-DAG Base Case (2026-06-04)
 
 - Added the checked base-case theorem

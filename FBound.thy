@@ -6014,6 +6014,37 @@ lemma rsize_rerase_intern:
   "rsize (rerase (intern r)) = rxsize r"
   by (simp add: asize_rsize asize_intern)
 
+lemma rxsize_ge1:
+  "1 \<le> rxsize r"
+  by (induct r) simp_all
+
+lemma asize_bder_ALT_square_arith:
+  assumes "1 \<le> x" "1 \<le> y"
+  shows "Suc (x * x + y * y) \<le> Suc (x + y) * Suc (x + y)"
+  using assms by (cases x; cases y; simp add: algebra_simps)
+
+lemma asize_bder_SEQ_nonnullable_square_arith:
+  assumes "1 \<le> x" "1 \<le> y"
+  shows "Suc (x * x + y) \<le> Suc (x + y) * Suc (x + y)"
+  using assms by (cases x; cases y; simp add: algebra_simps)
+
+lemma asize_bder_SEQ_nullable_square_arith:
+  assumes "1 \<le> x" "1 \<le> y"
+  shows "Suc (Suc (x * x + y) + y * y) \<le>
+    Suc (x + y) * Suc (x + y)"
+  using assms by (cases x; cases y; simp add: algebra_simps)
+
+lemma asize_bder_STAR_square_arith:
+  assumes "1 \<le> x"
+  shows "Suc (x * x + Suc x) \<le> Suc x * Suc x"
+  using assms by (cases x) (simp_all add: algebra_simps)
+
+lemma asize_bder_NTIMES_square_arith:
+  assumes "1 \<le> x"
+  shows "Suc (x * x + (Suc x + m)) \<le>
+    (Suc (Suc m) + x) * (Suc (Suc m) + x)"
+  using assms by (cases x) (simp_all add: algebra_simps)
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize:
   "card (strong_deferred_final_active_suffix_row_dag_universe r []) \<le>
     rxsize r"
@@ -6024,6 +6055,140 @@ proof -
   also have "... = rxsize r"
     by (simp add: strong_deferred_final_raw_def rsize_rerase_intern)
   finally show ?thesis .
+qed
+
+lemma asize_bder_intern_legacy_le_rxsize_square:
+  assumes "legacy_rexp r"
+  shows "asize (bder c (intern r)) \<le> rxsize r * rxsize r"
+  using assms
+proof (induct r)
+  case ZERO
+  then show ?case by simp
+next
+  case ONE
+  then show ?case by simp
+next
+  case (CH x)
+  then show ?case by simp
+next
+  case (SEQ r1 r2)
+  have legacy1: "legacy_rexp r1" and legacy2: "legacy_rexp r2"
+    using SEQ.prems by simp_all
+  have ih1: "asize (bder c (intern r1)) \<le> rxsize r1 * rxsize r1"
+    using SEQ.hyps(1)[OF legacy1] .
+  have ih2: "asize (bder c (intern r2)) \<le> rxsize r2 * rxsize r2"
+    using SEQ.hyps(2)[OF legacy2] .
+  have pos1: "1 \<le> rxsize r1"
+    by (rule rxsize_ge1)
+  have pos2: "1 \<le> rxsize r2"
+    by (rule rxsize_ge1)
+  show ?case
+  proof (cases "bnullable (intern r1)")
+    case True
+    have "asize (bder c (intern (SEQ r1 r2))) =
+        Suc (Suc (asize (bder c (intern r1)) + rxsize r2) +
+          asize (bder c (intern r2)))"
+      using True by (simp add: asize_intern)
+    also have "... \<le>
+        Suc (Suc (rxsize r1 * rxsize r1 + rxsize r2) +
+          rxsize r2 * rxsize r2)"
+      using ih1 ih2 by linarith
+    also have "... \<le>
+        Suc (rxsize r1 + rxsize r2) * Suc (rxsize r1 + rxsize r2)"
+      by (rule asize_bder_SEQ_nullable_square_arith[OF pos1 pos2])
+    also have "... = rxsize (SEQ r1 r2) * rxsize (SEQ r1 r2)"
+      by simp
+    finally show ?thesis .
+  next
+    case False
+    have "asize (bder c (intern (SEQ r1 r2))) =
+        Suc (asize (bder c (intern r1)) + rxsize r2)"
+      using False by (simp add: asize_intern)
+    also have "... \<le> Suc (rxsize r1 * rxsize r1 + rxsize r2)"
+      using ih1 by linarith
+    also have "... \<le>
+        Suc (rxsize r1 + rxsize r2) * Suc (rxsize r1 + rxsize r2)"
+      by (rule asize_bder_SEQ_nonnullable_square_arith[OF pos1 pos2])
+    also have "... = rxsize (SEQ r1 r2) * rxsize (SEQ r1 r2)"
+      by simp
+    finally show ?thesis .
+  qed
+next
+  case (ALT r1 r2)
+  have legacy1: "legacy_rexp r1" and legacy2: "legacy_rexp r2"
+    using ALT.prems by simp_all
+  have ih1: "asize (bder c (intern r1)) \<le> rxsize r1 * rxsize r1"
+    using ALT.hyps(1)[OF legacy1] .
+  have ih2: "asize (bder c (intern r2)) \<le> rxsize r2 * rxsize r2"
+    using ALT.hyps(2)[OF legacy2] .
+  have pos1: "1 \<le> rxsize r1"
+    by (rule rxsize_ge1)
+  have pos2: "1 \<le> rxsize r2"
+    by (rule rxsize_ge1)
+  have "asize (bder c (intern (ALT r1 r2))) =
+      Suc (asize (bder c (intern r1)) + asize (bder c (intern r2)))"
+    by (simp add: bder_fuse)
+  also have "... \<le> Suc (rxsize r1 * rxsize r1 + rxsize r2 * rxsize r2)"
+    using ih1 ih2 by linarith
+  also have "... \<le>
+      Suc (rxsize r1 + rxsize r2) * Suc (rxsize r1 + rxsize r2)"
+    by (rule asize_bder_ALT_square_arith[OF pos1 pos2])
+  also have "... = rxsize (ALT r1 r2) * rxsize (ALT r1 r2)"
+    by simp
+  finally show ?case .
+next
+  case (STAR r)
+  have legacy: "legacy_rexp r"
+    using STAR.prems by simp
+  have ih: "asize (bder c (intern r)) \<le> rxsize r * rxsize r"
+    using STAR.hyps[OF legacy] .
+  have pos: "1 \<le> rxsize r"
+    by (rule rxsize_ge1)
+  have "asize (bder c (intern (STAR r))) =
+      Suc (asize (bder c (intern r)) + Suc (rxsize r))"
+    by (simp add: asize_intern)
+  also have "... \<le> Suc (rxsize r * rxsize r + Suc (rxsize r))"
+    using ih by linarith
+  also have "... \<le> Suc (rxsize r) * Suc (rxsize r)"
+    by (rule asize_bder_STAR_square_arith[OF pos])
+  also have "... = rxsize (STAR r) * rxsize (STAR r)"
+    by simp
+  finally show ?case .
+next
+  case (NTIMES r n)
+  have legacy: "legacy_rexp r"
+    using NTIMES.prems by simp
+  have ih: "asize (bder c (intern r)) \<le> rxsize r * rxsize r"
+    using NTIMES.hyps[OF legacy] .
+  have pos: "1 \<le> rxsize r"
+    by (rule rxsize_ge1)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using pos by (simp add: asize_intern)
+  next
+    case (Suc m)
+    have "asize (bder c (intern (NTIMES r n))) =
+        Suc (asize (bder c (intern r)) + (Suc (rxsize r) + m))"
+      using Suc by (simp add: asize_intern)
+    also have "... \<le> Suc (rxsize r * rxsize r + (Suc (rxsize r) + m))"
+      using ih by linarith
+    also have "... \<le> (Suc (Suc m) + rxsize r) * (Suc (Suc m) + rxsize r)"
+      by (rule asize_bder_NTIMES_square_arith[OF pos])
+    also have "... = rxsize (NTIMES r n) * rxsize (NTIMES r n)"
+      using Suc by simp
+    finally show ?thesis .
+  qed
+next
+  case (BACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (HALF r cs rep)
+  then show ?case by simp
+next
+  case (RESIDUE cs rep)
+  then show ?case by simp
 qed
 
 lemma asizes_map_fuse [simp]:
@@ -6520,6 +6685,23 @@ next
       using ASTAR by simp
   qed (use ih in simp_all)
 qed simp_all
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square:
+  assumes "legacy_rexp r"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r [c]) \<le>
+    rxsize r * rxsize r"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r [c]) \<le>
+      rsize (strong_deferred_final_raw r [c])"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize)
+  also have "... = asize (bsimpStrong (bder c (intern r)))"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  also have "... \<le> asize (bder c (intern r))"
+    by (rule asize_bsimpStrong_le)
+  also have "... \<le> rxsize r * rxsize r"
+    by (rule asize_bder_intern_legacy_le_rxsize_square[OF assms])
+  finally show ?thesis .
+qed
 
 lemma asizes_map_bsimpStrong_le:
   "asizes (map bsimpStrong rs) \<le> asizes rs"
