@@ -28,6 +28,25 @@ Last updated: 2026-06-03 (strong-memo route is default)
   passed the new default route on `84,300` exhaustive pairs, the known CE grid,
   and the Chapter 7 `k=5` memo trace.
 
+## Cubic Route Checkpoint: Strong Memo Interface Has A Concrete Finite Fallback (2026-06-03)
+
+- Added `GeneralRegexBound.thy:sizeNregex_member_size`,
+  `GeneralRegexBound.thy:sizeNregex_member_legacy`, and
+  `GeneralRegexBound.thy:rflts_sizeNregex_closed`.
+- Added `FBound.thy:strong_deferred_original_sizeNregex_memo_cubic_interface`.
+  This specializes the strong deferred memo interface to the concrete finite
+  universe `sizeNregex N`, discharging the mechanical `finite`,
+  `flat_closed`, `raw_shared_prune_closed`, and member-size assumptions.
+- This is not the final cubic theorem and does not claim BR-039/BR-040. It is
+  a checked fallback that makes the remaining hard obligation explicit:
+  replace the huge `sizeNregex N` universe by a POSIX-safe Antimirov/frontier
+  universe whose closure and `card * member-size` bound are genuinely cubic in
+  the original regex size.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Row Universe And Memo Budget Are Packaged (2026-06-03)
 
 - Added `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.

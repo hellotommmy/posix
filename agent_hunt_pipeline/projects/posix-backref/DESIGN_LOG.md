@@ -19,6 +19,20 @@ to be read before continuing long-running agent work.
   universe required by
   `strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
 
+## 2026-06-03: sizeNregex specialization is a fallback, not the target
+
+- Added `GeneralRegexBound.thy:rflts_sizeNregex_closed` and
+  `FBound.thy:strong_deferred_original_sizeNregex_memo_cubic_interface`.
+- The new theorem specializes the strong deferred memo interface to
+  `sizeNregex N`. This is useful because it removes the purely mechanical
+  universe obligations: finiteness, singleton-flattening closure,
+  raw shared-prune closure, and member-size projection.
+- Design consequence: this theorem is a scaffold only. It deliberately keeps
+  the norm-closure and `card(sizeNregex N) * N` obligations visible, so it
+  cannot be mistaken for the final cubic result. The real route still needs a
+  smaller Antimirov/frontier universe that is closed under the strong-row step
+  while preserving the deferred POSIX value story.
+
 ## 2026-06-03: Row-universe and memo accounting now share one interface
 
 - Added

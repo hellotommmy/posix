@@ -21009,6 +21009,38 @@ lemma elem_size_le_bound:
   shows "rsize r \<le> n"
   using assms elem_size_le_rsizes by fastforce
 
+lemma sizeNregex_member_size:
+  assumes "q \<in> sizeNregex N"
+  shows "rsize q \<le> N"
+  using assms unfolding sizeNregex_def by simp
+
+lemma sizeNregex_member_legacy:
+  assumes "q \<in> sizeNregex N"
+  shows "legacy_rrexp q"
+  using assms unfolding sizeNregex_def by simp
+
+lemma rflts_sizeNregex_closed:
+  assumes "q \<in> sizeNregex N"
+  shows "set (rflts [q]) \<subseteq> sizeNregex N"
+proof
+  fix x
+  assume x: "x \<in> set (rflts [q])"
+  have q_legacy: "legacy_rrexp q"
+    by (rule sizeNregex_member_legacy[OF assms])
+  have flat_legacy: "\<forall>p \<in> set (rflts [q]). legacy_rrexp p"
+    by (rule legacy_rflts) (use q_legacy in simp)
+  have x_legacy: "legacy_rrexp x"
+    using flat_legacy x by simp
+  have "rsize x \<le> rsizes (rflts [q])"
+    by (rule elem_size_le_rsizes[OF x])
+  also have "... \<le> rsizes [q]"
+    by (rule rflts_mono)
+  finally have "rsize x \<le> N"
+    using sizeNregex_member_size[OF assms] by simp
+  then show "x \<in> sizeNregex N"
+    using x_legacy unfolding sizeNregex_def by simp
+qed
+
 
 lemma sizenregex_induct1:
   "sizeNregex (Suc n) = (({RZERO, RONE} \<union> {RCHAR c| c. True}) 
