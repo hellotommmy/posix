@@ -20363,6 +20363,99 @@ definition raw_shared_prune_closed :: "rrexp set \<Rightarrow> bool" where
       set (rflts [rsimp7_SEQ_atom
         (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U)"
 
+definition raw_shared_prune_pair_outputs ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "raw_shared_prune_pair_outputs earlier later =
+    set (rflts [rsimpStrong_prune_pair_raw earlier later])"
+
+definition raw_shared_prune_pair_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "raw_shared_prune_pair_closure U =
+    U \<union>
+    \<Union> ((\<lambda>(earlier, later).
+      raw_shared_prune_pair_outputs earlier later) ` (U \<times> U))"
+
+lemma finite_raw_shared_prune_pair_outputs [simp]:
+  "finite (raw_shared_prune_pair_outputs earlier later)"
+  by (simp add: raw_shared_prune_pair_outputs_def)
+
+lemma finite_raw_shared_prune_pair_closure [simp]:
+  assumes "finite U"
+  shows "finite (raw_shared_prune_pair_closure U)"
+  using assms by (simp add: raw_shared_prune_pair_closure_def)
+
+lemma raw_shared_prune_pair_closure_extensive:
+  "U \<subseteq> raw_shared_prune_pair_closure U"
+  by (simp add: raw_shared_prune_pair_closure_def)
+
+lemma raw_shared_prune_pair_outputs_subset_closureI:
+  assumes "earlier \<in> U" "later \<in> U"
+  shows "raw_shared_prune_pair_outputs earlier later \<subseteq>
+    raw_shared_prune_pair_closure U"
+  using assms by (auto simp add: raw_shared_prune_pair_closure_def)
+
+lemma raw_shared_prune_closedI_pair_closure_subset:
+  assumes closure: "raw_shared_prune_pair_closure U \<subseteq> U"
+  shows "raw_shared_prune_closed U"
+proof (unfold raw_shared_prune_closed_def, intro allI impI)
+  fix lrs rrs k
+  assume earlier: "RSEQ (RALTS lrs) k \<in> U"
+  assume later: "RSEQ (RALTS rrs) k \<in> U"
+  have outputs:
+    "raw_shared_prune_pair_outputs
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) \<subseteq>
+      raw_shared_prune_pair_closure U"
+    by (rule raw_shared_prune_pair_outputs_subset_closureI[OF earlier later])
+  have "raw_shared_prune_pair_outputs
+      (RSEQ (RALTS lrs) k) (RSEQ (RALTS rrs) k) \<subseteq> U"
+    using outputs closure by blast
+  then show "set (rflts [rsimp7_SEQ_atom
+      (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def)
+qed
+
+lemma raw_shared_prune_pair_closure_subsetI:
+  assumes flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and closed: "raw_shared_prune_closed U"
+  shows "raw_shared_prune_pair_closure U \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> raw_shared_prune_pair_closure U"
+  then consider
+      (base) "x \<in> U"
+    | (pair) earlier later where
+        "earlier \<in> U" "later \<in> U"
+        "x \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_pair_closure_def)
+  then show "x \<in> U"
+  proof cases
+    case base
+    then show ?thesis .
+  next
+    case (pair earlier later)
+    have later_flat: "set (rflts [later]) \<subseteq> U"
+      by (rule flat_closed[OF pair(2)])
+    have outputs:
+      "set (rflts [rsimpStrong_prune_pair_raw earlier later]) \<subseteq> U"
+    proof (rule rsimpStrong_prune_pair_raw_shared_subsetI[OF later_flat])
+      fix lrs rrs k
+      assume earlier_eq: "earlier = RSEQ (RALTS lrs) k"
+        and later_eq: "later = RSEQ (RALTS rrs) k"
+      have earlier_mem: "RSEQ (RALTS lrs) k \<in> U"
+        using pair(1) earlier_eq by simp
+      have later_mem: "RSEQ (RALTS rrs) k \<in> U"
+        using pair(2) later_eq by simp
+      show "set (rflts [rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+        using closed earlier_mem later_mem
+        by (simp add: raw_shared_prune_closed_def)
+    qed
+    show ?thesis
+      using pair(3) outputs
+      by (auto simp add: raw_shared_prune_pair_outputs_def)
+  qed
+qed
+
 lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
   "strong_prune_universe_bad_result \<notin>
     partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
@@ -20483,6 +20576,76 @@ proof
         rsimp7_SEQ_atom_def)
   then show False
     using raw_shared_prune_bad_result_notin_carry9_atom_frontier by blast
+qed
+
+lemma raw_shared_prune_bad_result_in_path9_pair_closure:
+  "raw_shared_prune_bad_result \<in>
+    raw_shared_prune_pair_closure
+      (partial_derivative_path9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof -
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?earlier = "RSEQ (RALTS [?a, ?b, ?c]) ?z"
+  let ?later = "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z"
+  let ?U = "partial_derivative_path9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  have earlier: "?earlier \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "?later \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_path9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have out:
+    "raw_shared_prune_bad_result \<in>
+      raw_shared_prune_pair_outputs ?earlier ?later"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        raw_shared_prune_bad_result_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+  have "raw_shared_prune_pair_outputs ?earlier ?later \<subseteq>
+      raw_shared_prune_pair_closure ?U"
+    by (rule raw_shared_prune_pair_outputs_subset_closureI[OF earlier later])
+  then show ?thesis
+    using out by blast
+qed
+
+lemma raw_shared_prune_bad_result_in_carry9_pair_closure:
+  "raw_shared_prune_bad_result \<in>
+    raw_shared_prune_pair_closure
+      (partial_derivative_carry9_atom_frontier_universe raw_shared_prune_bad_root)"
+proof -
+  let ?a = "RCHAR (CHR ''a'')"
+  let ?b = "RCHAR (CHR ''b'')"
+  let ?c = "RCHAR (CHR ''c'')"
+  let ?d = "RCHAR (CHR ''d'')"
+  let ?z = "RCHAR (CHR ''z'')"
+  let ?earlier = "RSEQ (RALTS [?a, ?b, ?c]) ?z"
+  let ?later = "RSEQ (RALTS [?a, ?b, ?c, ?d]) ?z"
+  let ?U = "partial_derivative_carry9_atom_frontier_universe
+    raw_shared_prune_bad_root"
+  have earlier: "?earlier \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have later: "?later \<in> ?U"
+    by (simp add: raw_shared_prune_bad_root_def
+        partial_derivative_carry9_atom_frontier_universe_def
+        rsimp7_SEQ_atom_def)
+  have out:
+    "raw_shared_prune_bad_result \<in>
+      raw_shared_prune_pair_outputs ?earlier ?later"
+    by (simp add: raw_shared_prune_pair_outputs_def
+        raw_shared_prune_bad_result_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+  have "raw_shared_prune_pair_outputs ?earlier ?later \<subseteq>
+      raw_shared_prune_pair_closure ?U"
+    by (rule raw_shared_prune_pair_outputs_subset_closureI[OF earlier later])
+  then show ?thesis
+    using out by blast
 qed
 
 lemma rsimpStrong_prune_pair_raw_closed_subsetI:

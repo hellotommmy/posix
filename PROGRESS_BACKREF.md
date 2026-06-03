@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Row-Difference Closure Operator (2026-06-03)
+
+- Added `GeneralRegexBound.thy:raw_shared_prune_pair_outputs` and
+  `GeneralRegexBound.thy:raw_shared_prune_pair_closure`.
+- Checked basic closure facts:
+  - `finite_raw_shared_prune_pair_closure`;
+  - `raw_shared_prune_pair_closure_extensive`;
+  - `raw_shared_prune_pair_outputs_subset_closureI`;
+  - `raw_shared_prune_closedI_pair_closure_subset`;
+  - `raw_shared_prune_pair_closure_subsetI`.
+- Added witness facts
+  `raw_shared_prune_bad_result_in_path9_pair_closure` and
+  `raw_shared_prune_bad_result_in_carry9_pair_closure`: the old path9/carry9
+  universes miss the row-difference result, but one explicit
+  same-suffix-pair closure step adds it.
+- This is not the final cubic universe. It is a proof-facing prototype of the
+  row-difference operation that the final memo/frontier universe must account
+  for without exploding into arbitrary emitted-tree subsets.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Strong Memo POSIX Value Is Now Packaged (2026-06-03)
 
 - Added `FBound.thy:strong_deferred_span_value_THE_lexer` and

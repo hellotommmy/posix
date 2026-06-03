@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Row-difference closure is now explicit
+
+- Added `GeneralRegexBound.thy:raw_shared_prune_pair_outputs` and
+  `GeneralRegexBound.thy:raw_shared_prune_pair_closure`.
+- The operator takes a universe `U` and adds every output of one raw
+  `rsimpStrong_prune_pair_raw` comparison between two members of `U`. It is
+  finite when `U` is finite, includes `U`, and gives a clean proof interface:
+  if `raw_shared_prune_pair_closure U \<subseteq> U`, then `U` satisfies
+  `raw_shared_prune_closed`; conversely, `raw_shared_prune_closed` plus
+  singleton-flattening closure implies the pair closure stays inside `U`.
+- Added checked witnesses showing that the path9/carry9 atom-frontier
+  counterexample result is included after one pair-closure step.
+- Design consequence: a final cubic proof should not saturate arbitrary tree
+  subsets blindly. It needs a compact row-difference representation with the
+  same behavior as this pair-closure operator on actual strong-prune pairs,
+  plus a polynomial cardinality/member-size argument.
+
 ## 2026-06-03: Strong memo POSIX value is a theorem, not a wrapper
 
 - Added `FBound.thy:strong_deferred_span_value_THE_lexer` and
