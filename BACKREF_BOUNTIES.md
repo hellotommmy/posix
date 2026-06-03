@@ -106,6 +106,13 @@ immutability.
   bounded by this universe, with final-rsize/final-asize fallback bounds. The
   remaining BR-040 proof target is an original-size bound for this universe
   plus the POSIX reconstruction bridge; no payout is claimed here.
+- Row-DAG eliminator checkpoint: checked
+  `raw_final_active_suffix_row_dag_universeE` and
+  `strong_deferred_final_active_suffix_row_dag_universeE`. These expose any
+  row-DAG node as a subterm of a concrete final-active `RSEQ (RALTS rows) k`,
+  giving the next structural handle for a root-owned row/DAG universe proof.
+  The same checkpoint reran strong-memo smoke and the final-active scout; it
+  remains infrastructure only and claims no BR-039/BR-040 payout.
 - Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
   for the row-DAG universe, plus
   `strong_deferred_memo_tree_value_final_active_row_dag_interface` and

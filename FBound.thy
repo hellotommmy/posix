@@ -2701,6 +2701,30 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_subset_final_rsubterm
   by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
       raw_final_active_suffix_row_dag_universe_subset_rsubterms)
 
+lemma strong_deferred_final_active_suffix_row_dag_universeE:
+  assumes "p \<in> strong_deferred_final_active_suffix_row_dag_universe r s"
+  obtains q rows k where "q = RSEQ (RALTS rows) k"
+    "q \<in> strong_deferred_final_active_suffix_rows r s"
+    "p \<in> rsubterms q"
+proof -
+  have raw:
+    "p \<in> raw_final_active_suffix_row_dag_universe
+      (strong_deferred_final_raw r s)"
+    using assms
+    by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
+  then obtain q rows k where shape: "q = RSEQ (RALTS rows) k"
+    and row: "q \<in> raw_final_active_suffix_rows
+      (strong_deferred_final_raw r s)"
+    and sub: "p \<in> rsubterms q"
+    by (elim raw_final_active_suffix_row_dag_universeE)
+  have strong_row:
+    "q \<in> strong_deferred_final_active_suffix_rows r s"
+    using row
+    by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule that[OF shape strong_row sub])
+qed
+
 lemma strong_deferred_final_active_suffix_row_dag_universe_subsetI:
   assumes rows: "strong_deferred_final_active_suffix_rows r s \<subseteq> U"
     and subterms: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> V"

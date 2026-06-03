@@ -2,6 +2,41 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong Row-DAG Eliminators (2026-06-04)
+
+- Confirmed the route switch requested after the derivative-size graphs:
+  emitted-tree `bsimpCubic` is not an active proof target. The active candidate
+  is memo strong tree: `bders_simpStrong` is the nullable recognition gate,
+  while exact POSIX values are reconstructed from the original regex by
+  `strong_deferred_span_value`.
+- Ran a stronger executable gate:
+  `scala_cubic_smoke.ps1 -Route strong-memo -RandomCases 2000 -RandomDepth 6
+  -RandomInputLength 8 -Seed 20260602 -Ch7K 5 -Ch7Lengths
+  4,8,12,16,20,24,28,32`. It preserved exact POSIX values on the default
+  `84,300` exhaustive regex/input pairs and `2,000` deterministic random
+  cases. On the thesis Chapter 7 `k=5` family, the recognition tree stayed in
+  the observed range `474..918` for `n=4..32`, while final-active metrics
+  stayed tiny: `finalRows` was `4` or `5`, and `finalMaxRowDag` stayed `31`.
+- Re-ran the default final-active scout on seeds
+  `20260602,20260603,20260604`, `5000` random cases each, depth `6`, input
+  length `8`. No CE was found for rows `1.0 * rsize`, pair budget
+  `1.0 * rsize^2`, and exact-DAG/shape-DAG row-member budget `2.0 * rsize`.
+  The worst exact-DAG ratio remains `1.266667`; raw row-tree size is still
+  much larger and remains the wrong metric.
+- Added checked structure eliminators
+  `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universeE` and
+  `FBound.thy:strong_deferred_final_active_suffix_row_dag_universeE`. These
+  expose every row-DAG node as a subterm of some concrete final-active
+  `RSEQ (RALTS rows) k`, which is the next proof handle for row coverage and
+  original-regex-owned DAG accounting.
+- Verification: full local CI passed with
+  `isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin
+  -SessionTimeoutSeconds 300`, including the default strong-memo Scala gate,
+  Isabelle `Posix`, and Isabelle `BackRefPilot`.
+- No BR-039/BR-040 bounty is claimed. The remaining theorem is still to prove
+  an original-regex-owned bound for
+  `strong_deferred_final_active_suffix_row_dag_universe`.
+
 ## Cubic Route Checkpoint: Memo-Strong DAG Scout Default (2026-06-04)
 
 - Followed the derivative-size graphs and retired emitted-tree `bsimpCubic` as

@@ -5,6 +5,21 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Route decision after the derivative-size graphs: do not spend proof effort
+  rescuing emitted-tree `bsimpCubic`. The active candidate is memo strong tree:
+  use `bders_simpStrong` only as the small nullable recognition gate and
+  reconstruct exact POSIX values from the original regex via
+  `strong_deferred_span_value`.
+- A stronger smoke run on seed `20260602` checked `2,000` random depth-6/input-8
+  cases plus the default `84,300` exhaustive cases. The thesis Chapter 7
+  `k=5,n=4..32` trace kept the recognition tree in `474..918`, with final
+  rows `4/5` and final max row-DAG `31`. This supports proving a final-active
+  row-DAG bound rather than an emitted-tree bound.
+- Added row-DAG eliminators at both raw and lifted levels:
+  `raw_final_active_suffix_row_dag_universeE` and
+  `strong_deferred_final_active_suffix_row_dag_universeE`. Future row-universe
+  proofs should use these to recover the carrying `RSEQ (RALTS rows) k`
+  instead of reopening the whole final derivative tree.
 - The active size target is now final-active row exact-DAG size, not raw row
   tree size. `strong_memo_final_active_scout.ps1` defaults to rows
   `1.0 * rsize`, pair budget `1.0 * rsize^2`, and exact-DAG/shape-DAG member

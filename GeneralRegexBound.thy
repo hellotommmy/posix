@@ -21353,6 +21353,22 @@ lemma raw_final_active_suffix_row_dag_universeI:
   using assms
   by (auto simp add: raw_final_active_suffix_row_dag_universe_def)
 
+lemma raw_final_active_suffix_row_dag_universeE:
+  assumes "p \<in> raw_final_active_suffix_row_dag_universe r"
+  obtains q rows k where "q = RSEQ (RALTS rows) k"
+    "q \<in> raw_final_active_suffix_rows r"
+    "p \<in> rsubterms q"
+proof -
+  obtain q where row: "q \<in> raw_final_active_suffix_rows r"
+    and sub: "p \<in> rsubterms q"
+    using assms
+    by (auto simp add: raw_final_active_suffix_row_dag_universe_def)
+  from row obtain rows k where shape: "q = RSEQ (RALTS rows) k"
+    by (elim raw_final_active_suffix_rowsE)
+  show ?thesis
+    by (rule that[OF shape row sub])
+qed
+
 lemma raw_final_active_suffix_row_dag_universe_subset_rsubterms:
   "raw_final_active_suffix_row_dag_universe r \<subseteq> rsubterms r"
 proof
