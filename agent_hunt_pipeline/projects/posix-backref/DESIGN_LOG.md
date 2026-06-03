@@ -3,6 +3,29 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Row-gated memo is checked; row-list bridge remains smoke-only
+
+- Added a Scala mirror of `bpders_strong1_rows` plus
+  `-CheckStrongRowsBridge` / `-RequireStrongRowsBridgeCoverage` smoke flags.
+  The executable check now verifies that the nullable row gate agrees with the
+  final `bdersStrong` gate and that row-gated memo reconstruction returns the
+  same POSIX value as the baseline memo.
+- Added a candidate final-active coverage diagnostic: row-list subterms,
+  common-suffix factoring, small iterative factoring closure, local
+  `bsimpStrong` normalization, and bounded local sequence/alt expansion.
+  This passes exhaustive depth `2`, input length `3` (`84,300` pairs) and
+  deterministic random depth `5`, input length `6`, `2,000` cases at seed
+  `20260602`.
+- The stronger random guard is not yet green: depth `6`, input length `8`,
+  `10,000` cases at the same seed still produces a final-active coverage
+  counterexample. Therefore this bridge is not a theorem candidate yet; keep it
+  CE-driven until it survives stronger smoke.
+- Important operational lesson: running the row-list bridge on the Chapter 7
+  long tail can exhaust the Scala heap even while `strongMemoTree` remains
+  small. Do not use `bpdersStrong1Rows` as the long-tail executable object.
+  The proof route should keep the memo strong tree as the recognition object
+  and use row/factoring universes only as bounded proof abstractions.
+
 ## 2026-06-03: Final active pair-budget has a square fallback
 
 - Added a checked equality between active suffix pair-budget and the cardinality

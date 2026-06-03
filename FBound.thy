@@ -3952,6 +3952,49 @@ proof -
     using row_gate deferred_gate by simp
 qed
 
+lemma strong_deferred_row_gate_memo_POSIX_correctness:
+  assumes "legacy_rexp r"
+  shows "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof -
+  have row_gate_iff:
+    "(\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s)"
+    by (rule bpders_strong1_rows_intern_nullable_iff_bders_simpStrong[OF assms])
+  then have row_gate:
+    "(\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) =
+      bnullable (bders_simpStrong (intern r) s)"
+    by simp
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    using row_gate
+    by (simp add: strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    using row_gate
+    by (simp add: strong_deferred_memo_tree_POSIX_correctness(2))
+qed
+
+lemma strong_deferred_row_gate_memo_POSIX_flat:
+  assumes legacy: "legacy_rexp r"
+    and result: "(if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v"
+  shows "flat v = s"
+proof -
+  have "s \<in> r \<rightarrow> v"
+    using result
+    by (simp add: strong_deferred_row_gate_memo_POSIX_correctness(1)[OF legacy])
+  then show ?thesis
+    by (rule Posix1(2))
+qed
+
 lemma rders_simp4_size:
   shows "rders_simp4 (rerase r) s = rerase (bders_simp4 r s)"
   by (induct s arbitrary: r) (simp_all add: rder_bder_rerase bsimp4_rerase[symmetric])

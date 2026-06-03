@@ -571,6 +571,141 @@ object PosixCubicSmoke {
   def bdersStrongSafe(r: ARexp, s: String): ARexp =
     s.foldLeft(r)((acc, c) => bsimpStrongSafe(bder(c, acc)))
 
+  def bpderList(c: Char, r: ARexp): List[ARexp] = r match {
+    case AZERO => Nil
+    case AONE(_) => Nil
+    case ACHAR(bs, d) => if (c == d) List(AONE(bs)) else Nil
+    case AALTs(bs, rs) => rs.flatMap(bpderList(c, _)).map(fuse(bs, _))
+    case ASEQ(bs, r1, r2) =>
+      val left = bpderList(c, r1).map(p => bsimp4ASEQAtom(bs, p, r2))
+      val right =
+        if (bnullable(r1)) bpderList(c, r2).map(p => fuse(bs, fuse(bmkeps(r1), p)))
+        else Nil
+      left ++ right
+    case ASTAR(bs, body) =>
+      bpderList(c, body).map(p => bsimp4ASEQAtom(bs ++ List(Z), p, ASTAR(Nil, body)))
+    case ANTIMES(bs, body, n) =>
+      if (n == 0) Nil
+      else bpderList(c, body).map(p => bsimp4ASEQAtom(bs ++ List(Z), p, ANTIMES(Nil, body, n - 1)))
+  }
+
+  def bpderNormList(c: Char, r: ARexp): List[ARexp] =
+    bpderList(c, r).map(p => bsimp4ASEQAtom(Nil, p, AONE(Nil)))
+
+  def bpderStrongList(c: Char, r: ARexp): List[ARexp] =
+    bpderNormList(c, r).map(bsimpStrong)
+
+  def bpderStrongRows(c: Char, rs: List[ARexp]): List[ARexp] =
+    distinctWith(flts(bsimpStrongPruneRows(flts(rs.flatMap(bpderStrongList(c, _))))))
+
+  def bpdersStrongRows(rs: List[ARexp], input: String): List[ARexp] =
+    input.foldLeft(rs)((acc, c) => bpderStrongRows(c, acc))
+
+  def bpdersStrong1Rows(r: ARexp, input: String): List[ARexp] =
+    bpdersStrongRows(List(r), input)
+
+  def asubterms(r: ARexp): Set[ARexp] = r match {
+    case ASEQ(_, r1, r2) => Set(r) ++ asubterms(r1) ++ asubterms(r2)
+    case AALTs(_, rs) => rs.foldLeft(Set(r))((acc, q) => acc ++ asubterms(q))
+    case ASTAR(_, body) => Set(r) ++ asubterms(body)
+    case ANTIMES(_, body, _) => Set(r) ++ asubterms(body)
+    case _ => Set(r)
+  }
+
+  def eq1SetMember(r: ARexp, rs: Iterable[ARexp]): Boolean =
+    rs.exists(eq1(r, _))
+
+  def strongBridgeMember(r: ARexp, rs: Iterable[ARexp]): Boolean = {
+    val rn = bsimpStrong(r)
+    rs.exists(q =>
+      eq1(r, q) || eq1(rn, q) || eq1(r, bsimpStrong(q)) ||
+        activeRowSubsetCoveredBy(r, q) || activeRowSubsetCoveredBy(rn, q)
+    )
+  }
+
+  def activeRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean = (r, q) match {
+    case (ASEQ(_, AALTs(_, rRows), rKey), ASEQ(_, AALTs(_, qRows), qKey)) =>
+      eq1(rKey, qKey) && rRows.forall(row => rowCoveredByRows(row, qRows))
+    case _ => false
+  }
+
+  def rowCoveredByRows(row: ARexp, rows: List[ARexp]): Boolean =
+    expandedRowKeys(row).forall(key =>
+      rows.exists(coverer => rowKeyCoveredBy(key, coverer))
+    )
+
+  def expandedRowKeys(row: ARexp): List[ARexp] =
+    expandedSeqKeys(row, 4096) match {
+      case Some(keys) =>
+        distinctWith(keys.map(key => bsimpStrong(mkSeqFromFactors(key))))
+      case None =>
+        List(bsimpStrong(row))
+    }
+
+  def rowKeyCoveredBy(key: ARexp, coverer: ARexp): Boolean = {
+    val cn = bsimpStrong(coverer)
+    eq1(key, coverer) || eq1(key, cn) ||
+      expandedRowKeys(coverer).exists(eq1(key, _))
+  }
+
+  def mkSeqFromFactors(fs: List[ARexp]): ARexp = fs match {
+    case Nil => AONE(Nil)
+    case x :: Nil => x
+    case x :: xs => ASEQ(Nil, x, mkSeqFromFactors(xs))
+  }
+
+  def factoredActiveRowsOneStep(rows: List[ARexp]): List[ARexp] = {
+    val groups = scala.collection.mutable.ListBuffer.empty[(ARexp, scala.collection.mutable.ListBuffer[ARexp])]
+
+    def add(suffix: ARexp, prefix: ARexp): Unit = {
+      groups.indexWhere { case (k, _) => eq1(k, suffix) } match {
+        case -1 =>
+          groups += suffix -> scala.collection.mutable.ListBuffer(prefix)
+        case i =>
+          val prefixes = groups(i)._2
+          if (!prefixes.exists(eq1(prefix, _))) prefixes += prefix
+      }
+    }
+
+    val workRows = distinctWith(rows.flatMap(r => asubterms(r).toList))
+    workRows.foreach { row =>
+      asubterms(row).foreach(sub => add(sub, AONE(Nil)))
+      val factors = seqFactors(row)
+      factors.indices.foreach { i =>
+        val prefix = mkSeqFromFactors(factors.take(i))
+        val suffix = mkSeqFromFactors(factors.drop(i))
+        flts(List(prefix)).foreach(add(suffix, _))
+      }
+    }
+
+    groups.iterator.flatMap { case (suffix, prefixes0) =>
+      val prefixes = distinctWith(prefixes0.toList)
+      if (prefixes.lengthCompare(2) >= 0) {
+        Some(ASEQ(Nil, AALTs(Nil, prefixes), suffix))
+      } else None
+    }.toList
+  }
+
+  def factoredActiveRowsFromRows(rows: List[ARexp]): Set[ARexp] = {
+    val seen = scala.collection.mutable.ListBuffer.empty[ARexp]
+    val out = scala.collection.mutable.ListBuffer.empty[ARexp]
+
+    def addSeen(r: ARexp): Boolean =
+      if (seen.exists(eq1(r, _))) false
+      else {
+        seen += r
+        true
+      }
+
+    rows.foreach(addSeen)
+    (0 until 3).foreach { _ =>
+      factoredActiveRowsOneStep(seen.toList).foreach { r =>
+        if (addSeen(r)) out += r
+      }
+    }
+    out.toSet
+  }
+
   sealed trait DNode
   case object DZero extends DNode
   final case class DOne(bs: List[Bit]) extends DNode
@@ -2007,20 +2142,14 @@ object PosixCubicSmoke {
   def posixMemoValue(r: Rexp, input: String): Option[Val] =
     posixMemoResult(r, input).value
 
-  def activeSuffixStatsForStrongRoots(roots: Iterable[ARexp]): ActiveSuffixStats = {
-    val buckets = scala.collection.mutable.Map.empty[Rexp, scala.collection.mutable.Set[Rexp]]
-
-    def recordActive(q: ARexp): Unit = q match {
-      case ASEQ(_, AALTs(_, _), k) =>
-        val key = eraseA(k)
-        val row = eraseA(q)
-        val bucket = buckets.getOrElseUpdate(key, scala.collection.mutable.Set.empty[Rexp])
-        bucket += row
-      case _ => ()
-    }
+  def activeSuffixRowsForStrongRoots(roots: Iterable[ARexp]): Set[ARexp] = {
+    val rows = scala.collection.mutable.Set.empty[ARexp]
 
     def visit(q: ARexp): Unit = {
-      recordActive(q)
+      q match {
+        case ASEQ(_, AALTs(_, _), _) => rows += q
+        case _ => ()
+      }
       q match {
         case ASEQ(_, r1, r2) =>
           visit(r1)
@@ -2036,6 +2165,20 @@ object PosixCubicSmoke {
     }
 
     roots.foreach(visit)
+    rows.toSet
+  }
+
+  def activeSuffixStatsForStrongRoots(roots: Iterable[ARexp]): ActiveSuffixStats = {
+    val buckets = scala.collection.mutable.Map.empty[Rexp, scala.collection.mutable.Set[Rexp]]
+
+    activeSuffixRowsForStrongRoots(roots).foreach {
+      case q @ ASEQ(_, AALTs(_, _), k) =>
+        val key = eraseA(k)
+        val row = eraseA(q)
+        val bucket = buckets.getOrElseUpdate(key, scala.collection.mutable.Set.empty[Rexp])
+        bucket += row
+      case _ =>
+    }
 
     val rows = buckets.valuesIterator.map(_.size).sum
     val keys = buckets.size
@@ -3232,6 +3375,174 @@ object PosixCubicSmoke {
       }
     }
     println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
+  }
+
+  final case class StrongRowsBridgeStats(
+      checked: Int,
+      finalActiveRows: Long,
+      finalActiveCovered: Long,
+      maxRowList: Int,
+      maxRowSubterms: Int,
+      firstMiss: Option[String]
+  )
+
+  def strongRowsBridgeCase(
+      r: Rexp,
+      s: String,
+      label: String
+  ): (Int, Int, Int, Option[String]) = {
+    val finalStrong = bdersStrong(intern(r), s)
+    val rowList = bpdersStrong1Rows(intern(r), s)
+    val strongGate = bnullable(finalStrong)
+    val rowGate = rowList.exists(bnullable)
+    if (rowGate != strongGate) {
+      throw new AssertionError(
+        s"""strong row-gate mismatch
+           |label      = $label
+           |regex      = $r
+           |input      = $s
+           |rowGate    = $rowGate
+           |strongGate = $strongGate
+           |rows       = $rowList
+           |strong     = $finalStrong
+           |""".stripMargin
+      )
+    }
+
+    val b = baselineValue(r, s)
+    val rowMemo = if (rowGate) posixMemoValue(r, s) else None
+    if (b != rowMemo) {
+      throw new AssertionError(
+        s"""strong row-gated memo POSIX mismatch
+           |label   = $label
+           |regex   = $r
+           |input   = $s
+           |base    = $b
+           |rowMemo = $rowMemo
+           |rows    = $rowList
+           |strong  = $finalStrong
+           |""".stripMargin
+      )
+    }
+
+    val finalActive = activeSuffixRowsForStrongRoots(List(finalStrong))
+    val rowSubterms = rowList.flatMap(asubterms).toSet
+    val factoredRows = factoredActiveRowsFromRows(rowList)
+    val bridgeRows = rowSubterms ++ factoredRows
+    val covered = finalActive.count(q => strongBridgeMember(q, bridgeRows))
+    val firstMiss = finalActive.find(q => !strongBridgeMember(q, bridgeRows)).map { q =>
+      s"""strong final-active row not covered by bpdersStrong1Rows subterms/factoring
+         |label       = $label
+         |regex       = $r
+         |input       = $s
+         |missing     = $q
+         |missingNorm = ${bsimpStrong(q)}
+         |finalStrong = $finalStrong
+         |rowList     = $rowList
+         |factored    = $factoredRows
+         |""".stripMargin
+    }
+    (finalActive.size, covered, bridgeRows.size, firstMiss)
+  }
+
+  def mergeStrongRowsBridgeStats(
+      acc: StrongRowsBridgeStats,
+      activeRows: Int,
+      coveredRows: Int,
+      rowListSize: Int,
+      rowSubtermSize: Int,
+      miss: Option[String]
+  ): StrongRowsBridgeStats =
+    StrongRowsBridgeStats(
+      acc.checked + 1,
+      acc.finalActiveRows + activeRows,
+      acc.finalActiveCovered + coveredRows,
+      math.max(acc.maxRowList, rowListSize),
+      math.max(acc.maxRowSubterms, rowSubtermSize),
+      acc.firstMiss.orElse(miss)
+    )
+
+  def checkStrongRowsBridgeValuePreservation(
+      maxDepth: Int,
+      maxInput: Int,
+      maxRegexes: Int,
+      requireCoverage: Boolean
+  ): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        val rowList = bpdersStrong1Rows(intern(r), s)
+        val (active, covered, subterms, miss) =
+          strongRowsBridgeCase(r, s, s"exhaustive case ${stats.checked + 1}")
+        stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, subterms, miss)
+      }
+    }
+    if (requireCoverage && stats.firstMiss.isDefined) {
+      throw new AssertionError(stats.firstMiss.get)
+    }
+    println(
+      s"checked strong row-gated memo POSIX bridge on ${stats.checked} regex/input pairs " +
+      s"(depth <= $maxDepth, input length <= $maxInput); " +
+      s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
+      s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
+      stats.firstMiss.map(m => s"; first uncovered active row:\n$m").getOrElse("")
+    )
+  }
+
+  def checkStrongRowsBridgeRandomValuePreservation(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      requireCoverage: Boolean
+  ): Unit = {
+    val rng = new Random(seed)
+    var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
+    (0 until cases).foreach { _ =>
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val rowList = bpdersStrong1Rows(intern(r), s)
+      val (active, covered, subterms, miss) =
+        strongRowsBridgeCase(r, s, s"random seed=$seed case ${stats.checked + 1}")
+      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, subterms, miss)
+    }
+    if (requireCoverage && stats.firstMiss.isDefined) {
+      throw new AssertionError(stats.firstMiss.get)
+    }
+    println(
+      s"checked strong row-gated memo POSIX bridge on ${stats.checked} random cases " +
+      s"(depth <= $maxDepth, input length <= $maxInput, seed=$seed); " +
+      s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
+      s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
+      stats.firstMiss.map(m => s"; first uncovered active row:\n$m").getOrElse("")
+    )
+  }
+
+  def checkStrongRowsBridgeCh7Trace(
+      k: Int,
+      lengths: List[Int],
+      requireCoverage: Boolean
+  ): Unit = {
+    val r = thesisCh7Evil(k)
+    var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
+    lengths.foreach { n =>
+      val s = "a" * n
+      val rowList = bpdersStrong1Rows(intern(r), s)
+      val (active, covered, bridgeRows, miss) =
+        strongRowsBridgeCase(r, s, s"Chapter 7 k=$k n=$n")
+      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, bridgeRows, miss)
+    }
+    if (requireCoverage && stats.firstMiss.isDefined) {
+      throw new AssertionError(stats.firstMiss.get)
+    }
+    println(
+      s"checked Chapter 7 strong row-gated memo bridge for k=$k lengths=${lengths.mkString(",")}; " +
+      s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
+      s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
+      stats.firstMiss.map(m => s"; first uncovered active row:\n$m").getOrElse("")
+    )
   }
 
   def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double, minRegexSize: Int, topLimit: Int): Unit = {
@@ -4867,6 +5178,9 @@ object PosixCubicSmoke {
     val checkStrongDeferred = boolSetting("posix.smoke.checkStrongDeferred", "POSIX_SMOKE_CHECK_STRONG_DEFERRED", false)
     val checkStrongDeferredMemo = boolSetting("posix.smoke.checkStrongDeferredMemo", "POSIX_SMOKE_CHECK_STRONG_DEFERRED_MEMO", false)
     val traceStrongDeferredMemo = boolSetting("posix.smoke.traceStrongDeferredMemo", "POSIX_SMOKE_TRACE_STRONG_DEFERRED_MEMO", false)
+    val checkStrongRowsBridge = boolSetting("posix.smoke.checkStrongRowsBridge", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE", false)
+    val requireStrongRowsBridgeCoverage = boolSetting("posix.smoke.requireStrongRowsBridgeCoverage", "POSIX_SMOKE_REQUIRE_STRONG_ROWS_BRIDGE_COVERAGE", false)
+    val checkStrongRowsBridgeCh7 = boolSetting("posix.smoke.checkStrongRowsBridgeCh7", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE_CH7", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -4915,6 +5229,15 @@ object PosixCubicSmoke {
       checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor, strongCubicMinRegexSize, strongCubicTop)
       if (randomCases > 0) {
         checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize, strongCubicTop)
+      }
+    }
+    if (checkStrongRowsBridge) {
+      checkStrongRowsBridgeValuePreservation(maxDepth, maxInput, maxRegexes, requireStrongRowsBridgeCoverage)
+      if (randomCases > 0) {
+        checkStrongRowsBridgeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, requireStrongRowsBridgeCoverage)
+      }
+      if (checkStrongRowsBridgeCh7) {
+        checkStrongRowsBridgeCh7Trace(ch7K, ch7Lengths, requireStrongRowsBridgeCoverage)
       }
     }
     if (checkStrongSafe) {

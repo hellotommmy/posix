@@ -2,6 +2,31 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Row-Gated Memo Smoke (2026-06-03)
+
+- Added checked row-gated POSIX contracts in `FBound.thy`:
+  `strong_deferred_row_gate_memo_POSIX_correctness` and
+  `strong_deferred_row_gate_memo_POSIX_flat`. These use
+  `bpders_strong1_rows (intern r) s` only as the nullable gate; the exact value
+  still comes from `strong_deferred_span_value`, so POSIX values are preserved.
+- Added Scala smoke support for `bpdersStrong1Rows` and a candidate final-active
+  bridge:
+  `scala_cubic_smoke.ps1 -CheckStrongRowsBridge
+  -RequireStrongRowsBridgeCoverage`.
+- Positive smoke:
+  exhaustive depth `2`, input length `3` passes on `84,300` regex/input pairs;
+  deterministic random depth `5`, input length `6`, `2,000` cases at seed
+  `20260602` also passes.
+- Negative smoke:
+  deterministic random depth `6`, input length `8`, `10,000` cases at seed
+  `20260602` still finds a final-active bridge counterexample, so this bridge is
+  not yet a theorem candidate. Also, running the row-list bridge on Chapter 7
+  long tails can exhaust the Scala heap, so `bpdersStrong1Rows` must not be the
+  executable long-tail object.
+- Design result: keep `bders_simpStrong` / memo reconstruction as the active
+  route. Use row-list/factoring only as a proof abstraction and CE-driven
+  diagnostic until the bridge survives stronger smoke.
+
 ## Cubic Route Checkpoint: Active-Suffix POSIX Contract (2026-06-03)
 
 - Added the checked theorem
