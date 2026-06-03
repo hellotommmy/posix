@@ -143,9 +143,14 @@ It keeps exact POSIX value smoke enabled and checks optional linear rows and
 member-size gates plus a quadratic pair-budget gate for the final derivative
 state. A failing run prints a greedy-shrunk counterexample. A passing run is
 smoke evidence only; it does not authorize a bounty claim without the
-corresponding checked Isabelle theorem. Current recommended factors are
-`RowsFactor=1.0`, `MemberFactor=4.0`, `PairFactor=1.0`; `MemberFactor=1.0`
-and `2.0` are known too strong on existing smoke/Chapter 7 witnesses.
+corresponding checked Isabelle theorem. Current known-too-strong member factors
+are `1.0`, `2.0`, and `4.0`; the `4.0` failure appears at seed `20260602`,
+random case `4784`, with `rsize=30` and `finalActiveMaxRowSize=195`.
+Keep the proof target parameterized by `K` until a larger scout stabilizes a
+working constant. The current larger scout-passing candidate is
+`RowsFactor=1.0`, `MemberFactor=8.0`, `PairFactor=1.0` on seeds
+`20260602,20260603,20260604`, `5000` random cases each at depth `6`, input
+length `8`; worst member ratio is `6.5`.
 On the Isabelle side, the current handoff theorem for this route is
 `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`:
 prove the final-active rows and pair-budget bounds against the original

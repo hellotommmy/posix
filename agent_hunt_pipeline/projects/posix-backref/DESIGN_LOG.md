@@ -8,6 +8,11 @@ to be read before continuing long-running agent work.
 - Added `strong_deferred_original_final_active_budget_contract_with_member_bound`
   in `FBound.thy`; kept `strong_deferred_original_final_active_budget_contract`
   as the special case where `M = rxsize r`.
+- Added `strong_deferred_original_final_active_linear_member_cubic_contract`.
+  This is the proof-facing bridge from the current scout shape to a true cubic
+  statement: prove rows `<= rxsize r`, pair-budget `<= rxsize r^2`, and
+  member-size `<= K * rxsize r`, and the final-active closure is bounded by
+  `rxsize r + K * rxsize r^3`.
 - The theorem packages the current intended handoff: for a legacy root, once
   final-active rows and final-active pair-budget are bounded by the original
   `rxsize r`, and final-active row member size is bounded by an explicit `M`,
@@ -15,11 +20,12 @@ to be read before continuing long-running agent work.
   correctness, a legacy final raw state, final-active closure size
   `<= rxsize r + rxsize r * rxsize r * M`, and the existing span/split memo
   budgets.
-- The original `M = rxsize r` premise is too strong: Scala smoke found
-  `rsize=10`, final-active max row size `15` on the known full-cert greedy
-  sequence CE. The Chapter 7 grid gives stable `maxRowSize=126` for `k=5`
-  (`126/46 ~= 2.74`) and `maxRowSize=297` for `k=8` (`297/91 ~= 3.26`) on
-  lengths `4..32`. Current scout therefore uses `MemberFactor=4.0`.
+- Small constants are too strong: Scala smoke found `rsize=10`, final-active
+  max row size `15` on the known full-cert greedy sequence CE; Chapter 7 gives
+  stable `maxRowSize=126` for `k=5` (`126/46 ~= 2.74`) and `maxRowSize=297`
+  for `k=8` (`297/91 ~= 3.26`) on lengths `4..32`; a deeper random run found
+  `rsize=30`, final-active max row size `195` (`6.5x`). Keep the theorem
+  parameterized by `K` until a larger scout stabilizes the working constant.
 - This keeps the proof obligation aligned with the Scala scout instead of
   letting value reconstruction, memo accounting, and size accounting drift into
   separate ad hoc targets.
@@ -34,10 +40,15 @@ to be read before continuing long-running agent work.
 - Added `strong_memo_final_active_scout.ps1`, which runs the gate across
   deterministic seeds and writes logs under
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/`.
-- Current smoke (`20260602,20260603`, `2000` random cases each, depth `6`,
-  input length `8`, factors rows/member/pair `1.0/4.0/1.0`) found no
-  final-active budget CE. The worst rows ratio was `0.571429`, the worst
-  member ratio was `3.451613`, and the worst pair ratio was `0.040000`.
+- A smoke run (`20260602,20260603`, `2000` random cases each, depth `6`, input
+  length `8`, factors rows/member/pair `1.0/4.0/1.0`) found no final-active
+  budget CE, but a larger `5000`-case run at seed `20260602` found a `4.0x`
+  member-size CE. Treat `4.0x` as rejected evidence, not as a theorem target.
+- Current larger scout (`20260602,20260603,20260604`, `5000` random cases
+  each, depth `6`, input length `8`, factors rows/member/pair `1.0/8.0/1.0`)
+  found no final-active budget CE. Worst ratios: rows `0.782609`, member
+  `6.500000`, pair `0.040000`. This makes `8.0x` the current smoke-passing
+  candidate constant, not a theorem.
 - The Chapter 7 trace now prints both cumulative active-prefix metrics and
   final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
   grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.

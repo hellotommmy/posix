@@ -8,6 +8,12 @@ Last updated: 2026-06-03 (strong-memo route is default)
   `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`;
   the older `strong_deferred_original_final_active_budget_contract` remains as
   the special `M = rxsize r` instance.
+- Added checked linear-member handoff theorem
+  `strong_deferred_original_final_active_linear_member_cubic_contract`. It
+  states the next landing zone explicitly: if final-active rows are linear,
+  final-active pair-budget is quadratic, and final-active row member-size is
+  `<= K * rxsize r`, then the final-active closure is
+  `<= rxsize r + K * rxsize r^3`.
 - The theorem matches the current Scala final-active scout: for a legacy
   non-backref regex, if the final derivative state satisfies
   `finalActiveRows <= rxsize r`, `finalActivePairBudget <= rxsize r^2`, and
@@ -44,17 +50,18 @@ Last updated: 2026-06-03 (strong-memo route is default)
   reproducible multi-seed scout that runs the gate plus a greedy final-active
   counterexample shrinker and writes
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
-- Initial checked scout run:
-  `Seeds=20260602,20260603`, `RandomCases=2000`, `RandomDepth=6`,
-  `RandomInputLength=8`, `RowsFactor=1.0`, `MemberFactor=4.0`,
-  `PairFactor=1.0`, `MinRegexSize=5`. Both seeds found no final-active witness
-  above the linear rows, linear member-size, or quadratic pair-budget. The
-  worst reported rows ratio was `0.571429`; the worst member ratio was
-  `3.451613`; the worst pair ratio was `0.040000`.
-- The rejected `MemberFactor=1.0` and `2.0` runs are useful negative evidence:
-  a known greedy-sequence CE needs `15/10 = 1.5`, and Chapter 7 `k=5,n=4`
-  needs `126/46 ~= 2.74`. A separate `k=5,8`, `n=4..32` grid shows the
-  final-active max row size plateaus at `126` for `k=5` and `297` for `k=8`.
+- Current checked scout run:
+  `Seeds=20260602,20260603,20260604`, `RandomCases=5000`, `RandomDepth=6`,
+  `RandomInputLength=8`, `RowsFactor=1.0`, `MemberFactor=8.0`,
+  `PairFactor=1.0`, `MinRegexSize=5`. All three seeds found no final-active
+  witness above the linear rows, linear member-size, or quadratic pair-budget.
+  The worst reported rows ratio was `0.782609`; the worst member ratio was
+  `6.500000`; the worst pair ratio was `0.040000`.
+- The rejected `MemberFactor=1.0`, `2.0`, and `4.0` runs are useful negative
+  evidence: a known greedy-sequence CE needs `15/10 = 1.5`, Chapter 7
+  `k=5,n=4` needs `126/46 ~= 2.74`, and seed `20260602` case `4784` needs
+  `195/30 = 6.5`. A separate `k=5,8`, `n=4..32` grid shows the final-active
+  max row size plateaus at `126` for `k=5` and `297` for `k=8`.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

@@ -42,22 +42,29 @@ foreach ($SeedText in $SeedList) {
   $Seed = [long]$SeedText
   $LogPath = Join-Path $OutDirPath "seed_$Seed.log"
   Write-Host "== Strong memo final-active scout seed=$Seed =="
-  $Output = & $SmokeScript `
-    -Route strong-memo `
-    -SkipLegacyCubic `
-    -CheckStrongDeferredMemo `
-    -FindStrongFinalActiveBudgetCE `
-    -StrongFinalActiveRowsFactor $RowsFactor `
-    -StrongFinalActivePairFactor $PairFactor `
-    -StrongFinalActiveMemberFactor $MemberFactor `
-    -StrongFinalActiveMinRegexSize $MinRegexSize `
-    -StrongFinalActiveTop $Top `
-    -RandomCases $RandomCases `
-    -RandomDepth $RandomDepth `
-    -RandomInputLength $RandomInputLength `
-    -Seed $Seed `
-    -TimeoutSeconds $TimeoutSeconds 2>&1
-  $ExitCode = $LASTEXITCODE
+  $Output = @()
+  $ExitCode = 0
+  try {
+    $Output = & $SmokeScript `
+      -Route strong-memo `
+      -SkipLegacyCubic `
+      -CheckStrongDeferredMemo `
+      -FindStrongFinalActiveBudgetCE `
+      -StrongFinalActiveRowsFactor $RowsFactor `
+      -StrongFinalActivePairFactor $PairFactor `
+      -StrongFinalActiveMemberFactor $MemberFactor `
+      -StrongFinalActiveMinRegexSize $MinRegexSize `
+      -StrongFinalActiveTop $Top `
+      -RandomCases $RandomCases `
+      -RandomDepth $RandomDepth `
+      -RandomInputLength $RandomInputLength `
+      -Seed $Seed `
+      -TimeoutSeconds $TimeoutSeconds 2>&1
+    $ExitCode = $LASTEXITCODE
+  } catch {
+    $ExitCode = 1
+    $Output += $_ | Out-String
+  }
   $Output | Set-Content -LiteralPath $LogPath
   if ($ExitCode -ne 0) {
     throw "Strong memo final-active scout failed for seed $Seed; see $LogPath"

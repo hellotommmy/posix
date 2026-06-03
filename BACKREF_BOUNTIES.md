@@ -111,14 +111,14 @@ immutability.
   POSIX `strong-memo` smoke plus `-FindStrongFinalActiveBudgetCE` across
   deterministic seeds and writes
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
-  The current initial report (`20260602,20260603`, 2,000 random cases each at
-  depth 6/input 8, `rows <= 1.0 * rsize`, `maxRowSize <= 4.0 * rsize`,
-  `pairBudget <= 1.0 * rsize^2`) finds no final-active budget CE. The worst
-  rows ratio was `0.571429`; the worst member ratio was `3.451613`; the worst
-  pair ratio was `0.040000`. The `1.0 * rsize` member-size premise is known too
-  strong, so proof work should use the parameterized member-bound contract in
-  `FBound.thy`. This is smoke evidence for the final-active proof route only;
-  no BR-039/BR-040 payout is claimed.
+  The current report (`20260602,20260603,20260604`, 5,000 random cases each at
+  depth 6/input 8, `rows <= 1.0 * rsize`, `maxRowSize <= 8.0 * rsize`,
+  `pairBudget <= 1.0 * rsize^2`) found no final-active budget CE. A deeper
+  seed `20260602` run rejected `4.0 * rsize` with `rsize=30` and
+  `maxRowSize=195`, so the checked theorem remains deliberately parameterized
+  by `K`; proof work should treat `8.0` as the current smoke-passing candidate,
+  not a proven constant. This is smoke evidence for the final-active proof
+  route only; no BR-039/BR-040 payout is claimed.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
@@ -140,8 +140,12 @@ immutability.
   and the existing memo-table budgets. The older
   `strong_deferred_original_final_active_budget_contract` remains as the
   special `M = rxsize r` case, but smoke shows that case is too optimistic for
-  the current route. This is a checked handoff theorem, not a payout; the
-  actual linear member-size bound remains open.
+  the current route. The checked
+  `strong_deferred_original_final_active_linear_member_cubic_contract` records
+  the real target: a proof of `rsize q <= K * rxsize r` for final-active row
+  members instantiates the closure bound as
+  `rxsize r + K * rxsize r * rxsize r * rxsize r`. This is a checked handoff
+  theorem, not a payout; the actual linear member-size bound remains open.
 - Final-active pair-budget square checkpoint:
   `raw_shared_prune_active_suffix_pair_budget_eq_pairs` proves the active
   pair-budget is exactly the active pair-relation cardinality, and
