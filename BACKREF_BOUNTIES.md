@@ -63,6 +63,17 @@ immutability.
 
 ## Open Artifact Notes
 
+- RowU/root-U memo-strong handoff: `FBound.thy` now checks
+  `strong_deferred_original_final_active_rowU_shared_root_universe_contract`.
+  This is the preferred BR-040 proof interface after the graph evidence against
+  direct emitted-tree `bsimpCubic`. It assumes a finite row universe `RowU`
+  covering final-active rows with `card RowU <= R`, plus a finite subterm-closed
+  root universe `U` covering payload roots and suffix keys with `card U <= D`.
+  It yields exact memo-strong POSIX `Some`/`None`, `flat`, legacy preservation,
+  row budget `<= R`, pair budget `<= R * R`, and
+  `finalRowDag/maxRowDag <= 2 * R + D`. This is checked infrastructure only;
+  no BR-039/BR-040 bounty is paid until the concrete `RowU` and `U` bounds are
+  proved.
 - Shared-universe POSIX handoff: `FBound.thy` now checks
   `strong_deferred_original_final_active_shared_row_dag_linear_contract`.
   If final-active rows are linear in `rxsize r` and a finite shared universe

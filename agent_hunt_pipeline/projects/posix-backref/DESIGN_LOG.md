@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: RowU + root-owned U is the active memo-strong handoff
+
+- The graph evidence makes the direct emitted-tree `bsimpCubic` route
+  implausible. Treat it as a counterexample/regression playground, not as the
+  theorem candidate.
+- The active candidate is memo strong tree: use
+  `bders_simpStrong (intern r) s` only as the small nullable recognition tree,
+  then reconstruct exact POSIX values from the original regex/string through
+  `strong_deferred_span_value`.
+- Added
+  `strong_deferred_original_final_active_rowU_shared_root_universe_contract`.
+  This is the most modular checked handoff currently available. It assumes:
+  final-active rows are included in a finite `RowU` of size `R`; payload roots
+  and suffix keys are included in a finite subterm-closed `U` of size `D`.
+  It concludes exact POSIX `Some`/`None`, `flat`, legacy preservation, row and
+  pair budgets, and final row-DAG/max-row-DAG bounds `<= 2 * R + D`.
+- Future BR-040 work should therefore construct/bound `RowU` and root-owned
+  `U`. Do not spend proof effort on `bsimpCubic` output unless a new executable
+  candidate first beats the smoke graphs and preserves POSIX values.
+
 ## 2026-06-04: Shared universe plugs directly into POSIX contract
 
 - Added `strong_deferred_original_final_active_shared_row_dag_linear_contract`.

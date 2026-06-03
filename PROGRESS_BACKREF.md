@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: RowU + RootU Memo-Strong Contract (2026-06-04)
+
+- After reviewing the derivative-size graphs, the emitted-tree `bsimpCubic`
+  route is treated as negative evidence rather than an active proof candidate.
+  It is too weak to justify the cubic theorem over its output tree.
+- The active theorem route is memo strong tree:
+  `bders_simpStrong (intern r) s` is the small nullable recognition tree, and
+  exact POSIX values are reconstructed from the original regex/string via
+  `strong_deferred_span_value`.
+- Added the checked theorem
+  `FBound.thy:strong_deferred_original_final_active_rowU_shared_root_universe_contract`.
+  It separates the two remaining finite-universe obligations:
+  - final-active rows are covered by some finite `RowU` with `card RowU <= R`;
+  - payload roots and suffix keys are covered by a finite subterm-closed `U`
+    with `card U <= D`.
+- Under those assumptions the theorem yields exact `Some`/`None` POSIX
+  correctness, `flat v = s`, legacy preservation, the row-DAG containment fact,
+  row budget `<= R`, pair budget `<= R * R`, and final row-DAG/max-row-DAG
+  bounds `<= 2 * R + D`.
+- Design meaning: future proof work should prove the actual memo table/root
+  universe bounds, not optimize or prove over the old `bsimpCubic` emitted
+  tree. No BR-039/BR-040 bounty is claimed yet.
+- Verification: focused Isabelle `Posix` build passed.
+
 ## Cubic Route Checkpoint: Shared-Universe POSIX Contract (2026-06-04)
 
 - Added the checked theorem
