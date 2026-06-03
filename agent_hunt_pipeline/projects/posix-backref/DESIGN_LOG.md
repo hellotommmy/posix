@@ -40,6 +40,12 @@ to be read before continuing long-running agent work.
   `1.0 * rsize^2`, and exact-DAG/shape-DAG row-member budget
   `2.0 * rsize`. The Chapter 7 report now extends to `n=80`; for `k=5/8`,
   final rows are `5/9` and final max row-DAG is `31/61`.
+- Follow-up smoke on seed `20260605` reinforces the same target: exact POSIX
+  values pass on `5,000` random depth-6/input-8 cases, and Chapter 7 long tails
+  keep final-active row DAGs small (`k=5,n=80`: final max row DAG `31`;
+  `k=8,n=80`: `61`). Raw row tree size can exceed `3 * rsize` on random cases,
+  so future proofs should not try to bound raw row-tree member size linearly.
+  Keep targeting DAG/row-universe accounting.
 - Added `strong_deferred_final_raw_dag_size`, the erased exact-DAG size of the
   final memo-strong recognition tree. The bridge
   `strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound` means a

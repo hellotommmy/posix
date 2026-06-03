@@ -23,6 +23,27 @@ Last updated: 2026-06-04 (strong-memo route is default)
 - Verification: focused Isabelle `Posix` build passed.
 - No bounty is claimed.
 
+## Cubic Route Smoke: Memo Strong Long-Tail Gate (2026-06-04)
+
+- Re-ran the strong-memo smoke route with exact POSIX value comparison,
+  final-active budget factors, and Chapter 7 long tails:
+  `rowsFactor=1.0`, `pairFactor=1.0`, `memberDagFactor=2.0`,
+  `memberShapeDagFactor=2.0`.
+- Seed `20260605`, `5,000` random cases at depth `6`, input length `8`,
+  passed exact POSIX value preservation. The largest random final-active row
+  ratio observed was `5 / 28`; the largest row DAG ratio stayed below `1.0`,
+  while raw tree row-size could be larger (`112 / 33`). This is positive
+  evidence for proving a DAG/row-universe theorem rather than a raw tree-member
+  theorem.
+- Chapter 7 long-tail checks:
+  `k=5`, `n=80`: strong tree `957`, final rows `5`, final pair budget `17`,
+  final max row DAG `31`.
+  `k=8`, `n=80`: strong tree `3233`, final rows `9`, final pair budget `65`,
+  final max row DAG `61`.
+- Design meaning: `bsimpCubic` remains retired. The viable route is still
+  memo strong recognition plus exact original-regex POSIX reconstruction, with
+  the proof target focused on final-active row-DAG accounting.
+
 ## Cubic Route Checkpoint: Empty Row-DAG Base Case (2026-06-04)
 
 - Added the checked base-case theorem
