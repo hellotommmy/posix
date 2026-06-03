@@ -2830,6 +2830,50 @@ lemma strong_deferred_final_active_suffix_payload_dag_universe_eq_rsubterm_closu
       strong_deferred_final_active_suffix_payload_roots_def
       raw_final_active_suffix_payload_dag_universe_eq_rsubterm_closure)
 
+lemma strong_deferred_final_active_suffix_payload_roots_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_payload_roots r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  by (simp add: strong_deferred_final_active_suffix_payload_roots_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_payload_roots_subset_row_dag_universe)
+
+lemma strong_deferred_final_active_suffix_payload_dag_universe_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_payload_dag_universe r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_payload_dag_universe_subset_row_dag_universe)
+
+lemma strong_deferred_final_active_suffix_keys_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_keys r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  by (simp add: strong_deferred_final_active_suffix_keys_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_keys_subset_row_dag_universe)
+
+lemma strong_deferred_final_active_suffix_key_dag_universe_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_key_dag_universe_subset_row_dag_universe)
+
+lemma strong_deferred_final_active_suffix_roots_keys_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_payload_roots r s \<union>
+   strong_deferred_final_active_suffix_keys r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  using strong_deferred_final_active_suffix_payload_roots_subset_row_dag_universe
+    strong_deferred_final_active_suffix_keys_subset_row_dag_universe
+  by blast
+
+lemma strong_deferred_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+   strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  using strong_deferred_final_active_suffix_payload_dag_universe_subset_row_dag_universe
+    strong_deferred_final_active_suffix_key_dag_universe_subset_row_dag_universe
+  by blast
+
 lemma card_strong_deferred_final_active_suffix_key_dag_universe_boundI:
   assumes keys:
       "card (strong_deferred_final_active_suffix_keys r s) \<le> K"

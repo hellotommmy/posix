@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Row-DAG Owns Roots/Keys (2026-06-04)
+
+- Added raw and lifted coverage lemmas showing that the final-active row-DAG
+  universe already contains the roots/keys needed by the root-owned handoff:
+  - `raw_final_active_suffix_payload_roots_subset_row_dag_universe`;
+  - `raw_final_active_suffix_payload_dag_universe_subset_row_dag_universe`;
+  - `raw_final_active_suffix_keys_subset_row_dag_universe`;
+  - `raw_final_active_suffix_key_dag_universe_subset_row_dag_universe`;
+  - lifted `strong_deferred_final_active_suffix_*_subset_row_dag_universe`
+    variants in `FBound.thy`.
+- Also added the packaged union facts
+  `*_roots_keys_subset_row_dag_universe` and
+  `*_payload_key_dag_universe_subset_row_dag_universe`.
+- Design meaning: the memo-strong route can treat
+  `strong_deferred_final_active_suffix_row_dag_universe r s` as the canonical
+  hash-consed proof object. Any future bounded universe containing that row-DAG
+  table automatically covers the payload roots, suffix keys, and their DAG
+  nodes required by the newer `RowU/root-U` contract.
+- Verification: focused Isabelle `Posix` build passed.
+
 ## Cubic Route Checkpoint: RowU + RootU Memo-Strong Contract (2026-06-04)
 
 - After reviewing the derivative-size graphs, the emitted-tree `bsimpCubic`

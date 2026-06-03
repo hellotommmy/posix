@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Final row-DAG owns payload/key roots
+
+- Added raw and lifted subset facts showing that final-active payload roots,
+  suffix keys, payload DAG nodes, and key DAG nodes are all contained in the
+  final-active row-DAG universe.
+- The important packaged facts are
+  `strong_deferred_final_active_suffix_roots_keys_subset_row_dag_universe` and
+  `strong_deferred_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe`.
+- Proof consequence: future BR-040 work can make
+  `strong_deferred_final_active_suffix_row_dag_universe r s` the canonical
+  hash-consed table. Once a candidate `U` covers that table, it also covers
+  the payload/key roots and DAG components required by the `RowU/root-U`
+  contract. This avoids proving the same root/key coverage separately in every
+  universe instantiation.
+
 ## 2026-06-04: RowU + root-owned U is the active memo-strong handoff
 
 - The graph evidence makes the direct emitted-tree `bsimpCubic` route

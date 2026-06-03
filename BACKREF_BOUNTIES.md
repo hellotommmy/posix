@@ -63,6 +63,15 @@ immutability.
 
 ## Open Artifact Notes
 
+- Row-DAG owns roots/keys: `GeneralRegexBound.thy` and `FBound.thy` now check
+  raw and lifted facts showing payload roots, suffix keys, payload DAG nodes,
+  and key DAG nodes are all contained in the final-active row-DAG universe.
+  The packaged lifted facts are
+  `strong_deferred_final_active_suffix_roots_keys_subset_row_dag_universe` and
+  `strong_deferred_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe`.
+  This lets future BR-040 proofs use one bounded hash-consed row-DAG table as
+  the owner of the root/key components needed by the `RowU/root-U` handoff.
+  Infrastructure only; no bounty is paid.
 - RowU/root-U memo-strong handoff: `FBound.thy` now checks
   `strong_deferred_original_final_active_rowU_shared_root_universe_contract`.
   This is the preferred BR-040 proof interface after the graph evidence against

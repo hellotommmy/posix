@@ -21843,6 +21843,123 @@ lemma raw_final_active_suffix_payload_dag_universe_eq_rsubterm_closure:
   by (auto simp add: raw_final_active_suffix_payload_dag_universe_def
       raw_final_active_suffix_payload_roots_def rsubterm_closure_def)
 
+lemma rsubterms_RALTS_subset_RSEQ_left:
+  "rsubterms (RALTS rows) \<subseteq> rsubterms (RSEQ (RALTS rows) k)"
+  by auto
+
+lemma raw_final_active_suffix_payload_roots_subset_row_dag_universe:
+  "raw_final_active_suffix_payload_roots r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+proof
+  fix q
+  assume q: "q \<in> raw_final_active_suffix_payload_roots r"
+  then obtain rows k where row:
+      "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and elem: "q \<in> set rows"
+    by (auto simp add: raw_final_active_suffix_payload_roots_def)
+  have q_alt: "q \<in> rsubterms (RALTS rows)"
+  proof -
+    have "q \<in> \<Union> (set (map rsubterms rows))"
+    proof (rule UnionI)
+      show "rsubterms q \<in> set (map rsubterms rows)"
+        using elem by simp
+      show "q \<in> rsubterms q"
+        by simp
+    qed
+    then show ?thesis
+      by simp
+  qed
+  have q_seq: "q \<in> rsubterms (RSEQ (RALTS rows) k)"
+    using q_alt rsubterms_RALTS_subset_RSEQ_left by blast
+  show "q \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row q_seq])
+qed
+
+lemma raw_final_active_suffix_payload_dag_universe_subset_row_dag_universe:
+  "raw_final_active_suffix_payload_dag_universe r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_payload_dag_universe r"
+  then obtain rows k q where row:
+      "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and elem: "q \<in> set rows"
+    and p_sub: "p \<in> rsubterms q"
+    by (auto simp add: raw_final_active_suffix_payload_dag_universe_def)
+  have q_alt: "q \<in> rsubterms (RALTS rows)"
+  proof -
+    have "q \<in> \<Union> (set (map rsubterms rows))"
+    proof (rule UnionI)
+      show "rsubterms q \<in> set (map rsubterms rows)"
+        using elem by simp
+      show "q \<in> rsubterms q"
+        by simp
+    qed
+    then show ?thesis
+      by simp
+  qed
+  have q_seq: "q \<in> rsubterms (RSEQ (RALTS rows) k)"
+    using q_alt rsubterms_RALTS_subset_RSEQ_left by blast
+  have p_seq: "p \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by (rule rsubterms_trans[OF q_seq p_sub])
+  show "p \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row p_seq])
+qed
+
+lemma raw_final_active_suffix_keys_subset_row_dag_universe:
+  "raw_final_active_suffix_keys r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+proof
+  fix k
+  assume k: "k \<in> raw_final_active_suffix_keys r"
+  then obtain rows where row_sub:
+      "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using raw_final_active_suffix_keys_iff by blast
+  have row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    by (rule raw_final_active_suffix_rowsI[OF row_sub])
+  have k_seq: "k \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by simp
+  show "k \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row k_seq])
+qed
+
+lemma raw_final_active_suffix_key_dag_universe_subset_row_dag_universe:
+  "raw_final_active_suffix_key_dag_universe r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_key_dag_universe r"
+  then obtain k where k: "k \<in> raw_final_active_suffix_keys r"
+    and p_sub: "p \<in> rsubterms k"
+    by (auto simp add: raw_final_active_suffix_key_dag_universe_def)
+  obtain rows where row_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using k raw_final_active_suffix_keys_iff by blast
+  have row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    by (rule raw_final_active_suffix_rowsI[OF row_sub])
+  have k_seq: "k \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by simp
+  have p_seq: "p \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by (rule rsubterms_trans[OF k_seq p_sub])
+  show "p \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row p_seq])
+qed
+
+lemma raw_final_active_suffix_roots_keys_subset_row_dag_universe:
+  "raw_final_active_suffix_payload_roots r \<union>
+   raw_final_active_suffix_keys r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+  using raw_final_active_suffix_payload_roots_subset_row_dag_universe
+    raw_final_active_suffix_keys_subset_row_dag_universe
+  by blast
+
+lemma raw_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe:
+  "raw_final_active_suffix_payload_dag_universe r \<union>
+   raw_final_active_suffix_key_dag_universe r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+  using raw_final_active_suffix_payload_dag_universe_subset_row_dag_universe
+    raw_final_active_suffix_key_dag_universe_subset_row_dag_universe
+  by blast
+
 lemma raw_final_active_suffix_row_dag_universe_decomp_subset:
   "raw_final_active_suffix_row_dag_universe r \<subseteq>
     raw_final_active_suffix_rows r \<union>
