@@ -22074,6 +22074,35 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_raw_final_active_suffix_row_dag_universe_component_boundI:
+  assumes rows: "card (raw_final_active_suffix_rows r) \<le> R"
+    and payload_roots:
+      "card (raw_final_active_suffix_payload_roots r) \<le> P"
+    and payload_member:
+      "\<And>q. q \<in> raw_final_active_suffix_payload_roots r \<Longrightarrow>
+        card (rsubterms q) \<le> PM"
+    and keys: "card (raw_final_active_suffix_keys r) \<le> K"
+    and key_member:
+      "\<And>k. k \<in> raw_final_active_suffix_keys r \<Longrightarrow>
+        card (rsubterms k) \<le> KM"
+  shows "card (raw_final_active_suffix_row_dag_universe r) \<le>
+    2 * R + P * PM + K * KM"
+proof -
+  have payload:
+      "card (raw_final_active_suffix_payload_dag_universe r) \<le> P * PM"
+    by (rule card_raw_final_active_suffix_payload_dag_universe_boundI
+        [OF payload_roots payload_member])
+  have key:
+      "card (raw_final_active_suffix_key_dag_universe r) \<le> K * KM"
+    by (rule card_raw_final_active_suffix_key_dag_universe_boundI
+        [OF keys key_member])
+  have "card (raw_final_active_suffix_row_dag_universe r) \<le>
+      2 * R + P * PM + K * KM"
+    by (rule card_raw_final_active_suffix_row_dag_universe_decomp_rows_boundI
+        [OF rows payload key])
+  then show ?thesis .
+qed
+
 lemma raw_final_active_suffix_bucket_subset_rsubterms:
   "raw_shared_prune_active_suffix_bucket
       (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"

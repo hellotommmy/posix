@@ -39,6 +39,12 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `card_strong_deferred_final_active_suffix_payload_dag_universe_boundI`
   reduce these components to cardinality bounds for keys/payload roots and
   local subterm-size bounds for each member.
+- Added the combined checked interface
+  `card_strong_deferred_final_active_suffix_row_dag_universe_component_boundI`.
+  The remaining proof target can now be stated as five component obligations:
+  row count `R`, payload-root count `P`, payload-root DAG bound `PM`, key
+  count `K`, and key DAG bound `KM`; together they imply
+  `finalRowDag <= 2*R + P*PM + K*KM`.
 - Focused Isabelle `Posix` build passed after splitting the proof into
   explicit subterm and suffix-key witnesses; no broad slow automation was
   introduced.

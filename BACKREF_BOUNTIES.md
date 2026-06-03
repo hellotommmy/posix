@@ -83,6 +83,10 @@ immutability.
   interfaces and parameterized bounds:
   `card_strong_deferred_final_active_suffix_key_dag_universe_boundI` and
   `card_strong_deferred_final_active_suffix_payload_dag_universe_boundI`.
+  The combined handoff
+  `card_strong_deferred_final_active_suffix_row_dag_universe_component_boundI`
+  packages the current BR-040 accounting target as
+  `finalRowDag <= 2*R + P*PM + K*KM`.
   Fresh `strong-memo` Scala smoke passed exact POSIX checks on the default
   exhaustive grid, known CE grid, and 1,000 deterministic random
   depth-6/input-8 cases. This is proof infrastructure only; no bounty is

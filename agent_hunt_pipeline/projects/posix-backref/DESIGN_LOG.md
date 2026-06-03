@@ -34,6 +34,12 @@ to be read before continuing long-running agent work.
   This leaves the real BR-040 work in two concrete obligations: bound the
   number of roots/keys and bound each root/key DAG by an original-owned
   universe.
+- The preferred high-level accounting handoff is now
+  `card_strong_deferred_final_active_suffix_row_dag_universe_component_boundI`.
+  It packages the component story as
+  `finalRowDag <= 2*R + P*PM + K*KM`. Future proof attempts should try to
+  instantiate this theorem with original-regex-owned bounds rather than
+  reopening the whole row-DAG definition.
 - The proof style matters: the checked bridge uses explicit `rsubterms`
   witnesses and explicit suffix-key membership, not large `auto`/`blast`
   searches. Keep this style for the remaining component bounds.

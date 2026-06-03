@@ -2928,6 +2928,40 @@ lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_final_rsi
   by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
       card_raw_final_active_suffix_payload_dag_universe_le_rsize_square)
 
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_component_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and payload_roots:
+      "card (strong_deferred_final_active_suffix_payload_roots r s) \<le> P"
+    and payload_member:
+      "\<And>q. q \<in> strong_deferred_final_active_suffix_payload_roots r s
+        \<Longrightarrow> card (rsubterms q) \<le> PM"
+    and keys:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le> K"
+    and key_member:
+      "\<And>k. k \<in> strong_deferred_final_active_suffix_keys r s
+        \<Longrightarrow> card (rsubterms k) \<le> KM"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+    \<le> 2 * R + P * PM + K * KM"
+proof -
+  have payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P * PM"
+    by (rule card_strong_deferred_final_active_suffix_payload_dag_universe_boundI
+        [OF payload_roots payload_member])
+  have key:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> K * KM"
+    by (rule card_strong_deferred_final_active_suffix_key_dag_universe_boundI
+        [OF keys key_member])
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      2 * R + P * PM + K * KM"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI
+        [OF rows payload key])
+  then show ?thesis .
+qed
+
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"
   shows "RSEQ (RALTS rows) k \<in>
