@@ -39,6 +39,11 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `raw_final_active_suffix_max_row_dag_le_rsize` and
   `strong_deferred_final_active_suffix_max_row_dag_le_final_asize`, so the new
   scalar metric is wired into the existing final-size fallback facts.
+- Added rows-to-row-DAG containment and the single-universe contract
+  `strong_deferred_original_final_active_single_row_dag_universe_contract`.
+  Since every final-active row is a member of the row-DAG universe, one bound
+  `card rowDagUniverse <= D` now controls `finalRows <= D`, pair budget
+  `<= D * D`, `finalMaxRowDag <= D`, and exact POSIX reconstruction.
 - The report is in
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
   This is smoke evidence only; BR-040 still requires an Isabelle derivation of

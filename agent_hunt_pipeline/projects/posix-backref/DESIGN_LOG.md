@@ -42,6 +42,12 @@ to be read before continuing long-running agent work.
 - Added final-size fallback lemmas for the scalar max-row-DAG metric. These
   are not the desired original-size bounds, but they keep the new metric
   compatible with older final-tree accounting.
+- Added the single-universe contract
+  `strong_deferred_original_final_active_single_row_dag_universe_contract`.
+  The next main theorem can now aim at one object:
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D`.
+  That one bound controls final row count, pair budget, scalar max-row-DAG,
+  row-member exact-DAG size, and exact POSIX reconstruction.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under

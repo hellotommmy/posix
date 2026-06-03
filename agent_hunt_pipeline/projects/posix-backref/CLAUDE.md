@@ -187,6 +187,12 @@ maximum, use
 a bound on
 `card (strong_deferred_final_active_suffix_row_dag_universe r s)` implies the
 same `finalMaxRowDag` bound via the checked raw/strong bridge.
+Prefer the single-universe theorem
+`FBound.thy:strong_deferred_original_final_active_single_row_dag_universe_contract`
+when possible. It needs only
+`card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D` and
+then supplies final rows `<= D`, pair budget `<= D * D`, `finalMaxRowDag <= D`,
+row-member exact-DAG `<= D`, and exact POSIX reconstruction.
 For final-active proof work, prefer the syntax-facing lemmas
 `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
 `raw_final_active_suffix_bucket_iff`, plus their lifted

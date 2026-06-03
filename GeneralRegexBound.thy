@@ -21396,6 +21396,17 @@ lemma raw_final_active_suffix_row_dag_contains_row:
   by (rule raw_final_active_suffix_row_dag_universeI
       [OF row self_rsubterm])
 
+lemma raw_final_active_suffix_rows_subset_row_dag_universe:
+  "raw_final_active_suffix_rows r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+  by (auto intro: raw_final_active_suffix_row_dag_contains_row)
+
+lemma card_raw_final_active_suffix_rows_le_row_dag_universe:
+  "card (raw_final_active_suffix_rows r) \<le>
+    card (raw_final_active_suffix_row_dag_universe r)"
+  by (rule card_mono)
+     (simp_all add: raw_final_active_suffix_rows_subset_row_dag_universe)
+
 lemma raw_final_active_suffix_row_dag_subterms_subset_universe:
   assumes row: "q \<in> raw_final_active_suffix_rows r"
   shows "rsubterms q \<subseteq> raw_final_active_suffix_row_dag_universe r"
