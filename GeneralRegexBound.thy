@@ -21783,6 +21783,49 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsizes_rpders_strong1_rows_raw_norm_active_suffix_finite_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+proof -
+  have closed: "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_active_suffix_closure_subset
+        [OF active_suffix_closed])
+  show ?thesis
+    by (rule rsizes_rpders_strong1_rows_raw_norm_closed_finite_universe_boundI
+        [OF init flat_closed norm closed finite member_size])
+qed
+
+lemma rsizes_rpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI:
+  assumes init: "r \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+proof -
+  have "rsizes (rpders_strong1_rows_raw r s) \<le> card U * M"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_active_suffix_finite_universe_boundI
+        [OF init flat_closed norm active_suffix_closed finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
 lemma rsizes_rpders_strong_rows_norm_shared_finite_universe_boundI:
   assumes init: "set rs \<subseteq> U"
     and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"

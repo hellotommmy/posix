@@ -20,6 +20,9 @@ Last updated: 2026-06-03 (strong-memo route is default)
   - `raw_shared_prune_closedI_active_suffix_closure_subset`;
   - `card_raw_shared_prune_active_suffix_pairs_bucket_bound`;
   - `card_raw_shared_prune_active_suffix_closure_member_bucket_bound`.
+- Added raw-row active interfaces:
+  - `rsizes_rpders_strong1_rows_raw_norm_active_suffix_finite_universe_boundI`;
+  - `rsizes_rpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI`.
 - Added `FBound.thy` forwarding interfaces:
   - `asizes_bpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI`;
   - `strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface`.
