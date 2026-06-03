@@ -2599,6 +2599,13 @@ lemma finite_strong_deferred_final_active_suffix_row_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_row_dag_universe r s)"
   by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def)
 
+lemma strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
+  "strong_deferred_final_active_suffix_row_dag_universe r s =
+    rsubterm_closure (strong_deferred_final_active_suffix_rows r s)"
+  by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure)
+
 lemma strong_deferred_final_active_suffix_row_member_le_max_row_dag:
   assumes "q \<in> strong_deferred_final_active_suffix_rows r s"
   shows "card (rsubterms q) \<le>
@@ -2626,6 +2633,16 @@ proof -
     by (rule assms)
   finally show ?thesis .
 qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_max:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    card (strong_deferred_final_active_suffix_rows r s) *
+    strong_deferred_final_active_suffix_max_row_dag r s"
+  by (simp add:
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      strong_deferred_final_active_suffix_rows_def
+      strong_deferred_final_active_suffix_max_row_dag_def
+      card_raw_final_active_suffix_row_dag_universe_le_rows_times_max)
 
 lemma strong_deferred_final_active_suffix_rowsI:
   assumes "RSEQ (RALTS rows) k \<in> rsubterms (strong_deferred_final_raw r s)"

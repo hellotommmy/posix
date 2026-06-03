@@ -21377,6 +21377,12 @@ proof -
     by (rule finite_subset) simp
 qed
 
+lemma raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
+  "raw_final_active_suffix_row_dag_universe r =
+    rsubterm_closure (raw_final_active_suffix_rows r)"
+  by (simp add: raw_final_active_suffix_row_dag_universe_def
+      rsubterm_closure_def)
+
 lemma card_raw_final_active_suffix_row_dag_universe_le_rsize:
   "card (raw_final_active_suffix_row_dag_universe r) \<le> rsize r"
 proof -
@@ -21498,6 +21504,14 @@ proof -
     by (rule card_raw_final_active_suffix_row_dag_universe_le_rsize)
   finally show ?thesis .
 qed
+
+lemma card_raw_final_active_suffix_row_dag_universe_le_rows_times_max:
+  "card (raw_final_active_suffix_row_dag_universe r) \<le>
+    card (raw_final_active_suffix_rows r) *
+    raw_final_active_suffix_max_row_dag r"
+  unfolding raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure
+  by (rule card_rsubterm_closure_le)
+     (simp_all add: raw_final_active_suffix_row_member_le_max_row_dag)
 
 lemma raw_final_active_suffix_row_dag_universe_subsetI:
   assumes rows: "raw_final_active_suffix_rows r \<subseteq> U"

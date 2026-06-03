@@ -48,6 +48,13 @@ to be read before continuing long-running agent work.
   `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D`.
   That one bound controls final row count, pair budget, scalar max-row-DAG,
   row-member exact-DAG size, and exact POSIX reconstruction.
+- Added the decomposition
+  `strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure`
+  plus
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_max`.
+  This gives the proof split `row-DAG <= finalRows * finalMaxRowDag`; future
+  work may prove those two scalar bounds separately instead of constructing a
+  monolithic universe.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under

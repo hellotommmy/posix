@@ -44,6 +44,13 @@ Last updated: 2026-06-04 (strong-memo route is default)
   Since every final-active row is a member of the row-DAG universe, one bound
   `card rowDagUniverse <= D` now controls `finalRows <= D`, pair budget
   `<= D * D`, `finalMaxRowDag <= D`, and exact POSIX reconstruction.
+- Added the exact row-DAG decomposition
+  `raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure` /
+  `strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure`
+  and the cardinality bridge
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_max`.
+  This states the proof split explicitly:
+  `card rowDagUniverse <= card finalRows * finalMaxRowDag`.
 - The report is in
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
   This is smoke evidence only; BR-040 still requires an Isabelle derivation of

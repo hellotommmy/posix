@@ -193,6 +193,10 @@ when possible. It needs only
 `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D` and
 then supplies final rows `<= D`, pair budget `<= D * D`, `finalMaxRowDag <= D`,
 row-member exact-DAG `<= D`, and exact POSIX reconstruction.
+For a factored proof, use
+`FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_max`:
+`card rowDagUniverse <= card finalRows * finalMaxRowDag`. This is often the
+cleanest split if row count and max-row-DAG require different invariants.
 For final-active proof work, prefer the syntax-facing lemmas
 `raw_final_active_suffix_rows_iff`, `raw_final_active_suffix_keys_iff`, and
 `raw_final_active_suffix_bucket_iff`, plus their lifted

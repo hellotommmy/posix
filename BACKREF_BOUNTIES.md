@@ -167,6 +167,13 @@ immutability.
   `strong_deferred_original_final_active_single_row_dag_universe_contract`.
   This reduces BR-040's accounting interface to one future universe bound.
   Infrastructure only; no payout is claimed.
+- Row-DAG decomposition checkpoint: checked
+  `raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure`,
+  `strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure`,
+  and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_rows_times_max`.
+  This exposes the factorization `row-DAG <= finalRows * finalMaxRowDag`.
+  Infrastructure only; no payout is claimed.
 - Final-active DAG scout checkpoint: `strong_memo_final_active_scout.ps1`
   now defaults to the metric that BR-040 actually needs: exact-DAG and
   shape-DAG member budgets `2.0 * rsize`, with raw member tree size disabled
