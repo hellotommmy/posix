@@ -28,6 +28,20 @@ to be read before continuing long-running agent work.
   The proof object probably needs a periodic/indexed/quotiented row universe,
   or a final-state invariant closer to the bounded `strongMemoTree` itself.
 
+## 2026-06-03: Final active rows look bounded on the thesis grid
+
+- Added final-state active metrics to the Scala smoke model:
+  `strongMemoFinalActiveRows`, `strongMemoFinalActiveKeys`,
+  `strongMemoFinalActiveMaxBucket`, and
+  `strongMemoFinalActivePairBudget`.
+- On the same `k=5,8,n<=200` grid, final active rows stay tiny: max `5` for
+  `k=5` and max `9` for `k=8`; final active pair-budget maxes at `17` and
+  `65`, respectively.
+- Design consequence: separate the final derivative state from the cumulative
+  prefix/memo pool. The proof route should prefer a final-state active-row
+  invariant for regex-size derivative bounds, while the span/value memo table
+  may keep its input-length-dependent budget for POSIX reconstruction.
+
 ## 2026-06-03: Active pair-budget is a proof-facing quantity
 
 - Added `raw_shared_prune_active_suffix_pair_budget`, the exact sum of

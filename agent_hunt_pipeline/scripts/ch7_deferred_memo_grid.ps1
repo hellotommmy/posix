@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $GridScript = Join-Path $ScriptDir "ch7_size_grid.ps1"
-$Metrics = "strongMemoTree,strongMemoActiveRows,strongMemoActiveKeys,strongMemoActiveMaxBucket,strongMemoActivePairBudget,strongMemoStates,strongMemoSplitProbes,strongMemoSpanBound,strongMemoSplitBound"
+$Metrics = "strongMemoTree,strongMemoActiveRows,strongMemoActiveKeys,strongMemoActiveMaxBucket,strongMemoActivePairBudget,strongMemoFinalActiveRows,strongMemoFinalActiveKeys,strongMemoFinalActiveMaxBucket,strongMemoFinalActivePairBudget,strongMemoStates,strongMemoSplitProbes,strongMemoSpanBound,strongMemoSplitBound"
 
 $Params = @{
   Ks = $Ks

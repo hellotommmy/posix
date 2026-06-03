@@ -92,6 +92,10 @@ immutability.
   shows that the unquotiented cumulative active prefix pool is not the final
   cubic proof object (`k=8` active pair-budget still grows to `96722` at
   `n=200`). This remains diagnostic BR-038/BR-040 infrastructure, not a payout.
+  Follow-up final-state metrics are more encouraging: on the same grid,
+  `strongMemoFinalActiveRows` maxes at `5` for `k=5` and `9` for `k=8`, while
+  `strongMemoFinalActivePairBudget` maxes at `17` and `65`. This suggests the
+  next proof should target final-state active rows, not raw prefix-pool rows.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.

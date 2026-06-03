@@ -1887,7 +1887,8 @@ object PosixCubicSmoke {
       strongDag: Int,
       strongShapeDag: Int,
       memo: PosixMemoResult,
-      activeSuffix: ActiveSuffixStats
+      activeSuffix: ActiveSuffixStats,
+      finalActiveSuffix: ActiveSuffixStats
   )
 
   final case class StrongCubicObservation(
@@ -2006,7 +2007,7 @@ object PosixCubicSmoke {
   def posixMemoValue(r: Rexp, input: String): Option[Val] =
     posixMemoResult(r, input).value
 
-  def activeSuffixStatsForStrongPrefixes(r: Rexp, input: String): ActiveSuffixStats = {
+  def activeSuffixStatsForStrongRoots(roots: Iterable[ARexp]): ActiveSuffixStats = {
     val buckets = scala.collection.mutable.Map.empty[Rexp, scala.collection.mutable.Set[Rexp]]
 
     def recordActive(q: ARexp): Unit = q match {
@@ -2034,12 +2035,7 @@ object PosixCubicSmoke {
       }
     }
 
-    var root = intern(r)
-    visit(root)
-    input.foreach { c =>
-      root = bsimpStrong(bder(c, root))
-      visit(root)
-    }
+    roots.foreach(visit)
 
     val rows = buckets.valuesIterator.map(_.size).sum
     val keys = buckets.size
@@ -2051,19 +2047,37 @@ object PosixCubicSmoke {
     ActiveSuffixStats(rows, keys, maxBucket, pairBudget)
   }
 
+  def activeSuffixStatsForStrongPrefixes(r: Rexp, input: String): ActiveSuffixStats = {
+    val roots = scala.collection.mutable.ListBuffer.empty[ARexp]
+    var root = intern(r)
+    roots += root
+    input.foreach { c =>
+      root = bsimpStrong(bder(c, root))
+      roots += root
+    }
+    activeSuffixStatsForStrongRoots(roots)
+  }
+
+  def activeSuffixStatsForStrongFinal(r: Rexp, input: String): ActiveSuffixStats = {
+    val finalRegex = bdersStrong(intern(r), input)
+    activeSuffixStatsForStrongRoots(List(finalRegex))
+  }
+
   def strongDeferredMemoResult(r: Rexp, input: String): StrongDeferredMemoResult = {
     val finalRegex = bdersStrong(intern(r), input)
     val memo =
       if (bnullable(finalRegex)) posixMemoResult(r, input)
       else PosixMemoResult(None, 0, 0, 0, 0, 0)
     val activeSuffix = activeSuffixStatsForStrongPrefixes(r, input)
+    val finalActiveSuffix = activeSuffixStatsForStrongRoots(List(finalRegex))
     StrongDeferredMemoResult(
       memo.value,
       asize(finalRegex),
       adagSize(finalRegex),
       ashapeDagSize(finalRegex),
       memo,
-      activeSuffix
+      activeSuffix,
+      finalActiveSuffix
     )
   }
 
@@ -3827,6 +3841,10 @@ object PosixCubicSmoke {
       case "strongMemoActiveKeys" => strongDeferredMemoResult(r, input).activeSuffix.keys.toLong
       case "strongMemoActiveMaxBucket" => strongDeferredMemoResult(r, input).activeSuffix.maxBucket.toLong
       case "strongMemoActivePairBudget" => strongDeferredMemoResult(r, input).activeSuffix.pairBudget
+      case "strongMemoFinalActiveRows" => strongDeferredMemoResult(r, input).finalActiveSuffix.rows.toLong
+      case "strongMemoFinalActiveKeys" => strongDeferredMemoResult(r, input).finalActiveSuffix.keys.toLong
+      case "strongMemoFinalActiveMaxBucket" => strongDeferredMemoResult(r, input).finalActiveSuffix.maxBucket.toLong
+      case "strongMemoFinalActivePairBudget" => strongDeferredMemoResult(r, input).finalActiveSuffix.pairBudget
       case "strongMemoSpanBound" => memoSpanBound(r, input.length)
       case "strongMemoSplitBound" => memoSplitProbeBound(r, input.length)
       case "strongSafeTree" => asize(bdersStrongSafe(intern(r), input)).toLong
@@ -3846,7 +3864,7 @@ object PosixCubicSmoke {
         sharedModeResult(seqMode, r, input, directDag = true).langAtomicContPruneShapeStatePoolSize.toLong
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongMemoTree, strongMemoDag, strongMemoShape, strongMemoAcceptsStates, strongMemoValueStates, strongMemoStates, strongMemoSplitProbes, strongMemoQueries, strongMemoActiveRows, strongMemoActiveKeys, strongMemoActiveMaxBucket, strongMemoActivePairBudget, strongMemoSpanBound, strongMemoSplitBound, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
+          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongMemoTree, strongMemoDag, strongMemoShape, strongMemoAcceptsStates, strongMemoValueStates, strongMemoStates, strongMemoSplitProbes, strongMemoQueries, strongMemoActiveRows, strongMemoActiveKeys, strongMemoActiveMaxBucket, strongMemoActivePairBudget, strongMemoFinalActiveRows, strongMemoFinalActiveKeys, strongMemoFinalActiveMaxBucket, strongMemoFinalActivePairBudget, strongMemoSpanBound, strongMemoSplitBound, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
         )
     }
 

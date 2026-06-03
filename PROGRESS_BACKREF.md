@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Active Metrics Added (2026-06-03)
+
+- Added Scala smoke metrics for the active suffix rows reachable in only the
+  final strong derivative tree:
+  - `strongMemoFinalActiveRows`;
+  - `strongMemoFinalActiveKeys`;
+  - `strongMemoFinalActiveMaxBucket`;
+  - `strongMemoFinalActivePairBudget`.
+- Regenerated `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/` with
+  these final-state metrics.
+- Evidence from `k=5,8`, `n=0..200`, step `4`:
+  - `k=5`: final active rows max `5`, final active pair-budget max `17`;
+  - `k=8`: final active rows max `9`, final active pair-budget max `65`;
+  - both keep final active keys at max `2`.
+- Design consequence: the long-tail growth seen in
+  `strongMemoActiveRows`/`strongMemoActivePairBudget` belongs to the cumulative
+  prefix pool, not to the final derivative tree. The next proof target should
+  model final-state active rows, or prove a periodic/indexed quotient for
+  prefix accumulation, rather than bounding the raw prefix pool directly.
+
 ## Cubic Route Checkpoint: Active Closure Monotonicity (2026-06-03)
 
 - Added monotonicity facts for the memo-strong active shared-prune universe:
