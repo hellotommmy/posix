@@ -119,6 +119,14 @@ immutability.
   by `K`; proof work should treat `8.0` as the current smoke-passing candidate,
   not a proven constant. This is smoke evidence for the final-active proof
   route only; no BR-039/BR-040 payout is claimed.
+- Member-factor sweep:
+  `agent_hunt_pipeline/scripts/strong_memo_final_active_factor_sweep.ps1`
+  runs the final-active scout across candidate member factors and keeps
+  per-factor reports under
+  `agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep/`. The
+  current sweep (`4,6,8`) records `4` and `6` as failed by seed `20260602`,
+  case `4784`, and `8` as the current smoke-passing candidate. This is BR-038
+  tooling/evidence, not a payout.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final

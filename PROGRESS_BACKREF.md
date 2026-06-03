@@ -62,6 +62,12 @@ Last updated: 2026-06-03 (strong-memo route is default)
   `k=5,n=4` needs `126/46 ~= 2.74`, and seed `20260602` case `4784` needs
   `195/30 = 6.5`. A separate `k=5,8`, `n=4..32` grid shows the final-active
   max row size plateaus at `126` for `k=5` and `297` for `k=8`.
+- Added `agent_hunt_pipeline/scripts/strong_memo_final_active_factor_sweep.ps1`
+  to make this comparison reproducible. The current report under
+  `agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep/` sweeps
+  member factors `4,6,8` on seeds `20260602,20260603,20260604`, `5000` random
+  cases each. It records `4` and `6` as failed by the same `6.5x` witness, and
+  `8` as the current smoke-passing candidate.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

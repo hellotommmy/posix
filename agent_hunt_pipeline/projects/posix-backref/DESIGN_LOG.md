@@ -49,6 +49,12 @@ to be read before continuing long-running agent work.
   found no final-active budget CE. Worst ratios: rows `0.782609`, member
   `6.500000`, pair `0.040000`. This makes `8.0x` the current smoke-passing
   candidate constant, not a theorem.
+- Added `strong_memo_final_active_factor_sweep.ps1` to sweep member factors
+  reproducibly. The current sweep over `4,6,8` records `4` and `6` as failed
+  by seed `20260602`, case `4784` (`finalActiveMaxRowSize=195`, `rsize=30`),
+  and `8` as passed on the three-seed `5000`-case grid. The script keeps
+  per-factor logs so future agents can extend the factor/depth grid without
+  overwriting the main scout report.
 - The Chapter 7 trace now prints both cumulative active-prefix metrics and
   final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
   grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.

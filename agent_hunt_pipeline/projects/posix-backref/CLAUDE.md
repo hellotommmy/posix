@@ -151,6 +151,11 @@ working constant. The current larger scout-passing candidate is
 `RowsFactor=1.0`, `MemberFactor=8.0`, `PairFactor=1.0` on seeds
 `20260602,20260603,20260604`, `5000` random cases each at depth `6`, input
 length `8`; worst member ratio is `6.5`.
+Use
+`powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_factor_sweep.ps1`
+to compare member factors without overwriting the main scout report. The
+current sweep report shows factors `4` and `6` fail on seed `20260602`, case
+`4784`, while `8` passes the three-seed `5000`-case grid.
 On the Isabelle side, the current handoff theorem for this route is
 `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`:
 prove the final-active rows and pair-budget bounds against the original

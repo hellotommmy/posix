@@ -1,0 +1,10 @@
+﻿Strong memo final-active scout failed for seed 20260602; see C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\age
+nt_hunt_pipeline\reports\strong_memo_final_active_factor_sweep\factor_6\seed_20260602.log
+At C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\agent_hunt_pipeline\scripts\strong_memo_final_active_scout.ps
+1:83 char:5
++     throw "Strong memo final-active scout failed for seed $Seed; see  ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Strong memo fin...ed_20260602.log:String) [], RuntimeException
+    + FullyQualifiedErrorId : Strong memo final-active scout failed for seed 20260602; see C:\Users\Chengsong\Document
+   s\AIPV2026Notes\posix-codex\agent_hunt_pipeline\reports\strong_memo_final_active_factor_sweep\factor_6\seed_202606
+  02.log

@@ -42,30 +42,43 @@ foreach ($SeedText in $SeedList) {
   $Seed = [long]$SeedText
   $LogPath = Join-Path $OutDirPath "seed_$Seed.log"
   Write-Host "== Strong memo final-active scout seed=$Seed =="
-  $Output = @()
-  $ExitCode = 0
-  try {
-    $Output = & $SmokeScript `
-      -Route strong-memo `
-      -SkipLegacyCubic `
-      -CheckStrongDeferredMemo `
-      -FindStrongFinalActiveBudgetCE `
-      -StrongFinalActiveRowsFactor $RowsFactor `
-      -StrongFinalActivePairFactor $PairFactor `
-      -StrongFinalActiveMemberFactor $MemberFactor `
-      -StrongFinalActiveMinRegexSize $MinRegexSize `
-      -StrongFinalActiveTop $Top `
-      -RandomCases $RandomCases `
-      -RandomDepth $RandomDepth `
-      -RandomInputLength $RandomInputLength `
-      -Seed $Seed `
-      -TimeoutSeconds $TimeoutSeconds 2>&1
-    $ExitCode = $LASTEXITCODE
-  } catch {
-    $ExitCode = 1
-    $Output += $_ | Out-String
+  $SmokeArgs = @(
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", $SmokeScript,
+    "-Route", "strong-memo",
+    "-SkipLegacyCubic",
+    "-CheckStrongDeferredMemo",
+    "-FindStrongFinalActiveBudgetCE",
+    "-StrongFinalActiveRowsFactor", $RowsFactor,
+    "-StrongFinalActivePairFactor", $PairFactor,
+    "-StrongFinalActiveMemberFactor", $MemberFactor,
+    "-StrongFinalActiveMinRegexSize", $MinRegexSize,
+    "-StrongFinalActiveTop", $Top,
+    "-RandomCases", $RandomCases,
+    "-RandomDepth", $RandomDepth,
+    "-RandomInputLength", $RandomInputLength,
+    "-Seed", $Seed,
+    "-TimeoutSeconds", $TimeoutSeconds
+  )
+  $OldErrorActionPreference = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  $Output = & powershell @SmokeArgs 2>&1
+  $ExitCode = $LASTEXITCODE
+  $ErrorActionPreference = $OldErrorActionPreference
+  $CleanOutput = @(
+    $Output |
+      ForEach-Object { [string]$_ -split "\r?\n" } |
+      ForEach-Object { ($_ -replace "\s+$", "") }
+  )
+  while ($CleanOutput.Count -gt 0 -and $CleanOutput[-1].Length -eq 0) {
+    if ($CleanOutput.Count -eq 1) {
+      $CleanOutput = @()
+    } else {
+      $CleanOutput = @($CleanOutput[0..($CleanOutput.Count - 2)])
+    }
   }
-  $Output | Set-Content -LiteralPath $LogPath
+  $CleanOutput | Set-Content -LiteralPath $LogPath -Encoding utf8
   if ($ExitCode -ne 0) {
     throw "Strong memo final-active scout failed for seed $Seed; see $LogPath"
   }
@@ -156,5 +169,5 @@ $Lines.Add("A no entry means the smoke run found no final-active witness above")
 $Lines.Add("the configured linear rows, linear member-size, or quadratic pair-budget. This is smoke")
 $Lines.Add("evidence for the strong-memo proof route, not an Isabelle proof.")
 
-$Lines | Set-Content -LiteralPath $SummaryPath
+$Lines | Set-Content -LiteralPath $SummaryPath -Encoding utf8
 Write-Host "== Wrote strong memo final-active scout report to $OutDirPath =="

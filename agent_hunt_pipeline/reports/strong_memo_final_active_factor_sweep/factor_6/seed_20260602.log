@@ -1,0 +1,46 @@
+﻿== Scala cubic smoke: route=strong-memo depth=2 input=3 random=5000/6 seed=20260602 seq=full shared=0 sharedDirectDag=0 sharedDirectCompareTree=0 skipLegacy=1 strong=0 checkStrong=0 checkStrongDeferred=0 checkStrongDeferredMemo=1 traceStrongDeferredMemo=1 checkStrongRowsBridge=0 requireStrongRowsBridgeCoverage=0 checkStrongRowsBridgeCh7=0 strongSafe=0 checkStrongSafe=0 strongRecon=0 strongCore=0 strongCoreLoopTrace=0 strongCoreCert=0 strongCoreLoop=0 strongFullLoop=0 strongFullLoopTrace=0 strongFullKnown=0 strongFullKnownCE=0 findStrongDirectCE=0 findCoreCE=0 findFullCE=0 findRawInjectCE=0 findStrongCubicBudgetCE=0 findStrongFinalActiveBudgetCE=1 findStrongRowsBridgeCE=0 handCore=0 strongCubicFactor=0 strongCubicMinRegexSize=5 strongCubicTop=1 strongFinalActiveRowsFactor=1 strongFinalActivePairFactor=1 strongFinalActiveMemberFactor=6 strongFinalActiveMinRegexSize=5 strongFinalActiveTop=5 sharedStatePoolCubicFactor=0 sharedStatePoolCubicMinRegexSize=5 sharedStatePoolCubicTop=1 sharedPlateau=0/4/shapeStatePool growthTop=0 progress=0 require=0 metricOnly=0 ch7=5/4,8,12,16,20 tree=1000 dag=0 shape=0 ch7StrongCubicFactor=0 ==
+checked strong memo-deferred POSIX values on 84300 regex/input pairs (depth <= 2, input length <= 3, strongCubicFactor=0.0, strongCubicMinRegexSize=5, strongCubicTop=1); worst strong cubic ratio=0.112000 label=exhaustive case 829 tree=14 rsize=5 input=aa regex=NTIMES(STAR(CH(a)),2); finalActiveBudget(rowsFactor=1.0, pairFactor=1.0, memberFactor=6.0, minRegexSize=5, top=5); top final-active row ratios: #1:rowsRatio=0.200000 rows=1 label=exhaustive case 65656 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),CH(a)); #2:rowsRatio=0.200000 rows=1 label=exhaustive case 65686 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),CH(b)); #3:rowsRatio=0.200000 rows=1 label=exhaustive case 65626 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),ONE); #4:rowsRatio=0.200000 rows=1 label=exhaustive case 65596 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),ZERO); #5:rowsRatio=0.200000 rows=1 label=exhaustive case 68776 rsize=5 input= regex=SEQ(ALT(CH(a),CH(b)),CH(a)); top final-active member ratios: #1:memberRatio=1.000000 maxRowSize=8 label=exhaustive case 66046 rsize=8 input= regex=SEQ(ALT(CH(a),CH(a)),NTIMES(CH(a),2)); #2:memberRatio=1.000000 maxRowSize=8 label=exhaustive case 66166 rsize=8 input= regex=SEQ(ALT(CH(a),CH(a)),NTIMES(CH(b),2)); #3:memberRatio=1.000000 maxRowSize=8 label=exhaustive case 65926 rsize=8 input= regex=SEQ(ALT(CH(a),CH(a)),NTIMES(ONE,2)); #4:memberRatio=1.000000 maxRowSize=8 label=exhaustive case 65806 rsize=8 input= regex=SEQ(ALT(CH(a),CH(a)),NTIMES(ZERO,2)); #5:memberRatio=1.000000 maxRowSize=8 label=exhaustive case 69166 rsize=8 input= regex=SEQ(ALT(CH(a),CH(b)),NTIMES(CH(a),2)); top final-active pair ratios: #1:pairRatio=0.040000 pairBudget=1 label=exhaustive case 65656 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),CH(a)); #2:pairRatio=0.040000 pairBudget=1 label=exhaustive case 65686 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),CH(b)); #3:pairRatio=0.040000 pairBudget=1 label=exhaustive case 65626 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),ONE); #4:pairRatio=0.040000 pairBudget=1 label=exhaustive case 65596 rsize=5 input= regex=SEQ(ALT(CH(a),CH(a)),ZERO); #5:pairRatio=0.040000 pairBudget=1 label=exhaustive case 68776 rsize=5 input= regex=SEQ(ALT(CH(a),CH(b)),CH(a))
+checked strong memo-deferred known CE grid on 15 cases (strongCubicFactor=0.0, strongCubicMinRegexSize=5, strongCubicTop=1); worst strong cubic ratio=0.029000 label=known CE full-cert greedy sequence CE input=bb tree=29 rsize=10 input=bb regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); finalActiveBudget(rowsFactor=1.0, pairFactor=1.0, memberFactor=6.0, minRegexSize=5, top=5); top final-active row ratios: #1:rowsRatio=0.100000 rows=1 label=known CE full-cert greedy sequence CE input=b rsize=10 input=b regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #2:rowsRatio=0.100000 rows=1 label=known CE full-cert greedy sequence CE input=bb rsize=10 input=bb regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #3:rowsRatio=0.000000 rows=0 label=known CE full-cert greedy sequence CE input= rsize=10 input= regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #4:rowsRatio=0.000000 rows=0 label=known CE full-cert greedy sequence CE input=bba rsize=10 input=bba regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #5:rowsRatio=0.000000 rows=0 label=known CE full-cert greedy sequence CE input=bbaa rsize=10 input=bbaa regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); top final-active member ratios: #1:memberRatio=1.500000 maxRowSize=15 label=known CE full-cert greedy sequence CE input=b rsize=10 input=b regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #2:memberRatio=1.500000 maxRowSize=15 label=known CE full-cert greedy sequence CE input=bb rsize=10 input=bb regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #3:memberRatio=0.000000 maxRowSize=0 label=known CE full-cert greedy sequence CE input= rsize=10 input= regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #4:memberRatio=0.000000 maxRowSize=0 label=known CE full-cert greedy sequence CE input=bba rsize=10 input=bba regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #5:memberRatio=0.000000 maxRowSize=0 label=known CE full-cert greedy sequence CE input=bbaa rsize=10 input=bbaa regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); top final-active pair ratios: #1:pairRatio=0.010000 pairBudget=1 label=known CE full-cert greedy sequence CE input=b rsize=10 input=b regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #2:pairRatio=0.010000 pairBudget=1 label=known CE full-cert greedy sequence CE input=bb rsize=10 input=bb regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #3:pairRatio=0.000000 pairBudget=0 label=known CE full-cert greedy sequence CE input= rsize=10 input= regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #4:pairRatio=0.000000 pairBudget=0 label=known CE full-cert greedy sequence CE input=bba rsize=10 input=bba regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a))); #5:pairRatio=0.000000 pairBudget=0 label=known CE full-cert greedy sequence CE input=bbaa rsize=10 input=bbaa regex=SEQ(STAR(ALT(STAR(CH(b)),SEQ(CH(b),CH(a)))),STAR(CH(a)))
+java.lang.AssertionError: strong memo final-active budget failed
+label                 = random seed=20260602 case=4784
+regex                 = ALT(SEQ(SEQ(STAR(SEQ(ALT(ONE,SEQ(CH(b),CH(b))),STAR(ALT(CH(b),ONE)))),STAR(STAR(NTIMES(ALT(ALT(CH(b),ZERO),STAR(CH(b))),2)))),STAR(STAR(STAR(CH(a))))),ZERO)
+input                 = bbbb
+rsize                 = 30
+minRsize              = 5
+rowsFactor            = 1.0
+pairFactor            = 1.0
+memberFactor          = 6.0
+rowsBound             = 30
+pairBound             = 900
+memberBound           = 180
+finalActiveRows       = 6
+finalActiveKeys       = 6
+finalActiveMaxBucket  = 1
+finalActiveMaxRowSize = 195
+finalActivePairBudget = 6
+failures              = finalActiveMaxRowSize=195 > 180
+strongTree            = 190
+strongDag             = 43
+
+	at PosixCubicSmoke$.checkFinalActiveBudget(PosixCubicSmoke.scala:2449)
+	at PosixCubicSmoke$.checkStrongDeferredMemoRandomValuePreservation$$anonfun$1(PosixCubicSmoke.scala:3711)
+	at scala.runtime.java8.JFunction1$mcVI$sp.apply(JFunction1$mcVI$sp.scala:18)
+	at scala.collection.immutable.Range.foreach(Range.scala:190)
+	at PosixCubicSmoke$.checkStrongDeferredMemoRandomValuePreservation(PosixCubicSmoke.scala:3695)
+	at PosixCubicSmoke$.runSmoke(PosixCubicSmoke.scala:5775)
+	at PosixCubicSmoke$.main(PosixCubicSmoke.scala:5937)
+	at PosixCubicSmoke.main(PosixCubicSmoke.scala)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at dotty.tools.scripting.ScriptingDriver.compileAndRun(ScriptingDriver.scala:33)
+	at dotty.tools.scripting.Main$.process(Main.scala:39)
+	at dotty.tools.MainGenericRunner$.run$1(MainGenericRunner.scala:250)
+	at dotty.tools.MainGenericRunner$.process(MainGenericRunner.scala:270)
+	at dotty.tools.MainGenericRunner$.main(MainGenericRunner.scala:281)
+	at dotty.tools.MainGenericRunner.main(MainGenericRunner.scala)
+Scala cubic smoke failed with exit code 1
+At C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1:159 char:3
++   throw "Scala cubic smoke failed with exit code $NativeExitCode"
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Scala cubic smo...ith exit code 1:String) [], RuntimeException
+    + FullyQualifiedErrorId : Scala cubic smoke failed with exit code 1
