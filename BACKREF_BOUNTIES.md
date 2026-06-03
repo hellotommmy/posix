@@ -136,6 +136,17 @@ immutability.
   `card strong_deferred_final_active_suffix_closure <= T + T*T*M`. This is the
   current proof-facing shape for the indexed/final-active universe route, but
   it is still infrastructure until the final tree/member-size bound is checked.
+  Follow-up checked lemmas now discharge that member-size premise for the
+  final-active closure itself:
+  `raw_final_active_suffix_rows_member_size_le_rsize`,
+  `card_raw_final_active_suffix_closure_le_rsize_cubic`,
+  `strong_deferred_final_active_suffix_rows_member_size_le_final_asize`,
+  `strong_deferred_final_active_suffix_closure_le_final_asize_cubic`, and
+  `strong_deferred_memo_tree_bounded_active_closure_cubic_contract`. Thus a
+  future strong-tree bound `asize <= T` directly gives
+  `card strong_deferred_final_active_suffix_closure <= T + T*T*T`. This still
+  does not pay BR-040 until the final strong-tree or equivalent indexed
+  representation bound is checked.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.

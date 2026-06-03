@@ -2787,3 +2787,14 @@ to be read before continuing long-running agent work.
   active row member-size `rsize q <= M`; together they imply closure cardinality
   `<= T + T*T*M`. This is deliberately still conditional infrastructure, but it
   is the shape to instantiate with an indexed/final-active universe.
+- Final-active cubic contract update (2026-06-03): the member-size premise for
+  final active rows is now discharged by subterm accounting. Raw active rows are
+  subterms of the final raw strong tree, and the lifted theorem
+  `strong_deferred_final_active_suffix_rows_member_size_le_final_asize` turns
+  that into an annotated final-tree bound. Consequently
+  `strong_deferred_memo_tree_bounded_active_closure_cubic_contract` states that
+  any future final strong-tree bound `asize <= T` directly implies
+  `card strong_deferred_final_active_suffix_closure <= T + T*T*T`. The live
+  problem is therefore no longer a separate row-size proof; it is the final
+  strong-tree/indexed-representation bound while preserving the
+  `strong_deferred_span_value` POSIX reconstruction contract.

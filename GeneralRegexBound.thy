@@ -22871,6 +22871,22 @@ proof -
         [OF rows_bound pair_budget member_size])
 qed
 
+lemma raw_final_active_suffix_rows_member_size_le_rsize:
+  assumes "q \<in> raw_final_active_suffix_rows r"
+  shows "rsize q \<le> rsize r"
+proof -
+  have "q \<in> rsubterms r"
+    using assms raw_final_active_suffix_rows_subset_rsubterms by blast
+  then show ?thesis
+    by (rule rsubterms_member_size_le_rsize)
+qed
+
+lemma card_raw_final_active_suffix_closure_le_rsize_cubic:
+  "card (raw_final_active_suffix_closure r) \<le>
+    rsize r + rsize r * rsize r * rsize r"
+  by (rule card_raw_final_active_suffix_closure_le_rsize_plus_square_member)
+     (rule raw_final_active_suffix_rows_member_size_le_rsize)
+
 
 lemma three_easy_cases0: 
   shows "rsize (rders_simp RZERO s) \<le> Suc 0"

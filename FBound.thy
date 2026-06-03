@@ -2736,6 +2736,34 @@ proof -
         [OF rows_bound pair_budget member_size])
 qed
 
+lemma strong_deferred_final_active_suffix_rows_member_size_le_final_rsize:
+  assumes "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "rsize q \<le> rsize (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_rows_member_size_le_rsize)
+
+lemma strong_deferred_final_active_suffix_rows_member_size_le_final_asize:
+  assumes "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "rsize q \<le> asize (bders_simpStrong (intern r) s)"
+proof -
+  have "rsize q \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule strong_deferred_final_active_suffix_rows_member_size_le_final_rsize
+        [OF assms])
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_final_active_suffix_closure_le_final_asize_cubic:
+  "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    asize (bders_simpStrong (intern r) s) +
+    asize (bders_simpStrong (intern r) s) *
+    asize (bders_simpStrong (intern r) s) *
+    asize (bders_simpStrong (intern r) s)"
+  by (rule strong_deferred_final_active_suffix_closure_le_final_asize_square_member)
+     (rule strong_deferred_final_active_suffix_rows_member_size_le_final_asize)
+
 lemma strong_deferred_memo_tree_value_final_active_interface:
   shows "(if bnullable (bders_simpStrong (intern r) s)
       then Some (THE v. strong_deferred_span_value r s v)
@@ -2871,6 +2899,29 @@ proof -
     by (rule
         strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound
         [OF rows_bound pair_budget member_size])
+qed
+
+lemma strong_deferred_memo_tree_bounded_active_closure_cubic_contract:
+  assumes tree_bound: "asize (bders_simpStrong (intern r) s) \<le> T"
+  shows "card (strong_deferred_final_active_suffix_closure r s) \<le>
+    T + T * T * T"
+proof -
+  have member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> T"
+  proof -
+    fix q
+    assume q: "q \<in> strong_deferred_final_active_suffix_rows r s"
+    have "rsize q \<le> asize (bders_simpStrong (intern r) s)"
+      by (rule strong_deferred_final_active_suffix_rows_member_size_le_final_asize
+          [OF q])
+    also have "... \<le> T"
+      by (rule tree_bound)
+    finally show "rsize q \<le> T" .
+  qed
+  show ?thesis
+    by (rule strong_deferred_memo_tree_bounded_active_closure_contract
+        [OF tree_bound member_size])
 qed
 
 lemma RL_rerase_bders_simpCubic:

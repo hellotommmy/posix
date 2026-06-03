@@ -10,24 +10,31 @@ Last updated: 2026-06-03 (strong-memo route is default)
 - Checked raw cardinality interfaces:
   - `card_raw_final_active_suffix_closure_member_pair_budget_bound`;
   - `card_raw_final_active_suffix_closure_member_pair_budget_card_bound`;
-  - `card_raw_final_active_suffix_closure_le_rsize_plus_square_member`.
+  - `card_raw_final_active_suffix_closure_le_rsize_plus_square_member`;
+  - `raw_final_active_suffix_rows_member_size_le_rsize`;
+  - `card_raw_final_active_suffix_closure_le_rsize_cubic`.
 - Checked lifted strong-memo interfaces:
   - `strong_deferred_final_active_suffix_closure_member_pair_budget_bound`;
   - `strong_deferred_final_active_suffix_closure_member_pair_budget_card_bound`;
   - `strong_deferred_final_active_suffix_closure_le_final_asize_square_member`;
-  - `strong_deferred_memo_tree_bounded_active_closure_contract`.
-- Design result: after a future final strong-tree bound
-  `asize (bders_simpStrong (intern r) s) <= T`, it is now enough to prove a
-  member-size bound `rsize q <= M` for final active rows to get
-  `card (strong_deferred_final_active_suffix_closure r s) <= T + T*T*M`.
-  This turns the next proof obligation into a concrete indexed/final-active
-  universe problem rather than a raw prefix-pool problem.
+  - `strong_deferred_final_active_suffix_rows_member_size_le_final_asize`;
+  - `strong_deferred_final_active_suffix_closure_le_final_asize_cubic`;
+  - `strong_deferred_memo_tree_bounded_active_closure_contract`;
+  - `strong_deferred_memo_tree_bounded_active_closure_cubic_contract`.
+- Design result: final active rows are subterms of the final strong tree, so a
+  future final strong-tree bound
+  `asize (bders_simpStrong (intern r) s) <= T` now directly yields
+  `card (strong_deferred_final_active_suffix_closure r s) <= T + T*T*T`.
+  This removes the separate member-size obligation for this final-active
+  closure. The remaining hard obligation is the final strong-tree bound itself,
+  or an equivalent indexed representation bound with the same POSIX
+  reconstruction contract.
 - Verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
   passed, including default `strong-memo` Scala smoke, `Posix`, and
   `BackRefPilot`.
 - No BR-040 payout is claimed. The remaining hard theorem is still the final
-  tree/member-size/indexed-universe bound itself.
+  tree or indexed-universe bound itself.
 
 ## Cubic Route Checkpoint: Strong-Memo POSIX Contract (2026-06-03)
 
