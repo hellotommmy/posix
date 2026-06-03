@@ -18,6 +18,10 @@ to be read before continuing long-running agent work.
   `strong_deferred_final_active_suffix_max_row_dag_empty`. This formalizes why
   a large inactive whole-final DAG with `finalRows=0` should not block the
   primary row-DAG theorem.
+- Added `strong_deferred_original_final_active_empty_rows_contract`, which
+  packages the `finalRows=0` case with exact POSIX `Some`/`None`
+  reconstruction, `flat v = s`, and zero active budgets. This is the clean
+  theorem to cite when a smoke counterexample has no final-active rows.
 - Do not revive linear raw-tree one-step bounds such as
   `asize (bder c (intern r)) <= K * rxsize r` as the main route; they miss the
   sharing that the final-active row-DAG metric is designed to expose. Raw tree

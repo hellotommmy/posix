@@ -23,6 +23,12 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - `FBound.thy:strong_deferred_final_active_suffix_keys_empty`
   - `FBound.thy:strong_deferred_final_active_suffix_pair_budget_empty`
   - `FBound.thy:strong_deferred_final_active_suffix_max_row_dag_empty`
+- Added the checked lifted contract
+  `FBound.thy:strong_deferred_original_final_active_empty_rows_contract`.
+  If a legacy root has no final-active rows after `bders_simpStrong`, the
+  memo strong nullable gate still gives exact POSIX `Some`/`None`
+  reconstruction and `flat v = s`, while the active key/pair/row-DAG/max
+  budgets collapse to zero.
 - Design meaning: examples with large whole-final DAG but `finalRows=0` are
   now formally separated from the active metric. The BR-040 target remains:
   exact POSIX reconstruction via `strong_deferred_span_value`, with size

@@ -5273,6 +5273,77 @@ proof -
         [OF legacy rows_bound row_dag_universe_bound])
 qed
 
+lemma strong_deferred_original_final_active_empty_rows_contract:
+  assumes legacy: "legacy_rexp r"
+    and rows_empty: "strong_deferred_final_active_suffix_rows r s = {}"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "strong_deferred_final_active_suffix_keys r s = {}"
+    and "strong_deferred_final_active_suffix_pair_budget r s = 0"
+    and "strong_deferred_final_active_suffix_row_dag_universe r s = {}"
+    and "strong_deferred_final_active_suffix_max_row_dag r s = 0"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have row_dag_zero:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> 0"
+    using rows_empty
+    by (simp add: strong_deferred_final_active_suffix_row_dag_universe_empty)
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(1)
+        [OF legacy row_dag_zero])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(2)
+        [OF legacy row_dag_zero])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(3)
+        [OF legacy row_dag_zero])
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(4)
+        [OF legacy row_dag_zero])
+  show "strong_deferred_final_active_suffix_keys r s = {}"
+    by (rule strong_deferred_final_active_suffix_keys_empty[OF rows_empty])
+  show "strong_deferred_final_active_suffix_pair_budget r s = 0"
+    by (rule strong_deferred_final_active_suffix_pair_budget_empty
+        [OF rows_empty])
+  show "strong_deferred_final_active_suffix_row_dag_universe r s = {}"
+    by (rule strong_deferred_final_active_suffix_row_dag_universe_empty
+        [OF rows_empty])
+  show "strong_deferred_final_active_suffix_max_row_dag r s = 0"
+    by (rule strong_deferred_final_active_suffix_max_row_dag_empty
+        [OF rows_empty])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(11)
+        [OF legacy row_dag_zero])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_final_active_single_row_dag_universe_contract(12)
+        [OF legacy row_dag_zero])
+qed
+
 lemma strong_deferred_original_final_active_single_row_dag_linear_contract:
   assumes legacy: "legacy_rexp r"
     and row_dag_universe_bound:
