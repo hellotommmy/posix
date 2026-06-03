@@ -279,6 +279,7 @@ object PosixCubicSmoke {
       case "none" => ASEQ(bs, r1, r2)
       case "keyed-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
       case "expanded-keyed-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
+      case "unary-cover-no-reassoc" => bsimpCubicASEQAtomMode("no-reassoc", bs, r1, r2)
       case "reassoc-nonnullable-left" => (r1, r2) match {
         case (ASEQ(bs2, a, b), _) if !bnullable(a) =>
           bsimpCubicASEQAtomMode(mode, bs2, a, bsimpCubicASEQAtomMode(mode, bs, b, r2))
@@ -311,7 +312,7 @@ object PosixCubicSmoke {
         case _ => ASEQ(bs, r1, r2)
       }
       case other => throw new IllegalArgumentException(
-        s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
+        s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, unary-cover-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
       )
     }
 
@@ -319,6 +320,38 @@ object PosixCubicSmoke {
 
   def pruneEq1Against(covered: List[ARexp], rs: List[ARexp]): List[ARexp] =
     rs.filterNot(r => eq1Member(r, covered))
+
+  def aRunLenA(r: ARexp): Option[Int] = r match {
+    case AONE(_) => Some(0)
+    case ACHAR(_, 'a') => Some(1)
+    case ASEQ(_, r1, r2) =>
+      for {
+        n1 <- aRunLenA(r1)
+        n2 <- aRunLenA(r2)
+      } yield n1 + n2
+    case _ => None
+  }
+
+  def onlyARegex(r: ARexp): Boolean = r match {
+    case AZERO => true
+    case AONE(_) => true
+    case ACHAR(_, c) => c == 'a'
+    case ASEQ(_, r1, r2) => onlyARegex(r1) && onlyARegex(r2)
+    case AALTs(_, rs) => rs.forall(onlyARegex)
+    case ASTAR(_, body) => onlyARegex(body)
+    case ANTIMES(_, body, _) => onlyARegex(body)
+  }
+
+  def isAStar(r: ARexp): Boolean = r match {
+    case ASTAR(_, body) => aRunLenA(body).contains(1)
+    case _ => false
+  }
+
+  def cheapCoveredByRows(row: ARexp, covered: List[ARexp]): Boolean =
+    eq1Member(row, covered) || (onlyARegex(row) && covered.exists(isAStar))
+
+  def pruneCheapAgainst(covered: List[ARexp], rs: List[ARexp]): List[ARexp] =
+    rs.filterNot(r => cheapCoveredByRows(r, covered))
 
   def eq1List(xs: List[ARexp], ys: List[ARexp]): Boolean =
     xs.length == ys.length && xs.zip(ys).forall { case (x, y) => eq1(x, y) }
@@ -435,6 +468,14 @@ object PosixCubicSmoke {
         case (Some((covered, tail1)), Some((_, tail2)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1List(tail1, tail2) =>
           bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, pruneEq1Against(covered, rrs)), k2)
         case (Some((covered, tail1)), Some((laterRows, tail2)), _) if eq1List(tail1, tail2) && laterRows.exists(eq1Member(_, covered)) =>
+          AZERO
+        case _ => later
+      }
+    } else if (seqMode == "unary-cover-no-reassoc") {
+      (seqCoverRows(earlier), later) match {
+        case (Some((covered, k1)), ASEQ(bs2, AALTs(rbs, rrs), k2)) if eq1(k1, k2) =>
+          bsimpCubicASEQAtomMode(seqMode, bs2, bsimpAALTs(rbs, pruneCheapAgainst(covered, rrs)), k2)
+        case (Some((covered, k1)), ASEQ(_, row, k2)) if eq1(k1, k2) && cheapCoveredByRows(row, covered) =>
           AZERO
         case _ => later
       }
@@ -640,6 +681,27 @@ object PosixCubicSmoke {
     def pruneEq1AgainstId(covered: List[Int], rs: List[Int]): List[Int] =
       rs.filterNot(r => eq1MemberId(r, covered))
 
+    def onlyARegexId(id: Int): Boolean = node(id) match {
+      case DZero => true
+      case DOne(_) => true
+      case DChar(_, c) => c == 'a'
+      case DSeq(_, r1, r2) => onlyARegexId(r1) && onlyARegexId(r2)
+      case DAlts(_, rs) => rs.forall(onlyARegexId)
+      case DStar(_, body) => onlyARegexId(body)
+      case DNTimes(_, body, _) => onlyARegexId(body)
+    }
+
+    def isAStarId(id: Int): Boolean = node(id) match {
+      case DStar(_, body) => aRunLen(body).contains(1)
+      case _ => false
+    }
+
+    def cheapCoveredByRowsId(row: Int, covered: List[Int]): Boolean =
+      eq1MemberId(row, covered) || (onlyARegexId(row) && covered.exists(isAStarId))
+
+    def pruneCheapAgainstId(covered: List[Int], rs: List[Int]): List[Int] =
+      rs.filterNot(r => cheapCoveredByRowsId(r, covered))
+
     def fltsIds(rs: List[Int]): List[Int] = rs match {
       case Nil => Nil
       case r :: tail =>
@@ -684,7 +746,7 @@ object PosixCubicSmoke {
               }
           }
         case "none" => mk(DSeq(bs, r1, r2))
-        case "keyed-no-reassoc" | "expanded-keyed-no-reassoc" =>
+        case "keyed-no-reassoc" | "expanded-keyed-no-reassoc" | "unary-cover-no-reassoc" =>
           bsimpCubicASEQAtomModeId("no-reassoc", bs, r1, r2)
         case "reassoc-nonnullable-left" =>
           node(r1) match {
@@ -737,7 +799,7 @@ object PosixCubicSmoke {
             case _ => mk(DSeq(bs, r1, r2))
           }
         case other => throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
+          s"unknown POSIX_SMOKE_SEQ_MODE=$other; expected full, none, keyed-no-reassoc, expanded-keyed-no-reassoc, unary-cover-no-reassoc, reassoc-nonnullable-left, no-reassoc, no-left-one, no-right-one, or zeros-only"
         )
       }
 
@@ -826,6 +888,17 @@ object PosixCubicSmoke {
             }
           case (Some((covered, tail1)), Some((laterRows, tail2)), _) if eq1ListId(tail1, tail2) && laterRows.exists(eq1MemberId(_, covered)) =>
             mk(DZero)
+          case _ => later
+        }
+      } else if (seqMode == "unary-cover-no-reassoc") {
+        (seqCoverRowsId(earlier), node(later)) match {
+          case (Some((covered, k1)), DSeq(bs2, rowBlock, k2)) if eq1Id(k1, k2) =>
+            node(rowBlock) match {
+              case DAlts(rbs, rrs) =>
+                bsimpCubicASEQAtomModeId(seqMode, bs2, bsimpAALTsId(rbs, pruneCheapAgainstId(covered, rrs)), k2)
+              case _ if cheapCoveredByRowsId(rowBlock, covered) => mk(DZero)
+              case _ => later
+            }
           case _ => later
         }
       } else {
@@ -937,7 +1010,28 @@ object PosixCubicSmoke {
       seen.toSet
     }
 
+    private sealed trait ShapeForm
+    private case object FZero extends ShapeForm
+    private case object FOne extends ShapeForm
+    private final case class FChar(c: Char) extends ShapeForm
+    private final case class FSeq(r1: Int, r2: Int) extends ShapeForm
+    private final case class FAlts(rs: Vector[Int]) extends ShapeForm
+    private final case class FStar(body: Int) extends ShapeForm
+    private final case class FNTimes(body: Int, n: Int) extends ShapeForm
+
     private val shapeMemo = scala.collection.mutable.HashMap.empty[Int, String]
+    private val altSetShapeMemo = scala.collection.mutable.HashMap.empty[Int, String]
+    private val shapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
+    private val altSetShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
+    private val shapeIntern = scala.collection.mutable.HashMap.empty[ShapeForm, Int]
+    private var nextShapeId = 0
+
+    private def internShape(form: ShapeForm): Int =
+      shapeIntern.getOrElseUpdate(form, {
+        val id = nextShapeId
+        nextShapeId += 1
+        id
+      })
 
     def shapeKey(id: Int): String =
       shapeMemo.getOrElseUpdate(id, node(id) match {
@@ -950,8 +1044,72 @@ object PosixCubicSmoke {
         case DNTimes(_, body, n) => s"n($n,${shapeKey(body)})"
       })
 
+    def shapeId(id: Int): Int =
+      shapeIdMemo.getOrElseUpdate(id, node(id) match {
+        case DZero => internShape(FZero)
+        case DOne(_) => internShape(FOne)
+        case DChar(_, c) => internShape(FChar(c))
+        case DSeq(_, r1, r2) => internShape(FSeq(shapeId(r1), shapeId(r2)))
+        case DAlts(_, rs) => internShape(FAlts(rs.map(shapeId).toVector))
+        case DStar(_, body) => internShape(FStar(shapeId(body)))
+        case DNTimes(_, body, n) => internShape(FNTimes(shapeId(body), n))
+      })
+
     def reachableShapeSize(root: Int): Int =
-      reachableIds(root).map(shapeKey).size
+      reachableIds(root).map(shapeId).size
+
+    def altSetShapeKey(id: Int): String =
+      altSetShapeMemo.getOrElseUpdate(id, node(id) match {
+        case DZero => "0"
+        case DOne(_) => "1"
+        case DChar(_, c) => s"c($c)"
+        case DSeq(_, r1, r2) => s".(${altSetShapeKey(r1)},${altSetShapeKey(r2)})"
+        case DAlts(_, rs) => s"+(${rs.map(altSetShapeKey).distinct.sorted.mkString(",")})"
+        case DStar(_, body) => s"*(${altSetShapeKey(body)})"
+        case DNTimes(_, body, n) => s"n($n,${altSetShapeKey(body)})"
+      })
+
+    def altSetShapeId(id: Int): Int =
+      altSetShapeIdMemo.getOrElseUpdate(id, node(id) match {
+        case DZero => internShape(FZero)
+        case DOne(_) => internShape(FOne)
+        case DChar(_, c) => internShape(FChar(c))
+        case DSeq(_, r1, r2) => internShape(FSeq(altSetShapeId(r1), altSetShapeId(r2)))
+        case DAlts(_, rs) => internShape(FAlts(rs.map(altSetShapeId).distinct.sorted.toVector))
+        case DStar(_, body) => internShape(FStar(altSetShapeId(body)))
+        case DNTimes(_, body, n) => internShape(FNTimes(altSetShapeId(body), n))
+      })
+
+    def aRunLen(id: Int): Option[Int] = node(id) match {
+      case DOne(_) => Some(0)
+      case DChar(_, 'a') => Some(1)
+      case DSeq(_, r1, r2) =>
+        for {
+          n1 <- aRunLen(r1)
+          n2 <- aRunLen(r2)
+        } yield n1 + n2
+      case _ => None
+    }
+
+    def compactShapeKey(id: Int): String =
+      aRunLen(id) match {
+        case Some(0) => "1"
+        case Some(n) => s"a^$n"
+        case None =>
+          node(id) match {
+            case DZero => "0"
+            case DOne(_) => "1"
+            case DChar(_, c) => c.toString
+            case DSeq(_, r1, r2) => s".(${compactShapeKey(r1)},${compactShapeKey(r2)})"
+            case DAlts(_, rs) => rs.map(compactShapeKey).mkString("+(", ",", ")")
+            case DStar(_, body) =>
+              aRunLen(body) match {
+                case Some(n) => s"(a^$n)*"
+                case None => s"*(${compactShapeKey(body)})"
+              }
+            case DNTimes(_, body, n) => s"ntimes($n,${compactShapeKey(body)})"
+          }
+      }
   }
 
   final case class SharedResult(
@@ -961,6 +1119,7 @@ object PosixCubicSmoke {
       shapeDagSize: Int,
       statePoolSize: Int,
       shapeStatePoolSize: Int,
+      altSetShapeStatePoolSize: Int,
       poolSize: Int
   )
 
@@ -1012,7 +1171,8 @@ object PosixCubicSmoke {
     val value = if (bnullable(finalRegex)) decodeBits(r, bmkeps(finalRegex)) else None
     val prefixIds = prefixRoots.flatMap(store.reachableIds)
     val statePool = prefixIds.toSet.size
-    val shapeStatePool = prefixIds.map(store.shapeKey).toSet.size
+    val shapeStatePool = prefixIds.map(store.shapeId).toSet.size
+    val altSetShapeStatePool = prefixIds.map(store.altSetShapeId).toSet.size
     SharedResult(
       value,
       asize(finalRegex),
@@ -1020,6 +1180,7 @@ object PosixCubicSmoke {
       store.reachableShapeSize(root),
       statePool,
       shapeStatePool,
+      altSetShapeStatePool,
       store.totalSize
     )
   }
@@ -1623,6 +1784,7 @@ object PosixCubicSmoke {
            |shapeDag  = ${result.shapeDagSize}
            |statePool = ${result.statePoolSize}
            |shapePool = ${result.shapeStatePoolSize}
+           |altSetShapePool = ${result.altSetShapeStatePoolSize}
            |pool      = ${result.poolSize}
            |""".stripMargin
       )
@@ -2684,7 +2846,7 @@ object PosixCubicSmoke {
                |input   = $s
                |base    = $b
                |shared  = ${shared.value}
-               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, pool=${shared.poolSize}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, pool=${shared.poolSize}
                |""".stripMargin
           )
         }
@@ -2729,7 +2891,7 @@ object PosixCubicSmoke {
              |input   = $s
              |base    = $b
              |shared  = ${shared.value}
-             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, pool=${shared.poolSize}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, pool=${shared.poolSize}
              |""".stripMargin
         )
       }
@@ -2757,7 +2919,7 @@ object PosixCubicSmoke {
     }
     println(s"Chapter 7 k=$k $label $seqMode trace: " +
       trace.map { case (n, out) =>
-        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/pool=${out.poolSize}"
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/pool=${out.poolSize}"
       }.mkString(", "))
     trace.foreach { case (n, out) =>
       if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
@@ -2786,10 +2948,11 @@ object PosixCubicSmoke {
       case "shape" | "shapeDag" => out.shapeDagSize
       case "statePool" => out.statePoolSize
       case "shapeStatePool" | "shapePool" => out.shapeStatePoolSize
+      case "altSetShapeStatePool" | "altSetShapePool" => out.altSetShapeStatePoolSize
       case "pool" => out.poolSize
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, or pool"
+          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, altSetShapeStatePool, altSetShapePool, or pool"
         )
     }
 
@@ -2804,7 +2967,9 @@ object PosixCubicSmoke {
       compareTree: Boolean = false,
       statePoolCubicFactor: Double = 0.0,
       statePoolMinRegexSize: Int = 5,
-      statePoolTopLimit: Int = 1
+      statePoolTopLimit: Int = 1,
+      growthTopLimit: Int = 0,
+      progress: Boolean = false
   ): Unit = {
     if (maxLength <= 0) return
     if (step <= 0) {
@@ -2816,7 +2981,9 @@ object PosixCubicSmoke {
     var root = store.fromARexp(intern(r))
     var treeRegex = intern(r)
     var statePoolIds = store.reachableIds(root)
-    var shapeStatePoolKeys = statePoolIds.map(store.shapeKey)
+    var shapeStatePoolKeys = statePoolIds.map(store.shapeId)
+    var altSetShapeStatePoolKeys = statePoolIds.map(store.altSetShapeId)
+    var shapeWitnesses = statePoolIds.iterator.map(id => store.shapeId(id) -> id).toMap
 
     def snapshot(length: Int): SharedResult = {
       val finalRegex = store.toARexp(root)
@@ -2827,6 +2994,7 @@ object PosixCubicSmoke {
         store.reachableShapeSize(root),
         statePoolIds.size,
         shapeStatePoolKeys.size,
+        altSetShapeStatePoolKeys.size,
         store.totalSize
       )
     }
@@ -2834,6 +3002,8 @@ object PosixCubicSmoke {
     val points = scala.collection.mutable.ArrayBuffer.empty[(Int, SharedResult, Int)]
     var frontier = Vector.empty[SharedStatePoolObservation]
     var distinctFrontier = Vector.empty[SharedStatePoolObservation]
+    var lastSampleShapeKeys = shapeStatePoolKeys
+    var growthSamples = Vector.empty[String]
     var previous = Option.empty[(Int, Int)]
     var nonIncrease = Option.empty[(Int, Int, Int)]
     var currentLength = 0
@@ -2842,10 +3012,26 @@ object PosixCubicSmoke {
       val out = snapshot(currentLength)
       val value = sharedResultMetric(metric, out)
       points += ((currentLength, out, value))
+      if (progress) {
+        println(
+          s"Chapter 7 k=$k $label $seqMode long-tail-progress n=$currentLength metric=$metric value=$value tree=${out.treeSize} dag=${out.dagSize} shape=${out.shapeDagSize} statePool=${out.statePoolSize} shapeStatePool=${out.shapeStatePoolSize} altSetShapeStatePool=${out.altSetShapeStatePoolSize} pool=${out.poolSize}"
+        )
+      }
       val obs = sharedStatePoolObservation(r, input, out, s"Chapter 7 plateau k=$k n=$currentLength")
       frontier = sharedStatePoolTop(frontier, obs, statePoolMinRegexSize, statePoolTopLimit)
       distinctFrontier = sharedStatePoolTopDistinctRegex(distinctFrontier, obs, statePoolMinRegexSize, statePoolTopLimit)
       checkSharedStatePoolCubicBudget(r, input, out, obs.label, seqMode, statePoolMinRegexSize, statePoolCubicFactor)
+      if (growthTopLimit > 0 && currentLength > 0) {
+        val newKeys = shapeStatePoolKeys -- lastSampleShapeKeys
+        val examples = newKeys.toVector
+          .sortBy(identity)
+          .take(growthTopLimit)
+          .map(k => shortLogText(shapeWitnesses.get(k).map(store.compactShapeKey).getOrElse(s"shape#$k"), 180))
+        growthSamples = growthSamples :+
+          s"n=$currentLength newShapes=${newKeys.size}" +
+            (if (examples.isEmpty) "" else examples.mkString(" examples=[", " | ", "]"))
+        lastSampleShapeKeys = shapeStatePoolKeys
+      }
       previous.foreach { case (prevN, prevValue) =>
         if (value <= prevValue) {
           nonIncrease = Some((currentLength, prevValue, value))
@@ -2877,19 +3063,32 @@ object PosixCubicSmoke {
           }
           val ids = store.reachableIds(root)
           statePoolIds = statePoolIds ++ ids
-          shapeStatePoolKeys = shapeStatePoolKeys ++ ids.map(store.shapeKey)
+          shapeStatePoolKeys = shapeStatePoolKeys ++ ids.map(store.shapeId)
+          altSetShapeStatePoolKeys = altSetShapeStatePoolKeys ++ ids.map(store.altSetShapeId)
+          ids.foreach { id =>
+            val key = store.shapeId(id)
+            if (!shapeWitnesses.contains(key)) {
+              shapeWitnesses = shapeWitnesses.updated(key, id)
+            }
+          }
           currentLength += 1
           advanced += 1
         }
       }
     }
     val renderedPoints = points.map { case (len, out, value) =>
-      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/pool=${out.poolSize}"
+      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/pool=${out.poolSize}"
     }.toVector
     val compact =
       if (renderedPoints.length <= 24) renderedPoints.mkString(", ")
       else ((renderedPoints.take(12) :+ "...") ++ renderedPoints.takeRight(8)).mkString(", ")
     println(s"Chapter 7 k=$k $label $seqMode long-tail metric=$metric step=$step max=$maxLength: $compact")
+    if (growthTopLimit > 0) {
+      val compactGrowth =
+        if (growthSamples.length <= 20) growthSamples.mkString("; ")
+        else ((growthSamples.take(10) :+ "...") ++ growthSamples.takeRight(8)).mkString("; ")
+      println(s"Chapter 7 k=$k $label $seqMode long-tail shape-growth samples: $compactGrowth")
+    }
     println(s"Chapter 7 k=$k $label $seqMode long-tail statePool frontier (factor=$statePoolCubicFactor, minRegexSize=$statePoolMinRegexSize, top=$statePoolTopLimit): ${sharedStatePoolFrontiersSummary(frontier, distinctFrontier, statePoolMinRegexSize)}")
     nonIncrease match {
       case Some((len, prevValue, value)) =>
@@ -3892,6 +4091,8 @@ object PosixCubicSmoke {
     val sharedPlateauStep = intSetting("posix.smoke.sharedPlateauStep", "POSIX_SMOKE_SHARED_PLATEAU_STEP", 4)
     val sharedPlateauMetric = stringSetting("posix.smoke.sharedPlateauMetric", "POSIX_SMOKE_SHARED_PLATEAU_METRIC", "shapeStatePool")
     val sharedPlateauRequire = boolSetting("posix.smoke.sharedPlateauRequire", "POSIX_SMOKE_SHARED_PLATEAU_REQUIRE", false)
+    val sharedPlateauGrowthTop = intSetting("posix.smoke.sharedPlateauGrowthTop", "POSIX_SMOKE_SHARED_PLATEAU_GROWTH_TOP", 0)
+    val sharedPlateauProgress = boolSetting("posix.smoke.sharedPlateauProgress", "POSIX_SMOKE_SHARED_PLATEAU_PROGRESS", false)
     val sharedNoReassoc = boolSetting("posix.smoke.sharedNoReassoc", "POSIX_SMOKE_SHARED_NO_REASSOC", false)
     val sharedDirectDag = boolSetting("posix.smoke.sharedDirectDag", "POSIX_SMOKE_SHARED_DIRECT_DAG", false)
     val sharedDirectCompareTree = boolSetting("posix.smoke.sharedDirectCompareTree", "POSIX_SMOKE_SHARED_DIRECT_COMPARE_TREE", false)
@@ -4078,7 +4279,9 @@ object PosixCubicSmoke {
         sharedDirectCompareTree,
         sharedStatePoolCubicFactor,
         sharedStatePoolMinRegexSize,
-        sharedStatePoolTop
+        sharedStatePoolTop,
+        sharedPlateauGrowthTop,
+        sharedPlateauProgress
       )
     }
   }

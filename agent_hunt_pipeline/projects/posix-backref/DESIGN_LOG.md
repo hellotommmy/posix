@@ -3,6 +3,37 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Long-tail smoke must reach plateau or report failure
+
+- Strengthened the Scala smoke harness for long-tail plateau work. The
+  proof-facing `shapeStatePool` and `shapeDag` metrics now use hash-consed
+  structural shape IDs instead of huge recursive string keys; compact strings
+  remain only for small witness examples. This separates true algorithmic
+  blow-up from diagnostic-format blow-up.
+- Added progress sampling (`-SharedPlateauProgress` and
+  `-ScalaSmokeSharedPlateauProgress`). A long-tail run now prints sampled
+  points as it goes, so timeout/OOM runs still leave a checked high-water
+  boundary.
+- Tested `unary-cover-no-reassoc`, a Scala-only diagnostic mode that keeps
+  no-reassociation output syntax while pruning later all-`a` rows when an
+  earlier same-continuation row contains `a*`.
+  It preserves exact POSIX values on the current exhaustive depth `2`/input
+  `3` grid and deterministic random `1,000` cases at depth `5`/input `6`.
+- The mode reproduces a thesis-like positive on Chapter 7 `k=5`:
+  `shapeStatePool` first stops increasing at `n=124` (`337 -> 337`) with
+  `-SharedPlateauRequire`.
+- The same mode fails as a general constant-universe candidate on Chapter 7
+  `k=8`: it stays strictly increasing through `n=500`
+  (`shapeStatePool=2072`), and a progress run is still strictly increasing at
+  `n=624` (`shapeStatePool=2568`, `statePool=201915`, `pool=795128`) before
+  the current direct-DAG simplifier runs out of heap inside
+  `eq1Id/distinctWithIds`.
+- Design consequence: small evil-family plots are not enough. Any future
+  constant/plateau claim must either run until the chosen metric first stops
+  strictly increasing, or report the exact high-water boundary and failure
+  mode. `unary-cover-no-reassoc` is useful negative/diagnostic evidence, not a
+  BR-039/BR-040 simplifier.
+
 ## 2026-06-03: Direct-DAG smoke separates state pool from temporary pool
 
 - Added an optional `SharedDirectDag` smoke route. It runs derivative and

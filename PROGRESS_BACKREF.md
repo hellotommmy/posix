@@ -1,6 +1,44 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (direct-DAG shared long-tail smoke)
+Last updated: 2026-06-03 (long-tail plateau discipline)
+
+## Cubic Candidate Prototype: Long-Tail Plateau Discipline (2026-06-03)
+
+- Tightened the Scala smoke harness so shape-pool metrics use hash-consed
+  structural shape IDs instead of recursively materialized string keys. The
+  old string representation is now only for small witness display. This keeps
+  long-tail tests from failing because the diagnostic key format itself grows
+  too large.
+- Added `-SharedPlateauProgress` /
+  `-ScalaSmokeSharedPlateauProgress`, which prints every sampled long-tail
+  point immediately. This makes OOM/timeout runs useful: the last printed
+  `long-tail-progress` line is the checked empirical boundary.
+- Added the experimental `unary-cover-no-reassoc` smoke mode. It keeps
+  no-reassociation output syntax but tries a cheap unary-language coverage
+  prune: if an earlier row with the same continuation contains `a*`, later
+  all-`a` rows with that continuation are treated as covered. This is only
+  Scala smoke and is not a checked Isabelle simplifier.
+- Positive but narrow evidence:
+  - exact POSIX value smoke passed exhaustive depth `2`/input `3` plus
+    deterministic random `1,000` cases at depth `5`/input `6`;
+  - Chapter 7 `k=5`, metric `shapeStatePool`, step `4`, with
+    `-SharedPlateauRequire`, first stops increasing at `n=124`, with
+    `shapeStatePool 337 -> 337`.
+- Negative long-tail evidence:
+  - Chapter 7 `k=8`, metric `shapeStatePool`, step `4`, stayed strictly
+    increasing through `n=500`, ending at `2072`;
+  - with progress sampling at step `16`, it was still strictly increasing at
+    `n=624`, with `shapeStatePool=2568`, `statePool=201915`, and
+    `pool=795128`, then ran out of heap inside `eq1Id/distinctWithIds`.
+- Design consequence:
+  - `unary-cover-no-reassoc` is a useful counterexample-driven diagnostic, but
+    it is not a viable constant-universe candidate. It explains the thesis
+    `k=5` plot but fails the larger `k=8` long tail.
+  - Future candidates must be tested until the selected long-tail metric first
+    fails to strictly increase, or else must report an explicit high-water
+    boundary and failure mode. Short `0..30` traces cannot support a constant
+    or plateau claim.
+  - No BR-039/BR-040 payout is claimed.
 
 ## Cubic Candidate Prototype: Direct-DAG Shared Smoke (2026-06-03)
 

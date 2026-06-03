@@ -77,9 +77,15 @@ immutability.
   floor, while `-SharedStatePoolCubicTop` reports the highest-ratio witnesses.
   The long-tail `-SharedPlateauMaxLength` /
   `-ScalaSmokeSharedPlateauMaxLength` gate defaults to `shapeStatePool`, the
-  erased/shape prefix-pool metric closest to the current raw proof side.
-  Current evidence is not sufficient for a payout: `k=5` stops increasing at
-  `n=124`, but `k=8` remains strictly increasing through `n=500`.
+  erased/shape prefix-pool metric closest to the current raw proof side. Use
+  `-SharedPlateauProgress` / `-ScalaSmokeSharedPlateauProgress` for long runs;
+  short `0..30` traces are not payout evidence unless the metric actually
+  stops strictly increasing. Current evidence is not sufficient for a payout:
+  direct `expanded-keyed-no-reassoc` has `k=5` stopping at `n=124`, but `k=8`
+  remains strictly increasing through `n=500`. The experimental
+  `unary-cover-no-reassoc` mode also stops on `k=5` (`shapeStatePool 337 ->
+  337` at `n=124`) but is still strictly increasing on `k=8` at `n=624`
+  (`shapeStatePool=2568`) before the current direct-DAG dedup runs out of heap.
   Current Chapter 7 evidence suggests `shapeStatePool`, not the raw total
   allocation pool or exact annotated `statePool`, is the closest smoke proxy
   for the proof-facing erased shared universe. This is BR-038/BR-039 tooling
