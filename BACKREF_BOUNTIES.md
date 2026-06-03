@@ -130,6 +130,13 @@ immutability.
   Future BR-040 work may separately construct a tight `RowU` for row/pair
   accounting and a closed `DagU` for hash-consed exact-DAG nodes. This keeps
   the memo-strong route aligned with the smoke evidence; no payout is claimed.
+- Row-closure DAG handoff checkpoint: checked
+  `GeneralRegexBound.thy:rsubterm_closure` with finite/closed/cardinality
+  lemmas and
+  `FBound.thy:strong_deferred_original_final_active_row_dag_row_closure_contract`.
+  The next BR-040 target can focus on a single original-regex-owned `RowU`;
+  `DagU` can be instantiated as `rsubterm_closure RowU`. This is still
+  infrastructure only and claims no payout.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

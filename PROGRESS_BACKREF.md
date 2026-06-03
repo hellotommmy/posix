@@ -40,11 +40,18 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `DagU` controls exact-DAG nodes via `rsubterms` closure. This avoids forcing
   the hash-consed DAG universe itself to have the same tight cardinality as the
   row universe.
+- Added `GeneralRegexBound.thy:rsubterm_closure` with closure/finite/cardinality
+  lemmas. Instantiated the two-universe handoff as
+  `strong_deferred_original_final_active_row_dag_row_closure_contract`: if
+  `RowU` covers final-active rows, has size `R`, and every member has
+  exact-DAG size at most `M`, then `rsubterm_closure RowU` is a valid `DagU`,
+  the whole row-DAG universe has size at most `R * M`, and each final-active
+  row keeps the sharper bound `M`.
 - Verification:
   focused `isabelle build -v -d . Posix` passed.
 - This is BR-040 infrastructure. The missing theorem is now concrete: define
-  original-regex-owned universes, prove row coverage, prove `rsubterms`
-  closure for the DAG universe, and prove linear/cardinality bounds for them.
+  an original-regex-owned `RowU`, prove row coverage, and prove cardinality
+  plus exact-DAG member bounds for it.
 
 ## Cubic Route Checkpoint: Isabelle Row-DAG Universe (2026-06-04)
 

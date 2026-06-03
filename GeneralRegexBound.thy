@@ -3812,6 +3812,65 @@ lemma rsubterms_trans:
   using assms
   by (induct r arbitrary: q p) auto
 
+definition rsubterm_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsubterm_closure U = (\<Union>q\<in>U. rsubterms q)"
+
+lemma finite_rsubterm_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsubterm_closure U)"
+  using assms by (simp add: rsubterm_closure_def)
+
+lemma rsubterm_closure_extensive:
+  "U \<subseteq> rsubterm_closure U"
+  by (auto simp add: rsubterm_closure_def)
+
+lemma rsubterm_closure_memberI:
+  assumes "q \<in> U" "p \<in> rsubterms q"
+  shows "p \<in> rsubterm_closure U"
+  using assms by (auto simp add: rsubterm_closure_def)
+
+lemma rsubterm_closure_closed:
+  assumes "q \<in> rsubterm_closure U"
+  shows "rsubterms q \<subseteq> rsubterm_closure U"
+proof
+  fix p
+  assume p: "p \<in> rsubterms q"
+  obtain root where root: "root \<in> U" "q \<in> rsubterms root"
+    using assms by (auto simp add: rsubterm_closure_def)
+  have "p \<in> rsubterms root"
+    by (rule rsubterms_trans[OF root(2) p])
+  then show "p \<in> rsubterm_closure U"
+    by (rule rsubterm_closure_memberI[OF root(1)])
+qed
+
+lemma card_rsubterm_closure_le:
+  assumes finite: "finite U"
+    and member_bound: "\<And>q. q \<in> U \<Longrightarrow> card (rsubterms q) \<le> M"
+  shows "card (rsubterm_closure U) \<le> card U * M"
+  using finite member_bound
+proof (induction U rule: finite_induct)
+  case empty
+  then show ?case
+    by (simp add: rsubterm_closure_def)
+next
+  case (insert q U)
+  have ih: "card (rsubterm_closure U) \<le> card U * M"
+    by (rule insert.IH) (use insert.prems in blast)
+  have q_bound: "card (rsubterms q) \<le> M"
+    using insert.prems by simp
+  have closure_insert:
+      "rsubterm_closure (insert q U) = rsubterms q \<union> rsubterm_closure U"
+    by (auto simp add: rsubterm_closure_def)
+  have "card (rsubterm_closure (insert q U)) \<le>
+      card (rsubterms q) + card (rsubterm_closure U)"
+    by (simp add: closure_insert card_Un_le)
+  also have "... \<le> M + card U * M"
+    by (rule add_mono[OF q_bound ih])
+  also have "... = card (insert q U) * M"
+    using insert.hyps by simp
+  finally show ?case .
+qed
+
 lemma rsubterms_subterm_subset_frontier:
   assumes "q \<in> rsubterms r"
   shows "rsubterms q \<subseteq> partial_derivative_frontier_universe r"

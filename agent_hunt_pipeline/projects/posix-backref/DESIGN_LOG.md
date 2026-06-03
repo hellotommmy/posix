@@ -5,6 +5,14 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added `rsubterm_closure U = (\<Union>q\<in>U. rsubterms q)` and proved it is
+  finite, extensive, closed under `rsubterms`, and bounded by
+  `card U * M` when every member's exact-DAG size is at most `M`.
+- Added `strong_deferred_original_final_active_row_dag_row_closure_contract`.
+  This instantiates the two-universe handoff with
+  `DagU = rsubterm_closure RowU`. The next proof target can therefore focus
+  on one original-regex-owned row universe: cover final-active rows, bound
+  its cardinality, and bound each member's exact-DAG size.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under
