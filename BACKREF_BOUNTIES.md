@@ -63,6 +63,28 @@ immutability.
 
 ## Open Artifact Notes
 
+- Direct final-active row-DAG smoke metric: `PosixCubicSmoke.scala` now reports
+  the executable analogue of
+  `strong_deferred_final_active_suffix_row_dag_universe`, and
+  `scala_cubic_smoke.ps1` exposes
+  `-StrongFinalActiveRowDagUniverseFactor`. Fresh exact-POSIX smoke passes the
+  default exhaustive grid and known CE grid. Chapter 7 long tails show why this
+  is the proof-facing metric: for `k=5,rsize=46,n<=80`, emitted strong tree
+  reaches `959` and prefix active row-DAG universe reaches `320`, while final
+  row-DAG universe stays in `40..44`; for `k=8,rsize=97,n<=80`, emitted strong
+  tree reaches `3245` and prefix active row-DAG universe reaches `870`, while
+  final row-DAG universe stays in `83..97`. Factor-`1.0` and factor-`2.0`
+  variants are checked false: the factor-`1` shrinker reduces seed
+  `20260602` case `995` to
+  `STAR(ALT(CH(b),STAR(CH(b))))` on `b`, with `rsize=5`, exact POSIX values
+  preserved, and final row-DAG universe `7`; the factor-`2` shrinker reduces
+  it to `NTIMES(NTIMES(STAR(ALT(STAR(CH(b)),CH(b))),2),2)` on `bbb`, with
+  `rsize=11` and universe `23`. A factor-`3.0` scout passed the latest
+  2,000-case smoke and found no CE in a 5,000-case finder run. Both
+  `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` now default this row-DAG gate
+  to factor `3.0` with top-case reporting. This supports a small-constant
+  BR-039/BR-040 statement, currently gated at factor `3.0`, but is
+  smoke/tooling evidence only; no bounty is claimed.
 - Empty final-active budget bridge: `GeneralRegexBound.thy` and `FBound.thy`
   now check that if the final-active row set is empty, then its row-DAG
   universe is empty and the corresponding key, pair-budget, and max-row-DAG

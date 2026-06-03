@@ -2,6 +2,46 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Smoke: Direct Final-Active Row-DAG Metric (2026-06-04)
+
+- Retired `bsimpCubic` as a theorem candidate after the graphs: its emitted
+  tree is the wrong object. The active candidate is now memo strong tree with
+  exact POSIX reconstruction from the original regex, and a proof-facing size
+  metric over final-active row-DAG subterms.
+- Updated the Scala smoke gate to report the direct executable analogue of
+  `strong_deferred_final_active_suffix_row_dag_universe`, exposed through
+  `-StrongFinalActiveRowDagUniverseFactor` and the
+  `strongMemoFinalActiveRowDagUniverse` Chapter 7 metric.
+- The local CI entry point now enables this gate by default with factor `3.0`
+  and reports the top three final-active observations, so the proof-facing
+  metric is checked in ordinary `isabelle_ci.ps1` runs.
+- Re-ran exact POSIX value smoke on the default exhaustive grid
+  (`84,300` regex/input pairs) and the known counterexample grid with a
+  final-active row-DAG universe factor of `2.0`; both passed.
+- Chapter 7 long-tail smoke now separates the important metrics:
+  - `k=5`, `rsize=46`, `n=4..80`: emitted strong tree ranges from `474` to
+    `959`, prefix active row-DAG universe grows up to `320`, but the final
+    row-DAG universe stays in `40..44`.
+  - `k=8`, `rsize=97`, `n=4..80`: emitted strong tree ranges from `1164` to
+    `3245`, prefix active row-DAG universe grows up to `870`, but the final
+    row-DAG universe stays in `83..97`.
+- Tighter factor-`1.0` and factor-`2.0` row-DAG-universe gates are false.
+  The factor-`1.0` shrinker reduces seed `20260602` case `995` to
+  `STAR(ALT(CH(b),STAR(CH(b))))` on input `b`, with `rsize=5`, exact POSIX
+  values preserved, and final row-DAG universe `7`. The factor-`2.0` shrinker
+  reduces the same random case to
+  `NTIMES(NTIMES(STAR(ALT(STAR(CH(b)),CH(b))),2),2)` on `bbb`, with
+  `rsize=11` and final row-DAG universe `23`. A factor-`3.0` gate passed
+  `2,000` random depth-6/input-8 cases plus the k=8 Chapter 7 trace, and the
+  finder found no factor-`3.0` CE in `5,000` random cases. So the next proof
+  statement should be parameterized by a small constant `K`; current smoke
+  evidence points to trying `K=3`, not `K=1` or `K=2`.
+- Design meaning: the proof should not try to bound the raw emitted tree or
+  the prefix-cumulative active universe. The current BR-040 target is:
+  `bders_simpStrong` as the nullable recognition gate, exact POSIX value
+  reconstruction via `strong_deferred_span_value`, and a final-only
+  row-DAG-universe bound owned by the original regex. No bounty is claimed.
+
 ## Cubic Route Checkpoint: Empty Final-Active Budget Bridge (2026-06-04)
 
 - Accepted the graph/smoke evidence: emitted-tree `bsimpCubic` is no longer a

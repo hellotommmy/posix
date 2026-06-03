@@ -5,6 +5,36 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- The active executable metric is now wired directly into the Scala smoke
+  gate. `PosixCubicSmoke.scala` reports the final-active row-DAG universe,
+  which mirrors `strong_deferred_final_active_suffix_row_dag_universe`, and
+  `scala_cubic_smoke.ps1` exposes
+  `-StrongFinalActiveRowDagUniverseFactor`. This is the metric future proof
+  attempts should explain.
+- `isabelle_ci.ps1` now passes the same final-active row-DAG-universe budget
+  into Scala with default factor `3.0` and top-`3` reporting. This prevents
+  the main CI gate from silently checking only POSIX value preservation while
+  omitting the current size metric.
+- Fresh Chapter 7 long-tail smoke distinguishes the three size notions that
+  were previously easy to conflate. For `k=5,rsize=46,n<=80`, emitted strong
+  tree reaches `959` and prefix active row-DAG universe reaches `320`, but
+  final-active row-DAG universe stays in `40..44`. For `k=8,rsize=97,n<=80`,
+  emitted strong tree reaches `3245` and prefix active row-DAG universe
+  reaches `870`, but final-active row-DAG universe stays in `83..97`.
+- Do not target constant-`1` or constant-`2` theorems of the form
+  `card final_active_row_dag_universe <= K * rxsize r`. The factor-`1`
+  shrinker finds `STAR(ALT(CH(b),STAR(CH(b))))` on input `b`, where exact
+  POSIX values agree, `rsize=5`, and the final-active row-DAG universe has
+  size `7`. The factor-`2` shrinker finds
+  `NTIMES(NTIMES(STAR(ALT(STAR(CH(b)),CH(b))),2),2)` on `bbb`, where
+  `rsize=11` and the universe has size `23`. Keep the statement
+  parameterized by a small constant; the current executable gate uses
+  factor `3.0`, with no CE found in the latest 5,000-case finder run.
+- Therefore the proof target is final-only active sharing. Do not use
+  `bsimpCubic` emitted-tree traces or prefix-cumulative active-universe traces
+  as success criteria. They are useful diagnostics only. A theorem candidate
+  must preserve exact POSIX values through the original-regex reconstruction
+  contract and control the final-active row-DAG universe.
 - Current route after the derivative-size graphs: do not rescue emitted-tree
   `bsimpCubic`. The proof target is memo strong tree as a nullable recognition
   gate, exact original-regex POSIX reconstruction via
