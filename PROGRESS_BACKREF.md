@@ -2,6 +2,22 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Active Closure Monotonicity (2026-06-03)
+
+- Added monotonicity facts for the memo-strong active shared-prune universe:
+  - `raw_shared_prune_active_suffix_keys_mono`;
+  - `raw_shared_prune_active_suffix_bucket_mono`;
+  - `raw_shared_prune_active_suffix_pairs_mono`;
+  - `raw_shared_prune_active_suffix_closure_mono`;
+  - `raw_shared_prune_active_suffix_pair_budget_mono`.
+- This prepares the concrete root-owned active universe proof for iterative
+  closure / least-fixed-point style constructions: if `U <= V`, active rows,
+  active closure, and pair-budget all move in the expected direction.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Active Pair-Budget Bound (2026-06-03)
 
 - Added proof-facing pair-budget accounting in `GeneralRegexBound.thy`:

@@ -20542,6 +20542,34 @@ definition raw_shared_prune_active_suffix_pair_budget :: "rrexp set \<Rightarrow
       card (raw_shared_prune_active_suffix_bucket U k) *
       card (raw_shared_prune_active_suffix_bucket U k))"
 
+lemma raw_shared_prune_active_suffix_keys_mono:
+  assumes "U \<subseteq> V"
+  shows "raw_shared_prune_active_suffix_keys U \<subseteq>
+    raw_shared_prune_active_suffix_keys V"
+  using assms
+  by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+
+lemma raw_shared_prune_active_suffix_bucket_mono:
+  assumes "U \<subseteq> V"
+  shows "raw_shared_prune_active_suffix_bucket U k \<subseteq>
+    raw_shared_prune_active_suffix_bucket V k"
+  using assms
+  by (auto simp add: raw_shared_prune_active_suffix_bucket_def)
+
+lemma raw_shared_prune_active_suffix_pairs_mono:
+  assumes "U \<subseteq> V"
+  shows "raw_shared_prune_active_suffix_pairs U \<subseteq>
+    raw_shared_prune_active_suffix_pairs V"
+  using assms
+  by (auto simp add: raw_shared_prune_active_suffix_pairs_def)
+
+lemma raw_shared_prune_active_suffix_closure_mono:
+  assumes "U \<subseteq> V"
+  shows "raw_shared_prune_active_suffix_closure U \<subseteq>
+    raw_shared_prune_active_suffix_closure V"
+  using assms raw_shared_prune_active_suffix_pairs_mono[OF assms]
+  by (auto simp add: raw_shared_prune_active_suffix_closure_def)
+
 lemma finite_raw_shared_prune_same_suffix_pairs [simp]:
   assumes "finite U"
   shows "finite (raw_shared_prune_same_suffix_pairs U)"
@@ -20602,6 +20630,60 @@ proof -
     by (auto simp add: raw_shared_prune_active_suffix_bucket_def)
   then show ?thesis
     using assms finite_subset by blast
+qed
+
+lemma raw_shared_prune_active_suffix_pair_budget_mono:
+  assumes sub: "U \<subseteq> V"
+    and finite: "finite V"
+  shows "raw_shared_prune_active_suffix_pair_budget U \<le>
+    raw_shared_prune_active_suffix_pair_budget V"
+proof -
+  let ?keysU = "raw_shared_prune_active_suffix_keys U"
+  let ?keysV = "raw_shared_prune_active_suffix_keys V"
+  let ?bucketU = "raw_shared_prune_active_suffix_bucket U"
+  let ?bucketV = "raw_shared_prune_active_suffix_bucket V"
+  have finiteU: "finite U"
+    using finite sub finite_subset by blast
+  have keys_sub: "?keysU \<subseteq> ?keysV"
+    by (rule raw_shared_prune_active_suffix_keys_mono[OF sub])
+  have finite_keysV: "finite ?keysV"
+    using finite by simp
+  have budgetU:
+    "raw_shared_prune_active_suffix_pair_budget U =
+      (\<Sum>k\<in>?keysU. card (?bucketU k) * card (?bucketU k))"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
+  have budgetV:
+    "raw_shared_prune_active_suffix_pair_budget V =
+      (\<Sum>k\<in>?keysV. card (?bucketV k) * card (?bucketV k))"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
+  have bucket_card_le:
+    "\<And>k. k \<in> ?keysU \<Longrightarrow> card (?bucketU k) \<le> card (?bucketV k)"
+  proof -
+    fix k
+    assume "k \<in> ?keysU"
+    have bucket_sub: "?bucketU k \<subseteq> ?bucketV k"
+      by (rule raw_shared_prune_active_suffix_bucket_mono[OF sub])
+    have bucketV_finite: "finite (?bucketV k)"
+      using finite by simp
+    show "card (?bucketU k) \<le> card (?bucketV k)"
+      by (rule card_mono[OF bucketV_finite bucket_sub])
+  qed
+  have "(\<Sum>k\<in>?keysU. card (?bucketU k) * card (?bucketU k)) \<le>
+      (\<Sum>k\<in>?keysU. card (?bucketV k) * card (?bucketV k))"
+  proof (rule sum_mono)
+    fix k
+    assume k: "k \<in> ?keysU"
+    have le: "card (?bucketU k) \<le> card (?bucketV k)"
+      by (rule bucket_card_le[OF k])
+    show "card (?bucketU k) * card (?bucketU k) \<le>
+        card (?bucketV k) * card (?bucketV k)"
+      by (rule mult_mono[OF le le]) simp_all
+  qed
+  also have "... \<le> (\<Sum>k\<in>?keysV.
+      card (?bucketV k) * card (?bucketV k))"
+    by (rule sum_mono2[OF finite_keysV keys_sub]) simp
+  finally show ?thesis
+    by (simp add: budgetU budgetV)
 qed
 
 lemma finite_raw_shared_prune_same_suffix_closure [simp]:

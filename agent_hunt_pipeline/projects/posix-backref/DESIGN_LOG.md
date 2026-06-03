@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Active closure is monotone
+
+- Added monotonicity lemmas for active suffix keys, buckets, pairs, closure,
+  and pair-budget.
+- Design consequence: the concrete root-owned active universe can now be built
+  by closure iteration or by embedding a smaller candidate in a larger
+  candidate without re-proving the active accounting from scratch.
+- The pair-budget monotonicity theorem is intentionally finite-on-the-target:
+  `U <= V` and `finite V` imply
+  `raw_shared_prune_active_suffix_pair_budget U <=
+   raw_shared_prune_active_suffix_pair_budget V`. This is the shape needed by
+  future finite universe proofs.
+
 ## 2026-06-03: Active pair-budget is a proof-facing quantity
 
 - Added `raw_shared_prune_active_suffix_pair_budget`, the exact sum of

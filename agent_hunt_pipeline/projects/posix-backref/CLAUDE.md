@@ -126,6 +126,10 @@ If a base cardinality bound is also available, use
 to get the direct `C + P * M` closure-cardinality shape. Keep
 `raw_shared_prune_active_suffix_pair_budget_bucket_bound` only as a fallback
 sanity bridge back to the old `S * K * K` estimate.
+For iterative or least-universe arguments, use the checked monotonicity facts
+`raw_shared_prune_active_suffix_closure_mono` and
+`raw_shared_prune_active_suffix_pair_budget_mono` instead of unfolding the
+active definitions again.
 
 For the current deferred-memo route, use
 `FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:
