@@ -1,6 +1,38 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (deferred strong memo plots)
+Last updated: 2026-06-03 (derivative-size compare plots)
+
+## Cubic Diagnostic: Direct k/n Derivative-Size Compare Report (2026-06-03)
+
+- Added a visual side task that plots simplified derivative size as a function
+  of both Chapter 7 parameters:
+  - `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1`
+  - `agent_hunt_pipeline/scripts/plot_ch7_derivative_compare.py`
+  - output directory
+    `agent_hunt_pipeline/reports/ch7_derivative_size_compare/`
+- Default command:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\ch7_derivative_size_compare.ps1`
+  generates a CSV, a summary table, and one SVG per `k` for `k=1..8`,
+  `n=0..30`.
+- The default metrics are overlaid on the same per-`k` plot:
+  - `strongTree`: thesis Chapter 7 `bsimpStrong` tree baseline;
+  - `strongMemoTree`: deferred-memo route using the same strong nullable gate;
+  - `cubicTree`: current emitted `bsimpCubic` tree.
+- Current readout from the summary table:
+  - k=5, n=30: `strongTree=958`, `strongMemoTree=958`,
+    `cubicTree=3245`; current `cubicTree` is `3.387x` the thesis baseline
+    at n=30 and reaches max ratio `3.477x` on the grid.
+  - k=8, n=30: `strongTree=2747`, `strongMemoTree=2747`,
+    `cubicTree=7587`; current `cubicTree` is `2.762x` the thesis baseline
+    at n=30.
+- Design consequence:
+  - This report is now the quickest human-facing answer to "are we at least
+    as good as thesis Chapter 7?" The answer for ordinary emitted tree size is
+    still no for current `bsimpCubic`; the deferred-memo route preserves the
+    thesis-strength tree line because it keeps `bsimpStrong` as the nullable
+    recognition state.
+  - Future simplifier candidates should refresh this report before theorem
+    work or bounty claims.
 
 ## Cubic Route Evidence: Thesis-Strong Tree With Deferred POSIX Memo (2026-06-03)
 

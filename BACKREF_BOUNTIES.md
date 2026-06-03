@@ -83,6 +83,15 @@ immutability.
   original-regex span/memo reconstruction the leading tree-level route, but it
   is still only tooling/evidence until checked Isabelle reconstruction and
   cubic theorem interfaces are complete.
+- Direct k/n derivative-size compare side task:
+  `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1` generates
+  `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.
+  Unlike the per-metric grid, this report overlays thesis `strongTree`,
+  deferred `strongMemoTree`, and current `cubicTree` on one plot per `k`.
+  The generated `comparison_summary.csv` gives the baseline ratios directly:
+  at k=5,n=30, `cubicTree=3245` versus `strongTree=958` (`3.387x`);
+  at k=8,n=30, `cubicTree=7587` versus `strongTree=2747` (`2.762x`).
+  This is visualization/tooling under BR-038, not a theorem payout.
 - Direct-DAG shared smoke prototype: `PosixCubicSmoke.scala` now has an
   optional direct hash-consed derivative/simplifier path, exposed by
   `-SharedDirectDag` / `-ScalaSmokeSharedDirectDag`. The optional

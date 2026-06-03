@@ -86,6 +86,16 @@ bounty attempt, also run deterministic deeper random smoke, for example
 If random smoke finds a POSIX value mismatch, the candidate is diagnostic only
 until the simplifier or value-reconstruction story is repaired.
 
+Before theorem work on a new cubic simplifier, refresh the Chapter 7
+derivative-size plots:
+`powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\ch7_derivative_size_compare.ps1`.
+The report
+`agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html` overlays
+the thesis `strongTree` baseline, the deferred `strongMemoTree` route, and the
+candidate/current emitted tree size by `k` and input length `n`. A simplifier
+that is visibly worse than thesis Chapter 7 on this grid is a diagnostic only,
+not a proof or bounty candidate.
+
 Do not count destructive sequence reassociation as a POSIX-value-preserving
 output simplification. The Scala diagnostic mode localized a current
 `bsimpCubic` gap to `(x.y).z -> x.(y.z)`: full reassociation controls the

@@ -3,6 +3,25 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Direct derivative-size compare plots for Chapter 7
+
+- Added a side-task report:
+  `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.
+- The new entry script is
+  `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1`; it uses the
+  same Scala CSV emitter as the smoke suite and then overlays multiple metrics
+  on one graph per Chapter 7 parameter `k`.
+- Default comparison is `strongTree` versus `strongMemoTree` versus
+  `cubicTree`, over `k=1..8,n=0..30`. This makes the thesis baseline visually
+  immediate instead of requiring the reader to compare separate per-metric
+  charts.
+- Current conclusion is unchanged but easier to see: `strongMemoTree` follows
+  thesis `bsimpStrong`, while current emitted `cubicTree` is still larger
+  (`3.387x` at k=5,n=30 and `2.762x` at k=8,n=30).
+- Design consequence: before promoting any new cubic simplifier candidate to
+  proof work, refresh this compare report. A candidate that cannot beat or
+  match the thesis baseline on this grid should remain a diagnostic tool.
+
 ## 2026-06-03: Deferred POSIX memo keeps the thesis-strength tree line
 
 - Extended the Chapter 7 plot pipeline with metrics for the existing

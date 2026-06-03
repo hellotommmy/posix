@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chapter 7 derivative-size comparison</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 28px; color: #222; }
+p { max-width: 920px; }
+table { border-collapse: collapse; margin: 18px 0 32px; font-size: 13px; }
+th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: right; }
+th:nth-child(2), td:nth-child(2), th:last-child, td:last-child { text-align: left; }
+th { background: #f3f3f3; }
+section { margin: 0 0 36px; }
+img { max-width: 100%; border: 1px solid #ddd; }
+</style>
+<h1>Chapter 7 derivative-size comparison</h1>
+<p>CSV source: <code>ch7_size_grid.csv</code>. Sequence mode: <code>unary-cover-no-reassoc</code>. Baseline for ratios: <code>strongTree</code>.</p>
+<table>
+<thead><tr><th>k</th><th>metric</th><th>n max</th><th>value</th><th>baseline</th><th>ratio at n max</th><th>max ratio</th><th>verdict</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>strongTree</td><td>30</td><td>2</td><td>2</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>1</td><td>strongMemoTree</td><td>30</td><td>2</td><td>2</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>1</td><td>cubicTree</td><td>30</td><td>11</td><td>2</td><td>5.5</td><td>5.5</td><td>larger than baseline</td></tr>
+<tr><td>2</td><td>strongTree</td><td>30</td><td>72</td><td>72</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>2</td><td>strongMemoTree</td><td>30</td><td>72</td><td>72</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>2</td><td>cubicTree</td><td>30</td><td>55</td><td>72</td><td>0.7639</td><td>1.037</td><td>larger than baseline</td></tr>
+<tr><td>3</td><td>strongTree</td><td>30</td><td>236</td><td>236</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>3</td><td>strongMemoTree</td><td>30</td><td>236</td><td>236</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>3</td><td>cubicTree</td><td>30</td><td>283</td><td>236</td><td>1.199</td><td>1.209</td><td>larger than baseline</td></tr>
+<tr><td>4</td><td>strongTree</td><td>30</td><td>428</td><td>428</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>4</td><td>strongMemoTree</td><td>30</td><td>428</td><td>428</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>4</td><td>cubicTree</td><td>30</td><td>889</td><td>428</td><td>2.077</td><td>2.077</td><td>larger than baseline</td></tr>
+<tr><td>5</td><td>strongTree</td><td>30</td><td>958</td><td>958</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>5</td><td>strongMemoTree</td><td>30</td><td>958</td><td>958</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>5</td><td>cubicTree</td><td>30</td><td>3245</td><td>958</td><td>3.387</td><td>3.477</td><td>larger than baseline</td></tr>
+<tr><td>6</td><td>strongTree</td><td>30</td><td>1389</td><td>1389</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>6</td><td>strongMemoTree</td><td>30</td><td>1389</td><td>1389</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>6</td><td>cubicTree</td><td>30</td><td>4475</td><td>1389</td><td>3.222</td><td>3.222</td><td>larger than baseline</td></tr>
+<tr><td>7</td><td>strongTree</td><td>30</td><td>1976</td><td>1976</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>7</td><td>strongMemoTree</td><td>30</td><td>1976</td><td>1976</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>7</td><td>cubicTree</td><td>30</td><td>5925</td><td>1976</td><td>2.998</td><td>2.998</td><td>larger than baseline</td></tr>
+<tr><td>8</td><td>strongTree</td><td>30</td><td>2747</td><td>2747</td><td>1</td><td>1</td><td>baseline</td></tr>
+<tr><td>8</td><td>strongMemoTree</td><td>30</td><td>2747</td><td>2747</td><td>1</td><td>1</td><td>within baseline</td></tr>
+<tr><td>8</td><td>cubicTree</td><td>30</td><td>7587</td><td>2747</td><td>2.762</td><td>2.762</td><td>larger than baseline</td></tr>
+</tbody>
+</table>
+<section><h2>k_1_derivative_size</h2><img src="k_1_derivative_size.svg" alt="k_1_derivative_size"></section>
+<section><h2>k_2_derivative_size</h2><img src="k_2_derivative_size.svg" alt="k_2_derivative_size"></section>
+<section><h2>k_3_derivative_size</h2><img src="k_3_derivative_size.svg" alt="k_3_derivative_size"></section>
+<section><h2>k_4_derivative_size</h2><img src="k_4_derivative_size.svg" alt="k_4_derivative_size"></section>
+<section><h2>k_5_derivative_size</h2><img src="k_5_derivative_size.svg" alt="k_5_derivative_size"></section>
+<section><h2>k_6_derivative_size</h2><img src="k_6_derivative_size.svg" alt="k_6_derivative_size"></section>
+<section><h2>k_7_derivative_size</h2><img src="k_7_derivative_size.svg" alt="k_7_derivative_size"></section>
+<section><h2>k_8_derivative_size</h2><img src="k_8_derivative_size.svg" alt="k_8_derivative_size"></section>
