@@ -623,10 +623,13 @@ object PosixCubicSmoke {
     )
   }
 
-  def activeRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean = (r, q) match {
-    case (ASEQ(_, AALTs(_, rRows), rKey), ASEQ(_, AALTs(_, qRows), qKey)) =>
-      eq1(rKey, qKey) && rRows.forall(row => rowCoveredByRows(row, qRows))
-    case _ => false
+  def activeRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean = {
+    val topLevel = (r, q) match {
+      case (ASEQ(_, AALTs(_, rRows), rKey), ASEQ(_, AALTs(_, qRows), qKey)) =>
+        eq1(rKey, qKey) && rRows.forall(row => rowCoveredByRows(row, qRows))
+      case _ => false
+    }
+    topLevel || expandedRowSubsetCoveredBy(r, q)
   }
 
   def rowCoveredByRows(row: ARexp, rows: List[ARexp]): Boolean =
@@ -634,19 +637,28 @@ object PosixCubicSmoke {
       rows.exists(coverer => rowKeyCoveredBy(key, coverer))
     )
 
+  def expandedRowKeysOption(row: ARexp, maxKeys: Int): Option[List[ARexp]] =
+    expandedSeqKeys(row, maxKeys).map(keys =>
+      distinctWith(keys.map(key => bsimpStrong(mkSeqFromFactors(key))))
+    )
+
   def expandedRowKeys(row: ARexp): List[ARexp] =
-    expandedSeqKeys(row, 4096) match {
-      case Some(keys) =>
-        distinctWith(keys.map(key => bsimpStrong(mkSeqFromFactors(key))))
-      case None =>
-        List(bsimpStrong(row))
-    }
+    expandedRowKeysOption(row, 4096).getOrElse(List(bsimpStrong(row)))
 
   def rowKeyCoveredBy(key: ARexp, coverer: ARexp): Boolean = {
     val cn = bsimpStrong(coverer)
     eq1(key, coverer) || eq1(key, cn) ||
       expandedRowKeys(coverer).exists(eq1(key, _))
   }
+
+  def expandedRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean =
+    (expandedRowKeysOption(r, 8192), expandedRowKeysOption(q, 8192)) match {
+      case (Some(rKeys), Some(qKeys)) =>
+        rKeys.forall(rKey =>
+          qKeys.exists(qKey => eq1(rKey, qKey) || eq1(rKey, bsimpStrong(qKey)))
+        )
+      case _ => false
+    }
 
   def mkSeqFromFactors(fs: List[ARexp]): ARexp = fs match {
     case Nil => AONE(Nil)
@@ -675,6 +687,19 @@ object PosixCubicSmoke {
         val prefix = mkSeqFromFactors(factors.take(i))
         val suffix = mkSeqFromFactors(factors.drop(i))
         flts(List(prefix)).foreach(add(suffix, _))
+        prefix match {
+          case AALTs(_, altRows) =>
+            val suffixFactors = seqFactors(suffix)
+            altRows.foreach { altRow =>
+              val altFactors = seqFactors(altRow)
+              (1 until altFactors.length).foreach { j =>
+                val branchPrefix = mkSeqFromFactors(altFactors.take(j))
+                val branchSuffix = mkSeqFromFactors(altFactors.drop(j) ++ suffixFactors)
+                flts(List(branchPrefix)).foreach(add(branchSuffix, _))
+              }
+            }
+          case _ => ()
+        }
       }
     }
 
@@ -698,13 +723,28 @@ object PosixCubicSmoke {
       }
 
     rows.foreach(addSeen)
-    (0 until 3).foreach { _ =>
+    var round = 0
+    var changed = true
+    while (changed && round < 8 && seen.length < 512) {
+      changed = false
       factoredActiveRowsOneStep(seen.toList).foreach { r =>
-        if (addSeen(r)) out += r
+        if (addSeen(r)) {
+          out += r
+          changed = true
+        }
       }
+      round += 1
     }
     out.toSet
   }
+
+  def strongRootFromRows(rows: List[ARexp]): ARexp =
+    bsimpStrong(AALTs(Nil, rows))
+
+  def strongRowsBridgeRows(rows: List[ARexp]): Set[ARexp] =
+    rows.flatMap(asubterms).toSet ++
+      asubterms(strongRootFromRows(rows)) ++
+      factoredActiveRowsFromRows(rows)
 
   sealed trait DNode
   case object DZero extends DNode
@@ -3426,7 +3466,7 @@ object PosixCubicSmoke {
     }
 
     val finalActive = activeSuffixRowsForStrongRoots(List(finalStrong))
-    val rowSubterms = rowList.flatMap(asubterms).toSet
+    val rowSubterms = strongRowsBridgeRows(rowList)
     val factoredRows = factoredActiveRowsFromRows(rowList)
     val bridgeRows = rowSubterms ++ factoredRows
     val covered = finalActive.count(q => strongBridgeMember(q, bridgeRows))
@@ -3543,6 +3583,45 @@ object PosixCubicSmoke {
       s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
       stats.firstMiss.map(m => s"; first uncovered active row:\n$m").getOrElse("")
     )
+  }
+
+  def strongRowsBridgeCoverageMiss(r: Rexp, s: String, label: String): Option[String] =
+    strongRowsBridgeCase(r, s, label)._4
+
+  def strongRowsBridgeCoverageMismatch(r: Rexp, s: String): Boolean =
+    strongRowsBridgeCoverageMiss(r, s, "bridge coverage predicate").isDefined
+
+  def strongRowsBridgeCoverageReport(r: Rexp, s: String, label: String): String = {
+    val finalStrong = bdersStrong(intern(r), s)
+    val rowList = bpdersStrong1Rows(intern(r), s)
+    val finalActive = activeSuffixRowsForStrongRoots(List(finalStrong))
+    val factoredRows = factoredActiveRowsFromRows(rowList)
+    val rowRoot = strongRootFromRows(rowList)
+    val bridgeRows = strongRowsBridgeRows(rowList)
+    val covered = finalActive.count(q => strongBridgeMember(q, bridgeRows))
+    val miss = finalActive.find(q => !strongBridgeMember(q, bridgeRows))
+    val factoredHit = miss.flatMap(q => factoredRows.find(p => strongBridgeMember(q, List(p))))
+    val rowRootHit = miss.exists(q => strongBridgeMember(q, asubterms(rowRoot)))
+    s"""$label
+       |regex       = $r
+       |input       = $s
+       |rsize       = ${rsize(r)}
+       |strongTree  = ${asize(finalStrong)}
+       |strongDag   = ${adagSize(finalStrong)}
+       |rowRootTree = ${asize(rowRoot)}
+       |rowRootEq1  = ${eq1(finalStrong, rowRoot)}
+       |rowListSize = ${rowList.length}
+       |factoredRows= ${factoredRows.size}
+       |bridgeRows  = ${bridgeRows.size}
+       |coverage    = $covered/${finalActive.size}
+       |missing     = ${miss.getOrElse("<none>")}
+       |missingNorm = ${miss.map(bsimpStrong).getOrElse("<none>")}
+       |factoredHit = ${factoredHit.getOrElse("<none>")}
+       |rowRootHit  = $rowRootHit
+       |finalStrong = $finalStrong
+       |rowRoot     = $rowRoot
+       |rowList     = $rowList
+       |""".stripMargin
   }
 
   def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double, minRegexSize: Int, topLimit: Int): Unit = {
@@ -4866,6 +4945,27 @@ object PosixCubicSmoke {
     loop(startR, startInput, Set.empty)
   }
 
+  def shrinkStrongRowsBridgeCE(startR: Rexp, startInput: String): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
+      val nextSeen = seen + ((r, s))
+      val inputHit = inputShrinkCandidates(s)
+        .filterNot(t => nextSeen.contains((r, t)))
+        .find(t => strongRowsBridgeCoverageMismatch(r, t))
+      inputHit match {
+        case Some(t) => loop(r, t, nextSeen)
+        case None =>
+          regexShrinkCandidates(r)
+            .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .find(candidate => strongRowsBridgeCoverageMismatch(candidate, s)) match {
+            case Some(candidate) => loop(candidate, s, nextSeen)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput, Set.empty)
+  }
+
   def findStrongDirectValueCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
     val rng = new Random(seed)
     var found = false
@@ -4990,6 +5090,28 @@ object PosixCubicSmoke {
     }
     if (!found) {
       println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor, minRegexSize=$minRegexSize)")
+    }
+  }
+
+  def findStrongRowsBridgeCounterexample(cases: Int, maxDepth: Int, maxInput: Int, seed: Long): Unit = {
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (strongRowsBridgeCoverageMismatch(r, s)) {
+          found = true
+          println(strongRowsBridgeCoverageReport(r, s, s"strong rows bridge CE before shrinking (seed=$seed case=$checked)"))
+          val (shrunkR, shrunkS) = shrinkStrongRowsBridgeCE(r, s)
+          println(strongRowsBridgeCoverageReport(shrunkR, shrunkS, "strong rows bridge CE after greedy shrinking"))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no strong rows bridge CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed)")
     }
   }
 
@@ -5196,6 +5318,7 @@ object PosixCubicSmoke {
     val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
     val findStrongCubicBudgetCE = boolSetting("posix.smoke.findStrongCubicBudgetCE", "POSIX_SMOKE_FIND_STRONG_CUBIC_BUDGET_CE", false)
+    val findStrongRowsBridgeCE = boolSetting("posix.smoke.findStrongRowsBridgeCE", "POSIX_SMOKE_FIND_STRONG_ROWS_BRIDGE_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
     val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
     val skipLegacyCubic = boolSetting("posix.smoke.skipLegacyCubic", "POSIX_SMOKE_SKIP_LEGACY_CUBIC", false)
@@ -5288,6 +5411,9 @@ object PosixCubicSmoke {
     }
     if (findStrongCubicBudgetCE) {
       findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize)
+    }
+    if (findStrongRowsBridgeCE) {
+      findStrongRowsBridgeCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
     if (checkStrongCoreHand) {
       checkStrongCoreHandCases()

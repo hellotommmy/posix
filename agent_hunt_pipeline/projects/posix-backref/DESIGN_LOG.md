@@ -3,6 +3,29 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Memo strong tree, not rowRoot, is the proof target
+
+- Added a dedicated Scala shrinker for row-list/factoring bridge failures:
+  `-FindStrongRowsBridgeCE`. This should be used before any new attempt to make
+  a row-list bridge theorem candidate.
+- The shrinker gives a compact counterexample even after local branch
+  factoring, bounded local sequence/ALT expansion, and an 8-round factoring
+  closure:
+  `SEQ(SEQ(STAR(SEQ(STAR(ALT(SEQ(CH(a),CH(b)),CH(a))),CH(a))),CH(a)),CH(b))`
+  on input `a`.
+- The natural reconstruction root
+  `bsimpStrong (AALTs [] (bpdersStrong1Rows (intern r) s))` is not structurally
+  the Brzozowski strong derivative on that case (`rowRootEq1 = false`) and its
+  subterms still do not cover the missing final-active row (`rowRootHit =
+  false`). Treat this as negative evidence against making the row list the
+  executable long-tail object.
+- The checked POSIX-value story is already the direct memo strong tree:
+  `strong_deferred_memo_tree_POSIX_correctness` plus
+  `strong_deferred_span_value` reconstruction. Future proof work should target
+  a size bound or finite indexed/quotiented representation for that final
+  strong recognition tree. Do not revive emitted-tree `bsimpCubic`, and do not
+  spend theorem effort on rowRoot unless smoke first removes the CE above.
+
 ## 2026-06-03: Row-gated memo is checked; row-list bridge remains smoke-only
 
 - Added a Scala mirror of `bpders_strong1_rows` plus

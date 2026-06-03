@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Row-List Bridge CE Shrinker (2026-06-03)
+
+- Added an explicit Scala CE finder for the optional row-list/factoring bridge:
+  `scala_cubic_smoke.ps1 -FindStrongRowsBridgeCE`. It greedily shrinks random
+  final-active coverage failures by input and regex structure.
+- The shrinker confirms that the row-list bridge is not the right main route
+  yet. After adding local ALT-branch factoring, bounded sequence/ALT expansion,
+  and an 8-round factoring closure, the deterministic depth `6`, input length
+  `8`, seed `20260602` search still shrinks to:
+  `SEQ(SEQ(STAR(SEQ(STAR(ALT(SEQ(CH(a),CH(b)),CH(a))),CH(a))),CH(a)),CH(b))`
+  on input `a`.
+- A tempting bridge root
+  `strongRootFromRows rows = bsimpStrong (AALTs [] rows)` also fails on this
+  counterexample: `rowRootEq1 = false`, `rowRootHit = false`. Therefore do not
+  try to prove the cubic theorem through exact row-list reconstruction unless a
+  new smoke-tested bridge replaces this one.
+- Current positive theorem route remains direct memo strong tree:
+  `strong_deferred_memo_tree_POSIX_correctness`,
+  `strong_deferred_memo_tree_POSIX_flat`, and the row-gated variants are
+  already checked in `FBound.thy`. The remaining hard task is a size bound for
+  `bders_simpStrong (intern r) s` or an equivalent indexed/quotiented
+  representation, not POSIX value correctness from scratch.
+
 ## Cubic Route Checkpoint: Row-Gated Memo Smoke (2026-06-03)
 
 - Added checked row-gated POSIX contracts in `FBound.thy`:

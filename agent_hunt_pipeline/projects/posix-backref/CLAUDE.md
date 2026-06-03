@@ -104,6 +104,15 @@ As of 2026-06-03, do not assign proof work to rescuing `bsimpCubic`; assign
 testing and proof work to the memo strong tree route: POSIX value
 reconstruction over the original regex plus a cubic shared/memo universe for
 the `bsimpStrong` recognition states.
+Do not silently replace the memo strong tree by the partial-derivative row
+list. The optional row-list/factoring bridge has a dedicated shrinker,
+`scala_cubic_smoke.ps1 -FindStrongRowsBridgeCE`, and currently still shrinks a
+depth-6 random failure to
+`SEQ(SEQ(STAR(SEQ(STAR(ALT(SEQ(CH(a),CH(b)),CH(a))),CH(a))),CH(a)),CH(b))`
+on input `a`. The tempting root
+`bsimpStrong (AALTs [] (bpdersStrong1Rows (intern r) s))` is not structurally
+the Brzozowski strong derivative on that case. Any new row-list theorem route
+must remove this smoke counterexample first.
 For the shared-prune universe, prefer the active-suffix proof contract:
 `FBound.thy:strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface`
 and `GeneralRegexBound.thy:raw_shared_prune_active_suffix_closure`. This
