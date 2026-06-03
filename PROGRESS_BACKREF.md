@@ -7,8 +7,10 @@ Last updated: 2026-06-03 (strong-memo route is default)
 - Added proof-facing pair-budget accounting in `GeneralRegexBound.thy`:
   - `raw_shared_prune_active_suffix_pair_budget`;
   - `card_raw_shared_prune_active_suffix_pairs_le_pair_budget`;
+  - `raw_shared_prune_active_suffix_pair_budget_bucket_bound`;
   - `card_raw_shared_prune_active_suffix_closure_pair_budget_bound`;
-  - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
+  - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`;
+  - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound`.
 - This aligns the Isabelle closure accounting with the Scala
   `strongMemoActivePairBudget` metric.
 - The active closure cardinality obligation can now be stated as:
@@ -18,6 +20,10 @@ Last updated: 2026-06-03 (strong-memo route is default)
 - Design consequence: the next concrete universe proof can target one
   aggregate pair-budget bound instead of only the coarser
   `S * K * K` active-key/max-bucket bound.
+- The fallback theorem `raw_shared_prune_active_suffix_pair_budget_bucket_bound`
+  keeps the old key/max-bucket estimate available, while
+  `card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound`
+  gives the proof side the direct `C + P * M` universe-size shape.
 - Verification:
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
   passed, including default `strong-memo` Scala smoke, `Posix`, and

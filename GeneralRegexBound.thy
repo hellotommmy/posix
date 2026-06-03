@@ -20858,6 +20858,37 @@ proof -
     by simp
 qed
 
+lemma raw_shared_prune_active_suffix_pair_budget_bucket_bound:
+  assumes finite: "finite U"
+    and keys_bound: "card (raw_shared_prune_active_suffix_keys U) \<le> S"
+    and bucket_bound: "\<And>k. k \<in> raw_shared_prune_active_suffix_keys U \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket U k) \<le> K"
+  shows "raw_shared_prune_active_suffix_pair_budget U \<le> S * K * K"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  have "raw_shared_prune_active_suffix_pair_budget U =
+      (\<Sum>k\<in>?keys.
+        card (raw_shared_prune_active_suffix_bucket U k) *
+        card (raw_shared_prune_active_suffix_bucket U k))"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
+  also have "... \<le> (\<Sum>k\<in>?keys. K * K)"
+  proof (rule sum_mono)
+    fix k
+    assume k: "k \<in> ?keys"
+    have bucket_le: "card (raw_shared_prune_active_suffix_bucket U k) \<le> K"
+      by (rule bucket_bound[OF k])
+    show "card (raw_shared_prune_active_suffix_bucket U k) *
+        card (raw_shared_prune_active_suffix_bucket U k) \<le> K * K"
+      by (rule mult_mono[OF bucket_le bucket_le]) simp_all
+  qed
+  also have "... = card ?keys * (K * K)"
+    by simp
+  also have "... \<le> S * (K * K)"
+    by (rule mult_right_mono[OF keys_bound]) simp
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_raw_shared_prune_same_suffix_closure_bound:
   assumes finite: "finite U"
     and output_bound: "\<And>earlier later.
@@ -22506,6 +22537,24 @@ proof -
   have "card U + raw_shared_prune_active_suffix_pair_budget U * M \<le>
       card U + P * M"
     by (rule add_left_mono[OF budget_le])
+  with closure_bound show ?thesis
+    by linarith
+qed
+
+lemma card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound:
+  assumes finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and pair_budget: "raw_shared_prune_active_suffix_pair_budget U \<le> P"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure U) \<le>
+    C + P * M"
+proof -
+  have closure_bound:
+    "card (raw_shared_prune_active_suffix_closure U) \<le> card U + P * M"
+    by (rule card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound
+        [OF finite pair_budget member_size])
+  have "card U + P * M \<le> C + P * M"
+    by (rule add_right_mono[OF card_bound])
   with closure_bound show ?thesis
     by linarith
 qed

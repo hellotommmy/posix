@@ -11,6 +11,11 @@ to be read before continuing long-running agent work.
   `card_raw_shared_prune_active_suffix_pairs_le_pair_budget`,
   `card_raw_shared_prune_active_suffix_closure_pair_budget_bound`, and
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
+- Follow-up bounds keep both entry points available:
+  `raw_shared_prune_active_suffix_pair_budget_bucket_bound` recovers the old
+  `S * K * K` estimate, while
+  `card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound`
+  packages the direct `C + P * M` closure-cardinality shape.
 - This matches the Scala `strongMemoActivePairBudget` metric and gives a
   sharper contract than the older `S * K * K` max-bucket accounting.
 - Design consequence: the next concrete universe proof may prove one aggregate
