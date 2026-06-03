@@ -3,6 +3,22 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Same-suffix accounting is bucketized
+
+- Added `raw_shared_prune_same_suffix_pairs` and
+  `raw_shared_prune_suffix_bucket`.
+- The same-suffix pair domain is now proved equal to a union of
+  `bucket(k) \<times> bucket(k)` over suffix keys. This records the intended
+  accounting model: do not count arbitrary global pairs; count pairs inside
+  continuation buckets.
+- Added cardinality bounds that reduce closure size to:
+  number of suffix keys, maximum bucket size, and maximum one-pair output
+  size.
+- Design consequence: the next concrete universe attempt should prove those
+  three quantities for root-owned strong rows. If the bucket size is the
+  hidden exponential part, that is the exact place to refine the universe or
+  add a memo/indexed representation.
+
 ## 2026-06-03: Same-suffix closure is the active proof contract
 
 - Added `raw_shared_prune_same_suffix_closure_subsetI` and

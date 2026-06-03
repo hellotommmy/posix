@@ -20460,6 +20460,18 @@ definition raw_shared_prune_suffix_key :: "rrexp \<Rightarrow> rrexp option" whe
   "raw_shared_prune_suffix_key r =
     (case r of RSEQ (RALTS rows) k \<Rightarrow> Some k | _ \<Rightarrow> None)"
 
+definition raw_shared_prune_same_suffix_pairs ::
+  "rrexp set \<Rightarrow> (rrexp \<times> rrexp) set" where
+  "raw_shared_prune_same_suffix_pairs U =
+    {(earlier, later). earlier \<in> U \<and> later \<in> U \<and>
+      raw_shared_prune_suffix_key earlier =
+      raw_shared_prune_suffix_key later}"
+
+definition raw_shared_prune_suffix_bucket ::
+  "rrexp set \<Rightarrow> rrexp option \<Rightarrow> rrexp set" where
+  "raw_shared_prune_suffix_bucket U k =
+    {q \<in> U. raw_shared_prune_suffix_key q = k}"
+
 definition raw_shared_prune_same_suffix_closure :: "rrexp set \<Rightarrow> rrexp set" where
   "raw_shared_prune_same_suffix_closure U =
     U \<union>
@@ -20468,6 +20480,26 @@ definition raw_shared_prune_same_suffix_closure :: "rrexp set \<Rightarrow> rrex
       {(earlier, later). earlier \<in> U \<and> later \<in> U \<and>
         raw_shared_prune_suffix_key earlier =
         raw_shared_prune_suffix_key later})"
+
+lemma finite_raw_shared_prune_same_suffix_pairs [simp]:
+  assumes "finite U"
+  shows "finite (raw_shared_prune_same_suffix_pairs U)"
+proof -
+  have "raw_shared_prune_same_suffix_pairs U \<subseteq> U \<times> U"
+    by (auto simp add: raw_shared_prune_same_suffix_pairs_def)
+  then show ?thesis
+    using assms finite_subset by blast
+qed
+
+lemma finite_raw_shared_prune_suffix_bucket [simp]:
+  assumes "finite U"
+  shows "finite (raw_shared_prune_suffix_bucket U k)"
+proof -
+  have "raw_shared_prune_suffix_bucket U k \<subseteq> U"
+    by (auto simp add: raw_shared_prune_suffix_bucket_def)
+  then show ?thesis
+    using assms finite_subset by blast
+qed
 
 lemma finite_raw_shared_prune_same_suffix_closure [simp]:
   assumes "finite U"
@@ -20488,6 +20520,158 @@ proof -
   show ?thesis
     using assms fin_union
     by (simp add: raw_shared_prune_same_suffix_closure_def)
+qed
+
+lemma raw_shared_prune_same_suffix_pairs_bucket_union:
+  "raw_shared_prune_same_suffix_pairs U =
+    (\<Union>k\<in>raw_shared_prune_suffix_key ` U.
+      raw_shared_prune_suffix_bucket U k \<times>
+      raw_shared_prune_suffix_bucket U k)"
+  by (auto simp add: raw_shared_prune_same_suffix_pairs_def
+      raw_shared_prune_suffix_bucket_def)
+
+lemma raw_shared_prune_same_suffix_closure_as_pairs:
+  "raw_shared_prune_same_suffix_closure U =
+    U \<union> (\<Union>p\<in>raw_shared_prune_same_suffix_pairs U.
+      case p of (earlier, later) \<Rightarrow>
+        raw_shared_prune_pair_outputs earlier later)"
+  by (auto simp add: raw_shared_prune_same_suffix_closure_def
+      raw_shared_prune_same_suffix_pairs_def split: prod.splits)
+
+lemma card_raw_shared_prune_same_suffix_pairs_le_sum_buckets:
+  assumes finite: "finite U"
+  shows "card (raw_shared_prune_same_suffix_pairs U) \<le>
+    (\<Sum>k\<in>raw_shared_prune_suffix_key ` U.
+      card (raw_shared_prune_suffix_bucket U k) *
+      card (raw_shared_prune_suffix_bucket U k))"
+proof -
+  let ?keys = "raw_shared_prune_suffix_key ` U"
+  have keys_finite: "finite ?keys"
+    using finite by simp
+  have "card (raw_shared_prune_same_suffix_pairs U) =
+      card (\<Union>k\<in>?keys.
+        raw_shared_prune_suffix_bucket U k \<times>
+        raw_shared_prune_suffix_bucket U k)"
+    by (simp add: raw_shared_prune_same_suffix_pairs_bucket_union)
+  also have "... \<le> (\<Sum>k\<in>?keys.
+      card (raw_shared_prune_suffix_bucket U k \<times>
+        raw_shared_prune_suffix_bucket U k))"
+    by (rule card_UN_le[OF keys_finite])
+  also have "... =
+      (\<Sum>k\<in>?keys.
+        card (raw_shared_prune_suffix_bucket U k) *
+        card (raw_shared_prune_suffix_bucket U k))"
+    by (rule sum.cong) (use finite in auto)
+  finally show ?thesis .
+qed
+
+lemma card_raw_shared_prune_same_suffix_pairs_bucket_bound:
+  assumes finite: "finite U"
+    and keys_bound: "card (raw_shared_prune_suffix_key ` U) \<le> S"
+    and bucket_bound: "\<And>k. k \<in> raw_shared_prune_suffix_key ` U \<Longrightarrow>
+      card (raw_shared_prune_suffix_bucket U k) \<le> K"
+  shows "card (raw_shared_prune_same_suffix_pairs U) \<le> S * K * K"
+proof -
+  let ?keys = "raw_shared_prune_suffix_key ` U"
+  have pair_sum:
+    "card (raw_shared_prune_same_suffix_pairs U) \<le>
+      (\<Sum>k\<in>?keys.
+        card (raw_shared_prune_suffix_bucket U k) *
+        card (raw_shared_prune_suffix_bucket U k))"
+    by (rule card_raw_shared_prune_same_suffix_pairs_le_sum_buckets[OF finite])
+  have "(\<Sum>k\<in>?keys.
+        card (raw_shared_prune_suffix_bucket U k) *
+        card (raw_shared_prune_suffix_bucket U k))
+      \<le> (\<Sum>k\<in>?keys. K * K)"
+  proof (rule sum_mono)
+    fix k
+    assume k: "k \<in> ?keys"
+    have bucket_le: "card (raw_shared_prune_suffix_bucket U k) \<le> K"
+      by (rule bucket_bound[OF k])
+    show "card (raw_shared_prune_suffix_bucket U k) *
+        card (raw_shared_prune_suffix_bucket U k) \<le> K * K"
+      by (rule mult_mono[OF bucket_le bucket_le]) simp_all
+  qed
+  also have "... = card ?keys * (K * K)"
+    by simp
+  also have "... \<le> S * (K * K)"
+    by (rule mult_right_mono[OF keys_bound]) simp
+  finally have
+    "(\<Sum>k\<in>?keys.
+        card (raw_shared_prune_suffix_bucket U k) *
+        card (raw_shared_prune_suffix_bucket U k)) \<le> S * (K * K)" .
+  then have "card (raw_shared_prune_same_suffix_pairs U) \<le> S * (K * K)"
+    using pair_sum by linarith
+  then show ?thesis
+    by simp
+qed
+
+lemma card_raw_shared_prune_same_suffix_closure_bound:
+  assumes finite: "finite U"
+    and output_bound: "\<And>earlier later.
+      (earlier, later) \<in> raw_shared_prune_same_suffix_pairs U \<Longrightarrow>
+      card (raw_shared_prune_pair_outputs earlier later) \<le> Out"
+  shows "card (raw_shared_prune_same_suffix_closure U) \<le>
+    card U + card (raw_shared_prune_same_suffix_pairs U) * Out"
+proof -
+  let ?P = "raw_shared_prune_same_suffix_pairs U"
+  let ?F = "\<lambda>(earlier, later). raw_shared_prune_pair_outputs earlier later"
+  have finP: "finite ?P"
+    using finite by simp
+  have union_bound: "card (\<Union>p\<in>?P. ?F p) \<le> card ?P * Out"
+  proof -
+    have "card (\<Union>p\<in>?P. ?F p) \<le> (\<Sum>p\<in>?P. card (?F p))"
+      by (rule card_UN_le[OF finP])
+    also have "... \<le> (\<Sum>p\<in>?P. Out)"
+    proof (rule sum_mono)
+      fix p
+      assume p: "p \<in> ?P"
+      obtain earlier later where p_eq: "p = (earlier, later)"
+        by (cases p)
+      then show "card (?F p) \<le> Out"
+        using output_bound[of earlier later] p by simp
+    qed
+    also have "... = card ?P * Out"
+      by simp
+    finally show ?thesis .
+  qed
+  have "card (raw_shared_prune_same_suffix_closure U) \<le>
+      card U + card (\<Union>p\<in>?P. ?F p)"
+    by (simp add: raw_shared_prune_same_suffix_closure_as_pairs card_Un_le)
+  also have "... \<le> card U + card ?P * Out"
+    using union_bound by simp
+  finally show ?thesis .
+qed
+
+lemma card_raw_shared_prune_same_suffix_closure_bucket_bound:
+  assumes finite: "finite U"
+    and keys_bound: "card (raw_shared_prune_suffix_key ` U) \<le> S"
+    and bucket_bound: "\<And>k. k \<in> raw_shared_prune_suffix_key ` U \<Longrightarrow>
+      card (raw_shared_prune_suffix_bucket U k) \<le> K"
+    and output_bound: "\<And>earlier later.
+      (earlier, later) \<in> raw_shared_prune_same_suffix_pairs U \<Longrightarrow>
+      card (raw_shared_prune_pair_outputs earlier later) \<le> Out"
+  shows "card (raw_shared_prune_same_suffix_closure U) \<le>
+    card U + S * K * K * Out"
+proof -
+  have pairs_bound:
+    "card (raw_shared_prune_same_suffix_pairs U) \<le> S * K * K"
+    by (rule card_raw_shared_prune_same_suffix_pairs_bucket_bound
+        [OF finite keys_bound bucket_bound])
+  have "card (raw_shared_prune_same_suffix_closure U) \<le>
+      card U + card (raw_shared_prune_same_suffix_pairs U) * Out"
+    by (rule card_raw_shared_prune_same_suffix_closure_bound
+        [OF finite output_bound])
+  also have "... \<le> card U + (S * K * K) * Out"
+  proof -
+    have "card (raw_shared_prune_same_suffix_pairs U) * Out \<le>
+        (S * K * K) * Out"
+      by (rule mult_right_mono[OF pairs_bound]) simp
+    then show ?thesis
+      by simp
+  qed
+  finally show ?thesis
+    by simp
 qed
 
 lemma raw_shared_prune_same_suffix_closure_extensive:

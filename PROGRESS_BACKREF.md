@@ -2,6 +2,32 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Same-Suffix Bucket Accounting (2026-06-03)
+
+- Added `GeneralRegexBound.thy:raw_shared_prune_same_suffix_pairs` and
+  `GeneralRegexBound.thy:raw_shared_prune_suffix_bucket`.
+- Proved the same-suffix pair domain decomposes by continuation/suffix bucket:
+  `raw_shared_prune_same_suffix_pairs_bucket_union`.
+- Added generic cardinality accounting lemmas:
+  - `card_raw_shared_prune_same_suffix_pairs_le_sum_buckets`;
+  - `card_raw_shared_prune_same_suffix_pairs_bucket_bound`;
+  - `card_raw_shared_prune_same_suffix_closure_bound`;
+  - `card_raw_shared_prune_same_suffix_closure_bucket_bound`.
+- The active cubic accounting obligation is now factored into three concrete
+  quantities:
+  - number of suffix keys;
+  - maximum bucket size per suffix key;
+  - maximum output size of one same-suffix prune pair.
+- This is not a final cubic theorem, but it is the proof shape needed for a
+  concrete root-owned same-suffix/memo universe: once those three quantities
+  are bounded polynomially, the existing
+  `strong_deferred_original_raw_row_norm_same_suffix_memo_cubic_interface`
+  can be instantiated.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Same-Suffix Memo Interface (2026-06-03)
 
 - Added proof-side bridge lemmas in `GeneralRegexBound.thy`:
