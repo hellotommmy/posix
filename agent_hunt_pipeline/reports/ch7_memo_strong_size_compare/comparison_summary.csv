@@ -1,0 +1,9 @@
+k,metric,n_max,value_at_n_max,baseline_at_n_max,ratio_at_n_max,max_ratio_to_baseline,verdict
+5,strongMemoTree,80,957,,,,
+5,strongMemoDag,80,69,,,,
+5,strongMemoFinalActiveRowDagUniverse,80,41,,,,
+5,strongMemoFinalActivePairBudget,80,17,,,,
+8,strongMemoTree,80,3233,,,,
+8,strongMemoDag,80,133,,,,
+8,strongMemoFinalActiveRowDagUniverse,80,91,,,,
+8,strongMemoFinalActivePairBudget,80,65,,,,

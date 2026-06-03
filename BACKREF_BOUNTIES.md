@@ -63,6 +63,17 @@ immutability.
 
 ## Open Artifact Notes
 
+- Memo-strong focus reconfirmed: the current active route is `StrongDeferredMemo`
+  / `bders_simpStrong` as a nullable recognition tree plus exact original-regex
+  POSIX reconstruction through `strong_deferred_span_value`. A fresh
+  `strong-memo` smoke run passed the default exhaustive grid, known CE grid,
+  and 5,000 deterministic random depth-7/input-8 cases with seed `20260602`.
+  The focused Chapter 7 report for `k=5,8,n<=80` lives under
+  `agent_hunt_pipeline/reports/ch7_memo_strong_size_compare/`; at `n=80`,
+  `k=5` has final-active row-DAG universe `41` and pair budget `17`, while
+  `k=8` has final-active row-DAG universe `91` and pair budget `65`.
+  This supports BR-039/BR-040 infrastructure only. No bounty is claimed until
+  the row-DAG/shared-universe theorem is checked.
 - Row-DAG decomposition bridge: `GeneralRegexBound.thy` now checks raw
   `raw_final_active_suffix_alt_nodes`,
   `raw_final_active_suffix_payload_dag_universe`,

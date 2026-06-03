@@ -2,6 +2,38 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Smoke: Memo-Strong Focus Reconfirmed (2026-06-04)
+
+- Reconfirmed the route decision after inspecting the new derivative-size
+  graphs: direct emitted-tree `bsimpCubic` is not the object to prove about.
+  The active target is memo strong tree: `bders_simpStrong (intern r) s`
+  supplies the nullable recognition gate, while exact POSIX values are
+  reconstructed from the original regex through `strong_deferred_span_value`
+  and the span/memo table.
+- Re-ran the `strong-memo` Scala gate with exact POSIX value checks:
+  exhaustive depth `2`/input length `3` (`84,300` regex/input pairs), known
+  counterexample grid, and `5,000` deterministic random depth `7`/input `8`
+  cases with seed `20260602`. Both `k=5` and `k=8` Chapter 7 traces passed
+  with the final-active row-DAG universe gate at factor `3.0`.
+- Fresh Chapter 7 memo-strong data to `n=80`:
+  - `k=5`, `rsize=46`: strong tree peaks at `958` in this sampled grid,
+    strong DAG is `69` at `n=80`, final-active row-DAG universe is `41`,
+    and final-active pair budget is `17`.
+  - `k=8`, `rsize=97`: strong tree is `3233` at `n=80`, strong DAG is
+    `133`, final-active row-DAG universe is `91`, and final-active pair
+    budget is `65`.
+- Regenerated the focused plot/report at
+  `agent_hunt_pipeline/reports/ch7_memo_strong_size_compare/`. The report
+  compares `strongMemoTree`, `strongMemoDag`,
+  `strongMemoFinalActiveRowDagUniverse`, and
+  `strongMemoFinalActivePairBudget` for `k=5,8`, `n=0..80`.
+- Proof implication: continue proving the final-active row-DAG/shared-universe
+  bound and reuse the existing POSIX contracts
+  `strong_deferred_memo_tree_POSIX_correctness` and
+  `strong_deferred_original_final_active_single_row_dag_linear_contract`.
+  Do not spend effort improving `bsimpCubic` unless a future candidate first
+  beats this smoke grid and preserves exact POSIX values.
+
 ## Cubic Route Checkpoint: Row-DAG Decomposition Bridge (2026-06-04)
 
 - Accepted the graph evidence that direct `bsimpCubic` tree-size control is

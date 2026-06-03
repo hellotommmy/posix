@@ -3,6 +3,35 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Memo-strong tree is the only active cubic route
+
+- The derivative-size graphs and the latest smoke run make the decision
+  operational: stop treating emitted-tree `bsimpCubic` as a proof target.
+  Keep it only as negative evidence and as a regression playground.
+- The active architecture is:
+  1. run `bders_simpStrong (intern r) s`;
+  2. use the resulting strong tree only as the nullable recognition gate;
+  3. reconstruct exact POSIX values from the original regex/string via
+     `strong_deferred_span_value` / span memoization;
+  4. prove size over the final-active row-DAG/shared universe.
+- Fresh `strong-memo` smoke passed exact POSIX values on the default
+  exhaustive grid, the known CE grid, and `5,000` deterministic random
+  depth-`7`/input-`8` cases with seed `20260602`. The Chapter 7 traces through
+  `n=80` give:
+  - `k=5,rsize=46`: `strongMemoTree=957`, `strongMemoDag=69`,
+    `strongMemoFinalActiveRowDagUniverse=41`, pair budget `17` at `n=80`;
+  - `k=8,rsize=97`: `strongMemoTree=3233`, `strongMemoDag=133`,
+    `strongMemoFinalActiveRowDagUniverse=91`, pair budget `65` at `n=80`.
+- The focused report is
+  `agent_hunt_pipeline/reports/ch7_memo_strong_size_compare/index.html`.
+  Use this report when judging whether a future candidate is at least as good
+  as the thesis Chapter 7 behavior.
+- Proof work should reuse the existing checked POSIX layer:
+  `strong_deferred_memo_tree_POSIX_correctness`,
+  `strong_deferred_memo_tree_POSIX_flat`, and the final-active contracts.
+  The remaining hard theorem is the row-DAG/shared-universe bound, not POSIX
+  value preservation from the simplified emitted tree.
+
 ## 2026-06-04: Memo-strong proof route uses row-DAG decomposition
 
 - Treat emitted-tree `bsimpCubic` as negative evidence and stop optimizing it

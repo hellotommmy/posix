@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chapter 7 derivative-size comparison</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 28px; color: #222; }
+p { max-width: 920px; }
+table { border-collapse: collapse; margin: 18px 0 32px; font-size: 13px; }
+th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: right; }
+th:nth-child(2), td:nth-child(2), th:last-child, td:last-child { text-align: left; }
+th { background: #f3f3f3; }
+section { margin: 0 0 36px; }
+img { max-width: 100%; border: 1px solid #ddd; }
+</style>
+<h1>Chapter 7 derivative-size comparison</h1>
+<p>CSV source: <code>ch7_size_grid.csv</code>. Sequence mode: <code>full</code>. Baseline for ratios: <code>strongTree</code>.</p>
+<table>
+<thead><tr><th>k</th><th>metric</th><th>n max</th><th>value</th><th>baseline</th><th>ratio at n max</th><th>max ratio</th><th>verdict</th></tr></thead>
+<tbody>
+<tr><td>5</td><td>strongMemoTree</td><td>80</td><td>957</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>strongMemoDag</td><td>80</td><td>69</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>strongMemoFinalActiveRowDagUniverse</td><td>80</td><td>41</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>5</td><td>strongMemoFinalActivePairBudget</td><td>80</td><td>17</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>8</td><td>strongMemoTree</td><td>80</td><td>3233</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>8</td><td>strongMemoDag</td><td>80</td><td>133</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>8</td><td>strongMemoFinalActiveRowDagUniverse</td><td>80</td><td>91</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>8</td><td>strongMemoFinalActivePairBudget</td><td>80</td><td>65</td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+<section><h2>k_5_derivative_size</h2><img src="k_5_derivative_size.svg" alt="k_5_derivative_size"></section>
+<section><h2>k_8_derivative_size</h2><img src="k_8_derivative_size.svg" alt="k_8_derivative_size"></section>
