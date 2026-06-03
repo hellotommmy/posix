@@ -2,6 +2,22 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Empty Row-DAG Base Case (2026-06-04)
+
+- Added the checked base-case theorem
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize`.
+  It proves the active BR-040 row-DAG universe obligation for empty input with
+  constant `K = 1`:
+  `card (strong_deferred_final_active_suffix_row_dag_universe r []) <=
+   rxsize r`.
+- The proof uses the actual memo-strong state, not a wrapper:
+  `bders_simpStrong (intern r) [] = intern r`, final row-DAG universe is
+  bounded by final raw `rsize`, and `rsize (rerase (intern r)) = rxsize r`.
+  This is the base case for a future input-induction proof of the linear
+  row-DAG universe bound.
+- Verification: focused Isabelle `Posix` build passed.
+- No bounty is claimed.
+
 ## Cubic Route Checkpoint: Single Row-DAG Linear Handoff (2026-06-04)
 
 - Added the checked theorem

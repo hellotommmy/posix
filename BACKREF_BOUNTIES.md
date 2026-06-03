@@ -145,6 +145,12 @@ immutability.
   max row-DAG, and row-member exact-DAG budgets. It is proof infrastructure
   only; the original-regex-owned universe bound remains open and no bounty is
   claimed.
+- Empty row-DAG base case: checked
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize`.
+  This proves the single row-DAG universe obligation for empty input with
+  `K = 1`, using `bders_simpStrong (intern r) [] = intern r` and
+  `rsize (rerase (intern r)) = rxsize r`. It is a real base case for a future
+  input-induction proof, but BR-040 remains open and no payout is claimed.
 - Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
   for the row-DAG universe, plus
   `strong_deferred_memo_tree_value_final_active_row_dag_interface` and

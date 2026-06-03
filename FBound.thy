@@ -6014,6 +6014,18 @@ lemma rsize_rerase_intern:
   "rsize (rerase (intern r)) = rxsize r"
   by (simp add: asize_rsize asize_intern)
 
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r []) \<le>
+    rxsize r"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r []) \<le>
+      rsize (strong_deferred_final_raw r [])"
+    by (rule card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize)
+  also have "... = rxsize r"
+    by (simp add: strong_deferred_final_raw_def rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
 lemma asizes_map_fuse [simp]:
   "asizes (map (fuse bs) rs) = asizes rs"
   by (induct rs) (simp_all add: asizes_def)

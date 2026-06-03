@@ -5,6 +5,11 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added the empty-input base case
+  `card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize`.
+  This checks the target row-DAG universe inequality at `s = []` with
+  `K = 1`; the remaining theorem should now be viewed as the nonempty
+  derivative-step/induction problem.
 - Added `strong_deferred_original_final_active_single_row_dag_linear_contract`.
   It states the current proof objective in its cleanest form: prove one
   original-regex-owned linear bound on
