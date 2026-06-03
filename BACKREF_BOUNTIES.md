@@ -93,6 +93,14 @@ immutability.
   non-backref fragment when the root is legacy. This is useful BR-040
   infrastructure, but it does not by itself pay a final cubic theorem bounty
   because the tree/share-representation reconstruction theorem is still open.
+- Combined row/memo interface:
+  `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`
+  packages the raw strong-row cubic-universe premises together with the
+  deferred POSIX value gate, `bders_simpStrong` legacy closure, quadratic memo
+  state budget, cubic split-probe budget, and legacy-subterm closure. This is
+  the current proof handoff for the leading deferred-memo route. It remains
+  conditional infrastructure, not payout, until a concrete raw/shared universe
+  with the required cubic bound is checked.
 - Direct k/n derivative-size compare side task:
   `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1` generates
   `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.

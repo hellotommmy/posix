@@ -1,6 +1,28 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-03 (checked deferred memo budget)
+Last updated: 2026-06-03 (combined row/memo cubic interface)
+
+## Cubic Route Checkpoint: Row Universe And Memo Budget Are Packaged (2026-06-03)
+
+- Added `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
+- This theorem combines the two proof-side halves that were previously
+  separate:
+  - raw strong-row cubic-universe assumptions imply both annotated row-size and
+    raw row-size bounds for `bpders_strong1_rows (intern r) s`;
+  - the row nullable gate is equivalent to the unique deferred POSIX value;
+  - the unique deferred POSIX value is equivalent to
+    `bnullable (bders_simpStrong (intern r) s)`;
+  - the `bders_simpStrong` recognition state stays in the legacy fragment;
+  - the deferred accept/value span memo table has the quadratic bound, and the
+    split-probe table has the cubic bound;
+  - the memo/split states remain over legacy subterms for a `legacy_rexp` root.
+- This is still a conditional interface, not the final cubic theorem. The open
+  obligation is still the real raw/shared universe instantiation: find the
+  right finite `U`, prove its closure, and prove the `card U * member-size`
+  cubic bound without over-quotienting POSIX values.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including Scala smoke, `Posix`, and `BackRefPilot`.
 
 ## Cubic Route Checkpoint: Deferred Memo Budget Is Checked (2026-06-03)
 

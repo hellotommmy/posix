@@ -104,6 +104,11 @@ re-prove those bounds ad hoc in later files.
 When starting from the non-backref fragment, prefer
 `FBound.thy:strong_deferred_original_memo_budget`; it adds the legacy-subterm
 closure facts needed by downstream original-file bound statements.
+For the current leading conditional theorem, use
+`FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
+It combines the raw strong-row cubic-universe premises with the deferred POSIX
+memo/reconstruction budget and keeps the old theorem numbering for the earlier
+row-only interfaces untouched.
 
 Do not count destructive sequence reassociation as a POSIX-value-preserving
 output simplification. The Scala diagnostic mode localized a current

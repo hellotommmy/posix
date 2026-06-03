@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Row-universe and memo accounting now share one interface
+
+- Added
+  `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
+- The theorem intentionally does not invent a new simplifier. It packages the
+  current leading route: thesis-strength `bsimpStrong` recognition, raw
+  strong-row cubic-universe premises, and original-regex span/memo POSIX
+  reconstruction.
+- The interface now exposes all of the facts a later final theorem will need:
+  row-size bounds, raw/annotated erasure alignment, row nullable gate,
+  deferred POSIX gate, recognition-state legacy closure, quadratic memo-state
+  budget, cubic split-probe budget, and legacy-subterm closure for the memo
+  tables.
+- Design consequence: the next real research problem is narrower and sharper:
+  instantiate the raw/shared universe `U` with a POSIX-safe quotient strong
+  enough for the Chapter 7 family, then discharge this interface's closure and
+  cardinality/member-size premises.
+
 ## 2026-06-03: Deferred memo budget has a checked theorem
 
 - Added `FBound.thy:strong_deferred_memo_budget` and
