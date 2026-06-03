@@ -34,6 +34,26 @@ to be read before continuing long-running agent work.
   mode. `unary-cover-no-reassoc` is useful negative/diagnostic evidence, not a
   BR-039/BR-040 simplifier.
 
+## 2026-06-03: Unary modulo is not enough for k=8
+
+- Added diagnostic plateau metrics `unaryModShapeStatePool` and
+  `unaryPruneShapeStatePool`.
+- `unaryModShapeStatePool` tests whether the `k=8` tail is mostly caused by
+  repeated `a^m . (a^p)*` rows that differ only by a period. It is not:
+  at Chapter 7 `k=8,n=624`, ordinary `shapeStatePool` is `2568`, while
+  `unaryModShapeStatePool` is still `2552` and strictly increasing.
+- The first pruning traversal, `unaryPruneShapeStatePool`, skips simple later
+  unary ALT children when an earlier unary child covers them. It also does not
+  move the `k=8` needle; through `n=160` it matches the modulo metric exactly
+  and remains strictly increasing.
+- Design consequence: the remaining growth is not a shallow unary-period
+  normalization bug. The next candidate needs continuation-aware row-set
+  coverage: treat a prior row block with continuation `c` as covering a later
+  row block with the same continuation when every later row language is already
+  included in the earlier POSIX-prior row set. This is much closer to the
+  Antimirov linear-form/pruning idea than a local rewrite of individual
+  `a^m . (a^p)*` children.
+
 ## 2026-06-03: Direct-DAG smoke separates state pool from temporary pool
 
 - Added an optional `SharedDirectDag` smoke route. It runs derivative and

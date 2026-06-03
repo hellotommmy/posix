@@ -40,6 +40,33 @@ Last updated: 2026-06-03 (long-tail plateau discipline)
     or plateau claim.
   - No BR-039/BR-040 payout is claimed.
 
+## Cubic Diagnostic: Unary Modulo And Shallow Prune Metrics (2026-06-03)
+
+- Added two Scala-only diagnostic metrics to
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`:
+  - `unaryModShapeStatePool`, which recognizes `a^m . (a^p)*` shapes modulo
+    the period `p` for counting purposes;
+  - `unaryPruneShapeStatePool`, which traverses a shape universe where simple
+    later unary ALT children are skipped when an earlier unary child covers
+    their language.
+- Results:
+  - On Chapter 7 `k=5`, `unaryModShapeStatePool` still first stops increasing
+    at `n=124`, with `327 -> 327`.
+  - On Chapter 7 `k=8`, `unaryModShapeStatePool` remains strictly increasing
+    through `n=624`, ending at `2552`; this barely improves on the ordinary
+    `shapeStatePool=2568` at the same boundary.
+  - The first `unaryPruneShapeStatePool` traversal is also no better on
+    `k=8`: through `n=160` it exactly matches the unary-modulo metric, ending
+    at `696`.
+- Design consequence:
+  - The large `k=8` tail is not explained by missing `m mod p` normalization
+    alone.
+  - It is also not removed by pruning simple unary ALT children locally.
+    The next serious route must reason about row-set/continuation coverage,
+    e.g. a prior `(A . c)` branch covering a later `(B . c)` branch when the
+    row language of `B` is included in the POSIX-prior row language of `A`.
+  - These metrics are counterexample diagnostics only; no bounty is claimed.
+
 ## Cubic Candidate Prototype: Direct-DAG Shared Smoke (2026-06-03)
 
 - Added an optional direct-DAG path to `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.

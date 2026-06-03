@@ -147,6 +147,17 @@ through `n=500`. The experimental `unary-cover-no-reassoc` mode also stops on
 tail: it is still strictly increasing at `n=624` (`shapeStatePool=2568`)
 before the current direct-DAG dedup runs out of heap. Therefore neither route
 is a completed constant-universe argument.
+Two narrower diagnostics are also negative. `unaryModShapeStatePool`, which
+identifies `a^m . (a^p)*` rows modulo `p`, gives only `2552` instead of
+`2568` at Chapter 7 `k=8,n=624` and is still strictly increasing.
+`unaryPruneShapeStatePool`, which locally drops simple later unary ALT children
+covered by earlier unary children, matches the modulo metric through the
+checked `k=8,n=160` prefix. Do not spend more bounty effort on these shallow
+variants as standalone candidates. The next meaningful route is
+continuation-aware row-set coverage: prove or smoke a mechanism where an
+earlier row block with continuation `c` covers a later same-continuation row
+block when the later row language is included in the POSIX-prior earlier row
+set.
 
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a
