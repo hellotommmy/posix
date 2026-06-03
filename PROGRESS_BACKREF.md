@@ -2,6 +2,37 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong-Memo POSIX Contract (2026-06-03)
+
+- Froze `bsimpCubic` as negative evidence after the plots; the current route is
+  `bders_simpStrong` as the small nullable gate plus original-regex
+  span/memo reconstruction for exact POSIX values.
+- Added checked contract lemmas in `FBound.thy`:
+  - `strong_deferred_memo_tree_POSIX_correctness`;
+  - `strong_deferred_memo_tree_POSIX_flat`;
+  - `strong_deferred_memo_tree_bounded_contract`.
+- The contract theorem states that if the final strong tree has
+  `asize (bders_simpStrong (intern r) s) <= T`, then the same strong-memo
+  expression is exactly POSIX-correct, returns `None` exactly when no POSIX
+  value exists, has final active rows bounded by `T`, has active pair-budget
+  bounded by `T*T`, and keeps the existing span/split memo cubic budgets.
+- Updated `agent_hunt_pipeline/scripts/ch7_derivative_size_compare.ps1` so its
+  default graph compares only `strongTree` and `strongMemoTree`; `cubicTree`
+  is still available as an explicit metric but is no longer the default route.
+- Extra smoke:
+  - k=5, lengths `4,8,12,16,20,30,40,60,80`: strong memo tree peak `958` on
+    this run and exact POSIX values preserved;
+  - k=8, lengths `4,8,16,32,48,64,80`: strong memo tree peak `3245` and exact
+    POSIX values preserved;
+  - deterministic random smoke: `1000` cases at depth `5`, input length `6`,
+    seed `20260602`, exact POSIX values preserved.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- No BR-039/BR-040 payout is claimed. The remaining hard theorem is the bound
+  for the final strong tree or an equivalent indexed final-active universe.
+
 ## Cubic Route Checkpoint: Final Active Pair-Budget Square Bound (2026-06-03)
 
 - Added checked active-pair accounting:

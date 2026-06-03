@@ -3,7 +3,7 @@ param(
   [int]$MaxN = 30,
   [int]$Step = 1,
   [string]$Lengths = "",
-  [string]$Metrics = "strongTree,strongMemoTree,cubicTree",
+  [string]$Metrics = "strongTree,strongMemoTree",
   [string]$SeqMode = "unary-cover-no-reassoc",
   [string]$OutDir = "agent_hunt_pipeline/reports/ch7_derivative_size_compare",
   [switch]$LogY,

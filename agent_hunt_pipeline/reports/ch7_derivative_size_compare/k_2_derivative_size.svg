@@ -87,43 +87,9 @@
 <circle cx="733.47" cy="70.81" r="2.4" fill="#2ca02c"/>
 <circle cx="756.73" cy="58.00" r="2.4" fill="#2ca02c"/>
 <circle cx="780.00" cy="70.81" r="2.4" fill="#2ca02c"/>
-<path d="M82.00,448.73 L105.27,352.65 L128.53,179.70 L151.80,179.70 L175.07,179.70 L198.33,179.70 L221.60,179.70 L244.87,179.70 L268.13,179.70 L291.40,179.70 L314.67,179.70 L337.93,179.70 L361.20,179.70 L384.47,179.70 L407.73,179.70 L431.00,179.70 L454.27,179.70 L477.53,179.70 L500.80,179.70 L524.07,179.70 L547.33,179.70 L570.60,179.70 L593.87,179.70 L617.13,179.70 L640.40,179.70 L663.67,179.70 L686.93,179.70 L710.20,179.70 L733.47,179.70 L756.73,179.70 L780.00,179.70" fill="none" stroke="#d62728" stroke-width="2.2"/>
-<circle cx="82.00" cy="448.73" r="2.4" fill="#d62728"/>
-<circle cx="105.27" cy="352.65" r="2.4" fill="#d62728"/>
-<circle cx="128.53" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="151.80" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="175.07" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="198.33" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="221.60" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="244.87" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="268.13" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="291.40" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="314.67" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="337.93" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="361.20" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="384.47" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="407.73" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="431.00" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="454.27" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="477.53" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="500.80" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="524.07" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="547.33" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="570.60" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="593.87" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="617.13" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="640.40" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="663.67" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="686.93" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="710.20" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="733.47" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="756.73" cy="179.70" r="2.4" fill="#d62728"/>
-<circle cx="780.00" cy="179.70" r="2.4" fill="#d62728"/>
 <text x="804" y="66" font-family="Arial, sans-serif" font-size="13" font-weight="700">metric</text>
 <line x1="804" y1="86" x2="832" y2="86" stroke="#1f77b4" stroke-width="2.4" stroke-dasharray="7 5"/>
 <text x="840" y="90" font-family="Arial, sans-serif" font-size="12">thesis bsimpStrong tree</text>
 <line x1="804" y1="110" x2="832" y2="110" stroke="#2ca02c" stroke-width="2.4"/>
 <text x="840" y="114" font-family="Arial, sans-serif" font-size="12">deferred memo strong tree</text>
-<line x1="804" y1="134" x2="832" y2="134" stroke="#d62728" stroke-width="2.4"/>
-<text x="840" y="138" font-family="Arial, sans-serif" font-size="12">current bsimpCubic tree</text>
 </svg>

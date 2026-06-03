@@ -2766,3 +2766,14 @@ to be read before continuing long-running agent work.
   claim: the remaining work is to replace the Scala `baselineValue` reference
   with a proof-facing deferred reconstruction relation and, eventually, an
   executable reconstruction procedure if runtime matters.
+- Strong-memo contract checkpoint (2026-06-03): `bsimpCubic` is no longer the
+  active route after the plots; keep it as negative evidence unless a future
+  definition beats the thesis baseline and preserves POSIX values. The checked
+  route is now: final `bders_simpStrong (intern r) s` tree supplies the small
+  nullable gate, while `strong_deferred_span_value` supplies exact POSIX value
+  reconstruction. The theorem `strong_deferred_memo_tree_bounded_contract`
+  makes the remaining obligation precise: prove a final strong-tree bound
+  `asize (...) <= T`, and the contract gives POSIX correctness, `flat v = s`,
+  final active rows `<= T`, final active pair-budget `<= T*T`, and the existing
+  span/split memo cubic budgets. Future work should attack that final tree or
+  an indexed final-active universe; do not optimize emitted `bsimpCubic` trees.

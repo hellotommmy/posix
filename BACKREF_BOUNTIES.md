@@ -115,6 +115,16 @@ immutability.
   `strong_deferred_final_active_suffix_pair_budget_le_final_asize_square` is
   now included in `strong_deferred_memo_tree_value_final_active_interface`.
   This is useful fallback accounting, not a cubic theorem payout.
+- Strong-memo POSIX contract checkpoint:
+  `FBound.thy:strong_deferred_memo_tree_POSIX_correctness`,
+  `strong_deferred_memo_tree_POSIX_flat`, and
+  `strong_deferred_memo_tree_bounded_contract` now state the live route
+  directly: the final strong tree is the nullable gate, exact POSIX values come
+  from the span/memo table, and any future final-tree bound `asize <= T`
+  immediately yields exact POSIX correctness, `flat v = s`, final active rows
+  `<= T`, pair-budget `<= T*T`, and the existing cubic memo-table budgets.
+  This is BR-040 infrastructure only; the tree or indexed-universe bound is
+  still open.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.

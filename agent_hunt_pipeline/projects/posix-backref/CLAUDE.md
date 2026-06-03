@@ -1208,6 +1208,12 @@ single source of truth for all work rules.
 
 A completed proof step must satisfy:
 
+- For cubic-bound work, run smoke/plot evidence before proof work. The active
+  route is strong-memo: `bders_simpStrong` is the small nullable gate and
+  original-regex span/memo reconstruction supplies exact POSIX values.
+  `bsimpCubic` emitted-tree work is historical negative evidence after the
+  graphs; do not optimize or claim bounty for it unless a new candidate first
+  beats the thesis Chapter 7 traces and passes exact POSIX value smoke.
 - Isabelle build passes for every session named in the bounty verifier column.
 - GitHub Actions or local CI emits a passing CI certificate.
 - No `sorry`, `oops`, `axiomatization`, `quick_and_dirty`, `oracle`, or admit

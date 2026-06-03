@@ -2686,6 +2686,87 @@ proof -
     by (rule strong_deferred_memo_exact_value_budget(3))
 qed
 
+lemma strong_deferred_memo_tree_POSIX_correctness:
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+proof -
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (simp add: strong_deferred_span_value_THE_lexer
+        lexer_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (simp add: strong_deferred_span_value_THE_lexer
+        lexer_correctness(2))
+qed
+
+lemma strong_deferred_memo_tree_POSIX_flat:
+  assumes "(if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v"
+  shows "flat v = s"
+proof -
+  have "s \<in> r \<rightarrow> v"
+    using assms
+    by (simp add: strong_deferred_memo_tree_POSIX_correctness(1))
+  then show ?thesis
+    by (rule Posix1(2))
+qed
+
+lemma strong_deferred_memo_tree_bounded_contract:
+  assumes tree_bound: "asize (bders_simpStrong (intern r) s) \<le> T"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> T"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le> T * T"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  have rows_le_tree:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule card_strong_deferred_final_active_suffix_rows_le_final_asize)
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le> T"
+    using rows_le_tree tree_bound by linarith
+  have pairs_le_tree:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    by (rule
+        strong_deferred_final_active_suffix_pair_budget_le_final_asize_square)
+  have tree_square_le: "asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s) \<le> T * T"
+    by (rule mult_mono[OF tree_bound tree_bound]) simp_all
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le> T * T"
+    using pairs_le_tree tree_square_le by linarith
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(2))
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_memo_exact_value_budget(3))
+qed
+
 lemma RL_rerase_bders_simpCubic:
   "RL (rerase (bders_simpCubic r s)) = Ders s (RL (rerase r))"
 proof (induct s arbitrary: r)
