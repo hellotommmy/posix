@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Active pair-budget is a proof-facing quantity
+
+- Added `raw_shared_prune_active_suffix_pair_budget`, the exact sum of
+  squared active bucket sizes over active suffix keys.
+- Added checked bounds:
+  `card_raw_shared_prune_active_suffix_pairs_le_pair_budget`,
+  `card_raw_shared_prune_active_suffix_closure_pair_budget_bound`, and
+  `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
+- This matches the Scala `strongMemoActivePairBudget` metric and gives a
+  sharper contract than the older `S * K * K` max-bucket accounting.
+- Design consequence: the next concrete universe proof may prove one aggregate
+  pair-budget bound for root-owned active suffix rows, then combine it with
+  member-size to instantiate active closure. This is closer to the actual
+  Chapter 7 behavior, where key count is tiny and one large bucket dominates.
+
 ## 2026-06-03: Active-suffix metrics are now plotted
 
 - Added `ActiveSuffixStats` to the Scala smoke model and wired it into

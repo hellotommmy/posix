@@ -2,6 +2,27 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Active Pair-Budget Bound (2026-06-03)
+
+- Added proof-facing pair-budget accounting in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_active_suffix_pair_budget`;
+  - `card_raw_shared_prune_active_suffix_pairs_le_pair_budget`;
+  - `card_raw_shared_prune_active_suffix_closure_pair_budget_bound`;
+  - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
+- This aligns the Isabelle closure accounting with the Scala
+  `strongMemoActivePairBudget` metric.
+- The active closure cardinality obligation can now be stated as:
+  `card (raw_shared_prune_active_suffix_closure U) <= card U + P * M`,
+  provided the active pair budget is at most `P` and every universe member has
+  size at most `M`.
+- Design consequence: the next concrete universe proof can target one
+  aggregate pair-budget bound instead of only the coarser
+  `S * K * K` active-key/max-bucket bound.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Active-Suffix Metrics Added (2026-06-03)
 
 - Added Scala smoke instrumentation for the active-suffix proof contract:

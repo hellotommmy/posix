@@ -20536,6 +20536,12 @@ definition raw_shared_prune_active_suffix_closure :: "rrexp set \<Rightarrow> rr
       case p of (earlier, later) \<Rightarrow>
         raw_shared_prune_pair_outputs earlier later)"
 
+definition raw_shared_prune_active_suffix_pair_budget :: "rrexp set \<Rightarrow> nat" where
+  "raw_shared_prune_active_suffix_pair_budget U =
+    (\<Sum>k\<in>raw_shared_prune_active_suffix_keys U.
+      card (raw_shared_prune_active_suffix_bucket U k) *
+      card (raw_shared_prune_active_suffix_bucket U k))"
+
 lemma finite_raw_shared_prune_same_suffix_pairs [simp]:
   assumes "finite U"
   shows "finite (raw_shared_prune_same_suffix_pairs U)"
@@ -20799,10 +20805,17 @@ proof -
   also have "... =
       (\<Sum>k\<in>?keys.
         card (raw_shared_prune_active_suffix_bucket U k) *
-        card (raw_shared_prune_active_suffix_bucket U k))"
+      card (raw_shared_prune_active_suffix_bucket U k))"
     by (rule sum.cong) (use finite in auto)
   finally show ?thesis .
 qed
+
+lemma card_raw_shared_prune_active_suffix_pairs_le_pair_budget:
+  assumes finite: "finite U"
+  shows "card (raw_shared_prune_active_suffix_pairs U) \<le>
+    raw_shared_prune_active_suffix_pair_budget U"
+  using card_raw_shared_prune_active_suffix_pairs_le_sum_buckets[OF finite]
+  by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
 
 lemma card_raw_shared_prune_active_suffix_pairs_bucket_bound:
   assumes finite: "finite U"
@@ -20979,6 +20992,35 @@ proof -
   qed
   finally show ?thesis
     by simp
+qed
+
+lemma card_raw_shared_prune_active_suffix_closure_pair_budget_bound:
+  assumes finite: "finite U"
+    and output_bound: "\<And>earlier later.
+      (earlier, later) \<in> raw_shared_prune_active_suffix_pairs U \<Longrightarrow>
+      card (raw_shared_prune_pair_outputs earlier later) \<le> Out"
+  shows "card (raw_shared_prune_active_suffix_closure U) \<le>
+    card U + raw_shared_prune_active_suffix_pair_budget U * Out"
+proof -
+  have pairs_bound:
+    "card (raw_shared_prune_active_suffix_pairs U) \<le>
+      raw_shared_prune_active_suffix_pair_budget U"
+    by (rule card_raw_shared_prune_active_suffix_pairs_le_pair_budget
+        [OF finite])
+  have "card (raw_shared_prune_active_suffix_closure U) \<le>
+      card U + card (raw_shared_prune_active_suffix_pairs U) * Out"
+    by (rule card_raw_shared_prune_active_suffix_closure_bound
+        [OF finite output_bound])
+  also have "... \<le>
+      card U + raw_shared_prune_active_suffix_pair_budget U * Out"
+  proof -
+    have "card (raw_shared_prune_active_suffix_pairs U) * Out \<le>
+        raw_shared_prune_active_suffix_pair_budget U * Out"
+      by (rule mult_right_mono[OF pairs_bound]) simp
+    then show ?thesis
+      by simp
+  qed
+  finally show ?thesis .
 qed
 
 lemma raw_shared_prune_same_suffix_closure_extensive:
@@ -22434,6 +22476,38 @@ proof (rule card_raw_shared_prune_active_suffix_closure_bucket_bound
   also have "... \<le> M"
     by (rule member_size[OF later])
   finally show "card (raw_shared_prune_pair_outputs earlier later) \<le> M" .
+qed
+
+lemma card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound:
+  assumes finite: "finite U"
+    and pair_budget: "raw_shared_prune_active_suffix_pair_budget U \<le> P"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure U) \<le>
+    card U + P * M"
+proof -
+  have closure_bound:
+    "card (raw_shared_prune_active_suffix_closure U) \<le>
+      card U + raw_shared_prune_active_suffix_pair_budget U * M"
+  proof (rule card_raw_shared_prune_active_suffix_closure_pair_budget_bound
+      [OF finite])
+    fix earlier later
+    assume pair: "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs U"
+    have later: "later \<in> U"
+      using pair by (simp add: raw_shared_prune_active_suffix_pairs_def)
+    have "card (raw_shared_prune_pair_outputs earlier later) \<le> rsize later"
+      by (rule card_raw_shared_prune_pair_outputs_le_later_size)
+    also have "... \<le> M"
+      by (rule member_size[OF later])
+    finally show "card (raw_shared_prune_pair_outputs earlier later) \<le> M" .
+  qed
+  have budget_le:
+    "raw_shared_prune_active_suffix_pair_budget U * M \<le> P * M"
+    by (rule mult_right_mono[OF pair_budget]) simp
+  have "card U + raw_shared_prune_active_suffix_pair_budget U * M \<le>
+      card U + P * M"
+    by (rule add_left_mono[OF budget_le])
+  with closure_bound show ?thesis
+    by linarith
 qed
 
 
