@@ -1,11 +1,11 @@
 param(
-  [string]$Ks = "5,8",
-  [int]$MaxN = 80,
-  [int]$Step = 2,
+  [string]$Ks = "5,8,10,12",
+  [int]$MaxN = 200,
+  [int]$Step = 4,
   [string]$Lengths = "",
   [string]$OutDir = "agent_hunt_pipeline/reports/ch7_deferred_memo_grid",
   [switch]$LogY,
-  [int]$TimeoutSeconds = 900
+  [int]$TimeoutSeconds = 1800
 )
 
 $ErrorActionPreference = "Stop"

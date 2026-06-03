@@ -18,9 +18,11 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-03: Long-tail deferred-memo grid separates tree from prefix pool
 
-- Regenerated the deferred-memo Chapter 7 grid to `n=200` for `k=5,8`.
+- Regenerated the deferred-memo Chapter 7 grid to `n=200` for
+  `k=5,8,10,12`.
 - The recognition tree remains promising: `strongMemoTree` peaks at `959` for
-  `k=5` and `3425` for `k=8` on this grid.
+  `k=5`, `3425` for `k=8`, `5940` for `k=10`, and `9686` for `k=12` on this
+  grid.
 - The cumulative active prefix pool is not a final proof universe by itself:
   for `k=8`, active rows/max bucket/pair-budget still grow through `n=200`.
 - Design consequence: do not try to prove the final regex-size theorem by
@@ -34,9 +36,9 @@ to be read before continuing long-running agent work.
   `strongMemoFinalActiveRows`, `strongMemoFinalActiveKeys`,
   `strongMemoFinalActiveMaxBucket`, and
   `strongMemoFinalActivePairBudget`.
-- On the same `k=5,8,n<=200` grid, final active rows stay tiny: max `5` for
-  `k=5` and max `9` for `k=8`; final active pair-budget maxes at `17` and
-  `65`, respectively.
+- On the same `k=5,8,10,12,n<=200` grid, final active rows stay tiny:
+  max `5`, `9`, `11`, and `13`; final active pair-budget maxes at `17`, `65`,
+  `101`, and `145`, respectively.
 - Design consequence: separate the final derivative state from the cumulative
   prefix/memo pool. The proof route should prefer a final-state active-row
   invariant for regex-size derivative bounds, while the span/value memo table

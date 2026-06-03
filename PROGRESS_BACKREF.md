@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
-## Cubic Route Checkpoint: Final Active Metrics Added (2026-06-03)
+## Cubic Route Checkpoint: Final Active Metrics Added and Stressed (2026-06-03)
 
 - Added Scala smoke metrics for the active suffix rows reachable in only the
   final strong derivative tree:
@@ -12,10 +12,17 @@ Last updated: 2026-06-03 (strong-memo route is default)
   - `strongMemoFinalActivePairBudget`.
 - Regenerated `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/` with
   these final-state metrics.
-- Evidence from `k=5,8`, `n=0..200`, step `4`:
+- The default deferred-memo report command now generates `k=5,8,10,12`,
+  `n=0..200`, step `4`.
+- Evidence from that grid:
   - `k=5`: final active rows max `5`, final active pair-budget max `17`;
   - `k=8`: final active rows max `9`, final active pair-budget max `65`;
-  - both keep final active keys at max `2`.
+  - `k=10`: final active rows max `11`, final active pair-budget max `101`;
+  - `k=12`: final active rows max `13`, final active pair-budget max `145`;
+  - all four keep final active keys at max `2`.
+- In contrast, the cumulative prefix pool still grows on the same grid:
+  `k=12` reaches `513` active rows and active pair-budget `262145` at
+  `n=200`.
 - Design consequence: the long-tail growth seen in
   `strongMemoActiveRows`/`strongMemoActivePairBudget` belongs to the cumulative
   prefix pool, not to the final derivative tree. The next proof target should
@@ -41,11 +48,13 @@ Last updated: 2026-06-03 (strong-memo route is default)
 ## Cubic Route Checkpoint: Deferred-Memo Long-Tail Grid to n=200 (2026-06-03)
 
 - Regenerated `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/` for
-  `k=5,8`, `n=0..200`, step `4`.
+  `k=5,8,10,12`, `n=0..200`, step `4`.
 - Positive evidence for the main route:
   - `strongMemoTree` stays thesis-like and bounded in this grid;
   - `k=5` maximum is `959`;
-  - `k=8` maximum is `3425`.
+  - `k=8` maximum is `3425`;
+  - `k=10` maximum is `5940`;
+  - `k=12` maximum is `9686`.
 - Negative evidence for the naive proof universe:
   - the cumulative/prefix active pool for `k=8` keeps growing through
     `n=200`;

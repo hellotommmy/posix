@@ -125,7 +125,8 @@ The same report now includes final-state metrics
 `strongMemoFinalActiveRows`, `strongMemoFinalActiveKeys`,
 `strongMemoFinalActiveMaxBucket`, and `strongMemoFinalActivePairBudget`.
 Prefer these when reasoning about the size of the final derivative tree; on
-the current `k=5,8,n<=200` grid they stay tiny while the prefix pool grows.
+the current `k=5,8,10,12,n<=200` grid they stay tiny while the prefix pool
+grows.
 On the Isabelle side, prefer
 `GeneralRegexBound.thy:card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`
 when possible: it uses the aggregate active pair-budget directly and is sharper

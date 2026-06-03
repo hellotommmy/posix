@@ -87,15 +87,16 @@ immutability.
   original-regex span/memo reconstruction the leading tree-level route, but it
   is still only tooling/evidence until checked Isabelle reconstruction and
   cubic theorem interfaces are complete.
-  The longer `k=5,8,n<=200` grid strengthens the tree-side evidence
-  (`strongMemoTree` peaks at `959` for `k=5` and `3425` for `k=8`), but also
+  The longer `k=5,8,10,12,n<=200` grid strengthens the tree-side evidence
+  (`strongMemoTree` peaks at `959`, `3425`, `5940`, and `9686`), but also
   shows that the unquotiented cumulative active prefix pool is not the final
-  cubic proof object (`k=8` active pair-budget still grows to `96722` at
-  `n=200`). This remains diagnostic BR-038/BR-040 infrastructure, not a payout.
+  cubic proof object (`k=12` active pair-budget grows to `262145` at `n=200`).
+  This remains diagnostic BR-038/BR-040 infrastructure, not a payout.
   Follow-up final-state metrics are more encouraging: on the same grid,
-  `strongMemoFinalActiveRows` maxes at `5` for `k=5` and `9` for `k=8`, while
-  `strongMemoFinalActivePairBudget` maxes at `17` and `65`. This suggests the
-  next proof should target final-state active rows, not raw prefix-pool rows.
+  `strongMemoFinalActiveRows` maxes at `5`, `9`, `11`, and `13`, while
+  `strongMemoFinalActivePairBudget` maxes at `17`, `65`, `101`, and `145`.
+  This suggests the next proof should target final-state active rows, not raw
+  prefix-pool rows.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
