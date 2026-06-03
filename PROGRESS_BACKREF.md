@@ -86,6 +86,14 @@ Last updated: 2026-06-03 (strong-memo route is default)
   card and member-size bounds by the final raw tree size/asize. These are not
   original-size bounds yet; they are proof plumbing for the next step, where
   the final active rows must be related back to the root regex.
+- Added checked premise-reduction facts:
+  `strong_deferred_final_active_suffix_pair_budget_le_rxsize_square` derives
+  the quadratic pair-budget directly from the linear final-active row bound,
+  and
+  `strong_deferred_original_final_active_rows_linear_member_cubic_contract`
+  packages the memo strong-tree POSIX contract with only two remaining
+  original-size obligations: final-active row count and final-active row
+  member size.
 - The Chapter 7 k=5 trace now prints final-active metrics directly. On
   lengths `4,8,12,16,20`, the cumulative active pair-budget grows
   `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and

@@ -2750,6 +2750,25 @@ lemma strong_deferred_final_active_suffix_pair_budget_le_rows_square:
       strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_pair_budget_le_rows_square)
 
+lemma strong_deferred_final_active_suffix_pair_budget_le_rxsize_square:
+  assumes rows_bound:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+  shows "strong_deferred_final_active_suffix_pair_budget r s \<le>
+    rxsize r * rxsize r"
+proof -
+  have budget_le:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      card (strong_deferred_final_active_suffix_rows r s) *
+      card (strong_deferred_final_active_suffix_rows r s)"
+    by (rule strong_deferred_final_active_suffix_pair_budget_le_rows_square)
+  have "card (strong_deferred_final_active_suffix_rows r s) *
+      card (strong_deferred_final_active_suffix_rows r s) \<le>
+      rxsize r * rxsize r"
+    by (rule mult_mono[OF rows_bound rows_bound]) simp_all
+  then show ?thesis
+    using budget_le by linarith
+qed
+
 lemma strong_deferred_final_active_suffix_pair_budget_le_final_asize_square:
   "strong_deferred_final_active_suffix_pair_budget r s \<le>
     asize (bders_simpStrong (intern r) s) *
@@ -3710,6 +3729,62 @@ lemma strong_deferred_original_final_active_linear_member_cubic_contract:
   using strong_deferred_original_final_active_budget_contract_with_member_bound
     [OF legacy rows_bound pair_budget member_size]
   by (simp_all add: algebra_simps)
+
+lemma strong_deferred_original_final_active_rows_linear_member_cubic_contract:
+  assumes legacy: "legacy_rexp r"
+    and rows_bound:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and member_size: "\<And>q.
+      q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      rsize q \<le> K * rxsize r"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      rxsize r + K * rxsize r * rxsize r * rxsize r"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have pair_budget:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    by (rule strong_deferred_final_active_suffix_pair_budget_le_rxsize_square
+        [OF rows_bound])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le> rxsize r"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_closure r s) \<le>
+      rxsize r + K * rxsize r * rxsize r * rxsize r"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    using strong_deferred_original_final_active_linear_member_cubic_contract
+      [OF legacy rows_bound pair_budget member_size]
+    by simp_all
+qed
 
 lemma rerase_map_fuse:
   "map rerase (map (fuse bs) rs) = map rerase rs"

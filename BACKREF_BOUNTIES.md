@@ -154,6 +154,14 @@ immutability.
   support lemmas against the final raw tree. This is useful proof
   infrastructure for the memo strong-tree route, but it is still not the
   original-size cubic theorem and pays no bounty.
+- Final-active pair-budget premise reduction:
+  `FBound.thy:strong_deferred_final_active_suffix_pair_budget_le_rxsize_square`
+  proves that the quadratic pair-budget follows from the linear final-active
+  row bound, and
+  `strong_deferred_original_final_active_rows_linear_member_cubic_contract`
+  records the two-obligation handoff. This removes a proof burden but does not
+  itself prove either remaining original-size obligation, so no bounty is
+  claimed.
 - Original-size final-active contract checkpoint:
   `FBound.thy:strong_deferred_original_final_active_budget_contract_with_member_bound`
   now states the proof target corresponding to the Scala final-active scout.
