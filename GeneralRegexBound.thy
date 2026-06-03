@@ -21347,6 +21347,104 @@ lemma raw_final_active_suffix_bucket_subset_rsubterms:
       (raw_final_active_suffix_rows r) k \<subseteq> rsubterms r"
   by (auto simp add: raw_final_active_suffix_bucket_iff)
 
+lemma legacy_raw_final_active_suffix_rows:
+  assumes "legacy_rrexp r"
+    and "q \<in> raw_final_active_suffix_rows r"
+  shows "legacy_rrexp q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(2) raw_final_active_suffix_rows_subset_rsubterms by blast
+  then show ?thesis
+    by (rule legacy_rrexp_rsubterms[OF assms(1)])
+qed
+
+lemma legacy_raw_final_active_suffix_keys:
+  assumes "legacy_rrexp r"
+    and "k \<in> raw_final_active_suffix_keys r"
+  shows "legacy_rrexp k"
+proof -
+  have "k \<in> rsubterms r"
+    using assms(2) raw_final_active_suffix_keys_subset_rsubterms by blast
+  then show ?thesis
+    by (rule legacy_rrexp_rsubterms[OF assms(1)])
+qed
+
+lemma legacy_raw_final_active_suffix_bucket:
+  assumes "legacy_rrexp r"
+    and "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k"
+  shows "legacy_rrexp q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(2) raw_final_active_suffix_bucket_subset_rsubterms by blast
+  then show ?thesis
+    by (rule legacy_rrexp_rsubterms[OF assms(1)])
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_rows:
+  assumes "legacy_rrexp r"
+    and "row_group_deep_nf r"
+    and "q \<in> raw_final_active_suffix_rows r"
+  shows "row_group_deep_nf q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(3) raw_final_active_suffix_rows_subset_rsubterms by blast
+  then show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms[OF assms(1) assms(2)])
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_keys:
+  assumes "legacy_rrexp r"
+    and "row_group_deep_nf r"
+    and "k \<in> raw_final_active_suffix_keys r"
+  shows "row_group_deep_nf k"
+proof -
+  have "k \<in> rsubterms r"
+    using assms(3) raw_final_active_suffix_keys_subset_rsubterms by blast
+  then show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms[OF assms(1) assms(2)])
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_bucket:
+  assumes "legacy_rrexp r"
+    and "row_group_deep_nf r"
+    and "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k"
+  shows "row_group_deep_nf q"
+proof -
+  have "q \<in> rsubterms r"
+    using assms(3) raw_final_active_suffix_bucket_subset_rsubterms by blast
+  then show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms[OF assms(1) assms(2)])
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_row_elem:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "row_group_deep_nf r"
+    and row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and elem: "p \<in> set rows"
+  shows "row_group_deep_nf p"
+proof -
+  have "row_group_deep_nf (RSEQ (RALTS rows) k)"
+    by (rule row_group_deep_nf_raw_final_active_suffix_rows
+        [OF legacy nf row])
+  then show ?thesis
+    using elem by simp
+qed
+
+lemma row_group_deep_nf_raw_final_active_suffix_row_key:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "row_group_deep_nf r"
+    and row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+  shows "row_group_deep_nf k"
+proof -
+  have "row_group_deep_nf (RSEQ (RALTS rows) k)"
+    by (rule row_group_deep_nf_raw_final_active_suffix_rows
+        [OF legacy nf row])
+  then show ?thesis
+    by simp
+qed
+
 lemma card_raw_final_active_suffix_rows_le_rsize:
   "card (raw_final_active_suffix_rows r) \<le> rsize r"
 proof -

@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final-active row elements are proof-facing handles
+
+- The final-active proof route now has direct inheritance lemmas for raw rows,
+  suffix keys, and active buckets. If the final raw tree is legacy and
+  `row_group_deep_nf`, then every active row/key/bucket member inherits the
+  corresponding legacy/deep-normal property.
+- The `FBound.thy` lift exposes the same facts for the memo-strong final tree.
+  In particular, from
+  `RSEQ (RALTS rows) k \<in> strong_deferred_final_active_suffix_rows r (c # s)`
+  and `legacy_rexp r`, future proofs can immediately obtain
+  `row_group_deep_nf p` for every `p \<in> set rows` and
+  `row_group_deep_nf k`.
+- This is the intended entry shape for the remaining row/member-size proof.
+  Do not reason from cumulative active-prefix pools when the theorem is about
+  final-active rows; and do not return to emitted-tree `bsimpCubic` unless a
+  new candidate first beats the Chapter 7 smoke grid and preserves exact
+  POSIX values.
+
 ## 2026-06-03: Final-active rows inherit strong normal form
 
 - Confirmed the route switch: emitted-tree `bsimpCubic` is negative evidence

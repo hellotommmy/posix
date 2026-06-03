@@ -79,6 +79,11 @@ immutability.
   now reason directly about deep-normal rows and suffix keys extracted from
   `strong_deferred_final_raw`; this is infrastructure only and claims no
   bounty.
+- Final-active row element handles: checked raw and lifted lemmas now expose
+  legacy/deep-normal facts for final-active rows, suffix keys, active buckets,
+  row-list elements, and row keys. This is the proof-facing entry point for
+  the remaining row/member-size bound, but still infrastructure only and no
+  bounty is claimed.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

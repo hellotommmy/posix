@@ -3572,6 +3572,56 @@ proof -
     by (rule legacy_rerase_bders_simpStrong)
 qed
 
+lemma legacy_strong_deferred_final_raw:
+  assumes "legacy_rexp r"
+  shows "legacy_rrexp (strong_deferred_final_raw r s)"
+  using legacy_rexp_rerase_bders_simpStrong_intern[OF assms]
+  by (simp add: strong_deferred_final_raw_def)
+
+lemma legacy_strong_deferred_final_active_suffix_rows:
+  assumes legacy: "legacy_rexp r"
+    and row: "q \<in> strong_deferred_final_active_suffix_rows r s"
+  shows "legacy_rrexp q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have raw_row: "q \<in>
+      raw_final_active_suffix_rows (strong_deferred_final_raw r s)"
+    using row by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule legacy_raw_final_active_suffix_rows[OF final_legacy raw_row])
+qed
+
+lemma legacy_strong_deferred_final_active_suffix_keys:
+  assumes legacy: "legacy_rexp r"
+    and key: "k \<in> strong_deferred_final_active_suffix_keys r s"
+  shows "legacy_rrexp k"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have raw_key: "k \<in>
+      raw_final_active_suffix_keys (strong_deferred_final_raw r s)"
+    using key by (simp add: strong_deferred_final_active_suffix_keys_def)
+  show ?thesis
+    by (rule legacy_raw_final_active_suffix_keys[OF final_legacy raw_key])
+qed
+
+lemma legacy_strong_deferred_final_active_suffix_bucket:
+  assumes legacy: "legacy_rexp r"
+    and row: "q \<in> raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k"
+  shows "legacy_rrexp q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have raw_row: "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows (strong_deferred_final_raw r s)) k"
+    using row by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule legacy_raw_final_active_suffix_bucket
+        [OF final_legacy raw_row])
+qed
+
 lemma row_group_deep_nf_rerase_bders_simpStrong_bsimpStrong_intern:
   assumes "legacy_rexp r"
   shows "row_group_deep_nf
@@ -3639,6 +3689,62 @@ proof -
   show ?thesis
     by (rule row_group_deep_nf_legacy_rsubterms
         [OF final_legacy final_nf k_sub])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_bucket_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and row: "q \<in> raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r (c # s)) k"
+  shows "row_group_deep_nf q"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have raw_row: "q \<in> raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows
+        (strong_deferred_final_raw r (c # s))) k"
+    using row by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule row_group_deep_nf_raw_final_active_suffix_bucket
+        [OF final_legacy final_nf raw_row])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_row_elem_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r (c # s)"
+    and elem: "p \<in> set rows"
+  shows "row_group_deep_nf p"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have raw_row: "RSEQ (RALTS rows) k \<in>
+      raw_final_active_suffix_rows (strong_deferred_final_raw r (c # s))"
+    using row by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule row_group_deep_nf_raw_final_active_suffix_row_elem
+        [OF final_legacy final_nf raw_row elem])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_row_key_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r (c # s)"
+  shows "row_group_deep_nf k"
+proof -
+  have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have raw_row: "RSEQ (RALTS rows) k \<in>
+      raw_final_active_suffix_rows (strong_deferred_final_raw r (c # s))"
+    using row by (simp add: strong_deferred_final_active_suffix_rows_def)
+  show ?thesis
+    by (rule row_group_deep_nf_raw_final_active_suffix_row_key
+        [OF final_legacy final_nf raw_row])
 qed
 
 lemma strong_deferred_original_legacy_budget:

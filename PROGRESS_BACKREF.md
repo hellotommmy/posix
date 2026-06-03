@@ -2,6 +2,36 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final-Active Row Element Handles (2026-06-03)
+
+- Continued the memo-strong route. The goal is still the cubic non-backref
+  bound with exact POSIX values; `bsimpCubic` remains negative evidence rather
+  than a proof target.
+- Added raw final-active inheritance lemmas in `GeneralRegexBound.thy`:
+  `legacy_raw_final_active_suffix_rows`,
+  `legacy_raw_final_active_suffix_keys`,
+  `legacy_raw_final_active_suffix_bucket`,
+  `row_group_deep_nf_raw_final_active_suffix_rows`,
+  `row_group_deep_nf_raw_final_active_suffix_keys`,
+  `row_group_deep_nf_raw_final_active_suffix_bucket`,
+  `row_group_deep_nf_raw_final_active_suffix_row_elem`, and
+  `row_group_deep_nf_raw_final_active_suffix_row_key`.
+- Lifted those handles to the memo-strong final tree in `FBound.thy`:
+  `legacy_strong_deferred_final_raw`,
+  `legacy_strong_deferred_final_active_suffix_rows`,
+  `legacy_strong_deferred_final_active_suffix_keys`,
+  `legacy_strong_deferred_final_active_suffix_bucket`,
+  `row_group_deep_nf_strong_deferred_final_active_suffix_bucket_nonempty`,
+  `row_group_deep_nf_strong_deferred_final_active_suffix_row_elem_nonempty`,
+  and
+  `row_group_deep_nf_strong_deferred_final_active_suffix_row_key_nonempty`.
+- Design effect: future row/member-size proofs can now start from a concrete
+  final-active row `RSEQ (RALTS rows) k` and immediately know that the row
+  payload elements and suffix key are legacy/deep-normal. This is a proof
+  handle for the final-active size argument, not a wrapper or a payout.
+- Verification:
+  focused `isabelle build -v -d . Posix` passed.
+
 ## Cubic Route Checkpoint: Memo Strong Final-Active NF Bridge (2026-06-03)
 
 - Followed the derivative-size graphs and kept emitted-tree `bsimpCubic`
