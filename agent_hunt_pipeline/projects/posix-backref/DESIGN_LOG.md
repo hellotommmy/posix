@@ -3,6 +3,19 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final-active proof contract mirrors the scout
+
+- Added `strong_deferred_original_final_active_budget_contract` in
+  `FBound.thy`.
+- The theorem packages the current intended handoff: for a legacy root, once
+  final-active rows, final-active pair-budget, and final-active member size are
+  all bounded by the original `rxsize r`, the memo strong-tree route already
+  gives exact POSIX correctness, `flat` correctness, a legacy final raw state,
+  cubic final-active closure size, and the existing span/split memo budgets.
+- This keeps the proof obligation aligned with the Scala scout instead of
+  letting value reconstruction, memo accounting, and size accounting drift into
+  separate ad hoc targets.
+
 ## 2026-06-03: Final-active scout added for memo strong tree
 
 - Added a dedicated final-active budget gate to the Scala smoke harness. It

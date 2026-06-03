@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final-Active Proof Contract (2026-06-03)
+
+- Added and checked
+  `FBound.thy:strong_deferred_original_final_active_budget_contract`.
+- The theorem matches the current Scala final-active scout: for a legacy
+  non-backref regex, if the final derivative state satisfies
+  `finalActiveRows <= rxsize r`, `finalActivePairBudget <= rxsize r^2`, and
+  each final-active row has raw size `<= rxsize r`, then the memo strong-tree
+  route yields:
+  - exact POSIX `Some`/`None` correctness and `flat v = s`;
+  - a legacy final raw recognition state;
+  - final-active closure size
+    `<= rxsize r + rxsize r * rxsize r * rxsize r`;
+  - the existing quadratic span-state and cubic split-probe memo budgets.
+- This is not a wrapper payout and does not prove the cubic theorem. It turns
+  the next proof obligation into the three root-owned final-active size
+  premises that the Scala scout is now testing.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+
 ## Cubic Route Checkpoint: Strong-Memo Final-Active Scout (2026-06-03)
 
 - Retired `bsimpCubic` as an active proof target after the size graphs: future

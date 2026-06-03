@@ -143,6 +143,12 @@ quadratic pair-budget gates for the final derivative state. A failing run
 prints a greedy-shrunk counterexample. A passing run is smoke evidence only;
 it does not authorize a bounty claim without the corresponding checked
 Isabelle theorem.
+On the Isabelle side, the current handoff theorem for this route is
+`FBound.thy:strong_deferred_original_final_active_budget_contract`: prove the
+final-active rows, pair-budget, and row member-size bounds against the original
+`rxsize r`, and that theorem supplies exact POSIX correctness, legacy final
+state preservation, cubic final-active closure size, and the span/split memo
+budgets.
 On the Isabelle side, prefer
 `GeneralRegexBound.thy:card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`
 when possible: it uses the aggregate active pair-budget directly and is sharper

@@ -126,6 +126,16 @@ immutability.
   bound by final `asize`. It is BR-040 infrastructure only; it does not pay
   until the final-active row/pair-budget cubic theorem or equivalent quotient
   theorem is checked.
+- Original-size final-active contract checkpoint:
+  `FBound.thy:strong_deferred_original_final_active_budget_contract` now states
+  the proof target corresponding to the Scala final-active scout. For a legacy
+  root, if final-active rows, final-active pair-budget, and final-active row
+  member size are bounded by `rxsize r`, the memo strong-tree route already
+  yields exact POSIX `Some`/`None` correctness, `flat v = s`, a legacy final
+  raw recognition state, final-active closure size
+  `<= rxsize r + rxsize r * rxsize r * rxsize r`, and the existing memo-table
+  budgets. This is a checked handoff theorem, not a payout; the actual
+  original-size final-active bounds remain open.
 - Final-active pair-budget square checkpoint:
   `raw_shared_prune_active_suffix_pair_budget_eq_pairs` proves the active
   pair-budget is exactly the active pair-relation cardinality, and
