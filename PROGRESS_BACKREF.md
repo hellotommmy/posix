@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Active Pair-Budget Square Bound (2026-06-03)
+
+- Added checked active-pair accounting:
+  - `raw_shared_prune_active_suffix_pair_budget_eq_pairs`;
+  - `raw_shared_prune_active_suffix_pairs_subset_Times`;
+  - `raw_shared_prune_active_suffix_pair_budget_le_card_square`.
+- Lifted the square bound to final strong trees:
+  - `raw_final_active_suffix_pair_budget_le_rows_square`;
+  - `raw_final_active_suffix_pair_budget_le_rsize_square`;
+  - `strong_deferred_final_active_suffix_pair_budget_le_rows_square`;
+  - `strong_deferred_final_active_suffix_pair_budget_le_final_asize_square`.
+- Updated `strong_deferred_memo_tree_value_final_active_interface` so it now
+  packages exact POSIX reconstruction, final active row count bounded by final
+  `asize`, final active pair-budget bounded by final `asize^2`, and the
+  existing span/split memo budgets.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including default `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- This is still infrastructure, not a BR-039/BR-040 payout. The hard remaining
+  theorem is the regex-size bound for the final strong tree / final active
+  rows themselves.
+
 ## Cubic Route Checkpoint: Final Active Strong Tree Bridge (2026-06-03)
 
 - Retired `bsimpCubic` as the active candidate after the derivative-size

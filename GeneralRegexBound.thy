@@ -20941,6 +20941,74 @@ lemma card_raw_shared_prune_active_suffix_pairs_le_pair_budget:
   using card_raw_shared_prune_active_suffix_pairs_le_sum_buckets[OF finite]
   by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
 
+lemma raw_shared_prune_active_suffix_pair_budget_eq_pairs:
+  assumes finite: "finite U"
+  shows "raw_shared_prune_active_suffix_pair_budget U =
+    card (raw_shared_prune_active_suffix_pairs U)"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  let ?F = "\<lambda>k. raw_shared_prune_active_suffix_bucket U k \<times>
+    raw_shared_prune_active_suffix_bucket U k"
+  have keys_finite: "finite ?keys"
+    using finite by simp
+  have bucket_finite: "\<forall>k\<in>?keys. finite (?F k)"
+    using finite by simp
+  have bucket_disjoint:
+    "\<forall>i\<in>?keys. \<forall>j\<in>?keys. i \<noteq> j \<longrightarrow> ?F i \<inter> ?F j = {}"
+    by (auto simp add: raw_shared_prune_active_suffix_bucket_def)
+  have "card (raw_shared_prune_active_suffix_pairs U) =
+      card (\<Union> (?F ` ?keys))"
+    by (simp add: raw_shared_prune_active_suffix_pairs_bucket_union)
+  also have "... = (\<Sum>k\<in>?keys. card (?F k))"
+    by (rule card_UN_disjoint
+        [OF keys_finite bucket_finite bucket_disjoint])
+  also have "... =
+      (\<Sum>k\<in>?keys.
+        card (raw_shared_prune_active_suffix_bucket U k) *
+        card (raw_shared_prune_active_suffix_bucket U k))"
+  proof (rule sum.cong)
+    show "?keys = ?keys"
+      by simp
+  next
+    fix k
+    assume "k \<in> ?keys"
+    have "finite (raw_shared_prune_active_suffix_bucket U k)"
+      using finite by simp
+    then show "card (?F k) =
+      card (raw_shared_prune_active_suffix_bucket U k) *
+      card (raw_shared_prune_active_suffix_bucket U k)"
+      by simp
+  qed
+  also have "... = raw_shared_prune_active_suffix_pair_budget U"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
+  finally show ?thesis
+    by simp
+qed
+
+lemma raw_shared_prune_active_suffix_pairs_subset_Times:
+  "raw_shared_prune_active_suffix_pairs U \<subseteq> U \<times> U"
+  by (auto simp add: raw_shared_prune_active_suffix_pairs_def)
+
+lemma raw_shared_prune_active_suffix_pair_budget_le_card_square:
+  assumes finite: "finite U"
+  shows "raw_shared_prune_active_suffix_pair_budget U \<le>
+    card U * card U"
+proof -
+  have "raw_shared_prune_active_suffix_pair_budget U =
+      card (raw_shared_prune_active_suffix_pairs U)"
+    by (rule raw_shared_prune_active_suffix_pair_budget_eq_pairs[OF finite])
+  also have "... \<le> card (U \<times> U)"
+  proof (rule card_mono)
+    show "finite (U \<times> U)"
+      using finite by simp
+    show "raw_shared_prune_active_suffix_pairs U \<subseteq> U \<times> U"
+      by (rule raw_shared_prune_active_suffix_pairs_subset_Times)
+  qed
+  also have "... = card U * card U"
+    using finite by simp
+  finally show ?thesis .
+qed
+
 lemma card_raw_shared_prune_active_suffix_pairs_bucket_bound:
   assumes finite: "finite U"
     and keys_bound: "card (raw_shared_prune_active_suffix_keys U) \<le> S"
@@ -21041,6 +21109,29 @@ proof -
       (simp_all add: keys buckets)
   then show ?thesis
     by (simp add: raw_final_active_suffix_pair_budget_def)
+qed
+
+lemma raw_final_active_suffix_pair_budget_le_rows_square:
+  "raw_final_active_suffix_pair_budget r \<le>
+    card (raw_final_active_suffix_rows r) *
+    card (raw_final_active_suffix_rows r)"
+  by (simp add: raw_final_active_suffix_pair_budget_def
+      raw_shared_prune_active_suffix_pair_budget_le_card_square)
+
+lemma raw_final_active_suffix_pair_budget_le_rsize_square:
+  "raw_final_active_suffix_pair_budget r \<le> rsize r * rsize r"
+proof -
+  have budget_le: "raw_final_active_suffix_pair_budget r \<le>
+      card (raw_final_active_suffix_rows r) *
+      card (raw_final_active_suffix_rows r)"
+    by (rule raw_final_active_suffix_pair_budget_le_rows_square)
+  have rows_le: "card (raw_final_active_suffix_rows r) \<le> rsize r"
+    by (rule card_raw_final_active_suffix_rows_le_rsize)
+  have "card (raw_final_active_suffix_rows r) *
+      card (raw_final_active_suffix_rows r) \<le> rsize r * rsize r"
+    by (rule mult_mono[OF rows_le rows_le]) simp_all
+  then show ?thesis
+    using budget_le by linarith
 qed
 
 lemma card_raw_shared_prune_same_suffix_closure_bound:

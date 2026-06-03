@@ -2621,11 +2621,45 @@ proof -
     by (simp add: strong_deferred_final_active_suffix_pair_budget_def)
 qed
 
+lemma strong_deferred_final_active_suffix_pair_budget_le_rows_square:
+  "strong_deferred_final_active_suffix_pair_budget r s \<le>
+    card (strong_deferred_final_active_suffix_rows r s) *
+    card (strong_deferred_final_active_suffix_rows r s)"
+  by (simp add: strong_deferred_final_active_suffix_pair_budget_def
+      strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_pair_budget_le_rows_square)
+
+lemma strong_deferred_final_active_suffix_pair_budget_le_final_asize_square:
+  "strong_deferred_final_active_suffix_pair_budget r s \<le>
+    asize (bders_simpStrong (intern r) s) *
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have budget_le:
+    "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      card (strong_deferred_final_active_suffix_rows r s) *
+      card (strong_deferred_final_active_suffix_rows r s)"
+    by (rule strong_deferred_final_active_suffix_pair_budget_le_rows_square)
+  have rows_le:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    by (rule card_strong_deferred_final_active_suffix_rows_le_final_asize)
+  have "card (strong_deferred_final_active_suffix_rows r s) *
+      card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    by (rule mult_mono[OF rows_le rows_le]) simp_all
+  then show ?thesis
+    using budget_le by linarith
+qed
+
 lemma strong_deferred_memo_tree_value_final_active_interface:
   shows "(if bnullable (bders_simpStrong (intern r) s)
       then Some (THE v. strong_deferred_span_value r s v)
       else None) = lexer r s"
     and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      asize (bders_simpStrong (intern r) s)"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
       asize (bders_simpStrong (intern r) s)"
     and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
       2 * rxsize r * Suc (length s) * Suc (length s)"
@@ -2639,6 +2673,11 @@ proof -
   show "card (strong_deferred_final_active_suffix_rows r s) \<le>
       asize (bders_simpStrong (intern r) s)"
     by (rule card_strong_deferred_final_active_suffix_rows_le_final_asize)
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      asize (bders_simpStrong (intern r) s) *
+      asize (bders_simpStrong (intern r) s)"
+    by (rule
+        strong_deferred_final_active_suffix_pair_budget_le_final_asize_square)
   show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
       2 * rxsize r * Suc (length s) * Suc (length s)"
     by (rule strong_deferred_memo_exact_value_budget(2))

@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final active pair-budget has a square fallback
+
+- Added a checked equality between active suffix pair-budget and the cardinality
+  of the active pair relation. The reason is structural: active buckets are
+  disjoint by suffix key.
+- Since active pairs are a subset of `U x U`, every finite active universe now
+  gets `raw_shared_prune_active_suffix_pair_budget U <= card U * card U`.
+- Lifted this to the final strong derivative tree, giving
+  `strong_deferred_final_active_suffix_pair_budget r s <=
+   asize (bders_simpStrong (intern r) s)^2`.
+- Design consequence: if future work proves the final strong tree is cubic in
+  the original regex size, the final active pair-budget is at worst quadratic
+  in that final tree size. This is a fallback interface; the sharper route is
+  still to prove the tiny final-active row/bucket behavior directly.
+
 ## 2026-06-03: Strong memo tree is now the active proof route
 
 - The derivative-size graphs make the emitted-tree `bsimpCubic` route

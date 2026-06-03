@@ -107,6 +107,14 @@ immutability.
   bound by final `asize`. It is BR-040 infrastructure only; it does not pay
   until the final-active row/pair-budget cubic theorem or equivalent quotient
   theorem is checked.
+- Final-active pair-budget square checkpoint:
+  `raw_shared_prune_active_suffix_pair_budget_eq_pairs` proves the active
+  pair-budget is exactly the active pair-relation cardinality, and
+  `raw_shared_prune_active_suffix_pair_budget_le_card_square` bounds it by
+  `card U * card U`. The final-tree lift
+  `strong_deferred_final_active_suffix_pair_budget_le_final_asize_square` is
+  now included in `strong_deferred_memo_tree_value_final_active_interface`.
+  This is useful fallback accounting, not a cubic theorem payout.
 - Active pair-budget checkpoint: `GeneralRegexBound.thy` now exposes
   `raw_shared_prune_active_suffix_pair_budget` and the checked bridge
   `card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound`.
