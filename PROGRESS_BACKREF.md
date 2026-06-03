@@ -2,6 +2,33 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Active-Suffix Metrics Added (2026-06-03)
+
+- Added Scala smoke instrumentation for the active-suffix proof contract:
+  - `ActiveSuffixStats`;
+  - `activeSuffixStatsForStrongPrefixes`;
+  - `strongMemoActiveRows`;
+  - `strongMemoActiveKeys`;
+  - `strongMemoActiveMaxBucket`;
+  - `strongMemoActivePairBudget`.
+- Added `agent_hunt_pipeline/scripts/ch7_deferred_memo_grid.ps1`, a dedicated
+  reproducibility wrapper for the deferred-memo Chapter 7 plots.
+- Regenerated
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/index.html` with active
+  suffix metrics.
+- Evidence from `k=5,8`, `n=0..80` step `2`:
+  - active suffix keys stay at `2` for both `k=5` and `k=8` after the first
+    nontrivial prefix;
+  - `k=5` active max bucket reaches `84` and then plateaus by `n=62`;
+  - `k=8` active max bucket reaches `176` at `n=80` and is still growing
+    slowly;
+  - pair budget is the expected sum-of-bucket-squares metric, reaching `7057`
+    for `k=5,n=80` and `30977` for `k=8,n=80`.
+- Design consequence: the next Isabelle universe proof should focus on active
+  suffix-key count and active bucket-size bounds. The smoke data suggests the
+  key count is tiny on the thesis family, while bucket size is the meaningful
+  quantity to bound.
+
 ## Cubic Route Checkpoint: Active-Suffix Memo Contract (2026-06-03)
 
 - Decision confirmed from the graphs: do not push the emitted-tree

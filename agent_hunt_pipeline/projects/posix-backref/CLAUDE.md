@@ -111,6 +111,12 @@ counts only real `RSEQ (RALTS rows) k` shared-suffix rows and avoids the broad
 `None` bucket from the older same-suffix closure. The remaining proof burden is
 active suffix-key count, active bucket size, and ordinary universe member-size
 bound.
+Use
+`powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\ch7_deferred_memo_grid.ps1`
+to refresh the current deferred-memo plots. The report includes
+`strongMemoActiveRows`, `strongMemoActiveKeys`,
+`strongMemoActiveMaxBucket`, and `strongMemoActivePairBudget`; inspect these
+before changing the proof universe.
 
 For the current deferred-memo route, use
 `FBound.thy:strong_deferred_memo_budget` as the checked accounting interface:

@@ -75,7 +75,11 @@ immutability.
   versus `cubicTree=7587`.
 - Deferred memo route evidence: the same plotting infrastructure now supports
   `strongMemoTree`, memo-state, and memo-probe metrics, with the report
-  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/`. On the default
+  `agent_hunt_pipeline/reports/ch7_deferred_memo_grid/`. The dedicated command
+  is `agent_hunt_pipeline/scripts/ch7_deferred_memo_grid.ps1`; it also plots
+  active-suffix proof-contract metrics (`strongMemoActiveRows`,
+  `strongMemoActiveKeys`, `strongMemoActiveMaxBucket`,
+  `strongMemoActivePairBudget`). On the default
   `k=1..8,n=0..30` grid, `strongMemoTree` preserves the thesis-style tree
   line (`958` at `k=5,n=30`, `2747` at `k=8,n=30`) while the memo table is
   modest on this family (`strongMemoStates=1703`, `strongMemoSplitProbes=6011`

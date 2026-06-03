@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Active-suffix metrics are now plotted
+
+- Added `ActiveSuffixStats` to the Scala smoke model and wired it into
+  `StrongDeferredMemoResult`.
+- New Chapter 7 metrics:
+  `strongMemoActiveRows`, `strongMemoActiveKeys`,
+  `strongMemoActiveMaxBucket`, and `strongMemoActivePairBudget`.
+- Added `agent_hunt_pipeline/scripts/ch7_deferred_memo_grid.ps1` as the
+  preferred reproducibility command for deferred-memo plots.
+- Current `k=5,8,n<=80` evidence:
+  active suffix keys stay at `2`; `k=5` active max bucket plateaus around
+  `84`; `k=8` reaches `176` at `n=80`; pair budget follows the expected
+  square-of-bucket accounting.
+- Design consequence: proving the active-suffix memo contract should now be
+  attacked by bounding suffix-key count and per-key bucket size directly,
+  rather than inventing another emitted-tree simplifier.
+
 ## 2026-06-03: Active-suffix closure replaces broad same-suffix buckets
 
 - The emitted-tree `bsimpCubic` route remains retired. The current proof target
