@@ -2,6 +2,34 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Raw DAG Metric Bridge (2026-06-04)
+
+- Added the Isabelle metric `strong_deferred_final_raw_dag_size`, defined as
+  `card (rsubterms (strong_deferred_final_raw r s))`. This is the erased
+  proof-side analogue of the Scala `strongMemoDag` measurement and keeps the
+  focus on hash-consed/exact-DAG accounting rather than raw emitted-tree size.
+- Proved
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_final_raw_dag_size`
+  and `strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound`.
+  Therefore any future bound on the exact DAG of the full memo-strong final
+  recognition tree immediately supplies the row-DAG universe bound needed by
+  `strong_deferred_original_final_active_single_row_dag_universe_contract`.
+- Refreshed the Chapter 7 derivative-size report for `k=5,8`, `n=0..64`,
+  metrics `strongTree,strongMemoTree,strongMemoDag,
+  strongMemoFinalActiveMaxRowDag,strongMemoFinalActiveRows`. At `n=64`, the
+  report shows:
+  `k=5`: `strongMemoDag=72`, `finalMaxRowDag=31`, `finalRows=5`;
+  `k=8`: `strongMemoDag=133`, `finalMaxRowDag=61`, `finalRows=9`.
+  The report lives in
+  `agent_hunt_pipeline/reports/ch7_derivative_size_compare/index.html`.
+- Verification: full local CI passed with
+  `isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin
+  -SessionTimeoutSeconds 300`.
+- No BR-039/BR-040 bounty is claimed. The next theorem target is now one of
+  two concrete original-size bounds: either bound
+  `strong_deferred_final_raw_dag_size r s`, or directly bound
+  `strong_deferred_final_active_suffix_row_dag_universe r s`.
+
 ## Cubic Route Checkpoint: Memo-Strong Row-DAG Eliminators (2026-06-04)
 
 - Confirmed the route switch requested after the derivative-size graphs:

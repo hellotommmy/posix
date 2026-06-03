@@ -2553,6 +2553,10 @@ definition strong_deferred_final_raw :: "rexp \<Rightarrow> string \<Rightarrow>
   "strong_deferred_final_raw r s =
     rerase (bders_simpStrong (intern r) s)"
 
+definition strong_deferred_final_raw_dag_size :: "rexp \<Rightarrow> string \<Rightarrow> nat" where
+  "strong_deferred_final_raw_dag_size r s =
+    card (rsubterms (strong_deferred_final_raw r s))"
+
 definition strong_deferred_final_active_suffix_rows ::
   "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
   "strong_deferred_final_active_suffix_rows r s =
@@ -2700,6 +2704,33 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_subset_final_rsubterm
     rsubterms (strong_deferred_final_raw r s)"
   by (simp add: strong_deferred_final_active_suffix_row_dag_universe_def
       raw_final_active_suffix_row_dag_universe_subset_rsubterms)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_raw_dag_size:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    strong_deferred_final_raw_dag_size r s"
+proof -
+  have sub: "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      rsubterms (strong_deferred_final_raw r s)"
+    by (rule strong_deferred_final_active_suffix_row_dag_universe_subset_final_rsubterms)
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      card (rsubterms (strong_deferred_final_raw r s))"
+    by (rule card_mono) (simp_all add: sub)
+  then show ?thesis
+    by (simp add: strong_deferred_final_raw_dag_size_def)
+qed
+
+lemma strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound:
+  assumes "strong_deferred_final_raw_dag_size r s \<le> D"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      strong_deferred_final_raw_dag_size r s"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_le_final_raw_dag_size)
+  also have "... \<le> D"
+    by (rule assms)
+  finally show ?thesis .
+qed
 
 lemma strong_deferred_final_active_suffix_row_dag_universeE:
   assumes "p \<in> strong_deferred_final_active_suffix_row_dag_universe r s"

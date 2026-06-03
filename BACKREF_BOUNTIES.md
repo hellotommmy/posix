@@ -113,6 +113,15 @@ immutability.
   giving the next structural handle for a root-owned row/DAG universe proof.
   The same checkpoint reran strong-memo smoke and the final-active scout; it
   remains infrastructure only and claims no BR-039/BR-040 payout.
+- Final raw DAG metric bridge: checked
+  `strong_deferred_final_raw_dag_size`,
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_final_raw_dag_size`,
+  and `strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound`.
+  This connects a future `strongMemoDag`-style exact-DAG bound for the whole
+  memo-strong final recognition tree to the row-DAG universe contract. The
+  Chapter 7 report was refreshed for `k=5,8,n<=64`, with `strongMemoDag`
+  `72/133` and final max row-DAG `31/61` at `n=64`. This is BR-040
+  infrastructure only, not a payout.
 - Row-DAG POSIX handoff checkpoint: checked legacy/deep-normal closure facts
   for the row-DAG universe, plus
   `strong_deferred_memo_tree_value_final_active_row_dag_interface` and

@@ -5,6 +5,17 @@ to be read before continuing long-running agent work.
 
 ## 2026-06-04: Row-DAG universe is wired into POSIX reconstruction
 
+- Added `strong_deferred_final_raw_dag_size`, the erased exact-DAG size of the
+  final memo-strong recognition tree. The bridge
+  `strong_deferred_final_raw_dag_bound_to_row_dag_universe_bound` means a
+  future bound on the whole final DAG is enough to feed the existing
+  row-DAG/POSIX reconstruction contract.
+- Refreshed the Chapter 7 plot for `k=5,8,n<=64` with
+  `strongTree`, `strongMemoTree`, `strongMemoDag`,
+  `strongMemoFinalActiveMaxRowDag`, and `strongMemoFinalActiveRows`. At
+  `n=64`, `strongMemoDag` is `72` for `k=5` and `133` for `k=8`, while
+  final max row-DAG is `31` and `61`. This supports a proof route through
+  exact DAG sharing; it is not yet the original-size theorem.
 - Route decision after the derivative-size graphs: do not spend proof effort
   rescuing emitted-tree `bsimpCubic`. The active candidate is memo strong tree:
   use `bders_simpStrong` only as the small nullable recognition gate and

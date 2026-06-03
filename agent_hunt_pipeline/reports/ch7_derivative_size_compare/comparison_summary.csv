@@ -1,17 +1,11 @@
 k,metric,n_max,value_at_n_max,baseline_at_n_max,ratio_at_n_max,max_ratio_to_baseline,verdict
-1,strongTree,30,2,2,1,1,baseline
-1,strongMemoTree,30,2,2,1,1,within baseline
-2,strongTree,30,72,72,1,1,baseline
-2,strongMemoTree,30,72,72,1,1,within baseline
-3,strongTree,30,236,236,1,1,baseline
-3,strongMemoTree,30,236,236,1,1,within baseline
-4,strongTree,30,428,428,1,1,baseline
-4,strongMemoTree,30,428,428,1,1,within baseline
-5,strongTree,30,958,958,1,1,baseline
-5,strongMemoTree,30,958,958,1,1,within baseline
-6,strongTree,30,1389,1389,1,1,baseline
-6,strongMemoTree,30,1389,1389,1,1,within baseline
-7,strongTree,30,1976,1976,1,1,baseline
-7,strongMemoTree,30,1976,1976,1,1,within baseline
-8,strongTree,30,2747,2747,1,1,baseline
-8,strongMemoTree,30,2747,2747,1,1,within baseline
+5,strongTree,64,959,959,1,1,baseline
+5,strongMemoTree,64,959,959,1,1,within baseline
+5,strongMemoDag,64,72,959,0.07508,0.3913,within baseline
+5,strongMemoFinalActiveMaxRowDag,64,31,959,0.03233,0.0654,within baseline
+5,strongMemoFinalActiveRows,64,5,959,0.005214,0.01055,within baseline
+8,strongTree,64,3245,3245,1,1,baseline
+8,strongMemoTree,64,3245,3245,1,1,within baseline
+8,strongMemoDag,64,133,3245,0.04099,0.2784,within baseline
+8,strongMemoFinalActiveMaxRowDag,64,61,3245,0.0188,0.05241,within baseline
+8,strongMemoFinalActiveRows,64,9,3245,0.002773,0.004956,within baseline
