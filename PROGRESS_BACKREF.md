@@ -35,6 +35,10 @@ Last updated: 2026-06-04 (strong-memo route is default)
   `card (strong_deferred_final_active_suffix_row_dag_universe r s) <= D`
   immediately yields `finalMaxRowDag <= D` plus the POSIX reconstruction
   contract.
+- Added fallback bounds
+  `raw_final_active_suffix_max_row_dag_le_rsize` and
+  `strong_deferred_final_active_suffix_max_row_dag_le_final_asize`, so the new
+  scalar metric is wired into the existing final-size fallback facts.
 - The report is in
   `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
   This is smoke evidence only; BR-040 still requires an Isabelle derivation of

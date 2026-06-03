@@ -39,6 +39,9 @@ to be read before continuing long-running agent work.
   implies the scalar `finalMaxRowDag` bound. This keeps the proof route
   flexible: either prove the scalar metric directly or prove the row-DAG
   universe bound and inherit the scalar one.
+- Added final-size fallback lemmas for the scalar max-row-DAG metric. These
+  are not the desired original-size bounds, but they keep the new metric
+  compatible with older final-tree accounting.
 - Added `strong_deferred_original_final_active_row_dag_two_universe_contract`.
   It separates the accounting objects: `RowU` bounds the number of
   final-active rows and hence the pair budget, while `DagU` is closed under

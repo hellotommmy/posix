@@ -21477,6 +21477,17 @@ proof -
   qed
 qed
 
+lemma raw_final_active_suffix_max_row_dag_le_rsize:
+  "raw_final_active_suffix_max_row_dag r \<le> rsize r"
+proof -
+  have "raw_final_active_suffix_max_row_dag r \<le>
+      card (raw_final_active_suffix_row_dag_universe r)"
+    by (rule raw_final_active_suffix_max_row_dag_le_row_dag_universe)
+  also have "... \<le> rsize r"
+    by (rule card_raw_final_active_suffix_row_dag_universe_le_rsize)
+  finally show ?thesis .
+qed
+
 lemma raw_final_active_suffix_row_dag_universe_subsetI:
   assumes rows: "raw_final_active_suffix_rows r \<subseteq> U"
     and subterms: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> V"

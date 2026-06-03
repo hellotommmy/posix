@@ -2802,6 +2802,24 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_deferred_final_active_suffix_max_row_dag_le_final_rsize:
+  "strong_deferred_final_active_suffix_max_row_dag r s \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_max_row_dag_def
+      raw_final_active_suffix_max_row_dag_le_rsize)
+
+lemma strong_deferred_final_active_suffix_max_row_dag_le_final_asize:
+  "strong_deferred_final_active_suffix_max_row_dag r s \<le>
+    asize (bders_simpStrong (intern r) s)"
+proof -
+  have "strong_deferred_final_active_suffix_max_row_dag r s \<le>
+      rsize (strong_deferred_final_raw r s)"
+    by (rule strong_deferred_final_active_suffix_max_row_dag_le_final_rsize)
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
 lemma card_strong_deferred_final_active_suffix_bucket_le_final_rsize:
   "card (raw_shared_prune_active_suffix_bucket
       (strong_deferred_final_active_suffix_rows r s) k) \<le>

@@ -156,6 +156,11 @@ immutability.
   `FBound.thy:strong_deferred_original_final_active_row_dag_universe_metrics_contract`.
   This shows a future row-DAG universe bound is enough to control the scalar
   `finalMaxRowDag` metric. Infrastructure only; no payout is claimed.
+- Max-row-DAG fallback checkpoint: checked
+  `GeneralRegexBound.thy:raw_final_active_suffix_max_row_dag_le_rsize` and
+  `FBound.thy:strong_deferred_final_active_suffix_max_row_dag_le_final_asize`.
+  This connects the scalar metric to existing final-tree fallback accounting;
+  it is not an original-size theorem and claims no payout.
 - Final-active DAG scout checkpoint: `strong_memo_final_active_scout.ps1`
   now defaults to the metric that BR-040 actually needs: exact-DAG and
   shape-DAG member budgets `2.0 * rsize`, with raw member tree size disabled
