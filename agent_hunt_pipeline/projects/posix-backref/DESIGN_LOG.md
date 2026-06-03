@@ -3,6 +3,31 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final-active rows inherit strong normal form
+
+- Confirmed the route switch: emitted-tree `bsimpCubic` is negative evidence
+  after the graphs and should not receive proof effort. The live object is the
+  memo strong tree: `bders_simpStrong` is a nullable recognition gate, and
+  exact POSIX values are recovered from the original regex by the span/memo
+  reconstruction theorem.
+- Added `legacy_rrexp_rsubterms` and
+  `row_group_deep_nf_legacy_rsubterms` in `GeneralRegexBound.thy`. These are
+  intentionally legacy-restricted: backref constructors can contain arbitrary
+  subterms while `row_group_deep_nf` treats them as opaque, so the unrestricted
+  statement would be dishonest.
+- Added FBound bridges showing that, for a legacy root and nonempty input,
+  `strong_deferred_final_raw r (c # s)` is `row_group_deep_nf`, and each
+  final-active shared-suffix row/key extracted from it is also
+  `row_group_deep_nf`.
+- This is the next proof handle for the memo-strong cubic route. Future row
+  count/member-size work should reason from these final-active syntax facts,
+  not from cumulative active-prefix pools and not from `bsimpCubic` emitted
+  trees.
+- Proof-performance lesson: a broad `by auto` over `rsubterms` and legacy/deep
+  normal-form premises produced long-running proof lines. The checked proof
+  uses explicit constructor cases and explicit contradictions for non-legacy
+  backref constructors.
+
 ## 2026-06-03: Strong simplification enters `NTIMES` bodies
 
 - Updated `bsimpStrong`, `rsimpStrong`, `rsimpStrong_raw`, and the Scala smoke

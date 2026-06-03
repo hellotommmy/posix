@@ -2,6 +2,40 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo Strong Final-Active NF Bridge (2026-06-03)
+
+- Followed the derivative-size graphs and kept emitted-tree `bsimpCubic`
+  retired as a proof target. The active route is memo strong tree:
+  `bders_simpStrong` is only the small nullable recognition state, while
+  exact POSIX values are reconstructed from the original regex span/memo table.
+- Re-ran the stronger `strong-memo` smoke gate:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route strong-memo -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -Seed 20260602 -FindStrongFinalActiveBudgetCE -StrongFinalActiveRowsFactor 1.0 -StrongFinalActiveMemberFactor 8.0 -StrongFinalActivePairFactor 1.0 -StrongFinalActiveMinRegexSize 5 -StrongFinalActiveTop 5 -TimeoutSeconds 300`.
+  It passed exact POSIX value comparison on the exhaustive depth-2/input-3
+  grid, the known CE grid, and 2,000 deterministic random cases. No
+  final-active budget CE was found under rows `1.0`, member `8.0`, pair `1.0`.
+- Added checked proof bridges:
+  `GeneralRegexBound.thy:legacy_rrexp_rsubterms`,
+  `GeneralRegexBound.thy:row_group_deep_nf_legacy_rsubterms`,
+  `FBound.thy:row_group_deep_nf_strong_deferred_final_raw_nonempty`,
+  `FBound.thy:row_group_deep_nf_strong_deferred_final_active_suffix_rows_nonempty`,
+  and
+  `FBound.thy:row_group_deep_nf_strong_deferred_final_active_suffix_keys_nonempty`.
+- Design effect: for legacy non-backref roots and nonempty input, the final
+  raw strong recognition tree, every final-active shared-suffix row, and every
+  final-active suffix key are now known to be `row_group_deep_nf`. This gives
+  the future row-count/member-size proof a normal-form handle directly at the
+  `strong_deferred_final_raw` object used by the memo-strong contracts.
+- Proof engineering note: the first draft used broad `auto` over `rsubterms`
+  and immediately caused 100s proof-search lines. The checked version splits
+  constructor cases and handles non-legacy backref constructors by explicit
+  contradiction from `legacy_rrexp`.
+- Verification:
+  - focused `isabelle build -v -d . Posix` passed;
+  - full local CI passed:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`.
+- This is BR-040 infrastructure only. It does not claim the cubic theorem or
+  any bounty payout.
+
 ## Cubic Route Checkpoint: Strong `NTIMES` Entry Normalization (2026-06-03)
 
 - Strengthened `bsimpStrong`/`rsimpStrong`/`rsimpStrong_raw` so they recurse

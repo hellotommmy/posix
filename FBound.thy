@@ -3595,6 +3595,52 @@ proof -
     by (rule row_group_deep_nf_rerase_bders_simpStrong_nonempty[OF legacy])
 qed
 
+lemma row_group_deep_nf_strong_deferred_final_raw_nonempty:
+  assumes "legacy_rexp r"
+  shows "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+  using row_group_deep_nf_rerase_bders_simpStrong_intern_nonempty[OF assms]
+  by (simp add: strong_deferred_final_raw_def)
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_rows_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and row: "q \<in> strong_deferred_final_active_suffix_rows r (c # s)"
+  shows "row_group_deep_nf q"
+proof -
+  have final_legacy0:
+      "legacy_rrexp (rerase (bders_simpStrong (intern r) (c # s)))"
+    by (rule legacy_rexp_rerase_bders_simpStrong_intern[OF legacy])
+  then have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (simp add: strong_deferred_final_raw_def)
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  obtain rows k where q_sub:
+      "q \<in> rsubterms (strong_deferred_final_raw r (c # s))"
+    using row by (rule strong_deferred_final_active_suffix_rowsE)
+  show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms
+        [OF final_legacy final_nf q_sub])
+qed
+
+lemma row_group_deep_nf_strong_deferred_final_active_suffix_keys_nonempty:
+  assumes legacy: "legacy_rexp r"
+    and key: "k \<in> strong_deferred_final_active_suffix_keys r (c # s)"
+  shows "row_group_deep_nf k"
+proof -
+  have final_legacy0:
+      "legacy_rrexp (rerase (bders_simpStrong (intern r) (c # s)))"
+    by (rule legacy_rexp_rerase_bders_simpStrong_intern[OF legacy])
+  then have final_legacy: "legacy_rrexp (strong_deferred_final_raw r (c # s))"
+    by (simp add: strong_deferred_final_raw_def)
+  have final_nf: "row_group_deep_nf (strong_deferred_final_raw r (c # s))"
+    by (rule row_group_deep_nf_strong_deferred_final_raw_nonempty[OF legacy])
+  have k_sub: "k \<in> rsubterms (strong_deferred_final_raw r (c # s))"
+    using key strong_deferred_final_active_suffix_keys_subset_final_rsubterms
+    by blast
+  show ?thesis
+    by (rule row_group_deep_nf_legacy_rsubterms
+        [OF final_legacy final_nf k_sub])
+qed
+
 lemma strong_deferred_original_legacy_budget:
   assumes "legacy_rexp r"
   shows "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"

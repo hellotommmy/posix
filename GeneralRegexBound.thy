@@ -2518,6 +2518,112 @@ lemma self_rsubterm [simp]:
   "r \<in> rsubterms r"
   by (induct r) auto
 
+lemma legacy_rrexp_rsubterms:
+  assumes "legacy_rrexp r" "q \<in> rsubterms r"
+  shows "legacy_rrexp q"
+  using assms
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case False
+    then obtain r where r: "r \<in> set rs" "q \<in> rsubterms r"
+      using RALTS.prems by auto
+    have r_legacy: "legacy_rrexp r"
+      using RALTS.prems r(1) by simp
+    show ?thesis
+      using RALTS r r_legacy by auto
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis
+      using RSEQ.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r1 \<or> q \<in> rsubterms r2"
+      using RSEQ.prems by simp
+    have r1_legacy: "legacy_rrexp r1"
+      using RSEQ.prems by simp
+    have r2_legacy: "legacy_rrexp r2"
+      using RSEQ.prems by simp
+    show ?thesis
+    proof (cases "q \<in> rsubterms r1")
+      case True
+      then show ?thesis
+        using RSEQ r1_legacy by auto
+    next
+      case False
+      then have "q \<in> rsubterms r2"
+        using q_sub by simp
+      then show ?thesis
+        using RSEQ r2_legacy by auto
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis
+      using RSTAR.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RSTAR.prems by simp
+    have r_legacy: "legacy_rrexp r"
+      using RSTAR.prems by simp
+    show ?thesis
+      using RSTAR r_legacy q_sub by auto
+  qed
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases "q = RNTIMES r n")
+    case True
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RNTIMES.prems by simp
+    have r_legacy: "legacy_rrexp r"
+      using RNTIMES.prems by simp
+    show ?thesis
+      using RNTIMES r_legacy q_sub by auto
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(1) by simp
+  then show ?case by blast
+next
+  case (RHALF r cs rep)
+  have False
+    using RHALF.prems(1) by simp
+  then show ?case by blast
+next
+  case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(1) by simp
+  then show ?case by blast
+qed
+
 lemma finite_rsubterms_list [simp]:
   "finite (\<Union> (set (map rsubterms rs)))"
   by (induct rs) auto
@@ -18815,6 +18921,116 @@ lemma row_group_deep_nf_imp_row_group_nf:
   assumes "row_group_deep_nf r"
   shows "row_group_nf r"
   using assms by (induct r) simp_all
+
+lemma row_group_deep_nf_legacy_rsubterms:
+  assumes "legacy_rrexp r" "row_group_deep_nf r" "q \<in> rsubterms r"
+  shows "row_group_deep_nf q"
+  using assms
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case False
+    then obtain r where r: "r \<in> set rs" "q \<in> rsubterms r"
+      using RALTS.prems by auto
+    have r_legacy: "legacy_rrexp r"
+      using RALTS.prems r(1) by simp
+    have r_nf: "row_group_deep_nf r"
+      using RALTS.prems r(1) by simp
+    show ?thesis
+      using RALTS r r_legacy r_nf by auto
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis
+      using RSEQ.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r1 \<or> q \<in> rsubterms r2"
+      using RSEQ.prems by simp
+    have r1_legacy: "legacy_rrexp r1"
+      using RSEQ.prems by simp
+    have r1_nf: "row_group_deep_nf r1"
+      using RSEQ.prems by simp
+    have r2_legacy: "legacy_rrexp r2"
+      using RSEQ.prems by simp
+    have r2_nf: "row_group_deep_nf r2"
+      using RSEQ.prems by simp
+    show ?thesis
+    proof (cases "q \<in> rsubterms r1")
+      case True
+      then show ?thesis
+        using RSEQ r1_legacy r1_nf by auto
+    next
+      case False
+      then have "q \<in> rsubterms r2"
+        using q_sub by simp
+      then show ?thesis
+        using RSEQ r2_legacy r2_nf by auto
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis
+      using RSTAR.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RSTAR.prems by simp
+    have r_legacy: "legacy_rrexp r"
+      using RSTAR.prems by simp
+    have r_nf: "row_group_deep_nf r"
+      using RSTAR.prems by simp
+    show ?thesis
+      using RSTAR r_legacy r_nf q_sub by auto
+  qed
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases "q = RNTIMES r n")
+    case True
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RNTIMES.prems by simp
+    have r_legacy: "legacy_rrexp r"
+      using RNTIMES.prems by simp
+    have r_nf: "row_group_deep_nf r"
+      using RNTIMES.prems by simp
+    show ?thesis
+      using RNTIMES r_legacy r_nf q_sub by auto
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
 
 lemma row_group_deep_nf_rflts:
   assumes "\<forall>r \<in> set rs. row_group_deep_nf r"

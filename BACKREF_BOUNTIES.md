@@ -72,6 +72,13 @@ immutability.
   `row_group_deep_nf_rerase_bsimpStrong_bder`, and
   `row_group_deep_nf_rerase_bders_simpStrong`. This supports BR-039/BR-040
   but is infrastructure only; no payout is claimed.
+- Final-active normal-form bridge: checked
+  `legacy_rrexp_rsubterms`, `row_group_deep_nf_legacy_rsubterms`,
+  `row_group_deep_nf_strong_deferred_final_raw_nonempty`, and the corresponding
+  final-active row/key lemmas. Future BR-040 row-count/member-size proofs can
+  now reason directly about deep-normal rows and suffix keys extracted from
+  `strong_deferred_final_raw`; this is infrastructure only and claims no
+  bounty.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include
