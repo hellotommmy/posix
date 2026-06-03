@@ -36,6 +36,12 @@ Last updated: 2026-06-04 (strong-memo route is default)
   finder found no factor-`3.0` CE in `5,000` random cases. So the next proof
   statement should be parameterized by a small constant `K`; current smoke
   evidence points to trying `K=3`, not `K=1` or `K=2`.
+- Added checked Isabelle sanity facts for the two minimized row-DAG constant
+  counterexamples:
+  `FBound.thy:thesis_memo_strong_row_dag_factor1_counterexample` and
+  `FBound.thy:thesis_memo_strong_row_dag_factor2_counterexample`. These facts
+  make the failed `K=1` and `K=2` targets explicit on the proof side, while
+  also checking that both examples satisfy the factor-`3` gate.
 - Design meaning: the proof should not try to bound the raw emitted tree or
   the prefix-cumulative active universe. The current BR-040 target is:
   `bders_simpStrong` as the nullable recognition gate, exact POSIX value

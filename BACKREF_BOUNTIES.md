@@ -82,9 +82,11 @@ immutability.
   `rsize=11` and universe `23`. A factor-`3.0` scout passed the latest
   2,000-case smoke and found no CE in a 5,000-case finder run. Both
   `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` now default this row-DAG gate
-  to factor `3.0` with top-case reporting. This supports a small-constant
+  to factor `3.0` with top-case reporting. `FBound.thy` also checks both
+  minimized failures as compact proof-side regression facts, and confirms
+  they satisfy the factor-`3` gate. This supports a small-constant
   BR-039/BR-040 statement, currently gated at factor `3.0`, but is
-  smoke/tooling evidence only; no bounty is claimed.
+  smoke/tooling/proof-infrastructure evidence only; no bounty is claimed.
 - Empty final-active budget bridge: `GeneralRegexBound.thy` and `FBound.thy`
   now check that if the final-active row set is empty, then its row-DAG
   universe is empty and the corresponding key, pair-budget, and max-row-DAG

@@ -30,6 +30,11 @@ to be read before continuing long-running agent work.
   `rsize=11` and the universe has size `23`. Keep the statement
   parameterized by a small constant; the current executable gate uses
   factor `3.0`, with no CE found in the latest 5,000-case finder run.
+- These two minimized failures are now checked inside Isabelle as
+  `thesis_memo_strong_row_dag_factor1_counterexample` and
+  `thesis_memo_strong_row_dag_factor2_counterexample`. They are intentionally
+  tiny proof-side regression facts, not broad executable testing; broad grids
+  still belong in Scala.
 - Therefore the proof target is final-only active sharing. Do not use
   `bsimpCubic` emitted-tree traces or prefix-cumulative active-universe traces
   as success criteria. They are useful diagnostics only. A theorem candidate

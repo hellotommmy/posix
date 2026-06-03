@@ -6206,6 +6206,45 @@ definition thesis_ch7_evil_body :: "nat \<Rightarrow> rexp" where
 definition thesis_ch7_evil :: "nat \<Rightarrow> rexp" where
   "thesis_ch7_evil k = STAR (STAR (thesis_ch7_evil_body k))"
 
+definition thesis_memo_strong_row_dag_factor1_ce :: rexp where
+  "thesis_memo_strong_row_dag_factor1_ce =
+    STAR (ALT (CH thesis_ch7_b) (STAR (CH thesis_ch7_b)))"
+
+definition thesis_memo_strong_row_dag_factor2_ce :: rexp where
+  "thesis_memo_strong_row_dag_factor2_ce =
+    NTIMES
+      (NTIMES
+        (STAR (ALT (STAR (CH thesis_ch7_b)) (CH thesis_ch7_b))) 2) 2"
+
+lemma thesis_memo_strong_row_dag_factor1_counterexample:
+  "legacy_rexp thesis_memo_strong_row_dag_factor1_ce"
+  "rxsize thesis_memo_strong_row_dag_factor1_ce = 5"
+  "card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor1_ce [thesis_ch7_b]) = 7"
+  "\<not> card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor1_ce [thesis_ch7_b]) \<le>
+      rxsize thesis_memo_strong_row_dag_factor1_ce"
+  "card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor1_ce [thesis_ch7_b]) \<le>
+      3 * rxsize thesis_memo_strong_row_dag_factor1_ce"
+  by eval+
+
+lemma thesis_memo_strong_row_dag_factor2_counterexample:
+  "legacy_rexp thesis_memo_strong_row_dag_factor2_ce"
+  "rxsize thesis_memo_strong_row_dag_factor2_ce = 11"
+  "card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor2_ce
+      [thesis_ch7_b, thesis_ch7_b, thesis_ch7_b]) = 23"
+  "\<not> card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor2_ce
+      [thesis_ch7_b, thesis_ch7_b, thesis_ch7_b]) \<le>
+      2 * rxsize thesis_memo_strong_row_dag_factor2_ce"
+  "card (strong_deferred_final_active_suffix_row_dag_universe
+      thesis_memo_strong_row_dag_factor2_ce
+      [thesis_ch7_b, thesis_ch7_b, thesis_ch7_b]) \<le>
+      3 * rxsize thesis_memo_strong_row_dag_factor2_ce"
+  by eval+
+
 definition asizes :: "arexp list \<Rightarrow> nat" where
   "asizes rs = sum_list (map asize rs)"
 
