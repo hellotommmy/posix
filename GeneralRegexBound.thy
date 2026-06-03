@@ -21508,6 +21508,74 @@ lemma raw_final_active_suffix_bucket_member_size_le_rsize:
   using assms raw_final_active_suffix_bucket_subset_rsubterms
   by (meson contra_subsetD rsubterms_member_size_le_rsize)
 
+lemma raw_final_active_suffix_row_elem_rsubterms:
+  assumes row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and elem: "p \<in> set rows"
+  shows "p \<in> rsubterms r"
+proof -
+  have row_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using row raw_final_active_suffix_rows_iff by blast
+  have p_map: "rsubterms p \<in> set (map rsubterms rows)"
+    using elem by simp
+  have p_union: "p \<in> \<Union> (set (map rsubterms rows))"
+  proof (rule UnionI)
+    show "rsubterms p \<in> set (map rsubterms rows)"
+      by (rule p_map)
+    show "p \<in> rsubterms p"
+      by simp
+  qed
+  have elem_alt: "p \<in> rsubterms (RALTS rows)"
+    using p_union by simp
+  have elem_sub: "p \<in> rsubterms (RSEQ (RALTS rows) k)"
+  proof -
+    have "p \<in> rsubterms (RALTS rows) \<union> rsubterms k"
+      using elem_alt by blast
+    then show ?thesis
+      by simp
+  qed
+  show ?thesis
+    by (rule rsubterms_trans[OF row_sub elem_sub])
+qed
+
+lemma raw_final_active_suffix_row_key_rsubterms:
+  assumes row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+  shows "k \<in> rsubterms r"
+proof -
+  have row_sub: "RSEQ (RALTS rows) k \<in> rsubterms r"
+    using row raw_final_active_suffix_rows_iff by blast
+  have key_sub: "k \<in> rsubterms (RSEQ (RALTS rows) k)"
+  proof -
+    have "k \<in> rsubterms (RALTS rows) \<union> rsubterms k"
+      by simp
+    then show ?thesis
+      by simp
+  qed
+  show ?thesis
+    by (rule rsubterms_trans[OF row_sub key_sub])
+qed
+
+lemma raw_final_active_suffix_row_elem_size_le_rsize:
+  assumes row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    and elem: "p \<in> set rows"
+  shows "rsize p \<le> rsize r"
+proof -
+  have "p \<in> rsubterms r"
+    by (rule raw_final_active_suffix_row_elem_rsubterms
+        [OF row elem])
+  then show ?thesis
+    by (rule rsubterms_member_size_le_rsize)
+qed
+
+lemma raw_final_active_suffix_row_key_size_le_rsize:
+  assumes row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+  shows "rsize k \<le> rsize r"
+proof -
+  have "k \<in> rsubterms r"
+    by (rule raw_final_active_suffix_row_key_rsubterms[OF row])
+  then show ?thesis
+    by (rule rsubterms_member_size_le_rsize)
+qed
+
 lemma raw_shared_prune_active_suffix_pair_budget_mono:
   assumes sub: "U \<subseteq> V"
     and finite: "finite V"

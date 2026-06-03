@@ -84,6 +84,14 @@ immutability.
   row-list elements, and row keys. This is the proof-facing entry point for
   the remaining row/member-size bound, but still infrastructure only and no
   bounty is claimed.
+- Final-active row subterm/size handles: checked raw and lifted lemmas now
+  expose row payloads and row keys as subterms of the final memo-strong raw
+  tree, with size bounded by final `rsize`/`asize`. This supports reconstruction
+  and future indexed-universe accounting, but the latest Scala scout rejects
+  raw row-member tree size as the final linear metric: member factors `1`, `2`,
+  and `3` all have counterexamples, while the same cases often have compact
+  strong DAGs. Future BR-040 work should target a hash-consed/member-DAG or
+  indexed/quotiented final-active universe preserving POSIX values.
 - Strong `NTIMES` body-normalization checkpoint: `bsimpStrong` now recurses
   into `ANTIMES` bodies, mirrored by `rsimpStrong(_raw)` and the Scala smoke
   model. Checked entry lemmas include

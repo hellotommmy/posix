@@ -2,6 +2,42 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong-Memo Row Subterm Handles (2026-06-03)
+
+- Continued the memo-strong route and kept emitted-tree `bsimpCubic` retired.
+  The live object is still `bders_simpStrong` as the nullable recognition tree,
+  with exact POSIX values reconstructed from the original regex span/memo
+  table.
+- Added raw final-active row member handles in `GeneralRegexBound.thy`:
+  `raw_final_active_suffix_row_elem_rsubterms`,
+  `raw_final_active_suffix_row_key_rsubterms`,
+  `raw_final_active_suffix_row_elem_size_le_rsize`, and
+  `raw_final_active_suffix_row_key_size_le_rsize`.
+- Lifted them to the memo-strong final tree in `FBound.thy`:
+  `strong_deferred_final_active_suffix_row_elem_final_rsubterms`,
+  `strong_deferred_final_active_suffix_row_key_final_rsubterms`,
+  `strong_deferred_final_active_suffix_row_elem_size_le_final_rsize`,
+  `strong_deferred_final_active_suffix_row_key_size_le_final_rsize`,
+  `strong_deferred_final_active_suffix_row_elem_size_le_final_asize`, and
+  `strong_deferred_final_active_suffix_row_key_size_le_final_asize`.
+- Verification so far:
+  focused `isabelle build -v -d . Posix` passed; default strong-memo Scala
+  smoke passed exact POSIX value comparison on 84,300 exhaustive depth-2/input-3
+  cases, the known CE grid, and 2,000 deterministic random cases. On the
+  Chapter 7 k=5 grid at lengths `4,8,12,16,20`, strong tree sizes were
+  `474,730,771,820,875`.
+- Important negative scout result: final-active rows and pair-budget remain
+  small, but raw final-active row-member **tree** size is not a credible
+  linear metric. `MemberFactor=1` fails on the known CE (`rsize=10`,
+  max row size `15`); `MemberFactor=2` fails on a random nested-star case
+  (`rsize=26`, max row size `59`); `MemberFactor=3` fails on another random
+  case (`rsize=30`, max row size `169`, while the strong DAG is only `42`).
+  Therefore the next proof target should be a hash-consed/member-DAG or
+  indexed/quotiented final-active universe that preserves POSIX reconstruction,
+  not the raw-tree member-size premise.
+- This is BR-040 infrastructure and counterexample guidance only. No bounty is
+  claimed.
+
 ## Cubic Route Checkpoint: Final-Active Row Element Handles (2026-06-03)
 
 - Continued the memo-strong route. The goal is still the cubic non-backref

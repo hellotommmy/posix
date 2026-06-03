@@ -2715,6 +2715,67 @@ lemma strong_deferred_final_active_suffix_bucket_member_size_le_final_rsize:
   by (simp add: strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_bucket_member_size_le_rsize)
 
+lemma strong_deferred_final_active_suffix_row_elem_final_rsubterms:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+    and elem: "p \<in> set rows"
+  shows "p \<in> rsubterms (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_elem_rsubterms)
+
+lemma strong_deferred_final_active_suffix_row_key_final_rsubterms:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+  shows "k \<in> rsubterms (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_key_rsubterms)
+
+lemma strong_deferred_final_active_suffix_row_elem_size_le_final_rsize:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+    and elem: "p \<in> set rows"
+  shows "rsize p \<le> rsize (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_elem_size_le_rsize)
+
+lemma strong_deferred_final_active_suffix_row_key_size_le_final_rsize:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+  shows "rsize k \<le> rsize (strong_deferred_final_raw r s)"
+  using assms
+  by (simp add: strong_deferred_final_active_suffix_rows_def
+      raw_final_active_suffix_row_key_size_le_rsize)
+
+lemma strong_deferred_final_active_suffix_row_elem_size_le_final_asize:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+    and elem: "p \<in> set rows"
+  shows "rsize p \<le> asize (bders_simpStrong (intern r) s)"
+proof -
+  have "rsize p \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule strong_deferred_final_active_suffix_row_elem_size_le_final_rsize
+        [OF row elem])
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_final_active_suffix_row_key_size_le_final_asize:
+  assumes row: "RSEQ (RALTS rows) k \<in>
+      strong_deferred_final_active_suffix_rows r s"
+  shows "rsize k \<le> asize (bders_simpStrong (intern r) s)"
+proof -
+  have "rsize k \<le> rsize (strong_deferred_final_raw r s)"
+    by (rule strong_deferred_final_active_suffix_row_key_size_le_final_rsize
+        [OF row])
+  also have "... = asize (bders_simpStrong (intern r) s)"
+    by (simp add: strong_deferred_final_raw_def asize_rsize)
+  finally show ?thesis .
+qed
+
 lemma strong_deferred_final_active_suffix_pair_budget_bucket_bound:
   assumes keys_bound:
     "card (strong_deferred_final_active_suffix_keys r s) \<le> K"

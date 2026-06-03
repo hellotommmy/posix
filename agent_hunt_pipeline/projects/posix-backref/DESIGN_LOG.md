@@ -3,6 +3,24 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Raw row-member tree size is not the final metric
+
+- Added checked subterm/size handles for final-active row payloads and suffix
+  keys. At the raw layer, each `p \<in> set rows` and `k` from a final-active
+  `RSEQ (RALTS rows) k` is now known to be a subterm of the final raw strong
+  tree and size-bounded by that final tree. `FBound.thy` lifts the same facts
+  to `strong_deferred_final_raw` and `asize (bders_simpStrong (intern r) s)`.
+- The handles are useful fallback facts, but the Scala scout rejects the raw
+  tree-size member metric as the main cubic proof target. Rows and pair-budget
+  stay small, while final-active row-member tree size can exceed small linear
+  constants: factor `1` fails on the known greedy-sequence CE (`15/10`),
+  factor `2` fails on a nested-star random case (`59/26`), and factor `3`
+  fails on another random case (`169/30`) whose strong DAG is only `42`.
+- Design consequence: the next serious proof target is a hash-consed/member-DAG
+  or indexed/quotiented final-active universe with POSIX reconstruction. Do not
+  try to claim the cubic theorem by proving raw final-active member tree size
+  linear in the original regex.
+
 ## 2026-06-03: Final-active row elements are proof-facing handles
 
 - The final-active proof route now has direct inheritance lemmas for raw rows,
