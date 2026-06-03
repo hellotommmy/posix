@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Smoke: Memo-Strong Recognition Gate Hardened (2026-06-04)
+
+- Strengthened `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` so the
+  `strong-memo` route now checks two properties independently:
+  - the strong nullable gate
+    `bnullable (bdersStrong (intern r) s)` agrees with baseline acceptance;
+  - the reconstructed memo value agrees with the baseline POSIX value.
+- This closes a testing blind spot: before this checkpoint, a false-positive
+  strong gate could still reconstruct `None` from the original regex and
+  silently match a rejecting baseline. The new
+  `checkStrongMemoRecognitionGate` catches that case directly and prints the
+  final strong tree/DAG in the failure report.
+- Re-ran
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_value_gate.ps1`.
+  It passed `84,300` exhaustive regex/input pairs, `15` known counterexample
+  cases, and `2,000` random depth-`7`/input-`8` cases with seed `20260602`.
+  Chapter 7 `k=5,n<=80` remained stable with final-active row-DAG universe
+  in `40..44`.
+- This is smoke hardening for BR-039/BR-040. No bounty is claimed.
+
 ## Cubic Route Checkpoint: Named Memo-Strong POSIX Candidate (2026-06-04)
 
 - Accepted the graph evidence that emitted-tree `bsimpCubic` is not the cubic

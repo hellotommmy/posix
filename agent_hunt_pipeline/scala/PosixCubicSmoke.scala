@@ -2388,6 +2388,33 @@ object PosixCubicSmoke {
     strongDeferredMemoResult(r, input).value
   }
 
+  def checkStrongMemoRecognitionGate(
+      r: Rexp,
+      input: String,
+      baseline: Option[Val],
+      label: String
+  ): Unit = {
+    val finalRegex = bdersStrong(intern(r), input)
+    val strongAccepts = bnullable(finalRegex)
+    val baselineAccepts = baseline.isDefined
+    if (strongAccepts != baselineAccepts) {
+      throw new AssertionError(
+        s"""strong memo-deferred recognition gate mismatch
+           |label            = $label
+           |regex            = $r
+           |input            = $input
+           |baselineAccepts  = $baselineAccepts
+           |strongAccepts    = $strongAccepts
+           |baselineValue    = $baseline
+           |strongTree       = ${asize(finalRegex)}
+           |strongDag        = ${adagSize(finalRegex)}
+           |strongShapeDag   = ${ashapeDagSize(finalRegex)}
+           |finalStrong      = $finalRegex
+           |""".stripMargin
+      )
+    }
+  }
+
   def memoSpanBound(r: Rexp, inputLength: Int): Long =
     rsize(r).toLong * (inputLength.toLong + 1L) * (inputLength.toLong + 1L)
 
@@ -3852,6 +3879,7 @@ object PosixCubicSmoke {
         val b = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
         val deferred = result.value
+        checkStrongMemoRecognitionGate(r, s, b, s"exhaustive case $checked")
         checkMemoUniverseBound(r, s, result, s"exhaustive case $checked")
         val obs = strongCubicObservation(r, s, result, s"exhaustive case $checked")
         frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
@@ -3889,7 +3917,7 @@ object PosixCubicSmoke {
         finalActiveConfig
       )
     val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
+    println(s"checked strong memo-deferred POSIX values and recognition gates on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   def checkStrongDeferredMemoRandomValuePreservation(
@@ -3917,6 +3945,7 @@ object PosixCubicSmoke {
       val b = baselineValue(r, s)
       val result = strongDeferredMemoResult(r, s)
       val deferred = result.value
+      checkStrongMemoRecognitionGate(r, s, b, s"random seed=$seed case=$checked")
       checkMemoUniverseBound(r, s, result, s"random seed=$seed case=$checked")
       val obs = strongCubicObservation(r, s, result, s"random seed=$seed case=$checked")
       frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
@@ -3954,7 +3983,7 @@ object PosixCubicSmoke {
         finalActiveConfig
       )
     val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
+    println(s"checked strong memo-deferred POSIX values and recognition gates on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   final case class StrongRowsBridgeStats(
@@ -4191,6 +4220,7 @@ object PosixCubicSmoke {
         checked += 1
         val base = baselineValue(r, s)
         val result = strongDeferredMemoResult(r, s)
+        checkStrongMemoRecognitionGate(r, s, base, s"known CE $name input=$s")
         checkMemoUniverseBound(r, s, result, s"known CE $name input=$s")
         val obs = strongCubicObservation(r, s, result, s"known CE $name input=$s")
         frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
@@ -4228,7 +4258,7 @@ object PosixCubicSmoke {
         finalActiveConfig
       )
     val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
-    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
+    println(s"checked strong memo-deferred known CE grid values and recognition gates on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {

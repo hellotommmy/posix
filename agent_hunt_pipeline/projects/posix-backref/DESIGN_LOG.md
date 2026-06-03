@@ -3,6 +3,21 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Strong-memo smoke checks the nullable gate directly
+
+- The Scala `strong-memo` route now has an explicit
+  `checkStrongMemoRecognitionGate` guard. It checks that
+  `bnullable (bdersStrong (intern r) s)` agrees with the baseline lexer
+  acceptance before comparing reconstructed values.
+- This matters because the candidate architecture separates recognition from
+  reconstruction: a false-positive strong gate can still yield no original
+  POSIX value from the span table. Value equality alone would not necessarily
+  expose that bug on rejecting inputs.
+- Future candidate tests must keep both checks: gate correctness and exact
+  POSIX value reconstruction. The Isabelle analogue is the pair of facts
+  `strong_deferred_span_value_ex1_iff` and
+  `strong_deferred_memo_lexer_Some_iff_span_value`.
+
 ## 2026-06-04: Memo-strong lexer is the named value candidate
 
 - Treat emitted-tree `bsimpCubic` as negative evidence. Do not spend proof

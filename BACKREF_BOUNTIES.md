@@ -63,6 +63,15 @@ immutability.
 
 ## Open Artifact Notes
 
+- Strong-memo smoke gate hardened: `PosixCubicSmoke.scala` now explicitly
+  checks the recognition gate
+  `bnullable (bdersStrong (intern r) s) = baselineValue(r,s).isDefined`
+  through `checkStrongMemoRecognitionGate`, in addition to comparing exact
+  reconstructed POSIX values. This blocks a false-positive nullable gate from
+  being hidden by a `None` span reconstruction on rejecting inputs. The
+  dedicated `strong_memo_value_gate.ps1` run passed exhaustive depth-2/input-3,
+  known CE, 2,000 random depth-7/input-8 cases, and Chapter 7 `k=5,n<=80`.
+  Smoke hardening only; no bounty is paid.
 - Named memo-strong value candidate: `FBound.thy` now checks
   `strong_deferred_memo_lexer` and its exact POSIX bridges
   `strong_deferred_memo_lexer_eq_lexer`,
