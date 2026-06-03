@@ -54,6 +54,23 @@ to be read before continuing long-running agent work.
   Antimirov linear-form/pruning idea than a local rewrite of individual
   `a^m . (a^p)*` children.
 
+## 2026-06-03: First continuation-aware row-set coverage is still too shallow
+
+- Added `contPruneShapeStatePool`, a diagnostic metric that decomposes
+  left-associated sequence branches into `(row-set, continuation)` pairs and
+  skips later branches when an earlier same-continuation row-set covers them.
+- This is the first diagnostic that actually improves the smaller evil roots:
+  Chapter 7 `k=3` stops at `n=12` with value `36`, and `k=5` stops at `n=68`
+  with value `269`.
+- It still fails the larger root: Chapter 7 `k=8` remains strictly increasing
+  through `n=624`, ending at `2552`, matching the unary-modulo metric. The
+  direct-DAG simplifier then runs out of heap in the existing pruning path.
+- Design consequence: the right idea is not local unary child pruning, but the
+  current syntactic continuation key is still too fine or too shallow for
+  `k=8`. The next attempt should identify the repeated Chapter 7 base
+  continuation as an indexed family/linear form, or otherwise quotient
+  continuations before testing row-set inclusion.
+
 ## 2026-06-03: Direct-DAG smoke separates state pool from temporary pool
 
 - Added an optional `SharedDirectDag` smoke route. It runs derivative and

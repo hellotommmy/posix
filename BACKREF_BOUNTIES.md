@@ -91,6 +91,10 @@ immutability.
   increasing at `k=8,n=624`, and the shallow pruning traversal matches it on
   the checked `k=8,n=160` prefix. The next payable candidate needs
   continuation-aware row-set coverage, not another shallow unary child rewrite.
+  The first such diagnostic, `contPruneShapeStatePool`, improves smaller roots
+  (`k=3` stops at `n=12`; `k=5` stops at `n=68`) but still matches the
+  modulo metric at `k=8,n=624` (`2552`) and remains strictly increasing, so it
+  is not a BR-039 payout either.
   Current Chapter 7 evidence suggests `shapeStatePool`, not the raw total
   allocation pool or exact annotated `statePool`, is the closest smoke proxy
   for the proof-facing erased shared universe. This is BR-038/BR-039 tooling

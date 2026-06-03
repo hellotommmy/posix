@@ -67,6 +67,34 @@ Last updated: 2026-06-03 (long-tail plateau discipline)
     row language of `B` is included in the POSIX-prior row language of `A`.
   - These metrics are counterexample diagnostics only; no bounty is claimed.
 
+## Cubic Diagnostic: Continuation-Aware Row-Set Coverage (2026-06-03)
+
+- Added the Scala-only diagnostic metric `contPruneShapeStatePool`.
+  It looks through left-associated sequence branches such as
+  `((rows . k1) . k2)`, extracts the unary row block `rows`, and treats the
+  branch as having continuation `(k1 . k2)`. Within an ALT, later branches
+  with the same continuation are skipped when their unary row-set language is
+  covered by the earlier POSIX-prior row-set.
+- Positive evidence:
+  - On Chapter 7 `k=3`, `contPruneShapeStatePool` first stops increasing at
+    `n=12`, with `36 -> 36`.
+  - On Chapter 7 `k=5`, it first stops increasing at `n=68`, with
+    `269 -> 269`, earlier and smaller than the unary-modulo `n=124` /
+    `327 -> 327` result.
+- Negative evidence:
+  - On Chapter 7 `k=8`, it does not improve the long tail. With step `16`, it
+    matches `unaryModShapeStatePool` and remains strictly increasing through
+    `n=624`, ending at `2552`; after that the current direct-DAG simplifier
+    ran out of heap in the existing `seqCoverRowsId`/prune path.
+- Design consequence:
+  - Simple same-continuation row-set coverage is real but still too shallow.
+    It handles smaller evil roots but not the `k=8` tail.
+  - The next candidate should either find a better continuation quotient, or
+    move from syntax-shaped continuations to an indexed linear-form/row-family
+    representation where the repeated Chapter 7 base continuation is recognized
+    independently of the surrounding left-associated syntax.
+  - This is still diagnostic evidence only; no BR-039/BR-040 payout is claimed.
+
 ## Cubic Candidate Prototype: Direct-DAG Shared Smoke (2026-06-03)
 
 - Added an optional direct-DAG path to `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.

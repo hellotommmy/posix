@@ -158,6 +158,14 @@ continuation-aware row-set coverage: prove or smoke a mechanism where an
 earlier row block with continuation `c` covers a later same-continuation row
 block when the later row language is included in the POSIX-prior earlier row
 set.
+The first diagnostic version of this route is `contPruneShapeStatePool`. It
+decomposes left-associated sequence branches into `(row-set, continuation)`
+pairs and improves the smaller Chapter 7 roots (`k=3` stops at `n=12`, `k=5`
+stops at `n=68`), but it still fails `k=8`: the metric is strictly increasing
+through `n=624` with value `2552`, matching the unary-modulo metric. Treat this
+as evidence that the continuation key itself needs a stronger quotient or an
+indexed linear-form representation; do not treat `contPruneShapeStatePool` as
+a BR-039 candidate.
 
 The `expanded-keyed-no-reassoc` diagnostic is the current smoke version of the
 virtual-row accumulator idea. Its pruning key may index `a.c` and `b.c` when a

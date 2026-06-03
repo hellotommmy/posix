@@ -1026,6 +1026,7 @@ object PosixCubicSmoke {
     private val altSetShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
     private val unaryModShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
     private val unaryPruneShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
+    private val contPruneShapeIdMemo = scala.collection.mutable.HashMap.empty[Int, Int]
     private val shapeIntern = scala.collection.mutable.HashMap.empty[ShapeForm, Int]
     private var nextShapeId = 0
 
@@ -1158,6 +1159,60 @@ object PosixCubicSmoke {
         case _ => false
       }
 
+    private def gcd(a0: Int, b0: Int): Int = {
+      var a = math.abs(a0)
+      var b = math.abs(b0)
+      while (b != 0) {
+        val t = a % b
+        a = b
+        b = t
+      }
+      if (a == 0) 1 else a
+    }
+
+    private def lcm(a: Int, b: Int): Int = {
+      val g = gcd(a, b)
+      val raw = (a / g).toLong * b.toLong
+      if (raw > 1000000L) 1000000 else raw.toInt
+    }
+
+    private def unaryPatContains(pat: UnaryPat, n: Int): Boolean = pat match {
+      case UFinite(m) => m == n
+      case UResidue(start, period) => n >= start && (n - start) % period == 0
+    }
+
+    private def unaryPatSubsetOfUnion(later: UnaryPat, earlier: List[UnaryPat]): Boolean =
+      later match {
+        case UFinite(n) => earlier.exists(unaryPatContains(_, n))
+        case UResidue(start, period) =>
+          val earlierResidues = earlier.collect { case r @ UResidue(_, _) => r }
+          if (earlierResidues.isEmpty) false
+          else {
+            val modulus = (period :: earlierResidues.map(_.period)).foldLeft(1)(lcm)
+            val maxStart = (start :: earlierResidues.map(_.start)).max
+            val upper = math.max(start, maxStart) + modulus
+            var n = start
+            var ok = true
+            while (ok && n <= upper) {
+              ok = earlier.exists(unaryPatContains(_, n))
+              n += period
+            }
+            ok
+          }
+      }
+
+    private def rowPatsCoveredBy(earlier: List[UnaryPat], later: List[UnaryPat]): Boolean =
+      later.forall(unaryPatSubsetOfUnion(_, earlier))
+
+    private def rowBlockPats(id: Int): Option[List[UnaryPat]] =
+      node(id) match {
+        case DZero => Some(Nil)
+        case DAlts(_, rs) =>
+          val pats = rs.map(unaryPatId)
+          if (pats.forall(_.isDefined)) Some(pats.flatten) else None
+        case _ => unaryPatId(id).map(List(_))
+      }
+
     private def pruneUnaryCoveredIds(rs: List[Int]): List[Int] = {
       var covered = List.empty[UnaryPat]
       val kept = scala.collection.mutable.ListBuffer.empty[Int]
@@ -1219,6 +1274,78 @@ object PosixCubicSmoke {
       seenShapes.toSet
     }
 
+    private def branchRowsContinuationShape(id: Int): Option[(List[UnaryPat], Int)] =
+      node(id) match {
+        case DSeq(_, left, right) =>
+          rowBlockPats(left).map(_ -> contPruneShapeId(right)).orElse {
+            branchRowsContinuationShape(left).map { case (rows, cont) =>
+              rows -> internShape(FSeq(cont, contPruneShapeId(right)))
+            }
+          }
+        case _ => rowBlockPats(id).map(_ -> internShape(FOne))
+      }
+
+    private def pruneContinuationCoveredIds(rs: List[Int]): List[Int] = {
+      val coveredByContinuation = scala.collection.mutable.HashMap.empty[Int, List[UnaryPat]]
+      val kept = scala.collection.mutable.ListBuffer.empty[Int]
+      rs.foreach { r =>
+        branchRowsContinuationShape(r) match {
+          case Some((rows, cont)) if rowPatsCoveredBy(coveredByContinuation.getOrElse(cont, Nil), rows) => ()
+          case Some((rows, cont)) =>
+            kept += r
+            coveredByContinuation.update(cont, rows ++ coveredByContinuation.getOrElse(cont, Nil))
+          case None =>
+            kept += r
+        }
+      }
+      kept.toList
+    }
+
+    def contPruneShapeId(id: Int): Int =
+      contPruneShapeIdMemo.getOrElseUpdate(id, node(id) match {
+        case DZero => internShape(FZero)
+        case DOne(_) => internShape(FOne)
+        case DChar(_, 'a') => runShapeId(1)
+        case DChar(_, c) => internShape(FChar(c))
+        case DSeq(_, r1, r2) =>
+          aRunLen(id) match {
+            case Some(n) => runShapeId(n)
+            case None => internShape(FSeq(contPruneShapeId(r1), contPruneShapeId(r2)))
+          }
+        case DAlts(_, rs) =>
+          internShape(FAlts(pruneContinuationCoveredIds(rs).map(contPruneShapeId).toVector))
+        case DStar(_, body) =>
+          aRunLen(body) match {
+            case Some(period) if period > 0 => internShape(FStar(runShapeId(period)))
+            case _ => internShape(FStar(contPruneShapeId(body)))
+          }
+        case DNTimes(_, body, n) => internShape(FNTimes(contPruneShapeId(body), n))
+      })
+
+    def reachableContPruneShapeIds(root: Int): Set[Int] = {
+      val seenNodes = scala.collection.mutable.Set.empty[Int]
+      val seenShapes = scala.collection.mutable.Set.empty[Int]
+      def visit(id: Int): Unit = {
+        if (seenNodes.add(id)) {
+          seenShapes += contPruneShapeId(id)
+          node(id) match {
+            case DSeq(_, r1, r2) =>
+              visit(r1)
+              visit(r2)
+            case DAlts(_, rs) =>
+              pruneContinuationCoveredIds(rs).foreach(visit)
+            case DStar(_, body) =>
+              visit(body)
+            case DNTimes(_, body, _) =>
+              visit(body)
+            case _ => ()
+          }
+        }
+      }
+      visit(root)
+      seenShapes.toSet
+    }
+
     def compactShapeKey(id: Int): String =
       aRunLen(id) match {
         case Some(0) => "1"
@@ -1250,6 +1377,7 @@ object PosixCubicSmoke {
       altSetShapeStatePoolSize: Int,
       unaryModShapeStatePoolSize: Int,
       unaryPruneShapeStatePoolSize: Int,
+      contPruneShapeStatePoolSize: Int,
       poolSize: Int
   )
 
@@ -1305,6 +1433,7 @@ object PosixCubicSmoke {
     val altSetShapeStatePool = prefixIds.map(store.altSetShapeId).toSet.size
     val unaryModShapeStatePool = prefixIds.map(store.unaryModShapeId).toSet.size
     val unaryPruneShapeStatePool = prefixRoots.flatMap(store.reachableUnaryPruneShapeIds).toSet.size
+    val contPruneShapeStatePool = prefixRoots.flatMap(store.reachableContPruneShapeIds).toSet.size
     SharedResult(
       value,
       asize(finalRegex),
@@ -1315,6 +1444,7 @@ object PosixCubicSmoke {
       altSetShapeStatePool,
       unaryModShapeStatePool,
       unaryPruneShapeStatePool,
+      contPruneShapeStatePool,
       store.totalSize
     )
   }
@@ -1921,6 +2051,7 @@ object PosixCubicSmoke {
            |altSetShapePool = ${result.altSetShapeStatePoolSize}
            |unaryModShapePool = ${result.unaryModShapeStatePoolSize}
            |unaryPruneShapePool = ${result.unaryPruneShapeStatePoolSize}
+           |contPruneShapePool = ${result.contPruneShapeStatePoolSize}
            |pool      = ${result.poolSize}
            |""".stripMargin
       )
@@ -2982,7 +3113,7 @@ object PosixCubicSmoke {
                |input   = $s
                |base    = $b
                |shared  = ${shared.value}
-               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, pool=${shared.poolSize}
+               |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, pool=${shared.poolSize}
                |""".stripMargin
           )
         }
@@ -3027,7 +3158,7 @@ object PosixCubicSmoke {
              |input   = $s
              |base    = $b
              |shared  = ${shared.value}
-             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, pool=${shared.poolSize}
+             |sizes   = tree=${shared.treeSize}, dag=${shared.dagSize}, shape=${shared.shapeDagSize}, statePool=${shared.statePoolSize}, shapeStatePool=${shared.shapeStatePoolSize}, altSetShapeStatePool=${shared.altSetShapeStatePoolSize}, unaryModShapeStatePool=${shared.unaryModShapeStatePoolSize}, unaryPruneShapeStatePool=${shared.unaryPruneShapeStatePoolSize}, contPruneShapeStatePool=${shared.contPruneShapeStatePoolSize}, pool=${shared.poolSize}
              |""".stripMargin
         )
       }
@@ -3055,7 +3186,7 @@ object PosixCubicSmoke {
     }
     println(s"Chapter 7 k=$k $label $seqMode trace: " +
       trace.map { case (n, out) =>
-        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/pool=${out.poolSize}"
+        s"$n->tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/pool=${out.poolSize}"
       }.mkString(", "))
     trace.foreach { case (n, out) =>
       if (dagThreshold > 0 && out.dagSize >= dagThreshold) {
@@ -3087,10 +3218,11 @@ object PosixCubicSmoke {
       case "altSetShapeStatePool" | "altSetShapePool" => out.altSetShapeStatePoolSize
       case "unaryModShapeStatePool" | "unaryModShapePool" => out.unaryModShapeStatePoolSize
       case "unaryPruneShapeStatePool" | "unaryPruneShapePool" => out.unaryPruneShapeStatePoolSize
+      case "contPruneShapeStatePool" | "contPruneShapePool" => out.contPruneShapeStatePoolSize
       case "pool" => out.poolSize
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, altSetShapeStatePool, altSetShapePool, unaryModShapeStatePool, unaryModShapePool, unaryPruneShapeStatePool, unaryPruneShapePool, or pool"
+          s"unknown POSIX_SMOKE_SHARED_PLATEAU_METRIC=$other; expected tree, dag, shape, shapeDag, statePool, shapeStatePool, shapePool, altSetShapeStatePool, altSetShapePool, unaryModShapeStatePool, unaryModShapePool, unaryPruneShapeStatePool, unaryPruneShapePool, contPruneShapeStatePool, contPruneShapePool, or pool"
         )
     }
 
@@ -3123,6 +3255,7 @@ object PosixCubicSmoke {
     var altSetShapeStatePoolKeys = statePoolIds.map(store.altSetShapeId)
     var unaryModShapeStatePoolKeys = statePoolIds.map(store.unaryModShapeId)
     var unaryPruneShapeStatePoolKeys = store.reachableUnaryPruneShapeIds(root)
+    var contPruneShapeStatePoolKeys = store.reachableContPruneShapeIds(root)
     var shapeWitnesses = statePoolIds.iterator.map(id => store.shapeId(id) -> id).toMap
 
     def snapshot(length: Int): SharedResult = {
@@ -3137,6 +3270,7 @@ object PosixCubicSmoke {
         altSetShapeStatePoolKeys.size,
         unaryModShapeStatePoolKeys.size,
         unaryPruneShapeStatePoolKeys.size,
+        contPruneShapeStatePoolKeys.size,
         store.totalSize
       )
     }
@@ -3156,7 +3290,7 @@ object PosixCubicSmoke {
       points += ((currentLength, out, value))
       if (progress) {
         println(
-          s"Chapter 7 k=$k $label $seqMode long-tail-progress n=$currentLength metric=$metric value=$value tree=${out.treeSize} dag=${out.dagSize} shape=${out.shapeDagSize} statePool=${out.statePoolSize} shapeStatePool=${out.shapeStatePoolSize} altSetShapeStatePool=${out.altSetShapeStatePoolSize} unaryModShapeStatePool=${out.unaryModShapeStatePoolSize} unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize} pool=${out.poolSize}"
+          s"Chapter 7 k=$k $label $seqMode long-tail-progress n=$currentLength metric=$metric value=$value tree=${out.treeSize} dag=${out.dagSize} shape=${out.shapeDagSize} statePool=${out.statePoolSize} shapeStatePool=${out.shapeStatePoolSize} altSetShapeStatePool=${out.altSetShapeStatePoolSize} unaryModShapeStatePool=${out.unaryModShapeStatePoolSize} unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize} contPruneShapeStatePool=${out.contPruneShapeStatePoolSize} pool=${out.poolSize}"
         )
       }
       val obs = sharedStatePoolObservation(r, input, out, s"Chapter 7 plateau k=$k n=$currentLength")
@@ -3209,6 +3343,7 @@ object PosixCubicSmoke {
           altSetShapeStatePoolKeys = altSetShapeStatePoolKeys ++ ids.map(store.altSetShapeId)
           unaryModShapeStatePoolKeys = unaryModShapeStatePoolKeys ++ ids.map(store.unaryModShapeId)
           unaryPruneShapeStatePoolKeys = unaryPruneShapeStatePoolKeys ++ store.reachableUnaryPruneShapeIds(root)
+          contPruneShapeStatePoolKeys = contPruneShapeStatePoolKeys ++ store.reachableContPruneShapeIds(root)
           ids.foreach { id =>
             val key = store.shapeId(id)
             if (!shapeWitnesses.contains(key)) {
@@ -3221,7 +3356,7 @@ object PosixCubicSmoke {
       }
     }
     val renderedPoints = points.map { case (len, out, value) =>
-      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/pool=${out.poolSize}"
+      s"$len->$metric=$value/tree=${out.treeSize}/dag=${out.dagSize}/shape=${out.shapeDagSize}/statePool=${out.statePoolSize}/shapeStatePool=${out.shapeStatePoolSize}/altSetShapeStatePool=${out.altSetShapeStatePoolSize}/unaryModShapeStatePool=${out.unaryModShapeStatePoolSize}/unaryPruneShapeStatePool=${out.unaryPruneShapeStatePoolSize}/contPruneShapeStatePool=${out.contPruneShapeStatePoolSize}/pool=${out.poolSize}"
     }.toVector
     val compact =
       if (renderedPoints.length <= 24) renderedPoints.mkString(", ")
