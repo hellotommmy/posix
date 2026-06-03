@@ -23,6 +23,14 @@ Last updated: 2026-06-04 (strong-memo route is default)
   row-DAG universe bound directly or by proving the whole final memo-DAG bound.
   This is still infrastructure; no bounty is claimed.
 - Verification: focused Isabelle `Posix` build passed.
+- Follow-up negative smoke: whole final memo-DAG constants are not the primary
+  target. Seed `20260607` finds a factor-`3.0` CE:
+  `NTIMES(STAR(NTIMES(ALT(CH(a),NTIMES(STAR(CH(b)),2)),3)),2)` on `abbb`,
+  with `rsize=15`, `strongDag=48`, ratio `3.2`, exact POSIX values preserved,
+  and `finalRows=0`. This means the final raw DAG handoff is useful if a
+  larger linear constant is later proven, but the preferred BR-040 target
+  remains the final-active row-DAG universe, which ignores inactive final DAG
+  structure.
 
 ## Cubic Route Checkpoint: One-Step Row-DAG Base Case (2026-06-04)
 

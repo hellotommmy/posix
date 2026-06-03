@@ -13,6 +13,14 @@ to be read before continuing long-running agent work.
   linear bound on the exact DAG of the whole final memo-strong recognition
   tree implies exact POSIX reconstruction and the final-active row/pair/DAG
   budgets through existing contracts.
+- However, whole-final-DAG constants are not the primary route. Seed
+  `20260607` gives a factor-`3.0` CE for `strongMemoDag`:
+  `NTIMES(STAR(NTIMES(ALT(CH(a),NTIMES(STAR(CH(b)),2)),3)),2)` on `abbb`,
+  with `rsize=15`, `strongDag=48`, and `finalRows=0`. This shows inactive
+  final DAG structure can defeat small whole-DAG constants while final-active
+  accounting remains tiny. Keep BR-040 focused on final-active row-DAG
+  universe unless a stronger whole-DAG theorem with an acceptable constant is
+  discovered.
 - Added the one-character base case
   `card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`,
   supported by `asize_bder_intern_legacy_le_rxsize_square`. This extends the

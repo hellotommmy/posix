@@ -69,7 +69,11 @@ immutability.
   `strong_deferred_original_final_raw_dag_linear_contract`. This lets BR-040
   target a linear bound on the whole final memo-strong exact DAG
   (`strongMemoDag` in Scala terms), and then obtain exact POSIX reconstruction
-  plus all final-active budgets. Infrastructure only; no bounty is claimed.
+  plus all final-active budgets. Follow-up smoke shows small whole-DAG
+  constants are not the preferred path: factor `3.0` has a CE with
+  `rsize=15`, `strongDag=48`, and `finalRows=0`. Keep final-active row-DAG
+  universe as the primary BR-040 target. Infrastructure only; no bounty is
+  claimed.
 - Memo-strong one-step row-DAG base: `FBound.thy` now checks
   `asize_bder_intern_legacy_le_rxsize_square` and
   `card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square`.
