@@ -21,6 +21,11 @@ Last updated: 2026-06-03 (strong-memo route is default)
   `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
   passed, including default `strong-memo` Scala smoke, `Posix`, and
   `BackRefPilot`.
+- Extended smoke:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route strong-memo -TimeoutSeconds 300 -RandomCases 1000 -RandomDepth 5 -RandomInputLength 6 -Seed 20260602 -Ch7K 5 -Ch7Lengths "4,8,12,16,20,24,28,32,40,48,64,80" -Ch7TreeThreshold 0`
+  passed. For the Chapter 7 `k=5` family, strong tree sizes through `n=80`
+  were `474,730,771,820,875,918,908,858,918,903,959,957`; deterministic
+  random exact-POSIX smoke also passed on `1,000` cases.
 
 ## Cubic Route Pivot: StrongDeferredMemo Is The Main Candidate (2026-06-03)
 
