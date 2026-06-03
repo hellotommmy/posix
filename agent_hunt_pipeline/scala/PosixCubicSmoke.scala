@@ -2075,6 +2075,35 @@ object PosixCubicSmoke {
       ratio: Double
   )
 
+  final case class FinalActiveBudgetConfig(
+      rowsFactor: Double,
+      pairFactor: Double,
+      minRegexSize: Int,
+      topLimit: Int
+  ) {
+    def hasRowsBudget: Boolean = rowsFactor > 0.0
+    def hasPairBudget: Boolean = pairFactor > 0.0
+    def hasBudget: Boolean = hasRowsBudget || hasPairBudget
+    def traceTop: Boolean = topLimit > 0
+  }
+
+  object FinalActiveBudgetConfig {
+    val Disabled: FinalActiveBudgetConfig = FinalActiveBudgetConfig(0.0, 0.0, 5, 0)
+  }
+
+  final case class FinalActiveBudgetObservation(
+      label: String,
+      regex: Rexp,
+      input: String,
+      regexSize: Int,
+      rows: Int,
+      keys: Int,
+      maxBucket: Int,
+      pairBudget: Long,
+      rowsRatio: Double,
+      pairRatio: Double
+  )
+
   def posixMemoResult(r: Rexp, input: String): PosixMemoResult = {
     val acceptsMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Boolean]
     val valueMemo = scala.collection.mutable.Map.empty[(Rexp, Int, Int), Option[Val]]
@@ -2311,6 +2340,96 @@ object PosixCubicSmoke {
     StrongCubicObservation(label, r, input, n, result.strongTree, result.strongTree.toDouble / denom)
   }
 
+  def finalActiveRowsBound(r: Rexp, factor: Double): Long =
+    if (factor > 0.0) math.ceil(factor * rsize(r).toDouble).toLong else 0L
+
+  def finalActivePairBound(r: Rexp, factor: Double): Long =
+    if (factor > 0.0) {
+      val n = rsize(r).toDouble
+      math.ceil(factor * n * n).toLong
+    } else {
+      0L
+    }
+
+  def finalActiveBudgetObservation(
+      r: Rexp,
+      input: String,
+      result: StrongDeferredMemoResult,
+      label: String
+  ): FinalActiveBudgetObservation = {
+    val n = rsize(r)
+    val rowDenom = math.max(1.0, n.toDouble)
+    val pairDenom = math.max(1.0, n.toDouble * n.toDouble)
+    val stats = result.finalActiveSuffix
+    FinalActiveBudgetObservation(
+      label,
+      r,
+      input,
+      n,
+      stats.rows,
+      stats.keys,
+      stats.maxBucket,
+      stats.pairBudget,
+      stats.rows.toDouble / rowDenom,
+      stats.pairBudget.toDouble / pairDenom
+    )
+  }
+
+  def finalActiveBudgetFailures(
+      r: Rexp,
+      result: StrongDeferredMemoResult,
+      config: FinalActiveBudgetConfig
+  ): List[String] = {
+    if (rsize(r) < config.minRegexSize) Nil
+    else {
+      val rowsBound = finalActiveRowsBound(r, config.rowsFactor)
+      val pairBound = finalActivePairBound(r, config.pairFactor)
+      val rowsFailure =
+        if (rowsBound > 0L && result.finalActiveSuffix.rows.toLong > rowsBound) {
+          List(s"finalActiveRows=${result.finalActiveSuffix.rows} > $rowsBound")
+        } else Nil
+      val pairFailure =
+        if (pairBound > 0L && result.finalActiveSuffix.pairBudget > pairBound) {
+          List(s"finalActivePairBudget=${result.finalActiveSuffix.pairBudget} > $pairBound")
+        } else Nil
+      rowsFailure ::: pairFailure
+    }
+  }
+
+  def checkFinalActiveBudget(
+      r: Rexp,
+      input: String,
+      result: StrongDeferredMemoResult,
+      label: String,
+      config: FinalActiveBudgetConfig
+  ): Unit = {
+    val failures = finalActiveBudgetFailures(r, result, config)
+    if (failures.nonEmpty) {
+      val rowsBound = finalActiveRowsBound(r, config.rowsFactor)
+      val pairBound = finalActivePairBound(r, config.pairFactor)
+      throw new AssertionError(
+        s"""strong memo final-active budget failed
+           |label                 = $label
+           |regex                 = $r
+           |input                 = $input
+           |rsize                 = ${rsize(r)}
+           |minRsize              = ${config.minRegexSize}
+           |rowsFactor            = ${config.rowsFactor}
+           |pairFactor            = ${config.pairFactor}
+           |rowsBound             = $rowsBound
+           |pairBound             = $pairBound
+           |finalActiveRows       = ${result.finalActiveSuffix.rows}
+           |finalActiveKeys       = ${result.finalActiveSuffix.keys}
+           |finalActiveMaxBucket  = ${result.finalActiveSuffix.maxBucket}
+           |finalActivePairBudget = ${result.finalActiveSuffix.pairBudget}
+           |failures              = ${failures.mkString(", ")}
+           |strongTree            = ${result.strongTree}
+           |strongDag             = ${result.strongDag}
+           |""".stripMargin
+      )
+    }
+  }
+
   def shortLogText(text: String, max: Int = 160): String =
     if (text.length <= max) text else text.take(max) + "..."
 
@@ -2405,6 +2524,78 @@ object PosixCubicSmoke {
       val distinctSummary =
         strongCubicFrontierListSummary("distinct-regex strong cubic ratios", distinctRegexTop, minRegexSize)
       s"$topSummary; $distinctSummary"
+    }
+
+  def finalActiveRowsObservationBetter(
+      a: FinalActiveBudgetObservation,
+      b: FinalActiveBudgetObservation
+  ): Boolean =
+    a.rowsRatio > b.rowsRatio ||
+      (a.rowsRatio == b.rowsRatio && (a.rows > b.rows ||
+        (a.rows == b.rows && (a.regexSize > b.regexSize ||
+          (a.regexSize == b.regexSize && (a.input < b.input ||
+            (a.input == b.input && a.regex.toString < b.regex.toString)))))))
+
+  def finalActivePairObservationBetter(
+      a: FinalActiveBudgetObservation,
+      b: FinalActiveBudgetObservation
+  ): Boolean =
+    a.pairRatio > b.pairRatio ||
+      (a.pairRatio == b.pairRatio && (a.pairBudget > b.pairBudget ||
+        (a.pairBudget == b.pairBudget && (a.regexSize > b.regexSize ||
+          (a.regexSize == b.regexSize && (a.input < b.input ||
+            (a.input == b.input && a.regex.toString < b.regex.toString)))))))
+
+  def finalActiveRowsTop(
+      current: Vector[FinalActiveBudgetObservation],
+      next: FinalActiveBudgetObservation,
+      config: FinalActiveBudgetConfig
+  ): Vector[FinalActiveBudgetObservation] =
+    if (!config.traceTop || next.regexSize < config.minRegexSize) current
+    else {
+      (current :+ next)
+        .sortWith(finalActiveRowsObservationBetter)
+        .take(config.topLimit)
+    }
+
+  def finalActivePairTop(
+      current: Vector[FinalActiveBudgetObservation],
+      next: FinalActiveBudgetObservation,
+      config: FinalActiveBudgetConfig
+  ): Vector[FinalActiveBudgetObservation] =
+    if (!config.traceTop || next.regexSize < config.minRegexSize) current
+    else {
+      (current :+ next)
+        .sortWith(finalActivePairObservationBetter)
+        .take(config.topLimit)
+    }
+
+  def finalActiveBudgetFrontierListSummary(
+      prefix: String,
+      top: Vector[FinalActiveBudgetObservation],
+      byRows: Boolean,
+      config: FinalActiveBudgetConfig
+  ): String =
+    if (top.isEmpty) s"no final-active observations with rsize >= ${config.minRegexSize}"
+    else {
+      top.zipWithIndex.map { case (w, i) =>
+        val main =
+          if (byRows) f"rowsRatio=${w.rowsRatio}%.6f rows=${w.rows}"
+          else f"pairRatio=${w.pairRatio}%.6f pairBudget=${w.pairBudget}"
+        s"#${i + 1}:$main label=${w.label} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
+      }.mkString(s"$prefix: ", "; ", "")
+    }
+
+  def finalActiveBudgetFrontiersSummary(
+      rowsTop: Vector[FinalActiveBudgetObservation],
+      pairTop: Vector[FinalActiveBudgetObservation],
+      config: FinalActiveBudgetConfig
+  ): String =
+    if (!config.traceTop && !config.hasBudget) ""
+    else {
+      val rowsSummary = finalActiveBudgetFrontierListSummary("top final-active row ratios", rowsTop, byRows = true, config)
+      val pairSummary = finalActiveBudgetFrontierListSummary("top final-active pair ratios", pairTop, byRows = false, config)
+      s"finalActiveBudget(rowsFactor=${config.rowsFactor}, pairFactor=${config.pairFactor}, minRegexSize=${config.minRegexSize}, top=${config.topLimit}); $rowsSummary; $pairSummary"
     }
 
   def sharedStatePoolCubicBound(r: Rexp, factor: Double): Long =
@@ -2598,6 +2789,51 @@ object PosixCubicSmoke {
        |valueOK      = ${base == result.value}
        |memoStates   = ${result.memo.acceptsStates}+${result.memo.valueStates}
        |splitProbes  = ${result.memo.splitProbes}
+       |""".stripMargin
+  }
+
+  def finalActiveBudgetExceeded(r: Rexp, input: String, config: FinalActiveBudgetConfig): Boolean = {
+    if (!config.hasBudget || rsize(r) < config.minRegexSize) false
+    else {
+      val result = strongDeferredMemoResult(r, input)
+      finalActiveBudgetFailures(r, result, config).nonEmpty
+    }
+  }
+
+  def finalActiveBudgetReport(
+      r: Rexp,
+      input: String,
+      label: String,
+      config: FinalActiveBudgetConfig
+  ): String = {
+    val result = strongDeferredMemoResult(r, input)
+    val rowsBound = finalActiveRowsBound(r, config.rowsFactor)
+    val pairBound = finalActivePairBound(r, config.pairFactor)
+    val obs = finalActiveBudgetObservation(r, input, result, label)
+    val base = baselineValue(r, input)
+    s"""strong memo final-active budget witness
+       |label                 = $label
+       |regex                 = $r
+       |input                 = $input
+       |rsize                 = ${obs.regexSize}
+       |rowsFactor            = ${config.rowsFactor}
+       |pairFactor            = ${config.pairFactor}
+       |rowsBound             = $rowsBound
+       |pairBound             = $pairBound
+       |finalActiveRows       = ${obs.rows}
+       |finalActiveKeys       = ${obs.keys}
+       |finalActiveMaxBucket  = ${obs.maxBucket}
+       |finalActivePairBudget = ${obs.pairBudget}
+       |rowsRatio             = ${obs.rowsRatio}
+       |pairRatio             = ${obs.pairRatio}
+       |strongTree            = ${result.strongTree}
+       |strongDag             = ${result.strongDag}
+       |base                  = $base
+       |memo                  = ${result.value}
+       |valueOK               = ${base == result.value}
+       |memoStates            = ${result.memo.acceptsStates}+${result.memo.valueStates}
+       |splitProbes           = ${result.memo.splitProbes}
+       |failures              = ${finalActiveBudgetFailures(r, result, config).mkString(", ")}
        |""".stripMargin
   }
 
@@ -3336,13 +3572,16 @@ object PosixCubicSmoke {
       maxRegexes: Int,
       treeCubicFactor: Double,
       minRegexSize: Int,
-      topLimit: Int
+      topLimit: Int,
+      finalActiveConfig: FinalActiveBudgetConfig = FinalActiveBudgetConfig.Disabled
   ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
     var distinctFrontier = Vector.empty[StrongCubicObservation]
+    var finalActiveRowsFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     regexes.foreach { r =>
       inputs.foreach { s =>
         checked += 1
@@ -3354,6 +3593,10 @@ object PosixCubicSmoke {
         frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
         distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
         checkStrongCubicTreeBudget(r, s, result, s"exhaustive case $checked", treeCubicFactor)
+        val finalObs = finalActiveBudgetObservation(r, s, result, s"exhaustive case $checked")
+        finalActiveRowsFrontier = finalActiveRowsTop(finalActiveRowsFrontier, finalObs, finalActiveConfig)
+        finalActivePairFrontier = finalActivePairTop(finalActivePairFrontier, finalObs, finalActiveConfig)
+        checkFinalActiveBudget(r, s, result, s"exhaustive case $checked", finalActiveConfig)
         if (b != deferred) {
           val strongFinal = bdersStrong(intern(r), s)
           throw new AssertionError(
@@ -3370,7 +3613,10 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
+    val finalActiveSummary =
+      finalActiveBudgetFrontiersSummary(finalActiveRowsFrontier, finalActivePairFrontier, finalActiveConfig)
+    val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
+    println(s"checked strong memo-deferred POSIX values on $checked regex/input pairs (depth <= $maxDepth, input length <= $maxInput, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   def checkStrongDeferredMemoRandomValuePreservation(
@@ -3380,12 +3626,15 @@ object PosixCubicSmoke {
       seed: Long,
       treeCubicFactor: Double,
       minRegexSize: Int,
-      topLimit: Int
+      topLimit: Int,
+      finalActiveConfig: FinalActiveBudgetConfig = FinalActiveBudgetConfig.Disabled
   ): Unit = {
     val rng = new Random(seed)
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
     var distinctFrontier = Vector.empty[StrongCubicObservation]
+    var finalActiveRowsFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     (0 until cases).foreach { _ =>
       checked += 1
       val r = randomRegex(rng, maxDepth)
@@ -3398,6 +3647,10 @@ object PosixCubicSmoke {
       frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
       distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
       checkStrongCubicTreeBudget(r, s, result, s"random seed=$seed case=$checked", treeCubicFactor)
+      val finalObs = finalActiveBudgetObservation(r, s, result, s"random seed=$seed case=$checked")
+      finalActiveRowsFrontier = finalActiveRowsTop(finalActiveRowsFrontier, finalObs, finalActiveConfig)
+      finalActivePairFrontier = finalActivePairTop(finalActivePairFrontier, finalObs, finalActiveConfig)
+      checkFinalActiveBudget(r, s, result, s"random seed=$seed case=$checked", finalActiveConfig)
       if (b != deferred) {
         val strongFinal = bdersStrong(intern(r), s)
         throw new AssertionError(
@@ -3414,7 +3667,10 @@ object PosixCubicSmoke {
         )
       }
     }
-    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
+    val finalActiveSummary =
+      finalActiveBudgetFrontiersSummary(finalActiveRowsFrontier, finalActivePairFrontier, finalActiveConfig)
+    val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
+    println(s"checked strong memo-deferred POSIX values on $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   final case class StrongRowsBridgeStats(
@@ -3624,7 +3880,12 @@ object PosixCubicSmoke {
        |""".stripMargin
   }
 
-  def checkStrongDeferredMemoKnownCounterexamples(treeCubicFactor: Double, minRegexSize: Int, topLimit: Int): Unit = {
+  def checkStrongDeferredMemoKnownCounterexamples(
+      treeCubicFactor: Double,
+      minRegexSize: Int,
+      topLimit: Int,
+      finalActiveConfig: FinalActiveBudgetConfig = FinalActiveBudgetConfig.Disabled
+  ): Unit = {
     val cases = List(
       "direct nested-star CE" -> STAR(STAR(CH('a'))) -> List("", "a", "aa", "aaa"),
       "full-cert greedy sequence CE" ->
@@ -3637,6 +3898,8 @@ object PosixCubicSmoke {
     var checked = 0
     var frontier = Vector.empty[StrongCubicObservation]
     var distinctFrontier = Vector.empty[StrongCubicObservation]
+    var finalActiveRowsFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     cases.foreach { case ((name, r), inputs) =>
       inputs.foreach { s =>
         checked += 1
@@ -3647,6 +3910,10 @@ object PosixCubicSmoke {
         frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
         distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
         checkStrongCubicTreeBudget(r, s, result, s"known CE $name input=$s", treeCubicFactor)
+        val finalObs = finalActiveBudgetObservation(r, s, result, s"known CE $name input=$s")
+        finalActiveRowsFrontier = finalActiveRowsTop(finalActiveRowsFrontier, finalObs, finalActiveConfig)
+        finalActivePairFrontier = finalActivePairTop(finalActivePairFrontier, finalObs, finalActiveConfig)
+        checkFinalActiveBudget(r, s, result, s"known CE $name input=$s", finalActiveConfig)
         if (base != result.value) {
           throw new AssertionError(
             s"""strong memo-deferred known CE mismatch: $name
@@ -3663,7 +3930,10 @@ object PosixCubicSmoke {
         }
       }
     }
-    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
+    val finalActiveSummary =
+      finalActiveBudgetFrontiersSummary(finalActiveRowsFrontier, finalActivePairFrontier, finalActiveConfig)
+    val suffix = if (finalActiveSummary.isEmpty) "" else s"; $finalActiveSummary"
+    println(s"checked strong memo-deferred known CE grid on $checked cases (strongCubicFactor=$treeCubicFactor, strongCubicMinRegexSize=$minRegexSize, strongCubicTop=$topLimit); ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}$suffix")
   }
 
   def checkStrongFullKnownBoundaryCounterexample(): Unit = {
@@ -4296,20 +4566,27 @@ object PosixCubicSmoke {
       shapeThreshold: Int,
       treeCubicFactor: Double,
       minRegexSize: Int,
-      topLimit: Int
+      topLimit: Int,
+      finalActiveConfig: FinalActiveBudgetConfig = FinalActiveBudgetConfig.Disabled
   ): Unit = {
     val r = thesisCh7Evil(k)
     val rootSize = rsize(r).toLong
     val cubicTreeBound = strongCubicTreeBound(r, treeCubicFactor)
     var frontier = Vector.empty[StrongCubicObservation]
     var distinctFrontier = Vector.empty[StrongCubicObservation]
+    var finalActiveRowsFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     val trace = lengths.map { n =>
       val input = "a" * n
       val result = strongDeferredMemoResult(r, input)
       val obs = strongCubicObservation(r, input, result, s"Chapter 7 k=$k n=$n")
       frontier = strongerCubicTop(frontier, obs, minRegexSize, topLimit)
       distinctFrontier = strongerCubicTopDistinctRegex(distinctFrontier, obs, minRegexSize, topLimit)
+      val finalObs = finalActiveBudgetObservation(r, input, result, s"Chapter 7 k=$k n=$n")
+      finalActiveRowsFrontier = finalActiveRowsTop(finalActiveRowsFrontier, finalObs, finalActiveConfig)
+      finalActivePairFrontier = finalActivePairTop(finalActivePairFrontier, finalObs, finalActiveConfig)
       checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
+      checkFinalActiveBudget(r, input, result, s"Chapter 7 k=$k n=$n", finalActiveConfig)
       if (!result.value.exists(flatVal(_) == input)) {
         throw new AssertionError(
           s"""Chapter 7 strong memo-deferred value reconstruction failed
@@ -4353,11 +4630,18 @@ object PosixCubicSmoke {
           s"/activeRows=${s.activeSuffix.rows}/activeKeys=${s.activeSuffix.keys}" +
           s"/activeMaxBucket=${s.activeSuffix.maxBucket}" +
           s"/activePairs=${s.activeSuffix.pairBudget}" +
+          s"/finalRows=${s.finalActiveSuffix.rows}/finalKeys=${s.finalActiveSuffix.keys}" +
+          s"/finalMaxBucket=${s.finalActiveSuffix.maxBucket}" +
+          s"/finalPairs=${s.finalActiveSuffix.pairBudget}" +
           s"/spanBound=$spanBound" +
           s"/queries=${s.memo.acceptsQueries}+${s.memo.valueQueries}" +
           s"/splits=${s.memo.splitProbes}/splitBound=$splitBound"
       }.mkString(", ") +
-      s"; ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}")
+      s"; ${strongCubicFrontiersSummary(frontier, distinctFrontier, minRegexSize)}" +
+      (finalActiveBudgetFrontiersSummary(finalActiveRowsFrontier, finalActivePairFrontier, finalActiveConfig) match {
+        case "" => ""
+        case summary => s"; $summary"
+      }))
   }
 
   def checkStrongSafeEvilFamilyTrace(k: Int, lengths: List[Int]): Unit = {
@@ -4945,6 +5229,32 @@ object PosixCubicSmoke {
     loop(startR, startInput, Set.empty)
   }
 
+  def shrinkFinalActiveBudgetCE(
+      startR: Rexp,
+      startInput: String,
+      config: FinalActiveBudgetConfig
+  ): (Rexp, String) = {
+    @tailrec
+    def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
+      val nextSeen = seen + ((r, s))
+      val inputHit = inputShrinkCandidates(s)
+        .filterNot(t => nextSeen.contains((r, t)))
+        .find(t => finalActiveBudgetExceeded(r, t, config))
+      inputHit match {
+        case Some(t) => loop(r, t, nextSeen)
+        case None =>
+          regexShrinkCandidates(r)
+            .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .filter(candidate => rsize(candidate) >= config.minRegexSize)
+            .find(candidate => finalActiveBudgetExceeded(candidate, s, config)) match {
+            case Some(candidate) => loop(candidate, s, nextSeen)
+            case None => (r, s)
+          }
+      }
+    }
+    loop(startR, startInput, Set.empty)
+  }
+
   def shrinkStrongRowsBridgeCE(startR: Rexp, startInput: String): (Rexp, String) = {
     @tailrec
     def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
@@ -5090,6 +5400,37 @@ object PosixCubicSmoke {
     }
     if (!found) {
       println(s"no strong cubic budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, factor=$factor, minRegexSize=$minRegexSize)")
+    }
+  }
+
+  def findFinalActiveBudgetCounterexample(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      config: FinalActiveBudgetConfig
+  ): Unit = {
+    if (!config.hasBudget) {
+      throw new IllegalArgumentException("FindStrongFinalActiveBudgetCE requires a positive final-active rows or pair factor")
+    }
+    val rng = new Random(seed)
+    var found = false
+    var checked = 0
+    (0 until cases).foreach { _ =>
+      if (!found) {
+        checked += 1
+        val r = randomRegex(rng, maxDepth)
+        val s = randomInput(rng, maxInput)
+        if (rsize(r) >= config.minRegexSize && finalActiveBudgetExceeded(r, s, config)) {
+          found = true
+          println(finalActiveBudgetReport(r, s, s"strong final-active budget CE before shrinking (seed=$seed case=$checked)", config))
+          val (shrunkR, shrunkS) = shrinkFinalActiveBudgetCE(r, s, config)
+          println(finalActiveBudgetReport(shrunkR, shrunkS, s"strong final-active budget CE after greedy shrinking (minRegexSize=${config.minRegexSize})", config))
+        }
+      }
+    }
+    if (!found) {
+      println(s"no strong final-active budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, rowsFactor=${config.rowsFactor}, pairFactor=${config.pairFactor}, minRegexSize=${config.minRegexSize})")
     }
   }
 
@@ -5282,6 +5623,17 @@ object PosixCubicSmoke {
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
+    val strongFinalActiveRowsFactor = doubleSetting("posix.smoke.strongFinalActiveRowsFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_ROWS_FACTOR", 0.0)
+    val strongFinalActivePairFactor = doubleSetting("posix.smoke.strongFinalActivePairFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_PAIR_FACTOR", 0.0)
+    val strongFinalActiveMinRegexSize = intSetting("posix.smoke.strongFinalActiveMinRegexSize", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_MIN_REGEX_SIZE", 5)
+    val strongFinalActiveTop = intSetting("posix.smoke.strongFinalActiveTop", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_TOP", 0)
+    val strongFinalActiveConfig =
+      FinalActiveBudgetConfig(
+        strongFinalActiveRowsFactor,
+        strongFinalActivePairFactor,
+        strongFinalActiveMinRegexSize,
+        strongFinalActiveTop
+      )
     val sharedStatePoolCubicFactor = doubleSetting("posix.smoke.sharedStatePoolCubicFactor", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_FACTOR", 0.0)
     val sharedStatePoolMinRegexSize = intSetting("posix.smoke.sharedStatePoolCubicMinRegexSize", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_MIN_REGEX_SIZE", 5)
     val sharedStatePoolTop = intSetting("posix.smoke.sharedStatePoolCubicTop", "POSIX_SMOKE_SHARED_STATE_POOL_CUBIC_TOP", 1)
@@ -5318,6 +5670,7 @@ object PosixCubicSmoke {
     val findStrongFullCE = boolSetting("posix.smoke.findStrongFullCE", "POSIX_SMOKE_FIND_STRONG_FULL_CE", false)
     val findRawInjectCE = boolSetting("posix.smoke.findRawInjectCE", "POSIX_SMOKE_FIND_RAW_INJECT_CE", false)
     val findStrongCubicBudgetCE = boolSetting("posix.smoke.findStrongCubicBudgetCE", "POSIX_SMOKE_FIND_STRONG_CUBIC_BUDGET_CE", false)
+    val findStrongFinalActiveBudgetCE = boolSetting("posix.smoke.findStrongFinalActiveBudgetCE", "POSIX_SMOKE_FIND_STRONG_FINAL_ACTIVE_BUDGET_CE", false)
     val findStrongRowsBridgeCE = boolSetting("posix.smoke.findStrongRowsBridgeCE", "POSIX_SMOKE_FIND_STRONG_ROWS_BRIDGE_CE", false)
     val checkStrongCoreHand = boolSetting("posix.smoke.checkStrongCoreHand", "POSIX_SMOKE_CHECK_STRONG_CORE_HAND", false)
     val traceStrongFullKnown = boolSetting("posix.smoke.traceStrongFullKnown", "POSIX_SMOKE_TRACE_STRONG_FULL_KNOWN", false)
@@ -5348,10 +5701,10 @@ object PosixCubicSmoke {
       }
     }
     if (checkStrongDeferredMemo) {
-      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes, strongCubicFactor, strongCubicMinRegexSize, strongCubicTop)
-      checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor, strongCubicMinRegexSize, strongCubicTop)
+      checkStrongDeferredMemoValuePreservation(maxDepth, maxInput, maxRegexes, strongCubicFactor, strongCubicMinRegexSize, strongCubicTop, strongFinalActiveConfig)
+      checkStrongDeferredMemoKnownCounterexamples(strongCubicFactor, strongCubicMinRegexSize, strongCubicTop, strongFinalActiveConfig)
       if (randomCases > 0) {
-        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize, strongCubicTop)
+        checkStrongDeferredMemoRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize, strongCubicTop, strongFinalActiveConfig)
       }
     }
     if (checkStrongRowsBridge) {
@@ -5412,6 +5765,9 @@ object PosixCubicSmoke {
     if (findStrongCubicBudgetCE) {
       findStrongCubicBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongCubicFactor, strongCubicMinRegexSize)
     }
+    if (findStrongFinalActiveBudgetCE) {
+      findFinalActiveBudgetCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed, strongFinalActiveConfig)
+    }
     if (findStrongRowsBridgeCE) {
       findStrongRowsBridgeCounterexample(math.max(randomCases, 1), randomDepth, randomInputMax, randomSeed)
     }
@@ -5433,7 +5789,8 @@ object PosixCubicSmoke {
         ch7ShapeThreshold,
         ch7StrongCubicFactor,
         strongCubicMinRegexSize,
-        strongCubicTop
+        strongCubicTop,
+        strongFinalActiveConfig
       )
     }
     if (traceStrongSafe) {

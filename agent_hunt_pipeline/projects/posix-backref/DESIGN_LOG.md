@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-03: Final-active scout added for memo strong tree
+
+- Added a dedicated final-active budget gate to the Scala smoke harness. It
+  checks exact POSIX values first, then optionally enforces
+  `finalActiveRows <= rowsFactor * rsize(r)` and
+  `finalActivePairBudget <= pairFactor * rsize(r)^2`.
+- Added `strong_memo_final_active_scout.ps1`, which runs the gate across
+  deterministic seeds and writes logs under
+  `agent_hunt_pipeline/reports/strong_memo_final_active_scout/`.
+- Initial smoke (`20260602,20260603`, `2000` random cases each, depth `6`,
+  input length `8`, factors `1.0/1.0`) found no final-active budget CE. The
+  worst rows ratio was `0.571429`, and the worst pair ratio was `0.040000`.
+- The Chapter 7 trace now prints both cumulative active-prefix metrics and
+  final-active metrics. For k=5 and lengths `4,8,12,16,20`, cumulative pairs
+  grow from `82` to `1601`, while final-active rows/pairs stay `5/17`.
+- Design consequence: `bsimpCubic` should remain retired as a proof target.
+  The proof route should make memo strong tree work: preserve POSIX values by
+  span/memo reconstruction, then prove a final-tree or final-active indexed
+  universe bound.
+
 ## 2026-06-03: Direct strong-tree budget scout added
 
 - Added `strong_memo_budget_scout.ps1`, a reproducible smoke harness for the

@@ -2,6 +2,38 @@
 
 Last updated: 2026-06-03 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Strong-Memo Final-Active Scout (2026-06-03)
+
+- Retired `bsimpCubic` as an active proof target after the size graphs: future
+  proof effort should focus on the memo strong tree route, where
+  `bders_simpStrong` is the small POSIX recognition gate and exact values come
+  from original-regex span/memo reconstruction.
+- Added final-active budget smoke plumbing to
+  `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` and
+  `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`. The new optional gate
+  checks `strongMemoFinalActiveRows <= rowsFactor * rsize(r)` and
+  `strongMemoFinalActivePairBudget <= pairFactor * rsize(r)^2`, while keeping
+  the existing exact POSIX value comparison enabled.
+- Added `agent_hunt_pipeline/scripts/strong_memo_final_active_scout.ps1`, a
+  reproducible multi-seed scout that runs the gate plus a greedy final-active
+  counterexample shrinker and writes
+  `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
+- Initial checked scout run:
+  `Seeds=20260602,20260603`, `RandomCases=2000`, `RandomDepth=6`,
+  `RandomInputLength=8`, `RowsFactor=1.0`, `PairFactor=1.0`,
+  `MinRegexSize=5`. Both seeds found no final-active witness above the linear
+  rows or quadratic pair-budget. The worst reported rows ratio was `0.571429`;
+  the worst pair ratio was `0.040000`.
+- The Chapter 7 k=5 trace now prints final-active metrics directly. On
+  lengths `4,8,12,16,20`, the cumulative active pair-budget grows
+  `82,577,901,1226,1601`, but the final-active pair-budget stays `17` and
+  final-active rows stay `5`. This is exactly the separation the proof route
+  should exploit.
+- No bounty is claimed. This is smoke evidence and tooling for BR-039/BR-040;
+  the remaining theorem target is still a checked final strong-tree bound, or
+  an equivalent indexed/quotiented final-active universe bound preserving
+  POSIX values.
+
 ## Cubic Route Checkpoint: Strong-Memo Budget Scout (2026-06-03)
 
 - Added `agent_hunt_pipeline/scripts/strong_memo_budget_scout.ps1`, a reusable

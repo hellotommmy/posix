@@ -106,6 +106,16 @@ immutability.
   6/input 8, factor `1.0 * rsize^3`) finds no budget CE. This is smoke
   evidence only; BR-039/BR-040 still require a checked final-tree or
   indexed/quotiented universe theorem.
+- Strong-memo final-active scout:
+  `agent_hunt_pipeline/scripts/strong_memo_final_active_scout.ps1` runs exact
+  POSIX `strong-memo` smoke plus `-FindStrongFinalActiveBudgetCE` across
+  deterministic seeds and writes
+  `agent_hunt_pipeline/reports/strong_memo_final_active_scout/summary.md`.
+  The current initial report (`20260602,20260603`, 2,000 random cases each at
+  depth 6/input 8, `rows <= 1.0 * rsize`, `pairBudget <= 1.0 * rsize^2`) finds
+  no final-active budget CE. The worst rows ratio was `0.571429`; the worst
+  pair ratio was `0.040000`. This is smoke evidence for the final-active proof
+  route only; no BR-039/BR-040 payout is claimed.
 - Final-active proof bridge checkpoint: `GeneralRegexBound.thy` now defines
   `raw_final_active_suffix_rows`, `raw_final_active_suffix_keys`, and
   `raw_final_active_suffix_pair_budget`; `FBound.thy` lifts these to the final
