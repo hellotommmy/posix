@@ -3879,3 +3879,13 @@ to be read before continuing long-running agent work.
   to the final raw tree size; it is not the desired original-regex cubic
   theorem. The next proof step should replace that final-tree accounting with
   an original-regex continuation-owner universe.
+- Bridge-owner cubic accounting checkpoint (2026-06-04): added
+  `card_strong_deferred_strong_rows_raw_bridge_owner_cubicI` in `FBound.thy`.
+  This is the current sharpest owner-table accounting handoff for the
+  memo-strong route: linear bridge subterm-closure cardinality, linear
+  active-suffix prune pair budget, and linear closure member size imply a cubic
+  bound on `strong_deferred_strong_rows_raw_bridge_owner`. It does not prove
+  the final theorem. The first-priority proof obligation remains constructive:
+  show that the final active row-DAG universe is covered by this bridge owner
+  for arbitrary non-backref inputs, and prove the three linear bridge premises
+  from the original regex rather than from the already-grown final tree.

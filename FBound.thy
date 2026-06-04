@@ -2967,6 +2967,69 @@ proof -
         [OF rows_member])
 qed
 
+lemma card_strong_deferred_strong_rows_raw_bridge_owner_cubicI:
+  assumes closure_card:
+      "card (rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le>
+        A * rxsize r"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le>
+        P * rxsize r"
+    and closure_member:
+      "\<And>q. q \<in> rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s) \<Longrightarrow>
+        rsize q \<le> M * rxsize r"
+  shows "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le>
+    (A * M + P * M * M) * rxsize r * rxsize r * rxsize r"
+proof -
+  let ?n = "rxsize r"
+  let ?A = "A * ?n"
+  let ?P = "P * ?n"
+  let ?M = "M * ?n"
+  have owner:
+      "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le>
+        (?A + ?P * ?M) * ?M"
+    by (rule card_strong_deferred_strong_rows_raw_bridge_owner_boundI
+        [OF closure_card pair_budget closure_member])
+  have n_pos: "1 \<le> ?n"
+    by (cases r) simp_all
+  have first:
+      "?A * ?M \<le> (A * M) * ?n * ?n * ?n"
+  proof -
+    have "?A * ?M = (A * M) * ?n * ?n"
+      by (simp add: algebra_simps)
+    also have "... \<le> (A * M) * ?n * ?n * ?n"
+    proof -
+      have "((A * M) * ?n * ?n) * 1 \<le>
+          ((A * M) * ?n * ?n) * ?n"
+        by (rule mult_left_mono[OF n_pos]) simp
+      then show ?thesis
+        by simp
+    qed
+    finally show ?thesis .
+  qed
+  have second:
+      "(?P * ?M) * ?M = (P * M * M) * ?n * ?n * ?n"
+    by (simp add: algebra_simps)
+  have "((?A + ?P * ?M) * ?M) =
+      ?A * ?M + (?P * ?M) * ?M"
+    by (simp add: algebra_simps)
+  also have "... \<le>
+      (A * M) * ?n * ?n * ?n +
+      (P * M * M) * ?n * ?n * ?n"
+    by (rule add_mono[OF first]) (simp add: second)
+  also have "... =
+      (A * M + P * M * M) * ?n * ?n * ?n"
+    by (simp add: algebra_simps)
+  finally have cubic:
+      "(?A + ?P * ?M) * ?M \<le>
+        (A * M + P * M * M) * ?n * ?n * ?n" .
+  show ?thesis
+    by (rule order_trans[OF owner cubic])
+qed
+
 lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_payload_dag_universe r s)"
   by (simp add:

@@ -9625,6 +9625,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final non-backref cubic theorem is
   still unproved; no BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Bridge Owner Cubic Accounting (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof addition in `FBound.thy`:
+  - `card_strong_deferred_strong_rows_raw_bridge_owner_cubicI`
+- Design result:
+  - The strong-row bridge owner now has a cubic-shaped accounting handoff:
+    if the raw strong-row bridge subterm closure has linear cardinality in
+    `rxsize r`, its active-suffix prune pair budget is linear in `rxsize r`,
+    and every closure member has linear size in `rxsize r`, then Isabelle
+    derives
+    `card (strong_deferred_strong_rows_raw_bridge_owner r s) <=
+      (A * M + P * M * M) * rxsize r * rxsize r * rxsize r`.
+  - This is closer to the desired final theorem than the earlier
+    row-count/member-size handoff because it isolates the exact remaining
+    linear obligations for the bridge-owner route. It is still conditional:
+    the final cubic theorem also needs the all-input coverage
+    `strong_deferred_final_active_suffix_row_dag_universe r s <=
+      strong_deferred_strong_rows_raw_bridge_owner r s`.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash after adding the
+  lemma. Re-run full CI before committing the checkpoint.
+- Bounty status: accounting infrastructure only. The final non-backref cubic
+  theorem remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
