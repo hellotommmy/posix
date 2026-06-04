@@ -28,6 +28,13 @@ to be read before continuing long-running agent work.
   These say the final row-DAG inclusion follows from covering final active rows
   by the strong-row list's subterm closure, or by one active-suffix prune pass
   over that closure.
+- Added `rpders_strong_rows_raw_append` and its lifted bridge-row append/cons
+  facts. These are the intended induction controls for the row-list side of
+  the all-input bridge-inclusion proof.
+- Strengthened the empty-input bridge result so it now goes through the
+  row-level route:
+  `strong_deferred_final_active_suffix_rows_empty_bridge_rows_subterms` feeds
+  `strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`.
 - This turns the DAG bridge smoke evidence into a concrete proof interface:
   prove inclusion of
   `strong_deferred_final_active_suffix_row_dag_universe r s` into the bridge

@@ -17971,6 +17971,16 @@ fun rpders_strong_rows_raw :: "rrexp list \<Rightarrow> string \<Rightarrow> rre
 definition rpders_strong1_rows_raw :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_strong1_rows_raw r s = rpders_strong_rows_raw [r] s"
 
+lemma rpders_strong_rows_raw_append:
+  "rpders_strong_rows_raw rs (s @ t) =
+    rpders_strong_rows_raw (rpders_strong_rows_raw rs s) t"
+  by (induct s arbitrary: rs) simp_all
+
+lemma rpders_strong1_rows_raw_append:
+  "rpders_strong1_rows_raw r (s @ t) =
+    rpders_strong_rows_raw (rpders_strong1_rows_raw r s) t"
+  by (simp add: rpders_strong1_rows_raw_def rpders_strong_rows_raw_append)
+
 lemma distinct_rpder_strong_rows_raw [simp]:
   "distinct (rpder_strong_rows_raw c rs)"
   by (simp add: rpder_strong_rows_raw_def rdistinct_does_the_job)

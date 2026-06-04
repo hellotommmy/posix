@@ -2747,6 +2747,20 @@ lemma strong_deferred_strong_rows_raw_bridge_rows_empty [simp]:
   by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
       rpders_strong1_rows_raw_def)
 
+lemma strong_deferred_strong_rows_raw_bridge_rows_cons:
+  "strong_deferred_strong_rows_raw_bridge_rows r (c # s) =
+    set (rpders_strong_rows_raw
+      (rpder_strong_rows_raw c [rerase (intern r)]) s)"
+  by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
+      rpders_strong1_rows_raw_def)
+
+lemma strong_deferred_strong_rows_raw_bridge_rows_append:
+  "strong_deferred_strong_rows_raw_bridge_rows r (s @ t) =
+    set (rpders_strong_rows_raw
+      (rpders_strong1_rows_raw (rerase (intern r)) s) t)"
+  by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
+      rpders_strong1_rows_raw_append)
+
 lemma finite_strong_deferred_strong_rows_raw_bridge_owner [simp]:
   "finite (strong_deferred_strong_rows_raw_bridge_owner r s)"
   by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
@@ -3866,39 +3880,34 @@ proof (rule strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI)
     by blast
 qed
 
+lemma strong_deferred_final_active_suffix_rows_empty_bridge_rows_subterms:
+  "strong_deferred_final_active_suffix_rows r [] \<subseteq>
+    rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r [])"
+proof
+  fix q
+  assume q: "q \<in> strong_deferred_final_active_suffix_rows r []"
+  have row_sub: "q \<in> rsubterms (strong_deferred_final_raw r [])"
+  proof -
+    have "raw_final_active_suffix_rows (strong_deferred_final_raw r []) \<subseteq>
+        rsubterms (strong_deferred_final_raw r [])"
+      by (rule raw_final_active_suffix_rows_subset_rsubterms)
+    then show ?thesis
+      using q
+      by (auto simp add: strong_deferred_final_active_suffix_rows_def)
+  qed
+  then have "q \<in> rsubterms (rerase (intern r))"
+    by (simp add: strong_deferred_final_raw_def)
+  then show "q \<in>
+      rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r [])"
+    by (simp add: rsubterm_closure_def)
+qed
+
 lemma strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner:
   "strong_deferred_final_active_suffix_row_dag_universe r [] \<subseteq>
     strong_deferred_strong_rows_raw_bridge_owner r []"
-proof
-  fix p
-  assume p: "p \<in> strong_deferred_final_active_suffix_row_dag_universe r []"
-  have root_sub: "p \<in> rsubterms (rerase (intern r))"
-  proof -
-    have "strong_deferred_final_active_suffix_row_dag_universe r [] \<subseteq>
-        rsubterms (strong_deferred_final_raw r [])"
-      by (rule
-          strong_deferred_final_active_suffix_row_dag_universe_subset_final_rsubterms)
-    then have "p \<in> rsubterms (strong_deferred_final_raw r [])"
-      using p by blast
-    then show ?thesis
-      by (simp add: strong_deferred_final_raw_def)
-  qed
-  have p_in_initial:
-    "p \<in> rsubterm_closure
-      (strong_deferred_strong_rows_raw_bridge_rows r [])"
-    using root_sub
-    by (simp add: rsubterm_closure_def)
-  have p_in_prune:
-    "p \<in> raw_shared_prune_active_suffix_closure
-      (rsubterm_closure
-        (strong_deferred_strong_rows_raw_bridge_rows r []))"
-    using p_in_initial raw_shared_prune_active_suffix_closure_extensive
-    by blast
-  show "p \<in> strong_deferred_strong_rows_raw_bridge_owner r []"
-    using p_in_prune
-    unfolding strong_deferred_strong_rows_raw_bridge_owner_def
-    by (rule rsubterm_closure_extensive[THEN subsetD])
-qed
+  by (rule
+      strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI
+      [OF strong_deferred_final_active_suffix_rows_empty_bridge_rows_subterms])
 
 lemma card_strong_deferred_final_active_suffix_rows_boundI:
   assumes rows: "strong_deferred_final_active_suffix_rows r s \<subseteq> U"

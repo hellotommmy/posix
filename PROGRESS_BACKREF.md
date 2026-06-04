@@ -7,9 +7,13 @@ Last updated: 2026-06-04 (strong-memo route is default)
 - Final theorem status: **not complete**. This checkpoint only names and checks
   the next proof interface.
 - Checked Isabelle additions:
+  - `GeneralRegexBound.thy:rpders_strong_rows_raw_append`
+  - `GeneralRegexBound.thy:rpders_strong1_rows_raw_append`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_empty`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_cons`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_append`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subterms_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_pruned_rows_subset_owner`
@@ -19,6 +23,7 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_prunedI`
+  - `FBound.thy:strong_deferred_final_active_suffix_rows_empty_bridge_rows_subterms`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`
   - `FBound.thy:strong_deferred_memo_lexer_strong_rows_bridge_owner_linear_contract`
 - Meaning:
@@ -31,8 +36,14 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - The all-input bridge-inclusion proof is now reduced to a sharper row-level
     obligation: show final active rows are covered by the strong-row list's
     subterm closure, or by one active-suffix prune pass over that closure.
-  - The empty-input bridge inclusion is checked unconditionally. The all-input
-    bridge inclusion remains the main open proof obligation.
+  - The empty-input bridge inclusion is now checked through that same row-level
+    route: empty final active rows are covered by the initial strong-row
+    subterm closure. The all-input bridge inclusion remains the main open proof
+    obligation.
+  - The append facts expose the intended induction shape for the strong-row
+    side:
+    `rpders_strong_rows_raw rs (s @ t) =
+     rpders_strong_rows_raw (rpders_strong_rows_raw rs s) t`.
   - The final cubic route is reduced to two explicit remaining obligations:
     show
     `strong_deferred_final_active_suffix_row_dag_universe r s` is included in
