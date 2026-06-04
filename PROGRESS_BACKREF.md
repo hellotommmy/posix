@@ -9315,6 +9315,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final non-backref cubic theorem is
   still unproved; no BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Rows from Keys and Alt Nodes (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof addition in `FBound.thy`:
+  - `card_strong_deferred_final_active_suffix_rows_keys_alt_nodes_quadraticI`
+- Design result:
+  - Combining the fixed-key bucket injection with bucket-union accounting gives
+    a more concrete row-count target: if final suffix keys are linear and
+    final-active alt nodes are linear in the original regex size, then final
+    active rows are quadratic.
+  - This removes the need to prove a separate per-key bucket-width theorem in
+    the main BR-040 route. The next hard proof can focus on linear bounds for
+    final suffix keys, final-active `RALTS` nodes, and the closed owner
+    universe for payload roots/keys.
+- Build: full local CI PASS: Scala strong-memo smoke, `Posix`, and
+  `BackRefPilot`.
+- Bounty status: infrastructure only. The final non-backref cubic theorem is
+  still unproved; no BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

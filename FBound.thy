@@ -3764,6 +3764,30 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_strong_deferred_final_active_suffix_rows_keys_alt_nodes_quadraticI:
+  assumes keys_bound:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le>
+        K * rxsize r"
+    and alts_bound:
+      "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le>
+        A * rxsize r"
+  shows "card (strong_deferred_final_active_suffix_rows r s) \<le>
+    (K * A) * rxsize r * rxsize r"
+proof (rule card_strong_deferred_final_active_suffix_rows_bucket_quadraticI
+    [OF keys_bound])
+  fix k
+  assume "k \<in> strong_deferred_final_active_suffix_keys r s"
+  have "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+      card (strong_deferred_final_active_suffix_alt_nodes r s)"
+    by (rule card_strong_deferred_final_active_suffix_bucket_le_alt_nodes)
+  also have "... \<le> A * rxsize r"
+    by (rule alts_bound)
+  finally show "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+      A * rxsize r" .
+qed
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize:
   "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
     rsize (strong_deferred_final_raw r s)"

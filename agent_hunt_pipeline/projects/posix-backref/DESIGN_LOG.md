@@ -3724,3 +3724,10 @@ to be read before continuing long-running agent work.
   POSIX correctness, quadratic component-union/row-DAG bounds, and the cubic
   padding. The hard theorem is still open: prove those three premises for the
   non-backref fragment.
+- Keys/alt-nodes row bound (2026-06-04): added
+  `card_strong_deferred_final_active_suffix_rows_keys_alt_nodes_quadraticI`.
+  This composes the fixed-key bucket injection with bucket-union accounting:
+  linear final suffix keys plus linear final-active `RALTS` nodes imply a
+  quadratic bound on final active rows. This is now the cleaner proof target
+  than a bespoke per-bucket theorem: prove keys, alt nodes, and owner roots
+  linear from the original non-backref regex universe.

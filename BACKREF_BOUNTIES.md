@@ -105,6 +105,11 @@ immutability.
   imply exact memo-strong POSIX correctness plus quadratic row-DAG/component
   bounds, padded to cubic. The key/bucket/owner premises are still unproved
   for arbitrary non-backref inputs, so no BR-039/BR-040 bounty is paid.
+- Keys/alt-nodes row bound: `FBound.thy` now checks
+  `card_strong_deferred_final_active_suffix_rows_keys_alt_nodes_quadraticI`.
+  This replaces the per-key bucket-width premise with the more concrete target
+  of linear final-active `RALTS` nodes. It is still a proof-surface reduction,
+  not a completed all-input cubic theorem.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and
