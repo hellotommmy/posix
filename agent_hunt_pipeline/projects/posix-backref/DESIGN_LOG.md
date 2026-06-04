@@ -3943,3 +3943,12 @@ to be read before continuing long-running agent work.
   bounds the least-owner DAG by `card U` under those concrete premises. The
   remaining BR-040 work is now sharper: construct and prove a root-owned
   non-backref `U` with cubic cardinality and member-size control.
+- Candidate-U row-gate handoff (2026-06-04): added
+  `strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`, plus
+  bridge-row and least-owner member-size transfer from the same candidate `U`.
+  A finite `U` satisfying the derivative, `rflts`, active-suffix, and subterm
+  closure premises, with `card U <= C` and `rsize <= M`, now directly yields
+  exact row-gate POSIX correctness/flatness and row-size bounds under
+  `C * M <= B`. This is the last useful abstract handoff for the current
+  route; future work should construct the concrete root-owned cubic `U` rather
+  than add more wrapper-style contracts.

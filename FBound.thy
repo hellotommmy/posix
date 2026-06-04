@@ -3011,6 +3011,28 @@ proof -
         [OF rows active_suffix_closed subterm_closed finite card_bound])
 qed
 
+lemma strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_member_sizeI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and q: "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+  shows "rsize q \<le> M"
+proof -
+  have rows: "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_subsetI
+        [OF init flat_closed norm active_suffix_closed])
+  have "q \<in> U"
+    using rows q by blast
+  then show ?thesis
+    by (rule member_size)
+qed
+
 lemma strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex_subset:
   assumes rows:
     "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> sizeNregex N"
@@ -3143,6 +3165,27 @@ proof -
   show ?thesis
     by (rule raw_shared_prune_active_suffix_owner_dag_member_size_bound
         [OF seed_member p_owner])
+qed
+
+lemma strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_member_sizeI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and p: "p \<in> strong_deferred_strong_rows_raw_least_owner_dag r s"
+  shows "rsize p \<le> M"
+proof (rule strong_deferred_strong_rows_raw_least_owner_dag_member_sizeI
+    [OF _ p])
+  fix q
+  assume q: "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+  show "rsize q \<le> M"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_member_sizeI
+        [OF init flat_closed norm active_suffix_closed member_size q])
 qed
 
 lemma card_strong_deferred_strong_rows_raw_bridge_closure_boundI:
@@ -11405,6 +11448,94 @@ proof -
       \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
     by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(8)
         [OF legacy finite card_bound member_size cubic])
+qed
+
+lemma strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract:
+  assumes legacy: "legacy_rexp r"
+    and init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    and "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+proof -
+  have dag_card:
+      "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
+    by (rule
+        card_strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_universe_boundI
+        [OF init flat_closed norm active_suffix_closed subterm_closed finite
+          card_bound])
+  have rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+  proof -
+    fix q
+    assume q: "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+    show "rsize q \<le> M"
+      by (rule
+          strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_member_sizeI
+          [OF init flat_closed norm active_suffix_closed member_size q])
+  qed
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(1)
+        [OF legacy dag_card rows_member cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(2)
+        [OF legacy dag_card rows_member cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(3)
+        [OF legacy dag_card rows_member cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(4)
+        [OF legacy dag_card rows_member cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(5)
+        [OF legacy dag_card rows_member cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(6)
+        [OF legacy dag_card rows_member cubic])
+  show "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(7)
+        [OF legacy dag_card rows_member cubic])
+  show "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(8)
+        [OF legacy dag_card rows_member cubic])
 qed
 
 lemma length_bpders_strong_rows_finite_universe_boundI:

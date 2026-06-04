@@ -9933,6 +9933,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Candidate-U Row-Gate Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_member_sizeI`
+  - `FBound.thy:strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_member_sizeI`
+  - `FBound.thy:strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`
+- Design result:
+  - The candidate-universe route now carries both cardinality and member-size
+    into the row-gate least-owner contract. If `U` contains the initial
+    `rerase (intern r)`, is closed under `rflts`, local
+    `rpder_norm_list`/`rsimpStrong_raw`, active-suffix pruning, and subterms,
+    and has `card U \<le> C` plus `rsize q \<le> M` for all `q \<in> U`, then
+    Isabelle derives exact row-gate POSIX correctness/flatness and the
+    annotated/raw row-size bounds under `C * M \<le> B`.
+  - This is still a proof handoff, not the final theorem. The hard remaining
+    work is now isolated to constructing a root-owned non-backref `U` with
+    cubic cardinality and suitable member-size control.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
