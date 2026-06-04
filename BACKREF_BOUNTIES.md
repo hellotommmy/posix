@@ -92,6 +92,12 @@ immutability.
   POSIX correctness plus final row-DAG/component bounds. This is a sharper
   BR-040 handoff, but the key/bucket/owner bounds themselves remain open, so
   no BR-039/BR-040 bounty is paid.
+- Bucket width via alt nodes: `GeneralRegexBound.thy` and `FBound.thy` now
+  check `card_*_final_active_suffix_bucket_le_alt_nodes`. The proof injects a
+  fixed-suffix bucket into the corresponding final-active `RALTS rows` nodes,
+  sharpening the bucket-width obligation. It is still infrastructure: the
+  all-input cubic theorem must still bound those nodes from the original
+  non-backref regex universe before any BR-039/BR-040 payout.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

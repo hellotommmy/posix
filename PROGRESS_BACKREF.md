@@ -9265,6 +9265,27 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final theorem is still unproved; no
   BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Bucket Width via Alt Nodes (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `GeneralRegexBound.thy:card_raw_final_active_suffix_bucket_le_alt_nodes`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_bucket_le_alt_nodes`
+- Design result:
+  - For a fixed suffix key `k`, Isabelle now proves that the active bucket
+    `{RSEQ (RALTS rows) k}` injects into the final-active `RALTS rows` nodes
+    by forgetting the shared suffix. This rewrites one remaining BR-040
+    obligation from a vague bucket-width bound into a concrete alt-node/owner
+    accounting problem.
+  - This is intentionally not a payout theorem. It does not prove the final
+    cubic bound relative to the original regex size; it only makes the next
+    non-circular owner-universe obligation sharper.
+- Build: full local CI PASS: Scala strong-memo smoke, `Posix`, and
+  `BackRefPilot`.
+- Bounty status: infrastructure only. The final non-backref cubic theorem is
+  still unproved; no BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

@@ -22082,6 +22082,53 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_raw_final_active_suffix_bucket_le_alt_nodes:
+  "card (raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k) \<le>
+    card (raw_final_active_suffix_alt_nodes r)"
+proof -
+  let ?B =
+    "raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k"
+  let ?alt_of =
+    "\<lambda>q. case q of RSEQ (RALTS rows) k' \<Rightarrow> RALTS rows | _ \<Rightarrow> q"
+  have image_sub: "?alt_of ` ?B \<subseteq> raw_final_active_suffix_alt_nodes r"
+  proof
+    fix p
+    assume "p \<in> ?alt_of ` ?B"
+    then obtain q where q: "q \<in> ?B" and p_def: "p = ?alt_of q"
+      by blast
+    then obtain rows where q_def: "q = RSEQ (RALTS rows) k"
+      using raw_final_active_suffix_bucket_iff by blast
+    have row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+      using q q_def by (simp add: raw_shared_prune_active_suffix_bucket_def)
+    have "?alt_of q = RALTS rows"
+      by (simp add: q_def)
+    then show "p \<in> raw_final_active_suffix_alt_nodes r"
+      using p_def row
+      by (auto simp add: raw_final_active_suffix_alt_nodes_def)
+  qed
+  have inj: "inj_on ?alt_of ?B"
+  proof (rule inj_onI)
+    fix x y
+    assume x: "x \<in> ?B" and y: "y \<in> ?B"
+      and eq: "?alt_of x = ?alt_of y"
+    obtain xs where x_def: "x = RSEQ (RALTS xs) k"
+      using x raw_final_active_suffix_bucket_iff by blast
+    obtain ys where y_def: "y = RSEQ (RALTS ys) k"
+      using y raw_final_active_suffix_bucket_iff by blast
+    have "RALTS xs = RALTS ys"
+      using eq by (simp add: x_def y_def)
+    then show "x = y"
+      by (simp add: x_def y_def)
+  qed
+  have "card ?B = card (?alt_of ` ?B)"
+    by (simp add: card_image inj)
+  also have "... \<le> card (raw_final_active_suffix_alt_nodes r)"
+    by (rule card_mono) (simp_all add: image_sub)
+  finally show ?thesis .
+qed
+
 lemma card_raw_final_active_suffix_row_dag_universe_decomp_rows_boundI:
   assumes rows: "card (raw_final_active_suffix_rows r) \<le> R"
     and payload:

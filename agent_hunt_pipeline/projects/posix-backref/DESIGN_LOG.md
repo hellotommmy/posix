@@ -3702,3 +3702,12 @@ to be read before continuing long-running agent work.
   `rsubterms`-closed owner universe. Under those premises, exact POSIX value
   reconstruction and the final row-DAG/component-union linear bound follow
   immediately. This is still a conditional interface, not the final theorem.
+- Bucket width via alt nodes (2026-06-04): added
+  `card_raw_final_active_suffix_bucket_le_alt_nodes` and its lifted
+  `strong_deferred_final_active_suffix_bucket_le_alt_nodes`. For a fixed
+  suffix key, the map `RSEQ (RALTS rows) k -> RALTS rows` is injective on the
+  active suffix bucket, so bucket width is bounded by the final-active alt-node
+  count. This is a real structural reduction of the BR-040 bucket obligation,
+  but it still does not prove the final cubic theorem: the remaining target is
+  to bound those alt/owner nodes by the original non-backref regex universe,
+  not by the already-grown final raw regex.

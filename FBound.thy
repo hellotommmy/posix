@@ -2898,6 +2898,14 @@ lemma card_strong_deferred_final_active_suffix_alt_nodes_le_rows:
     strong_deferred_final_active_suffix_rows_def
   by (rule card_raw_final_active_suffix_alt_nodes_le_rows)
 
+lemma card_strong_deferred_final_active_suffix_bucket_le_alt_nodes:
+  "card (raw_shared_prune_active_suffix_bucket
+      (strong_deferred_final_active_suffix_rows r s) k) \<le>
+    card (strong_deferred_final_active_suffix_alt_nodes r s)"
+  unfolding strong_deferred_final_active_suffix_rows_def
+    strong_deferred_final_active_suffix_alt_nodes_def
+  by (rule card_raw_final_active_suffix_bucket_le_alt_nodes)
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI:
   assumes rows:
       "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
