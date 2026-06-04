@@ -9335,6 +9335,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final non-backref cubic theorem is
   still unproved; no BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Alt-Owner Cubic Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `FBound.thy`:
+  - `card_strong_deferred_final_active_suffix_component_union_alt_owner_boundI`
+  - `card_strong_deferred_final_active_suffix_component_union_alt_owner_quadraticI`
+  - `strong_deferred_memo_lexer_final_active_alt_owner_quadratic_contract`
+- Design result:
+  - The previous owner-universe contracts covered final-active payload roots and
+    suffix keys, while final-active `RALTS` nodes were paid for indirectly via
+    row accounting. The new contract makes the intended hash-cons table sharper:
+    one finite `rsubterms`-closed owner universe `U` must cover payload roots,
+    suffix keys, and final-active alt nodes.
+  - Under that premise, plus the already checked key/alt-node row bound,
+    Isabelle derives exact `strong_deferred_memo_lexer` POSIX correctness,
+    exact failure equivalence, `lexer` equality, `flat`, legacy preservation,
+    final keys and alt nodes linear in `card U`, final active rows quadratic,
+    and final component-union/row-DAG bounds
+    `(C * C + C) * rxsize r * rxsize r`, padded to cubic.
+  - This is deliberately a handoff, not the final theorem. The first-priority
+    remaining task is to construct and prove such a linear owner universe for
+    every non-backref input. Until that premise is discharged, the final cubic
+    bound for the simplifier is not proved.
+- Build: full local CI PASS before this note: Scala strong-memo smoke, `Posix`,
+  and `BackRefPilot`. Re-run CI after documentation before committing.
+- Bounty status: infrastructure only. The final non-backref cubic theorem is
+  still unproved; no BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

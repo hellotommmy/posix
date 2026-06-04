@@ -3297,6 +3297,86 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_strong_deferred_final_active_suffix_component_union_alt_owner_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and owner:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<union>
+       strong_deferred_final_active_suffix_alt_nodes r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (strong_deferred_final_active_suffix_component_union r s)
+    \<le> R + D"
+proof -
+  let ?Rows = "strong_deferred_final_active_suffix_rows r s"
+  let ?Alts = "strong_deferred_final_active_suffix_alt_nodes r s"
+  let ?Payload = "strong_deferred_final_active_suffix_payload_dag_universe r s"
+  let ?Keys = "strong_deferred_final_active_suffix_key_dag_universe r s"
+  have roots:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<subseteq> U"
+    using owner by blast
+  have alts: "?Alts \<subseteq> U"
+    using owner by blast
+  have payload_keys: "?Payload \<union> ?Keys \<subseteq> U"
+    by (rule
+        strong_deferred_final_active_suffix_payload_key_dag_universe_subset_closed_root_universe
+        [OF roots subterm_closed])
+  have component_subset:
+    "strong_deferred_final_active_suffix_component_union r s \<subseteq>
+      ?Rows \<union> U"
+    using alts payload_keys
+    by (auto simp add: strong_deferred_final_active_suffix_component_union_def)
+  have "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      card (?Rows \<union> U)"
+    by (rule card_mono) (simp_all add: component_subset finite)
+  also have "... \<le> card ?Rows + card U"
+    by (rule card_Un_le)
+  also have "... \<le> R + D"
+    using rows card_bound by linarith
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_component_union_alt_owner_quadraticI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le>
+        R * rxsize r * rxsize r"
+    and owner:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<union>
+       strong_deferred_final_active_suffix_alt_nodes r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C * rxsize r"
+  shows "card (strong_deferred_final_active_suffix_component_union r s)
+    \<le> (R + C) * rxsize r * rxsize r"
+proof -
+  have n_pos: "1 \<le> rxsize r"
+    by (cases r) simp_all
+  have n_le_square: "rxsize r \<le> rxsize r * rxsize r"
+  proof -
+    have "rxsize r * 1 \<le> rxsize r * rxsize r"
+      by (rule mult_left_mono[OF n_pos]) simp
+    then show ?thesis by simp
+  qed
+  have "card (strong_deferred_final_active_suffix_component_union r s)
+      \<le> R * rxsize r * rxsize r + C * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_component_union_alt_owner_boundI
+        [OF rows owner subterm_closed finite card_bound])
+  also have "... \<le> R * rxsize r * rxsize r + C * (rxsize r * rxsize r)"
+  proof -
+    have "C * rxsize r \<le> C * (rxsize r * rxsize r)"
+      by (rule mult_left_mono[OF n_le_square]) simp
+    then show ?thesis by simp
+  qed
+  also have "... = (R + C) * rxsize r * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma card_strong_deferred_final_active_suffix_key_dag_universe_boundI:
   assumes keys:
       "card (strong_deferred_final_active_suffix_keys r s) \<le> K"
@@ -7374,6 +7454,146 @@ proof -
     by (rule legacy_strong_deferred_final_raw[OF legacy])
   show "card (strong_deferred_final_active_suffix_rows r s) \<le>
       (K * B) * rxsize r * rxsize r"
+    by (rule rows)
+  show "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      ?D * rxsize r * rxsize r"
+    by (rule component)
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      ?D * rxsize r * rxsize r"
+    by (rule row_dag)
+  show "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      ?D * rxsize r * rxsize r * rxsize r"
+  proof -
+    have "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+        ?D * rxsize r * rxsize r"
+      by (rule component)
+    also have "... \<le> ?D * rxsize r * rxsize r * rxsize r"
+      by (rule square_to_cube)
+    finally show ?thesis .
+  qed
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      ?D * rxsize r * rxsize r * rxsize r"
+  proof -
+    have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        ?D * rxsize r * rxsize r"
+      by (rule row_dag)
+    also have "... \<le> ?D * rxsize r * rxsize r * rxsize r"
+      by (rule square_to_cube)
+    finally show ?thesis .
+  qed
+qed
+
+lemma strong_deferred_memo_lexer_final_active_alt_owner_quadratic_contract:
+  assumes legacy: "legacy_rexp r"
+    and owner:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<union>
+       strong_deferred_final_active_suffix_alt_nodes r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C * rxsize r"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "card (strong_deferred_final_active_suffix_keys r s) \<le>
+      C * rxsize r"
+    and "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le>
+      C * rxsize r"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (C * C) * rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      (C * C + C) * rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (C * C + C) * rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      (C * C + C) * rxsize r * rxsize r * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (C * C + C) * rxsize r * rxsize r * rxsize r"
+proof -
+  let ?Keys = "strong_deferred_final_active_suffix_keys r s"
+  let ?Alts = "strong_deferred_final_active_suffix_alt_nodes r s"
+  let ?Roots = "strong_deferred_final_active_suffix_payload_roots r s"
+  let ?D = "C * C + C"
+  have keys_subset: "?Keys \<subseteq> U"
+    using owner by blast
+  have alts_subset: "?Alts \<subseteq> U"
+    using owner by blast
+  have roots_keys_subset: "?Roots \<union> ?Keys \<subseteq> U"
+    using owner by blast
+  have keys_card: "card ?Keys \<le> C * rxsize r"
+  proof -
+    have "card ?Keys \<le> card U"
+      by (rule card_mono[OF finite keys_subset])
+    also have "... \<le> C * rxsize r"
+      by (rule card_bound)
+    finally show ?thesis .
+  qed
+  have alts_card: "card ?Alts \<le> C * rxsize r"
+  proof -
+    have "card ?Alts \<le> card U"
+      by (rule card_mono[OF finite alts_subset])
+    also have "... \<le> C * rxsize r"
+      by (rule card_bound)
+    finally show ?thesis .
+  qed
+  have rows:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (C * C) * rxsize r * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_rows_keys_alt_nodes_quadraticI
+        [OF keys_card alts_card])
+  have component:
+    "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      ?D * rxsize r * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_component_union_alt_owner_quadraticI
+        [OF rows owner subterm_closed finite card_bound])
+  have row_dag:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      ?D * rxsize r * rxsize r"
+  proof -
+    have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        card (strong_deferred_final_active_suffix_component_union r s)"
+      by (rule
+          card_strong_deferred_final_active_suffix_row_dag_universe_le_component_union)
+    also have "... \<le> ?D * rxsize r * rxsize r"
+      by (rule component)
+    finally show ?thesis .
+  qed
+  have n_pos: "1 \<le> rxsize r"
+    by (cases r) simp_all
+  have square_to_cube:
+    "\<And>D. D * rxsize r * rxsize r \<le>
+      D * rxsize r * rxsize r * rxsize r"
+  proof -
+    fix D
+    have "(D * rxsize r * rxsize r) * 1 \<le>
+        (D * rxsize r * rxsize r) * rxsize r"
+      by (rule mult_left_mono[OF n_pos]) simp
+    then show "D * rxsize r * rxsize r \<le>
+        D * rxsize r * rxsize r * rxsize r"
+      by simp
+  qed
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_lexer_POSIX_correctness(1))
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_lexer_POSIX_correctness(2))
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule strong_deferred_memo_lexer_eq_lexer)
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_lexer_flat)
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule legacy_strong_deferred_final_raw[OF legacy])
+  show "card ?Keys \<le> C * rxsize r"
+    by (rule keys_card)
+  show "card ?Alts \<le> C * rxsize r"
+    by (rule alts_card)
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (C * C) * rxsize r * rxsize r"
     by (rule rows)
   show "card (strong_deferred_final_active_suffix_component_union r s) \<le>
       ?D * rxsize r * rxsize r"

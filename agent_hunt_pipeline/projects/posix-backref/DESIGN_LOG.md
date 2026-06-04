@@ -3731,3 +3731,18 @@ to be read before continuing long-running agent work.
   quadratic bound on final active rows. This is now the cleaner proof target
   than a bespoke per-bucket theorem: prove keys, alt nodes, and owner roots
   linear from the original non-backref regex universe.
+- Alt-owner cubic handoff (2026-06-04): added
+  `card_strong_deferred_final_active_suffix_component_union_alt_owner_boundI`,
+  `card_strong_deferred_final_active_suffix_component_union_alt_owner_quadraticI`,
+  and
+  `strong_deferred_memo_lexer_final_active_alt_owner_quadratic_contract`.
+  This is the sharpest current memo-strong proof interface: if a finite
+  `rsubterms`-closed owner universe `U` contains final-active payload roots,
+  suffix keys, and final-active `RALTS` nodes with `card U <= C * rxsize r`,
+  then Isabelle derives exact POSIX reconstruction for
+  `strong_deferred_memo_lexer`, final rows bounded by
+  `(C * C) * rxsize r * rxsize r`, and final component-union/row-DAG bounded by
+  `(C * C + C) * rxsize r * rxsize r`, hence cubic. This is not the completed
+  cubic theorem. The first-priority proof obligation is now to construct that
+  concrete linear owner universe for arbitrary non-backref inputs; do not claim
+  BR-039/BR-040 for additional conditional restatements.

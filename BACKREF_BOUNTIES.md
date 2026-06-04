@@ -110,6 +110,15 @@ immutability.
   This replaces the per-key bucket-width premise with the more concrete target
   of linear final-active `RALTS` nodes. It is still a proof-surface reduction,
   not a completed all-input cubic theorem.
+- Alt-owner cubic handoff: `FBound.thy` now checks
+  `strong_deferred_memo_lexer_final_active_alt_owner_quadratic_contract`.
+  If one finite `rsubterms`-closed owner universe `U` linearly covers
+  final-active payload roots, suffix keys, and final-active `RALTS` nodes, then
+  exact `strong_deferred_memo_lexer` POSIX correctness and quadratic final
+  component-union/row-DAG bounds follow, with cubic padding. This sharpens the
+  BR-040 target to proving that concrete linear owner universe for arbitrary
+  non-backref inputs. It is not the final cubic theorem, and no BR-039/BR-040
+  bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and
