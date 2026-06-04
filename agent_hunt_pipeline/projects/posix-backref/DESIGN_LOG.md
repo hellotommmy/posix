@@ -3592,3 +3592,13 @@ to be read before continuing long-running agent work.
   remains diagnostic only. The final proof should target the final strong tree
   or a quotiented/indexed final-active representation, not the cumulative
   prefix pool.
+- Memo-strong decomp gate update (2026-06-04): after reviewing the latest
+  plots, emitted-tree `bsimpCubic` is not a proof route. The smoke and CI path
+  now gate the proof-facing final-active decomposition metric directly:
+  `rows + altNodes + payloadDag + keyDag`. This matches the checked Isabelle
+  bridge `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
+  Future BR-040 work should either prove linear bounds for these components or
+  replace the owner-table representation with an equivalently checked POSIX
+  reconstruction theorem. Do not spend effort reducing `bsimpCubic` tree size
+  unless a new candidate first beats memo-strong traces and passes exact POSIX
+  value smoke.

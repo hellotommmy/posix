@@ -7,6 +7,7 @@ param(
   [double]$RowsFactor = 1.0,
   [double]$PairFactor = 1.0,
   [double]$RowDagUniverseFactor = 3.0,
+  [double]$DecompBoundFactor = 3.0,
   [int]$MinRegexSize = 5,
   [int]$Top = 5,
   [string]$OutDir = "agent_hunt_pipeline/reports/strong_memo_final_active_factor_sweep",
@@ -101,6 +102,7 @@ foreach ($Factor in $FactorList) {
       -PairFactor $PairFactor `
       -MemberFactor $Factor `
       -RowDagUniverseFactor $RowDagUniverseFactor `
+      -DecompBoundFactor $DecompBoundFactor `
       -MinRegexSize $MinRegexSize `
       -Top $Top `
       -OutDir $FactorOutRel `
@@ -175,6 +177,7 @@ $Lines.Add("- Random depth/input length: $RandomDepth / $RandomInputLength")
 $Lines.Add("- Rows budget: $RowsFactor * rsize(r)")
 $Lines.Add("- Pair budget: $PairFactor * rsize(r)^2")
 $Lines.Add("- Row-DAG universe budget: $RowDagUniverseFactor * rsize(r)")
+$Lines.Add("- Decomposition-bound budget: $DecompBoundFactor * rsize(r)")
 $Lines.Add("- Minimum regex size: $MinRegexSize")
 $Lines.Add("")
 $Lines.Add("| Member factor | Result | Worst member ratio | Failure | Failure label | Report | Run log |")

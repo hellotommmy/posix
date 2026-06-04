@@ -81,6 +81,13 @@ immutability.
   with factor `2 * R + P + Q`. This matches the Scala
   `strongMemoFinalActiveDecompBound` metric and is BR-040 proof
   infrastructure only; no bounty is paid.
+- Decomposition smoke gate: CI and the strong-memo scout now expose
+  `StrongFinalActiveDecompBoundFactor` /
+  `POSIX_SMOKE_STRONG_FINAL_ACTIVE_DECOMP_BOUND_FACTOR` and track
+  `decompBoundRatio` as its own frontier. This prevents future proof attempts
+  from relying on a small-looking emitted tree or row-DAG plot while omitting
+  the exact row/payload/key decomposition needed by the checked BR-040 bridge.
+  It is smoke/proof infrastructure only; no bounty is paid.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040

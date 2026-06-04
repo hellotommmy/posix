@@ -174,14 +174,19 @@ member-size gates plus a quadratic pair-budget gate for the final derivative
 state. A failing run prints a greedy-shrunk counterexample. A passing run is
 smoke evidence only; it does not authorize a bounty claim without the
 corresponding checked Isabelle theorem. The default scout now matches the
-proof-facing exact-DAG target: `RowsFactor=1.0`, `PairFactor=1.0`,
-`MemberFactor=0.0`, `MemberDagFactor=2.0`, and
-`MemberShapeDagFactor=2.0`. Raw member-tree factors `1.0`, `2.0`, and `4.0`
+proof-facing exact-DAG/decomposition target: `RowsFactor=1.0`,
+`PairFactor=1.0`, `MemberFactor=0.0`, `MemberDagFactor=2.0`,
+`MemberShapeDagFactor=2.0`, `RowDagUniverseFactor=3.0`, and
+`DecompBoundFactor=3.0`. Raw member-tree factors `1.0`, `2.0`, and `4.0`
 are known too strong and should be treated as negative evidence for the wrong
 metric, not as counterexamples to the memo/hash-consed route. The current
 default three-seed scout passes on seeds `20260602,20260603,20260604`, `5000`
 random cases each at depth `6`, input length `8`; worst exact-DAG/shape-DAG
 ratio is `1.266667`.
+Do not use a scout run that omits `strongMemoFinalActiveDecompBound` as
+evidence for BR-040: the Isabelle bridge
+`card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`
+needs the row/payload/key decomposition, not just a visually small tree.
 If you want to probe the whole final memo-strong exact-DAG metric, use
 `scala_cubic_smoke.ps1 -FindStrongMemoDagBudgetCE -StrongMemoDagFactor K`.
 This is a diagnostic only. Recent smoke shows `K=2` is already false, shrinking

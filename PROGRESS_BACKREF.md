@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Memo-Strong Decomp Smoke Gate (2026-06-04)
+
+- Accepted the route decision from the latest plots: direct emitted-tree
+  `bsimpCubic` is not the active cubic-bound path.
+- Strengthened the smoke pipeline so the default `strong-memo` route now
+  reports and gates the proof-facing final-active decomposition metric
+  directly: `strongMemoFinalActiveDecompBound =
+  finalRows + finalAltNodes + finalPayloadDag + finalKeyDag`.
+- Added `StrongFinalActiveDecompBoundFactor` /
+  `POSIX_SMOKE_STRONG_FINAL_ACTIVE_DECOMP_BOUND_FACTOR` to
+  `scala_cubic_smoke.ps1`, `isabelle_ci.ps1`,
+  `strong_memo_value_gate.ps1`, `strong_memo_final_active_scout.ps1`, and the
+  factor-sweep wrapper.
+- Promoted `decompBoundRatio` to a first-class Scala frontier, so scout
+  reports now show the worst final-active decomp-bound witnesses alongside
+  row, member-DAG, row-DAG-universe, and pair-budget witnesses.
+- Verification:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`
+  passed, including exact `strong-memo` Scala smoke, `Posix`, and
+  `BackRefPilot`.
+- Infrastructure only; no BR-039/BR-040 bounty is claimed. The next proof work
+  should target the component linear bounds behind the memo-strong
+  final-active decomp metric, not emitted `bsimpCubic` trees.
+
 ## Cubic Route Checkpoint: Decomposition Linear Hook Checked (2026-06-04)
 
 - Added the checked Isabelle lemma

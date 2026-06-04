@@ -9,6 +9,7 @@ param(
   [double]$MemberDagFactor = 2.0,
   [double]$MemberShapeDagFactor = 2.0,
   [double]$RowDagUniverseFactor = 3.0,
+  [double]$DecompBoundFactor = 3.0,
   [int]$MinRegexSize = 5,
   [int]$Top = 5,
   [string]$OutDir = "agent_hunt_pipeline/reports/strong_memo_final_active_scout",
@@ -37,7 +38,7 @@ if ($SeedList.Count -eq 0) {
 
 if ($RowsFactor -le 0.0 -and $PairFactor -le 0.0 -and $MemberFactor -le 0.0 -and
     $MemberDagFactor -le 0.0 -and $MemberShapeDagFactor -le 0.0 -and
-    $RowDagUniverseFactor -le 0.0) {
+    $RowDagUniverseFactor -le 0.0 -and $DecompBoundFactor -le 0.0) {
   throw "At least one final-active budget factor must be positive."
 }
 
@@ -61,6 +62,7 @@ foreach ($SeedText in $SeedList) {
     "-StrongFinalActiveMemberDagFactor", $MemberDagFactor,
     "-StrongFinalActiveMemberShapeDagFactor", $MemberShapeDagFactor,
     "-StrongFinalActiveRowDagUniverseFactor", $RowDagUniverseFactor,
+    "-StrongFinalActiveDecompBoundFactor", $DecompBoundFactor,
     "-StrongFinalActiveMinRegexSize", $MinRegexSize,
     "-StrongFinalActiveTop", $Top,
     "-RandomCases", $RandomCases,
@@ -98,7 +100,8 @@ foreach ($SeedText in $SeedList) {
   $MemberMatches = [regex]::Matches($Text, "memberRatio=([0-9.]+) maxRowSize=([0-9]+).*? label=([^;`r`n]+)")
   $DagMatches = [regex]::Matches($Text, "dagRatio=([0-9.]+).*? label=([^;`r`n]+)")
   $ShapeDagMatches = [regex]::Matches($Text, "shapeRatio=([0-9.]+).*? label=([^;`r`n]+)")
-  $RowDagUniverseMatches = [regex]::Matches($Text, "rowDagUniverseRatio=([0-9.]+) rowDagUniverse=([0-9]+) label=([^;`r`n]+)")
+  $RowDagUniverseMatches = [regex]::Matches($Text, "rowDagUniverseRatio=([0-9.]+) rowDagUniverse=([0-9]+).*? label=([^;`r`n]+)")
+  $DecompBoundMatches = [regex]::Matches($Text, "decompBoundRatio=([0-9.]+) decompBound=([0-9]+).*? label=([^;`r`n]+)")
   $WorstRowsRatio = ""
   $WorstRowsLabel = ""
   if ($RowsMatches.Count -gt 0) {
@@ -153,6 +156,15 @@ foreach ($SeedText in $SeedList) {
     $WorstRowDagUniverseRatio = $BestRowDagUniverse.Groups[1].Value
     $WorstRowDagUniverseLabel = $BestRowDagUniverse.Groups[3].Value
   }
+  $WorstDecompBoundRatio = ""
+  $WorstDecompBoundLabel = ""
+  if ($DecompBoundMatches.Count -gt 0) {
+    $BestDecompBound = $DecompBoundMatches |
+      Sort-Object { [double]$_.Groups[1].Value } -Descending |
+      Select-Object -First 1
+    $WorstDecompBoundRatio = $BestDecompBound.Groups[1].Value
+    $WorstDecompBoundLabel = $BestDecompBound.Groups[3].Value
+  }
 
   $Rows.Add([pscustomobject]@{
     Seed = $Seed
@@ -167,6 +179,8 @@ foreach ($SeedText in $SeedList) {
     WorstShapeDagLabel = $WorstShapeDagLabel
     WorstRowDagUniverseRatio = $WorstRowDagUniverseRatio
     WorstRowDagUniverseLabel = $WorstRowDagUniverseLabel
+    WorstDecompBoundRatio = $WorstDecompBoundRatio
+    WorstDecompBoundLabel = $WorstDecompBoundLabel
     WorstPairRatio = $WorstPairRatio
     WorstPairLabel = $WorstPairLabel
     Log = "seed_$Seed.log"
@@ -187,11 +201,12 @@ $Lines.Add("- Member-size budget: $MemberFactor * rsize(r)")
 $Lines.Add("- Member DAG budget: $MemberDagFactor * rsize(r)")
 $Lines.Add("- Member shape-DAG budget: $MemberShapeDagFactor * rsize(r)")
 $Lines.Add("- Row-DAG universe budget: $RowDagUniverseFactor * rsize(r)")
+$Lines.Add("- Decomposition-bound budget: $DecompBoundFactor * rsize(r)")
 $Lines.Add("- Pair budget: $PairFactor * rsize(r)^2")
 $Lines.Add("- Minimum regex size: $MinRegexSize")
 $Lines.Add("")
-$Lines.Add("| Seed | Budget CE? | Worst rows ratio | Rows witness | Worst raw member ratio | Raw witness | Worst DAG ratio | DAG witness | Worst shape-DAG ratio | Shape-DAG witness | Worst row-DAG universe ratio | Row-DAG witness | Worst pair ratio | Pair witness | Log |")
-$Lines.Add("| ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | --- |")
+$Lines.Add("| Seed | Budget CE? | Worst rows ratio | Rows witness | Worst raw member ratio | Raw witness | Worst DAG ratio | DAG witness | Worst shape-DAG ratio | Shape-DAG witness | Worst row-DAG universe ratio | Row-DAG witness | Worst decomp ratio | Decomp witness | Worst pair ratio | Pair witness | Log |")
+$Lines.Add("| ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | ---: | --- | --- |")
 foreach ($Row in $Rows) {
   $CeText = if ($Row.NoBudgetCE) { "no" } else { "yes or unknown" }
   $RowsWitness = if ($Row.WorstRowsLabel.Length -gt 0) {
@@ -224,12 +239,17 @@ foreach ($Row in $Rows) {
   } else {
     "-"
   }
-  $Lines.Add("| $($Row.Seed) | $CeText | $($Row.WorstRowsRatio) | $RowsWitness | $($Row.WorstMemberRatio) | $MemberWitness | $($Row.WorstDagRatio) | $DagWitness | $($Row.WorstShapeDagRatio) | $ShapeDagWitness | $($Row.WorstRowDagUniverseRatio) | $RowDagUniverseWitness | $($Row.WorstPairRatio) | $PairWitness | $($Row.Log) |")
+  $DecompBoundWitness = if ($Row.WorstDecompBoundLabel.Length -gt 0) {
+    $Row.WorstDecompBoundLabel.Replace("|", "\|")
+  } else {
+    "-"
+  }
+  $Lines.Add("| $($Row.Seed) | $CeText | $($Row.WorstRowsRatio) | $RowsWitness | $($Row.WorstMemberRatio) | $MemberWitness | $($Row.WorstDagRatio) | $DagWitness | $($Row.WorstShapeDagRatio) | $ShapeDagWitness | $($Row.WorstRowDagUniverseRatio) | $RowDagUniverseWitness | $($Row.WorstDecompBoundRatio) | $DecompBoundWitness | $($Row.WorstPairRatio) | $PairWitness | $($Row.Log) |")
 }
 $Lines.Add("")
 $Lines.Add("A no entry means the smoke run found no final-active witness above")
 $Lines.Add("the configured linear rows, exact-DAG member, shape-DAG member, raw member,")
-$Lines.Add("row-DAG universe, or quadratic pair budget. This is smoke")
+$Lines.Add("row-DAG universe, decomposition-bound, or quadratic pair budget. This is smoke")
 $Lines.Add("evidence for the strong-memo proof route, not an Isabelle proof.")
 
 $Lines | Set-Content -LiteralPath $SummaryPath -Encoding utf8
