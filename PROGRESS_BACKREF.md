@@ -9671,6 +9671,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Strong ALTs Closed-Owner Rule (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `GeneralRegexBound.thy`:
+  - `raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_closed_subsetI`
+  - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI`
+  - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_prune_closed_subsetI`
+  - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_active_suffix_closed_subsetI`
+- Design result:
+  - The final `rsimpStrong_ALTs_raw` layer can now be absorbed by any owner
+    universe that is subterm-closed and closed under the shared-prune operation
+    used by `rsimpStrong_prune_rows_raw`.
+  - Equivalently, if an owner is a fixed point of
+    `raw_shared_prune_active_suffix_closure`, Isabelle can derive active
+    row-DAG coverage for the whole prune+ALTs layer directly.
+  - This is a local coverage rule for the final theorem, not a final theorem:
+    the hard remaining task is still to construct a linear-size
+    continuation-owner universe for arbitrary non-backref inputs.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

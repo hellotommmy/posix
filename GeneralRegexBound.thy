@@ -21564,6 +21564,35 @@ lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_subset:
   by (simp add: rsimpStrong_ALTs_raw_def
       raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_subset)
 
+lemma raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_closed_subsetI:
+  assumes flat: "set (rflts rs) \<subseteq> U"
+    and closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "raw_final_active_suffix_row_dag_universe
+      (rsimp_ALTs (rdistinct (rflts rs) {})) \<subseteq> U"
+proof -
+  let ?xs = "rdistinct (rflts rs) {}"
+  have base:
+    "raw_final_active_suffix_row_dag_universe (rsimp_ALTs ?xs) \<subseteq>
+      rsubterm_closure (set ?xs)"
+    by (rule raw_final_active_suffix_row_dag_universe_rsimp_ALTs_subset)
+  have elems: "set ?xs \<subseteq> U"
+    by (rule set_rdistinct_subset[OF flat])
+  have closure_sub: "rsubterm_closure (set ?xs) \<subseteq> U"
+    by (rule rsubterm_closure_subsetI[OF elems]) (rule closed)
+  show ?thesis
+    using base closure_sub by blast
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI:
+  assumes pruned: "set (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq> U"
+    and closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs)
+    \<subseteq> U"
+  unfolding rsimpStrong_ALTs_raw_def
+  by (rule
+      raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_closed_subsetI
+      [OF pruned closed])
+
 lemma card_raw_final_active_suffix_row_dag_universe_le_rsize:
   "card (raw_final_active_suffix_row_dag_universe r) \<le> rsize r"
 proof -
@@ -24066,6 +24095,35 @@ lemma rsimpStrong_prune_rows_raw_closed_subsetI:
   unfolding rsimpStrong_prune_rows_raw_def
   by (rule rsimpStrong_prune_rows_acc_raw_closed_subsetI)
     (use rows closed in simp_all)
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_prune_closed_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and prune_closed: "raw_shared_prune_closed U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs)
+    \<subseteq> U"
+proof (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI)
+  show "set (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq> U"
+    by (rule rsimpStrong_prune_rows_raw_closed_subsetI[OF rows prune_closed])
+  show "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    by (rule subterm_closed)
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_active_suffix_closed_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs)
+    \<subseteq> U"
+proof (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_prune_closed_subsetI)
+  show "\<And>r. r \<in> set rs \<Longrightarrow> set (rflts [r]) \<subseteq> U"
+    by (rule rows)
+  show "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_active_suffix_closure_subset
+        [OF active_suffix_closed])
+  show "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    by (rule subterm_closed)
+qed
 
 lemma rpder_strong_rows_raw_norm_closed_subsetI:
   assumes norm: "\<And>q p. q \<in> set rs \<Longrightarrow>
