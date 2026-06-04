@@ -3,6 +3,27 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Strong row bridge owner is now the proof interface
+
+- The final cubic-bound theorem is still not complete. The first-priority
+  target remains the all-input original-regex owner bound, not more plotting or
+  smoke tests.
+- Added checked Isabelle definitions/facts in `FBound.thy`:
+  `strong_deferred_strong_rows_raw_bridge_rows`,
+  `strong_deferred_strong_rows_raw_bridge_owner`,
+  `strong_deferred_strong_rows_raw_bridge_rows_subset_owner`,
+  `strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`, and
+  `card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`.
+- This turns the DAG bridge smoke evidence into a concrete proof interface:
+  prove inclusion of
+  `strong_deferred_final_active_suffix_row_dag_universe r s` into the bridge
+  owner, then prove the bridge owner has a linear original-regex-size bound.
+  That is the route to discharge
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+- `isabelle build -v -d . Posix` checks this interface under Isabelle2025-2.
+  Do not claim bounty until both remaining obligations are proved and the final
+  cubic contract is checked.
+
 ## 2026-06-04: DAG bridge rescues the Chapter 7 long-tail probe
 
 - The final cubic-bound theorem is still not complete. The first-priority

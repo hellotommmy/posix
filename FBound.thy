@@ -2701,6 +2701,19 @@ definition strong_deferred_final_active_suffix_max_row_dag ::
   "strong_deferred_final_active_suffix_max_row_dag r s =
     raw_final_active_suffix_max_row_dag (strong_deferred_final_raw r s)"
 
+definition strong_deferred_strong_rows_raw_bridge_rows ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_strong_rows_raw_bridge_rows r s =
+    set (rpders_strong1_rows_raw (rerase (intern r)) s)"
+
+definition strong_deferred_strong_rows_raw_bridge_owner ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_strong_rows_raw_bridge_owner r s =
+    rsubterm_closure
+      (raw_shared_prune_active_suffix_closure
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s)))"
+
 lemma finite_strong_deferred_final_active_suffix_rows [simp]:
   "finite (strong_deferred_final_active_suffix_rows r s)"
   by (simp add: strong_deferred_final_active_suffix_rows_def)
@@ -2724,6 +2737,42 @@ lemma finite_strong_deferred_final_active_suffix_alt_nodes [simp]:
 lemma finite_strong_deferred_final_active_suffix_payload_roots [simp]:
   "finite (strong_deferred_final_active_suffix_payload_roots r s)"
   by (simp add: strong_deferred_final_active_suffix_payload_roots_def)
+
+lemma finite_strong_deferred_strong_rows_raw_bridge_rows [simp]:
+  "finite (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def)
+
+lemma finite_strong_deferred_strong_rows_raw_bridge_owner [simp]:
+  "finite (strong_deferred_strong_rows_raw_bridge_owner r s)"
+  by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
+
+lemma strong_deferred_strong_rows_raw_bridge_rows_subset_owner:
+  "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq>
+    strong_deferred_strong_rows_raw_bridge_owner r s"
+proof -
+  have "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq>
+      rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)"
+    by (rule rsubterm_closure_extensive)
+  also have "... \<subseteq>
+      raw_shared_prune_active_suffix_closure
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s))"
+    by (rule raw_shared_prune_active_suffix_closure_extensive)
+  also have "... \<subseteq>
+      strong_deferred_strong_rows_raw_bridge_owner r s"
+    unfolding strong_deferred_strong_rows_raw_bridge_owner_def
+    by (rule rsubterm_closure_extensive)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_strong_rows_raw_bridge_owner_subterm_closed:
+  assumes "q \<in> strong_deferred_strong_rows_raw_bridge_owner r s"
+  shows "rsubterms q \<subseteq>
+    strong_deferred_strong_rows_raw_bridge_owner r s"
+  using assms
+  by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def
+      rsubterm_closure_closed)
 
 lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_payload_dag_universe r s)"
@@ -3725,6 +3774,22 @@ proof -
     by (rule card_mono[OF finite sub])
   also have "... \<le> D"
     by (rule card_bound)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI:
+  assumes bridge_subset:
+      "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+        strong_deferred_strong_rows_raw_bridge_owner r s"
+    and owner_card:
+      "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le> D"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le> D"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      card (strong_deferred_strong_rows_raw_bridge_owner r s)"
+    by (rule card_mono) (simp_all add: bridge_subset)
+  also have "... \<le> D"
+    by (rule owner_card)
   finally show ?thesis .
 qed
 

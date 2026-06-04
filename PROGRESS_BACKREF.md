@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Proof Interface: Strong Row Bridge Owner (2026-06-04)
+
+- Final theorem status: **not complete**. This checkpoint only names and checks
+  the next proof interface.
+- Checked Isabelle additions:
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`
+- Meaning:
+  - The Scala DAG bridge evidence now has a matching proof-facing owner set:
+    rows produced by `rpders_strong1_rows_raw`, closed under raw prune-active
+    suffixes and subterms.
+  - The final cubic route is reduced to two explicit remaining obligations:
+    show
+    `strong_deferred_final_active_suffix_row_dag_universe r s` is included in
+    this bridge owner, then prove a linear original-regex-size bound on the
+    bridge owner.
+- Verification:
+  - `isabelle build -v -d . Posix` PASS under Isabelle2025-2.
+- Bounty status: interface only; no final cubic theorem or bounty is claimed.
+
 ## Cubic Route Probe: DAG Strong Row-List Bridge Long Tail (2026-06-04)
 
 - Final theorem status: **not complete**. This checkpoint removes a tooling
