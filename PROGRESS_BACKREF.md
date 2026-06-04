@@ -9059,6 +9059,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Guard results: all four guards pass.
 - Build: no theory file changes; Isabelle build not required.
 
+## Cubic Bound Research Checkpoint: Memo-Strong Closed Root Decomp Bridge (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Route decision:
+  - The plotted derivative-size evidence makes emitted-tree `bsimpCubic`
+    historical/negative evidence. The active route is memo strong tree:
+    `bders_simpStrong` is the small nullable recognition tree, and exact POSIX
+    values are reconstructed through the checked `strong_deferred_span_value`
+    / `strong_deferred_memo_lexer` layer.
+- Checked proof additions in `FBound.thy`:
+  - `strong_deferred_final_active_suffix_payload_key_dag_universe_subset_closed_root_universe`
+  - `strong_deferred_final_active_suffix_decomp_bound_shared_root_boundI`
+  - `strong_deferred_final_active_suffix_decomp_bound_shared_root_linearI`
+- Design result:
+  - If a finite owner/root universe `U` contains final-active payload roots and
+    suffix keys and is closed under `rsubterms`, then it also contains both
+    payload-DAG and key-DAG universes.
+  - The smoke-gated decomposition metric
+    `rows + altNodes + payloadDag + keyDag` is therefore bounded by
+    `2 * rows + 2 * card U`. The factor `2 * card U` is intentional: this
+    metric sums payload-DAG and key-DAG sizes separately. A future
+    component-union metric could target `2 * rows + card U`, but it would be a
+    different statement and would need its own checked POSIX handoff.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: infrastructure only; no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

@@ -96,6 +96,16 @@ immutability.
   memo-lexer correctness and the final row-DAG bound. The real BR-040 payout
   still requires proving the underlying component bounds, not merely using
   this handoff.
+- Closed-root decomp bridge: `FBound.thy` now checks
+  `strong_deferred_final_active_suffix_payload_key_dag_universe_subset_closed_root_universe`
+  plus the bound/linear forms
+  `strong_deferred_final_active_suffix_decomp_bound_shared_root_boundI` and
+  `strong_deferred_final_active_suffix_decomp_bound_shared_root_linearI`.
+  A finite `rsubterms`-closed owner/root universe that covers final-active
+  payload roots and suffix keys bounds the smoke-gated decomposition metric by
+  `2 * rows + 2 * card U`. This is the current memo-strong tree proof route
+  after retiring emitted-tree `bsimpCubic`; it is a proof bridge only, not a
+  bounty payout.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040

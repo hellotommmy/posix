@@ -3609,3 +3609,15 @@ to be read before continuing long-running agent work.
   `strong_deferred_memo_lexer_final_active_decomp_linear_contract`. This makes
   the next proof obligation precise: prove component linear bounds for final
   rows, payload-DAG universe, and suffix-key-DAG universe.
+- Closed-root decomp bridge (2026-06-04): added
+  `strong_deferred_final_active_suffix_payload_key_dag_universe_subset_closed_root_universe`,
+  `strong_deferred_final_active_suffix_decomp_bound_shared_root_boundI`, and
+  `strong_deferred_final_active_suffix_decomp_bound_shared_root_linearI`.
+  These are the next memo-strong proof bridge after retiring emitted-tree
+  `bsimpCubic`: a finite owner/root universe `U` covering payload roots and
+  suffix keys and closed under `rsubterms` also covers payload/key DAG nodes.
+  Because the current decomp metric sums payload-DAG and key-DAG cardinalities
+  separately, the checked bound is `2 * rows + 2 * card U`, not
+  `2 * rows + card U`. Use this bridge when proving the memo strong tree
+  cubic interface; use a separate component-union theorem only if the metric is
+  explicitly changed and connected back to exact POSIX reconstruction.
