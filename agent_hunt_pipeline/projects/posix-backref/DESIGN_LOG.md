@@ -3920,3 +3920,10 @@ to be read before continuing long-running agent work.
   theorem; it removes a bookkeeping premise so the remaining hard obligations
   are cardinality of the least-owner DAG and original-regex member-size control
   for bridge rows.
+- Row-gate finite premise removed (2026-06-04): strengthened
+  `strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract` so it
+  no longer asks callers to provide finiteness of the least-owner DAG. The
+  proof derives finiteness from `legacy_rexp r` and the bridge-row member-size
+  premise via `sizeNregex`. This keeps the final interface focused on the real
+  missing obligations: least-owner DAG cardinality and bridge-row member-size
+  from the original regex, plus arithmetic.

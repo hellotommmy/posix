@@ -9864,6 +9864,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Row Gate Without Finite Premise (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof change:
+  - Strengthened
+    `FBound.thy:strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract`
+    by removing its explicit finiteness assumption.
+- Design result:
+  - The row-gate least-owner handoff now derives finiteness internally from
+    `legacy_rexp r` plus the bridge-row member-size premise, using the checked
+    bridge-row `sizeNregex` discharge. The remaining external proof obligations
+    for this contract are therefore the real ones: a cardinality bound for
+    `strong_deferred_strong_rows_raw_least_owner_dag`, a bridge-row member-size
+    bound, and the arithmetic product bound.
+  - This is a premise-reduction step toward the final theorem, not a separate
+    wrapper and not the completed cubic theorem.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

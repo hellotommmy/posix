@@ -11215,8 +11215,6 @@ qed
 
 lemma strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract:
   assumes legacy: "legacy_rexp r"
-    and finite:
-      "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
     and card_bound:
       "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
     and rows_member:
@@ -11248,6 +11246,10 @@ proof -
         rsize q \<le> M"
     by (rule strong_deferred_strong_rows_raw_least_owner_dag_member_sizeI
         [OF rows_member])
+  have finite:
+      "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+    by (rule finite_strong_deferred_strong_rows_raw_least_owner_dag_rows_member
+        [OF legacy rows_member])
   show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
       then Some (THE v. strong_deferred_span_value r s v)
       else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
