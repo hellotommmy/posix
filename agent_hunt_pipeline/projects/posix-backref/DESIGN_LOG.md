@@ -21,6 +21,19 @@ to be read before continuing long-running agent work.
   claim a cubic bounty for a reassociated or emitted-tree simplifier unless it
   also has exact POSIX value reconstruction checked.
 
+## 2026-06-04: Decomposition linear hook
+
+- Added
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
+  It turns three component premises
+  `rows <= R * rxsize r`, `payloadDag <= P * rxsize r`, and
+  `keyDag <= Q * rxsize r` into
+  `rowDagUniverse <= (2 * R + P + Q) * rxsize r`.
+- This is now the preferred bridge from the smoke metric
+  `strongMemoFinalActiveDecompBound` to the memo-strong lexer contract. The
+  remaining proof obligations should be attacked as component bounds, not as a
+  raw emitted-tree bound.
+
 ## 2026-06-04: The main memo-strong proof target is linear final row-DAG
 
 - Added

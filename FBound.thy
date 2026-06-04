@@ -2886,9 +2886,32 @@ proof -
   have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
       R + R + P + K"
     by (rule
-        card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI
+    card_strong_deferred_final_active_suffix_row_dag_universe_decomp_boundI
         [OF rows alts payload keys])
   then show ?thesis by simp
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le>
+        R * rxsize r"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P * rxsize r"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> Q * rxsize r"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+    \<le> (2 * R + P + Q) * rxsize r"
+proof -
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r s)
+      \<le> 2 * (R * rxsize r) + P * rxsize r + Q * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI
+        [OF rows payload keys])
+  also have "... = (2 * R + P + Q) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
 qed
 
 lemma strong_deferred_final_active_suffix_key_dag_universe_eq_rsubterm_closure:

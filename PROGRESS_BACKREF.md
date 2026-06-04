@@ -2,6 +2,21 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Decomposition Linear Hook Checked (2026-06-04)
+
+- Added the checked Isabelle lemma
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
+- It formalizes the current proof-facing metric: if final-active rows,
+  final-active payload-DAG universe, and final-active suffix-key-DAG universe
+  are each linear in `rxsize r`, then the final-active row-DAG universe is
+  linear with factor `2 * R + P + Q`.
+- This exactly matches the Scala `DecompBound` instrumentation:
+  `rows + altNodes + payloadDag + keyDag`, using the checked
+  `altNodes <= rows` fact on the Isabelle side.
+- Verification: focused `isabelle build -v -d . Posix` passed. No bounty is
+  claimed; the remaining hard work is proving the three component linear
+  bounds for the memo-strong final derivative family.
+
 ## Cubic Route Checkpoint: Memo-Strong Owner Decomposition Metrics (2026-06-04)
 
 - Accepted the plot evidence that direct `bsimpCubic` emitted-tree bounds are

@@ -162,6 +162,11 @@ recognition gate, exact POSIX values come from original-regex span memoization,
 and the size object is the final-active row-DAG owner table. Do not spend new
 proof effort on `bsimpCubic` emitted-tree bounds unless a future implementation
 first beats the memo-strong owner traces and passes exact POSIX value smoke.
+On the proof side, use
+`FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`
+as the component-to-owner bridge: it reduces the remaining row-DAG linear
+target to linear bounds for final-active rows, payload-DAG universe, and
+suffix-key-DAG universe.
 Before trying to prove the final-active route, run the dedicated budget scout:
 `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\strong_memo_final_active_scout.ps1`.
 It keeps exact POSIX value smoke enabled and checks optional linear rows and

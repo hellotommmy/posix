@@ -74,6 +74,13 @@ immutability.
   factor sweep scripts now expose and report the row-DAG universe factor so
   smoke evidence tracks this exact target. Infrastructure only; no bounty is
   paid.
+- Decomposition linear hook: `FBound.thy` now checks
+  `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
+  It turns linear bounds for final-active rows, payload-DAG universe, and
+  suffix-key-DAG universe into the desired linear final row-DAG universe bound
+  with factor `2 * R + P + Q`. This matches the Scala
+  `strongMemoFinalActiveDecompBound` metric and is BR-040 proof
+  infrastructure only; no bounty is paid.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040
