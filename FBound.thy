@@ -2688,6 +2688,14 @@ definition strong_deferred_final_active_suffix_decomp_bound ::
     card (strong_deferred_final_active_suffix_payload_dag_universe r s) +
     card (strong_deferred_final_active_suffix_key_dag_universe r s)"
 
+definition strong_deferred_final_active_suffix_component_union ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_final_active_suffix_component_union r s =
+    strong_deferred_final_active_suffix_rows r s \<union>
+    strong_deferred_final_active_suffix_alt_nodes r s \<union>
+    strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+    strong_deferred_final_active_suffix_key_dag_universe r s"
+
 definition strong_deferred_final_active_suffix_max_row_dag ::
   "rexp \<Rightarrow> string \<Rightarrow> nat" where
   "strong_deferred_final_active_suffix_max_row_dag r s =
@@ -2725,6 +2733,10 @@ lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
 lemma finite_strong_deferred_final_active_suffix_key_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_key_dag_universe r s)"
   by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def)
+
+lemma finite_strong_deferred_final_active_suffix_component_union [simp]:
+  "finite (strong_deferred_final_active_suffix_component_union r s)"
+  by (simp add: strong_deferred_final_active_suffix_component_union_def)
 
 lemma strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
   "strong_deferred_final_active_suffix_row_dag_universe r s =
@@ -2827,6 +2839,19 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_decomp_subset:
     strong_deferred_final_active_suffix_payload_dag_universe_def
     strong_deferred_final_active_suffix_key_dag_universe_def
   by (rule raw_final_active_suffix_row_dag_universe_decomp_subset)
+
+lemma strong_deferred_final_active_suffix_row_dag_universe_subset_component_union:
+  "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+    strong_deferred_final_active_suffix_component_union r s"
+  using strong_deferred_final_active_suffix_row_dag_universe_decomp_subset
+  by (simp add: strong_deferred_final_active_suffix_component_union_def)
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_component_union:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    card (strong_deferred_final_active_suffix_component_union r s)"
+  by (rule card_mono)
+    (simp_all add:
+      strong_deferred_final_active_suffix_row_dag_universe_subset_component_union)
 
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_decomp:
   "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
@@ -3131,6 +3156,90 @@ proof -
         strong_deferred_final_active_suffix_decomp_bound_shared_root_boundI
         [OF rows roots subterm_closed finite card_bound])
   also have "... = (2 * R + 2 * C) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_component_union_shared_component_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and shared:
+      "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+       strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (strong_deferred_final_active_suffix_component_union r s)
+    \<le> 2 * R + D"
+proof -
+  let ?Rows = "strong_deferred_final_active_suffix_rows r s"
+  let ?Alts = "strong_deferred_final_active_suffix_alt_nodes r s"
+  have sub: "strong_deferred_final_active_suffix_component_union r s \<subseteq>
+      ?Rows \<union> ?Alts \<union> U"
+    using shared
+    by (auto simp add: strong_deferred_final_active_suffix_component_union_def)
+  have "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      card (?Rows \<union> ?Alts \<union> U)"
+    by (rule card_mono) (simp_all add: finite sub)
+  also have "... \<le> card (?Rows \<union> ?Alts) + card U"
+    by (rule card_Un_le)
+  also have "... \<le> card ?Rows + card ?Alts + card U"
+    using card_Un_le[of ?Rows ?Alts] by linarith
+  also have "... \<le> R + R + D"
+  proof -
+    have alts_le_rows:
+        "card ?Alts \<le> card ?Rows"
+      by (rule card_strong_deferred_final_active_suffix_alt_nodes_le_rows)
+    have alts: "card ?Alts \<le> R"
+      using rows alts_le_rows by linarith
+    show ?thesis
+      using rows alts card_bound by linarith
+  qed
+  finally show ?thesis by simp
+qed
+
+lemma card_strong_deferred_final_active_suffix_component_union_closed_root_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and roots:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> D"
+  shows "card (strong_deferred_final_active_suffix_component_union r s)
+    \<le> 2 * R + D"
+proof -
+  have shared:
+      "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+       strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq> U"
+    by (rule
+        strong_deferred_final_active_suffix_payload_key_dag_universe_subset_closed_root_universe
+        [OF roots subterm_closed])
+  show ?thesis
+    by (rule
+        card_strong_deferred_final_active_suffix_component_union_shared_component_boundI
+        [OF rows shared finite card_bound])
+qed
+
+lemma card_strong_deferred_final_active_suffix_component_union_closed_root_linearI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le>
+        R * rxsize r"
+    and roots:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C * rxsize r"
+  shows "card (strong_deferred_final_active_suffix_component_union r s)
+    \<le> (2 * R + C) * rxsize r"
+proof -
+  have "card (strong_deferred_final_active_suffix_component_union r s)
+      \<le> 2 * (R * rxsize r) + C * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_component_union_closed_root_boundI
+        [OF rows roots subterm_closed finite card_bound])
+  also have "... = (2 * R + C) * rxsize r"
     by (simp add: algebra_simps)
   finally show ?thesis .
 qed

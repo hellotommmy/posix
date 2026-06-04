@@ -2,6 +2,44 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Component-Union Memo Owner Gate (2026-06-04)
+
+- Route status:
+  - Emitted-tree `bsimpCubic` remains retired as a proof target.
+  - The active route is memo strong tree: `bders_simpStrong` supplies the
+    nullable recognition tree, while `strong_deferred_memo_lexer` /
+    `strong_deferred_span_value` supplies exact POSIX values.
+- Checked Isabelle additions in `FBound.thy`:
+  - `strong_deferred_final_active_suffix_component_union`
+  - `card_strong_deferred_final_active_suffix_row_dag_universe_le_component_union`
+  - `card_strong_deferred_final_active_suffix_component_union_shared_component_boundI`
+  - `card_strong_deferred_final_active_suffix_component_union_closed_root_boundI`
+  - `card_strong_deferred_final_active_suffix_component_union_closed_root_linearI`
+- Meaning:
+  - The proof side now names the Scala `componentUnionSize` metric:
+    rows + alt nodes + shared payload/key DAG nodes as one hash-consable set.
+  - Under a finite `rsubterms`-closed owner/root universe `U` covering
+    final-active payload roots and suffix keys, the component union is bounded
+    by `2 * rows + card U`; this is sharper than the separate-sum
+    `decomp_bound`, which gives `2 * rows + 2 * card U`.
+- Pipeline changes:
+  - Added `POSIX_SMOKE_STRONG_FINAL_ACTIVE_COMPONENT_UNION_FACTOR` and the
+    matching PowerShell parameters to the Scala smoke, local CI, value gate,
+    final-active scout, and factor sweep.
+  - Default local CI now gates row-DAG universe, component union, and decomp
+    bound at factor `3 * rsize(r)` on the default strong-memo smoke.
+- Verification:
+  - Focused `isabelle build -v -d . Posix` PASS.
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`.
+  - Scala exact POSIX smoke checked 84,300 exhaustive regex/input pairs at
+    depth 2/input length 3, plus known CE grid and Chapter 7 k=5 trace.
+  - Chapter 7 k=5 final metrics for n=4,8,12,16,20: final component union
+    stays `36`, final decomp bound stays `46`, and final row-DAG universe is
+    `44,41,41,44,41`.
+- Bounty status: proof/smoke infrastructure only; no cubic theorem or bounty is
+  claimed.
+
 ## Cubic Route Checkpoint: Isabelle Decomp Metric Named (2026-06-04)
 
 - Added the Isabelle-side metric

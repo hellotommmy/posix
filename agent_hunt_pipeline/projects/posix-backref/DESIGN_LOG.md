@@ -3621,3 +3621,17 @@ to be read before continuing long-running agent work.
   `2 * rows + card U`. Use this bridge when proving the memo strong tree
   cubic interface; use a separate component-union theorem only if the metric is
   explicitly changed and connected back to exact POSIX reconstruction.
+- Component-union owner metric (2026-06-04): added the Isabelle-side
+  `strong_deferred_final_active_suffix_component_union`, matching the Scala
+  `componentUnionSize` metric. The checked lemmas
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_component_union`
+  and
+  `card_strong_deferred_final_active_suffix_component_union_closed_root_linearI`
+  make the hash-cons owner-table target precise: a finite `rsubterms`-closed
+  owner/root universe covering final-active payload roots and suffix keys
+  bounds the component union by `2 * rows + card U`, while the older decomp
+  metric still separately sums payload/key DAG sizes. The smoke pipeline now
+  has `POSIX_SMOKE_STRONG_FINAL_ACTIVE_COMPONENT_UNION_FACTOR`; default CI
+  gates row-DAG universe, component union, and decomp bound at factor 3 on the
+  strong-memo route. The full local CI passed with exact POSIX value smoke,
+  `Posix`, and `BackRefPilot`.

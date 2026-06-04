@@ -106,6 +106,16 @@ immutability.
   `2 * rows + 2 * card U`. This is the current memo-strong tree proof route
   after retiring emitted-tree `bsimpCubic`; it is a proof bridge only, not a
   bounty payout.
+- Component-union owner gate: `FBound.thy` now names
+  `strong_deferred_final_active_suffix_component_union` and checks
+  `card_strong_deferred_final_active_suffix_component_union_closed_root_linearI`.
+  This is the proof-side counterpart of Scala `componentUnionSize`: a
+  hash-consable union of rows, alt nodes, payload-DAG nodes, and key-DAG nodes.
+  The local smoke/CI wrappers now expose
+  `POSIX_SMOKE_STRONG_FINAL_ACTIVE_COMPONENT_UNION_FACTOR`, so the default
+  strong-memo CI gates row-DAG universe, component union, and decomposition
+  bound together. This is still BR-040 infrastructure; no payout is claimed
+  until a concrete cubic/linear universe theorem is checked.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040

@@ -2141,6 +2141,7 @@ object PosixCubicSmoke {
       memberDagFactor: Double,
       memberShapeDagFactor: Double,
       rowDagUniverseFactor: Double,
+      componentUnionFactor: Double,
       decompBoundFactor: Double,
       minRegexSize: Int,
       topLimit: Int
@@ -2151,17 +2152,19 @@ object PosixCubicSmoke {
     def hasMemberDagBudget: Boolean = memberDagFactor > 0.0
     def hasMemberShapeDagBudget: Boolean = memberShapeDagFactor > 0.0
     def hasRowDagUniverseBudget: Boolean = rowDagUniverseFactor > 0.0
+    def hasComponentUnionBudget: Boolean = componentUnionFactor > 0.0
     def hasDecompBoundBudget: Boolean = decompBoundFactor > 0.0
     def hasBudget: Boolean =
       hasRowsBudget || hasPairBudget || hasMemberBudget ||
         hasMemberDagBudget || hasMemberShapeDagBudget ||
-        hasRowDagUniverseBudget || hasDecompBoundBudget
+        hasRowDagUniverseBudget || hasComponentUnionBudget ||
+        hasDecompBoundBudget
     def traceTop: Boolean = topLimit > 0
   }
 
   object FinalActiveBudgetConfig {
     val Disabled: FinalActiveBudgetConfig =
-      FinalActiveBudgetConfig(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5, 0)
+      FinalActiveBudgetConfig(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5, 0)
   }
 
   final case class FinalActiveBudgetObservation(
@@ -2560,6 +2563,7 @@ object PosixCubicSmoke {
       val memberDagBound = finalActiveMemberBound(r, config.memberDagFactor)
       val memberShapeDagBound = finalActiveMemberBound(r, config.memberShapeDagFactor)
       val rowDagUniverseBound = finalActiveMemberBound(r, config.rowDagUniverseFactor)
+      val componentUnionBound = finalActiveMemberBound(r, config.componentUnionFactor)
       val decompBound = finalActiveMemberBound(r, config.decompBoundFactor)
       val rowsFailure =
         if (rowsBound > 0L && result.finalActiveSuffix.rows.toLong > rowsBound) {
@@ -2587,13 +2591,19 @@ object PosixCubicSmoke {
             result.finalActiveSuffix.rowDagUniverseSize.toLong > rowDagUniverseBound) {
           List(s"finalActiveRowDagUniverse=${result.finalActiveSuffix.rowDagUniverseSize} > $rowDagUniverseBound")
         } else Nil
+      val componentUnionFailure =
+        if (componentUnionBound > 0L &&
+            result.finalActiveSuffix.componentUnionSize.toLong > componentUnionBound) {
+          List(s"finalActiveComponentUnion=${result.finalActiveSuffix.componentUnionSize} > $componentUnionBound")
+        } else Nil
       val decompFailure =
         if (decompBound > 0L &&
             result.finalActiveSuffix.decompBoundSize.toLong > decompBound) {
           List(s"finalActiveDecompBound=${result.finalActiveSuffix.decompBoundSize} > $decompBound")
         } else Nil
       rowsFailure ::: pairFailure ::: memberFailure ::: memberDagFailure :::
-        memberShapeDagFailure ::: rowDagUniverseFailure ::: decompFailure
+        memberShapeDagFailure ::: rowDagUniverseFailure :::
+        componentUnionFailure ::: decompFailure
     }
   }
 
@@ -2612,6 +2622,7 @@ object PosixCubicSmoke {
       val memberDagBound = finalActiveMemberBound(r, config.memberDagFactor)
       val memberShapeDagBound = finalActiveMemberBound(r, config.memberShapeDagFactor)
       val rowDagUniverseBound = finalActiveMemberBound(r, config.rowDagUniverseFactor)
+      val componentUnionBound = finalActiveMemberBound(r, config.componentUnionFactor)
       val decompBound = finalActiveMemberBound(r, config.decompBoundFactor)
       throw new AssertionError(
         s"""strong memo final-active budget failed
@@ -2626,6 +2637,7 @@ object PosixCubicSmoke {
            |memberDagFactor       = ${config.memberDagFactor}
            |memberShapeDagFactor  = ${config.memberShapeDagFactor}
            |rowDagUniverseFactor  = ${config.rowDagUniverseFactor}
+           |componentUnionFactor  = ${config.componentUnionFactor}
            |decompBoundFactor     = ${config.decompBoundFactor}
            |rowsBound             = $rowsBound
            |pairBound             = $pairBound
@@ -2633,6 +2645,7 @@ object PosixCubicSmoke {
            |memberDagBound        = $memberDagBound
            |memberShapeDagBound   = $memberShapeDagBound
            |rowDagUniverseBound   = $rowDagUniverseBound
+           |componentUnionBound   = $componentUnionBound
            |decompBound           = $decompBound
            |finalActiveRows       = ${result.finalActiveSuffix.rows}
            |finalActiveKeys       = ${result.finalActiveSuffix.keys}
@@ -2918,6 +2931,7 @@ object PosixCubicSmoke {
         s"memberFactor=${config.memberFactor}, memberDagFactor=${config.memberDagFactor}, " +
         s"memberShapeDagFactor=${config.memberShapeDagFactor}, " +
         s"rowDagUniverseFactor=${config.rowDagUniverseFactor}, " +
+        s"componentUnionFactor=${config.componentUnionFactor}, " +
         s"decompBoundFactor=${config.decompBoundFactor}, " +
         s"minRegexSize=${config.minRegexSize}, top=${config.topLimit}); " +
         s"$rowsSummary; $memberSummary; $rowDagUniverseSummary; $decompBoundSummary; $pairSummary"
@@ -3181,6 +3195,7 @@ object PosixCubicSmoke {
     val memberDagBound = finalActiveMemberBound(r, config.memberDagFactor)
     val memberShapeDagBound = finalActiveMemberBound(r, config.memberShapeDagFactor)
     val rowDagUniverseBound = finalActiveMemberBound(r, config.rowDagUniverseFactor)
+    val componentUnionBound = finalActiveMemberBound(r, config.componentUnionFactor)
     val decompBound = finalActiveMemberBound(r, config.decompBoundFactor)
     val obs = finalActiveBudgetObservation(r, input, result, label)
     val base = baselineValue(r, input)
@@ -3195,6 +3210,7 @@ object PosixCubicSmoke {
        |memberDagFactor       = ${config.memberDagFactor}
        |memberShapeDagFactor  = ${config.memberShapeDagFactor}
        |rowDagUniverseFactor  = ${config.rowDagUniverseFactor}
+       |componentUnionFactor  = ${config.componentUnionFactor}
        |decompBoundFactor     = ${config.decompBoundFactor}
        |rowsBound             = $rowsBound
        |pairBound             = $pairBound
@@ -3202,6 +3218,7 @@ object PosixCubicSmoke {
        |memberDagBound        = $memberDagBound
        |memberShapeDagBound   = $memberShapeDagBound
        |rowDagUniverseBound   = $rowDagUniverseBound
+       |componentUnionBound   = $componentUnionBound
        |decompBound           = $decompBound
        |finalActiveRows       = ${obs.rows}
        |finalActiveKeys       = ${obs.keys}
@@ -5985,7 +6002,7 @@ object PosixCubicSmoke {
   ): Unit = {
     if (!config.hasBudget) {
       throw new IllegalArgumentException(
-        "FindStrongFinalActiveBudgetCE requires a positive final-active rows, member, member-DAG, member-shape-DAG, row-DAG-universe, or pair factor"
+        "FindStrongFinalActiveBudgetCE requires a positive final-active rows, member, member-DAG, member-shape-DAG, row-DAG-universe, component-union, decomp-bound, or pair factor"
       )
     }
     val rng = new Random(seed)
@@ -6005,7 +6022,7 @@ object PosixCubicSmoke {
       }
     }
     if (!found) {
-      println(s"no strong final-active budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, rowsFactor=${config.rowsFactor}, pairFactor=${config.pairFactor}, memberFactor=${config.memberFactor}, memberDagFactor=${config.memberDagFactor}, memberShapeDagFactor=${config.memberShapeDagFactor}, rowDagUniverseFactor=${config.rowDagUniverseFactor}, minRegexSize=${config.minRegexSize})")
+      println(s"no strong final-active budget CE found in $checked random cases (depth <= $maxDepth, input length <= $maxInput, seed=$seed, rowsFactor=${config.rowsFactor}, pairFactor=${config.pairFactor}, memberFactor=${config.memberFactor}, memberDagFactor=${config.memberDagFactor}, memberShapeDagFactor=${config.memberShapeDagFactor}, rowDagUniverseFactor=${config.rowDagUniverseFactor}, componentUnionFactor=${config.componentUnionFactor}, decompBoundFactor=${config.decompBoundFactor}, minRegexSize=${config.minRegexSize})")
     }
   }
 
@@ -6206,6 +6223,7 @@ object PosixCubicSmoke {
     val strongFinalActiveMemberDagFactor = doubleSetting("posix.smoke.strongFinalActiveMemberDagFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_MEMBER_DAG_FACTOR", 0.0)
     val strongFinalActiveMemberShapeDagFactor = doubleSetting("posix.smoke.strongFinalActiveMemberShapeDagFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_MEMBER_SHAPE_DAG_FACTOR", 0.0)
     val strongFinalActiveRowDagUniverseFactor = doubleSetting("posix.smoke.strongFinalActiveRowDagUniverseFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_ROW_DAG_UNIVERSE_FACTOR", 0.0)
+    val strongFinalActiveComponentUnionFactor = doubleSetting("posix.smoke.strongFinalActiveComponentUnionFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_COMPONENT_UNION_FACTOR", 0.0)
     val strongFinalActiveDecompBoundFactor = doubleSetting("posix.smoke.strongFinalActiveDecompBoundFactor", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_DECOMP_BOUND_FACTOR", 0.0)
     val strongFinalActiveMinRegexSize = intSetting("posix.smoke.strongFinalActiveMinRegexSize", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_MIN_REGEX_SIZE", 5)
     val strongFinalActiveTop = intSetting("posix.smoke.strongFinalActiveTop", "POSIX_SMOKE_STRONG_FINAL_ACTIVE_TOP", 0)
@@ -6217,6 +6235,7 @@ object PosixCubicSmoke {
         strongFinalActiveMemberDagFactor,
         strongFinalActiveMemberShapeDagFactor,
         strongFinalActiveRowDagUniverseFactor,
+        strongFinalActiveComponentUnionFactor,
         strongFinalActiveDecompBoundFactor,
         strongFinalActiveMinRegexSize,
         strongFinalActiveTop
