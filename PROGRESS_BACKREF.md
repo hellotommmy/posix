@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Isabelle Decomp Metric Named (2026-06-04)
+
+- Added the Isabelle-side metric
+  `FBound.thy:strong_deferred_final_active_suffix_decomp_bound`, matching the
+  Scala smoke metric
+  `finalRows + finalAltNodes + finalPayloadDag + finalKeyDag`.
+- Checked that this metric bounds the final-active row-DAG universe:
+  `card_strong_deferred_final_active_suffix_row_dag_universe_le_decomp_bound`.
+- Added linear component bridges:
+  `strong_deferred_final_active_suffix_decomp_bound_rows_boundI` and
+  `strong_deferred_final_active_suffix_decomp_bound_linearI`.
+- Added final memo-lexer handoff theorems
+  `strong_deferred_memo_lexer_final_active_decomp_bound_contract` and
+  `strong_deferred_memo_lexer_final_active_decomp_linear_contract`.
+  These connect the smoke-gated decomp metric directly to exact POSIX
+  correctness, `lexer` equality, `flat`, and the row-DAG bound.
+- Focused verification: `isabelle build -v -d . Posix` passed. This is
+  BR-040 proof infrastructure only; the actual component bounds remain open
+  and no bounty is claimed.
+
 ## Cubic Route Checkpoint: Memo-Strong Decomp Smoke Gate (2026-06-04)
 
 - Accepted the route decision from the latest plots: direct emitted-tree

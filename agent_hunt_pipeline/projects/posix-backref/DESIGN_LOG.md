@@ -3602,3 +3602,10 @@ to be read before continuing long-running agent work.
   reconstruction theorem. Do not spend effort reducing `bsimpCubic` tree size
   unless a new candidate first beats memo-strong traces and passes exact POSIX
   value smoke.
+- Isabelle decomp metric update (2026-06-04): `FBound.thy` now names the same
+  final-active decomp metric as
+  `strong_deferred_final_active_suffix_decomp_bound` and packages the final
+  memo-lexer handoff in
+  `strong_deferred_memo_lexer_final_active_decomp_linear_contract`. This makes
+  the next proof obligation precise: prove component linear bounds for final
+  rows, payload-DAG universe, and suffix-key-DAG universe.

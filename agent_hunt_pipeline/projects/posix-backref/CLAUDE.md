@@ -187,6 +187,12 @@ Do not use a scout run that omits `strongMemoFinalActiveDecompBound` as
 evidence for BR-040: the Isabelle bridge
 `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`
 needs the row/payload/key decomposition, not just a visually small tree.
+The named Isabelle metric is
+`FBound.thy:strong_deferred_final_active_suffix_decomp_bound`; the preferred
+final handoff is
+`FBound.thy:strong_deferred_memo_lexer_final_active_decomp_linear_contract`.
+Use that theorem when the proof has component bounds for final rows,
+payload-DAG universe, and suffix-key-DAG universe.
 If you want to probe the whole final memo-strong exact-DAG metric, use
 `scala_cubic_smoke.ps1 -FindStrongMemoDagBudgetCE -StrongMemoDagFactor K`.
 This is a diagnostic only. Recent smoke shows `K=2` is already false, shrinking

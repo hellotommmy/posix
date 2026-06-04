@@ -2680,6 +2680,14 @@ definition strong_deferred_final_active_suffix_key_dag_universe ::
     raw_final_active_suffix_key_dag_universe
       (strong_deferred_final_raw r s)"
 
+definition strong_deferred_final_active_suffix_decomp_bound ::
+  "rexp \<Rightarrow> string \<Rightarrow> nat" where
+  "strong_deferred_final_active_suffix_decomp_bound r s =
+    card (strong_deferred_final_active_suffix_rows r s) +
+    card (strong_deferred_final_active_suffix_alt_nodes r s) +
+    card (strong_deferred_final_active_suffix_payload_dag_universe r s) +
+    card (strong_deferred_final_active_suffix_key_dag_universe r s)"
+
 definition strong_deferred_final_active_suffix_max_row_dag ::
   "rexp \<Rightarrow> string \<Rightarrow> nat" where
   "strong_deferred_final_active_suffix_max_row_dag r s =
@@ -2908,6 +2916,57 @@ proof -
       \<le> 2 * (R * rxsize r) + P * rxsize r + Q * rxsize r"
     by (rule
         card_strong_deferred_final_active_suffix_row_dag_universe_decomp_rows_boundI
+        [OF rows payload keys])
+  also have "... = (2 * R + P + Q) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_decomp_bound:
+  "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    strong_deferred_final_active_suffix_decomp_bound r s"
+  by (simp add: strong_deferred_final_active_suffix_decomp_bound_def
+      card_strong_deferred_final_active_suffix_row_dag_universe_decomp)
+
+lemma strong_deferred_final_active_suffix_decomp_bound_rows_boundI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> R"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> K"
+  shows "strong_deferred_final_active_suffix_decomp_bound r s
+    \<le> 2 * R + P + K"
+proof -
+  have alts_le_rows:
+      "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le>
+        card (strong_deferred_final_active_suffix_rows r s)"
+    by (rule card_strong_deferred_final_active_suffix_alt_nodes_le_rows)
+  have alts: "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le> R"
+    using rows alts_le_rows by linarith
+  show ?thesis
+    unfolding strong_deferred_final_active_suffix_decomp_bound_def
+    using rows alts payload keys by linarith
+qed
+
+lemma strong_deferred_final_active_suffix_decomp_bound_linearI:
+  assumes rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le>
+        R * rxsize r"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P * rxsize r"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> Q * rxsize r"
+  shows "strong_deferred_final_active_suffix_decomp_bound r s
+    \<le> (2 * R + P + Q) * rxsize r"
+proof -
+  have "strong_deferred_final_active_suffix_decomp_bound r s
+      \<le> 2 * (R * rxsize r) + P * rxsize r + Q * rxsize r"
+    by (rule strong_deferred_final_active_suffix_decomp_bound_rows_boundI
         [OF rows payload keys])
   also have "... = (2 * R + P + Q) * rxsize r"
     by (simp add: algebra_simps)
@@ -6476,6 +6535,187 @@ proof -
     by (rule
         strong_deferred_memo_lexer_final_active_dag_owner_contract(17)
         [OF legacy dag_subset finite_dag row_dag_universe_bound])
+qed
+
+lemma strong_deferred_memo_lexer_final_active_decomp_bound_contract:
+  assumes legacy: "legacy_rexp r"
+    and decomp_bound:
+      "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+        K * rxsize r"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (strong_deferred_final_raw r s)"
+    and "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    and "strong_deferred_final_active_suffix_payload_roots r s \<union>
+      strong_deferred_final_active_suffix_keys r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    and "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+      strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    and "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      rsubterm_closure (strong_deferred_final_active_suffix_rows r s)"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      K * rxsize r"
+    and "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      (K * rxsize r) * (K * rxsize r)"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+    and "strong_deferred_final_active_suffix_max_row_dag r s \<le>
+      K * rxsize r"
+    and "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> K * rxsize r"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+proof -
+  have row_dag_bound:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+  proof -
+    have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        strong_deferred_final_active_suffix_decomp_bound r s"
+      by (rule
+          card_strong_deferred_final_active_suffix_row_dag_universe_le_decomp_bound)
+    also have "... \<le> K * rxsize r"
+      by (rule decomp_bound)
+    finally show ?thesis .
+  qed
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(1)
+        [OF legacy row_dag_bound])
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(2)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(3)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(4)
+        [OF legacy row_dag_bound])
+  show "legacy_rrexp (strong_deferred_final_raw r s)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(5)
+        [OF legacy row_dag_bound])
+  show "\<And>q. q \<in>
+      strong_deferred_final_active_suffix_row_dag_universe r s \<Longrightarrow>
+      legacy_rrexp q"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(6)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_final_active_suffix_payload_roots r s \<union>
+      strong_deferred_final_active_suffix_keys r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(7)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_final_active_suffix_payload_dag_universe r s \<union>
+      strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(8)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      rsubterm_closure (strong_deferred_final_active_suffix_rows r s)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(9)
+        [OF legacy row_dag_bound])
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      K * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(10)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      (K * rxsize r) * (K * rxsize r)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(11)
+        [OF legacy row_dag_bound])
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+    by (rule row_dag_bound)
+  show "strong_deferred_final_active_suffix_max_row_dag r s \<le>
+      K * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(13)
+        [OF legacy row_dag_bound])
+  show "\<And>q. q \<in> strong_deferred_final_active_suffix_rows r s \<Longrightarrow>
+      card (rsubterms q) \<le> K * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(14)
+        [OF legacy row_dag_bound])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(15)
+        [OF legacy row_dag_bound])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(16)
+        [OF legacy row_dag_bound])
+qed
+
+lemma strong_deferred_memo_lexer_final_active_decomp_linear_contract:
+  assumes legacy: "legacy_rexp r"
+    and rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le>
+        R * rxsize r"
+    and payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> P * rxsize r"
+    and keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> Q * rxsize r"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+      (2 * R + P + Q) * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (2 * R + P + Q) * rxsize r"
+proof -
+  have decomp_bound:
+    "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+      (2 * R + P + Q) * rxsize r"
+    by (rule strong_deferred_final_active_suffix_decomp_bound_linearI
+        [OF rows payload keys])
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_memo_lexer_final_active_decomp_bound_contract(1)
+        [OF legacy decomp_bound])
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_decomp_bound_contract(2)
+        [OF legacy decomp_bound])
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_decomp_bound_contract(3)
+        [OF legacy decomp_bound])
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_decomp_bound_contract(4)
+        [OF legacy decomp_bound])
+  show "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+      (2 * R + P + Q) * rxsize r"
+    by (rule decomp_bound)
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (2 * R + P + Q) * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_decomp_bound_contract(12)
+        [OF legacy decomp_bound])
 qed
 
 lemma strong_deferred_original_final_active_empty_rows_contract:

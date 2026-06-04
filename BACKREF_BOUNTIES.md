@@ -88,6 +88,14 @@ immutability.
   from relying on a small-looking emitted tree or row-DAG plot while omitting
   the exact row/payload/key decomposition needed by the checked BR-040 bridge.
   It is smoke/proof infrastructure only; no bounty is paid.
+- Isabelle decomp metric: `FBound.thy` now names
+  `strong_deferred_final_active_suffix_decomp_bound` and checks
+  `strong_deferred_memo_lexer_final_active_decomp_bound_contract` plus
+  `strong_deferred_memo_lexer_final_active_decomp_linear_contract`. These
+  theorems connect the smoke-gated decomp metric directly to exact POSIX
+  memo-lexer correctness and the final row-DAG bound. The real BR-040 payout
+  still requires proving the underlying component bounds, not merely using
+  this handoff.
 - Memo-strong single-DagU owner contract: `FBound.thy` now checks
   `strong_deferred_memo_lexer_final_active_dag_owner_contract`. After the
   graphs ruled out emitted-tree `bsimpCubic`, this is the preferred BR-040
