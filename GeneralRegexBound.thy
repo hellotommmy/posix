@@ -24954,6 +24954,29 @@ lemma sizeNregex_member_legacy:
   shows "legacy_rrexp q"
   using assms unfolding sizeNregex_def by simp
 
+lemma rsubterms_sizeNregex_closed:
+  assumes "q \<in> sizeNregex N"
+  shows "rsubterms q \<subseteq> sizeNregex N"
+proof
+  fix p
+  assume p: "p \<in> rsubterms q"
+  have p_legacy: "legacy_rrexp p"
+    by (rule legacy_rrexp_rsubterms
+        [OF sizeNregex_member_legacy[OF assms] p])
+  have "rsize p \<le> rsize q"
+    by (rule rsubterms_member_size_le_rsize[OF p])
+  also have "... \<le> N"
+    by (rule sizeNregex_member_size[OF assms])
+  finally show "p \<in> sizeNregex N"
+    using p_legacy unfolding sizeNregex_def by simp
+qed
+
+lemma rsubterm_closure_sizeNregex_subset:
+  assumes "U \<subseteq> sizeNregex N"
+  shows "rsubterm_closure U \<subseteq> sizeNregex N"
+  by (rule rsubterm_closure_subsetI[OF assms])
+    (rule rsubterms_sizeNregex_closed)
+
 lemma rflts_sizeNregex_closed:
   assumes "q \<in> sizeNregex N"
   shows "set (rflts [q]) \<subseteq> sizeNregex N"

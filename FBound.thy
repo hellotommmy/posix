@@ -2714,6 +2714,19 @@ definition strong_deferred_strong_rows_raw_bridge_owner ::
         (rsubterm_closure
           (strong_deferred_strong_rows_raw_bridge_rows r s)))"
 
+definition strong_deferred_strong_rows_raw_least_owner ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_strong_rows_raw_least_owner r s =
+    raw_shared_prune_active_suffix_owner
+      (rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s))"
+
+definition strong_deferred_strong_rows_raw_least_owner_dag ::
+  "rexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_deferred_strong_rows_raw_least_owner_dag r s =
+    rsubterm_closure
+      (strong_deferred_strong_rows_raw_least_owner r s)"
+
 lemma finite_strong_deferred_final_active_suffix_rows [simp]:
   "finite (strong_deferred_final_active_suffix_rows r s)"
   by (simp add: strong_deferred_final_active_suffix_rows_def)
@@ -2815,12 +2828,54 @@ lemma strong_deferred_strong_rows_raw_bridge_pruned_rows_subterms_subset_owner:
     \<subseteq> strong_deferred_strong_rows_raw_bridge_owner r s"
   by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
 
+lemma strong_deferred_strong_rows_raw_bridge_subterms_subset_least_owner:
+  "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+    \<subseteq> strong_deferred_strong_rows_raw_least_owner r s"
+  unfolding strong_deferred_strong_rows_raw_least_owner_def
+  by (rule raw_shared_prune_active_suffix_owner_extensive)
+
+lemma strong_deferred_strong_rows_raw_bridge_rows_subset_least_owner:
+  "strong_deferred_strong_rows_raw_bridge_rows r s
+    \<subseteq> strong_deferred_strong_rows_raw_least_owner r s"
+proof -
+  have "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq>
+      rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
+    by (rule rsubterm_closure_extensive)
+  also have "... \<subseteq> strong_deferred_strong_rows_raw_least_owner r s"
+    by (rule strong_deferred_strong_rows_raw_bridge_subterms_subset_least_owner)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_strong_rows_raw_least_owner_prune_closed:
+  "raw_shared_prune_closed
+    (strong_deferred_strong_rows_raw_least_owner r s)"
+  unfolding strong_deferred_strong_rows_raw_least_owner_def
+  by (rule raw_shared_prune_active_suffix_owner_prune_closed)
+
+lemma strong_deferred_strong_rows_raw_least_owner_active_suffix_closed:
+  "raw_shared_prune_active_suffix_closure
+      (strong_deferred_strong_rows_raw_least_owner r s)
+    \<subseteq> strong_deferred_strong_rows_raw_least_owner r s"
+  unfolding strong_deferred_strong_rows_raw_least_owner_def
+  by (rule raw_shared_prune_active_suffix_owner_active_suffix_closed)
+
+lemma strong_deferred_strong_rows_raw_least_owner_subset_dag:
+  "strong_deferred_strong_rows_raw_least_owner r s \<subseteq>
+    strong_deferred_strong_rows_raw_least_owner_dag r s"
+  unfolding strong_deferred_strong_rows_raw_least_owner_dag_def
+  by (rule rsubterm_closure_extensive)
+
+lemma strong_deferred_strong_rows_raw_least_owner_dag_subterm_closed:
+  assumes "q \<in> strong_deferred_strong_rows_raw_least_owner_dag r s"
+  shows "rsubterms q \<subseteq>
+    strong_deferred_strong_rows_raw_least_owner_dag r s"
+  using assms
+  unfolding strong_deferred_strong_rows_raw_least_owner_dag_def
+  by (rule rsubterm_closure_closed)
+
 lemma strong_deferred_strong_rows_raw_bridge_owner_subset_least_owner:
   "strong_deferred_strong_rows_raw_bridge_owner r s \<subseteq>
-    rsubterm_closure
-      (raw_shared_prune_active_suffix_owner
-        (rsubterm_closure
-          (strong_deferred_strong_rows_raw_bridge_rows r s)))"
+    strong_deferred_strong_rows_raw_least_owner_dag r s"
 proof -
   let ?U =
     "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
@@ -2831,7 +2886,80 @@ proof -
       \<subseteq> rsubterm_closure (raw_shared_prune_active_suffix_owner ?U)"
     by (rule rsubterm_closure_mono)
   then show ?thesis
-    by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
+    by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def
+        strong_deferred_strong_rows_raw_least_owner_def
+        strong_deferred_strong_rows_raw_least_owner_dag_def)
+qed
+
+lemma strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex_subset:
+  assumes rows:
+    "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> sizeNregex N"
+  shows "strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq>
+    sizeNregex N"
+proof -
+  let ?Rows = "strong_deferred_strong_rows_raw_bridge_rows r s"
+  have seed: "rsubterm_closure ?Rows \<subseteq> sizeNregex N"
+    by (rule rsubterm_closure_sizeNregex_subset[OF rows])
+  have owner: "strong_deferred_strong_rows_raw_least_owner r s \<subseteq>
+      sizeNregex N"
+    unfolding strong_deferred_strong_rows_raw_least_owner_def
+    by (rule raw_shared_prune_active_suffix_owner_sizeNregex_subset[OF seed])
+  show ?thesis
+    unfolding strong_deferred_strong_rows_raw_least_owner_dag_def
+    by (rule rsubterm_closure_sizeNregex_subset[OF owner])
+qed
+
+lemma finite_strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex:
+  assumes
+    "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> sizeNregex N"
+  shows "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+proof -
+  have sub:
+      "strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq>
+        sizeNregex N"
+    by (rule
+        strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex_subset
+        [OF assms])
+  have finite_size: "finite (sizeNregex N)"
+    by (rule finite_size_n)
+  show ?thesis
+    by (rule finite_subset[OF sub finite_size])
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_bridge_rows_subset_least_owner_dag:
+  "raw_final_active_suffix_row_dag_universe
+      (rsimpStrong_ALTs_raw
+        (rpders_strong1_rows_raw (rerase (intern r)) s))
+    \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+proof -
+  have rows: "\<And>q. q \<in> set
+      (rpders_strong1_rows_raw (rerase (intern r)) s) \<Longrightarrow>
+      q \<in> rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  proof -
+    fix q
+    assume q: "q \<in> set
+      (rpders_strong1_rows_raw (rerase (intern r)) s)"
+    have "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+      using q
+      by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def)
+    then show "q \<in> rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)"
+      using rsubterm_closure_extensive by blast
+  qed
+  have "raw_final_active_suffix_row_dag_universe
+      (rsimpStrong_ALTs_raw
+        (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (rsubterm_closure
+            (strong_deferred_strong_rows_raw_bridge_rows r s)))"
+    by (rule
+        raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_rsubterm_subsetI
+        [OF rows])
+  then show ?thesis
+    by (simp add: strong_deferred_strong_rows_raw_least_owner_def
+        strong_deferred_strong_rows_raw_least_owner_dag_def)
 qed
 
 lemma strong_deferred_strong_rows_raw_bridge_owner_subterm_closed:
