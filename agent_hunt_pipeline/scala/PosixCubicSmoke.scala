@@ -6322,6 +6322,7 @@ object PosixCubicSmoke {
     val checkStrongRowsBridge = boolSetting("posix.smoke.checkStrongRowsBridge", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE", false)
     val requireStrongRowsBridgeCoverage = boolSetting("posix.smoke.requireStrongRowsBridgeCoverage", "POSIX_SMOKE_REQUIRE_STRONG_ROWS_BRIDGE_COVERAGE", false)
     val checkStrongRowsBridgeCh7 = boolSetting("posix.smoke.checkStrongRowsBridgeCh7", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE_CH7", false)
+    val strongRowsBridgeOnlyCh7 = boolSetting("posix.smoke.strongRowsBridgeOnlyCh7", "POSIX_SMOKE_STRONG_ROWS_BRIDGE_ONLY_CH7", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -6376,9 +6377,11 @@ object PosixCubicSmoke {
       }
     }
     if (checkStrongRowsBridge) {
-      checkStrongRowsBridgeValuePreservation(maxDepth, maxInput, maxRegexes, requireStrongRowsBridgeCoverage)
-      if (randomCases > 0) {
-        checkStrongRowsBridgeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, requireStrongRowsBridgeCoverage)
+      if (!strongRowsBridgeOnlyCh7) {
+        checkStrongRowsBridgeValuePreservation(maxDepth, maxInput, maxRegexes, requireStrongRowsBridgeCoverage)
+        if (randomCases > 0) {
+          checkStrongRowsBridgeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, requireStrongRowsBridgeCoverage)
+        }
       }
       if (checkStrongRowsBridgeCh7) {
         checkStrongRowsBridgeCh7Trace(ch7K, ch7Lengths, requireStrongRowsBridgeCoverage)

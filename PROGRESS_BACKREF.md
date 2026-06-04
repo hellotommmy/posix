@@ -26,6 +26,31 @@ Last updated: 2026-06-04 (strong-memo route is default)
 - Bounty status: proof-surface cleanup only; no final cubic theorem or bounty
   is claimed.
 
+## Cubic Route Probe: Strong Row-List Bridge Coverage (2026-06-04)
+
+- Final theorem status: **not complete**. This is smoke evidence for a
+  possible Antimirov-style owner invariant, not a proof.
+- Tooling addition:
+  - `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` now accepts
+    `POSIX_SMOKE_STRONG_ROWS_BRIDGE_ONLY_CH7=1`, letting the bridge probe run
+    only the Chapter 7 grid instead of first consuming memory on the exhaustive
+    and random checks.
+- Probe result:
+  - Exhaustive depth `2` / input length `3` bridge coverage passed:
+    final-active coverage `832/832`, with row-gated memo POSIX values matching
+    the baseline.
+  - Random depth `7` / input length `10`, seed `20260604`, `1000` cases also
+    passed: final-active coverage `121/121`.
+  - Chapter 7 `k=5`, lengths `4,8,12` passed with coverage `15/15`.
+  - Chapter 7 `k=5`, lengths `16,20` still OOM in the bridge probe because it
+    constructs the ordinary annotated `bdersStrong` tree and large bit lists.
+    The existing deferred-memo trace handles these lengths, so the next
+    tooling/proof step should move the bridge coverage predicate onto the
+    deferred/memo final-root representation instead of treating this as a
+    coverage counterexample.
+- Bounty status: smoke/proof-route evidence only; no final cubic theorem or
+  bounty is claimed.
+
 ## Cubic Route Checkpoint: Fresh-Key DAG Closure Is Too Coarse (2026-06-04)
 
 - Final theorem status: **not complete**. The priority theorem remains the
