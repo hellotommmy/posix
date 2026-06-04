@@ -10007,6 +10007,45 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Final Theorem Still Open, DAG Bridge Smoke Fixed (2026-06-05)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- User-priority clarification:
+  - The top priority is the final checked theorem that the final strong
+    simplification route satisfies a cubic bound for the non-backref fragment.
+    That theorem is **not** complete.
+  - Existing Isabelle theorems such as
+    `strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_contract`
+    and `strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`
+    are conditional handoffs. They prove correctness/size bounds from an
+    assumed finite closed universe `U`; they do not construct the concrete
+    root-owned cubic universe.
+- Tooling fix:
+  - `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1` now exposes the Scala
+    flags `POSIX_SMOKE_STRONG_ROWS_BRIDGE_DAG` and
+    `POSIX_SMOKE_STRONG_ROWS_BRIDGE_ONLY_CH7`.
+  - This prevents Chapter 7 bridge checks from silently falling back to the
+    non-DAG tree path, which previously produced a Java heap OOM.
+- Smoke evidence after the fix:
+  - Exhaustive depth `2`, input length `3`, DAG bridge:
+    `84300` regex/input pairs checked; final-active coverage `832/832`;
+    maxRows `3`; maxBridgeRows `15`.
+  - Deterministic random depth `5`, input length `6`, seed `20260602`, DAG
+    bridge: `1000` cases checked; final-active coverage `72/72`; maxRows `6`;
+    maxBridgeRows `71`.
+  - Chapter 7 DAG bridge, `k=5`, lengths `4,8,16,32`:
+    final-active coverage `19/19`; maxRows `15`; maxBridgeRows `83`.
+  - Chapter 7 DAG bridge, `k=8`, lengths `4,8,16,32,64`:
+    final-active coverage `41/41`; maxRows `36`; maxBridgeRows `259`.
+- Current proof target:
+  - Do not add more wrapper-style contracts. The next real theorem must
+    construct a concrete original-regex universe closed under local derivative
+    normalization, `rflts`, active-suffix pruning, and subterms, and prove its
+    cardinality/member-size bounds. Only that closes the cubic-bound gap.
+- Bounty status: no cubic bounty claimed. Smoke and wrapper exposure are
+  supporting evidence only.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

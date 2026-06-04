@@ -3970,3 +3970,14 @@ to be read before continuing long-running agent work.
   tree-size accounting. The first-priority target remains a shared row-DAG /
   root-owned universe cardinality proof, or a sharper owner theorem that avoids
   this extra factor. Do not report any cubic bounty from this checkpoint.
+- Final-theorem priority clarification (2026-06-05): the only result that
+  counts for the cubic-bound objective is a checked theorem for the final
+  strong simplification route, not a conditional handoff and not a smoke trace.
+  The current Isabelle contracts already show that a finite closed universe
+  with suitable cardinality/member-size bounds implies POSIX correctness and
+  row-size control. The missing theorem is constructive: define/prove the
+  concrete original-regex universe closed under local derivative normalization,
+  `rflts`, active-suffix pruning, and subterms, with a cubic row-DAG/cardinality
+  bound. Also fixed `scala_cubic_smoke.ps1` so Chapter 7 bridge smoke can run
+  the existing DAG bridge checker instead of the non-DAG tree path; the DAG
+  checker covers the tested Chapter 7 cases, but this is still evidence only.
