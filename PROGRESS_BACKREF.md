@@ -9,13 +9,22 @@ Last updated: 2026-06-04 (strong-memo route is default)
 - Checked Isabelle additions:
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_empty`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`
   - `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`
+  - `FBound.thy:strong_deferred_memo_lexer_strong_rows_bridge_owner_linear_contract`
 - Meaning:
   - The Scala DAG bridge evidence now has a matching proof-facing owner set:
     rows produced by `rpders_strong1_rows_raw`, closed under raw prune-active
     suffixes and subterms.
+  - The bridge route now has a checked contract theorem: bridge-owner coverage
+    plus a linear bridge-owner cardinality bound discharges the existing
+    memo-strong POSIX/cubic-budget contract.
+  - The empty-input bridge inclusion is checked unconditionally. The all-input
+    bridge inclusion remains the main open proof obligation.
   - The final cubic route is reduced to two explicit remaining obligations:
     show
     `strong_deferred_final_active_suffix_row_dag_universe r s` is included in

@@ -11,9 +11,16 @@ to be read before continuing long-running agent work.
 - Added checked Isabelle definitions/facts in `FBound.thy`:
   `strong_deferred_strong_rows_raw_bridge_rows`,
   `strong_deferred_strong_rows_raw_bridge_owner`,
+  `strong_deferred_strong_rows_raw_bridge_rows_empty`,
   `strong_deferred_strong_rows_raw_bridge_rows_subset_owner`,
   `strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`, and
   `card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`.
+- Added the checked bridge-to-contract theorem
+  `strong_deferred_memo_lexer_strong_rows_bridge_owner_linear_contract`: once
+  bridge-owner coverage and a linear bridge-owner size bound are proved, the
+  existing memo-strong POSIX correctness and cubic-budget conclusions follow.
+- Added the first unconditional bridge-inclusion base case,
+  `strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`.
 - This turns the DAG bridge smoke evidence into a concrete proof interface:
   prove inclusion of
   `strong_deferred_final_active_suffix_row_dag_universe r s` into the bridge
