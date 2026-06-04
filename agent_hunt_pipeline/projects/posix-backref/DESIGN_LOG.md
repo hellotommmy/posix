@@ -3889,3 +3889,13 @@ to be read before continuing long-running agent work.
   show that the final active row-DAG universe is covered by this bridge owner
   for arbitrary non-backref inputs, and prove the three linear bridge premises
   from the original regex rather than from the already-grown final tree.
+- Row-gate least-owner handoff checkpoint (2026-06-04): added
+  `strong_deferred_row_gate_least_owner_dag_POSIX_contract` plus direct
+  annotated/raw row-list size bounds from
+  `strong_deferred_strong_rows_raw_least_owner_dag`. This shifts the preferred
+  final object away from the old emitted `bders_simpStrong` tree: the checked
+  row-list nullable gate already gives exact POSIX correctness and flatness,
+  and the row-list erased rows plus its `rsimpStrong_ALTs_raw` active row-DAG
+  are covered by the least-owner DAG. The final theorem is still open: prove a
+  concrete original-regex cubic bound and member-size bound for that
+  least-owner DAG.

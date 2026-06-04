@@ -9789,6 +9789,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Row Gate Least-Owner Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_least_owner_dag`
+  - `FBound.thy:map_rerase_bpders_strong1_rows_intern_subset_least_owner_dag`
+  - `FBound.thy:asizes_bpders_strong1_rows_intern_least_owner_dag_boundI`
+  - `FBound.thy:rsizes_rpders_strong1_rows_raw_intern_least_owner_dag_boundI`
+  - `FBound.thy:strong_deferred_row_gate_least_owner_dag_POSIX_contract`
+- Design result:
+  - The final checked object is now allowed to be the strong row-list nullable
+    gate, not the old emitted `bders_simpStrong` tree. Under finite/cardinality
+    and member-size bounds for `strong_deferred_strong_rows_raw_least_owner_dag`,
+    Isabelle derives exact POSIX correctness/flatness for the row-gate memo
+    lexer and size bounds for both annotated rows and erased raw rows.
+  - The final row-list erased rows, and the row-list `rsimpStrong_ALTs_raw`
+    active row-DAG, are checked to be covered by the least-owner DAG. This
+    removes one handoff gap from the memo-strong proof route.
+- Remaining first-priority gap:
+  - Prove a concrete original-regex cubic/cardinality theorem for
+    `strong_deferred_strong_rows_raw_least_owner_dag`, including a usable
+    member-size bound. Until that theorem is checked, the final cubic bound is
+    not complete.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
