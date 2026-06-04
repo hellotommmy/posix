@@ -119,6 +119,15 @@ immutability.
   BR-040 target to proving that concrete linear owner universe for arbitrary
   non-backref inputs. It is not the final cubic theorem, and no BR-039/BR-040
   bounty is paid.
+- Shared-prune closure member-size preservation: `GeneralRegexBound.thy` now
+  checks `raw_shared_prune_pair_outputs_member_size_le_later_size`,
+  `raw_shared_prune_pair_closure_member_size_bound`,
+  `raw_shared_prune_same_suffix_closure_member_size_bound`, and
+  `raw_shared_prune_active_suffix_closure_member_size_bound`. Pair outputs are
+  no larger than their later row, so pair/same-suffix/active closures inherit
+  any universe member-size bound. This removes one side condition from the
+  owner-universe route, but the all-input cubic theorem remains open and no
+  bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

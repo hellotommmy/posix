@@ -3746,3 +3746,14 @@ to be read before continuing long-running agent work.
   cubic theorem. The first-priority proof obligation is now to construct that
   concrete linear owner universe for arbitrary non-backref inputs; do not claim
   BR-039/BR-040 for additional conditional restatements.
+- Shared-prune member-size checkpoint (2026-06-04): added
+  `raw_shared_prune_pair_outputs_member_size_le_later_size` and the
+  pair/same-suffix/active-suffix closure member-size bounds in
+  `GeneralRegexBound.thy`. The proof is intentionally local: every output of
+  `raw_shared_prune_pair_outputs earlier later` is a flattened member of
+  `rsimpStrong_prune_pair_raw earlier later`, whose size is already bounded by
+  `rsize later`; since every closure pair keeps `later` inside the current
+  universe, the member-size bound is preserved. This is useful for constructing
+  a closed owner universe because closure can now be charged only for
+  cardinality, not for growing row sizes. It is still not the final cubic
+  theorem.

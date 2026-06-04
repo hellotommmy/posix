@@ -24747,6 +24747,108 @@ proof -
   finally show ?thesis .
 qed
 
+lemma raw_shared_prune_pair_outputs_member_size_le_later_size:
+  assumes "x \<in> raw_shared_prune_pair_outputs earlier later"
+  shows "rsize x \<le> rsize later"
+proof -
+  let ?p = "rsimpStrong_prune_pair_raw earlier later"
+  have x: "x \<in> set (rflts [?p])"
+    using assms by (simp add: raw_shared_prune_pair_outputs_def)
+  have "rsize x \<le> rsizes (rflts [?p])"
+    by (rule rsize_member_le_rsizes[OF x])
+  also have "... \<le> rsizes [?p]"
+    by (rule rflts_mono)
+  also have "... = rsize ?p"
+    by simp
+  also have "... \<le> rsize later"
+    by (rule rsize_rsimpStrong_prune_pair_raw_le)
+  finally show ?thesis .
+qed
+
+lemma raw_shared_prune_pair_closure_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> raw_shared_prune_pair_closure U"
+  shows "rsize x \<le> M"
+proof -
+  from x consider
+      (base) "x \<in> U"
+    | (pair) earlier later where
+        "earlier \<in> U" "later \<in> U"
+        "x \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_pair_closure_def split: prod.splits)
+  then show ?thesis
+  proof cases
+    case base
+    then show ?thesis
+      by (rule member_size)
+  next
+    case (pair earlier later)
+    have "rsize x \<le> rsize later"
+      by (rule raw_shared_prune_pair_outputs_member_size_le_later_size[OF pair(3)])
+    also have "... \<le> M"
+      by (rule member_size[OF pair(2)])
+    finally show ?thesis .
+  qed
+qed
+
+lemma raw_shared_prune_same_suffix_closure_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> raw_shared_prune_same_suffix_closure U"
+  shows "rsize x \<le> M"
+proof -
+  from x consider
+      (base) "x \<in> U"
+    | (pair) earlier later where
+        "(earlier, later) \<in> raw_shared_prune_same_suffix_pairs U"
+        "x \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_same_suffix_closure_as_pairs
+        split: prod.splits)
+  then show ?thesis
+  proof cases
+    case base
+    then show ?thesis
+      by (rule member_size)
+  next
+    case (pair earlier later)
+    have later: "later \<in> U"
+      using pair(1) by (simp add: raw_shared_prune_same_suffix_pairs_def)
+    have "rsize x \<le> rsize later"
+      by (rule raw_shared_prune_pair_outputs_member_size_le_later_size[OF pair(2)])
+    also have "... \<le> M"
+      by (rule member_size[OF later])
+    finally show ?thesis .
+  qed
+qed
+
+lemma raw_shared_prune_active_suffix_closure_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> raw_shared_prune_active_suffix_closure U"
+  shows "rsize x \<le> M"
+proof -
+  from x consider
+      (base) "x \<in> U"
+    | (pair) earlier later where
+        "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs U"
+        "x \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_active_suffix_closure_as_pairs
+        split: prod.splits)
+  then show ?thesis
+  proof cases
+    case base
+    then show ?thesis
+      by (rule member_size)
+  next
+    case (pair earlier later)
+    have later: "later \<in> U"
+      using pair(1) by (simp add: raw_shared_prune_active_suffix_pairs_def)
+    have "rsize x \<le> rsize later"
+      by (rule raw_shared_prune_pair_outputs_member_size_le_later_size[OF pair(2)])
+    also have "... \<le> M"
+      by (rule member_size[OF later])
+    finally show ?thesis .
+  qed
+qed
+
 lemma card_raw_shared_prune_same_suffix_closure_member_bucket_bound:
   assumes finite: "finite U"
     and keys_bound: "card (raw_shared_prune_suffix_key ` U) \<le> S"

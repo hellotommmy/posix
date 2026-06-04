@@ -2,6 +2,33 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Shared-Prune Closure Preserves Member Size (2026-06-04)
+
+- Final theorem status: **not complete**. The first-priority theorem is still
+  the all-input cubic/linear-owner bound for the final memo-strong
+  simplification route, not another conditional handoff.
+- Checked Isabelle additions in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_pair_outputs_member_size_le_later_size`
+  - `raw_shared_prune_pair_closure_member_size_bound`
+  - `raw_shared_prune_same_suffix_closure_member_size_bound`
+  - `raw_shared_prune_active_suffix_closure_member_size_bound`
+- Meaning:
+  - The raw strong shared-prune closure cannot create members larger than the
+    existing universe member-size bound. Pair outputs are bounded by the
+    `later` input row, and pair/same-suffix/active-suffix closures inherit the
+    original member bound `M`.
+  - This supports the owner-universe construction route: closure may increase
+    cardinality, but it no longer threatens the `member_size` premise needed by
+    the active-suffix cubic row-universe interface.
+- Verification:
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 600`.
+  - Scala exact POSIX smoke still checks the default strong-memo route before
+    Isabelle (`84,300` exhaustive regex/input pairs plus known CE and Chapter
+    7 k=5 trace).
+- Bounty status: proof infrastructure only; no final cubic theorem or bounty is
+  claimed.
+
 ## Cubic Route Checkpoint: Final Row-DAG Base Case (2026-06-04)
 
 - Final theorem status: **not complete**. The first-priority missing theorem is
