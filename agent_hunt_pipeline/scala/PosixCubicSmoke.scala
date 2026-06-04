@@ -2105,7 +2105,8 @@ object PosixCubicSmoke {
       payloadRoots: Int,
       payloadDagUniverseSize: Int,
       keyDagUniverseSize: Int,
-      componentOwnerSize: Int,
+      componentUnionSize: Int,
+      decompBoundSize: Int,
       maxBucket: Int,
       maxRowSize: Int,
       maxRowDagSize: Int,
@@ -2172,7 +2173,8 @@ object PosixCubicSmoke {
       payloadRoots: Int,
       payloadDagUniverseSize: Int,
       keyDagUniverseSize: Int,
-      componentOwnerSize: Int,
+      componentUnionSize: Int,
+      decompBoundSize: Int,
       maxBucket: Int,
       maxRowSize: Int,
       maxRowDagSize: Int,
@@ -2355,8 +2357,10 @@ object PosixCubicSmoke {
       if (bucketRows.isEmpty) 0 else bucketRows.map(rshapeDagSize).max
     val rowDagUniverseSize =
       bucketRows.iterator.flatMap(rsubterms).toSet.size
-    val componentOwnerSize =
+    val componentUnionSize =
       (bucketRows.toSet ++ altNodes.toSet ++ payloadDagUniverse.toSet ++ keyDagUniverse.toSet).size
+    val decompBoundSize =
+      rows + altNodes.size + payloadDagUniverse.size + keyDagUniverse.size
     val pairBudget = buckets.valuesIterator.map { bucket =>
       val n = bucket.size.toLong
       n * n
@@ -2368,7 +2372,8 @@ object PosixCubicSmoke {
       payloadRoots.size,
       payloadDagUniverse.size,
       keyDagUniverse.size,
-      componentOwnerSize,
+      componentUnionSize,
+      decompBoundSize,
       maxBucket,
       maxRowSize,
       maxRowDagSize,
@@ -2521,7 +2526,8 @@ object PosixCubicSmoke {
       stats.payloadRoots,
       stats.payloadDagUniverseSize,
       stats.keyDagUniverseSize,
-      stats.componentOwnerSize,
+      stats.componentUnionSize,
+      stats.decompBoundSize,
       stats.maxBucket,
       stats.maxRowSize,
       stats.maxRowDagSize,
@@ -2621,7 +2627,8 @@ object PosixCubicSmoke {
            |finalActivePayloadRoots = ${result.finalActiveSuffix.payloadRoots}
            |finalActivePayloadDagUniverse = ${result.finalActiveSuffix.payloadDagUniverseSize}
            |finalActiveKeyDagUniverse = ${result.finalActiveSuffix.keyDagUniverseSize}
-           |finalActiveComponentOwner = ${result.finalActiveSuffix.componentOwnerSize}
+           |finalActiveComponentUnion = ${result.finalActiveSuffix.componentUnionSize}
+           |finalActiveDecompBound = ${result.finalActiveSuffix.decompBoundSize}
            |finalActiveMaxBucket  = ${result.finalActiveSuffix.maxBucket}
            |finalActiveMaxRowSize = ${result.finalActiveSuffix.maxRowSize}
            |finalActiveMaxRowDag  = ${result.finalActiveSuffix.maxRowDagSize}
@@ -2842,7 +2849,7 @@ object PosixCubicSmoke {
             f"rowDagUniverseRatio=${w.rowDagUniverseRatio}%.6f rowDagUniverse=${w.rowDagUniverseSize}" +
               s" altNodes=${w.altNodes} payloadRoots=${w.payloadRoots}" +
               s" payloadDag=${w.payloadDagUniverseSize} keyDag=${w.keyDagUniverseSize}" +
-              s" componentOwner=${w.componentOwnerSize}"
+              s" componentUnion=${w.componentUnionSize} decompBound=${w.decompBoundSize}"
           case other => s"$other=unknown"
         }
         s"#${i + 1}:$main label=${w.label} rsize=${w.regexSize} input=${shortObservationInput(w.input)} regex=${shortObservationRegex(w.regex)}"
@@ -3096,7 +3103,8 @@ object PosixCubicSmoke {
        |finalPayloadRoots = ${result.finalActiveSuffix.payloadRoots}
        |finalPayloadDag = ${result.finalActiveSuffix.payloadDagUniverseSize}
        |finalKeyDag = ${result.finalActiveSuffix.keyDagUniverseSize}
-       |finalComponentOwner = ${result.finalActiveSuffix.componentOwnerSize}
+       |finalComponentUnion = ${result.finalActiveSuffix.componentUnionSize}
+       |finalDecompBound = ${result.finalActiveSuffix.decompBoundSize}
        |finalMaxRowDag = ${result.finalActiveSuffix.maxRowDagSize}
        |finalRowDagUniverse = ${result.finalActiveSuffix.rowDagUniverseSize}
        |base         = $base
@@ -3153,7 +3161,8 @@ object PosixCubicSmoke {
        |finalActivePayloadRoots = ${obs.payloadRoots}
        |finalActivePayloadDagUniverse = ${obs.payloadDagUniverseSize}
        |finalActiveKeyDagUniverse = ${obs.keyDagUniverseSize}
-       |finalActiveComponentOwner = ${obs.componentOwnerSize}
+       |finalActiveComponentUnion = ${obs.componentUnionSize}
+       |finalActiveDecompBound = ${obs.decompBoundSize}
        |finalActiveMaxBucket  = ${obs.maxBucket}
        |finalActiveMaxRowSize = ${obs.maxRowSize}
        |finalActiveMaxRowDag  = ${obs.maxRowDagSize}
@@ -4881,8 +4890,10 @@ object PosixCubicSmoke {
         strongDeferredMemoResult(r, input).activeSuffix.payloadDagUniverseSize.toLong
       case "strongMemoActiveKeyDag" =>
         strongDeferredMemoResult(r, input).activeSuffix.keyDagUniverseSize.toLong
-      case "strongMemoActiveComponentOwner" =>
-        strongDeferredMemoResult(r, input).activeSuffix.componentOwnerSize.toLong
+      case "strongMemoActiveComponentUnion" =>
+        strongDeferredMemoResult(r, input).activeSuffix.componentUnionSize.toLong
+      case "strongMemoActiveDecompBound" =>
+        strongDeferredMemoResult(r, input).activeSuffix.decompBoundSize.toLong
       case "strongMemoActiveMaxBucket" => strongDeferredMemoResult(r, input).activeSuffix.maxBucket.toLong
       case "strongMemoActiveMaxRowSize" => strongDeferredMemoResult(r, input).activeSuffix.maxRowSize.toLong
       case "strongMemoActiveMaxRowDag" => strongDeferredMemoResult(r, input).activeSuffix.maxRowDagSize.toLong
@@ -4901,8 +4912,10 @@ object PosixCubicSmoke {
         strongDeferredMemoResult(r, input).finalActiveSuffix.payloadDagUniverseSize.toLong
       case "strongMemoFinalActiveKeyDag" =>
         strongDeferredMemoResult(r, input).finalActiveSuffix.keyDagUniverseSize.toLong
-      case "strongMemoFinalActiveComponentOwner" =>
-        strongDeferredMemoResult(r, input).finalActiveSuffix.componentOwnerSize.toLong
+      case "strongMemoFinalActiveComponentUnion" =>
+        strongDeferredMemoResult(r, input).finalActiveSuffix.componentUnionSize.toLong
+      case "strongMemoFinalActiveDecompBound" =>
+        strongDeferredMemoResult(r, input).finalActiveSuffix.decompBoundSize.toLong
       case "strongMemoFinalActiveMaxBucket" => strongDeferredMemoResult(r, input).finalActiveSuffix.maxBucket.toLong
       case "strongMemoFinalActiveMaxRowSize" => strongDeferredMemoResult(r, input).finalActiveSuffix.maxRowSize.toLong
       case "strongMemoFinalActiveMaxRowDag" => strongDeferredMemoResult(r, input).finalActiveSuffix.maxRowDagSize.toLong
@@ -4930,7 +4943,7 @@ object PosixCubicSmoke {
         sharedModeResult(seqMode, r, input, directDag = true).langAtomicContPruneShapeStatePoolSize.toLong
       case other =>
         throw new IllegalArgumentException(
-          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongMemoTree, strongMemoDag, strongMemoShape, strongMemoAcceptsStates, strongMemoValueStates, strongMemoStates, strongMemoSplitProbes, strongMemoQueries, strongMemoActiveRows, strongMemoActiveKeys, strongMemoActiveAltNodes, strongMemoActivePayloadRoots, strongMemoActivePayloadDag, strongMemoActiveKeyDag, strongMemoActiveComponentOwner, strongMemoActiveMaxBucket, strongMemoActiveMaxRowSize, strongMemoActiveMaxRowDag, strongMemoActiveMaxRowShapeDag, strongMemoActiveRowDagUniverse, strongMemoActivePairBudget, strongMemoFinalActiveRows, strongMemoFinalActiveKeys, strongMemoFinalActiveAltNodes, strongMemoFinalActivePayloadRoots, strongMemoFinalActivePayloadDag, strongMemoFinalActiveKeyDag, strongMemoFinalActiveComponentOwner, strongMemoFinalActiveMaxBucket, strongMemoFinalActiveMaxRowSize, strongMemoFinalActiveMaxRowDag, strongMemoFinalActiveMaxRowShapeDag, strongMemoFinalActiveRowDagUniverse, strongMemoFinalActivePairBudget, strongMemoSpanBound, strongMemoSplitBound, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
+          s"unknown POSIX_SMOKE_CH7_SIZE_METRIC=$other; expected strongTree, strongDag, strongShape, strongMemoTree, strongMemoDag, strongMemoShape, strongMemoAcceptsStates, strongMemoValueStates, strongMemoStates, strongMemoSplitProbes, strongMemoQueries, strongMemoActiveRows, strongMemoActiveKeys, strongMemoActiveAltNodes, strongMemoActivePayloadRoots, strongMemoActivePayloadDag, strongMemoActiveKeyDag, strongMemoActiveComponentUnion, strongMemoActiveDecompBound, strongMemoActiveMaxBucket, strongMemoActiveMaxRowSize, strongMemoActiveMaxRowDag, strongMemoActiveMaxRowShapeDag, strongMemoActiveRowDagUniverse, strongMemoActivePairBudget, strongMemoFinalActiveRows, strongMemoFinalActiveKeys, strongMemoFinalActiveAltNodes, strongMemoFinalActivePayloadRoots, strongMemoFinalActivePayloadDag, strongMemoFinalActiveKeyDag, strongMemoFinalActiveComponentUnion, strongMemoFinalActiveDecompBound, strongMemoFinalActiveMaxBucket, strongMemoFinalActiveMaxRowSize, strongMemoFinalActiveMaxRowDag, strongMemoFinalActiveMaxRowShapeDag, strongMemoFinalActiveRowDagUniverse, strongMemoFinalActivePairBudget, strongMemoSpanBound, strongMemoSplitBound, strongSafeTree, strongSafeDag, strongSafeShape, cubicTree, cubicDag, cubicShape, sharedTree, sharedDag, sharedShape, sharedStatePool, sharedShapeStatePool, langContPruneShapeStatePool, or langAtomicContPruneShapeStatePool"
         )
     }
 
@@ -5043,7 +5056,8 @@ object PosixCubicSmoke {
           s"/activePayloadRoots=${s.activeSuffix.payloadRoots}" +
           s"/activePayloadDag=${s.activeSuffix.payloadDagUniverseSize}" +
           s"/activeKeyDag=${s.activeSuffix.keyDagUniverseSize}" +
-          s"/activeComponentOwner=${s.activeSuffix.componentOwnerSize}" +
+          s"/activeComponentUnion=${s.activeSuffix.componentUnionSize}" +
+          s"/activeDecompBound=${s.activeSuffix.decompBoundSize}" +
           s"/activeMaxBucket=${s.activeSuffix.maxBucket}" +
           s"/activeMaxRowSize=${s.activeSuffix.maxRowSize}" +
           s"/activeMaxRowDag=${s.activeSuffix.maxRowDagSize}" +
@@ -5055,7 +5069,8 @@ object PosixCubicSmoke {
           s"/finalPayloadRoots=${s.finalActiveSuffix.payloadRoots}" +
           s"/finalPayloadDag=${s.finalActiveSuffix.payloadDagUniverseSize}" +
           s"/finalKeyDag=${s.finalActiveSuffix.keyDagUniverseSize}" +
-          s"/finalComponentOwner=${s.finalActiveSuffix.componentOwnerSize}" +
+          s"/finalComponentUnion=${s.finalActiveSuffix.componentUnionSize}" +
+          s"/finalDecompBound=${s.finalActiveSuffix.decompBoundSize}" +
           s"/finalMaxBucket=${s.finalActiveSuffix.maxBucket}" +
           s"/finalMaxRowSize=${s.finalActiveSuffix.maxRowSize}" +
           s"/finalMaxRowDag=${s.finalActiveSuffix.maxRowDagSize}" +

@@ -12,9 +12,10 @@ to be read before continuing long-running agent work.
   final-active row-DAG owner table.
 - Extended the Scala smoke metrics to decompose active/final rows into
   ALT nodes, payload roots, payload DAG universe, suffix-key DAG universe, and
-  their component owner union. The key proof-facing metrics are now
+  both a component union observation and the proof-facing decomposition bound
+  `rows + altNodes + payloadDag + keyDag`. The key proof-facing metrics are now
   `strongMemoFinalActiveRowDagUniverse` and
-  `strongMemoFinalActiveComponentOwner`; emitted tree size is diagnostic only.
+  `strongMemoFinalActiveDecompBound`; emitted tree size is diagnostic only.
 - Future proof work should target linear component/owner bounds feeding
   `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`. Do not
   claim a cubic bounty for a reassociated or emitted-tree simplifier unless it

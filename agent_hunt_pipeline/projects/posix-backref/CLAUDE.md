@@ -137,9 +137,11 @@ The report includes
 `strongMemoActiveMaxBucket`, `strongMemoActivePairBudget`, and the
 active owner decomposition metrics `strongMemoActiveAltNodes`,
 `strongMemoActivePayloadRoots`, `strongMemoActivePayloadDag`,
-`strongMemoActiveKeyDag`, `strongMemoActiveComponentOwner`, and
-`strongMemoActiveRowDagUniverse`; inspect these before changing the proof
-universe.
+`strongMemoActiveKeyDag`, `strongMemoActiveComponentUnion`,
+`strongMemoActiveDecompBound`, and `strongMemoActiveRowDagUniverse`; inspect
+these before changing the proof universe. The `DecompBound` metric is the one
+aligned with the Isabelle decomposition bound; the `ComponentUnion` metric is
+only observational and need not cover the full row-DAG universe.
 The `n=200` long-tail grid shows `strongMemoTree` is still promising, but the
 unquotiented cumulative active prefix pool keeps growing for `k=8`. Treat
 active-prefix metrics as diagnostics, not as the final root-owned cubic
@@ -149,7 +151,8 @@ The same report now includes final-state metrics
 `strongMemoFinalActiveMaxBucket`, `strongMemoFinalActiveMaxRowSize`,
 `strongMemoFinalActivePairBudget`, `strongMemoFinalActiveAltNodes`,
 `strongMemoFinalActivePayloadRoots`, `strongMemoFinalActivePayloadDag`,
-`strongMemoFinalActiveKeyDag`, `strongMemoFinalActiveComponentOwner`, and
+`strongMemoFinalActiveKeyDag`, `strongMemoFinalActiveComponentUnion`,
+`strongMemoFinalActiveDecompBound`, and
 `strongMemoFinalActiveRowDagUniverse`.
 Prefer these when reasoning about the size of the final derivative tree; on
 the current `k=5,8,10,12,n<=200` grid they stay tiny while the prefix pool
