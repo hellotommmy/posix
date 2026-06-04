@@ -4021,6 +4021,55 @@ lemma card_strong_deferred_final_active_suffix_component_union_le_final_asize:
       card_strong_deferred_final_active_suffix_component_union_eq_row_dag_universe
       card_strong_deferred_final_active_suffix_row_dag_universe_le_final_asize)
 
+lemma strong_deferred_final_active_suffix_decomp_bound_le_four_row_dag_universe:
+  "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+    4 * card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+proof -
+  let ?U = "strong_deferred_final_active_suffix_row_dag_universe r s"
+  have rows:
+      "card (strong_deferred_final_active_suffix_rows r s) \<le> card ?U"
+    by (rule card_mono)
+      (simp_all add: strong_deferred_final_active_suffix_rows_subset_row_dag_universe)
+  have alts:
+      "card (strong_deferred_final_active_suffix_alt_nodes r s) \<le> card ?U"
+    by (rule card_mono)
+      (simp_all add:
+        strong_deferred_final_active_suffix_alt_nodes_subset_row_dag_universe)
+  have payload:
+      "card (strong_deferred_final_active_suffix_payload_dag_universe r s)
+        \<le> card ?U"
+    by (rule card_mono)
+      (simp_all add:
+        strong_deferred_final_active_suffix_payload_dag_universe_subset_row_dag_universe)
+  have keys:
+      "card (strong_deferred_final_active_suffix_key_dag_universe r s)
+        \<le> card ?U"
+    by (rule card_mono)
+      (simp_all add:
+        strong_deferred_final_active_suffix_key_dag_universe_subset_row_dag_universe)
+  show ?thesis
+    unfolding strong_deferred_final_active_suffix_decomp_bound_def
+    using rows alts payload keys by linarith
+qed
+
+lemma strong_deferred_final_active_suffix_decomp_bound_row_dag_linearI:
+  assumes row_dag:
+      "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        K * rxsize r"
+  shows "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+    (4 * K) * rxsize r"
+proof -
+  have "strong_deferred_final_active_suffix_decomp_bound r s \<le>
+      4 * card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+    by (rule
+        strong_deferred_final_active_suffix_decomp_bound_le_four_row_dag_universe)
+  also have "... \<le> 4 * (K * rxsize r)"
+    by (rule mult_left_mono[OF row_dag]) simp
+  also have "... = (4 * K) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma card_strong_deferred_final_active_suffix_rows_le_row_dag_universe:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
     card (strong_deferred_final_active_suffix_row_dag_universe r s)"
