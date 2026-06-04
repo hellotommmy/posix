@@ -22479,6 +22479,94 @@ lemma raw_final_active_suffix_keys_member_size_le_rsize:
   using assms raw_final_active_suffix_keys_subset_rsubterms
   by (meson contra_subsetD rsubterms_member_size_le_rsize)
 
+lemma raw_final_active_suffix_rows_bucket_union:
+  "raw_final_active_suffix_rows r =
+    (\<Union>k\<in>raw_final_active_suffix_keys r.
+      raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k)"
+proof
+  show "raw_final_active_suffix_rows r \<subseteq>
+      (\<Union>k\<in>raw_final_active_suffix_keys r.
+        raw_shared_prune_active_suffix_bucket
+          (raw_final_active_suffix_rows r) k)"
+  proof
+    fix q
+    assume q: "q \<in> raw_final_active_suffix_rows r"
+    obtain rows k where q_def: "q = RSEQ (RALTS rows) k"
+      and q_sub: "q \<in> rsubterms r"
+      by (rule raw_final_active_suffix_rowsE[OF q])
+    have k: "k \<in> raw_final_active_suffix_keys r"
+    proof -
+      have "\<exists>rows. RSEQ (RALTS rows) k \<in> rsubterms r"
+        using q_def q_sub by blast
+      then show ?thesis
+        by (simp add: raw_final_active_suffix_keys_iff)
+    qed
+    have q_bucket:
+        "q \<in> raw_shared_prune_active_suffix_bucket
+          (raw_final_active_suffix_rows r) k"
+      using q q_def
+      by (simp add: raw_shared_prune_active_suffix_bucket_def
+          raw_shared_prune_suffix_key_def)
+    show "q \<in> (\<Union>k\<in>raw_final_active_suffix_keys r.
+        raw_shared_prune_active_suffix_bucket
+          (raw_final_active_suffix_rows r) k)"
+      using k q_bucket by blast
+  qed
+  show "(\<Union>k\<in>raw_final_active_suffix_keys r.
+      raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k)
+      \<subseteq> raw_final_active_suffix_rows r"
+  proof
+    fix q
+    assume "q \<in> (\<Union>k\<in>raw_final_active_suffix_keys r.
+      raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k)"
+    then obtain k where
+      "q \<in> raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows r) k"
+      by blast
+    then show "q \<in> raw_final_active_suffix_rows r"
+      by (simp add: raw_shared_prune_active_suffix_bucket_def)
+  qed
+qed
+
+lemma card_raw_final_active_suffix_rows_bucket_boundI:
+  assumes keys_bound: "card (raw_final_active_suffix_keys r) \<le> K"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_final_active_suffix_keys r \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (raw_final_active_suffix_rows r) k) \<le> B"
+  shows "card (raw_final_active_suffix_rows r) \<le> K * B"
+proof -
+  let ?keys = "raw_final_active_suffix_keys r"
+  let ?bucket =
+    "\<lambda>k. raw_shared_prune_active_suffix_bucket
+      (raw_final_active_suffix_rows r) k"
+  have keys_finite: "finite ?keys"
+    by simp
+  have rows_eq:
+    "raw_final_active_suffix_rows r = (\<Union>k\<in>?keys. ?bucket k)"
+    by (rule raw_final_active_suffix_rows_bucket_union)
+  have "card (raw_final_active_suffix_rows r) =
+      card (\<Union>k\<in>?keys. ?bucket k)"
+    by (rule arg_cong[where f=card, OF rows_eq])
+  also have "... \<le> (\<Sum>k\<in>?keys. card (?bucket k))"
+    by (rule card_UN_le[OF keys_finite])
+  also have "... \<le> (\<Sum>k\<in>?keys. B)"
+  proof (rule sum_mono)
+    fix k
+    assume k: "k \<in> ?keys"
+    show "card (?bucket k) \<le> B"
+      by (rule bucket_bound[OF k])
+  qed
+  also have "... = card ?keys * B"
+    by simp
+  also have "... \<le> K * B"
+    by (rule mult_right_mono[OF keys_bound]) simp
+  finally show ?thesis .
+qed
+
 lemma card_raw_final_active_suffix_bucket_le_rsize:
   "card (raw_shared_prune_active_suffix_bucket
       (raw_final_active_suffix_rows r) k) \<le> rsize r"

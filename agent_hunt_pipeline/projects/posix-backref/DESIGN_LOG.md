@@ -3679,3 +3679,16 @@ to be read before continuing long-running agent work.
   `componentUnionSize != rowDagUniverseSize`. This is still not the final cubic
   theorem, but it removes a metric fork: component-union smoke data and row-DAG
   Isabelle bounds now refer to the same object.
+- Final-row suffix bucket checkpoint (2026-06-04): added
+  `raw_final_active_suffix_rows_bucket_union`,
+  `card_raw_final_active_suffix_rows_bucket_boundI`, and their lifted
+  `strong_deferred_final_active_suffix_rows_*` versions. This gives the
+  BR-040 proof route a clean row-count decomposition:
+  `card finalRows <= card finalKeys * maxSuffixBucket`. The remaining theorem
+  is still the real cubic/linear bound for arbitrary non-backref inputs, namely
+  proving that those keys and bucket widths are controlled by the original
+  regex-owned universe. A first version used a broad `simp` over the bucket
+  union and made Isabelle run for more than a minute; it was replaced with
+  direct `rule` and `arg_cong` proof steps. Keep future accounting lemmas in
+  this style: if automation takes more than a second or two, split the set
+  equality/cardinality step explicitly.

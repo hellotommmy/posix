@@ -79,6 +79,12 @@ immutability.
   This closes only `length s <= 1` for the final active row-DAG universe by
   padding the empty linear and singleton quadratic bounds to a cubic shape.
   The all-input cubic/linear-owner theorem remains open; no bounty is paid.
+- Final-row suffix bucket accounting: `GeneralRegexBound.thy` and `FBound.thy`
+  now check the raw and lifted bucket-union lemmas plus
+  `card_*_final_active_suffix_rows_bucket_boundI`. These lemmas reduce final
+  row-count control to `card suffixKeys * max suffixBucket`, giving BR-040 a
+  sharper accounting target. They do not prove the required all-input
+  regex-size cubic/linear theorem, so no BR-039/BR-040 bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

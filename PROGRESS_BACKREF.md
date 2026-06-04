@@ -9217,6 +9217,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: still infrastructure only; the final cubic theorem remains
   unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Final Rows by Suffix Buckets (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `GeneralRegexBound.thy:raw_final_active_suffix_rows_bucket_union`
+  - `GeneralRegexBound.thy:card_raw_final_active_suffix_rows_bucket_boundI`
+  - `FBound.thy:strong_deferred_final_active_suffix_rows_bucket_union`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_rows_bucket_boundI`
+- Design result:
+  - Final-active rows are now decomposed by their `raw_shared_prune_suffix_key`.
+    Isabelle proves that the row set is the union of its active suffix buckets,
+    and that `card rows <= card keys * max bucket width`.
+  - This is the next useful accounting bridge for the memo-strong route: a
+    future proof can close final-row linearity by separately bounding the
+    number of suffix keys and the per-key bucket width.
+  - During CI a broad `simp` over the bucket union was found to run for over
+    a minute. The proof was rewritten with direct `rule`/`arg_cong` steps, in
+    line with the proof-performance rule that slow automation must be split.
+- Build: full local CI PASS: Scala strong-memo smoke, `Posix`, and
+  `BackRefPilot`.
+- Bounty status: infrastructure only. The final non-backref cubic theorem is
+  still open; no BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

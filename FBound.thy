@@ -3627,6 +3627,56 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_deferred_final_active_suffix_rows_bucket_union:
+  "strong_deferred_final_active_suffix_rows r s =
+    (\<Union>k\<in>strong_deferred_final_active_suffix_keys r s.
+      raw_shared_prune_active_suffix_bucket
+        (strong_deferred_final_active_suffix_rows r s) k)"
+proof -
+  let ?raw = "strong_deferred_final_raw r s"
+  have raw:
+    "raw_final_active_suffix_rows ?raw =
+      (\<Union>k\<in>raw_final_active_suffix_keys ?raw.
+        raw_shared_prune_active_suffix_bucket
+          (raw_final_active_suffix_rows ?raw) k)"
+    by (rule raw_final_active_suffix_rows_bucket_union)
+  show ?thesis
+    using raw
+    unfolding strong_deferred_final_active_suffix_rows_def
+      strong_deferred_final_active_suffix_keys_def .
+qed
+
+lemma card_strong_deferred_final_active_suffix_rows_bucket_boundI:
+  assumes keys_bound:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le> K"
+    and bucket_bound:
+      "\<And>k. k \<in> strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (strong_deferred_final_active_suffix_rows r s) k) \<le> B"
+  shows "card (strong_deferred_final_active_suffix_rows r s) \<le> K * B"
+proof -
+  have raw:
+      "card (raw_final_active_suffix_rows
+          (strong_deferred_final_raw r s)) \<le> K * B"
+  proof (rule card_raw_final_active_suffix_rows_bucket_boundI)
+    show "card (raw_final_active_suffix_keys
+        (strong_deferred_final_raw r s)) \<le> K"
+      using keys_bound
+      by (simp add: strong_deferred_final_active_suffix_keys_def)
+    fix k
+    assume k: "k \<in> raw_final_active_suffix_keys
+      (strong_deferred_final_raw r s)"
+    show "card (raw_shared_prune_active_suffix_bucket
+        (raw_final_active_suffix_rows (strong_deferred_final_raw r s)) k)
+        \<le> B"
+      using bucket_bound[of k] k
+      by (simp add: strong_deferred_final_active_suffix_rows_def
+          strong_deferred_final_active_suffix_keys_def)
+  qed
+  then show ?thesis
+    by (simp add: strong_deferred_final_active_suffix_rows_def)
+qed
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize:
   "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
     rsize (strong_deferred_final_raw r s)"
