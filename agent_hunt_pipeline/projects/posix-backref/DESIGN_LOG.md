@@ -3770,3 +3770,14 @@ to be read before continuing long-running agent work.
   `raw_shared_prune_active_suffix_closure_keys_member_size_bound`: fresh keys
   are still subterms of bounded closure rows, so their sizes are controlled
   even though their count remains the hard part.
+- Fresh-key cardinality checkpoint (2026-06-04): added active-closure key
+  cardinality bounds in `GeneralRegexBound.thy`. The key observation is simple
+  but important for the owner-table route:
+  `card keys(closure U) <= card (closure U)`, and the existing active pair
+  budget gives `card (closure U) <= card U + P * M`. Therefore fresh
+  continuation keys are charged to the same pair-budget/member-size accounting
+  as closure rows. The final-active specialization
+  `card_raw_final_active_suffix_closure_keys_le_rsize_cubic` is only relative
+  to the final raw tree size; it is not the desired original-regex cubic
+  theorem. The next proof step should replace that final-tree accounting with
+  an original-regex continuation-owner universe.

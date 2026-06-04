@@ -137,6 +137,15 @@ immutability.
   `raw_shared_prune_active_suffix_closure_keys_member_size_bound` show that
   these keys remain member-size bounded. The remaining payout theorem still
   needs a cardinality/owner argument for those continuation keys.
+- Fresh-key cardinality accounting: `GeneralRegexBound.thy` now checks
+  `card_raw_shared_prune_active_suffix_closure_keys_member_pair_budget_bound`
+  and its final-active specializations. Keys introduced by active closure are
+  bounded by the closure cardinality, hence by `card U + P * M` under active
+  pair-budget and member-size premises. This gives a checked cubic bound in
+  the size of the already-produced final raw tree via
+  `card_raw_final_active_suffix_closure_keys_le_rsize_cubic`. The BR-040
+  payout theorem remains open because this still has to be owned by the
+  original non-backref regex, not by the final grown tree.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

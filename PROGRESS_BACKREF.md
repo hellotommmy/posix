@@ -2,6 +2,37 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Fresh-Key Cardinality Accounting (2026-06-04)
+
+- Final theorem status: **not complete**. This checkpoint controls the fresh
+  continuation keys exposed by active-suffix closure, but the original-regex
+  cubic owner theorem is still open.
+- Checked Isabelle additions in `GeneralRegexBound.thy`:
+  - `card_raw_shared_prune_active_suffix_closure_keys_le_closure`
+  - `card_raw_shared_prune_active_suffix_closure_keys_member_pair_budget_bound`
+  - `card_raw_shared_prune_active_suffix_closure_keys_member_pair_budget_card_bound`
+  - `card_raw_final_active_suffix_closure_keys_member_pair_budget_bound`
+  - `card_raw_final_active_suffix_closure_keys_member_pair_budget_card_bound`
+  - `card_raw_final_active_suffix_closure_keys_le_rsize_plus_square_member`
+  - `card_raw_final_active_suffix_closure_keys_le_rsize_cubic`
+- Meaning:
+  - Since active closure can introduce fresh keys, the proof route now accounts
+    for them by cardinality rather than trying to preserve the seed key set.
+  - For any finite seed universe `U`, keys of
+    `raw_shared_prune_active_suffix_closure U` are bounded by the closure size,
+    hence by `card U + P * M` when the active pair budget is `P` and every seed
+    member has size at most `M`.
+  - Instantiated to final-active rows, this gives a checked cubic bound in the
+    size of the already-produced final raw tree. The remaining hard theorem is
+    still to replace that final raw size by an original-regex-owned linear or
+    cubic owner universe.
+- Verification:
+  - Focused `isabelle build -v -d . Posix` PASS.
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 600`.
+- Bounty status: proof accounting infrastructure only; no final cubic theorem
+  or bounty is claimed.
+
 ## Cubic Route Checkpoint: Fresh Continuation Keys Exposed (2026-06-04)
 
 - Final theorem status: **not complete**. This checkpoint rules out a tempting
