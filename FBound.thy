@@ -9554,6 +9554,43 @@ next
   qed (use ih in simp_all)
 qed simp_all
 
+lemma asize_bsimpStrong_bder_legacy_le_square:
+  assumes "legacy_rrexp (rerase r)"
+  shows "asize (bsimpStrong (bder c r)) \<le> asize r * asize r"
+proof -
+  have "asize (bsimpStrong (bder c r)) \<le> asize (bder c r)"
+    by (rule asize_bsimpStrong_le)
+  also have "... \<le> asize r * asize r"
+    by (rule asize_bder_legacy_le_square[OF assms])
+  finally show ?thesis .
+qed
+
+lemma bders_simpStrong_append:
+  "bders_simpStrong r (s @ t) = bders_simpStrong (bders_simpStrong r s) t"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  then show ?case by simp
+qed
+
+lemma asize_bders_simpStrong_snoc_step_le_square:
+  assumes "legacy_rrexp (rerase r)"
+  shows "asize (bders_simpStrong r (s @ [c])) \<le>
+    asize (bders_simpStrong r s) * asize (bders_simpStrong r s)"
+proof -
+  have legacy_step: "legacy_rrexp (rerase (bders_simpStrong r s))"
+    by (rule legacy_rerase_bders_simpStrong[OF assms])
+  have "asize (bders_simpStrong r (s @ [c])) =
+      asize (bsimpStrong (bder c (bders_simpStrong r s)))"
+    by (simp add: bders_simpStrong_append)
+  also have "... \<le>
+      asize (bders_simpStrong r s) * asize (bders_simpStrong r s)"
+    by (rule asize_bsimpStrong_bder_legacy_le_square[OF legacy_step])
+  finally show ?thesis .
+qed
+
 lemma strong_deferred_final_raw_dag_size_singleton_le_rxsize_square:
   assumes "legacy_rexp r"
   shows "strong_deferred_final_raw_dag_size r [c] \<le> rxsize r * rxsize r"
