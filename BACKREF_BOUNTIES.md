@@ -74,6 +74,11 @@ immutability.
   factor sweep scripts now expose and report the row-DAG universe factor so
   smoke evidence tracks this exact target. Infrastructure only; no bounty is
   paid.
+- Final row-DAG base case: `FBound.thy` now checks
+  `card_strong_deferred_final_active_suffix_row_dag_universe_length_le_one_cubic`.
+  This closes only `length s <= 1` for the final active row-DAG universe by
+  padding the empty linear and singleton quadratic bounds to a cubic shape.
+  The all-input cubic/linear-owner theorem remains open; no bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

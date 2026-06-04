@@ -8097,6 +8097,31 @@ lemma rxsize_ge1:
   "1 \<le> rxsize r"
   by (induct r) simp_all
 
+lemma nat_square_le_cube_if_pos:
+  fixes n :: nat
+  assumes "1 \<le> n"
+  shows "n * n \<le> n * n * n"
+proof -
+  have "(n * n) * 1 \<le> (n * n) * n"
+    by (rule mult_left_mono[of 1 n "n * n"]) (rule assms, simp)
+  then show ?thesis
+    by simp
+qed
+
+lemma nat_le_cube_if_pos:
+  fixes n :: nat
+  assumes "1 \<le> n"
+  shows "n \<le> n * n * n"
+proof -
+  have "n * 1 \<le> n * n"
+    by (rule mult_left_mono[of 1 n n]) (rule assms, simp)
+  then have "n \<le> n * n"
+    by simp
+  also have "... \<le> n * n * n"
+    by (rule nat_square_le_cube_if_pos[OF assms])
+  finally show ?thesis .
+qed
+
 lemma asize_bder_ALT_square_arith:
   assumes "1 \<le> x" "1 \<le> y"
   shows "Suc (x * x + y * y) \<le> Suc (x + y) * Suc (x + y)"
@@ -8807,6 +8832,36 @@ proof -
     by (rule strong_deferred_final_raw_dag_size_singleton_le_rxsize_square
         [OF assms])
   finally show ?thesis .
+qed
+
+lemma card_strong_deferred_final_active_suffix_row_dag_universe_length_le_one_cubic:
+  assumes legacy: "legacy_rexp r"
+    and len: "length s \<le> 1"
+  shows "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+    rxsize r * rxsize r * rxsize r"
+proof (cases s)
+  case Nil
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r []) \<le>
+      rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize)
+  also have "... \<le> rxsize r * rxsize r * rxsize r"
+    by (rule nat_le_cube_if_pos) (rule rxsize_ge1)
+  finally show ?thesis
+    by (simp add: Nil)
+next
+  case (Cons c cs)
+  have cs_empty: "cs = []"
+    using len Cons by (cases cs) simp_all
+  have "card (strong_deferred_final_active_suffix_row_dag_universe r [c]) \<le>
+      rxsize r * rxsize r"
+    by (rule
+        card_strong_deferred_final_active_suffix_row_dag_universe_singleton_le_rxsize_square
+        [OF legacy])
+  also have "... \<le> rxsize r * rxsize r * rxsize r"
+    by (rule nat_square_le_cube_if_pos) (rule rxsize_ge1)
+  finally show ?thesis
+    by (simp add: Cons cs_empty)
 qed
 
 lemma asizes_map_bsimpStrong_le:

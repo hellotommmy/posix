@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Row-DAG Base Case (2026-06-04)
+
+- Final theorem status: **not complete**. The first-priority missing theorem is
+  still a concrete all-input bound of the form
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <=
+   K * rxsize r` for legacy/non-backref regexes.
+- Checked Isabelle additions in `FBound.thy`:
+  - `nat_square_le_cube_if_pos`
+  - `nat_le_cube_if_pos`
+  - `card_strong_deferred_final_active_suffix_row_dag_universe_length_le_one_cubic`
+- Meaning:
+  - The final-active row-DAG universe is now cubically bounded for `length s <=
+    1`. The proof uses the existing empty-input linear bound and singleton
+    quadratic bound, then pads them to `rxsize r ^ 3`.
+  - This is a real checked base case for a future induction/decomposition
+    proof, not a bounty claim and not the final cubic theorem.
+- Verification:
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 300`.
+  - Scala exact POSIX smoke still checks 84,300 exhaustive regex/input pairs
+    at depth 2/input length 3, plus the known CE grid and Chapter 7 k=5
+    strong-memo trace.
+
 ## Cubic Route Checkpoint: Component-Union Memo Owner Gate (2026-06-04)
 
 - Route status:

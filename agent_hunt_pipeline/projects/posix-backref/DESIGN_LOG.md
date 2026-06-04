@@ -3,6 +3,23 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Final theorem remains open; base case is checked
+
+- The final cubic-bound proof is not complete. The main proof target remains
+  the all-input linear owner-table bound
+  `card (strong_deferred_final_active_suffix_row_dag_universe r s) <=
+   K * rxsize r`; the existing
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract` then
+  transfers that bound to exact POSIX correctness and cubic memo budgets.
+- Added
+  `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_length_le_one_cubic`.
+  It proves the row-DAG universe is cubically bounded for `length s <= 1` by
+  combining the already checked empty-input linear bound and singleton
+  quadratic bound.
+- This base case is useful proof infrastructure only. Do not count it as a
+  cubic-bound bounty, and do not let future agents present it as the final
+  theorem.
+
 ## 2026-06-04: Memo-strong owner metrics replace bsimpCubic proof attempts
 
 - The graph evidence is now treated as decisive negative evidence for direct
