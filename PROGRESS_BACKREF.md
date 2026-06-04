@@ -9818,6 +9818,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Least-Owner Member Size (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `GeneralRegexBound.thy:raw_shared_prune_active_suffix_owner_member_size_bound`
+  - `GeneralRegexBound.thy:raw_shared_prune_active_suffix_owner_dag_member_size_bound`
+  - `FBound.thy:strong_deferred_strong_rows_raw_least_owner_dag_member_sizeI`
+  - `FBound.thy:strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract`
+- Design result:
+  - Active-suffix owner generation is now checked to preserve member size:
+    every pruning output is charged to the `later` row, so the least fixed-point
+    owner cannot introduce a larger row than the seed bound permits.
+  - The least-owner DAG member-size premise in the row-gate POSIX handoff can
+    be replaced by a bridge-row member-size premise. This narrows the remaining
+    cubic proof: prove original-size cardinality for the least-owner DAG and a
+    usable bridge-row member-size bound.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

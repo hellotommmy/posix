@@ -25373,6 +25373,42 @@ proof -
   qed
 qed
 
+lemma raw_shared_prune_active_suffix_owner_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> raw_shared_prune_active_suffix_owner U"
+  shows "rsize x \<le> M"
+  using x
+proof (induct rule: raw_shared_prune_active_suffix_owner.induct)
+  case (base q)
+  then show ?case
+    by (rule member_size)
+next
+  case (step earlier later k q)
+  have "rsize q \<le> rsize later"
+    by (rule raw_shared_prune_pair_outputs_member_size_le_later_size
+        [OF step.hyps(7)])
+  also have "... \<le> M"
+    by (rule step.hyps(4))
+  finally show ?case .
+qed
+
+lemma raw_shared_prune_active_suffix_owner_dag_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> rsubterm_closure (raw_shared_prune_active_suffix_owner U)"
+  shows "rsize x \<le> M"
+proof -
+  obtain q where q:
+      "q \<in> raw_shared_prune_active_suffix_owner U"
+      "x \<in> rsubterms q"
+    using x by (auto simp add: rsubterm_closure_def)
+  have "rsize x \<le> rsize q"
+    by (rule rsubterms_member_size_le_rsize[OF q(2)])
+  also have "... \<le> M"
+    by (rule raw_shared_prune_active_suffix_owner_member_size_bound
+        [OF member_size q(1)])
+  finally show ?thesis .
+qed
+
 lemma raw_shared_prune_active_suffix_closure_keys_member_size_bound:
   assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
     and k: "k \<in> raw_shared_prune_active_suffix_keys

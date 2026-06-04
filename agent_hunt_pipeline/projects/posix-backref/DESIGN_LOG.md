@@ -3899,3 +3899,13 @@ to be read before continuing long-running agent work.
   are covered by the least-owner DAG. The final theorem is still open: prove a
   concrete original-regex cubic bound and member-size bound for that
   least-owner DAG.
+- Least-owner member-size checkpoint (2026-06-04): added
+  `raw_shared_prune_active_suffix_owner_member_size_bound`,
+  `raw_shared_prune_active_suffix_owner_dag_member_size_bound`, and the
+  `FBound.thy` specialization
+  `strong_deferred_strong_rows_raw_least_owner_dag_member_sizeI`. The important
+  invariant is now checked: active-suffix owner closure does not grow member
+  size because every pair-output row is bounded by the later row. The row-gate
+  least-owner POSIX contract now has a variant that consumes only bridge-row
+  member-size plus least-owner DAG cardinality. The final theorem still needs
+  the original-regex cardinality bound and a bridge-row member-size bound.
