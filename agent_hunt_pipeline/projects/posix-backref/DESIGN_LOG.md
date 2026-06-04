@@ -3643,3 +3643,11 @@ to be read before continuing long-running agent work.
   correctness plus the row-DAG universe bound. This is still a proof-interface
   checkpoint rather than the cubic theorem: the remaining hard step is proving
   the component-union/root-owner bound for the general non-backref fragment.
+- Closed-root component handoff (2026-06-04): added
+  `strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract`.
+  This packages the sharp target shape for the memo-strong route: if final
+  rows are linear and a finite `rsubterms`-closed owner-root universe `U`
+  linearly covers final-active payload roots and suffix keys, then exact
+  memo-strong POSIX correctness follows and component union/row-DAG universe
+  are bounded by `(2 * R + C) * rxsize r`. The next substantive theorem should
+  prove this owner-root universe bound for the non-backref fragment.

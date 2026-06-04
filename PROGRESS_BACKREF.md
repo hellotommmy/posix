@@ -9144,6 +9144,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: focused Isabelle `Posix` PASS; light Scala strong-memo smoke PASS.
 - Bounty status: infrastructure only; no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Closed-Root Component Contract (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof addition in `FBound.thy`:
+  - `strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract`
+- Design result:
+  - The current proof target is now packaged in the sharp owner-universe form:
+    prove final rows are linear, and prove a finite `rsubterms`-closed universe
+    `U` of owner roots covers all final-active payload roots and suffix keys.
+  - Under those assumptions, Isabelle derives exact `strong_deferred_memo_lexer`
+    POSIX correctness plus
+    `component_union <= (2 * R + C) * rxsize r` and the corresponding row-DAG
+    universe bound.
+  - This narrows the remaining non-backref cubic work to the real hard lemma:
+    construct/prove the general linear owner-root universe, rather than
+    repeatedly reproving lexer correctness.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: infrastructure only; no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
