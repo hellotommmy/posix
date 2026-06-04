@@ -146,6 +146,16 @@ immutability.
   `card_raw_final_active_suffix_closure_keys_le_rsize_cubic`. The BR-040
   payout theorem remains open because this still has to be owned by the
   original non-backref regex, not by the final grown tree.
+- Fresh-key DAG accounting: `GeneralRegexBound.thy` now names
+  `raw_shared_prune_active_suffix_closure_key_dag_universe` and checks the
+  generic bound
+  `card <= (card U + P * M) * M`, plus the final-active specialization
+  `card_raw_final_active_suffix_closure_key_dag_universe_le_rsize_cubic_times_rsize`.
+  This is deliberately not a bounty claim: multiplying the fresh-key cubic
+  cardinality by key/member DAG size exposes a too-coarse quartic-style
+  obstacle. BR-040 must bound the final row-DAG/hash-cons owner table more
+  directly instead of closing all fresh key subterms after active-prune
+  expansion.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

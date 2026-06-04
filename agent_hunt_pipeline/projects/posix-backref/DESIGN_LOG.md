@@ -3,6 +3,26 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: Fresh-key DAG closure exposes a quartic-style obstacle
+
+- The final cubic-bound theorem is still not complete. The first-priority
+  target remains the all-input original-regex owner bound for
+  `strong_deferred_final_active_suffix_row_dag_universe`; conditional
+  contracts and smoke metrics are not substitutes for that theorem.
+- Added raw accounting for the DAG/subterms of fresh keys introduced by
+  active-suffix closure:
+  `raw_shared_prune_active_suffix_closure_key_dag_universe` and
+  `raw_final_active_suffix_closure_key_dag_universe`.
+- The checked generic bound is `(card U + P * M) * M`: active closure can be
+  bounded by pair budget and member size, but then closing the fresh keys under
+  `rsubterms` multiplies by the member-size bound again.
+- Instantiated to final-active rows, the checked theorem
+  `card_raw_final_active_suffix_closure_key_dag_universe_le_rsize_cubic_times_rsize`
+  is intentionally too coarse for the final cubic route. Do not attempt to
+  finish BR-040 by taking a naive subterm closure of all fresh continuation
+  keys after pruning. The proof must keep the tighter memo-strong final
+  row-DAG/hash-cons owner table as the bounded object.
+
 ## 2026-06-04: Final theorem remains open; base case is checked
 
 - The final cubic-bound proof is not complete. The main proof target remains

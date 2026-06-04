@@ -2,6 +2,35 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Fresh-Key DAG Closure Is Too Coarse (2026-06-04)
+
+- Final theorem status: **not complete**. The priority theorem remains the
+  all-input original-regex bound for the final memo-strong row-DAG owner table.
+- Checked Isabelle additions in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_active_suffix_closure_key_dag_universe`
+  - `raw_final_active_suffix_closure_key_dag_universe`
+  - `card_raw_shared_prune_active_suffix_closure_key_dag_universe_boundI`
+  - `card_raw_shared_prune_active_suffix_closure_key_dag_universe_member_pair_budget_bound`
+  - `card_raw_shared_prune_active_suffix_closure_key_dag_universe_member_pair_budget_card_bound`
+  - `card_raw_final_active_suffix_closure_key_dag_universe_member_pair_budget_bound`
+  - `card_raw_final_active_suffix_closure_key_dag_universe_member_pair_budget_card_bound`
+  - `card_raw_final_active_suffix_closure_key_dag_universe_le_rsize_cubic_times_rsize`
+- Meaning:
+  - The previous checkpoint bounded the number of fresh continuation keys
+    created by active closure. This checkpoint also charges the `rsubterms`
+    DAG of those keys.
+  - The generic bound is `(card U + P * M) * M`: key cardinality times
+    key-subterm/member size.
+  - Instantiated to final-active rows, the naive key-DAG closure gives
+    `(rsize r + rsize r * rsize r * rsize r) * rsize r`, not a cubic
+    original-regex bound. This is useful negative evidence: the final proof
+    cannot simply close all fresh key subterms after active-prune expansion.
+    It must keep using the tighter final row-DAG/hash-cons owner route.
+- Verification:
+  - Focused `isabelle build -v -d . Posix` PASS.
+- Bounty status: obstacle/accounting infrastructure only; no final cubic
+  theorem or bounty is claimed.
+
 ## Cubic Route Checkpoint: Fresh-Key Cardinality Accounting (2026-06-04)
 
 - Final theorem status: **not complete**. This checkpoint controls the fresh
