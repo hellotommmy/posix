@@ -2943,6 +2943,74 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_subsetI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+  shows "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> U"
+proof -
+  have closed: "raw_shared_prune_closed U"
+    by (rule raw_shared_prune_closedI_active_suffix_closure_subset
+        [OF active_suffix_closed])
+  have rows:
+      "set (rpders_strong_rows_raw [rerase (intern r)] s) \<subseteq> U"
+    by (rule rpders_strong_rows_raw_norm_closed_subsetI
+        [OF _ flat_closed norm closed]) (use init in simp)
+  show ?thesis
+    using rows
+    by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
+        rpders_strong1_rows_raw_def)
+qed
+
+lemma strong_deferred_strong_rows_raw_bridge_rows_subterm_closure_norm_active_suffix_subsetI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+    \<subseteq> U"
+proof -
+  have rows: "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_subsetI
+        [OF init flat_closed norm active_suffix_closed])
+  show ?thesis
+    by (rule rsubterm_closure_subsetI[OF rows subterm_closed])
+qed
+
+lemma card_strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_universe_boundI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+  shows "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
+proof -
+  have rows:
+      "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+        \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_subterm_closure_norm_active_suffix_subsetI
+        [OF init flat_closed norm active_suffix_closed subterm_closed])
+  show ?thesis
+    by (rule
+        card_strong_deferred_strong_rows_raw_least_owner_dag_closed_universe_boundI
+        [OF rows active_suffix_closed subterm_closed finite card_bound])
+qed
+
 lemma strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex_subset:
   assumes rows:
     "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> sizeNregex N"

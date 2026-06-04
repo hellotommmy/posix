@@ -9909,6 +9909,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Bridge Rows From Active-Suffix Universe (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_subsetI`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subterm_closure_norm_active_suffix_subsetI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_universe_boundI`
+- Design result:
+  - The closed-universe handoff no longer needs bridge-row coverage as a raw
+    premise when the candidate universe has the usual derivative-closure shape.
+    From `rerase (intern r) \<in> U`, local `rpder_norm_list` closure through
+    `rsimpStrong_raw`, `rflts` closure, active-suffix closure, and subterm
+    closure, Isabelle proves that the bridge-row subterm closure is inside
+    `U`.
+  - Consequently `card (strong_deferred_strong_rows_raw_least_owner_dag r s)`
+    is bounded by `card U` under those concrete closure premises. This further
+    narrows the remaining final theorem to constructing a root-owned non-backref
+    `U` with cubic cardinality and member-size control.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

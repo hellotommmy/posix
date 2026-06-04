@@ -3935,3 +3935,11 @@ to be read before continuing long-running agent work.
   the real construction task: find a root-owned non-backref `U` with cubic
   cardinality and the required member-size bound, then plug it into the
   row-gate POSIX contract.
+- Bridge rows from active-suffix universe (2026-06-04): added checked lemmas
+  deriving bridge-row coverage from the usual candidate-universe premises:
+  `rerase (intern r) in U`, `rflts` closure, local `rpder_norm_list`/`rsimpStrong_raw`
+  closure, active-suffix closure, and subterm closure. The resulting theorem
+  `card_strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_universe_boundI`
+  bounds the least-owner DAG by `card U` under those concrete premises. The
+  remaining BR-040 work is now sharper: construct and prove a root-owned
+  non-backref `U` with cubic cardinality and member-size control.
