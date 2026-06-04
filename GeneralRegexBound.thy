@@ -23738,6 +23738,88 @@ next
     by (rule raw_shared_prune_closedI_same_suffix_closure_subset)
 qed
 
+inductive_set raw_shared_prune_active_suffix_owner :: "rrexp set \<Rightarrow> rrexp set"
+  for U where
+  base[intro]: "q \<in> U \<Longrightarrow> q \<in> raw_shared_prune_active_suffix_owner U"
+| step[intro]:
+    "earlier \<in> raw_shared_prune_active_suffix_owner U \<Longrightarrow>
+     later \<in> raw_shared_prune_active_suffix_owner U \<Longrightarrow>
+     raw_shared_prune_suffix_key earlier = Some k \<Longrightarrow>
+     raw_shared_prune_suffix_key later = Some k \<Longrightarrow>
+     q \<in> raw_shared_prune_pair_outputs earlier later \<Longrightarrow>
+     q \<in> raw_shared_prune_active_suffix_owner U"
+
+lemma raw_shared_prune_active_suffix_owner_extensive:
+  "U \<subseteq> raw_shared_prune_active_suffix_owner U"
+  by auto
+
+lemma raw_shared_prune_active_suffix_owner_active_suffix_closed:
+  "raw_shared_prune_active_suffix_closure
+      (raw_shared_prune_active_suffix_owner U) \<subseteq>
+    raw_shared_prune_active_suffix_owner U"
+proof
+  fix q
+  assume q: "q \<in> raw_shared_prune_active_suffix_closure
+      (raw_shared_prune_active_suffix_owner U)"
+  then consider
+      (base) "q \<in> raw_shared_prune_active_suffix_owner U"
+    | (pair) earlier later where
+        "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs
+          (raw_shared_prune_active_suffix_owner U)"
+        "q \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_active_suffix_closure_as_pairs
+        split: prod.splits)
+  then show "q \<in> raw_shared_prune_active_suffix_owner U"
+  proof cases
+    case base
+    then show ?thesis .
+  next
+    case (pair earlier later)
+    obtain k where earlier:
+        "earlier \<in> raw_shared_prune_active_suffix_owner U"
+        "raw_shared_prune_suffix_key earlier = Some k"
+      and later:
+        "later \<in> raw_shared_prune_active_suffix_owner U"
+        "raw_shared_prune_suffix_key later = Some k"
+      using pair(1)
+      by (auto simp add: raw_shared_prune_active_suffix_pairs_def)
+    show ?thesis
+      by (rule raw_shared_prune_active_suffix_owner.step
+          [OF earlier(1) later(1) earlier(2) later(2) pair(2)])
+  qed
+qed
+
+lemma raw_shared_prune_active_suffix_owner_prune_closed:
+  "raw_shared_prune_closed (raw_shared_prune_active_suffix_owner U)"
+  by (rule raw_shared_prune_closedI_active_suffix_closure_subset)
+    (rule raw_shared_prune_active_suffix_owner_active_suffix_closed)
+
+lemma raw_shared_prune_active_suffix_owner_minimal:
+  assumes seed: "U \<subseteq> V"
+    and closed: "raw_shared_prune_active_suffix_closure V \<subseteq> V"
+  shows "raw_shared_prune_active_suffix_owner U \<subseteq> V"
+proof
+  fix q
+  assume q: "q \<in> raw_shared_prune_active_suffix_owner U"
+  then show "q \<in> V"
+  proof (induct rule: raw_shared_prune_active_suffix_owner.induct)
+    case (base q)
+    then show ?case
+      using seed by blast
+  next
+    case (step earlier later k q)
+    have pair: "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs V"
+      using step
+      by (auto simp add: raw_shared_prune_active_suffix_pairs_def)
+    have q_closure: "q \<in> raw_shared_prune_active_suffix_closure V"
+      using step
+      by (auto simp add: raw_shared_prune_active_suffix_closure_def
+          raw_shared_prune_active_suffix_pairs_def)
+    show ?case
+      using closed q_closure by blast
+  qed
+qed
+
 lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
   "strong_prune_universe_bad_result \<notin>
     partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
@@ -24123,6 +24205,33 @@ proof (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_prune_
         [OF active_suffix_closed])
   show "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
     by (rule subterm_closed)
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow>
+      set (rflts [r]) \<subseteq> raw_shared_prune_active_suffix_owner U"
+  shows "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs)
+    \<subseteq> rsubterm_closure (raw_shared_prune_active_suffix_owner U)"
+proof -
+  let ?Owner = "raw_shared_prune_active_suffix_owner U"
+  have pruned: "set (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq> ?Owner"
+  proof (rule rsimpStrong_prune_rows_raw_closed_subsetI)
+    fix r
+    assume "r \<in> set rs"
+    then show "set (rflts [r]) \<subseteq> ?Owner"
+      by (rule rows)
+  next
+    show "raw_shared_prune_closed ?Owner"
+      by (rule raw_shared_prune_active_suffix_owner_prune_closed)
+  qed
+  have pruned_closure:
+      "set (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq>
+        rsubterm_closure ?Owner"
+    using pruned rsubterm_closure_extensive by blast
+  show ?thesis
+    by (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI
+        [OF pruned_closure])
+      (rule rsubterm_closure_closed)
 qed
 
 lemma rpder_strong_rows_raw_norm_closed_subsetI:
@@ -25014,6 +25123,45 @@ proof clarify
     using x_size_le_p p_size_le_later later_size by linarith
   then show "x \<in> sizeNregex N"
     using x_legacy unfolding sizeNregex_def by simp
+qed
+
+lemma raw_shared_prune_active_suffix_closure_sizeNregex_subset:
+  "raw_shared_prune_active_suffix_closure (sizeNregex N) \<subseteq>
+    sizeNregex N"
+proof -
+  have pair_closed:
+    "raw_shared_prune_pair_closure (sizeNregex N) \<subseteq> sizeNregex N"
+  proof (rule raw_shared_prune_pair_closure_subsetI)
+    fix q
+    assume "q \<in> sizeNregex N"
+    then show "set (rflts [q]) \<subseteq> sizeNregex N"
+      by (rule rflts_sizeNregex_closed)
+  next
+    show "raw_shared_prune_closed (sizeNregex N)"
+      by (rule raw_shared_prune_closed_sizeNregex)
+  qed
+  have active_sub:
+    "raw_shared_prune_active_suffix_closure (sizeNregex N) \<subseteq>
+      raw_shared_prune_pair_closure (sizeNregex N)"
+    by (rule raw_shared_prune_active_suffix_closure_subset_pair_closure)
+  show ?thesis
+    using active_sub pair_closed by blast
+qed
+
+lemma raw_shared_prune_active_suffix_owner_sizeNregex_subset:
+  assumes "U \<subseteq> sizeNregex N"
+  shows "raw_shared_prune_active_suffix_owner U \<subseteq> sizeNregex N"
+  by (rule raw_shared_prune_active_suffix_owner_minimal
+      [OF assms raw_shared_prune_active_suffix_closure_sizeNregex_subset])
+
+lemma finite_raw_shared_prune_active_suffix_owner_sizeNregex:
+  assumes "U \<subseteq> sizeNregex N"
+  shows "finite (raw_shared_prune_active_suffix_owner U)"
+proof -
+  have sub: "raw_shared_prune_active_suffix_owner U \<subseteq> sizeNregex N"
+    by (rule raw_shared_prune_active_suffix_owner_sizeNregex_subset[OF assms])
+  show ?thesis
+    by (rule finite_subset[OF sub finite_size_n])
 qed
 
 lemma card_raw_shared_prune_pair_outputs_le_later_size:

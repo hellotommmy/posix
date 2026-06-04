@@ -9694,6 +9694,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Least Active-Suffix Owner (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_active_suffix_owner`
+  - `raw_shared_prune_active_suffix_owner_extensive`
+  - `raw_shared_prune_active_suffix_owner_active_suffix_closed`
+  - `raw_shared_prune_active_suffix_owner_prune_closed`
+  - `raw_shared_prune_active_suffix_owner_minimal`
+  - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_subsetI`
+  - `raw_shared_prune_active_suffix_closure_sizeNregex_subset`
+  - `raw_shared_prune_active_suffix_owner_sizeNregex_subset`
+  - `finite_raw_shared_prune_active_suffix_owner_sizeNregex`
+- Design result:
+  - The continuation-owner target is now an explicit least fixed-point-style
+    Isabelle object: the smallest set containing seed rows and closed under
+    active same-suffix shared-prune outputs.
+  - This owner is closed enough to drive `rsimpStrong_prune_rows_raw`, and if
+    the input rows are flattened members of the owner, then the final
+    `rsimpStrong_ALTs_raw` active row-DAG is covered by the owner's subterm
+    closure.
+  - The `sizeNregex` lemmas are only a sanity/fallback result: they show the
+    least owner is finite under the coarse legacy size universe. They are not
+    the desired cubic bound, because `sizeNregex` is far too large.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
