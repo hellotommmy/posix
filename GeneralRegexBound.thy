@@ -3860,6 +3860,19 @@ proof
     using p by blast
 qed
 
+lemma rsubterm_closure_mono:
+  assumes "U \<subseteq> V"
+  shows "rsubterm_closure U \<subseteq> rsubterm_closure V"
+proof (rule rsubterm_closure_subsetI)
+  show "U \<subseteq> rsubterm_closure V"
+    using assms rsubterm_closure_extensive by blast
+next
+  fix q
+  assume "q \<in> rsubterm_closure V"
+  then show "rsubterms q \<subseteq> rsubterm_closure V"
+    by (rule rsubterm_closure_closed)
+qed
+
 lemma card_rsubterm_closure_le:
   assumes finite: "finite U"
     and member_bound: "\<And>q. q \<in> U \<Longrightarrow> card (rsubterms q) \<le> M"
@@ -8079,6 +8092,28 @@ next
     then show ?thesis
       using Cons.hyps RALTS by auto
   qed (use Cons.hyps in auto)
+qed
+
+lemma set_rflts_single_subset_rsubterm_closure:
+  assumes "r \<in> rsubterm_closure U"
+  shows "set (rflts [r]) \<subseteq> rsubterm_closure U"
+proof
+  fix q
+  assume q: "q \<in> set (rflts [r])"
+  have subset: "set (rflts [r]) \<subseteq> rsubterms r"
+  proof -
+    have "set (rflts [r]) \<subseteq> (\<Union>x \<in> set [r]. rsubterms x)"
+      by (rule set_rflts_subset_rsubterms_list)
+    also have "... = rsubterms r"
+      by simp
+    finally show ?thesis .
+  qed
+  have "q \<in> rsubterms r"
+    by (rule subsetD[OF subset q])
+  moreover have "rsubterms r \<subseteq> rsubterm_closure U"
+    by (rule rsubterm_closure_closed[OF assms])
+  ultimately show "q \<in> rsubterm_closure U"
+    by blast
 qed
 
 lemma rflts_singleton_rsimp9_path_universe:
@@ -23820,6 +23855,20 @@ proof
   qed
 qed
 
+lemma raw_shared_prune_active_suffix_closure_subset_owner:
+  "raw_shared_prune_active_suffix_closure U \<subseteq>
+    raw_shared_prune_active_suffix_owner U"
+proof -
+  have "raw_shared_prune_active_suffix_closure U \<subseteq>
+      raw_shared_prune_active_suffix_closure
+        (raw_shared_prune_active_suffix_owner U)"
+    by (rule raw_shared_prune_active_suffix_closure_mono)
+      (rule raw_shared_prune_active_suffix_owner_extensive)
+  also have "... \<subseteq> raw_shared_prune_active_suffix_owner U"
+    by (rule raw_shared_prune_active_suffix_owner_active_suffix_closed)
+  finally show ?thesis .
+qed
+
 lemma strong_prune_universe_bad_result_notin_path9_atom_frontier:
   "strong_prune_universe_bad_result \<notin>
     partial_derivative_path9_atom_frontier_universe strong_prune_universe_bad_root"
@@ -24232,6 +24281,23 @@ proof -
     by (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI
         [OF pruned_closure])
       (rule rsubterm_closure_closed)
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_rsubterm_subsetI:
+  assumes rows: "\<And>r. r \<in> set rs \<Longrightarrow> r \<in> rsubterm_closure U"
+  shows "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs)
+    \<subseteq> rsubterm_closure
+      (raw_shared_prune_active_suffix_owner (rsubterm_closure U))"
+proof (rule raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_subsetI)
+  fix r
+  assume r: "r \<in> set rs"
+  have "set (rflts [r]) \<subseteq> rsubterm_closure U"
+    by (rule set_rflts_single_subset_rsubterm_closure[OF rows[OF r]])
+  also have "... \<subseteq>
+      raw_shared_prune_active_suffix_owner (rsubterm_closure U)"
+    by (rule raw_shared_prune_active_suffix_owner_extensive)
+  finally show "set (rflts [r]) \<subseteq>
+      raw_shared_prune_active_suffix_owner (rsubterm_closure U)" .
 qed
 
 lemma rpder_strong_rows_raw_norm_closed_subsetI:

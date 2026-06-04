@@ -9723,6 +9723,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Least Owner Bridge (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `GeneralRegexBound.thy:rsubterm_closure_mono`
+  - `GeneralRegexBound.thy:set_rflts_single_subset_rsubterm_closure`
+  - `GeneralRegexBound.thy:raw_shared_prune_active_suffix_closure_subset_owner`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_owner_rsubterm_subsetI`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_subset_least_owner`
+- Design result:
+  - The strong simplifier proof side now has an explicit bridge from ordinary
+    subterm seeds to the least active-suffix owner. If input rows are already
+    in a seed subterm closure, the final `rsimpStrong_ALTs_raw` active row-DAG
+    is covered by the subterms of the least owner generated from that seed.
+  - The existing `strong_deferred_strong_rows_raw_bridge_owner` is also covered
+    by the least-owner formulation. This helps consolidate the remaining proof
+    obligation around one owner object instead of several ad hoc closure
+    interfaces.
+  - This is not the final cubic theorem. The first-priority remaining theorem
+    is still to bound the relevant least/bridge owner table by a concrete
+    cubic function of the original non-backref regex size, and then connect
+    that bound to the final `strong_deferred_*` POSIX/memo contract.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

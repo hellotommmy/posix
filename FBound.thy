@@ -2815,6 +2815,25 @@ lemma strong_deferred_strong_rows_raw_bridge_pruned_rows_subterms_subset_owner:
     \<subseteq> strong_deferred_strong_rows_raw_bridge_owner r s"
   by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
 
+lemma strong_deferred_strong_rows_raw_bridge_owner_subset_least_owner:
+  "strong_deferred_strong_rows_raw_bridge_owner r s \<subseteq>
+    rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s)))"
+proof -
+  let ?U =
+    "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  have "raw_shared_prune_active_suffix_closure ?U \<subseteq>
+      raw_shared_prune_active_suffix_owner ?U"
+    by (rule raw_shared_prune_active_suffix_closure_subset_owner)
+  then have "rsubterm_closure (raw_shared_prune_active_suffix_closure ?U)
+      \<subseteq> rsubterm_closure (raw_shared_prune_active_suffix_owner ?U)"
+    by (rule rsubterm_closure_mono)
+  then show ?thesis
+    by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
+qed
+
 lemma strong_deferred_strong_rows_raw_bridge_owner_subterm_closed:
   assumes "q \<in> strong_deferred_strong_rows_raw_bridge_owner r s"
   shows "rsubterms q \<subseteq>
