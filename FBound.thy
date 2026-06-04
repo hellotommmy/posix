@@ -2891,6 +2891,58 @@ proof -
         strong_deferred_strong_rows_raw_least_owner_dag_def)
 qed
 
+lemma strong_deferred_strong_rows_raw_least_owner_subset_closed_universeI:
+  assumes rows:
+      "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+        \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+  shows "strong_deferred_strong_rows_raw_least_owner r s \<subseteq> U"
+  unfolding strong_deferred_strong_rows_raw_least_owner_def
+  by (rule raw_shared_prune_active_suffix_owner_minimal
+      [OF rows active_suffix_closed])
+
+lemma strong_deferred_strong_rows_raw_least_owner_dag_subset_closed_universeI:
+  assumes rows:
+      "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+        \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+  shows "strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq> U"
+proof -
+  have owner:
+      "strong_deferred_strong_rows_raw_least_owner r s \<subseteq> U"
+    by (rule strong_deferred_strong_rows_raw_least_owner_subset_closed_universeI
+        [OF rows active_suffix_closed])
+  show ?thesis
+    unfolding strong_deferred_strong_rows_raw_least_owner_dag_def
+    by (rule rsubterm_closure_subsetI[OF owner subterm_closed])
+qed
+
+lemma card_strong_deferred_strong_rows_raw_least_owner_dag_closed_universe_boundI:
+  assumes rows:
+      "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+        \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+  shows "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
+proof -
+  have dag_subset:
+      "strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_least_owner_dag_subset_closed_universeI
+        [OF rows active_suffix_closed subterm_closed])
+  have "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> card U"
+    by (rule card_mono[OF finite dag_subset])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
 lemma strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex_subset:
   assumes rows:
     "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> sizeNregex N"

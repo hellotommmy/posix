@@ -3927,3 +3927,11 @@ to be read before continuing long-running agent work.
   premise via `sizeNregex`. This keeps the final interface focused on the real
   missing obligations: least-owner DAG cardinality and bridge-row member-size
   from the original regex, plus arithmetic.
+- Least-owner closed-universe handoff (2026-06-04): added the checked bridge
+  from any finite, subterm-closed, active-suffix-closed universe `U` containing
+  the bridge-row subterm closure to
+  `card (strong_deferred_strong_rows_raw_least_owner_dag r s) <= card U`.
+  This is deliberately not a wrapper or a final theorem. It narrows BR-040 to
+  the real construction task: find a root-owned non-backref `U` with cubic
+  cardinality and the required member-size bound, then plug it into the
+  row-gate POSIX contract.

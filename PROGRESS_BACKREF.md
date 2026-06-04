@@ -9886,6 +9886,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Least-Owner Closed Universe Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `FBound.thy:strong_deferred_strong_rows_raw_least_owner_subset_closed_universeI`
+  - `FBound.thy:strong_deferred_strong_rows_raw_least_owner_dag_subset_closed_universeI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_least_owner_dag_closed_universe_boundI`
+- Design result:
+  - The least-owner DAG cardinality problem is now reduced to a concrete
+    closed-universe construction: if a finite `U` contains the bridge-row
+    subterm closure, is subterm-closed, and is closed under active-suffix
+    shared pruning, then Isabelle proves
+    `strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq> U` and hence
+    `card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> card U`.
+  - This avoids a meaningless wrapper theorem and isolates the real final
+    obligation: define/prove a root-owned non-backref `U` whose cardinality is
+    cubic in `rxsize r` and whose members have the required size bound.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
