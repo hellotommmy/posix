@@ -22229,6 +22229,19 @@ proof (rule card_raw_final_active_suffix_key_dag_universe_boundI)
   finally show "card (rsubterms k) \<le> rsize r" .
 qed simp
 
+lemma card_raw_final_active_suffix_key_dag_universe_le_rsize:
+  "card (raw_final_active_suffix_key_dag_universe r) \<le> rsize r"
+proof -
+  have sub: "raw_final_active_suffix_key_dag_universe r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_key_dag_universe_subset_rsubterms)
+  have "card (raw_final_active_suffix_key_dag_universe r) \<le>
+      card (rsubterms r)"
+    by (rule card_mono[OF finite_rsubterms sub])
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
 lemma card_raw_final_active_suffix_key_dag_universe_le_rsize_square:
   "card (raw_final_active_suffix_key_dag_universe r) \<le>
     rsize r * rsize r"
@@ -22295,6 +22308,19 @@ proof (rule card_raw_final_active_suffix_payload_dag_universe_boundI)
   qed
   finally show "card (rsubterms q) \<le> rsize r" .
 qed simp
+
+lemma card_raw_final_active_suffix_payload_dag_universe_le_rsize:
+  "card (raw_final_active_suffix_payload_dag_universe r) \<le> rsize r"
+proof -
+  have sub: "raw_final_active_suffix_payload_dag_universe r \<subseteq> rsubterms r"
+    by (rule raw_final_active_suffix_payload_dag_universe_subset_rsubterms)
+  have "card (raw_final_active_suffix_payload_dag_universe r) \<le>
+      card (rsubterms r)"
+    by (rule card_mono[OF finite_rsubterms sub])
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
 
 lemma card_raw_final_active_suffix_payload_dag_universe_le_rsize_square:
   "card (raw_final_active_suffix_payload_dag_universe r) \<le>

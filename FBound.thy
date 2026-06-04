@@ -3420,6 +3420,12 @@ proof (rule card_strong_deferred_final_active_suffix_key_dag_universe_boundI)
       rsize (strong_deferred_final_raw r s)" .
 qed simp
 
+lemma card_strong_deferred_final_active_suffix_key_dag_universe_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_key_dag_universe r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_key_dag_universe_def
+      card_raw_final_active_suffix_key_dag_universe_le_rsize)
+
 lemma card_strong_deferred_final_active_suffix_key_dag_universe_le_final_rsize_square:
   "card (strong_deferred_final_active_suffix_key_dag_universe r s) \<le>
     rsize (strong_deferred_final_raw r s) *
@@ -3467,6 +3473,12 @@ lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_roots_tim
   by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
       strong_deferred_final_active_suffix_payload_roots_def
       card_raw_final_active_suffix_payload_dag_universe_le_roots_times_rsize)
+
+lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_final_rsize:
+  "card (strong_deferred_final_active_suffix_payload_dag_universe r s) \<le>
+    rsize (strong_deferred_final_raw r s)"
+  by (simp add: strong_deferred_final_active_suffix_payload_dag_universe_def
+      card_raw_final_active_suffix_payload_dag_universe_le_rsize)
 
 lemma card_strong_deferred_final_active_suffix_payload_dag_universe_le_final_rsize_square:
   "card (strong_deferred_final_active_suffix_payload_dag_universe r s) \<le>
