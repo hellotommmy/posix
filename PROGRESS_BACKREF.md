@@ -9957,6 +9957,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Final Theorem Status Reconfirmed (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Status:
+  - The final theorem is **not** complete. The current preferred candidate is
+    still the strong-memo / row-gate route: `bders_simpStrong` is used only as
+    the nullable recognition gate, while exact POSIX values are reconstructed
+    by `strong_deferred_span_value`.
+  - Isabelle currently checks the conditional handoff theorem
+    `FBound.thy:strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`.
+    This says that a finite candidate universe `U`, closed under the relevant
+    derivative, flattening, active-suffix pruning, and subterm operations, with
+    `card U <= C`, member size `<= M`, and `C * M <= B`, is enough to derive
+    row-gate POSIX correctness/flatness and annotated/raw row-size bounds.
+  - What remains is the hard constructive proof: build a concrete root-owned
+    non-backref `U` for arbitrary input strings and prove its cardinality and
+    member-size bounds in terms of the original regex size. Until that theorem
+    is checked, BR-039/BR-040 remain unpaid.
+- Smoke/tooling note:
+  - The Scala Chapter 7 grid now reuses one `StrongDeferredMemoResult` per
+    `(k,n)` when multiple `strongMemo*` metrics are requested. This removes
+    repeated non-DAG derivative recomputation from the plotting pipeline; it is
+    not proof progress and must not be counted as bounty.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

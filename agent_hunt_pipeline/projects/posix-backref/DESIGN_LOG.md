@@ -3952,3 +3952,12 @@ to be read before continuing long-running agent work.
   `C * M <= B`. This is the last useful abstract handoff for the current
   route; future work should construct the concrete root-owned cubic `U` rather
   than add more wrapper-style contracts.
+- Final theorem status reconfirmed (2026-06-04): the final non-backref cubic
+  theorem is still open. Current checked Isabelle artifacts are conditional
+  handoffs for the strong-memo / row-gate route, not a proof that the final
+  simplification function already satisfies a cubic bound. The next real proof
+  target is a concrete root-owned universe `U`, closed under local derivative
+  normalization, `rflts`, active-suffix pruning, and subterms, with cardinality
+  and member-size controlled by the original regex. The Chapter 7 Scala grid
+  now caches one `StrongDeferredMemoResult` per `(k,n)` for all `strongMemo*`
+  metrics; this is smoke robustness only and carries no bounty.

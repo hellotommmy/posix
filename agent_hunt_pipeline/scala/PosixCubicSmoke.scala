@@ -5348,6 +5348,84 @@ object PosixCubicSmoke {
   private def csvEscape(s: String): String =
     "\"" + s.replace("\"", "\"\"") + "\""
 
+  private def isStrongMemoMetric(metric: String): Boolean =
+    metric.startsWith("strongMemo")
+
+  private def ch7StrongMemoSizeValue(
+      metric: String,
+      r: Rexp,
+      input: String,
+      result: StrongDeferredMemoResult
+  ): Option[Long] =
+    metric match {
+      case "strongMemoTree" => Some(result.strongTree.toLong)
+      case "strongMemoDag" => Some(result.strongDag.toLong)
+      case "strongMemoShape" => Some(result.strongShapeDag.toLong)
+      case "strongMemoAcceptsStates" => Some(result.memo.acceptsStates.toLong)
+      case "strongMemoValueStates" => Some(result.memo.valueStates.toLong)
+      case "strongMemoStates" =>
+        Some(result.memo.acceptsStates.toLong + result.memo.valueStates.toLong)
+      case "strongMemoSplitProbes" => Some(result.memo.splitProbes.toLong)
+      case "strongMemoQueries" =>
+        Some(result.memo.acceptsQueries.toLong + result.memo.valueQueries.toLong)
+      case "strongMemoActiveRows" => Some(result.activeSuffix.rows.toLong)
+      case "strongMemoActiveKeys" => Some(result.activeSuffix.keys.toLong)
+      case "strongMemoActiveAltNodes" => Some(result.activeSuffix.altNodes.toLong)
+      case "strongMemoActivePayloadRoots" =>
+        Some(result.activeSuffix.payloadRoots.toLong)
+      case "strongMemoActivePayloadDag" =>
+        Some(result.activeSuffix.payloadDagUniverseSize.toLong)
+      case "strongMemoActiveKeyDag" =>
+        Some(result.activeSuffix.keyDagUniverseSize.toLong)
+      case "strongMemoActiveComponentUnion" =>
+        Some(result.activeSuffix.componentUnionSize.toLong)
+      case "strongMemoActiveDecompBound" =>
+        Some(result.activeSuffix.decompBoundSize.toLong)
+      case "strongMemoActiveMaxBucket" =>
+        Some(result.activeSuffix.maxBucket.toLong)
+      case "strongMemoActiveMaxRowSize" =>
+        Some(result.activeSuffix.maxRowSize.toLong)
+      case "strongMemoActiveMaxRowDag" =>
+        Some(result.activeSuffix.maxRowDagSize.toLong)
+      case "strongMemoActiveMaxRowShapeDag" =>
+        Some(result.activeSuffix.maxRowShapeDagSize.toLong)
+      case "strongMemoActiveRowDagUniverse" =>
+        Some(result.activeSuffix.rowDagUniverseSize.toLong)
+      case "strongMemoActivePairBudget" =>
+        Some(result.activeSuffix.pairBudget)
+      case "strongMemoFinalActiveRows" =>
+        Some(result.finalActiveSuffix.rows.toLong)
+      case "strongMemoFinalActiveKeys" =>
+        Some(result.finalActiveSuffix.keys.toLong)
+      case "strongMemoFinalActiveAltNodes" =>
+        Some(result.finalActiveSuffix.altNodes.toLong)
+      case "strongMemoFinalActivePayloadRoots" =>
+        Some(result.finalActiveSuffix.payloadRoots.toLong)
+      case "strongMemoFinalActivePayloadDag" =>
+        Some(result.finalActiveSuffix.payloadDagUniverseSize.toLong)
+      case "strongMemoFinalActiveKeyDag" =>
+        Some(result.finalActiveSuffix.keyDagUniverseSize.toLong)
+      case "strongMemoFinalActiveComponentUnion" =>
+        Some(result.finalActiveSuffix.componentUnionSize.toLong)
+      case "strongMemoFinalActiveDecompBound" =>
+        Some(result.finalActiveSuffix.decompBoundSize.toLong)
+      case "strongMemoFinalActiveMaxBucket" =>
+        Some(result.finalActiveSuffix.maxBucket.toLong)
+      case "strongMemoFinalActiveMaxRowSize" =>
+        Some(result.finalActiveSuffix.maxRowSize.toLong)
+      case "strongMemoFinalActiveMaxRowDag" =>
+        Some(result.finalActiveSuffix.maxRowDagSize.toLong)
+      case "strongMemoFinalActiveMaxRowShapeDag" =>
+        Some(result.finalActiveSuffix.maxRowShapeDagSize.toLong)
+      case "strongMemoFinalActiveRowDagUniverse" =>
+        Some(result.finalActiveSuffix.rowDagUniverseSize.toLong)
+      case "strongMemoFinalActivePairBudget" =>
+        Some(result.finalActiveSuffix.pairBudget)
+      case "strongMemoSpanBound" => Some(memoSpanBound(r, input.length))
+      case "strongMemoSplitBound" => Some(memoSplitProbeBound(r, input.length))
+      case _ => None
+    }
+
   private def ch7SizeValue(metric: String, seqMode: String, r: Rexp, input: String): Long =
     metric match {
       case "strongTree" => asize(bdersStrong(intern(r), input)).toLong
@@ -5449,8 +5527,14 @@ object PosixCubicSmoke {
       } {
         val r = thesisCh7Evil(k)
         val input = "a" * n
+        val strongMemoResult =
+          if (metrics.exists(isStrongMemoMetric)) Some(strongDeferredMemoResult(r, input))
+          else None
         metrics.foreach { metric =>
-          val value = ch7SizeValue(metric, seqMode, r, input)
+          val value =
+            strongMemoResult
+              .flatMap(ch7StrongMemoSizeValue(metric, r, input, _))
+              .getOrElse(ch7SizeValue(metric, seqMode, r, input))
           out.println(s"$k,$n,${csvEscape(metric)},$value,${csvEscape(seqMode)}")
         }
       }
