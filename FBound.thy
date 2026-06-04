@@ -8727,6 +8727,47 @@ lemma asize_bder_NTIMES_square_arith:
     (Suc (Suc m) + x) * (Suc (Suc m) + x)"
   using assms by (cases x) (simp_all add: algebra_simps)
 
+lemma Suc_square_le_Suc_square:
+  fixes n :: nat
+  shows "Suc (n * n) \<le> Suc n * Suc n"
+  by (simp add: algebra_simps)
+
+lemma sum_list_square_le_square_sum:
+  fixes xs :: "nat list"
+  shows "sum_list (map (\<lambda>x. x * x) xs) \<le> sum_list xs * sum_list xs"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?s = "sum_list xs"
+  have "x * x + sum_list (map (\<lambda>x. x * x) xs) \<le> x * x + ?s * ?s"
+    using Cons.hyps by simp
+  also have "... \<le> (x + ?s) * (x + ?s)"
+    by (simp add: algebra_simps)
+  finally show ?case
+    by simp
+qed
+
+lemma sum_list_map_square_le_square_sum:
+  fixes f :: "'a \<Rightarrow> nat"
+  shows "sum_list (map (\<lambda>x. f x * f x) xs) \<le>
+    sum_list (map f xs) * sum_list (map f xs)"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?s = "sum_list (map f xs)"
+  have "f x * f x + sum_list (map (\<lambda>x. f x * f x) xs) \<le>
+      f x * f x + ?s * ?s"
+    using Cons.hyps by simp
+  also have "... \<le> (f x + ?s) * (f x + ?s)"
+    by (simp add: algebra_simps)
+  finally show ?case
+    by simp
+qed
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_empty_le_rxsize:
   "card (strong_deferred_final_active_suffix_row_dag_universe r []) \<le>
     rxsize r"
@@ -8749,6 +8790,139 @@ proof -
   also have "... = rxsize r"
     by (simp add: strong_deferred_final_raw_def rsize_rerase_intern)
   finally show ?thesis .
+qed
+
+lemma asize_bder_legacy_le_square:
+  assumes "legacy_rrexp (rerase r)"
+  shows "asize (bder c r) \<le> asize r * asize r"
+  using assms
+proof (induct r arbitrary: c)
+  case AZERO
+  then show ?case by simp
+next
+  case (AONE x)
+  then show ?case by simp
+next
+  case (ACHAR x1 x2)
+  then show ?case by simp
+next
+  case (AALTs bs rs)
+  have rows_legacy: "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
+    using AALTs.prems by simp
+  have elems:
+    "\<And>r. r \<in> set rs \<Longrightarrow> asize (bder c r) \<le> asize r * asize r"
+    using AALTs.hyps rows_legacy by blast
+  have map_bound:
+    "asizes (map (bder c) rs) \<le>
+      sum_list (map (\<lambda>r. asize r * asize r) rs)"
+    using elems by (simp add: asizes_def sum_list_mono)
+  have squares:
+    "sum_list (map (\<lambda>r. asize r * asize r) rs) \<le>
+      asizes rs * asizes rs"
+    unfolding asizes_def
+    by (rule sum_list_map_square_le_square_sum)
+  have "asize (bder c (AALTs bs rs)) =
+      Suc (asizes (map (bder c) rs))"
+    by (simp add: asizes_def)
+  also have "... \<le> Suc (asizes rs * asizes rs)"
+    using map_bound squares by simp
+  also have "... \<le> Suc (asizes rs) * Suc (asizes rs)"
+    by (rule Suc_square_le_Suc_square)
+  finally show ?case
+    by (simp add: asizes_def)
+next
+  case (ASEQ bs r1 r2)
+  have legacy1: "legacy_rrexp (rerase r1)"
+    and legacy2: "legacy_rrexp (rerase r2)"
+    using ASEQ.prems by simp_all
+  have ih1: "asize (bder c r1) \<le> asize r1 * asize r1"
+    using ASEQ.hyps(1)[OF legacy1] .
+  have ih2: "asize (bder c r2) \<le> asize r2 * asize r2"
+    using ASEQ.hyps(2)[OF legacy2] .
+  have pos1: "1 \<le> asize r1"
+    using asize0[of r1] by simp
+  have pos2: "1 \<le> asize r2"
+    using asize0[of r2] by simp
+  show ?case
+  proof (cases "bnullable r1")
+    case True
+    have "asize (bder c (ASEQ bs r1 r2)) =
+        Suc (Suc (asize (bder c r1) + asize r2) +
+          asize (bder c r2))"
+      using True by simp
+    also have "... \<le>
+        Suc (Suc (asize r1 * asize r1 + asize r2) +
+          asize r2 * asize r2)"
+      using ih1 ih2 by linarith
+    also have "... \<le>
+        Suc (asize r1 + asize r2) * Suc (asize r1 + asize r2)"
+      by (rule asize_bder_SEQ_nullable_square_arith[OF pos1 pos2])
+    finally show ?thesis
+      by simp
+  next
+    case False
+    have "asize (bder c (ASEQ bs r1 r2)) =
+        Suc (asize (bder c r1) + asize r2)"
+      using False by simp
+    also have "... \<le> Suc (asize r1 * asize r1 + asize r2)"
+      using ih1 by linarith
+    also have "... \<le>
+        Suc (asize r1 + asize r2) * Suc (asize r1 + asize r2)"
+      by (rule asize_bder_SEQ_nonnullable_square_arith[OF pos1 pos2])
+    finally show ?thesis
+      by simp
+  qed
+next
+  case (ASTAR bs r)
+  have legacy: "legacy_rrexp (rerase r)"
+    using ASTAR.prems by simp
+  have ih: "asize (bder c r) \<le> asize r * asize r"
+    using ASTAR.hyps[OF legacy] .
+  have pos: "1 \<le> asize r"
+    using asize0[of r] by simp
+  have "asize (bder c (ASTAR bs r)) =
+      Suc (asize (bder c r) + Suc (asize r))"
+    by simp
+  also have "... \<le> Suc (asize r * asize r + Suc (asize r))"
+    using ih by linarith
+  also have "... \<le> Suc (asize r) * Suc (asize r)"
+    by (rule asize_bder_STAR_square_arith[OF pos])
+  finally show ?case by simp
+next
+  case (ANTIMES bs r n)
+  have legacy: "legacy_rrexp (rerase r)"
+    using ANTIMES.prems by simp
+  have ih: "asize (bder c r) \<le> asize r * asize r"
+    using ANTIMES.hyps[OF legacy] .
+  have pos: "1 \<le> asize r"
+    using asize0[of r] by simp
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using pos by simp
+  next
+    case (Suc m)
+    have "asize (bder c (ANTIMES bs r n)) =
+        Suc (asize (bder c r) + (Suc (asize r) + m))"
+      using Suc by simp
+    also have "... \<le> Suc (asize r * asize r + (Suc (asize r) + m))"
+      using ih by linarith
+    also have "... \<le> (Suc (Suc m) + asize r) * (Suc (Suc m) + asize r)"
+      by (rule asize_bder_NTIMES_square_arith[OF pos])
+    also have "... = asize (ANTIMES bs r n) * asize (ANTIMES bs r n)"
+      using Suc by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+next
+  case (ABACKREF4 x1 r1 r2 r3 r4 x6)
+  then show ?case by simp
+next
+  case (AHALF x1 r x3 x4)
+  then show ?case by simp
+next
+  case (ARESIDUE x1 x2 x3)
+  then show ?case by simp
 qed
 
 lemma asize_bder_intern_legacy_le_rxsize_square:
