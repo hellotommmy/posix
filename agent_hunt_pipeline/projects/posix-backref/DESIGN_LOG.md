@@ -3635,3 +3635,11 @@ to be read before continuing long-running agent work.
   gates row-DAG universe, component union, and decomp bound at factor 3 on the
   strong-memo route. The full local CI passed with exact POSIX value smoke,
   `Posix`, and `BackRefPilot`.
+- Component-union handoff/frontier (2026-06-04): `componentUnionRatio` is now
+  reported as its own final-active frontier in the Scala smoke output instead
+  of being visible only inside the row-DAG summary. Isabelle also has
+  `strong_deferred_memo_lexer_final_active_component_union_bound_contract`,
+  which turns a linear component-union bound into exact memo-strong POSIX
+  correctness plus the row-DAG universe bound. This is still a proof-interface
+  checkpoint rather than the cubic theorem: the remaining hard step is proving
+  the component-union/root-owner bound for the general non-backref fragment.

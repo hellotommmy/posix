@@ -6878,6 +6878,57 @@ proof -
         [OF legacy row_dag_bound])
 qed
 
+lemma strong_deferred_memo_lexer_final_active_component_union_bound_contract:
+  assumes legacy: "legacy_rexp r"
+    and component_union_bound:
+      "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+        K * rxsize r"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      K * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+proof -
+  have row_dag_bound:
+    "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+  proof -
+    have "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+        card (strong_deferred_final_active_suffix_component_union r s)"
+      by (rule card_strong_deferred_final_active_suffix_row_dag_universe_le_component_union)
+    also have "... \<le> K * rxsize r"
+      by (rule component_union_bound)
+    finally show ?thesis .
+  qed
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(1)
+        [OF legacy row_dag_bound])
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(2)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(3)
+        [OF legacy row_dag_bound])
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_row_dag_linear_contract(4)
+        [OF legacy row_dag_bound])
+  show "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      K * rxsize r"
+    by (rule component_union_bound)
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      K * rxsize r"
+    by (rule row_dag_bound)
+qed
+
 lemma strong_deferred_memo_lexer_final_active_decomp_linear_contract:
   assumes legacy: "legacy_rexp r"
     and rows:

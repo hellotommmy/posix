@@ -2191,6 +2191,7 @@ object PosixCubicSmoke {
       memberDagRatio: Double,
       memberShapeDagRatio: Double,
       rowDagUniverseRatio: Double,
+      componentUnionRatio: Double,
       decompBoundRatio: Double,
       pairRatio: Double
   )
@@ -2545,6 +2546,7 @@ object PosixCubicSmoke {
       stats.maxRowDagSize.toDouble / rowDenom,
       stats.maxRowShapeDagSize.toDouble / rowDenom,
       stats.rowDagUniverseSize.toDouble / rowDenom,
+      stats.componentUnionSize.toDouble / rowDenom,
       stats.decompBoundSize.toDouble / rowDenom,
       stats.pairBudget.toDouble / pairDenom
     )
@@ -2819,6 +2821,18 @@ object PosixCubicSmoke {
               (a.regexSize == b.regexSize && (a.input < b.input ||
                 (a.input == b.input && a.regex.toString < b.regex.toString)))))))
 
+  def finalActiveComponentUnionObservationBetter(
+      a: FinalActiveBudgetObservation,
+      b: FinalActiveBudgetObservation
+  ): Boolean =
+    a.componentUnionRatio > b.componentUnionRatio ||
+      (a.componentUnionRatio == b.componentUnionRatio &&
+        (a.componentUnionSize > b.componentUnionSize ||
+          (a.componentUnionSize == b.componentUnionSize &&
+            (a.regexSize > b.regexSize ||
+              (a.regexSize == b.regexSize && (a.input < b.input ||
+                (a.input == b.input && a.regex.toString < b.regex.toString)))))))
+
   def finalActiveRowsTop(
       current: Vector[FinalActiveBudgetObservation],
       next: FinalActiveBudgetObservation,
@@ -2867,6 +2881,18 @@ object PosixCubicSmoke {
         .take(config.topLimit)
     }
 
+  def finalActiveComponentUnionTop(
+      current: Vector[FinalActiveBudgetObservation],
+      next: FinalActiveBudgetObservation,
+      config: FinalActiveBudgetConfig
+  ): Vector[FinalActiveBudgetObservation] =
+    if (!config.traceTop || next.regexSize < config.minRegexSize) current
+    else {
+      (current :+ next)
+        .sortWith(finalActiveComponentUnionObservationBetter)
+        .take(config.topLimit)
+    }
+
   def finalActiveDecompBoundTop(
       current: Vector[FinalActiveBudgetObservation],
       next: FinalActiveBudgetObservation,
@@ -2900,6 +2926,11 @@ object PosixCubicSmoke {
               s" altNodes=${w.altNodes} payloadRoots=${w.payloadRoots}" +
               s" payloadDag=${w.payloadDagUniverseSize} keyDag=${w.keyDagUniverseSize}" +
               s" componentUnion=${w.componentUnionSize} decompBound=${w.decompBoundSize}"
+          case "componentUnion" =>
+            f"componentUnionRatio=${w.componentUnionRatio}%.6f componentUnion=${w.componentUnionSize}" +
+              s" rows=${w.rows} altNodes=${w.altNodes}" +
+              s" payloadDag=${w.payloadDagUniverseSize} keyDag=${w.keyDagUniverseSize}" +
+              s" rowDagUniverse=${w.rowDagUniverseSize} decompBound=${w.decompBoundSize}"
           case "decompBound" =>
             f"decompBoundRatio=${w.decompBoundRatio}%.6f decompBound=${w.decompBoundSize}" +
               s" rows=${w.rows} altNodes=${w.altNodes}" +
@@ -2915,6 +2946,7 @@ object PosixCubicSmoke {
       pairTop: Vector[FinalActiveBudgetObservation],
       memberTop: Vector[FinalActiveBudgetObservation],
       rowDagUniverseTop: Vector[FinalActiveBudgetObservation],
+      componentUnionTop: Vector[FinalActiveBudgetObservation],
       decompBoundTop: Vector[FinalActiveBudgetObservation],
       config: FinalActiveBudgetConfig
   ): String =
@@ -2924,6 +2956,8 @@ object PosixCubicSmoke {
       val memberSummary = finalActiveBudgetFrontierListSummary("top final-active member ratios", memberTop, "member", config)
       val rowDagUniverseSummary =
         finalActiveBudgetFrontierListSummary("top final-active row-DAG universe ratios", rowDagUniverseTop, "rowDagUniverse", config)
+      val componentUnionSummary =
+        finalActiveBudgetFrontierListSummary("top final-active component-union ratios", componentUnionTop, "componentUnion", config)
       val decompBoundSummary =
         finalActiveBudgetFrontierListSummary("top final-active decomp-bound ratios", decompBoundTop, "decompBound", config)
       val pairSummary = finalActiveBudgetFrontierListSummary("top final-active pair ratios", pairTop, "pair", config)
@@ -2934,7 +2968,7 @@ object PosixCubicSmoke {
         s"componentUnionFactor=${config.componentUnionFactor}, " +
         s"decompBoundFactor=${config.decompBoundFactor}, " +
         s"minRegexSize=${config.minRegexSize}, top=${config.topLimit}); " +
-        s"$rowsSummary; $memberSummary; $rowDagUniverseSummary; $decompBoundSummary; $pairSummary"
+        s"$rowsSummary; $memberSummary; $rowDagUniverseSummary; $componentUnionSummary; $decompBoundSummary; $pairSummary"
     }
 
   def sharedStatePoolCubicBound(r: Rexp, factor: Double): Long =
@@ -3239,6 +3273,8 @@ object PosixCubicSmoke {
        |memberDagRatio        = ${obs.memberDagRatio}
        |memberShapeDagRatio   = ${obs.memberShapeDagRatio}
        |rowDagUniverseRatio   = ${obs.rowDagUniverseRatio}
+       |componentUnionRatio   = ${obs.componentUnionRatio}
+       |decompBoundRatio      = ${obs.decompBoundRatio}
        |pairRatio             = ${obs.pairRatio}
        |strongTree            = ${result.strongTree}
        |strongDag             = ${result.strongDag}
@@ -3998,6 +4034,7 @@ object PosixCubicSmoke {
     var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveMemberFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveRowDagUniverseFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActiveComponentUnionFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveDecompBoundFrontier = Vector.empty[FinalActiveBudgetObservation]
     regexes.foreach { r =>
       inputs.foreach { s =>
@@ -4017,6 +4054,8 @@ object PosixCubicSmoke {
         finalActiveMemberFrontier = finalActiveMemberTop(finalActiveMemberFrontier, finalObs, finalActiveConfig)
         finalActiveRowDagUniverseFrontier =
           finalActiveRowDagUniverseTop(finalActiveRowDagUniverseFrontier, finalObs, finalActiveConfig)
+        finalActiveComponentUnionFrontier =
+          finalActiveComponentUnionTop(finalActiveComponentUnionFrontier, finalObs, finalActiveConfig)
         finalActiveDecompBoundFrontier =
           finalActiveDecompBoundTop(finalActiveDecompBoundFrontier, finalObs, finalActiveConfig)
         checkFinalActiveBudget(r, s, result, s"exhaustive case $checked", finalActiveConfig)
@@ -4042,6 +4081,7 @@ object PosixCubicSmoke {
         finalActivePairFrontier,
         finalActiveMemberFrontier,
         finalActiveRowDagUniverseFrontier,
+        finalActiveComponentUnionFrontier,
         finalActiveDecompBoundFrontier,
         finalActiveConfig
       )
@@ -4067,6 +4107,7 @@ object PosixCubicSmoke {
     var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveMemberFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveRowDagUniverseFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActiveComponentUnionFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveDecompBoundFrontier = Vector.empty[FinalActiveBudgetObservation]
     (0 until cases).foreach { _ =>
       checked += 1
@@ -4087,6 +4128,8 @@ object PosixCubicSmoke {
       finalActiveMemberFrontier = finalActiveMemberTop(finalActiveMemberFrontier, finalObs, finalActiveConfig)
       finalActiveRowDagUniverseFrontier =
         finalActiveRowDagUniverseTop(finalActiveRowDagUniverseFrontier, finalObs, finalActiveConfig)
+      finalActiveComponentUnionFrontier =
+        finalActiveComponentUnionTop(finalActiveComponentUnionFrontier, finalObs, finalActiveConfig)
       finalActiveDecompBoundFrontier =
         finalActiveDecompBoundTop(finalActiveDecompBoundFrontier, finalObs, finalActiveConfig)
       checkFinalActiveBudget(r, s, result, s"random seed=$seed case=$checked", finalActiveConfig)
@@ -4112,6 +4155,7 @@ object PosixCubicSmoke {
         finalActivePairFrontier,
         finalActiveMemberFrontier,
         finalActiveRowDagUniverseFrontier,
+        finalActiveComponentUnionFrontier,
         finalActiveDecompBoundFrontier,
         finalActiveConfig
       )
@@ -4348,6 +4392,7 @@ object PosixCubicSmoke {
     var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveMemberFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveRowDagUniverseFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActiveComponentUnionFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveDecompBoundFrontier = Vector.empty[FinalActiveBudgetObservation]
     cases.foreach { case ((name, r), inputs) =>
       inputs.foreach { s =>
@@ -4366,6 +4411,8 @@ object PosixCubicSmoke {
         finalActiveMemberFrontier = finalActiveMemberTop(finalActiveMemberFrontier, finalObs, finalActiveConfig)
         finalActiveRowDagUniverseFrontier =
           finalActiveRowDagUniverseTop(finalActiveRowDagUniverseFrontier, finalObs, finalActiveConfig)
+        finalActiveComponentUnionFrontier =
+          finalActiveComponentUnionTop(finalActiveComponentUnionFrontier, finalObs, finalActiveConfig)
         finalActiveDecompBoundFrontier =
           finalActiveDecompBoundTop(finalActiveDecompBoundFrontier, finalObs, finalActiveConfig)
         checkFinalActiveBudget(r, s, result, s"known CE $name input=$s", finalActiveConfig)
@@ -4391,6 +4438,7 @@ object PosixCubicSmoke {
         finalActivePairFrontier,
         finalActiveMemberFrontier,
         finalActiveRowDagUniverseFrontier,
+        finalActiveComponentUnionFrontier,
         finalActiveDecompBoundFrontier,
         finalActiveConfig
       )
@@ -5074,6 +5122,7 @@ object PosixCubicSmoke {
     var finalActivePairFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveMemberFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveRowDagUniverseFrontier = Vector.empty[FinalActiveBudgetObservation]
+    var finalActiveComponentUnionFrontier = Vector.empty[FinalActiveBudgetObservation]
     var finalActiveDecompBoundFrontier = Vector.empty[FinalActiveBudgetObservation]
     val trace = lengths.map { n =>
       val input = "a" * n
@@ -5087,6 +5136,8 @@ object PosixCubicSmoke {
       finalActiveMemberFrontier = finalActiveMemberTop(finalActiveMemberFrontier, finalObs, finalActiveConfig)
       finalActiveRowDagUniverseFrontier =
         finalActiveRowDagUniverseTop(finalActiveRowDagUniverseFrontier, finalObs, finalActiveConfig)
+      finalActiveComponentUnionFrontier =
+        finalActiveComponentUnionTop(finalActiveComponentUnionFrontier, finalObs, finalActiveConfig)
       finalActiveDecompBoundFrontier =
         finalActiveDecompBoundTop(finalActiveDecompBoundFrontier, finalObs, finalActiveConfig)
       checkMemoUniverseBound(r, input, result, s"Chapter 7 k=$k n=$n")
@@ -5167,6 +5218,7 @@ object PosixCubicSmoke {
         finalActivePairFrontier,
         finalActiveMemberFrontier,
         finalActiveRowDagUniverseFrontier,
+        finalActiveComponentUnionFrontier,
         finalActiveDecompBoundFrontier,
         finalActiveConfig
       ) match {

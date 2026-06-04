@@ -9124,6 +9124,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 - Bounty status: infrastructure only; no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Component-Union Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof addition in `FBound.thy`:
+  - `strong_deferred_memo_lexer_final_active_component_union_bound_contract`
+- Scala smoke addition:
+  - `componentUnionRatio` is now a first-class final-active frontier metric,
+    reported separately from row-DAG universe and decomp-bound ratios.
+- Design result:
+  - A linear bound on the final-active component union now directly yields the
+    memo-strong lexer/POSIX correctness handoff and the corresponding row-DAG
+    universe linear bound, via the checked subset
+    `row_dag_universe <= component_union`.
+  - This keeps the active proof route aligned with the hash-cons owner-table
+    evidence: component union is a sharper metric than the older decomp sum,
+    while still being connected to exact POSIX value reconstruction.
+- Build: focused Isabelle `Posix` PASS; light Scala strong-memo smoke PASS.
+- Bounty status: infrastructure only; no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
