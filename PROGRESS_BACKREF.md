@@ -9180,6 +9180,8 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     `componentUnionSize` with the erased alt root's DAG subterms. This matters
     because Scala erases `AALTs` to binary `ALT` trees, while Isabelle's raw
     row metric uses n-ary `RALTS`.
+  - The smoke tool now fails fast if `componentUnionSize` and
+    `rowDagUniverseSize` diverge, mirroring the checked Isabelle equality.
 - Design result:
   - The final-active `component_union` metric is not merely an upper frontier:
     it is exactly the existing final-active row-DAG universe. The missing piece

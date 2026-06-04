@@ -3658,6 +3658,7 @@ to be read before continuing long-running agent work.
   the immediate `card ... <= asize (bders_simpStrong (intern r) s)` corollary.
   The Scala smoke metric was aligned at the same checkpoint: because Scala
   erases `AALTs` to binary `ALT` trees, `componentUnionSize` now includes the
-  erased alt root's DAG subterms. This is still not the final cubic theorem,
-  but it removes a metric fork: component-union smoke data and row-DAG Isabelle
-  bounds now refer to the same object.
+  erased alt root's DAG subterms, and the smoke code fails fast if
+  `componentUnionSize != rowDagUniverseSize`. This is still not the final cubic
+  theorem, but it removes a metric fork: component-union smoke data and row-DAG
+  Isabelle bounds now refer to the same object.

@@ -2370,6 +2370,11 @@ object PosixCubicSmoke {
     val componentUnionSize =
       (bucketRows.toSet ++ altDagUniverse.toSet ++
         payloadDagUniverse.toSet ++ keyDagUniverse.toSet).size
+    if (componentUnionSize != rowDagUniverseSize) {
+      sys.error(
+        s"internal final-active metric mismatch: componentUnion=$componentUnionSize " +
+          s"rowDagUniverse=$rowDagUniverseSize")
+    }
     val decompBoundSize =
       rows + altNodes.size + payloadDagUniverse.size + keyDagUniverse.size
     val pairBudget = buckets.valuesIterator.map { bucket =>
