@@ -21456,6 +21456,13 @@ lemma raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
   by (simp add: raw_final_active_suffix_row_dag_universe_def
       rsubterm_closure_def)
 
+lemma raw_final_active_suffix_row_dag_universe_subterm_closed:
+  assumes "q \<in> raw_final_active_suffix_row_dag_universe r"
+  shows "rsubterms q \<subseteq> raw_final_active_suffix_row_dag_universe r"
+  using assms
+  by (simp add: raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure
+      rsubterm_closure_closed)
+
 lemma card_raw_final_active_suffix_row_dag_universe_le_rsize:
   "card (raw_final_active_suffix_row_dag_universe r) \<le> rsize r"
 proof -
@@ -22005,6 +22012,16 @@ lemma raw_final_active_suffix_roots_keys_subset_row_dag_universe:
     raw_final_active_suffix_row_dag_universe r"
   using raw_final_active_suffix_payload_roots_subset_row_dag_universe
     raw_final_active_suffix_keys_subset_row_dag_universe
+  by blast
+
+lemma raw_final_active_suffix_alt_owner_subset_row_dag_universe:
+  "raw_final_active_suffix_payload_roots r \<union>
+   raw_final_active_suffix_keys r \<union>
+   raw_final_active_suffix_alt_nodes r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+  using raw_final_active_suffix_payload_roots_subset_row_dag_universe
+    raw_final_active_suffix_keys_subset_row_dag_universe
+    raw_final_active_suffix_alt_nodes_subset_row_dag_universe
   by blast
 
 lemma raw_final_active_suffix_payload_key_dag_universe_subset_row_dag_universe:

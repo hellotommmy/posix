@@ -2745,6 +2745,15 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure:
       strong_deferred_final_active_suffix_rows_def
       raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure)
 
+lemma strong_deferred_final_active_suffix_row_dag_universe_subterm_closed:
+  assumes "q \<in> strong_deferred_final_active_suffix_row_dag_universe r s"
+  shows "rsubterms q \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  using assms
+  by (simp add:
+      strong_deferred_final_active_suffix_row_dag_universe_eq_rsubterm_closure
+      rsubterm_closure_closed)
+
 lemma strong_deferred_final_active_suffix_row_dag_universe_empty:
   assumes "strong_deferred_final_active_suffix_rows r s = {}"
   shows "strong_deferred_final_active_suffix_row_dag_universe r s = {}"
@@ -3047,6 +3056,16 @@ lemma strong_deferred_final_active_suffix_keys_subset_row_dag_universe:
   by (simp add: strong_deferred_final_active_suffix_keys_def
       strong_deferred_final_active_suffix_row_dag_universe_def
       raw_final_active_suffix_keys_subset_row_dag_universe)
+
+lemma strong_deferred_final_active_suffix_alt_owner_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_payload_roots r s \<union>
+   strong_deferred_final_active_suffix_keys r s \<union>
+   strong_deferred_final_active_suffix_alt_nodes r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  using strong_deferred_final_active_suffix_payload_roots_subset_row_dag_universe
+    strong_deferred_final_active_suffix_keys_subset_row_dag_universe
+    strong_deferred_final_active_suffix_alt_nodes_subset_row_dag_universe
+  by blast
 
 lemma strong_deferred_final_active_suffix_key_dag_universe_subset_row_dag_universe:
   "strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>

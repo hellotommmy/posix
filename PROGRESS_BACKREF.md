@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Final Row-DAG Owner Closure (2026-06-04)
+
+- Final theorem status: **not complete**. The remaining priority theorem is
+  still the all-input original-regex cubic/linear owner bound for the
+  memo-strong final row-DAG table.
+- Checked Isabelle additions:
+  - `GeneralRegexBound.thy:raw_final_active_suffix_row_dag_universe_subterm_closed`
+  - `GeneralRegexBound.thy:raw_final_active_suffix_alt_owner_subset_row_dag_universe`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_subterm_closed`
+  - `FBound.thy:strong_deferred_final_active_suffix_alt_owner_subset_row_dag_universe`
+- Meaning:
+  - The final-active row-DAG universe is now explicitly named as
+    `rsubterms`-closed at both raw and lifted levels.
+  - The sharp BR-040 owner set
+    `payload_roots ∪ suffix_keys ∪ alt_nodes` is now explicitly covered by
+    that row-DAG universe. This keeps the next proof focused on constructing a
+    concrete original-regex-owned linear universe, rather than rediscovering
+    basic closure/coverage facts around each contract.
+- Verification:
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof-surface cleanup only; no final cubic theorem or bounty
+  is claimed.
+
 ## Cubic Route Checkpoint: Fresh-Key DAG Closure Is Too Coarse (2026-06-04)
 
 - Final theorem status: **not complete**. The priority theorem remains the
