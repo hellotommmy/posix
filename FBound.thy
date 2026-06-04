@@ -3144,6 +3144,32 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_deferred_strong_rows_raw_bridge_owner_member_sizeI:
+  assumes rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+    and p: "p \<in> strong_deferred_strong_rows_raw_bridge_owner r s"
+  shows "rsize p \<le> M"
+proof -
+  let ?Rows = "strong_deferred_strong_rows_raw_bridge_rows r s"
+  let ?U = "rsubterm_closure ?Rows"
+  let ?C = "raw_shared_prune_active_suffix_closure ?U"
+  have seed_member: "\<And>q. q \<in> ?U \<Longrightarrow> rsize q \<le> M"
+    by (rule strong_deferred_strong_rows_raw_bridge_closure_member_sizeI
+        [OF rows_member])
+  have p_sub: "p \<in> rsubterm_closure ?C"
+    using p
+    by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
+  obtain q where q: "q \<in> ?C" "p \<in> rsubterms q"
+    using p_sub by (auto simp add: rsubterm_closure_def)
+  have "rsize p \<le> rsize q"
+    by (rule rsubterms_member_size_le_rsize[OF q(2)])
+  also have "... \<le> M"
+    by (rule raw_shared_prune_active_suffix_closure_member_size_bound
+        [OF seed_member q(1)])
+  finally show ?thesis .
+qed
+
 lemma strong_deferred_strong_rows_raw_least_owner_dag_member_sizeI:
   assumes rows_member:
       "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>

@@ -3961,3 +3961,12 @@ to be read before continuing long-running agent work.
   and member-size controlled by the original regex. The Chapter 7 Scala grid
   now caches one `StrongDeferredMemoResult` per `(k,n)` for all `strongMemo*`
   metrics; this is smoke robustness only and carries no bounty.
+- Bridge-owner member-size checkpoint (2026-06-05): added
+  `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_member_sizeI`.
+  This proves that one-step active-suffix closure plus subterm closure preserves
+  the bridge-row member-size bound. It is real proof infrastructure, but it is
+  not the final cubic theorem: if the bridge owner is only known to have cubic
+  cardinality, multiplying by a linear member-size bound is still quartic for
+  tree-size accounting. The first-priority target remains a shared row-DAG /
+  root-owned universe cardinality proof, or a sharper owner theorem that avoids
+  this extra factor. Do not report any cubic bounty from this checkpoint.

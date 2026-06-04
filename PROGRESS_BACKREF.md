@@ -9982,6 +9982,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
     repeated non-DAG derivative recomputation from the plotting pipeline; it is
     not proof progress and must not be counted as bounty.
 
+## Cubic Bound Research Checkpoint: Bridge-Owner Member Size (2026-06-05)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof addition:
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_member_sizeI`
+- Design result:
+  - The strong-row bridge owner now has a direct member-size preservation fact:
+    if every bridge row has raw size at most `M`, then every expression in
+    `strong_deferred_strong_rows_raw_bridge_owner r s` also has raw size at
+    most `M`.
+  - This is useful for the final route because active-suffix pruning and the
+    following subterm closure do not independently inflate member size. It
+    removes one possible source of accounting noise from the owner-universe
+    proof.
+  - This does **not** prove the final cubic theorem. In fact, a naive proof
+    that combines a cubic cardinality bound for the bridge owner with a linear
+    member-size bound would still give a quartic tree-size bound. The main
+    target therefore remains the shared/row-DAG universe cardinality theorem,
+    or a sharper root-owned owner bound that avoids this extra multiplication.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
