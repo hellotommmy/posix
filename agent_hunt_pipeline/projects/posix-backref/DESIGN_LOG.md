@@ -3757,3 +3757,16 @@ to be read before continuing long-running agent work.
   a closed owner universe because closure can now be charged only for
   cardinality, not for growing row sizes. It is still not the final cubic
   theorem.
+- Fresh continuation-key checkpoint (2026-06-04): added the checked
+  counterexample
+  `raw_shared_prune_active_suffix_closure_can_introduce_fresh_key`. This shows
+  that active-suffix closure can create a suffix key not present in the seed
+  rows: a payload row `RSEQ (RALTS ...) k2` sequenced with an outer key `k`
+  exposes the fresh continuation `k2 . k`. Do not try to prove key-set
+  preservation for the owner universe. The correct invariant needs a
+  continuation-owner/cardinality argument. The positive side is now checked by
+  `raw_shared_prune_suffix_key_rsubterms`,
+  `raw_shared_prune_active_suffix_keys_member_size_bound`, and
+  `raw_shared_prune_active_suffix_closure_keys_member_size_bound`: fresh keys
+  are still subterms of bounded closure rows, so their sizes are controlled
+  even though their count remains the hard part.

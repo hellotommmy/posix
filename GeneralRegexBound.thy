@@ -21279,6 +21279,33 @@ next
     by (rule finite_subset[OF sub fin])
 qed
 
+lemma raw_shared_prune_suffix_key_rsubterms:
+  assumes "raw_shared_prune_suffix_key q = Some k"
+  shows "k \<in> rsubterms q"
+  using assms
+proof (cases q)
+  case (RSEQ q1 q2)
+  then show ?thesis
+    using assms
+    by (cases q1) (simp_all add: raw_shared_prune_suffix_key_def)
+qed (use assms in \<open>simp_all add: raw_shared_prune_suffix_key_def\<close>)
+
+lemma raw_shared_prune_active_suffix_keys_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and k: "k \<in> raw_shared_prune_active_suffix_keys U"
+  shows "rsize k \<le> M"
+proof -
+  obtain q where q: "q \<in> U" "raw_shared_prune_suffix_key q = Some k"
+    using k by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+  have "k \<in> rsubterms q"
+    by (rule raw_shared_prune_suffix_key_rsubterms[OF q(2)])
+  then have "rsize k \<le> rsize q"
+    by (rule rsubterms_member_size_le_rsize)
+  also have "... \<le> M"
+    by (rule member_size[OF q(1)])
+  finally show ?thesis .
+qed
+
 lemma card_raw_shared_prune_active_suffix_keys_le:
   assumes finite: "finite U"
   shows "card (raw_shared_prune_active_suffix_keys U) \<le> card U"
@@ -22873,6 +22900,51 @@ lemma raw_shared_prune_active_suffix_closure_as_pairs:
       case p of (earlier, later) \<Rightarrow>
         raw_shared_prune_pair_outputs earlier later)"
   by (simp add: raw_shared_prune_active_suffix_closure_def)
+
+lemma raw_shared_prune_active_suffix_closure_can_introduce_fresh_key:
+  defines "a \<equiv> RCHAR (CHR ''a'')"
+  defines "b \<equiv> RCHAR (CHR ''b'')"
+  defines "c \<equiv> RCHAR (CHR ''c'')"
+  defines "inner \<equiv> RSEQ (RALTS [a]) b"
+  defines "earlier \<equiv> RSEQ (RALTS []) c"
+  defines "later \<equiv> RSEQ (RALTS [inner]) c"
+  defines "U \<equiv> {earlier, later}"
+  defines "fresh \<equiv> RSEQ b c"
+  shows "fresh \<in> raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure U)"
+    and "fresh \<notin> raw_shared_prune_active_suffix_keys U"
+proof -
+  let ?row = "RSEQ (RALTS [a]) fresh"
+  have pair: "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs U"
+    by (simp add: U_def earlier_def later_def
+        raw_shared_prune_active_suffix_pairs_def
+        raw_shared_prune_suffix_key_def)
+  have out_row: "?row \<in> raw_shared_prune_pair_outputs earlier later"
+    by (simp add: a_def b_def c_def inner_def earlier_def later_def fresh_def
+        raw_shared_prune_pair_outputs_def rsimpStrong_prune_pair_raw_def
+        rsimp7_SEQ_atom_def)
+  have row_in_closure: "?row \<in> raw_shared_prune_active_suffix_closure U"
+    using pair out_row
+    by (auto simp add: raw_shared_prune_active_suffix_closure_as_pairs
+        split: prod.splits)
+  have key: "raw_shared_prune_suffix_key ?row = Some fresh"
+    by (simp add: raw_shared_prune_suffix_key_def)
+  have "Some fresh \<in> raw_shared_prune_suffix_key `
+      raw_shared_prune_active_suffix_closure U"
+  proof (rule image_eqI)
+    show "Some fresh = raw_shared_prune_suffix_key ?row"
+      using key by simp
+    show "?row \<in> raw_shared_prune_active_suffix_closure U"
+      by (rule row_in_closure)
+  qed
+  then show "fresh \<in> raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure U)"
+    by (simp add: raw_shared_prune_active_suffix_keys_def)
+  show "fresh \<notin> raw_shared_prune_active_suffix_keys U"
+    by (simp add: U_def earlier_def later_def fresh_def
+        raw_shared_prune_active_suffix_keys_def
+        raw_shared_prune_suffix_key_def)
+qed
 
 lemma card_raw_shared_prune_same_suffix_pairs_le_sum_buckets:
   assumes finite: "finite U"
@@ -24846,6 +24918,23 @@ proof -
     also have "... \<le> M"
       by (rule member_size[OF later])
     finally show ?thesis .
+  qed
+qed
+
+lemma raw_shared_prune_active_suffix_closure_keys_member_size_bound:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and k: "k \<in> raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure U)"
+  shows "rsize k \<le> M"
+proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ k])
+  fix q
+  assume q: "q \<in> raw_shared_prune_active_suffix_closure U"
+  show "rsize q \<le> M"
+  proof (rule raw_shared_prune_active_suffix_closure_member_size_bound[OF _ q])
+    fix p
+    assume "p \<in> U"
+    then show "rsize p \<le> M"
+      by (rule member_size)
   qed
 qed
 

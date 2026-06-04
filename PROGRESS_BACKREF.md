@@ -2,6 +2,32 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Checkpoint: Fresh Continuation Keys Exposed (2026-06-04)
+
+- Final theorem status: **not complete**. This checkpoint rules out a tempting
+  but false invariant; it does not prove the cubic bound.
+- Checked Isabelle additions in `GeneralRegexBound.thy`:
+  - `raw_shared_prune_suffix_key_rsubterms`
+  - `raw_shared_prune_active_suffix_keys_member_size_bound`
+  - `raw_shared_prune_active_suffix_closure_keys_member_size_bound`
+  - `raw_shared_prune_active_suffix_closure_can_introduce_fresh_key`
+- Meaning:
+  - Active-suffix closure can introduce a fresh continuation key. A later row
+    whose payload is itself `RSEQ (RALTS ...) k2`, when pruned and sequenced
+    with the outer key `k`, can expose the new key `k2 . k`.
+  - Therefore the next owner-universe proof cannot assume suffix-key
+    preservation under active closure. It needs a continuation-owner/cardinality
+    argument.
+  - The positive replacement fact is still useful: every suffix key in the
+    active closure has size bounded by the closure member-size bound, because a
+    suffix key is a subterm of its owning row.
+- Verification:
+  - Focused `isabelle build -v -d . Posix` PASS.
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 600`.
+- Bounty status: route-sharpening proof infrastructure only; no final cubic
+  theorem or bounty is claimed.
+
 ## Cubic Route Checkpoint: Shared-Prune Closure Preserves Member Size (2026-06-04)
 
 - Final theorem status: **not complete**. The first-priority theorem is still

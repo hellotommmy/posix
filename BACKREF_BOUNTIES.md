@@ -128,6 +128,15 @@ immutability.
   any universe member-size bound. This removes one side condition from the
   owner-universe route, but the all-input cubic theorem remains open and no
   bounty is paid.
+- Fresh continuation-key counterexample: `GeneralRegexBound.thy` now checks
+  `raw_shared_prune_active_suffix_closure_can_introduce_fresh_key`. Active
+  closure can generate a new suffix key of the form `k2 . k` from a nested
+  active payload row, so key-set preservation is not a valid BR-040 invariant.
+  The checked replacement facts
+  `raw_shared_prune_active_suffix_keys_member_size_bound` and
+  `raw_shared_prune_active_suffix_closure_keys_member_size_bound` show that
+  these keys remain member-size bounded. The remaining payout theorem still
+  needs a cardinality/owner argument for those continuation keys.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and
