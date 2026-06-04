@@ -98,6 +98,13 @@ immutability.
   sharpening the bucket-width obligation. It is still infrastructure: the
   all-input cubic theorem must still bound those nodes from the original
   non-backref regex universe before any BR-039/BR-040 payout.
+- Linear-bucket cubic handoff: `FBound.thy` now checks
+  `strong_deferred_memo_lexer_final_active_bucket_component_union_quadratic_contract`.
+  This relaxes the useful BR-040 route from constant bucket width to linear
+  bucket width: linear keys, linear buckets, and a linear closed owner universe
+  imply exact memo-strong POSIX correctness plus quadratic row-DAG/component
+  bounds, padded to cubic. The key/bucket/owner premises are still unproved
+  for arbitrary non-backref inputs, so no BR-039/BR-040 bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

@@ -9286,6 +9286,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final non-backref cubic theorem is
   still unproved; no BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Linear Buckets Give Cubic Handoff (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `FBound.thy`:
+  - `card_strong_deferred_final_active_suffix_component_union_closed_root_quadraticI`
+  - `card_strong_deferred_final_active_suffix_rows_bucket_quadraticI`
+  - `strong_deferred_memo_lexer_final_active_bucket_component_union_quadratic_contract`
+- Design result:
+  - The previous bucket handoff required a uniform constant bucket width to get
+    a linear final row-DAG bound. That is stronger than the current cubic goal
+    needs and does not match the Chapter 7 evidence as naturally as a linear
+    bucket bound.
+  - Isabelle now checks the more realistic accounting route:
+    if final suffix keys are linear in `rxsize r`, each final active suffix
+    bucket is also linear in `rxsize r`, and the final payload roots/keys are
+    covered by a linear `rsubterms`-closed owner universe, then
+    `strong_deferred_memo_lexer` keeps exact POSIX correctness and the final
+    component-union/row-DAG universe is quadratic, hence also cubic, in the
+    original regex size.
+  - This is a stronger fit for the actual target than the constant-bucket
+    contract, but it is still conditional. The remaining substantive theorem
+    is to prove the key-count, bucket-width, and owner-universe premises for
+    all non-backref inputs.
+- Build: full local CI PASS: Scala strong-memo smoke, `Posix`, and
+  `BackRefPilot`.
+- Bounty status: infrastructure only. The final non-backref cubic theorem is
+  still unproved; no BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

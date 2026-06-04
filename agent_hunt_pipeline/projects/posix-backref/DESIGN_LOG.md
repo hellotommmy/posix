@@ -3711,3 +3711,16 @@ to be read before continuing long-running agent work.
   but it still does not prove the final cubic theorem: the remaining target is
   to bound those alt/owner nodes by the original non-backref regex universe,
   not by the already-grown final raw regex.
+- Linear-bucket cubic handoff (2026-06-04): added
+  `card_strong_deferred_final_active_suffix_rows_bucket_quadraticI`,
+  `card_strong_deferred_final_active_suffix_component_union_closed_root_quadraticI`,
+  and
+  `strong_deferred_memo_lexer_final_active_bucket_component_union_quadratic_contract`.
+  This changes the preferred BR-040 accounting target from the too-strong
+  constant-bucket premise to a cubic-sufficient one: final suffix keys linear
+  in the original regex size, each active suffix bucket linear in the original
+  regex size, and payload roots/keys covered by a linear closed owner universe.
+  Under these premises Isabelle derives exact `strong_deferred_memo_lexer`
+  POSIX correctness, quadratic component-union/row-DAG bounds, and the cubic
+  padding. The hard theorem is still open: prove those three premises for the
+  non-backref fragment.
