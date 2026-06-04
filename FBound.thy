@@ -3677,6 +3677,26 @@ proof -
     by (simp add: strong_deferred_final_active_suffix_rows_def)
 qed
 
+lemma card_strong_deferred_final_active_suffix_rows_bucket_linearI:
+  assumes keys_bound:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le>
+        K * rxsize r"
+    and bucket_bound:
+      "\<And>k. k \<in> strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (strong_deferred_final_active_suffix_rows r s) k) \<le> B"
+  shows "card (strong_deferred_final_active_suffix_rows r s) \<le>
+    (K * B) * rxsize r"
+proof -
+  have "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (K * rxsize r) * B"
+    by (rule card_strong_deferred_final_active_suffix_rows_bucket_boundI
+        [OF keys_bound bucket_bound])
+  also have "... = (K * B) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma card_strong_deferred_final_active_suffix_row_dag_universe_le_final_rsize:
   "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
     rsize (strong_deferred_final_raw r s)"
@@ -3986,6 +4006,26 @@ proof -
         [OF keys buckets])
   then show ?thesis
     by (simp add: strong_deferred_final_active_suffix_pair_budget_def)
+qed
+
+lemma strong_deferred_final_active_suffix_pair_budget_bucket_linearI:
+  assumes keys_bound:
+    "card (strong_deferred_final_active_suffix_keys r s) \<le>
+      K * rxsize r"
+    and bucket_bound: "\<And>k. k \<in>
+      strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket
+        (strong_deferred_final_active_suffix_rows r s) k) \<le> B"
+  shows "strong_deferred_final_active_suffix_pair_budget r s \<le>
+    (K * B * B) * rxsize r"
+proof -
+  have "strong_deferred_final_active_suffix_pair_budget r s \<le>
+      (K * rxsize r) * B * B"
+    by (rule strong_deferred_final_active_suffix_pair_budget_bucket_bound
+        [OF keys_bound bucket_bound])
+  also have "... = (K * B * B) * rxsize r"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
 qed
 
 lemma strong_deferred_final_active_suffix_pair_budget_le_rows_square:
@@ -7093,6 +7133,70 @@ proof -
     by (rule
         strong_deferred_memo_lexer_final_active_component_union_bound_contract(6)
         [OF legacy component_bound])
+qed
+
+lemma strong_deferred_memo_lexer_final_active_bucket_component_union_contract:
+  assumes legacy: "legacy_rexp r"
+    and keys_bound:
+      "card (strong_deferred_final_active_suffix_keys r s) \<le>
+        K * rxsize r"
+    and bucket_bound:
+      "\<And>k. k \<in> strong_deferred_final_active_suffix_keys r s \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (strong_deferred_final_active_suffix_rows r s) k) \<le> B"
+    and roots:
+      "strong_deferred_final_active_suffix_payload_roots r s \<union>
+       strong_deferred_final_active_suffix_keys r s \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C * rxsize r"
+  shows "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "strong_deferred_memo_lexer r s = lexer r s"
+    and "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    and "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (K * B) * rxsize r"
+    and "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      (2 * (K * B) + C) * rxsize r"
+    and "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (2 * (K * B) + C) * rxsize r"
+proof -
+  have rows:
+    "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (K * B) * rxsize r"
+    by (rule card_strong_deferred_final_active_suffix_rows_bucket_linearI
+        [OF keys_bound bucket_bound])
+  show "(strong_deferred_memo_lexer r s = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(1)
+        [OF legacy rows roots subterm_closed finite card_bound])
+  show "(strong_deferred_memo_lexer r s = None) \<longleftrightarrow>
+      \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(2)
+        [OF legacy rows roots subterm_closed finite card_bound])
+  show "strong_deferred_memo_lexer r s = lexer r s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(3)
+        [OF legacy rows roots subterm_closed finite card_bound])
+  show "strong_deferred_memo_lexer r s = Some v \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(4)
+        [OF legacy rows roots subterm_closed finite card_bound])
+  show "card (strong_deferred_final_active_suffix_rows r s) \<le>
+      (K * B) * rxsize r"
+    by (rule rows)
+  show "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+      (2 * (K * B) + C) * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(5)
+        [OF legacy rows roots subterm_closed finite card_bound])
+  show "card (strong_deferred_final_active_suffix_row_dag_universe r s) \<le>
+      (2 * (K * B) + C) * rxsize r"
+    by (rule
+        strong_deferred_memo_lexer_final_active_component_union_closed_root_linear_contract(6)
+        [OF legacy rows roots subterm_closed finite card_bound])
 qed
 
 lemma strong_deferred_memo_lexer_final_active_decomp_linear_contract:

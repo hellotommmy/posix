@@ -85,6 +85,13 @@ immutability.
   row-count control to `card suffixKeys * max suffixBucket`, giving BR-040 a
   sharper accounting target. They do not prove the required all-input
   regex-size cubic/linear theorem, so no BR-039/BR-040 bounty is paid.
+- Bucket-linear memo contract: `FBound.thy` now checks
+  `strong_deferred_memo_lexer_final_active_bucket_component_union_contract`.
+  It turns linear final suffix keys, bounded final active suffix buckets, and a
+  linear closed owner universe for payload roots/keys into exact memo-strong
+  POSIX correctness plus final row-DAG/component bounds. This is a sharper
+  BR-040 handoff, but the key/bucket/owner bounds themselves remain open, so
+  no BR-039/BR-040 bounty is paid.
 - Decomposition linear hook: `FBound.thy` now checks
   `card_strong_deferred_final_active_suffix_row_dag_universe_decomp_linearI`.
   It turns linear bounds for final-active rows, payload-DAG universe, and

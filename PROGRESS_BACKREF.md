@@ -9241,6 +9241,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: infrastructure only. The final non-backref cubic theorem is
   still open; no BR-039/BR-040 payout is claimed.
 
+## Cubic Bound Research Checkpoint: Bucket-Linear Memo Contract (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `FBound.thy`:
+  - `card_strong_deferred_final_active_suffix_rows_bucket_linearI`
+  - `strong_deferred_final_active_suffix_pair_budget_bucket_linearI`
+  - `strong_deferred_memo_lexer_final_active_bucket_component_union_contract`
+- Design result:
+  - The bucket decomposition is now connected to the memo-strong POSIX handoff.
+    If final suffix keys are linear in the original regex size, each active
+    suffix bucket has a uniform width bound, and the final payload roots/keys
+    live in a linear closed owner universe, then Isabelle derives exact
+    `strong_deferred_memo_lexer` POSIX correctness, `lexer` equality, `flat`,
+    final rows bounded by `(K * B) * rxsize r`, and final row-DAG/component
+    union bounded by `(2 * (K * B) + C) * rxsize r`.
+  - This sharpens the remaining BR-040 obligation: prove the key-count,
+    bucket-width, and owner-universe bounds from the non-backref `legacy_rexp`
+    invariant, rather than rebuilding the correctness bridge.
+- Build: full local CI PASS: Scala strong-memo smoke, `Posix`, and
+  `BackRefPilot`.
+- Bounty status: infrastructure only. The final theorem is still unproved; no
+  BR-039/BR-040 payout is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

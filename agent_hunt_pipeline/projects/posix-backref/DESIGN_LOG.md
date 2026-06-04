@@ -3692,3 +3692,13 @@ to be read before continuing long-running agent work.
   direct `rule` and `arg_cong` proof steps. Keep future accounting lemmas in
   this style: if automation takes more than a second or two, split the set
   equality/cardinality step explicitly.
+- Bucket-linear memo contract (2026-06-04): `FBound.thy` now has
+  `card_strong_deferred_final_active_suffix_rows_bucket_linearI`,
+  `strong_deferred_final_active_suffix_pair_budget_bucket_linearI`, and
+  `strong_deferred_memo_lexer_final_active_bucket_component_union_contract`.
+  This packages the current BR-040 route as a clean CEGAR target: prove
+  final suffix keys are linear, prove each final active suffix bucket has a
+  bounded width, and prove payload roots plus suffix keys sit in a linear
+  `rsubterms`-closed owner universe. Under those premises, exact POSIX value
+  reconstruction and the final row-DAG/component-union linear bound follow
+  immediately. This is still a conditional interface, not the final theorem.
