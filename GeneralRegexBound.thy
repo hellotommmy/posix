@@ -21473,6 +21473,97 @@ lemma raw_final_active_suffix_row_dag_universe_subterm_closed:
   by (simp add: raw_final_active_suffix_row_dag_universe_eq_rsubterm_closure
       rsubterm_closure_closed)
 
+lemma raw_final_active_suffix_row_dag_universe_rsimp_ALTs_subset:
+  "raw_final_active_suffix_row_dag_universe (rsimp_ALTs xs) \<subseteq>
+    rsubterm_closure (set xs)"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_row_dag_universe (rsimp_ALTs xs)"
+  obtain q rows k where q_shape: "q = RSEQ (RALTS rows) k"
+      and q_row: "q \<in> raw_final_active_suffix_rows (rsimp_ALTs xs)"
+      and p_sub: "p \<in> rsubterms q"
+    using p by (rule raw_final_active_suffix_row_dag_universeE)
+  have q_sub: "q \<in> rsubterms (rsimp_ALTs xs)"
+    using q_row raw_final_active_suffix_rows_subset_rsubterms by blast
+  show "p \<in> rsubterm_closure (set xs)"
+  proof (cases xs)
+    case Nil
+    then have "raw_final_active_suffix_rows (rsimp_ALTs xs) = {}"
+      by (simp add: raw_final_active_suffix_rows_def
+          raw_shared_prune_suffix_key_def)
+    then show ?thesis
+      using q_row by simp
+  next
+    case (Cons a ys)
+    have xs_cons: "xs = a # ys"
+      using Cons by simp
+    show ?thesis
+    proof (cases ys)
+      case Nil
+      have q_in_a: "q \<in> rsubterms a"
+        using q_sub xs_cons Nil by simp
+      have p_in_a: "p \<in> rsubterms a"
+        by (rule rsubterms_trans[OF q_in_a p_sub])
+      show ?thesis
+        using xs_cons Nil p_in_a
+        by (auto simp add: rsubterm_closure_def)
+    next
+      case (Cons b zs)
+      have xs_eq: "xs = a # b # zs"
+        using xs_cons Cons by simp
+      have q_child: "q \<in> \<Union> (set (map rsubterms xs))"
+      proof -
+        have "q \<noteq> RALTS xs"
+          using q_shape by simp
+        then show ?thesis
+          using q_sub xs_eq by simp
+      qed
+      obtain root where root: "root \<in> set xs" "q \<in> rsubterms root"
+        using q_child by auto
+      have p_in_root: "p \<in> rsubterms root"
+        by (rule rsubterms_trans[OF root(2) p_sub])
+      show ?thesis
+        using root(1) p_in_root
+        by (auto simp add: rsubterm_closure_def)
+    qed
+  qed
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_subset:
+  "raw_final_active_suffix_row_dag_universe
+      (rsimp_ALTs (rdistinct (rflts rs) {})) \<subseteq>
+    rsubterm_closure (set rs)"
+proof -
+  let ?xs = "rdistinct (rflts rs) {}"
+  have base:
+    "raw_final_active_suffix_row_dag_universe (rsimp_ALTs ?xs) \<subseteq>
+      rsubterm_closure (set ?xs)"
+    by (rule raw_final_active_suffix_row_dag_universe_rsimp_ALTs_subset)
+  have flat_sub: "set (rflts rs) \<subseteq> rsubterm_closure (set rs)"
+  proof
+    fix x
+    assume "x \<in> set (rflts rs)"
+    then have "x \<in> (\<Union>r \<in> set rs. rsubterms r)"
+      using set_rflts_subset_rsubterms_list[of rs] by blast
+    then show "x \<in> rsubterm_closure (set rs)"
+      by (auto simp add: rsubterm_closure_def)
+  qed
+  have elems: "set ?xs \<subseteq> rsubterm_closure (set rs)"
+    by (rule set_rdistinct_subset[OF flat_sub])
+  have closure_sub:
+    "rsubterm_closure (set ?xs) \<subseteq> rsubterm_closure (set rs)"
+    by (rule rsubterm_closure_subsetI[OF elems])
+       (rule rsubterm_closure_closed)
+  show ?thesis
+    using base closure_sub by blast
+qed
+
+lemma raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_subset:
+  "raw_final_active_suffix_row_dag_universe (rsimpStrong_ALTs_raw rs) \<subseteq>
+    rsubterm_closure (set (rsimpStrong_prune_rows_raw rs))"
+  by (simp add: rsimpStrong_ALTs_raw_def
+      raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_subset)
+
 lemma card_raw_final_active_suffix_row_dag_universe_le_rsize:
   "card (raw_final_active_suffix_row_dag_universe r) \<le> rsize r"
 proof -

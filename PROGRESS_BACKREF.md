@@ -9650,6 +9650,27 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: accounting infrastructure only. The final non-backref cubic
   theorem remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Strong ALTs Row-DAG Coverage (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions in `GeneralRegexBound.thy`:
+  - `raw_final_active_suffix_row_dag_universe_rsimp_ALTs_subset`
+  - `raw_final_active_suffix_row_dag_universe_rsimp_ALTs_rdistinct_rflts_subset`
+  - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_subset`
+- Design result:
+  - The final `rsimp_ALTs`/`rdistinct`/`rflts` normalization layer used by
+    `rsimpStrong_ALTs_raw` is now known not to create active suffix row-DAG
+    nodes outside the subterm closure of its input rows.
+  - This is one local bridge-coverage block for the final cubic theorem: it
+    reduces the last ALTs layer to accounting for
+    `rsimpStrong_prune_rows_raw`. The theorem still needs the harder
+    all-input coverage from the actual strong-row derivative process into a
+    cubic-size owner universe.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
