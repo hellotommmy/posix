@@ -3909,3 +3909,14 @@ to be read before continuing long-running agent work.
   least-owner POSIX contract now has a variant that consumes only bridge-row
   member-size plus least-owner DAG cardinality. The final theorem still needs
   the original-regex cardinality bound and a bridge-row member-size bound.
+- Bridge-row finite discharge checkpoint (2026-06-04): added
+  `legacy_rerase_bpders_strong1_rows`,
+  `legacy_strong_deferred_strong_rows_raw_bridge_rows`,
+  `strong_deferred_strong_rows_raw_bridge_rows_subset_sizeNregexI`, and
+  `finite_strong_deferred_strong_rows_raw_least_owner_dag_rows_member` in
+  `FBound.thy`. This proves that, for legacy sources, a bridge-row member-size
+  bound is enough to place all bridge rows in `sizeNregex M`, and hence enough
+  to derive finiteness of the least-owner DAG. This is not the final cubic
+  theorem; it removes a bookkeeping premise so the remaining hard obligations
+  are cardinality of the least-owner DAG and original-regex member-size control
+  for bridge rows.

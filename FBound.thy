@@ -9105,6 +9105,76 @@ next
     by (rule Cons.hyps[OF next_legacy p_next])
 qed
 
+lemma legacy_rerase_bpders_strong1_rows:
+  assumes "legacy_rrexp (rerase r)"
+    and "p \<in> set (bpders_strong1_rows r s)"
+  shows "legacy_rrexp (rerase p)"
+proof -
+  have rows_legacy: "\<forall>q \<in> set [r]. legacy_rrexp (rerase q)"
+    using assms(1) by simp
+  have row: "p \<in> set (bpders_strong_rows [r] s)"
+    using assms(2) by (simp add: bpders_strong1_rows_def)
+  show ?thesis
+    by (rule legacy_rerase_bpders_strong_rows[OF rows_legacy row])
+qed
+
+lemma legacy_strong_deferred_strong_rows_raw_bridge_rows:
+  assumes legacy: "legacy_rexp r"
+    and q: "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+  shows "legacy_rrexp q"
+proof -
+  have root: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have q_map:
+      "q \<in> set (map rerase (bpders_strong1_rows (intern r) s))"
+    using q
+    by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
+        map_rerase_bpders_strong1_rows_raw)
+  obtain p where p: "p \<in> set (bpders_strong1_rows (intern r) s)"
+    and q_eq: "q = rerase p"
+    using q_map by auto
+  have "legacy_rrexp (rerase p)"
+    by (rule legacy_rerase_bpders_strong1_rows[OF root p])
+  then show ?thesis
+    using q_eq by simp
+qed
+
+lemma strong_deferred_strong_rows_raw_bridge_rows_subset_sizeNregexI:
+  assumes legacy: "legacy_rexp r"
+    and rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+  shows "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq>
+    sizeNregex M"
+proof
+  fix q
+  assume q: "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+  have q_legacy: "legacy_rrexp q"
+    by (rule legacy_strong_deferred_strong_rows_raw_bridge_rows
+        [OF legacy q])
+  have q_size: "rsize q \<le> M"
+    by (rule rows_member[OF q])
+  show "q \<in> sizeNregex M"
+    using q_legacy q_size unfolding sizeNregex_def by simp
+qed
+
+lemma finite_strong_deferred_strong_rows_raw_least_owner_dag_rows_member:
+  assumes legacy: "legacy_rexp r"
+    and rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+  shows "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+proof -
+  have rows_subset:
+      "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq>
+        sizeNregex M"
+    by (rule strong_deferred_strong_rows_raw_bridge_rows_subset_sizeNregexI
+        [OF legacy rows_member])
+  show ?thesis
+    by (rule finite_strong_deferred_strong_rows_raw_least_owner_dag_sizeNregex
+        [OF rows_subset])
+qed
+
 lemma RLS_set_map_rerase_bpders_strong_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp (rerase r)"
   shows "RLS (set (map rerase (bpders_strong_rows rs s))) =

@@ -9840,6 +9840,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: proof infrastructure only. The final non-backref cubic theorem
   remains unproved and no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Bridge Rows Finite Discharge (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `FBound.thy:legacy_rerase_bpders_strong1_rows`
+  - `FBound.thy:legacy_strong_deferred_strong_rows_raw_bridge_rows`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_sizeNregexI`
+  - `FBound.thy:finite_strong_deferred_strong_rows_raw_least_owner_dag_rows_member`
+- Design result:
+  - Bridge rows are now checked to stay in the legacy raw fragment whenever the
+    source regex is legacy. A bridge-row member-size bound therefore implies
+    membership in `sizeNregex M`, which in turn discharges finiteness of the
+    least-owner DAG.
+  - This removes one independent premise from the final cubic route: finiteness
+    can be derived from legacy plus bridge-row member size. The hard theorem is
+    still open: prove a concrete original-regex cardinality bound for the
+    least-owner DAG, and prove a usable bridge-row member-size bound from the
+    original regex.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: proof infrastructure only. The final non-backref cubic theorem
+  remains unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
