@@ -2332,6 +2332,7 @@ object PosixCubicSmoke {
   def activeSuffixStatsForStrongRoots(roots: Iterable[ARexp]): ActiveSuffixStats = {
     val buckets = scala.collection.mutable.Map.empty[Rexp, scala.collection.mutable.Set[Rexp]]
     val altNodes = scala.collection.mutable.Set.empty[Rexp]
+    val altDagUniverse = scala.collection.mutable.Set.empty[Rexp]
     val payloadRoots = scala.collection.mutable.Set.empty[Rexp]
     val payloadDagUniverse = scala.collection.mutable.Set.empty[Rexp]
     val keyDagUniverse = scala.collection.mutable.Set.empty[Rexp]
@@ -2342,7 +2343,9 @@ object PosixCubicSmoke {
         val row = eraseA(q)
         val bucket = buckets.getOrElseUpdate(key, scala.collection.mutable.Set.empty[Rexp])
         bucket += row
-        altNodes += eraseA(alts)
+        val altRoot = eraseA(alts)
+        altNodes += altRoot
+        altDagUniverse ++= rsubterms(altRoot)
         payloads.foreach { p =>
           val payloadRoot = eraseA(p)
           payloadRoots += payloadRoot
@@ -2365,7 +2368,8 @@ object PosixCubicSmoke {
     val rowDagUniverseSize =
       bucketRows.iterator.flatMap(rsubterms).toSet.size
     val componentUnionSize =
-      (bucketRows.toSet ++ altNodes.toSet ++ payloadDagUniverse.toSet ++ keyDagUniverse.toSet).size
+      (bucketRows.toSet ++ altDagUniverse.toSet ++
+        payloadDagUniverse.toSet ++ keyDagUniverse.toSet).size
     val decompBoundSize =
       rows + altNodes.size + payloadDagUniverse.size + keyDagUniverse.size
     val pairBudget = buckets.valuesIterator.map { bucket =>

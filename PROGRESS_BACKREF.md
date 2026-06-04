@@ -9164,6 +9164,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
 - Bounty status: infrastructure only; no bounty is claimed.
 
+## Cubic Bound Research Checkpoint: Component Union Equals Row DAG (2026-06-04)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Checked proof additions:
+  - `GeneralRegexBound.thy:raw_final_active_suffix_alt_nodes_subset_row_dag_universe`
+  - `FBound.thy:strong_deferred_final_active_suffix_alt_nodes_subset_row_dag_universe`
+  - `FBound.thy:strong_deferred_final_active_suffix_component_union_subset_row_dag_universe`
+  - `FBound.thy:strong_deferred_final_active_suffix_component_union_eq_row_dag_universe`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_component_union_eq_row_dag_universe`
+  - `FBound.thy:card_strong_deferred_final_active_suffix_component_union_le_final_asize`
+- Scala smoke alignment:
+  - `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` now computes
+    `componentUnionSize` with the erased alt root's DAG subterms. This matters
+    because Scala erases `AALTs` to binary `ALT` trees, while Isabelle's raw
+    row metric uses n-ary `RALTS`.
+- Design result:
+  - The final-active `component_union` metric is not merely an upper frontier:
+    it is exactly the existing final-active row-DAG universe. The missing piece
+    was the small `alt_nodes <= row_dag_universe` inclusion.
+  - This reduces the live cubic proof surface: future work can prove the
+    row-DAG/final-strong-tree bound and get the component-union bound for free,
+    or use component-union smoke evidence as direct evidence for the same
+    Isabelle metric.
+- Build: focused Isabelle `Posix` PASS via bundled Cygwin bash.
+- Bounty status: still infrastructure only; the final cubic theorem remains
+  unproved and no bounty is claimed.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later

@@ -21745,6 +21745,21 @@ proof
     by (rule rsubterms_trans[OF row_sub])
 qed
 
+lemma raw_final_active_suffix_alt_nodes_subset_row_dag_universe:
+  "raw_final_active_suffix_alt_nodes r \<subseteq>
+    raw_final_active_suffix_row_dag_universe r"
+proof
+  fix p
+  assume p: "p \<in> raw_final_active_suffix_alt_nodes r"
+  then obtain rows k where p_def: "p = RALTS rows"
+    and row: "RSEQ (RALTS rows) k \<in> raw_final_active_suffix_rows r"
+    by (auto simp add: raw_final_active_suffix_alt_nodes_def)
+  have "p \<in> rsubterms (RSEQ (RALTS rows) k)"
+    by (simp add: p_def)
+  then show "p \<in> raw_final_active_suffix_row_dag_universe r"
+    by (rule raw_final_active_suffix_row_dag_universeI[OF row])
+qed
+
 lemma raw_final_active_suffix_payload_roots_subset_rsubterms:
   "raw_final_active_suffix_payload_roots r \<subseteq> rsubterms r"
 proof

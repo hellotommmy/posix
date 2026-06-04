@@ -3651,3 +3651,13 @@ to be read before continuing long-running agent work.
   memo-strong POSIX correctness follows and component union/row-DAG universe
   are bounded by `(2 * R + C) * rxsize r`. The next substantive theorem should
   prove this owner-root universe bound for the non-backref fragment.
+- Component-union equality checkpoint (2026-06-04): `component_union` is now
+  checked equal to the final-active row-DAG universe. The missing inclusion was
+  `alt_nodes <= row_dag_universe`; after adding it, Isabelle proves
+  `strong_deferred_final_active_suffix_component_union_eq_row_dag_universe` and
+  the immediate `card ... <= asize (bders_simpStrong (intern r) s)` corollary.
+  The Scala smoke metric was aligned at the same checkpoint: because Scala
+  erases `AALTs` to binary `ALT` trees, `componentUnionSize` now includes the
+  erased alt root's DAG subterms. This is still not the final cubic theorem,
+  but it removes a metric fork: component-union smoke data and row-DAG Isabelle
+  bounds now refer to the same object.

@@ -3026,6 +3026,13 @@ lemma strong_deferred_final_active_suffix_payload_dag_universe_subset_row_dag_un
       strong_deferred_final_active_suffix_row_dag_universe_def
       raw_final_active_suffix_payload_dag_universe_subset_row_dag_universe)
 
+lemma strong_deferred_final_active_suffix_alt_nodes_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_alt_nodes r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+  by (simp add: strong_deferred_final_active_suffix_alt_nodes_def
+      strong_deferred_final_active_suffix_row_dag_universe_def
+      raw_final_active_suffix_alt_nodes_subset_row_dag_universe)
+
 lemma strong_deferred_final_active_suffix_keys_subset_row_dag_universe:
   "strong_deferred_final_active_suffix_keys r s \<subseteq>
     strong_deferred_final_active_suffix_row_dag_universe r s"
@@ -3705,6 +3712,61 @@ lemma strong_deferred_final_active_suffix_rows_subset_row_dag_universe:
   "strong_deferred_final_active_suffix_rows r s \<subseteq>
     strong_deferred_final_active_suffix_row_dag_universe r s"
   by (auto intro: strong_deferred_final_active_suffix_row_dag_contains_row)
+
+lemma strong_deferred_final_active_suffix_component_union_subset_row_dag_universe:
+  "strong_deferred_final_active_suffix_component_union r s \<subseteq>
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+proof -
+  have rows:
+    "strong_deferred_final_active_suffix_rows r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule strong_deferred_final_active_suffix_rows_subset_row_dag_universe)
+  have alts:
+    "strong_deferred_final_active_suffix_alt_nodes r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule strong_deferred_final_active_suffix_alt_nodes_subset_row_dag_universe)
+  have payload:
+    "strong_deferred_final_active_suffix_payload_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_final_active_suffix_payload_dag_universe_subset_row_dag_universe)
+  have keys:
+    "strong_deferred_final_active_suffix_key_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_final_active_suffix_key_dag_universe_subset_row_dag_universe)
+  show ?thesis
+    using rows alts payload keys
+    by (auto simp add:
+        strong_deferred_final_active_suffix_component_union_def)
+qed
+
+lemma strong_deferred_final_active_suffix_component_union_eq_row_dag_universe:
+  "strong_deferred_final_active_suffix_component_union r s =
+    strong_deferred_final_active_suffix_row_dag_universe r s"
+proof
+  show "strong_deferred_final_active_suffix_component_union r s \<subseteq>
+      strong_deferred_final_active_suffix_row_dag_universe r s"
+    by (rule
+        strong_deferred_final_active_suffix_component_union_subset_row_dag_universe)
+  show "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+      strong_deferred_final_active_suffix_component_union r s"
+    by (rule
+        strong_deferred_final_active_suffix_row_dag_universe_subset_component_union)
+qed
+
+lemma card_strong_deferred_final_active_suffix_component_union_eq_row_dag_universe:
+  "card (strong_deferred_final_active_suffix_component_union r s) =
+    card (strong_deferred_final_active_suffix_row_dag_universe r s)"
+  by (simp add:
+      strong_deferred_final_active_suffix_component_union_eq_row_dag_universe)
+
+lemma card_strong_deferred_final_active_suffix_component_union_le_final_asize:
+  "card (strong_deferred_final_active_suffix_component_union r s) \<le>
+    asize (bders_simpStrong (intern r) s)"
+  by (simp add:
+      card_strong_deferred_final_active_suffix_component_union_eq_row_dag_universe
+      card_strong_deferred_final_active_suffix_row_dag_universe_le_final_asize)
 
 lemma card_strong_deferred_final_active_suffix_rows_le_row_dag_universe:
   "card (strong_deferred_final_active_suffix_rows r s) \<le>
