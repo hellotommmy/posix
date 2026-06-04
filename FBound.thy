@@ -2771,6 +2771,36 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_deferred_strong_rows_raw_bridge_rows_subterms_subset_owner:
+  "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s) \<subseteq>
+    strong_deferred_strong_rows_raw_bridge_owner r s"
+proof -
+  have initial:
+    "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s) \<subseteq>
+      raw_shared_prune_active_suffix_closure
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s))"
+    by (rule raw_shared_prune_active_suffix_closure_extensive)
+  also have "... \<subseteq> strong_deferred_strong_rows_raw_bridge_owner r s"
+    unfolding strong_deferred_strong_rows_raw_bridge_owner_def
+    by (rule rsubterm_closure_extensive)
+  finally show ?thesis .
+qed
+
+lemma strong_deferred_strong_rows_raw_bridge_pruned_rows_subset_owner:
+  "raw_shared_prune_active_suffix_closure
+      (rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s))
+    \<subseteq> strong_deferred_strong_rows_raw_bridge_owner r s"
+  unfolding strong_deferred_strong_rows_raw_bridge_owner_def
+  by (rule rsubterm_closure_extensive)
+
+lemma strong_deferred_strong_rows_raw_bridge_pruned_rows_subterms_subset_owner:
+  "rsubterm_closure
+      (raw_shared_prune_active_suffix_closure
+        (rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)))
+    \<subseteq> strong_deferred_strong_rows_raw_bridge_owner r s"
+  by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
+
 lemma strong_deferred_strong_rows_raw_bridge_owner_subterm_closed:
   assumes "q \<in> strong_deferred_strong_rows_raw_bridge_owner r s"
   shows "rsubterms q \<subseteq>
@@ -3806,6 +3836,35 @@ lemma strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI:
     strong_deferred_strong_rows_raw_bridge_owner r s"
   by (rule strong_deferred_final_active_suffix_row_dag_universe_closed_subsetI
       [OF rows strong_deferred_strong_rows_raw_bridge_owner_subterm_closed])
+
+lemma strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI:
+  assumes rows:
+      "strong_deferred_final_active_suffix_rows r s \<subseteq>
+        rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  shows "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+    strong_deferred_strong_rows_raw_bridge_owner r s"
+proof (rule strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI)
+  show "strong_deferred_final_active_suffix_rows r s \<subseteq>
+      strong_deferred_strong_rows_raw_bridge_owner r s"
+    using rows
+      strong_deferred_strong_rows_raw_bridge_rows_subterms_subset_owner
+    by blast
+qed
+
+lemma strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_prunedI:
+  assumes rows:
+      "strong_deferred_final_active_suffix_rows r s \<subseteq>
+        raw_shared_prune_active_suffix_closure
+          (rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s))"
+  shows "strong_deferred_final_active_suffix_row_dag_universe r s \<subseteq>
+    strong_deferred_strong_rows_raw_bridge_owner r s"
+proof (rule strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI)
+  show "strong_deferred_final_active_suffix_rows r s \<subseteq>
+      strong_deferred_strong_rows_raw_bridge_owner r s"
+    using rows
+      strong_deferred_strong_rows_raw_bridge_pruned_rows_subset_owner
+    by blast
+qed
 
 lemma strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner:
   "strong_deferred_final_active_suffix_row_dag_universe r [] \<subseteq>

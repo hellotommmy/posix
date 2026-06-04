@@ -11,9 +11,14 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_empty`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subset_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_rows_subterms_subset_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_pruned_rows_subset_owner`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_pruned_rows_subterms_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`
   - `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI`
+  - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_prunedI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`
   - `FBound.thy:strong_deferred_memo_lexer_strong_rows_bridge_owner_linear_contract`
 - Meaning:
@@ -23,6 +28,9 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - The bridge route now has a checked contract theorem: bridge-owner coverage
     plus a linear bridge-owner cardinality bound discharges the existing
     memo-strong POSIX/cubic-budget contract.
+  - The all-input bridge-inclusion proof is now reduced to a sharper row-level
+    obligation: show final active rows are covered by the strong-row list's
+    subterm closure, or by one active-suffix prune pass over that closure.
   - The empty-input bridge inclusion is checked unconditionally. The all-input
     bridge inclusion remains the main open proof obligation.
   - The final cubic route is reduced to two explicit remaining obligations:

@@ -21,12 +21,23 @@ to be read before continuing long-running agent work.
   existing memo-strong POSIX correctness and cubic-budget conclusions follow.
 - Added the first unconditional bridge-inclusion base case,
   `strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`.
+- Added row-level reduction rules
+  `strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI`
+  and
+  `strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_prunedI`.
+  These say the final row-DAG inclusion follows from covering final active rows
+  by the strong-row list's subterm closure, or by one active-suffix prune pass
+  over that closure.
 - This turns the DAG bridge smoke evidence into a concrete proof interface:
   prove inclusion of
   `strong_deferred_final_active_suffix_row_dag_universe r s` into the bridge
   owner, then prove the bridge owner has a linear original-regex-size bound.
   That is the route to discharge
   `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+- Existing RLS/nullable equivalence facts are semantic gates only; they do not
+  prove the structural owner inclusion needed for the size theorem. The next
+  proof should establish an Antimirov-style linear-form coverage lemma between
+  `rsimpStrong_raw (rder c q)` and `rpder_strong_rows_raw c ...`.
 - `isabelle build -v -d . Posix` checks this interface under Isabelle2025-2.
   Do not claim bounty until both remaining obligations are proved and the final
   cubic contract is checked.
