@@ -976,6 +976,108 @@ object PosixCubicSmoke {
       case _ => mk(DAlts(bs, rs))
     }
 
+    def bsimp4ASEQAtomId(bs: List[Bit], r1: Int, r2: Int): Int =
+      (node(r1), node(r2)) match {
+        case (DZero, _) => mk(DZero)
+        case (DOne(bs2), _) => fuseId(bs ++ bs2, r2)
+        case (DSeq(bs2, a, b), _) =>
+          bsimp4ASEQAtomId(bs2, a, bsimp4ASEQAtomId(bs, b, r2))
+        case (_, DZero) => mk(DZero)
+        case (_, DOne(_)) => fuseId(bs, r1)
+        case _ => mk(DSeq(bs, r1, r2))
+      }
+
+    def bsimp7ASEQAtomId(bs: List[Bit], r1: Int, r2: Int): Int =
+      (node(r1), node(r2)) match {
+        case (DStar(_, a), DStar(_, b)) if eq1Id(a, b) => r1
+        case (DStar(_, a), DSeq(_, left, k)) =>
+          node(left) match {
+            case DStar(_, b) if eq1Id(a, b) => mk(DSeq(bs, r1, k))
+            case _ => bsimp4ASEQAtomId(bs, r1, r2)
+          }
+        case _ => bsimp4ASEQAtomId(bs, r1, r2)
+      }
+
+    def bsimpStrongPrunePairId(earlier: Int, later: Int): Int =
+      (node(earlier), node(later)) match {
+        case (DSeq(_, left, k1), DSeq(bs2, right, k2)) if eq1Id(k1, k2) =>
+          (node(left), node(right)) match {
+            case (DAlts(_, lrs), DAlts(rbs, rrs)) =>
+              bsimp7ASEQAtomId(bs2, bsimpAALTsId(rbs, pruneEq1AgainstId(lrs, rrs)), k2)
+            case _ => later
+          }
+        case _ => later
+      }
+
+    def bsimpStrongPruneRowsId(rs: List[Int]): List[Int] = {
+      def loop(seen: List[Int], todo: List[Int]): List[Int] = todo match {
+        case Nil => Nil
+        case r :: rest =>
+          val pruned = seen.foldLeft(r)((acc, earlier) =>
+            bsimpStrongPrunePairId(earlier, acc))
+          pruned :: loop(pruned :: seen, rest)
+      }
+      loop(Nil, rs)
+    }
+
+    def bsimpStrongAALTsId(bs: List[Bit], rs: List[Int]): Int =
+      bsimpAALTsId(bs, distinctWithIds(fltsIds(bsimpStrongPruneRowsId(rs))))
+
+    def bsimpStrongId(id: Int): Int = node(id) match {
+      case DSeq(bs, r1, r2) =>
+        bsimp7ASEQAtomId(bs, bsimpStrongId(r1), bsimpStrongId(r2))
+      case DAlts(bs, rs) =>
+        bsimpStrongAALTsId(bs, fltsIds(rs.map(bsimpStrongId)))
+      case DStar(bs, r) =>
+        val s = bsimpStrongId(r)
+        node(s) match {
+          case DZero => mk(DOne(Nil))
+          case DOne(_) => mk(DOne(Nil))
+          case DStar(bs2, body) => mk(DStar(bs2, body))
+          case _ => mk(DStar(bs, s))
+        }
+      case DNTimes(bs, body, n) => mk(DNTimes(bs, bsimpStrongId(body), n))
+      case _ => id
+    }
+
+    def bpderListId(c: Char, id: Int): List[Int] = node(id) match {
+      case DZero => Nil
+      case DOne(_) => Nil
+      case DChar(bs, d) => if (c == d) List(mk(DOne(bs))) else Nil
+      case DAlts(bs, rs) => rs.flatMap(bpderListId(c, _)).map(fuseId(bs, _))
+      case DSeq(bs, r1, r2) =>
+        val left = bpderListId(c, r1).map(p => bsimp4ASEQAtomId(bs, p, r2))
+        val right =
+          if (bnullableId(r1)) bpderListId(c, r2).map(p => fuseId(bs, fuseId(bmkepsId(r1), p)))
+          else Nil
+        left ++ right
+      case DStar(bs, body) =>
+        bpderListId(c, body).map(p =>
+          bsimp4ASEQAtomId(bs ++ List(Z), p, mk(DStar(Nil, body))))
+      case DNTimes(bs, body, n) =>
+        if (n == 0) Nil
+        else bpderListId(c, body).map(p =>
+          bsimp4ASEQAtomId(bs ++ List(Z), p, mk(DNTimes(Nil, body, n - 1))))
+    }
+
+    def bpderNormListId(c: Char, id: Int): List[Int] =
+      bpderListId(c, id).map(p => bsimp4ASEQAtomId(Nil, p, mk(DOne(Nil))))
+
+    def bpderStrongListId(c: Char, id: Int): List[Int] =
+      bpderNormListId(c, id).map(bsimpStrongId)
+
+    def bpderStrongRowsId(c: Char, rs: List[Int]): List[Int] =
+      distinctWithIds(fltsIds(bsimpStrongPruneRowsId(fltsIds(rs.flatMap(bpderStrongListId(c, _))))))
+
+    def bpdersStrongRowsId(rs: List[Int], input: String): List[Int] =
+      input.foldLeft(rs)((acc, c) => bpderStrongRowsId(c, acc))
+
+    def bpdersStrong1RowsId(root: Int, input: String): List[Int] =
+      bpdersStrongRowsId(List(root), input)
+
+    def bdersStrongId(root: Int, input: String): Int =
+      input.foldLeft(root)((acc, c) => bsimpStrongId(bderId(c, acc)))
+
     def bsimpCubicASEQAtomModeId(mode: String, bs: List[Bit], r1: Int, r2: Int): Int =
       mode match {
         case "full" =>
@@ -4181,6 +4283,235 @@ object PosixCubicSmoke {
       firstMiss: Option[String]
   )
 
+  def mkSeqFromFactorIds(store: DagStore, fs: List[Int]): Int = fs match {
+    case Nil => store.mk(DOne(Nil))
+    case x :: Nil => x
+    case x :: xs => store.mk(DSeq(Nil, x, mkSeqFromFactorIds(store, xs)))
+  }
+
+  def activeSuffixRowIdsForRoots(store: DagStore, roots: Iterable[Int]): Set[Int] = {
+    val rows = scala.collection.mutable.Set.empty[Int]
+    val seen = scala.collection.mutable.Set.empty[Int]
+
+    def visit(id: Int): Unit = {
+      if (seen.add(id)) {
+        store.node(id) match {
+          case DSeq(_, rowBlock, _) =>
+            store.node(rowBlock) match {
+              case DAlts(_, _) => rows += id
+              case _ => ()
+            }
+          case _ => ()
+        }
+        store.node(id) match {
+          case DSeq(_, r1, r2) =>
+            visit(r1)
+            visit(r2)
+          case DAlts(_, rs) =>
+            rs.foreach(visit)
+          case DStar(_, body) =>
+            visit(body)
+          case DNTimes(_, body, _) =>
+            visit(body)
+          case _ => ()
+        }
+      }
+    }
+
+    roots.foreach(visit)
+    rows.toSet
+  }
+
+  def expandedRowKeysOptionId(store: DagStore, row: Int, maxKeys: Int): Option[List[Int]] =
+    store.expandedSeqKeysId(row, maxKeys).map(keys =>
+      store.distinctWithIds(keys.map(key => store.bsimpStrongId(mkSeqFromFactorIds(store, key))))
+    )
+
+  def expandedRowKeysId(store: DagStore, row: Int): List[Int] =
+    expandedRowKeysOptionId(store, row, 4096).getOrElse(List(store.bsimpStrongId(row)))
+
+  def rowKeyCoveredById(store: DagStore, key: Int, coverer: Int): Boolean = {
+    val cn = store.bsimpStrongId(coverer)
+    store.eq1Id(key, coverer) || store.eq1Id(key, cn) ||
+      expandedRowKeysId(store, coverer).exists(store.eq1Id(key, _))
+  }
+
+  def rowCoveredByRowsId(store: DagStore, row: Int, rows: List[Int]): Boolean =
+    expandedRowKeysId(store, row).forall(key =>
+      rows.exists(coverer => rowKeyCoveredById(store, key, coverer))
+    )
+
+  def expandedRowSubsetCoveredById(store: DagStore, r: Int, q: Int): Boolean =
+    (expandedRowKeysOptionId(store, r, 8192), expandedRowKeysOptionId(store, q, 8192)) match {
+      case (Some(rKeys), Some(qKeys)) =>
+        rKeys.forall(rKey =>
+          qKeys.exists(qKey => store.eq1Id(rKey, qKey) || store.eq1Id(rKey, store.bsimpStrongId(qKey)))
+        )
+      case _ => false
+    }
+
+  def activeRowSubsetCoveredById(store: DagStore, r: Int, q: Int): Boolean = {
+    val topLevel = (store.node(r), store.node(q)) match {
+      case (DSeq(_, rBlock, rKey), DSeq(_, qBlock, qKey)) =>
+        (store.node(rBlock), store.node(qBlock)) match {
+          case (DAlts(_, rRows), DAlts(_, qRows)) =>
+            store.eq1Id(rKey, qKey) && rRows.forall(row => rowCoveredByRowsId(store, row, qRows))
+          case _ => false
+        }
+      case _ => false
+    }
+    topLevel || expandedRowSubsetCoveredById(store, r, q)
+  }
+
+  def strongBridgeMemberId(store: DagStore, r: Int, rs: Iterable[Int]): Boolean = {
+    val rn = store.bsimpStrongId(r)
+    rs.exists(q =>
+      store.eq1Id(r, q) || store.eq1Id(rn, q) || store.eq1Id(r, store.bsimpStrongId(q)) ||
+        activeRowSubsetCoveredById(store, r, q) || activeRowSubsetCoveredById(store, rn, q)
+    )
+  }
+
+  def factoredActiveRowsOneStepId(store: DagStore, rows: List[Int]): List[Int] = {
+    val groups = scala.collection.mutable.ListBuffer.empty[(Int, scala.collection.mutable.ListBuffer[Int])]
+
+    def add(suffix: Int, prefix: Int): Unit = {
+      groups.indexWhere { case (k, _) => store.eq1Id(k, suffix) } match {
+        case -1 =>
+          groups += suffix -> scala.collection.mutable.ListBuffer(prefix)
+        case i =>
+          val prefixes = groups(i)._2
+          if (!prefixes.exists(store.eq1Id(prefix, _))) prefixes += prefix
+      }
+    }
+
+    val workRows = store.distinctWithIds(rows.flatMap(r => store.reachableIds(r).toList.sorted))
+    workRows.foreach { row =>
+      store.reachableIds(row).foreach(sub => add(sub, store.mk(DOne(Nil))))
+      val factors = store.seqFactorsId(row)
+      factors.indices.foreach { i =>
+        val prefix = mkSeqFromFactorIds(store, factors.take(i))
+        val suffix = mkSeqFromFactorIds(store, factors.drop(i))
+        store.fltsIds(List(prefix)).foreach(add(suffix, _))
+        store.node(prefix) match {
+          case DAlts(_, altRows) =>
+            val suffixFactors = store.seqFactorsId(suffix)
+            altRows.foreach { altRow =>
+              val altFactors = store.seqFactorsId(altRow)
+              (1 until altFactors.length).foreach { j =>
+                val branchPrefix = mkSeqFromFactorIds(store, altFactors.take(j))
+                val branchSuffix = mkSeqFromFactorIds(store, altFactors.drop(j) ++ suffixFactors)
+                store.fltsIds(List(branchPrefix)).foreach(add(branchSuffix, _))
+              }
+            }
+          case _ => ()
+        }
+      }
+    }
+
+    groups.iterator.flatMap { case (suffix, prefixes0) =>
+      val prefixes = store.distinctWithIds(prefixes0.toList)
+      if (prefixes.lengthCompare(2) >= 0) {
+        Some(store.mk(DSeq(Nil, store.mk(DAlts(Nil, prefixes)), suffix)))
+      } else None
+    }.toList
+  }
+
+  def factoredActiveRowsFromRowsId(store: DagStore, rows: List[Int]): Set[Int] = {
+    val seen = scala.collection.mutable.ListBuffer.empty[Int]
+    val out = scala.collection.mutable.ListBuffer.empty[Int]
+
+    def addSeen(r: Int): Boolean =
+      if (seen.exists(store.eq1Id(r, _))) false
+      else {
+        seen += r
+        true
+      }
+
+    rows.foreach(addSeen)
+    var round = 0
+    var changed = true
+    while (changed && round < 8 && seen.length < 512) {
+      changed = false
+      factoredActiveRowsOneStepId(store, seen.toList).foreach { r =>
+        if (addSeen(r)) {
+          out += r
+          changed = true
+        }
+      }
+      round += 1
+    }
+    out.toSet
+  }
+
+  def strongRootFromRowsId(store: DagStore, rows: List[Int]): Int =
+    store.bsimpStrongId(store.mk(DAlts(Nil, rows)))
+
+  def strongRowsBridgeRowsId(store: DagStore, rows: List[Int]): Set[Int] =
+    rows.flatMap(r => store.reachableIds(r)).toSet ++
+      store.reachableIds(strongRootFromRowsId(store, rows)) ++
+      factoredActiveRowsFromRowsId(store, rows)
+
+  def strongRowsBridgeDagCase(
+      r: Rexp,
+      s: String,
+      label: String,
+      checkValue: Boolean = true
+  ): (Int, Int, Int, Int, Option[String]) = {
+    val store = new DagStore(eraseBits = true)
+    val root = store.fromARexp(intern(r))
+    val finalStrong = store.bdersStrongId(root, s)
+    val rowList = store.bpdersStrong1RowsId(root, s)
+    val strongGate = store.bnullableId(finalStrong)
+    val rowGate = rowList.exists(store.bnullableId)
+    if (rowGate != strongGate) {
+      throw new AssertionError(
+        s"""DAG strong row-gate mismatch
+           |label      = $label
+           |regex      = $r
+           |input      = $s
+           |rowGate    = $rowGate
+           |strongGate = $strongGate
+           |rowCount   = ${rowList.length}
+           |strongKey  = ${store.compactShapeKey(finalStrong)}
+           |""".stripMargin
+      )
+    }
+
+    if (checkValue) {
+      val b = baselineValue(r, s)
+      val rowMemo = if (rowGate) posixMemoValue(r, s) else None
+      if (b != rowMemo) {
+        throw new AssertionError(
+          s"""DAG strong row-gated memo POSIX mismatch
+             |label   = $label
+             |regex   = $r
+             |input   = $s
+             |base    = $b
+             |rowMemo = $rowMemo
+             |rows    = ${rowList.length}
+             |""".stripMargin
+        )
+      }
+    }
+
+    val finalActive = activeSuffixRowIdsForRoots(store, List(finalStrong))
+    val bridgeRows = strongRowsBridgeRowsId(store, rowList)
+    val covered = finalActive.count(q => strongBridgeMemberId(store, q, bridgeRows))
+    val firstMiss = finalActive.find(q => !strongBridgeMemberId(store, q, bridgeRows)).map { q =>
+      s"""DAG strong final-active row not covered by bpdersStrong1Rows subterms/factoring
+         |label       = $label
+         |regex       = $r
+         |input       = $s
+         |missingKey  = ${store.compactShapeKey(q)}
+         |missingNorm = ${store.compactShapeKey(store.bsimpStrongId(q))}
+         |strongKey   = ${store.compactShapeKey(finalStrong)}
+         |rowCount    = ${rowList.length}
+         |bridgeRows  = ${bridgeRows.size}
+         |""".stripMargin
+    }
+    (finalActive.size, covered, bridgeRows.size, rowList.length, firstMiss)
+  }
+
   def strongRowsBridgeCase(
       r: Rexp,
       s: String,
@@ -4261,24 +4592,30 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       maxRegexes: Int,
-      requireCoverage: Boolean
+      requireCoverage: Boolean,
+      useDag: Boolean = false
   ): Unit = {
     val regexes = regexesUpToDepth(maxDepth, maxRegexes)
     val inputs = stringsUpTo(maxInput)
     var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
     regexes.foreach { r =>
       inputs.foreach { s =>
-        val rowList = bpdersStrong1Rows(intern(r), s)
-        val (active, covered, subterms, miss) =
-          strongRowsBridgeCase(r, s, s"exhaustive case ${stats.checked + 1}")
-        stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, subterms, miss)
+        val (active, covered, subterms, rowCount, miss) =
+          if (useDag) strongRowsBridgeDagCase(r, s, s"exhaustive DAG case ${stats.checked + 1}")
+          else {
+            val rowList = bpdersStrong1Rows(intern(r), s)
+            val (active0, covered0, subterms0, miss0) =
+              strongRowsBridgeCase(r, s, s"exhaustive case ${stats.checked + 1}")
+            (active0, covered0, subterms0, rowList.length, miss0)
+          }
+        stats = mergeStrongRowsBridgeStats(stats, active, covered, rowCount, subterms, miss)
       }
     }
     if (requireCoverage && stats.firstMiss.isDefined) {
       throw new AssertionError(stats.firstMiss.get)
     }
     println(
-      s"checked strong row-gated memo POSIX bridge on ${stats.checked} regex/input pairs " +
+      s"checked ${if (useDag) "DAG " else ""}strong row-gated memo POSIX bridge on ${stats.checked} regex/input pairs " +
       s"(depth <= $maxDepth, input length <= $maxInput); " +
       s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
       s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
@@ -4291,23 +4628,29 @@ object PosixCubicSmoke {
       maxDepth: Int,
       maxInput: Int,
       seed: Long,
-      requireCoverage: Boolean
+      requireCoverage: Boolean,
+      useDag: Boolean = false
   ): Unit = {
     val rng = new Random(seed)
     var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
     (0 until cases).foreach { _ =>
       val r = randomRegex(rng, maxDepth)
       val s = randomInput(rng, maxInput)
-      val rowList = bpdersStrong1Rows(intern(r), s)
-      val (active, covered, subterms, miss) =
-        strongRowsBridgeCase(r, s, s"random seed=$seed case ${stats.checked + 1}")
-      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, subterms, miss)
+      val (active, covered, subterms, rowCount, miss) =
+        if (useDag) strongRowsBridgeDagCase(r, s, s"random DAG seed=$seed case ${stats.checked + 1}")
+        else {
+          val rowList = bpdersStrong1Rows(intern(r), s)
+          val (active0, covered0, subterms0, miss0) =
+            strongRowsBridgeCase(r, s, s"random seed=$seed case ${stats.checked + 1}")
+          (active0, covered0, subterms0, rowList.length, miss0)
+        }
+      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowCount, subterms, miss)
     }
     if (requireCoverage && stats.firstMiss.isDefined) {
       throw new AssertionError(stats.firstMiss.get)
     }
     println(
-      s"checked strong row-gated memo POSIX bridge on ${stats.checked} random cases " +
+      s"checked ${if (useDag) "DAG " else ""}strong row-gated memo POSIX bridge on ${stats.checked} random cases " +
       s"(depth <= $maxDepth, input length <= $maxInput, seed=$seed); " +
       s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
       s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
@@ -4318,22 +4661,28 @@ object PosixCubicSmoke {
   def checkStrongRowsBridgeCh7Trace(
       k: Int,
       lengths: List[Int],
-      requireCoverage: Boolean
+      requireCoverage: Boolean,
+      useDag: Boolean = false
   ): Unit = {
     val r = thesisCh7Evil(k)
     var stats = StrongRowsBridgeStats(0, 0L, 0L, 0, 0, None)
     lengths.foreach { n =>
       val s = "a" * n
-      val rowList = bpdersStrong1Rows(intern(r), s)
-      val (active, covered, bridgeRows, miss) =
-        strongRowsBridgeCase(r, s, s"Chapter 7 k=$k n=$n")
-      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowList.length, bridgeRows, miss)
+      val (active, covered, bridgeRows, rowCount, miss) =
+        if (useDag) strongRowsBridgeDagCase(r, s, s"Chapter 7 DAG k=$k n=$n", checkValue = false)
+        else {
+          val rowList = bpdersStrong1Rows(intern(r), s)
+          val (active0, covered0, bridgeRows0, miss0) =
+            strongRowsBridgeCase(r, s, s"Chapter 7 k=$k n=$n")
+          (active0, covered0, bridgeRows0, rowList.length, miss0)
+        }
+      stats = mergeStrongRowsBridgeStats(stats, active, covered, rowCount, bridgeRows, miss)
     }
     if (requireCoverage && stats.firstMiss.isDefined) {
       throw new AssertionError(stats.firstMiss.get)
     }
     println(
-      s"checked Chapter 7 strong row-gated memo bridge for k=$k lengths=${lengths.mkString(",")}; " +
+      s"checked Chapter 7 ${if (useDag) "DAG " else ""}strong row-gated memo bridge for k=$k lengths=${lengths.mkString(",")}; " +
       s"final-active coverage=${stats.finalActiveCovered}/${stats.finalActiveRows}, " +
       s"maxRows=${stats.maxRowList}, maxBridgeRows=${stats.maxRowSubterms}" +
       stats.firstMiss.map(m => s"; first uncovered active row:\n$m").getOrElse("")
@@ -6323,6 +6672,7 @@ object PosixCubicSmoke {
     val requireStrongRowsBridgeCoverage = boolSetting("posix.smoke.requireStrongRowsBridgeCoverage", "POSIX_SMOKE_REQUIRE_STRONG_ROWS_BRIDGE_COVERAGE", false)
     val checkStrongRowsBridgeCh7 = boolSetting("posix.smoke.checkStrongRowsBridgeCh7", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE_CH7", false)
     val strongRowsBridgeOnlyCh7 = boolSetting("posix.smoke.strongRowsBridgeOnlyCh7", "POSIX_SMOKE_STRONG_ROWS_BRIDGE_ONLY_CH7", false)
+    val strongRowsBridgeDag = boolSetting("posix.smoke.strongRowsBridgeDag", "POSIX_SMOKE_STRONG_ROWS_BRIDGE_DAG", false)
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -6378,13 +6728,13 @@ object PosixCubicSmoke {
     }
     if (checkStrongRowsBridge) {
       if (!strongRowsBridgeOnlyCh7) {
-        checkStrongRowsBridgeValuePreservation(maxDepth, maxInput, maxRegexes, requireStrongRowsBridgeCoverage)
+        checkStrongRowsBridgeValuePreservation(maxDepth, maxInput, maxRegexes, requireStrongRowsBridgeCoverage, strongRowsBridgeDag)
         if (randomCases > 0) {
-          checkStrongRowsBridgeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, requireStrongRowsBridgeCoverage)
+          checkStrongRowsBridgeRandomValuePreservation(randomCases, randomDepth, randomInputMax, randomSeed, requireStrongRowsBridgeCoverage, strongRowsBridgeDag)
         }
       }
       if (checkStrongRowsBridgeCh7) {
-        checkStrongRowsBridgeCh7Trace(ch7K, ch7Lengths, requireStrongRowsBridgeCoverage)
+        checkStrongRowsBridgeCh7Trace(ch7K, ch7Lengths, requireStrongRowsBridgeCoverage, strongRowsBridgeDag)
       }
     }
     if (checkStrongSafe) {

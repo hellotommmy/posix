@@ -3,6 +3,29 @@
 This file records semantic design changes that affect later proofs. It is meant
 to be read before continuing long-running agent work.
 
+## 2026-06-04: DAG bridge rescues the Chapter 7 long-tail probe
+
+- The final cubic-bound theorem is still not complete. The first-priority
+  target remains the all-input original-regex owner bound for
+  `strong_deferred_final_active_suffix_row_dag_universe`; bridge coverage is
+  evidence for the next invariant, not a substitute theorem.
+- Added a DAG/bit-erased version of the strong row-list bridge probe in
+  `PosixCubicSmoke.scala`, enabled by `POSIX_SMOKE_STRONG_ROWS_BRIDGE_DAG=1`.
+  It mirrors `bsimpStrong`, `bpderStrongRows`, active-row factoring, and bridge
+  membership inside `DagStore(eraseBits = true)`.
+- This removes the old Chapter 7 bridge OOM. The OOM came from the probe's
+  ordinary annotated `bdersStrong` / `baselineValue` tree construction, not
+  from a bridge coverage counterexample.
+- Checked smoke evidence:
+  exhaustive depth `2`, input length `3` covers `832/832`; deterministic
+  random depth `7`, input length `10`, seed `20260604`, covers `118/118`;
+  Chapter 7 covers `k=5` through lengths `16,20,24,28,32` and `k=8` through
+  lengths `16,32`.
+- Proof consequence: the next Isabelle step should express an owner inclusion
+  from final-active row-DAG rows into the strong row-list/factoring universe,
+  then use that inclusion to discharge the linear/cubic premise of
+  `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+
 ## 2026-06-04: Fresh-key DAG closure exposes a quartic-style obstacle
 
 - The final cubic-bound theorem is still not complete. The first-priority

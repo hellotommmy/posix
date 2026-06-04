@@ -2,6 +2,44 @@
 
 Last updated: 2026-06-04 (strong-memo route is default)
 
+## Cubic Route Probe: DAG Strong Row-List Bridge Long Tail (2026-06-04)
+
+- Final theorem status: **not complete**. This checkpoint removes a tooling
+  bottleneck around the bridge probe; it is not the all-input cubic proof.
+- Tooling addition:
+  - `agent_hunt_pipeline/scala/PosixCubicSmoke.scala` now accepts
+    `POSIX_SMOKE_STRONG_ROWS_BRIDGE_DAG=1`.
+  - The new path mirrors `bsimpStrong`, `bpderStrongRows`, active-row
+    factoring, and bridge coverage inside `DagStore` with `eraseBits = true`.
+    This avoids constructing the huge ordinary annotated `bdersStrong` tree
+    and irrelevant bit lists when probing Chapter 7 long-tail coverage.
+  - For Ch7 DAG bridge runs, value comparison is deliberately skipped because
+    the old `baselineValue` call itself constructs the exploding raw tree.
+    Exhaustive and random DAG bridge runs still check row-gated memo POSIX
+    values against the baseline.
+- Probe result:
+  - Exhaustive depth `2` / input length `3`: DAG bridge coverage `832/832`,
+    matching the old annotated bridge, with row-gated memo POSIX values
+    checked.
+  - Random depth `7` / input length `10`, seed `20260604`, `1000` cases:
+    DAG bridge coverage `118/118`, with row-gated memo POSIX values checked.
+  - Chapter 7 `k=5`, lengths `16,20`: DAG bridge coverage `10/10`.
+  - Chapter 7 `k=5`, lengths `24,28,32`: DAG bridge coverage `14/14`.
+  - Chapter 7 `k=8`, lengths `16,32`: DAG bridge coverage `18/18`.
+- Meaning:
+  - The previous Ch7 bridge OOM is now localized to the old annotated/baseline
+    tree probe, not to a discovered coverage counterexample.
+  - The active proof route is still to turn this bridge shape into an Isabelle
+    owner theorem for
+    `strong_deferred_final_active_suffix_row_dag_universe`, then discharge the
+    linear/cubic bound premise of
+    `strong_deferred_memo_lexer_final_active_row_dag_linear_contract`.
+- Verification:
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: smoke/proof-route evidence only; no final cubic theorem or
+  bounty is claimed.
+
 ## Cubic Route Checkpoint: Final Row-DAG Owner Closure (2026-06-04)
 
 - Final theorem status: **not complete**. The remaining priority theorem is
