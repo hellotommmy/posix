@@ -2823,6 +2823,150 @@ lemma strong_deferred_strong_rows_raw_bridge_owner_subterm_closed:
   by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def
       rsubterm_closure_closed)
 
+lemma strong_deferred_strong_rows_raw_bridge_closure_member_sizeI:
+  assumes rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+    and p: "p \<in>
+      rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  shows "rsize p \<le> M"
+proof -
+  obtain q where q:
+      "q \<in> strong_deferred_strong_rows_raw_bridge_rows r s"
+      "p \<in> rsubterms q"
+    using p by (auto simp add: rsubterm_closure_def)
+  have "rsize p \<le> rsize q"
+    by (rule rsubterms_member_size_le_rsize[OF q(2)])
+  also have "... \<le> M"
+    by (rule rows_member[OF q(1)])
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_strong_rows_raw_bridge_closure_boundI:
+  assumes rows_card:
+      "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> R"
+    and rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+  shows "card (rsubterm_closure
+      (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le> R * M"
+proof -
+  let ?Rows = "strong_deferred_strong_rows_raw_bridge_rows r s"
+  have closure:
+      "card (rsubterm_closure ?Rows) \<le> card ?Rows * M"
+  proof (rule card_rsubterm_closure_le)
+    show "finite ?Rows"
+      by simp
+    fix q
+    assume q: "q \<in> ?Rows"
+    have "card (rsubterms q) \<le> rsize q"
+      by (rule card_rsubterms_le_rsize)
+    also have "... \<le> M"
+      by (rule rows_member[OF q])
+    finally show "card (rsubterms q) \<le> M" .
+  qed
+  have "card ?Rows * M \<le> R * M"
+    by (rule mult_right_mono[OF rows_card]) simp
+  with closure show ?thesis
+    by linarith
+qed
+
+lemma strong_deferred_strong_rows_raw_bridge_closure_pair_budget_boundI:
+  assumes closure_card:
+      "card (rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le> A"
+  shows "raw_shared_prune_active_suffix_pair_budget
+      (rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s))
+    \<le> A * A"
+proof -
+  let ?U =
+    "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)"
+  have budget:
+      "raw_shared_prune_active_suffix_pair_budget ?U \<le>
+        card ?U * card ?U"
+    by (rule raw_shared_prune_active_suffix_pair_budget_le_card_square) simp
+  have "card ?U * card ?U \<le> A * card ?U"
+    by (rule mult_right_mono[OF closure_card]) simp
+  also have "... \<le> A * A"
+    by (rule mult_left_mono[OF closure_card]) simp
+  finally have square_bound: "card ?U * card ?U \<le> A * A" .
+  show ?thesis
+    by (rule order_trans[OF budget square_bound])
+qed
+
+lemma card_strong_deferred_strong_rows_raw_bridge_owner_boundI:
+  assumes closure_card:
+      "card (rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le> A"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le> P"
+    and closure_member:
+      "\<And>q. q \<in> rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s) \<Longrightarrow>
+        rsize q \<le> M"
+  shows "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le>
+    (A + P * M) * M"
+proof -
+  let ?Rows = "strong_deferred_strong_rows_raw_bridge_rows r s"
+  let ?U = "rsubterm_closure ?Rows"
+  let ?C = "raw_shared_prune_active_suffix_closure ?U"
+  have closure_bound: "card ?C \<le> A + P * M"
+    by (rule card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound
+        [OF finite_rsubterm_closure closure_card pair_budget closure_member])
+      simp
+  have closure_member_card:
+      "\<And>q. q \<in> ?C \<Longrightarrow> card (rsubterms q) \<le> M"
+  proof -
+    fix q
+    assume q: "q \<in> ?C"
+    have "card (rsubterms q) \<le> rsize q"
+      by (rule card_rsubterms_le_rsize)
+    also have "... \<le> M"
+      by (rule raw_shared_prune_active_suffix_closure_member_size_bound
+          [OF closure_member q])
+    finally show "card (rsubterms q) \<le> M" .
+  qed
+  have owner:
+      "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le>
+        card ?C * M"
+    unfolding strong_deferred_strong_rows_raw_bridge_owner_def
+    by (rule card_rsubterm_closure_le) (simp_all add: closure_member_card)
+  have "card ?C * M \<le> (A + P * M) * M"
+    by (rule mult_right_mono[OF closure_bound]) simp
+  with owner show ?thesis
+    by linarith
+qed
+
+lemma card_strong_deferred_strong_rows_raw_bridge_owner_from_rows_boundI:
+  assumes rows_card:
+      "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> R"
+    and rows_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_bridge_rows r s \<Longrightarrow>
+        rsize q \<le> M"
+  shows "card (strong_deferred_strong_rows_raw_bridge_owner r s) \<le>
+    (R * M + (R * M) * (R * M) * M) * M"
+proof -
+  have closure_card:
+      "card (rsubterm_closure
+        (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le> R * M"
+    by (rule card_strong_deferred_strong_rows_raw_bridge_closure_boundI
+        [OF rows_card rows_member])
+  have pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (rsubterm_closure
+          (strong_deferred_strong_rows_raw_bridge_rows r s)) \<le>
+       (R * M) * (R * M)"
+    by (rule strong_deferred_strong_rows_raw_bridge_closure_pair_budget_boundI
+        [OF closure_card])
+  show ?thesis
+    by (rule card_strong_deferred_strong_rows_raw_bridge_owner_boundI
+        [OF closure_card pair_budget])
+      (rule strong_deferred_strong_rows_raw_bridge_closure_member_sizeI
+        [OF rows_member])
+qed
+
 lemma finite_strong_deferred_final_active_suffix_payload_dag_universe [simp]:
   "finite (strong_deferred_final_active_suffix_payload_dag_universe r s)"
   by (simp add:

@@ -35,6 +35,15 @@ to be read before continuing long-running agent work.
   row-level route:
   `strong_deferred_final_active_suffix_rows_empty_bridge_rows_subterms` feeds
   `strong_deferred_final_active_suffix_row_dag_universe_empty_bridge_owner`.
+- Added owner accounting lemmas:
+  `strong_deferred_strong_rows_raw_bridge_closure_member_sizeI`,
+  `card_strong_deferred_strong_rows_raw_bridge_closure_boundI`,
+  `strong_deferred_strong_rows_raw_bridge_closure_pair_budget_boundI`,
+  `card_strong_deferred_strong_rows_raw_bridge_owner_boundI`, and
+  `card_strong_deferred_strong_rows_raw_bridge_owner_from_rows_boundI`.
+  The bridge owner size is now reduced to bridge-row count/member-size plus the
+  active-suffix pair budget. This is still not the final cubic theorem; it is
+  an accounting reduction for the remaining owner-bound proof.
 - This turns the DAG bridge smoke evidence into a concrete proof interface:
   prove inclusion of
   `strong_deferred_final_active_suffix_row_dag_universe r s` into the bridge

@@ -19,6 +19,11 @@ Last updated: 2026-06-04 (strong-memo route is default)
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_pruned_rows_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_pruned_rows_subterms_subset_owner`
   - `FBound.thy:strong_deferred_strong_rows_raw_bridge_owner_subterm_closed`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_closure_member_sizeI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_closure_boundI`
+  - `FBound.thy:strong_deferred_strong_rows_raw_bridge_closure_pair_budget_boundI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_owner_boundI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_owner_from_rows_boundI`
   - `FBound.thy:card_strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_boundI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_ownerI`
   - `FBound.thy:strong_deferred_final_active_suffix_row_dag_universe_bridge_owner_from_subtermsI`
@@ -44,6 +49,11 @@ Last updated: 2026-06-04 (strong-memo route is default)
     side:
     `rpders_strong_rows_raw rs (s @ t) =
      rpders_strong_rows_raw (rpders_strong_rows_raw rs s) t`.
+  - The owner cardinality side is no longer opaque: the bridge owner is bounded
+    from the bridge rows' cardinality and member sizes via subterm closure,
+    active-suffix pair budget, and one final subterm closure. This does not
+    prove the desired linear bound yet, but it isolates the remaining accounting
+    premises to strong-row count/member-size control.
   - The final cubic route is reduced to two explicit remaining obligations:
     show
     `strong_deferred_final_active_suffix_row_dag_universe r s` is included in
