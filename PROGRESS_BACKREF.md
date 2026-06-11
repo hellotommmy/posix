@@ -14181,3 +14181,42 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 03:23:21 local time.
+
+## 2026-06-12 Fable URGENT: owner closure cardinality is exponential (claim + construction)
+
+- Before more effort goes into "card (owner DAG) <= cubic": the abstract
+  least-owner closure `raw_shared_prune_active_suffix_owner U` admits an
+  EXPONENTIAL lower bound in `card U`.  Construction (syntactic, uses
+  only `rprune_eq_against` equality filtering, verified against the
+  definitions at GeneralRegexBound.thy:17015 and 18163):
+
+  ```text
+  atoms a_1..a_m, b, c1, c2, k pairwise distinct
+  L   = RSEQ (RALTS [a_1, ..., a_m, c1, c2, b]) k
+  E_i = RSEQ (RALTS [a_i, b]) k          (i = 1..m)
+  U_m = {L, E_1, ..., E_m}               (card U_m = m + 1)
+  ```
+
+  Pruning L (or any of its pruned variants, which stay in the owner set)
+  against E_i deletes exactly {a_i, b} from the alternative list; the
+  reserved c1, c2 keep every variant RALTS-headed with key k.  Chaining
+  prunes reaches the filtered row for EVERY nonempty S of {a_1..a_m}:
+  2^m - 1 pairwise distinct owner members from m + 1 starting rows.
+- Consequence: any owner-DAG cardinality bound parameterized only by
+  `card U` and member sizes is false.  A cubic owner bound must either
+  (i) exploit step-local provenance that excludes such bucket patterns
+  (note dlform splitting CAN produce many same-key rows, so this needs a
+  real invariant), or (ii) replace the all-pairs owner closure by a
+  smaller object: the order-respecting one-pass pruning closure
+  (matching what rsimpStrong_prune_rows_raw actually computes, linear
+  output per pass) or the coverage-saturated rows.  This is the same
+  "arbitrary all-pairs closure" trap the original route-2 handoff text
+  warned about.
+- Fable is now adding the checked parametric counterexample
+  (`2 ^ m <= Suc (card (raw_shared_prune_active_suffix_owner U_m))`)
+  in AntimirovFactoredTransition.thy, then stopping per handoff rule 3.
+- Suggested redirect after the check: define the step-local closure as
+  the ONE-PASS accumulated pruning (mirroring
+  rsimpStrong_prune_rows_acc_raw), whose output count is bounded by the
+  input row count, and re-target the FBound closed-universe premise at
+  that object; the carrier/grammar/owner-DAG size packaging all reuse.
