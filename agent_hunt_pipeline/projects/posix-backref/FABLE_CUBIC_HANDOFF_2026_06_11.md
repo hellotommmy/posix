@@ -5,6 +5,46 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Latest Supervisor Note, 2026-06-12
+
+First sync to the current checked branch:
+
+```powershell
+git fetch origin
+git pull --ff-only
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+```
+
+Current checked head:
+
+```text
+54ddcda Package owner DAG finite sizeNregex bridge
+```
+
+Do not spend another session proving that the owner DAG is finite.  That is now
+checked.  In simple terms:
+
+- `sizeNregex N` means "old/non-backref regexes whose syntax-tree size is at
+  most `N`."
+- `owner DAG` means the owner set plus all regex subterms of rows in that owner
+  set.
+- The new bridge says: if the one-step universe `U` is inside `sizeNregex N`,
+  then its owner DAG is also inside `sizeNregex N`, hence finite.
+- This is not a cubic count.  `sizeNregex N` is a large finite universe, and
+  `card (sizeNregex N)` is not the desired `O(|r|^3)` budget.
+
+The next useful proof must count owner-DAG nodes sharply.  Either prove a
+same-key bucket/cardinality bound for the actual step-local universe
+`afactored1_strong_dlform_universe r s c`, or prove a precise owner-DAG
+cardinality theorem unlocked by the existing owner sequence decomposition.  If
+a proposed theorem only proves finite containment, key size, key projection, or
+another wrapper around an already checked fact, it is drift.
+
+For Isabelle on Windows, use the repository PowerShell wrappers.  Do not use
+Bash `sleep && tail` polling for background builds.  If a build reaches 100% on
+all theories and only then reports `SQLITE_CONSTRAINT_PRIMARYKEY`, that is a
+concurrent Isabelle database write collision, not a proof failure.
+
 ## Repository
 
 - Workspace: `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`
