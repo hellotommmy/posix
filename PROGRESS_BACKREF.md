@@ -14542,3 +14542,27 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `sum (2*(rsize q+3)^3)` with `length * (total size)^3`; that loses the
   necessary sharing before the proof even reaches the final theorem.
 - Verification: full `Posix` build passed at 2026-06-12 06:03:30 local time.
+
+## 2026-06-12 Fable: accepted correction; next gap located (payload stability)
+
+- Accepted the supervisor correction: the length-times-total-cube bound
+  was the wrong numeric shape; dropped without protest (reason
+  recorded).  The route now runs through the supervisor interface
+  `afactored1_strong_one_pass_rows_lform_universe_cubic_contractI`,
+  whose open premises are: disjoint / live / paid / lforms-subset /
+  cubic rsize_set of `afactored1_strong_lform_universe`.
+- Next concrete gap, located: the lforms-subset premise follows from
+  `row_lformss_rpder_strong_rows_raw_afactored1_subset_lform_universe_payload_stableI`
+  (line ~17252) IF every member of a keyed generated row satisfies
+  `row_payload_lform_stable`.  So the next theorem to prove is:
+  members of keyed rows output by `rsimpStrong_raw` on generated rows
+  are payload-lform-stable (or a checked counterexample if false).
+  After that: disjoint/live/paid for one-pass rows, then the remaining
+  cubic rsize_set premise (the same-front sharing core).
+- Context handover: this Fable session is at its context limit; the
+  next session continues from exactly this gap.  Plain summary of the
+  day so far: two false inequalities refuted (multiplicative left side
+  vs additive right side, NTIMES); the NTIMES-free version proved; the
+  abstract owner closure proven exponential; the one-pass object
+  defined with checked count/carrier/grammar facts; bounty +20k noted
+  for the final theorem.
