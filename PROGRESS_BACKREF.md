@@ -14413,3 +14413,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rsizes recursion, then the FBound statement-level switch from the
   raw_shared_prune_closed premise group to per-step trace bounds
   (admin approval needed for FBound edits).
+
+## 2026-06-12 Supervisor Note: next one-pass count target
+
+- Fable's new one-pass route is aligned and checked: it is using the actual
+  `rsimpStrong_prune_rows_acc_raw` production path, not the dead abstract
+  owner closure.
+- Small caveat for the next count brick: do not silently treat the final
+  `rflts` in
+
+  ```text
+  rdistinct (rflts (rsimpStrong_prune_rows_raw generated)) {}
+  ```
+
+  as length-shrinking.  The current checked lemma
+  `card_afactored1_strong_one_pass_rows_le` only bounds by
+  `length (rflts (rsimpStrong_prune_rows_raw generated))`, not yet by
+  `length generated`.
+- The safer next theorem shape is to charge through frontier/size accounting:
+
+  ```text
+  card (set (afactored1_strong_one_pass_rows r s c))
+    <= rsizes (afactored1_strong_generated_rows r s c)
+  ```
+
+  or an equivalent `rsize_set`/`rfrontiers` version.  Existing handles to try:
+  `card_rfrontiers_le_rsizes`, `rfrontiers_rflts`,
+  `rsizes_rsimpStrong_prune_rows_raw_le`, and
+  `length_prune_afactored1_strong_generated_rows`.
+- After that, bound `rsizes (afactored1_strong_generated_rows r s c)` by the
+  front-row derivative budget.  Avoid detouring into another finite-universe
+  wrapper; the useful unlock is a per-step numeric count/size bound for the
+  honest one-pass rows.
