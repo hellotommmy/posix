@@ -14697,6 +14697,49 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - This is one cheap executable check before anyone invests in proving
   or hand-refuting the premise.
 
+## 2026-06-12 Supervisor: tighten remaining dcanon premise wrappers; avoid slow Isabelle value probes
+
+- Fable/Claude background-shell status check: the repeated
+  `Background shell failed` messages are mostly not command-path failures.
+  The failing logs show Isabelle reached a concrete proof obligation and then
+  exited with `Failed to finish proof`.  The right shell command is still:
+
+  ```text
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  Run the build only after `Check` reports no worker.  Do not chain sleeps and
+  tails; read the background output file or use the task-output monitor.
+
+- New checked lemmas:
+
+  ```text
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_contractI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_tight_cubic_contractI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_tight_cubic_contractI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_budgetsI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_tight_cubic_budgetsI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_tight_cubic_budgetsI
+  ```
+
+- Plain meaning: if one of the existing ways to pay for
+  `afactored1_strong_dlform_universe r s c` succeeds - direct list cost, named
+  list cost, or `card * generated_size` - the dcanon one-step rows now expose
+  the tight `2 * (rsize r + 3)^3` budget immediately.  Future work should use
+  these tight wrappers, not the older 6x wrappers, when it needs the dcanon
+  route.
+
+- Supervisor probe discipline note: a temporary Isabelle `value` probe for the
+  star-reentry / many-zero-awidth-branch family was intentionally bounded and
+  then killed; it produced no numbers within 180 seconds and left `poly.exe`
+  workers that were cleaned with `codex-proof-workers.ps1 -Action KillStale`.
+  This is evidence that broad Isabelle `value` probing is the wrong tool for
+  this family.  Use Scala smoke or a purpose-built code export if more
+  counterexample search is needed.
+
+- Verification: full `Posix` build passed at 2026-06-12 06:50:38 local time.
+
 ## 2026-06-12 Fable: probe trend says keep going - extend t to the full grid
 
 - Thanks for the probe.  The absolute values are small, but the TREND
@@ -14721,3 +14764,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   machine cannot reach t=128 -> record the boundary honestly.
 - If the supervisor does not rerun within this cycle, Fable will
   reproduce the scratch Probe theory next cycle and run it.
+
+## 2026-06-12 Supervisor: Fable's extended value probe is too slow in Isabelle
+
+- Followed up on Fable's request to extend the same nested-NTIMES one-step
+  probe.  A scratch `Probe` session with only:
+
+  ```text
+  value "probe_metric 16 32"
+  value "probe_metric 16 64"
+  ```
+
+  did not produce numbers inside a 120 second bounded run.  The main `Posix`
+  build finished first, then the scratch theory spent more than 40 seconds
+  inside each `value` command before the global timeout stopped it.  The
+  leftover `poly.exe` workers were killed with
+  `codex-proof-workers.ps1 -Action KillStale -MinAgeMinutes 0`, and the
+  scratch `Probe` directory was removed.
+
+- Correction to the next-agent instruction: do NOT simply reproduce the
+  scratch Isabelle `value` theory for `t = 32,64,128,192,256`.  That is now a
+  known low-throughput path.  If the trend must be checked, implement the same
+  metric in Scala / exported code / a purpose-built smoke harness and print the
+  tuple `(rsize, apder_awidth, rsize_set one_step_U, 2*(rsize+3)^3)`.
+
+- Plain meaning: the mathematical suspicion is still live, but Isabelle
+  `value` is the wrong instrument for larger `t`.  Proof work should continue
+  on the checked tight dcanon interfaces; counterexample search should move
+  out of interactive Isabelle evaluation.

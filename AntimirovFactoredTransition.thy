@@ -22280,6 +22280,216 @@ proof (intro conjI)
     by (rule size_bound)
 qed
 
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_contractI
+        [OF legacy cubic])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "afactored1_strong_dlform_list_cost r s c \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+  by (rule
+      rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_contractI
+      [OF legacy])
+    (use list_cubic in
+      \<open>simp add: afactored1_strong_dlform_list_cost_def\<close>)
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+    and cubic:
+      "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof -
+  have cubic_U:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+    by (rule
+        rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI
+        [OF card_bound generated_size cubic])
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_contractI
+        [OF legacy cubic_U])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_budgetsI:
+  assumes list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_budgetsI
+        [OF cubic])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_tight_cubic_budgetsI:
+  assumes list_cubic:
+      "afactored1_strong_dlform_list_cost r s c \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+  by (rule
+      rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_budgetsI)
+    (use list_cubic in
+      \<open>simp add: afactored1_strong_dlform_list_cost_def\<close>)
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_tight_cubic_budgetsI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+    and cubic:
+      "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof -
+  have cubic_U:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+    by (rule
+        rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI
+        [OF card_bound generated_size cubic])
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_budgetsI
+        [OF cubic_U])
+qed
+
 lemma rpder_strong_dcanon_rows_raw_afactored1_next_rows_closure_cubic_contractI:
   assumes legacy: "legacy_rrexp r"
     and closure_cubic:
