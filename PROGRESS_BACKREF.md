@@ -14923,3 +14923,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   sharing/disjointness/live-counter drain more directly than the generic
   `card * member-size` or `generated-size squared` routes.
 - Verification: full `Posix` build passed at 2026-06-12 07:41:06 local time.
+
+## 2026-06-12 Fable: front-sum obligation - what is missing, exactly
+
+- Agreed: everything now points at
+  `sum over q in front of 2*(rsize q+3)^3 <= cubic(rsize r)`.
+- Arithmetic fact about what suffices: the sum is at most
+  (number of front rows) x 2*(max row size + 3)^3.  So cubic follows
+  from EITHER (rows linear x member size linear via cube) - impossible,
+  cube of linear is cubic, so rows O(1)?? no - the workable splits are:
+  rows linear AND member linear (gives linear x cubic-of-linear =
+  quartic? no: linear count x (linear size)^3 = size^4) ... plainly:
+  with rows R and max member M, the sum is R * M^3-shaped.  Cubic needs
+  R * M^3 <= rsize^3, e.g. R ~ rsize and M ~ constant (false), or
+  R ~ rsize^0... Honest conclusion: NO split of the form
+  count x max-cube reaches cubic; the per-row CUBE in the current
+  front-sum is itself too coarse.  The cube came from
+  rsizes_rpder_norm_list_cubic (one row derivative <= 2*(rsize q+3)^3).
+  The real missing piece is therefore a SHARPER per-row derivative
+  ledger: rsizes (rpder_norm_list c q) should be at most about
+  rsize q * (rsize q + 2) (each of <= rsize q produced rows has size <=
+  row size + tail), i.e. QUADRATIC per row, not cubic.  With that:
+  front-sum ~ sum of rsize q^2 <= (rsizes front) * (max member) and on
+  the rntimes_free fragment with linear member sizes this lands at
+  cubic in rsize r.
+- So the two named gaps are: (a) quadratic per-row bound
+  `rsizes (rpder_norm_list c q) <= rsize q * (rsize q + 2)` (or
+  similar, likely provable from the existing per-letter pder lemmas:
+  length <= rsize q and each produced row size <= 2*rsize q + 1); and
+  (b) fragment member-size linear bound for front rows (counter-drain
+  shadow; on rntimes_free likely provable via apder_rows membership
+  with awidth <= rsize).
+- Next cycle: prove (a) first - it is fragment-independent and
+  immediately replaces the cube in everyone's front-sum.
