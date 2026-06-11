@@ -14049,3 +14049,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 03:02:31 local time.
+
+## 2026-06-12 Supervisor Checkpoint: owner active-key atoms and sizes
+
+- Added checked least-owner key facts:
+
+  ```text
+  afactored1_strong_dlform_universe_owner_suffix_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_owner_active_suffix_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_owner_active_suffix_key_aseq_union_subset_same_strong_front
+  afactored1_strong_dlform_universe_owner_active_suffix_key_size_le_generated_rsizes
+  afactored1_strong_dlform_universe_owner_active_suffix_key_size_le_list_cost
+  ```
+
+- Plain meaning: after iterated active-suffix pruning, every active suffix key
+  still splits into atoms paid by the current strong front carrier, and each
+  key's `rsize` is bounded by the same generated/list row-size budget as the
+  original step-local universe.
+- This does not yet prove a key-count bound.  It packages the safety facts
+  needed for the next cardinality step: prove that the number of owner keys, or
+  a suitable key-DAG projection of them, is bounded by the existing carrier/DAG
+  budget rather than by a fresh unconstrained universe.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 03:06:37 local time.
