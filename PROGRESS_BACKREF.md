@@ -12924,7 +12924,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Joint credit: supervisor (codex) contributed the `row_S` instantiation
   and the `row_direct`/`row_x` split in the dl_sub block during the
   edit cycle; Fable contributed the witness design, invariants, helper
-  lemma, and the unfolding/blast membership step.
+  lemma, and the surrounding membership plan.  The final checked
+  membership step uses the explicit `row_dlformss_def` witness described
+  in the supervisor resolution immediately above, not the intermediate
+  `row_dlformss_member_iff` variant.
 - Verification: 00:39 run checked all theories (AntimirovFactoredTransition
   57.9s) but hit a build-database write collision with a concurrent
   supervisor build (`SQLITE_CONSTRAINT_PRIMARYKEY`); after workers
