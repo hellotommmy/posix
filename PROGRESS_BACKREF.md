@@ -14266,3 +14266,17 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   for the supervisor version to win instead if it lands first and is
   general (parametric m, not fixed small m) - in that case Fable drops
   the worktree version.
+
+## 2026-06-12 Fable Note: ceding in-flight CE repair to supervisor
+
+- The 04:02 build gave the first real feedback on
+  `raw_shared_prune_active_suffix_owner_exponential`: only the final
+  rflts-singleton steps in calc_base/calc_step failed (defines
+  folding), everything else checked.  The supervisor is already
+  mid-rewrite in-tree with the same fix shape (`rowf_flat`).  Fable
+  stops editing this theorem now to avoid edit collisions and will
+  harvest the result next cycle.  If any remaining step needs the
+  original derivation rationale: prune_core needs the pruned list in
+  2-cons form (hence the reserved cc1/cc2), and the membership
+  induction is finite_ne_induct with EE j as the earlier row at every
+  step.
