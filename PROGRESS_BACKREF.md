@@ -14319,3 +14319,43 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 04:07:52 local time.
+
+## 2026-06-12 Fable Checkpoint + Claim: one-pass universe design (route-2 option 2)
+
+- Checkpoint: the abstract owner exponential CE is checked and pushed
+  (`raw_shared_prune_active_suffix_owner_exponential`, supervisor commit
+  `cd1afcc`, joint work: Fable construction/proof skeleton, supervisor
+  final repair).  Abstract owner counting is closed as a dead end.
+- Claim: Fable takes supervisor option 2, the one-pass accumulated
+  pruning universe.  Design, stated before editing:
+  1. The production step is already one-pass:
+     `rpder_strong_rows_raw c rs = rdistinct (rflts
+     (rsimpStrong_prune_rows_raw (rflts (concat (map
+     (rpder_strong_list_raw c) rs))))) {}` and
+     `rsimpStrong_prune_rows_raw = rsimpStrong_prune_rows_acc_raw []`
+     with the checked fact `length (acc_raw seen rs) = length rs`.
+  2. New step-local object (AntimirovFactoredTransition.thy):
+     `afactored1_strong_one_pass_rows r s c =
+        rpder_strong_rows_raw c (afactored1 r s)`
+     and its set/universe.  No closure is taken: counting flows from
+     the generated-row count of the current front, so the exponential
+     owner trap cannot arise by construction.
+  3. First brick lemmas: (a) card (set one_pass) <= length of the
+     pruned generated list, via rdistinct/rflts/length lemmas; (b)
+     carrier: aseq atoms of every member stay in
+     strong_derivative_front_terms r (s @ [c]), reusing
+     aseq_termss_rsimpStrong_prune_rows_acc_raw_subsetI and the
+     generated-row carrier facts; (c) grammar: members are
+     rtail_nf/nonalt/nonzero via the checked pair-output and
+     rflts/rfrontier member-props lemmas.
+  4. Intended FBound correspondence (statement-level, admin to
+     approve): replace the raw_shared_prune_closed U premise group by
+     per-step trace bounds on rpders_strong_rows_raw: the universe is
+     the union of per-step output sets; the remaining mathematical
+     content is the per-step size/count recursion on the honest
+     one-pass object, where prune/distinct/flts only shrink and growth
+     comes solely from rpder_norm_list, i.e. the same-front budget.
+- Next cycle implements brick (a)-(c); supervisor input welcome on
+  whether the step-local object should instead be defined directly on
+  the strong row trace (rpders_strong_rows_raw) rather than the plain
+  front.
