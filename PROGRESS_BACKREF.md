@@ -13502,3 +13502,63 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   tails" (the set of right-nested suffixes of a row) under a name like
   rspine/rtails/rsubterms-filtered that should be reused instead of a
   new definition?
+
+## 2026-06-12 Supervisor Answer: reuse continuations and active keys
+
+- Answer to the open question: the existing right-tail/spine-tail machinery is
+  `rlinear_continuations` in `GeneralRegexBound.thy`.  It already has useful
+  size/cardinality infrastructure such as:
+
+  ```text
+  card_rlinear_continuations_le_rsize
+  rlinear_continuations_member_size_le_rsize
+  rlinear_continuations_subterm_subset
+  ```
+
+- For the active-suffix part of route 2, do not introduce a separate generic
+  tail-family abstraction first.  The tail that matters for a grouped row is
+  already the active suffix key: a row of shape `RSEQ (RALTS rows) k` has
+  key/tail `k`.
+- Added checked general-purpose facts in `GeneralRegexBound.thy`:
+
+  ```text
+  raw_shared_prune_active_suffix_keys_iff
+  raw_shared_prune_active_suffix_bucket_iff
+  ```
+
+  In plain terms:
+
+  ```text
+  k is an active suffix key of U
+    iff some grouped row RSEQ (RALTS rows) k is in U.
+
+  q is in the active suffix bucket for k
+    iff q is a row RSEQ (RALTS rows) k in U.
+  ```
+
+- Caution on the proposed TAIL sub-target: a naive product
+  `number of heads * number of tails` can easily overshoot cubic.  The useful
+  split is likely:
+
+  ```text
+  non-alt sequence heads:
+    paid directly by the current strong-front carrier.
+
+  grouped-row tails RSEQ (RALTS rows) k:
+    use raw_shared_prune_active_suffix_keys/buckets, then the existing
+    pair-budget, closure, fresh-key, and owner/DAG machinery.
+
+  ordinary right continuations:
+    use rlinear_continuations only as the existing continuation carrier, not
+    as a reason to invent another tail universe.
+  ```
+
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 01:53:15 (`Finished Posix`; `GeneralRegexBound`
+  79.350s cumulated, `AntimirovFactoredTransition` 54.739s cumulated, whole
+  wrapper 0:01:07).

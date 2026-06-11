@@ -23571,6 +23571,19 @@ next
     by (rule finite_subset[OF sub fin])
 qed
 
+lemma raw_shared_prune_active_suffix_keys_iff:
+  "k \<in> raw_shared_prune_active_suffix_keys U \<longleftrightarrow>
+    (\<exists>rows. RSEQ (RALTS rows) k \<in> U)"
+  by (auto simp add: raw_shared_prune_active_suffix_keys_def
+      raw_shared_prune_suffix_key_def split: rrexp.splits)
+
+lemma raw_shared_prune_active_suffix_bucket_iff:
+  "q \<in> raw_shared_prune_active_suffix_bucket U k \<longleftrightarrow>
+    q \<in> U \<and> (\<exists>rows. q = RSEQ (RALTS rows) k)"
+  by (cases q)
+    (auto simp add: raw_shared_prune_active_suffix_bucket_def
+      raw_shared_prune_suffix_key_def split: rrexp.splits)
+
 lemma raw_shared_prune_suffix_key_rsubterms:
   assumes "raw_shared_prune_suffix_key q = Some k"
   shows "k \<in> rsubterms q"
