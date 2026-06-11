@@ -19995,6 +19995,64 @@ proof -
     using card_gen by linarith
 qed
 
+lemma rsize_set_row_dlforms_rsimpStrong_raw_quadratic:
+  "rsize_set (row_dlforms (rsimpStrong_raw p)) \<le>
+    Suc (rsize p) * rsize p"
+proof -
+  have "rsize_set (row_dlforms (rsimpStrong_raw p)) \<le>
+      Suc (rsize (rsimpStrong_raw p)) * rsize (rsimpStrong_raw p)"
+    by (rule rsize_set_row_dlforms_rtail_nf_quadratic)
+      (rule rtail_nf_rsimpStrong_raw)
+  also have "... \<le> Suc (rsize p) * rsize p"
+  proof -
+    have size_le: "rsize (rsimpStrong_raw p) \<le> rsize p"
+      by (rule rsize_rsimpStrong_raw_le)
+    have "Suc (rsize (rsimpStrong_raw p)) * rsize (rsimpStrong_raw p) \<le>
+        Suc (rsize p) * rsize p"
+      by (rule mult_mono[OF _ size_le]) (use size_le in auto)
+    then show ?thesis .
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_generated_quadratic_sum:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    sum_list
+      (map (\<lambda>p. Suc (rsize p) * rsize p)
+        (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?G = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      (\<Sum>p \<in> set ?G. rsize_set (row_dlforms (rsimpStrong_raw p)))"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_sum)
+  also have "... \<le> (\<Sum>p \<in> set ?G. Suc (rsize p) * rsize p)"
+    by (rule sum_mono)
+      (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+  also have "... \<le>
+      sum_list (map (\<lambda>p. Suc (rsize p) * rsize p) ?G)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_generated_rsizes_quadratic:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+      Suc (rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?G = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      sum_list (map (\<lambda>p. Suc (rsize p) * rsize p) ?G)"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_generated_quadratic_sum)
+  also have "... =
+      sum_list (map (\<lambda>p. rsize p * (rsize p + 1)) ?G)"
+    by (simp add: algebra_simps)
+  also have "... \<le> rsizes ?G * (rsizes ?G + 1)"
+    by (rule sum_list_rsize_times_rsize_plus_le)
+  also have "... = rsizes ?G * Suc (rsizes ?G)"
+    by simp
+  finally show ?thesis .
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

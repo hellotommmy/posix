@@ -14897,3 +14897,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `afactored1 r s`.  Do not return to broad universe/cardinality wrappers;
   they now all point at this single front-sum obligation.
 - Verification: full `Posix` build passed at 2026-06-12 07:32:56 local time.
+
+## 2026-06-12 Supervisor: rsize_set has a quadratic generated ledger
+
+- New checked lemmas:
+
+  ```text
+  rsize_set_row_dlforms_rsimpStrong_raw_quadratic
+  rsize_set_afactored1_strong_dlform_universe_le_generated_quadratic_sum
+  rsize_set_afactored1_strong_dlform_universe_le_generated_rsizes_quadratic
+  ```
+
+- Plain meaning: for one generated row `p`, the total size of
+  `row_dlforms (rsimpStrong_raw p)` is at most
+  `Suc (rsize p) * rsize p`.  Therefore the full one-step universe `U` has
+
+  ```text
+  rsize_set U <= sum over p in gen of Suc (rsize p) * rsize p
+              <= rsizes gen * Suc (rsizes gen)
+  ```
+
+- This is a useful guardrail, not the final proof: combining only
+  `rsizes gen` with generic per-row dlform size gives a quadratic-in-ledger
+  bound.  To reach the desired root cubic bound, the next proof must exploit
+  sharing/disjointness/live-counter drain more directly than the generic
+  `card * member-size` or `generated-size squared` routes.
+- Verification: full `Posix` build passed at 2026-06-12 07:41:06 local time.
