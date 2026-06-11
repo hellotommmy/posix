@@ -8851,6 +8851,113 @@ proof -
     using base by blast
 qed
 
+text \<open>
+  The linear cardinality premise
+  \<open>card (apder_deep_frontier r) \<le> apder_awidth r + rsize r + 3\<close>
+  used by @{thm [source] rsize_set_adlform_front_cubic_from_deep_linear_card}
+  and by
+  @{thm [source] row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract}
+  is false for general legacy normal-form input.  A counted repetition
+  \<open>RNTIMES X n\<close> pays its repetition count \<open>n\<close> only additively in
+  \<open>rsize\<close> and only through \<open>apder_awidth X\<close> in \<open>apder_awidth\<close>, but
+  every alternation branch of \<open>X\<close> reappears in the deep frontier once
+  per unrolled continuation \<open>RNTIMES X m\<close> with \<open>m < n\<close>.  Branches
+  with \<open>apder_awidth\<close> zero, such as \<open>RSTAR RONE\<close>, therefore multiply
+  deep-frontier rows without paying into the linear budget.
+\<close>
+
+lemma apder_deep_frontier_linear_card_false:
+  fixes a :: char
+  defines "SS \<equiv>
+    [RSTAR RONE, RSTAR RZERO,
+     RNTIMES RONE 0, RNTIMES RZERO 0,
+     RSTAR (RSTAR RONE), RSTAR (RSTAR RZERO),
+     RNTIMES RONE 1, RNTIMES RZERO 1]"
+  defines "X \<equiv> RSEQ (RCHAR a) (RALTS SS)"
+  defines "cex \<equiv> RNTIMES X 6"
+  shows "legacy_rrexp cex"
+    and "apder_nf cex"
+    and "\<not> card (apder_deep_frontier cex) \<le>
+      apder_awidth cex + rsize cex + 3"
+proof -
+  show "legacy_rrexp cex"
+    by (simp add: cex_def X_def SS_def)
+  show "apder_nf cex"
+    by (simp add: cex_def X_def SS_def)
+  have terms_X: "apder_terms X = {RALTS SS}"
+    by (simp add: X_def SS_def)
+  have terms_cex:
+      "apder_terms cex =
+        (\<lambda>m. RSEQ (RALTS SS) (RNTIMES X m)) ` {..<6}"
+    by (auto simp add: cex_def terms_X)
+  have rsimp4_stable:
+      "\<And>m. rsimp4_SEQ_atom
+          (RSEQ (RALTS SS) (RNTIMES X m)) RONE =
+        RSEQ (RALTS SS) (RNTIMES X m)"
+    by simp
+  have row_each:
+      "\<And>S m. S \<in> set SS \<Longrightarrow>
+        row_dlforms (rsimp7_SEQ_atom S (RNTIMES X m)) =
+          {RSEQ S (RNTIMES X m)}"
+    by (auto simp add: SS_def rsimp7_SEQ_atom_def)
+  have row_seq:
+      "\<And>m. row_dlforms (RSEQ (RALTS SS) (RNTIMES X m)) =
+        (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS"
+    by (auto simp add: row_each)
+  have acc_cex:
+      "apder_dfrontier_acc cex RONE =
+        (\<Union>m\<in>{..<6}. (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS)"
+    by (auto simp add: apder_dfrontier_acc_def terms_cex
+        rsimp4_stable row_seq row_each)
+  have root_row: "row_dlforms cex = {cex}"
+    by (simp add: cex_def)
+  have deep_cex:
+      "apder_deep_frontier cex =
+        insert cex
+          (\<Union>m\<in>{..<6}. (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS)"
+    by (simp add: apder_deep_frontier_def root_row acc_cex)
+  have dist: "distinct SS"
+    by (simp add: SS_def)
+  have card_SS: "card (set SS) = 8"
+    using distinct_card[OF dist] by (simp add: SS_def)
+  have inj_row: "\<And>m. inj_on (\<lambda>S. RSEQ S (RNTIMES X m)) (set SS)"
+    by (simp add: inj_on_def)
+  have card_row:
+      "\<And>m::nat. card ((\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS) = 8"
+    by (simp add: card_image[OF inj_row] card_SS)
+  have card_un:
+      "card (\<Union>m\<in>{..<6::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS) = 48"
+  proof -
+    have "card (\<Union>m\<in>{..<6::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS) =
+      (\<Sum>m\<in>{..<6::nat}.
+        card ((\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS))"
+      by (rule card_UN_disjoint) auto
+    also have "... = 48"
+      by (simp add: card_row)
+    finally show ?thesis .
+  qed
+  have cex_notin:
+      "cex \<notin> (\<Union>m\<in>{..<6::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS)"
+    by (auto simp add: cex_def)
+  have fin_un:
+      "finite (\<Union>m\<in>{..<6::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X m)) ` set SS)"
+    by simp
+  have card_deep: "card (apder_deep_frontier cex) = 49"
+    by (simp add: deep_cex card_insert_disjoint[OF fin_un cex_notin]
+        card_un)
+  have aw_cex: "apder_awidth cex = 6"
+    by (simp add: cex_def X_def SS_def)
+  have rsize_cex: "rsize cex = 30"
+    by (simp add: cex_def X_def SS_def)
+  show "\<not> card (apder_deep_frontier cex) \<le>
+      apder_awidth cex + rsize cex + 3"
+    by (simp add: card_deep aw_cex rsize_cex)
+qed
+
 lemma same_dlfront_rows_rprune_eq_against:
   assumes "same_dlfront_rows root front rows"
   shows "same_dlfront_rows root front (rprune_eq_against covered rows)"

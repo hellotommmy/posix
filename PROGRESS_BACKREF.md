@@ -12646,3 +12646,59 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: bounded `Posix` builds passed after each checked block, and
   `scripts\codex-proof-workers.ps1 -Action Check` reported no residual
   proof-worker processes.
+
+## 2026-06-11 Deep-Frontier Linear Card Refutation Checkpoint
+
+- Branch: `codex/backref-values`.
+- File changed: `AntimirovFactoredTransition.thy` (new lemma plus comment
+  only; no statement changes, file only grew).
+- New checked counterexample lemma
+  `apder_deep_frontier_linear_card_false`, placed directly after
+  `row_dlform_canonical_afactored1_same_dlfront_front_linear_card_cubic_contract`.
+- Content: the linear cardinality premise
+
+  ```text
+  card (apder_deep_frontier r) <= apder_awidth r + rsize r + 3
+  ```
+
+  assumed by `rsize_set_adlform_front_cubic_from_deep_linear_card` and by
+  `row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract`
+  is false for general legacy `apder_nf` input.  Checked witness:
+
+  ```text
+  cex = RNTIMES (RSEQ (RCHAR a) (RALTS SS)) 6
+  SS  = [RSTAR RONE, RSTAR RZERO, RNTIMES RONE 0, RNTIMES RZERO 0,
+         RSTAR (RSTAR RONE), RSTAR (RSTAR RZERO),
+         RNTIMES RONE 1, RNTIMES RZERO 1]
+  ```
+
+  with `legacy_rrexp cex`, `apder_nf cex`,
+  `card (apder_deep_frontier cex) = 49`, but
+  `apder_awidth cex + rsize cex + 3 = 6 + 30 + 3 = 39`.
+- Mechanism: `RNTIMES X n` pays its repetition count `n` only additively in
+  `rsize` (`rsize (RNTIMES r n) = Suc (rsize r) + n`) and only through
+  `n * apder_awidth X` in `apder_awidth`, while every alternation branch of
+  `X` reappears in the deep frontier once per unrolled continuation
+  `RNTIMES X m` with `m < n`.  Branches with `apder_awidth` zero, such as
+  `RSTAR RONE`, multiply deep-frontier rows without paying into the linear
+  budget, so the deep frontier grows like `n * (branch count)` against a
+  budget of `2 * n + constant`.
+- Consequence for the 2026-06-11 handoff route 1: do not attempt to
+  discharge the deep-frontier linear card premise; both conditional
+  interfaces above remain valid but cannot be unlocked universally.  Hand
+  analysis (not yet checked) suggests the same mechanism with a nullable
+  repeated block, for example
+  `X = RSEQ (RALTS [RCHAR a, RSTAR RONE]) (RALTS SS)`, also breaks the
+  front-linear premise of
+  `rsize_set_adlform_front_cubic_from_front_linear_card`, because one
+  derivative step spreads the front over all `RNTIMES X m` continuations.
+- Verification: `scripts\codex-isabelle-build-posix.ps1` passed
+  (`Finished Posix`; `AntimirovFactoredTransition` 46.9s cumulated), and
+  `scripts\codex-proof-workers.ps1 -Action Check` reported no residual
+  proof-worker processes before and after.
+- Next smallest safe step: either check the front-variant counterexample
+  for `card (adlform_front r s)` with the nullable block above, or move to
+  handoff route 2 (`afactored1_strong_dlform_universe` step-local
+  same-front counting) or route 3 (canonical projection via
+  `row_dlform_canonical_rows`).
+- Blockers: none.
