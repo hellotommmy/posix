@@ -14220,3 +14220,25 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rsimpStrong_prune_rows_acc_raw), whose output count is bounded by the
   input row count, and re-target the FBound closed-universe premise at
   that object; the carrier/grammar/owner-DAG size packaging all reuse.
+
+## 2026-06-12 Supervisor Response: redirect away from generic owner counting
+
+- The Fable construction above is route-relevant: `raw_shared_prune_active_suffix_owner`
+  is an abstract transitive all-pairs closure, while the executable simplifier
+  performs an accumulated one-pass pruning over a concrete row list.
+- Therefore, do not try to prove a generic polynomial/cardinality bound for
+  `raw_shared_prune_active_suffix_owner U` from only `card U` and row-size
+  budgets.  Such a theorem is now suspect unless the construction is formally
+  refuted.
+- Viable next steps are narrower:
+
+  ```text
+  1. formalize the exponential abstract-owner counterexample and stop;
+  2. prove a step-local invariant showing afactored1_strong_dlform_universe
+     cannot realize that same-key filtered-subset construction;
+  3. replace the abstract owner closure in the route with a one-pass
+     accumulated-pruning universe matching rsimpStrong_prune_rows_acc_raw.
+  ```
+
+- The Fable handoff has been updated at the top and in "Best Next Attack" so
+  this correction is visible before another session starts.

@@ -15,10 +15,16 @@ git pull --ff-only
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
 ```
 
-Current checked head:
+Current proof-checked theory head:
 
 ```text
 54ddcda Package owner DAG finite sizeNregex bridge
+```
+
+Latest direction warning:
+
+```text
+5f24941 Flag exponential owner closure cardinality construction
 ```
 
 Do not spend another session proving that the owner DAG is finite.  That is now
@@ -33,12 +39,27 @@ checked.  In simple terms:
 - This is not a cubic count.  `sizeNregex N` is a large finite universe, and
   `card (sizeNregex N)` is not the desired `O(|r|^3)` budget.
 
-The next useful proof must count owner-DAG nodes sharply.  Either prove a
-same-key bucket/cardinality bound for the actual step-local universe
-`afactored1_strong_dlform_universe r s c`, or prove a precise owner-DAG
-cardinality theorem unlocked by the existing owner sequence decomposition.  If
-a proposed theorem only proves finite containment, key size, key projection, or
-another wrapper around an already checked fact, it is drift.
+Do not try to prove a generic polynomial bound for the abstract owner closure
+`raw_shared_prune_active_suffix_owner U`.  The 2026-06-12 Fable construction
+shows a plausible exponential family for the abstract closure: repeated
+same-key pruning can generate many filtered variants from a small starting
+bucket.  Treat that route as suspect unless you first prove a step-local
+invariant that excludes the construction.
+
+The next useful proof should therefore be one of these:
+
+1. a checked counterexample formalizing the exponential abstract-owner
+   construction, then stop;
+2. a step-local invariant showing `afactored1_strong_dlform_universe r s c`
+   cannot realize that construction, followed by a sharp same-key bucket
+   bound;
+3. a replacement of the abstract all-pairs owner closure by the actual
+   one-pass accumulated pruning object matching `rsimpStrong_prune_rows_acc_raw`,
+   where output count is tied to the input pass rather than to the transitive
+   all-pairs closure.
+
+If a proposed theorem only proves finite containment, key size, key projection,
+or another wrapper around an already checked fact, it is drift.
 
 For Isabelle on Windows, use the repository PowerShell wrappers.  Do not use
 Bash `sleep && tail` polling for background builds.  If a build reaches 100% on
@@ -354,15 +375,12 @@ most useful routes are now:
    object is: bound the number of active suffix keys in `U`, then bound the
    size of each same-key bucket.  Feed those two bounds to the new
    `...closure_bucket...` and `...key_dag_bucket...` lemmas.
-2. Bridge `afactored1_strong_dlform_universe r s c` into the existing
-   active-suffix owner/DAG machinery in `GeneralRegexBound.thy` and
-   `FBound.thy`, especially the least-owner DAG contracts.  The owner-set
-   `RSEQ h t` decomposition is already packaged; use it to charge nonalt
-   heads to the current strong-front carrier and suffix/key pieces to the
-   active owner/key-DAG accounting.  Owner active-key atoms and key sizes are
-   also packaged.  The key-DAG projection into the owner DAG is now packaged
-   too.  Owner-DAG member-size and conditional `rsize_set` bounds are also
-   packaged.  Finite owner-DAG side conditions are now packaged via
+2. Use the existing owner/DAG machinery only with care.  The owner-set
+   `RSEQ h t` decomposition is already packaged; it can still help charge
+   nonalt heads to the current strong-front carrier and suffix/key pieces to
+   active key accounting.  Owner active-key atoms, key sizes, key-DAG
+   projection, owner-DAG member-size, and conditional `rsize_set` bounds are
+   packaged.  Finite owner-DAG side conditions are also packaged via
    `sizeNregex`:
 
    ```text
@@ -375,9 +393,13 @@ most useful routes are now:
    ```
 
    This only proves finite containment in a large ambient set.  Do not use
-   `card (sizeNregex N)` as a final cubic bound.  The missing step is now a
-   real sharp owner-DAG cardinality bound, not another finite-side-condition,
-   key-size, key-projection, or owner-size lemma.
+   `card (sizeNregex N)` as a final cubic bound.  Also do not pursue a generic
+   cardinality bound for `raw_shared_prune_active_suffix_owner U`: the Fable
+   exponential construction note shows that the abstract all-pairs closure is
+   likely too large.  Continue this route only by proving a step-local
+   invariant that excludes that construction, or by replacing the abstract
+   closure with the one-pass accumulated pruning object used by
+   `rsimpStrong_prune_rows_acc_raw`.
 3. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete
