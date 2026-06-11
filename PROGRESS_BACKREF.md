@@ -14597,3 +14597,25 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   counterexample.  The tight dcanon lemmas mean no extra factor is lost after
   that universe bound is proved.
 - Verification: full `Posix` build passed at 2026-06-12 06:20:50 local time.
+
+## 2026-06-12 Supervisor: payload-stability caveat hardened
+
+- New checked diagnostics:
+
+  ```text
+  row_nf_does_not_imply_payload_lform_stable
+  rtail_nf_does_not_imply_payload_lform_stable
+  shared_suffix_payload_stability_side_condition_not_shape_automatic
+  ```
+
+- Plain meaning: `row_payload_lform_stable p` is not a consequence of
+  ordinary row normal form, tail normal form, or merely seeing a later row of
+  the shape `RSEQ (RALTS rrs) k`.  It requires a real generated-payload
+  invariant.
+- Guidance for Fable: do not try to prove the lform-subset premise by
+  splitting on row shape plus `row_nf`/`rtail_nf`; that is a checked dead end.
+  The lform route is only live if one proves that actual generated payloads
+  are produced in a stronger stable form, or changes the simplifier so they
+  are.  Otherwise prefer the dcanon/dlform route and attack the remaining
+  cubic `rsize_set` bound for `afactored1_strong_dlform_universe`.
+- Verification: full `Posix` build passed at 2026-06-12 06:27:14 local time.

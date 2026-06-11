@@ -14290,6 +14290,14 @@ lemma row_nf_does_not_imply_tail_stable:
   by (simp_all add: p_def row_lforms_tail_stable_def
       rsimp7_SEQ_atom_def)
 
+lemma row_nf_does_not_imply_payload_lform_stable:
+  fixes a b c :: char
+  defines "p \<equiv> RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RCHAR c)"
+  shows "row_nf p"
+    and "\<not> row_payload_lform_stable p"
+  by (simp_all add: p_def row_payload_lform_stable_def
+      row_lforms_tail_stable_def rsimp7_SEQ_atom_def)
+
 lemma rtail_nf_does_not_imply_tail_stable:
   fixes a b c :: char
   defines "p \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
@@ -14297,6 +14305,25 @@ lemma rtail_nf_does_not_imply_tail_stable:
     and "\<not> row_lforms_tail_stable p"
   by (simp_all add: p_def row_lforms_tail_stable_def
       rsimp7_SEQ_atom_def)
+
+lemma rtail_nf_does_not_imply_payload_lform_stable:
+  fixes a b c :: char
+  defines "p \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "rtail_nf p"
+    and "\<not> row_payload_lform_stable p"
+  by (simp_all add: p_def row_payload_lform_stable_def
+      row_lforms_tail_stable_def rsimp7_SEQ_atom_def)
+
+lemma shared_suffix_payload_stability_side_condition_not_shape_automatic:
+  fixes a b c :: char
+    and k :: rrexp
+  defines "p \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  defines "later \<equiv> RSEQ (RALTS [p]) k"
+  shows "later = RSEQ (RALTS [p]) k"
+    and "p \<in> set [p]"
+    and "\<not> row_payload_lform_stable p"
+  by (simp_all add: p_def later_def row_payload_lform_stable_def
+      row_lforms_tail_stable_def rsimp7_SEQ_atom_def)
 
 lemma nested_star_row_not_cubic_but_terms_are_cubic:
   fixes a :: char
