@@ -13668,3 +13668,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   passed at 2026-06-12 02:09:25 (`Finished Posix`; `AntimirovFactoredTransition`
   54.391s cumulated, whole wrapper 0:01:08).
+
+## 2026-06-12 Supervisor Checkpoint: fresh closure keys keep current-front atoms
+
+- Added checked active-closure key carrier lemmas in
+  `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_closure_suffix_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_union_subset_same_strong_front
+  ```
+
+- Meaning in simple terms: active-suffix closure can expose a suffix key that
+  was not already a key of the original step-local universe `U`.  This does
+  not make the fresh key dangerous by itself: every split atom inside such a
+  closure key is still in the current strong front
+  `strong_derivative_front_terms root (front @ [c])`.
+- This directly addresses the earlier fresh-key caveat.  Do not claim closure
+  keys are all old keys; use these lemmas to charge old and fresh closure keys'
+  atoms to the same current-front carrier, then separately prove the needed
+  key/cardinality or owner/DAG bound.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 02:13:07 (`Finished Posix`; `AntimirovFactoredTransition`
+  52.017s cumulated, whole wrapper 0:01:08).
