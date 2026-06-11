@@ -19685,6 +19685,64 @@ proof -
   qed
 qed
 
+lemma rflts_singleton_member_rtail_nf_props:
+  assumes q: "rtail_nf q"
+    and x: "x \<in> set (rflts [q])"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  have "x \<in> rfrontier q"
+    using x by (simp add: rtail_nf_rflts_singleton_eq_rfrontier[OF q])
+  then show ?thesis
+    by (rule rtail_nf_rfrontier_member_props[OF q])
+qed
+
+lemma afactored1_strong_generated_rows_member_rtail_nf_props:
+  assumes x: "x \<in> set (afactored1_strong_generated_rows r s c)"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  have x_flts: "x \<in> set (rflts (concat
+      (map (rpder_strong_list_raw c) (afactored1 r s))))"
+    using x by (simp add: afactored1_strong_generated_rows_def)
+  obtain q where q:
+      "q \<in> set (concat (map (rpder_strong_list_raw c)
+        (afactored1 r s)))"
+      "x \<in> set (rflts [q])"
+    using x_flts by (rule set_rflts_memberE)
+  obtain p where p: "q = rsimpStrong_raw p"
+    using q(1) by (auto simp add: rpder_strong_list_raw_def)
+  have q_nf: "rtail_nf q"
+    by (simp add: p rtail_nf_rsimpStrong_raw)
+  show ?thesis
+    by (rule rflts_singleton_member_rtail_nf_props[OF q_nf q(2)])
+qed
+
+lemma afactored1_strong_one_pass_rows_member_rtail_nf_props:
+  assumes x: "x \<in> set (afactored1_strong_one_pass_rows r s c)"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  have gen_nf: "\<forall>y \<in> set (afactored1_strong_generated_rows r s c).
+      rtail_nf y"
+    using afactored1_strong_generated_rows_member_rtail_nf_props
+    by blast
+  have pruned_nf: "\<forall>y \<in> set (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)). rtail_nf y"
+    by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF gen_nf])
+  have x_flts: "x \<in> set (rflts (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)))"
+    using x
+    by (simp add: afactored1_strong_one_pass_rows_eq
+        rdistinct_set_equality)
+  obtain y where y:
+      "y \<in> set (rsimpStrong_prune_rows_raw
+        (afactored1_strong_generated_rows r s c))"
+      "x \<in> set (rflts [y])"
+    using x_flts by (rule set_rflts_memberE)
+  have y_nf: "rtail_nf y"
+    using pruned_nf y(1) by blast
+  show ?thesis
+    by (rule rflts_singleton_member_rtail_nf_props[OF y_nf y(2)])
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

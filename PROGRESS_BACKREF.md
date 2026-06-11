@@ -14388,3 +14388,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   then the count side: length (afactored1_strong_generated_rows) in
   terms of the front row budget, and the per-step rsizes recursion
   (prune/distinct/flts shrink; growth only from rpder_norm_list).
+
+## 2026-06-12 Fable Checkpoint: one-pass universe member grammar checked
+
+- New checked lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  rflts_singleton_member_rtail_nf_props
+  afactored1_strong_generated_rows_member_rtail_nf_props
+  afactored1_strong_one_pass_rows_member_rtail_nf_props
+  ```
+
+- Meaning: every generated row and every one-pass output row is
+  tail-normal, nonalt and nonzero.  Together with the carrier facts
+  from the previous brick, the one-pass step object now has the same
+  checked grammar as the old dlform universe (head in carrier when
+  nonalt, atoms always in carrier) but with construction-level
+  immunity to the exponential owner-closure trap.
+- Build: `Finished Posix` at 2026-06-12 05:39:10 first try
+  (`AntimirovFactoredTransition` 60.7s); proof-workers clean.
+- Remaining for the one-pass route: the count side,
+  `length (afactored1_strong_generated_rows r s c)` against the front
+  row budget (rpder_norm_list lengths under legacy), then the per-step
+  rsizes recursion, then the FBound statement-level switch from the
+  raw_shared_prune_closed premise group to per-step trace bounds
+  (admin approval needed for FBound edits).
