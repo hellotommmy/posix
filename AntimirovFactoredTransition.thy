@@ -6094,6 +6094,18 @@ proof -
       (use live_paid in auto)
 qed
 
+lemma rsizes_row_dlform_canonical_rows_tight_rsize_set_boundI:
+  assumes finite: "finite U"
+    and dlforms: "row_dlformss rs \<subseteq> U"
+  shows "rsizes (row_dlform_canonical_rows rs) \<le> rsize_set U"
+proof -
+  have rows: "set (row_dlform_canonical_rows rs) \<subseteq> U"
+    using dlforms by simp
+  show ?thesis
+    by (rule rsizes_distinct_subset_rsize_set
+        [OF distinct_row_dlform_canonical_rows rows finite])
+qed
+
 lemma rsizes_row_dlform_canonical_rows_self_bound:
   assumes nf: "\<forall>q \<in> set rs. rtail_nf q"
   shows "rsizes (row_dlform_canonical_rows rs) \<le>
@@ -16374,6 +16386,16 @@ lemma rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI:
   by (rule rsizes_row_dlform_canonical_rows_rsize_set_boundI
       [OF rtail_nf_rpder_strong_rows_raw finite dlforms])
 
+lemma rsizes_rpder_strong_dcanon_rows_raw_tight_rsize_set_boundI:
+  assumes finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq> U"
+  shows "rsizes (rpder_strong_dcanon_rows_raw c rs) \<le>
+    rsize_set U"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule rsizes_row_dlform_canonical_rows_tight_rsize_set_boundI
+      [OF finite dlforms])
+
 lemma rpder_strong_dcanon_rows_raw_step_contractI:
   assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
     and finite: "finite U"
@@ -17331,6 +17353,14 @@ lemma row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_strong_dlform_
       (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
     afactored1_strong_dlform_universe r s c"
   by (simp add: row_dlformss_rpder_strong_dcanon_rows_raw_eq
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
+
+lemma rsizes_rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight:
+  "rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+    rsize_set (afactored1_strong_dlform_universe r s c)"
+  by (rule rsizes_rpder_strong_dcanon_rows_raw_tight_rsize_set_boundI)
+    (simp_all add:
       row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
 
 lemma row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_next_rows_closure:
@@ -22053,6 +22083,109 @@ proof (intro conjI)
   also have "... = 6 * (rsize r + 3) ^ 3"
     by simp
   finally show "rsizes ?canon \<le> 6 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have contract:
+      "RLS (set ?rows) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_size_paid q) \<and>
+      row_dlformss ?rows =
+        row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+      row_dlformss ?rows \<subseteq> ?U \<and>
+      aseq_termss ?rows \<subseteq> strong_simp_frontier_aseq_universe r \<and>
+      (\<forall>x \<in> ?U.
+        aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+      rsizes ?rows \<le> 3 * rsize_set ?U"
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_contract
+        [OF legacy])
+  show "RLS (set ?rows) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?rows"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_live q"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_size_paid q"
+    using contract by blast
+  show "row_dlformss ?rows =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+    using contract by blast
+  show "row_dlformss ?rows \<subseteq> ?U"
+    using contract by blast
+  have "rsizes ?rows \<le> rsize_set ?U"
+    by (rule
+        rsizes_rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule cubic)
+  finally show "rsizes ?rows \<le> 2 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_budgetsI:
+  assumes cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have size_bound: "rsizes ?rows \<le> ?B"
+  proof -
+    have "rsizes ?rows \<le> rsize_set ?U"
+      by (rule
+          rsizes_rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight)
+    also have "... \<le> ?B"
+      by (rule cubic)
+    finally show ?thesis .
+  qed
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size_bound by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size_bound by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size_bound)
 qed
 
 lemma rpder_strong_dcanon_rows_raw_afactored1_next_rows_closure_cubic_contractI:

@@ -14566,3 +14566,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   abstract owner closure proven exponential; the one-pass object
   defined with checked count/carrier/grammar facts; bounty +20k noted
   for the final theorem.
+
+## 2026-06-12 Supervisor: tight dcanon budget brick
+
+- New checked lemmas:
+
+  ```text
+  rsizes_row_dlform_canonical_rows_tight_rsize_set_boundI
+  rsizes_rpder_strong_dcanon_rows_raw_tight_rsize_set_boundI
+  rsizes_rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_contractI
+  rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_budgetsI
+  ```
+
+- Plain meaning: after one strong derivative step, the dcanon route
+  canonicalizes the row list, meaning duplicates are removed and the list is
+  exactly the set of row-dlform pieces.  Therefore its `rsizes` budget is
+  paid directly by `rsize_set U`, not by the older coarse `3 * rsize_set U`
+  live/paid estimate.
+- Concrete payoff: if the remaining universe
+  `U = afactored1_strong_dlform_universe r s c` has
+  `rsize_set U <= 2 * (rsize r + 3)^3`, then the produced dcanon row list has
+  length/card/rlinear/rsizes all bounded by the same
+  `2 * (rsize r + 3)^3`.  Earlier dcanon interfaces only exposed a
+  `6 * (rsize r + 3)^3` budget from the same premise.
+- Guidance for Fable: do not spend more time on all-pairs owner closure,
+  length-times-total-cube, or broad lform/dlform wrappers.  The real missing
+  statement is still the size of `U`: show the row-dlform universe created by
+  this one strong derivative step has cubic `rsize_set`, or find a checked
+  counterexample.  The tight dcanon lemmas mean no extra factor is lost after
+  that universe bound is proved.
+- Verification: full `Posix` build passed at 2026-06-12 06:20:50 local time.
