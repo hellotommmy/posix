@@ -80,8 +80,8 @@ linearly in the repeat count.
 
 ## 2026-06-12 Route-2 Supervisor Update
 
-Latest prerequisite checkpoint before this supervisor update: `5649a2b`
-(`Refocus Fable cubic handoff on owner bounds`) on `codex/backref-values`.
+Latest checked checkpoint before this note: `7bdc97c`
+(`Add bucket-shaped active closure bounds`) on `codex/backref-values`.
 
 Since `3df1cef`, the route-2 support layer also gained:
 

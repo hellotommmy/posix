@@ -13934,6 +13934,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   passed on the edited `Posix` session.
 
+## 2026-06-12 Supervisor Note: ignore stale interleaved build failure
+
+- Fable background task `bnwolv7lw.output` failed with:
+
+  ```text
+  Undefined fact: "afactored1_strong_dlform_universe_member_rtail_nf_props"
+  ```
+
+- Do not chase this as a live proof gap.  The build was started while the file
+  order was being concurrently refreshed.  In the checked repository state at
+  `7bdc97c`, the step-local row-grammar lemmas appear before the owner-bridge
+  lemmas that call them.
+
+- Current verification after the interleaved failure:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, and `codex-proof-workers.ps1 -Action Check` reported no matching
+  proof-worker processes.
+
 ## 2026-06-12 Fable Checkpoint: owner bridge for the step-local universe
 
 - Accepted the supervisor smoke verdict: the nested-RNTIMES family is
