@@ -13562,3 +13562,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   passed at 2026-06-12 01:53:15 (`Finished Posix`; `GeneralRegexBound`
   79.350s cumulated, `AntimirovFactoredTransition` 54.739s cumulated, whole
   wrapper 0:01:07).
+
+## 2026-06-12 Supervisor Checkpoint: active suffix key size packaged
+
+- Added checked step-local active-key bounds in
+  `AntimirovFactoredTransition.thy`:
+
+  ```text
+  card_afactored1_strong_dlform_universe_active_suffix_keys_le
+  afactored1_strong_dlform_universe_active_suffix_key_size_le_generated_rsizes
+  afactored1_strong_dlform_universe_active_suffix_key_size_le_list_cost
+  ```
+
+- Meaning in simple terms: the set of active suffix keys of the current
+  step-local universe is no larger than the universe itself.  Also, each key's
+  tree size is bounded by the size budget of the row that exposed it, so it is
+  bounded by both the generated-row `rsizes` budget and the named
+  `afactored1_strong_dlform_list_cost` budget.
+- This is not the final cubic row-size theorem.  It packages a safe fact for
+  Fable's tail-family route: suffix keys are not an independent unpriced
+  object, but their final cubic usefulness still depends on the same missing
+  generated/list-cost or active-suffix owner accounting.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 01:56:58 (`Finished Posix`; `AntimirovFactoredTransition`
+  49.617s cumulated, whole wrapper 0:01:07).

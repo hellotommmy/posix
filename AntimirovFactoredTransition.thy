@@ -17944,6 +17944,38 @@ lemma afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same
     afactored1_strong_dlform_universe_active_suffix_key_aseq_subset_same_strong_front
   by blast
 
+lemma card_afactored1_strong_dlform_universe_active_suffix_keys_le:
+  "card (raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    card (afactored1_strong_dlform_universe r s c)"
+  by (rule card_raw_shared_prune_active_suffix_keys_le) simp
+
+lemma afactored1_strong_dlform_universe_active_suffix_key_size_le_generated_rsizes:
+  assumes key: "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize k \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ key])
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize x \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF x])
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_key_size_le_list_cost:
+  assumes key: "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize k \<le> afactored1_strong_dlform_list_cost r s c"
+proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ key])
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF x])
+qed
+
 text \<open>
   Row grammar for the step-local strong universe.  Every member is a
   tail-normal, nonalt, nonzero row.  A member that is not a sequence is
