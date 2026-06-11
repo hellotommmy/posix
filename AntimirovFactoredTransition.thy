@@ -19564,6 +19564,127 @@ proof -
   qed
 qed
 
+text \<open>
+  One-pass accumulated pruning universe for route 2.  The production
+  step \<open>rpder_strong_rows_raw\<close> is already a single accumulated pruning
+  pass, so its output row set is counted by the generated list length
+  and no all-pairs owner closure is involved; the exponential
+  owner-closure counterexample above cannot arise by construction.
+\<close>
+
+definition afactored1_strong_generated_rows ::
+  "rrexp \<Rightarrow> string \<Rightarrow> char \<Rightarrow> rrexp list" where
+  "afactored1_strong_generated_rows r s c =
+    rflts (concat (map (rpder_strong_list_raw c) (afactored1 r s)))"
+
+definition afactored1_strong_one_pass_rows ::
+  "rrexp \<Rightarrow> string \<Rightarrow> char \<Rightarrow> rrexp list" where
+  "afactored1_strong_one_pass_rows r s c =
+    rpder_strong_rows_raw c (afactored1 r s)"
+
+lemma afactored1_strong_one_pass_rows_eq:
+  "afactored1_strong_one_pass_rows r s c =
+    rdistinct (rflts (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c))) {}"
+  by (simp add: afactored1_strong_one_pass_rows_def
+      afactored1_strong_generated_rows_def rpder_strong_rows_raw_def)
+
+lemma length_prune_afactored1_strong_generated_rows:
+  "length (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)) =
+    length (afactored1_strong_generated_rows r s c)"
+  by (simp add: rsimpStrong_prune_rows_raw_def
+      length_rsimpStrong_prune_rows_acc_raw)
+
+lemma card_afactored1_strong_one_pass_rows_le:
+  "card (set (afactored1_strong_one_pass_rows r s c)) \<le>
+    length (rflts (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)))"
+proof -
+  have "card (set (afactored1_strong_one_pass_rows r s c)) =
+      card (set (rflts (rsimpStrong_prune_rows_raw
+        (afactored1_strong_generated_rows r s c))))"
+    by (simp add: afactored1_strong_one_pass_rows_eq
+        rdistinct_set_equality)
+  also have "... \<le> length (rflts (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)))"
+    by (rule card_length)
+  finally show ?thesis .
+qed
+
+lemma aseq_termss_afactored1_strong_generated_rows_subset_front:
+  "aseq_termss (afactored1_strong_generated_rows r s c) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+proof -
+  let ?gen = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  let ?base = "insert RZERO (derivative_front_terms r (s @ [c]))"
+  have norm_terms: "aseq_termss ?gen \<subseteq> ?base"
+    by (rule derivative_front_terms_snoc_generated_insert_zero)
+  have zero: "RZERO \<in> ?base"
+    by simp
+  have step: "\<And>q. q \<in> set ?gen \<Longrightarrow> aseq_terms q \<subseteq> ?base \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw q) \<subseteq>
+        rsimpStrong_aseq_closure ?base"
+    by (rule aseq_terms_rsimpStrong_raw_subset_closureI) simp_all
+  have strong_map: "aseq_termss (map rsimpStrong_raw ?gen) \<subseteq>
+      rsimpStrong_aseq_closure ?base"
+    by (rule aseq_termss_map_rsimpStrong_raw_closureI
+        [OF norm_terms zero step])
+  have list_raw_eq: "rpder_strong_list_raw c =
+      (\<lambda>x. map rsimpStrong_raw (rpder_norm_list c x))"
+    by (rule ext) (simp add: rpder_strong_list_raw_def)
+  have map_eq: "concat (map (rpder_strong_list_raw c)
+      (afactored1 r s)) = map rsimpStrong_raw ?gen"
+    by (simp add: list_raw_eq map_concat_map)
+  have "aseq_termss (afactored1_strong_generated_rows r s c) \<subseteq>
+      aseq_termss (concat (map (rpder_strong_list_raw c)
+        (afactored1 r s)))"
+    unfolding afactored1_strong_generated_rows_def
+    using aseq_termss_rflts_subset by blast
+  also have "... \<subseteq> rsimpStrong_aseq_closure ?base"
+    using map_eq strong_map by simp
+  finally show ?thesis
+    by (simp add: strong_derivative_front_terms_def)
+qed
+
+lemma aseq_termss_afactored1_strong_one_pass_rows_subset_front:
+  "aseq_termss (afactored1_strong_one_pass_rows r s c) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+proof -
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  have zeroF: "RZERO \<in> ?F"
+    by (simp add: strong_derivative_front_terms_def
+        rsimpStrong_aseq_closure_zero)
+  have pruned: "aseq_termss (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c)) \<subseteq> ?F"
+    unfolding rsimpStrong_prune_rows_raw_def
+    by (rule aseq_termss_rsimpStrong_prune_rows_acc_raw_subsetI
+        [OF aseq_termss_afactored1_strong_generated_rows_subset_front
+          zeroF])
+  have flts: "aseq_termss (rflts (rsimpStrong_prune_rows_raw
+      (afactored1_strong_generated_rows r s c))) \<subseteq> ?F"
+    using aseq_termss_rflts_subset pruned by blast
+  show ?thesis
+  proof
+    fix t
+    assume t: "t \<in> aseq_termss (afactored1_strong_one_pass_rows r s c)"
+    obtain x where x: "x \<in> set (afactored1_strong_one_pass_rows r s c)"
+        "t \<in> aseq_terms x"
+      using t by (auto simp add: aseq_termss_member_iff)
+    have x_flts: "x \<in> set (rflts (rsimpStrong_prune_rows_raw
+        (afactored1_strong_generated_rows r s c)))"
+      using x(1)
+      by (simp add: afactored1_strong_one_pass_rows_eq
+          rdistinct_set_equality)
+    have "aseq_terms x \<subseteq> aseq_termss (rflts
+        (rsimpStrong_prune_rows_raw
+          (afactored1_strong_generated_rows r s c)))"
+      by (rule aseq_terms_member_subset_termss[OF x_flts])
+    then show "t \<in> ?F"
+      using x(2) flts by blast
+  qed
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

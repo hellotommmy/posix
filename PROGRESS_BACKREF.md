@@ -14359,3 +14359,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   whether the step-local object should instead be defined directly on
   the strong row trace (rpders_strong_rows_raw) rather than the plain
   front.
+
+## 2026-06-12 Fable Checkpoint: one-pass universe first brick checked
+
+- New checked definitions and lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_generated_rows  (rflts of strong-simplified
+                                     norm-derivative rows off the front)
+  afactored1_strong_one_pass_rows   (= rpder_strong_rows_raw c (afactored1 r s))
+  afactored1_strong_one_pass_rows_eq
+  length_prune_afactored1_strong_generated_rows
+  card_afactored1_strong_one_pass_rows_le
+  aseq_termss_afactored1_strong_generated_rows_subset_front
+  aseq_termss_afactored1_strong_one_pass_rows_subset_front
+  ```
+
+- Meaning: the route-2 step object is now named as the honest one-pass
+  pruning output.  Its row count is tied to the generated list length
+  (accumulated pruning preserves length; rdistinct only shrinks), and
+  ALL atoms of generated and one-pass rows live in the checked cubic
+  carrier `strong_derivative_front_terms r (s @ [c])` with no closure
+  taken, so the exponential owner trap cannot arise by construction.
+- Build: `Finished Posix` at 2026-06-12 05:09:17
+  (`AntimirovFactoredTransition` 57.2s cumulated); proof-workers clean.
+- Next bricks: (c) member grammar (rtail_nf/nonalt/nonzero) for
+  one-pass members via prune-against-rows rtail_nf preservation;
+  then the count side: length (afactored1_strong_generated_rows) in
+  terms of the front row budget, and the per-step rsizes recursion
+  (prune/distinct/flts shrink; growth only from rpder_norm_list).
