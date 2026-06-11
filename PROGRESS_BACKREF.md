@@ -13272,3 +13272,121 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   over generated rows.  So the bridge may require a step-local analogue of
   `raw_final_active_suffix_rows`, but it should reuse the existing key,
   bucket, closure, pair-budget, and member-size lemmas wherever possible.
+
+## 2026-06-12 Supervisor Note: route-2 active-suffix bridge constraints
+
+- Current status: no new Fable commit after `19c4f68`, no new Claude task
+  output after the repeated API `529 Overloaded` files, and
+  `scripts\codex-proof-workers.ps1 -Action Check` reports no owned Isabelle
+  proof-worker process.  Continue from the checked route-2 facts already in
+  `AntimirovFactoredTransition.thy`; do not restart the mapping phase with
+  four parallel agents unless there is a genuinely new subproblem.
+- Operating discipline for the next Fable pass:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  Use the first command before starting a build.  Use the second command for a
+  bounded Posix build.  Do not chain a fake wait such as `sleep 90 && tail ...`
+  around a background build; in Claude, start the command in the background and
+  inspect the task output directly.  A failed `sleep && tail` wrapper does not
+  imply that Isabelle failed.
+- The relevant folklore rules are already in `AGENTS.md` and
+  `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`: broad `auto`,
+  `simp`, `force`, or similar search should return quickly (human rule of
+  thumb about 0.5s); one Isabelle command over 10s needs inspection; 30s means
+  narrow the proof; 120s should be interrupted or timeout-killed; 200s is a
+  proof/definition bug, not a reason to raise the timeout.  For scratch
+  scripts, keep the small probe under about 20s unless the reason for a longer
+  bounded run is written down.
+- Plain definitions for this route:
+
+  ```text
+  row:
+    one residual regex row produced by a derivative/frontier step.
+
+  suffix key:
+    for a row shaped RSEQ (RALTS rows) k, the shared tail k.
+
+  bucket:
+    all rows in a carrier U with the same suffix key k.
+
+  active-suffix closure:
+    U plus the rows produced by pruning a later row against an earlier row
+    from the same nonempty suffix-key bucket.
+
+  pair budget:
+    sum over keys k of (bucket-size for k)^2.  It counts the possible
+    same-suffix pruning comparisons.
+
+  row DAG universe:
+    the rows plus the subterms of their payloads and suffix keys, counted as a
+    shared DAG universe rather than repeatedly as tree copies.
+  ```
+
+- Why route 1 failed, in simple terms: a repeated block can expose many
+  different frontier rows, while `rsize (RNTIMES r n)` pays for the repeat
+  count only linearly.  If many repeated branches have zero or tiny width, the
+  number of frontier rows grows faster than the proposed linear frontier
+  budget.  The checked counterexamples in `AntimirovFactoredTransition.thy`
+  refute that linear-frontier premise; they do not refute the overall cubic
+  goal.
+- What route 2 has already checked: every atom/payload used inside a member of
+  `afactored1_strong_dlform_universe root front c` is contained in
+  `strong_derivative_front_terms root (front @ [c])`, and that current strong
+  front has existing cubic card and `rsize_set` bounds.  This pays for the
+  payload atoms, but not yet for copied suffix structure around them.
+- The exact remaining gap is still the row-size bound
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  This is not just a cardinality question.  A small number of rows can still be
+  expensive if each row repeats a large suffix tree.
+- Important caveat before proving any key/bucket lemma: active-suffix closure
+  can introduce fresh suffix keys.  The checked lemma
+  `raw_shared_prune_active_suffix_closure_can_introduce_fresh_key` is the
+  warning sign.  Therefore do not prove only "initial keys are bounded" and
+  claim the closure is paid.  Either count keys of the closure itself, or use
+  an owner/DAG universe that is closed under those fresh keys.
+- Best next checked target: prove a step-local bridge that decomposes each
+  `x in afactored1_strong_dlform_universe root front c` into payload roots and
+  suffix keys already paid by the current strong-front carrier plus the
+  active-suffix closure/owner machinery.  Reuse these existing facts before
+  creating new abstractions:
+
+  ```text
+  GeneralRegexBound.thy:
+    raw_final_active_suffix_keys_iff
+    raw_final_active_suffix_bucket_iff
+    raw_shared_prune_active_suffix_closure_as_pairs
+    raw_shared_prune_active_suffix_closure_can_introduce_fresh_key
+    raw_final_active_suffix_pair_budget_le_rsize_square
+    raw_shared_prune_active_suffix_closure_member_size_bound
+    card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound
+    card_raw_final_active_suffix_closure_le_rsize_cubic
+    card_raw_final_active_suffix_closure_keys_le_rsize_cubic
+    card_raw_final_active_suffix_row_dag_universe_decomp
+
+  FBound.thy:
+    strong_deferred_final_active_suffix_rows
+    strong_deferred_final_active_suffix_keys
+    strong_deferred_final_active_suffix_pair_budget
+    strong_deferred_final_active_suffix_closure
+    strong_deferred_final_active_suffix_row_dag_universe
+    strong_deferred_strong_rows_raw_bridge_rows
+    strong_deferred_strong_rows_raw_bridge_owner
+    strong_deferred_strong_rows_raw_least_owner
+    strong_deferred_strong_rows_raw_least_owner_dag
+  ```
+
+- Avoid low-value work in the next pass:
+  wrapper lemmas that merely restate the same current-front containment,
+  another four-agent repo mapping after the `529` failures, and broad Isabelle
+  proof search on an unsplit goal.  A useful checkpoint should either close a
+  bridge to active-suffix closure/owner accounting, or record a precise false
+  subclaim with a small checked counterexample.
