@@ -12971,3 +12971,58 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   same-front-keyed card bound on the universe, and check which premise
   shape `rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI`
   and the FBound closed-universe interfaces actually need.
+
+## 2026-06-12 Supervisor Note: make route 2 executable after 529
+
+- The last four-agent route-2 mapping attempt failed because all child
+  agents hit Claude API `529 Overloaded`.  Treat this as a service/load
+  failure, not as mathematical evidence and not as an Isabelle failure.
+  Do not spend another cycle repeatedly launching the same multi-agent
+  mapping job.  If subagents are used, retry at most once; otherwise do
+  the mapping locally with `rg`.
+- Start the next work unit from these already-checked interfaces:
+  `afactored1_strong_dlform_universe_def`,
+  `rsize_set_afactored1_strong_dlform_universe_le_list_cost`,
+  `afactored1_strong_dlform_universe_member_size_le_list_cost`,
+  `rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI`,
+  `rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_contractI`,
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_named_list_cubic_contractI`,
+  and the obstruction
+  `row_dlforms_suffix_copy_rsize_set_not_paid_by_row_size`.
+- Before editing a long proof, choose one exact checked target:
+  either prove the list-cost premise
+
+  ```text
+  afactored1_strong_dlform_list_cost r s c <=
+    2 * (rsize r + 3)^3
+  ```
+
+  or prove the card/generated split needed by
+  `rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_contractI`:
+
+  ```text
+  card (afactored1_strong_dlform_universe r s c) <= C
+  rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) <= M
+  C * M <= 2 * (rsize r + 3)^3
+  ```
+
+- Do not revive route 1, do not add more `rntimes_free` wrappers, and do
+  not use atom-only `aseq_terms` counting as the main argument.  Route 2
+  has to count rows in the same front while sharing common suffixes.
+- Use the project performance discipline from
+  `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`: broad
+  `simp`/`auto`/`blast`/`force` should return almost immediately
+  (human rule of thumb: about 0.5 seconds).  If a line visibly hangs,
+  split it into explicit cases/helper lemmas instead of increasing the
+  timeout or re-running the same command.
+- Isabelle command convention for this branch:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-proof-workers.ps1 -Action Check
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-proof-workers.ps1 -Action Check
+  ```
+
+  Only one agent should run `codex-isabelle-build-posix.ps1` at a time;
+  if matching workers exist, wait and read their output instead of
+  starting a competing build.
