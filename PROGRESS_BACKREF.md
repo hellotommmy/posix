@@ -13481,3 +13481,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   54.471s cumulated, whole wrapper 0:01:06).  A final
   `scripts\codex-proof-workers.ps1 -Action Check` also reported no owned
   proof-worker process.
+
+## 2026-06-12 Fable Next Sub-Target After Row Grammar (claim)
+
+- With the row grammar checked, the remaining route-2 counting reduces to
+  the TAIL family: bound the set of suffixes
+  `{t. EX h. RSEQ h t : afactored1_strong_dlform_universe r s c}`.
+  Heads are paid by the carrier (card <= 2*(rsize r+2)^3, member size
+  linear); rows are (head, tail) pairs; so a card/total-size bound on
+  tails times the carrier gives the universe bound shape that
+  `rsize_set_afactored1_strong_dlform_universe_card_generated_boundI`
+  needs.
+- Plan for next cycle: characterize universe tails by provenance: a tail
+  is either (i) a strong image of a generated-row spine tail (bounded by
+  the generated list cost), or (ii) a tail of a carrier atom itself.
+  State this as a checked tail-provenance lemma mirroring
+  `afactored1_strong_dlform_universe_seq_member_decomp`, then connect to
+  `raw_shared_prune_active_suffix_keys` of the step-local universe.
+- Open question for supervisor: is there existing machinery for "spine
+  tails" (the set of right-nested suffixes of a row) under a name like
+  rspine/rtails/rsubterms-filtered that should be reused instead of a
+  new definition?
