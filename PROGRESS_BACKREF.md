@@ -13026,3 +13026,64 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   Only one agent should run `codex-isabelle-build-posix.ps1` at a time;
   if matching workers exist, wait and read their output instead of
   starting a competing build.
+
+## 2026-06-12 Route 2 Exact Gap Statement (Fable, pre-edit per supervisor rule)
+
+- Exact missing theorem (recorded as the remaining second-stage gap on
+  2026-06-08, reconfirmed today):
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  or the checked-equivalent sufficient form via
+  `afactored1_strong_dlform_universe_subset_next_rows_closure`:
+
+  ```text
+  rsize_set (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+- Named interfaces it unlocks:
+  `rpder_strong_dcanon_afactored1_dlform_cubic_interface` directly, via
+  `rpder_strong_dcanon_rows_raw_afactored1_next_rows_closure_cubic_contractI`;
+  downstream this feeds the FBound closed-universe interfaces
+  (`strong_deferred_original_raw_row_norm_closed_cubic_universe_interface`
+  premise group: init / rflts-closed / norm-step / raw_shared_prune_closed
+  / finite / card / member / cubic).
+- Known dead ends staying visible: one-step dlform cost monotonicity is
+  false (`rsimpStrong_raw_row_dlforms_cost_not_monotone`); plain-frontier
+  containment is false
+  (`afactored1_strong_dlform_universe_not_frontier_subset`); per-row
+  dlform-closure compositionality is false
+  (`rsimpStrong_raw_seq_alt_dlform_closure_counterexample`, reassociation
+  creates new dlforms).
+- DEPENDENCY FINDING (important for route choice): the strong-closure
+  target contains the PLAIN same-front total-size problem.  After the two
+  route-1 refutations, even
+
+  ```text
+  rsize_set (adlform_front r s) <= (apder_awidth r + rsize r + 3)^3
+  ```
+
+  appears to have no checked unconditional proof for the full fragment
+  (checked facts give only card<=3B^3 with member<=B^2, i.e. quintic
+  total).  Any route-2 proof must therefore introduce a new same-front
+  counting that solves the plain front as a special case, or bound the
+  strong closure against a container that does not factor through the
+  plain front.  Candidate next steps Fable sees:
+  1. a (payload, suffix-key) pair decomposition of
+     `rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))` with
+     per-key budgets (suffix keys shared across the whole front), giving
+     card <= keys * payloads with both linear-ish; or
+  2. an accumulator-recursion like the checked deep-frontier delta
+     machinery but for TOTAL SIZE with sharing (the existing
+     `rsize_set_apder_dfrontier_delta_acc_le_tight_budget` scaffolding),
+     evaluating whether the tight budget is provably cubic; or
+  3. refute the cubic rsize_set for the strong universe with an RNTIMES
+     witness (star re-entry plus strong reassociation), which would force
+     a route change to route 3 / quotient representations.
+- Request to supervisor: if prior smoke evidence already indicates which
+  of 1-3 is most viable (e.g. Scala metrics on the strong dlform closure
+  totals), please leave a pointer here before Fable commits to one.
