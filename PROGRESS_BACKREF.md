@@ -14077,3 +14077,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 03:06:37 local time.
+
+## 2026-06-12 Supervisor Checkpoint: owner key-DAG projects into owner DAG
+
+- Added general projection lemmas in `GeneralRegexBound.thy`:
+
+  ```text
+  raw_shared_prune_active_suffix_keys_subset_rsubterm_closure
+  raw_shared_prune_active_suffix_key_dag_subset_rsubterm_closure
+  card_raw_shared_prune_active_suffix_keys_le_rsubterm_closure
+  card_raw_shared_prune_active_suffix_key_dag_le_rsubterm_closure
+  ```
+
+- Added step-local owner names in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_owner_active_suffix_keys_subset_owner_dag
+  afactored1_strong_dlform_universe_owner_active_suffix_key_dag_subset_owner_dag
+  card_afactored1_strong_dlform_universe_owner_active_suffix_keys_le_owner_dag
+  card_afactored1_strong_dlform_universe_owner_active_suffix_key_dag_le_owner_dag
+  ```
+
+- Plain meaning: active suffix keys are subterms of the rows that expose them.
+  Therefore the key set, and the key-DAG formed from those keys, are already
+  inside the owner DAG `rsubterm_closure (raw_shared_prune_active_suffix_owner
+  U)`.  This packages the requested key-DAG projection step.
+- This does not yet prove the owner DAG itself is cubic.  It reduces owner
+  key-count/key-DAG count to the owner-DAG cardinality problem, instead of
+  letting keys become a separate unbounded budget.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 03:11:24 local time.

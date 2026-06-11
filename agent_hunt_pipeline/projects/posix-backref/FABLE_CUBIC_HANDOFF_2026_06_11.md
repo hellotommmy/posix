@@ -212,6 +212,8 @@ Read only these regions first:
    - `afactored1_strong_dlform_universe_owner_seq_nonalt_head_in_front_terms`
    - `afactored1_strong_dlform_universe_owner_active_suffix_key_aseq_union_subset_same_strong_front`
    - `afactored1_strong_dlform_universe_owner_active_suffix_key_size_le_list_cost`
+   - `afactored1_strong_dlform_universe_owner_active_suffix_key_dag_subset_owner_dag`
+   - `card_afactored1_strong_dlform_universe_owner_active_suffix_key_dag_le_owner_dag`
    - `afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost`
    - `rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI`
 3. `FBound.thy`
@@ -316,8 +318,9 @@ most useful routes are now:
    `RSEQ h t` decomposition is already packaged; use it to charge nonalt
    heads to the current strong-front carrier and suffix/key pieces to the
    active owner/key-DAG accounting.  Owner active-key atoms and key sizes are
-   also packaged; the missing step is key-count or key-DAG projection, not
-   another key-size lemma.
+   also packaged.  The key-DAG projection into the owner DAG is now packaged
+   too; the missing step is a real owner-DAG/cardinality bound, not another
+   key-size or key-projection lemma.
 3. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete

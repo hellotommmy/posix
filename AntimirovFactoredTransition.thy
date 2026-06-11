@@ -18895,6 +18895,56 @@ proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ key])
   qed
 qed
 
+lemma afactored1_strong_dlform_universe_owner_active_suffix_keys_subset_owner_dag:
+  "raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))
+    \<subseteq>
+    rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  by (rule raw_shared_prune_active_suffix_keys_subset_rsubterm_closure)
+
+lemma afactored1_strong_dlform_universe_owner_active_suffix_key_dag_subset_owner_dag:
+  "rsubterm_closure
+      (raw_shared_prune_active_suffix_keys
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))
+    \<subseteq>
+    rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  by (rule raw_shared_prune_active_suffix_key_dag_subset_rsubterm_closure)
+
+lemma card_afactored1_strong_dlform_universe_owner_active_suffix_keys_le_owner_dag:
+  assumes finite:
+      "finite (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))"
+  shows "card (raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))) \<le>
+    card (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)))"
+  by (rule card_raw_shared_prune_active_suffix_keys_le_rsubterm_closure
+      [OF finite])
+
+lemma card_afactored1_strong_dlform_universe_owner_active_suffix_key_dag_le_owner_dag:
+  assumes finite:
+      "finite (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))"
+  shows "card (rsubterm_closure
+      (raw_shared_prune_active_suffix_keys
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))) \<le>
+    card (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)))"
+  by (rule card_raw_shared_prune_active_suffix_key_dag_le_rsubterm_closure
+      [OF finite])
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

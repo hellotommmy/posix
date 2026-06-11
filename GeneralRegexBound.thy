@@ -23611,6 +23611,46 @@ proof -
   finally show ?thesis .
 qed
 
+lemma raw_shared_prune_active_suffix_keys_subset_rsubterm_closure:
+  "raw_shared_prune_active_suffix_keys U \<subseteq> rsubterm_closure U"
+proof
+  fix k
+  assume k: "k \<in> raw_shared_prune_active_suffix_keys U"
+  then obtain q where q: "q \<in> U" "raw_shared_prune_suffix_key q = Some k"
+    by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+  have "k \<in> rsubterms q"
+    by (rule raw_shared_prune_suffix_key_rsubterms[OF q(2)])
+  then show "k \<in> rsubterm_closure U"
+    by (rule rsubterm_closure_memberI[OF q(1)])
+qed
+
+lemma raw_shared_prune_active_suffix_key_dag_subset_rsubterm_closure:
+  "rsubterm_closure (raw_shared_prune_active_suffix_keys U) \<subseteq>
+    rsubterm_closure U"
+proof (rule rsubterm_closure_subsetI)
+  show "raw_shared_prune_active_suffix_keys U \<subseteq> rsubterm_closure U"
+    by (rule raw_shared_prune_active_suffix_keys_subset_rsubterm_closure)
+next
+  fix q
+  assume "q \<in> rsubterm_closure U"
+  then show "rsubterms q \<subseteq> rsubterm_closure U"
+    by (rule rsubterm_closure_closed)
+qed
+
+lemma card_raw_shared_prune_active_suffix_keys_le_rsubterm_closure:
+  assumes finite: "finite (rsubterm_closure U)"
+  shows "card (raw_shared_prune_active_suffix_keys U) \<le>
+    card (rsubterm_closure U)"
+  by (rule card_mono[OF finite
+        raw_shared_prune_active_suffix_keys_subset_rsubterm_closure])
+
+lemma card_raw_shared_prune_active_suffix_key_dag_le_rsubterm_closure:
+  assumes finite: "finite (rsubterm_closure U)"
+  shows "card (rsubterm_closure (raw_shared_prune_active_suffix_keys U)) \<le>
+    card (rsubterm_closure U)"
+  by (rule card_mono[OF finite
+        raw_shared_prune_active_suffix_key_dag_subset_rsubterm_closure])
+
 lemma card_raw_shared_prune_active_suffix_keys_le:
   assumes finite: "finite U"
   shows "card (raw_shared_prune_active_suffix_keys U) \<le> card U"
