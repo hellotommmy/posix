@@ -13637,3 +13637,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   passed at 2026-06-12 02:02:03 (`Finished Posix`; `AntimirovFactoredTransition`
   51.477s cumulated, whole wrapper 0:01:06), followed by no matching
   proof-worker process.
+
+## 2026-06-12 Supervisor Checkpoint: active suffix closure keeps current-front atoms
+
+- Added checked route-2 carrier lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_pair_outputs_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_closure_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_closure_aseq_union_subset_same_strong_front
+  ```
+
+- Meaning in simple terms: if `U = afactored1_strong_dlform_universe root front
+  c`, and two rows in `U` are pruned because they share the same active suffix
+  key, every split atom in the new output row is still in the current strong
+  front `strong_derivative_front_terms root (front @ [c])`.  The whole
+  active-suffix closure has the same property.
+- This matters for the next route-2 attempt: active-suffix closure may add new
+  rows, but it does not add new atom roots.  Future bucket/pair-budget or
+  owner/DAG accounting can keep charging atoms to the current strong-front
+  carrier, while separately paying for the row/key structure.
+- This is not the final cubic theorem and does not bound `pair_budget(U)` by
+  itself.  It is a checked carrier-preservation bridge for the closure/output
+  side of the proof.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 02:09:25 (`Finished Posix`; `AntimirovFactoredTransition`
+  54.391s cumulated, whole wrapper 0:01:08).

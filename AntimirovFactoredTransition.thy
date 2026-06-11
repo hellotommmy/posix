@@ -18123,6 +18123,79 @@ proof (rule
   finally show "rsize q \<le> M" .
 qed
 
+lemma afactored1_strong_dlform_universe_active_suffix_pair_outputs_aseq_subset_same_strong_front:
+  assumes pair: "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs
+      (afactored1_strong_dlform_universe root front c)"
+    and x: "x \<in> raw_shared_prune_pair_outputs earlier later"
+  shows "aseq_terms x \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+proof -
+  let ?F = "strong_derivative_front_terms root (front @ [c])"
+  have later:
+      "later \<in> afactored1_strong_dlform_universe root front c"
+    using pair by (simp add: raw_shared_prune_active_suffix_pairs_def)
+  have later_terms: "aseq_terms later \<subseteq> ?F"
+    by (rule afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+        [OF later])
+  have zero: "RZERO \<in> ?F"
+    by (simp add: strong_derivative_front_terms_def
+        rsimpStrong_aseq_closure_zero)
+  have prune_terms:
+      "aseq_terms (rsimpStrong_prune_pair_raw earlier later) \<subseteq> ?F"
+    by (rule aseq_terms_rsimpStrong_prune_pair_raw_subsetI
+        [OF later_terms zero])
+  have x_flat:
+      "x \<in> set (rflts [rsimpStrong_prune_pair_raw earlier later])"
+    using x by (simp add: raw_shared_prune_pair_outputs_def)
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_termss (rflts [rsimpStrong_prune_pair_raw earlier later])"
+    by (rule aseq_terms_member_subset_termss[OF x_flat])
+  also have "... \<subseteq> aseq_terms (rsimpStrong_prune_pair_raw earlier later)"
+    using aseq_termss_rflts_subset[of
+        "[rsimpStrong_prune_pair_raw earlier later]"]
+    by simp
+  finally show ?thesis
+    using prune_terms by blast
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_closure_aseq_subset_same_strong_front:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe root front c)"
+  shows "aseq_terms x \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+proof -
+  from x consider
+      (base) "x \<in> afactored1_strong_dlform_universe root front c"
+    | (pair) earlier later where
+        "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs
+          (afactored1_strong_dlform_universe root front c)"
+        "x \<in> raw_shared_prune_pair_outputs earlier later"
+    by (auto simp add: raw_shared_prune_active_suffix_closure_as_pairs
+        split: prod.splits)
+  then show ?thesis
+  proof cases
+    case base
+    then show ?thesis
+      by (rule afactored1_strong_dlform_universe_aseq_subset_same_strong_front)
+  next
+    case (pair earlier later)
+    show ?thesis
+      by (rule
+          afactored1_strong_dlform_universe_active_suffix_pair_outputs_aseq_subset_same_strong_front
+          [OF pair])
+  qed
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_closure_aseq_union_subset_same_strong_front:
+  "(\<Union>x \<in> raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe root front c).
+      aseq_terms x) \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+  using
+    afactored1_strong_dlform_universe_active_suffix_closure_aseq_subset_same_strong_front
+  by blast
+
 text \<open>
   Row grammar for the step-local strong universe.  Every member is a
   tail-normal, nonalt, nonzero row.  A member that is not a sequence is
