@@ -80,8 +80,16 @@ linearly in the repeat count.
 
 ## 2026-06-12 Route-2 Supervisor Update
 
-Latest pushed checkpoint: `3df1cef`
-(`Package route-2 active closure budget`) on `codex/backref-values`.
+Latest pushed checkpoint: `00d2125`
+(`Add nested NTIMES ID smoke probe`) on `codex/backref-values`.
+
+Since `3df1cef`, the route-2 support layer also gained:
+
+- active closure front/key atom preservation;
+- active closure key-DAG member-size and `rsize_set` packaging;
+- nested-`RNTIMES` raw-tree and ID/DAG smoke probes showing the risk family is
+  useful stress evidence but not yet a counterexample to the active
+  key-DAG/owner route.
 
 The active route is no longer the route-1 linear frontier premise.  Work on
 the step-local universe:
@@ -168,8 +176,11 @@ Read only these regions first:
    - `afactored1_strong_dlform_universe`
    - `afactored1_strong_dlform_universe_not_frontier_subset`
    - `afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same_strong_front`
+   - `afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_union_subset_same_strong_front`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI`
+   - `afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost`
+   - `rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI`
 3. `FBound.thy`
    - `strong_deferred_original_raw_row_norm_later_shared_memo_cubic_interface`
    - `strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`
@@ -182,7 +193,9 @@ Read only these regions first:
    - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound`
    - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI`
 5. `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`
-   - the factored/active row bridge and row-diff comparison harness.
+   - the factored/active row bridge and row-diff comparison harness;
+   - `nestedNtimesRisk`, `checkNestedNtimesRiskIdTrace`, and
+     `ActiveSuffixIdStats` if investigating the nested-`RNTIMES` risk.
 
 Use `PROGRESS_BACKREF.md` and
 `agent_hunt_pipeline/projects/posix-backref/NEXT_CHAT_CUBIC_HANDOFF_2026_06_05.md`
@@ -254,18 +267,26 @@ route-2 active key-DAG/owner cardinality proof.
 
 ## Best Next Attack
 
-The most promising route is one of these, in order:
+The next session should not continue broad counterexample hunting.  Treat
+counterexamples as a tool only when they answer a named theorem subclaim.  The
+most useful routes are now:
 
-1. Optionally check the smaller front-specific counterexample suggested in
-   `PROGRESS_BACKREF.md` for the premise
-   `card (adlform_front r s) <= apder_awidth r + rsize r + 3`.  This is a
-   short falsification task only; stop once the counterexample is checked.
-2. Prove a sharper cubic bound for the actual step-local universe
+1. Prove a sharper cubic/cardinality bound for the actual step-local universe
    `afactored1_strong_dlform_universe r s c`, using same-front/shared-suffix
-   counting rather than arbitrary all-pairs closure.
-3. Replace the raw strong-row representation by a checked canonical
-   projection via `row_dlform_canonical_rows`, then prove the production route
-   computes or soundly refines that projection while preserving POSIX values.
+   buckets rather than arbitrary all-pairs closure.  The immediate missing
+   object is a strong enough key-DAG/owner/cardinality bound to feed the
+   checked closure and `rsize_set` lemmas.
+2. Bridge `afactored1_strong_dlform_universe r s c` into the existing
+   active-suffix owner/DAG machinery in `GeneralRegexBound.thy` and
+   `FBound.thy`, especially the least-owner DAG contracts.
+3. If a proposed step-local subclaim looks false, make the falsification exact
+   and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
+   note as a reason to re-scope the whole theorem unless it becomes a concrete
+   counterexample to a named route-2 statement.
+4. As a fallback, replace the raw strong-row representation by a checked
+   canonical projection via `row_dlform_canonical_rows`, then prove the
+   production route computes or soundly refines that projection while
+   preserving POSIX values.
 
 If you attempt a bounded-repetition-free side theorem such as a
 `rntimes_free` version of the old deep-frontier linear bound, treat it only as

@@ -13870,3 +13870,23 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   probe can cross the earlier OOM point.  Do not treat either the hand
   asymptotic or a raw-tree OOM as a checked counterexample to the active
   key-DAG/owner route.
+
+## 2026-06-12 Supervisor Handoff: prioritize route-2 owner/cardinality
+
+- Refreshed `FABLE_CUBIC_HANDOFF_2026_06_11.md` so its current checkpoint is
+  `00d2125` rather than the older `3df1cef`.
+- Reordered the "Best Next Attack" section.  The next Fable pass should not
+  lead with broad counterexample hunting.  Counterexamples are still useful,
+  but only to answer a named false subclaim.  Otherwise return to the route-2
+  active key-DAG/owner/cardinality problem:
+
+  ```text
+  prove a strong enough cardinality/owner bound for
+  raw_shared_prune_active_suffix_closure_key_dag_universe
+    (afactored1_strong_dlform_universe r s c)
+  or bridge that universe into the existing least-owner DAG contracts
+  ```
+
+- Also added the latest checked lemma names and the nested-`RNTIMES` ID probe
+  names to the handoff's "Read First" list, so Fable sees the newest handles
+  before reopening older chat/context.
