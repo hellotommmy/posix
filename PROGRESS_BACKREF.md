@@ -13832,3 +13832,41 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   a concrete executable counterexample or return to the active key-DAG/owner
   cardinality proof.  Do not run larger raw tree traces in background without
   an explicit timeout and small sampled lengths.
+
+## 2026-06-12 Supervisor Smoke: nested NTIMES ID probe
+
+- Added the requested ID/DAG version of the nested-`RNTIMES` probe.  It uses
+  the existing `DagStore(eraseBits = true)` and `bsimpStrongId` path, so it
+  does not reconstruct the full POSIX-bit tree.  Use this before any larger
+  nested-`RNTIMES` experiment:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic -TraceNestedNtimesId -NestedNtimesK 8 -NestedNtimesM 8 -NestedNtimesN 8 -NestedNtimesBranches 8 -NestedNtimesLevels 3 -NestedNtimesLengths '128,256,512' -TimeoutSeconds 120
+  ```
+
+- Checked observations:
+
+  ```text
+  levels=3 k=m=n=8 branches=8, len=512:
+    dag=1130, shape=1130, pool=3907,
+    activeRows=512, activeKeyDag=614,
+    activeComponentUnion=1126, activeDecomp=1136,
+    activeDecompOver2cubic=0.000684
+
+  levels=2 k=m=32 branches=8, len=1023:
+    dag=2127, shape=2127, pool=7402,
+    activeRows=1023, activeKeyDag=1100,
+    activeComponentUnion=2123, activeDecomp=2133,
+    activeDecompOver2cubic=0.000453
+
+  levels=3 k=m=n=16 branches=8:
+    len=1024 printed activeDecompOver2cubic=0.000661,
+    then the run timed out before len=2048 under the 120s wrapper.
+  ```
+
+- Interpretation: the risk family is useful for stress testing, but current
+  ID/DAG evidence still shows the route-2 active-suffix shared metrics growing
+  gently relative to the cubic budget.  The raw tree can OOM, while the ID/DAG
+  probe can cross the earlier OOM point.  Do not treat either the hand
+  asymptotic or a raw-tree OOM as a checked counterexample to the active
+  key-DAG/owner route.

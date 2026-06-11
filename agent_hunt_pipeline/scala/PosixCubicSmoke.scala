@@ -5802,6 +5802,20 @@ object PosixCubicSmoke {
       firstMiss: Option[String]
   )
 
+  final case class ActiveSuffixIdStats(
+      rows: Int,
+      keys: Int,
+      altNodes: Int,
+      payloadRoots: Int,
+      payloadDagUniverseSize: Int,
+      keyDagUniverseSize: Int,
+      componentUnionSize: Int,
+      decompBoundSize: Int,
+      maxBucket: Int,
+      rowDagUniverseSize: Int,
+      pairBudget: Long
+  )
+
   def mkSeqFromFactorIds(store: DagStore, fs: List[Int]): Int = fs match {
     case Nil => store.mk(DOne(Nil))
     case x :: Nil => x
@@ -5839,6 +5853,58 @@ object PosixCubicSmoke {
 
     roots.foreach(visit)
     rows.toSet
+  }
+
+  def activeSuffixIdStatsForRoots(store: DagStore, roots: Iterable[Int]): ActiveSuffixIdStats = {
+    val buckets = scala.collection.mutable.Map.empty[Int, scala.collection.mutable.Set[Int]]
+    val altNodes = scala.collection.mutable.Set.empty[Int]
+    val altDagUniverse = scala.collection.mutable.Set.empty[Int]
+    val payloadRoots = scala.collection.mutable.Set.empty[Int]
+    val payloadDagUniverse = scala.collection.mutable.Set.empty[Int]
+    val keyDagUniverse = scala.collection.mutable.Set.empty[Int]
+
+    activeSuffixRowIdsForRoots(store, roots).foreach { row =>
+      store.node(row) match {
+        case DSeq(_, rowBlock, key) =>
+          store.node(rowBlock) match {
+            case DAlts(_, payloads) =>
+              val bucket = buckets.getOrElseUpdate(key, scala.collection.mutable.Set.empty[Int])
+              bucket += row
+              altNodes += rowBlock
+              altDagUniverse ++= store.reachableIds(rowBlock)
+              payloads.foreach { payload =>
+                payloadRoots += payload
+                payloadDagUniverse ++= store.reachableIds(payload)
+              }
+              keyDagUniverse ++= store.reachableIds(key)
+            case _ => ()
+          }
+        case _ => ()
+      }
+    }
+
+    val rowIds = buckets.valuesIterator.flatMap(_.iterator).toVector
+    val rowDagUniverse = rowIds.iterator.flatMap(store.reachableIds).toSet
+    val componentUnion =
+      (rowIds.toSet ++ altDagUniverse.toSet ++ payloadDagUniverse.toSet ++ keyDagUniverse.toSet).size
+    val rows = rowIds.size
+    val pairBudget = buckets.valuesIterator.map { bucket =>
+      val n = bucket.size.toLong
+      n * n
+    }.sum
+    ActiveSuffixIdStats(
+      rows,
+      buckets.size,
+      altNodes.size,
+      payloadRoots.size,
+      payloadDagUniverse.size,
+      keyDagUniverse.size,
+      componentUnion,
+      rows + altNodes.size + payloadDagUniverse.size + keyDagUniverse.size,
+      if (buckets.isEmpty) 0 else buckets.valuesIterator.map(_.size).max,
+      rowDagUniverse.size,
+      pairBudget
+    )
   }
 
   def expandedRowKeysOptionId(store: DagStore, row: Int, maxKeys: Int): Option[List[Int]] =
@@ -7155,6 +7221,71 @@ object PosixCubicSmoke {
     }
   }
 
+  def checkNestedNtimesRiskIdTrace(
+      k: Int,
+      m: Int,
+      n: Int,
+      branches: Int,
+      levels: Int,
+      lengths: List[Int]
+  ): Unit = {
+    val r = nestedNtimesRisk(k, m, n, branches, levels)
+    val rootSize = rsize(r).toLong
+    def cube(x: Long): Long = x * x * x
+    val twoCubicBudget = 2L * cube(rootSize + 3L)
+    val store = new DagStore(eraseBits = true)
+    var root = store.fromARexp(intern(r))
+    val roots = scala.collection.mutable.ListBuffer(root)
+
+    println(
+      s"nested NTIMES ID trace: levels=$levels k=$k m=$m n=$n branches=$branches " +
+        s"rsize=$rootSize budget2cubic=$twoCubicBudget regex=$r")
+
+    def report(len: Int): Unit = {
+      val dag = store.reachableIds(root).size
+      val shape = store.reachableShapeSize(root)
+      val active = activeSuffixIdStatsForRoots(store, roots)
+      val finalActive = activeSuffixIdStatsForRoots(store, List(root))
+      val activeDecompRatio =
+        active.decompBoundSize.toDouble / math.max(1.0, twoCubicBudget.toDouble)
+      val finalDecompRatio =
+        finalActive.decompBoundSize.toDouble / math.max(1.0, twoCubicBudget.toDouble)
+      println(
+        f"nested NTIMES ID len=$len accepts=${store.bnullableId(root)} dag=$dag" +
+          f"/shape=$shape/pool=${store.totalSize}" +
+          s"/activeRows=${active.rows}/activeKeys=${active.keys}" +
+          s"/activeKeyDag=${active.keyDagUniverseSize}" +
+          s"/activeComponentUnion=${active.componentUnionSize}" +
+          s"/activeDecomp=${active.decompBoundSize}" +
+          f"/activeDecompOver2cubic=$activeDecompRatio%.6f" +
+          s"/activePairs=${active.pairBudget}" +
+          s"/finalRows=${finalActive.rows}/finalKeys=${finalActive.keys}" +
+          s"/finalKeyDag=${finalActive.keyDagUniverseSize}" +
+          s"/finalComponentUnion=${finalActive.componentUnionSize}" +
+          s"/finalDecomp=${finalActive.decompBoundSize}" +
+          f"/finalDecompOver2cubic=$finalDecompRatio%.6f" +
+          s"/finalPairs=${finalActive.pairBudget}")
+    }
+
+    val targets = lengths.filter(_ >= 0).distinct.sorted
+    var targetIndex = 0
+    while (targetIndex < targets.length && targets(targetIndex) == 0) {
+      report(0)
+      targetIndex += 1
+    }
+    val maxLen = if (targets.isEmpty) 0 else targets.max
+    var len = 0
+    while (len < maxLen) {
+      root = store.bsimpStrongId(store.bderId('a', root))
+      roots += root
+      len += 1
+      while (targetIndex < targets.length && targets(targetIndex) == len) {
+        report(len)
+        targetIndex += 1
+      }
+    }
+  }
+
   def checkStrongDeferredMemoEvilFamilyTrace(
       k: Int,
       lengths: List[Int],
@@ -8339,6 +8470,8 @@ object PosixCubicSmoke {
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     val ch7StrongCubicFactor = doubleSetting("posix.smoke.ch7StrongCubicFactor", "POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR", 0.0)
     val traceNestedNtimes = boolSetting("posix.smoke.traceNestedNtimes", "POSIX_SMOKE_TRACE_NESTED_NTIMES", false)
+    val traceNestedNtimesId =
+      boolSetting("posix.smoke.traceNestedNtimesId", "POSIX_SMOKE_TRACE_NESTED_NTIMES_ID", false)
     val nestedNtimesK = intSetting("posix.smoke.nestedNtimesK", "POSIX_SMOKE_NESTED_NTIMES_K", 4)
     val nestedNtimesM = intSetting("posix.smoke.nestedNtimesM", "POSIX_SMOKE_NESTED_NTIMES_M", 4)
     val nestedNtimesN = intSetting("posix.smoke.nestedNtimesN", "POSIX_SMOKE_NESTED_NTIMES_N", 4)
@@ -8681,6 +8814,16 @@ object PosixCubicSmoke {
     }
     if (traceNestedNtimes) {
       checkNestedNtimesRiskTrace(
+        nestedNtimesK,
+        nestedNtimesM,
+        nestedNtimesN,
+        nestedNtimesBranches,
+        nestedNtimesLevels,
+        nestedNtimesLengths
+      )
+    }
+    if (traceNestedNtimesId) {
+      checkNestedNtimesRiskIdTrace(
         nestedNtimesK,
         nestedNtimesM,
         nestedNtimesN,

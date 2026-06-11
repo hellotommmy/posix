@@ -236,18 +236,21 @@ Do not restart these loops:
 ## Nested NTIMES Smoke Status
 
 The nested-`RNTIMES` risk note in `PROGRESS_BACKREF.md` is a risk hypothesis,
-not a theorem-target obituary.  A supervisor smoke mode now exists:
+not a theorem-target obituary.  Use the ID/DAG smoke mode first:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic -TraceNestedNtimes -NestedNtimesK 16 -NestedNtimesM 16 -NestedNtimesN 1 -NestedNtimesBranches 8 -NestedNtimesLevels 2 -NestedNtimesLengths '64,128,255' -TimeoutSeconds 120
+powershell -NoProfile -ExecutionPolicy Bypass -File .\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic -TraceNestedNtimesId -NestedNtimesK 8 -NestedNtimesM 8 -NestedNtimesN 8 -NestedNtimesBranches 8 -NestedNtimesLevels 3 -NestedNtimesLengths '128,256,512' -TimeoutSeconds 120
 ```
 
 Observed so far: active rows grow along the counted grid, but the active
 key-DAG/component/decomposition metrics stay far below `2*(rsize+3)^3` on
-tested sizes.  A larger two-level run at `k=m=32, len=1023` hit Java heap OOM
-inside tree-level `bsimpStrong`, so do not run larger raw tree traces in the
-background.  If you pursue this family, first add a metric-only or ID/DAG-based
-probe; otherwise return to the route-2 active key-DAG/owner cardinality proof.
+tested sizes.  The ID probe crosses the raw-tree OOM point
+(`k=m=32, len=1023`) with `activeDecompOver2cubic=0.000453`.  A larger
+three-level ID run at `k=m=n=16` printed len 1024 and then timed out before
+len 2048, so keep samples small and bounded.  Do not run larger raw tree
+traces in the background, and do not re-scope the theorem from this risk note
+alone.  If no concrete executable counterexample emerges, return to the
+route-2 active key-DAG/owner cardinality proof.
 
 ## Best Next Attack
 
