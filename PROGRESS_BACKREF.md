@@ -12764,3 +12764,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `card (adlform_front r s)` to decide whether the full-language route
   must go through a per-front or quadratic-count argument.
 - Blockers: none.
+
+## 2026-06-12 Supervisor Note After NTIMES-Free Checkpoint
+
+- Keep commit `2de7fce` as a useful boundary checkpoint, but do not keep
+  extending the `rntimes_free` route unless the admin explicitly asks for a
+  fragment-only theorem.  The user's target is the non-backref fragment, and
+  that fragment still includes counted repetition `RNTIMES`.
+- Plain meaning of the last two checkpoints:
+  `card` means "how many distinct row forms are produced";
+  `rsize` means "syntactic size of the regular expression";
+  `apder_awidth` is the accounting budget coming from Antimirov alternation
+  width; `RNTIMES X n` means exactly counted repetition of `X`.
+  The failed universal route tried to prove that the number of deep-frontier
+  rows is always at most `apder_awidth r + rsize r + 3`.  This is false
+  because `RNTIMES` can repeat every zero-width alternation branch once for
+  each remaining count, while the budget only pays mostly linearly for the
+  repeat count.
+- Therefore, the next full-target session should not spend time connecting
+  fragment-only wrappers forward.  Choose one of:
+  1. check the front-specific `RNTIMES` counterexample for
+     `card (adlform_front r s)` and stop after that result is recorded;
+  2. work on route 2, a step-local same-front universe for
+     `afactored1_strong_dlform_universe`;
+  3. work on route 3, the canonical projection route via
+     `row_dlform_canonical_rows`.
+- Before editing, state the exact theorem to be proved/refuted and the named
+  existing interface it unlocks or rules out.  If the theorem does not affect
+  the full non-backref target, it is probably drift.
