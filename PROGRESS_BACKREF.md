@@ -13211,3 +13211,64 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
   passed at 2026-06-12 01:14:17 (`Finished Posix`; `AntimirovFactoredTransition`
   55.454s cumulated).
+
+## 2026-06-12 Supervisor Note: reuse active-suffix machinery before inventing keys
+
+- Current repo/Fable status at this checkpoint: no new Fable commits after
+  `8cda968`, no new Claude task output after the repeated 529 files, and no
+  residual Isabelle worker.  The next Fable cycle should continue locally.
+- Before introducing a new `(payload, suffix-key)` representation for route 2,
+  inspect the existing suffix-key machinery:
+
+  ```text
+  GeneralRegexBound.thy:
+    raw_shared_prune_suffix_key
+    raw_shared_prune_active_suffix_keys
+    raw_shared_prune_active_suffix_bucket
+    raw_shared_prune_active_suffix_pair_budget
+    raw_shared_prune_active_suffix_closure
+    raw_shared_prune_active_suffix_owner
+    raw_final_active_suffix_rows
+    raw_final_active_suffix_row_dag_universe
+
+  FBound.thy:
+    strong_deferred_final_active_suffix_rows
+    strong_deferred_final_active_suffix_keys
+    strong_deferred_final_active_suffix_pair_budget
+    strong_deferred_final_active_suffix_row_dag_universe
+  ```
+
+- Useful existing budget lemmas include:
+
+  ```text
+  raw_shared_prune_active_suffix_closure_member_size_bound
+  card_raw_shared_prune_active_suffix_closure_member_pair_budget_bound
+  card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound
+  card_raw_final_active_suffix_closure_le_rsize_cubic
+  card_raw_final_active_suffix_closure_keys_le_rsize_cubic
+  card_raw_final_active_suffix_row_dag_universe_decomp
+  ```
+
+- The likely bridge is not to redefine suffix keys, but to show that the
+  step-local route-2 rows are contained in, or can be decomposed like, an
+  active-suffix closure generated from the current strong-front atom carrier.
+  A useful next checked target would be one of:
+
+  ```text
+  afactored1_strong_dlform_universe r s c
+    <= raw_shared_prune_active_suffix_closure U
+
+  or
+
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= rsize_set (raw_shared_prune_active_suffix_closure U)
+  ```
+
+  for a carefully chosen same-front `U` whose keys/payloads are already paid
+  by `strong_derivative_front_terms r (s @ [c])`.
+- Caveat: the existing `raw_final_active_suffix_*` definitions are for
+  suffix rows visible in a single raw regex term (or the FBound deferred final
+  raw object).  `afactored1_strong_dlform_universe` is a one-step universe
+  over generated rows.  So the bridge may require a step-local analogue of
+  `raw_final_active_suffix_rows`, but it should reuse the existing key,
+  bucket, closure, pair-budget, and member-size lemmas wherever possible.
