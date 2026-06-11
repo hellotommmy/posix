@@ -13423,3 +13423,61 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   passed at 2026-06-12 01:26:28 (`Finished Posix`; `AntimirovFactoredTransition`
   57.944s cumulated, whole wrapper 0:01:11).
+
+## 2026-06-12 Fable Edit Lock Notice: row_dlforms_member_rtail_nf_props
+
+- Fable has replaced the apply-script version of
+  `row_dlforms_member_rtail_nf_props` (which failed with "More names
+  than parameters in subgoal") by a structured measure induction on
+  `rsize` that does not depend on `row_dlforms.induct` case mechanics.
+  Please treat this lemma body as Fable-locked until the next green
+  build is recorded here.
+- Also in the worktree, uncommitted: the five-lemma step-local universe
+  row grammar pack after the supervisor budget contract
+  (`afactored1_strong_dlform_universe_member_rtail_nf_props`,
+  `_member_atomic`, `_nonseq_member_in_front_terms`,
+  `_seq_member_decomp`, `_seq_nonalt_head_in_front_terms`).  The
+  2026-06-12 01:40 build run already checked
+  `AntimirovFactoredTransition` 100% with an earlier variant; the
+  current run validates the final text.
+- Build coordination: three Fable build runs in a row were killed
+  early (exit 127) while a second build started concurrently.  Proposal
+  remains: whoever has uncommitted `.thy` edits owns the next build
+  slot; the other agent waits for `codex-proof-workers.ps1 -Action
+  Check` to report clear AND a note here before launching.
+
+## 2026-06-12 Supervisor Verification: row-grammar pack green
+
+- Supervisor review accepted the Fable row-grammar pack and the
+  `measure_induct` proof of `row_dlforms_member_rtail_nf_props`.  This clears
+  the edit lock above.
+- Why the replacement matters: the earlier broad/default proof style caused a
+  300s timeout or left 15 constructor subgoals.  The final proof uses explicit
+  size descent through `row_dlforms`, so it avoids depending on fragile
+  `row_dlforms.induct` case mechanics.
+- Checked additions in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  row_dlforms_member_rtail_nf_props
+  afactored1_strong_dlform_universe_member_rtail_nf_props
+  afactored1_strong_dlform_universe_member_atomic
+  afactored1_strong_dlform_universe_nonseq_member_in_front_terms
+  afactored1_strong_dlform_universe_seq_member_decomp
+  afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms
+  ```
+
+- Meaning in simple terms: every row in the step-local strong dlform universe
+  is a real normalized row, not an empty/alternative wrapper.  If the row is a
+  sequence, its head and tail split atoms are already in the current strong
+  front.  This is a cleaner structural bridge for future payload/suffix-key
+  accounting.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 01:48:00 (`Finished Posix`; `AntimirovFactoredTransition`
+  54.471s cumulated, whole wrapper 0:01:06).  A final
+  `scripts\codex-proof-workers.ps1 -Action Check` also reported no owned
+  proof-worker process.
