@@ -19903,6 +19903,44 @@ proof -
     by (rule order_trans[OF flts chain])
 qed
 
+lemma card_afactored1_strong_dlform_universe_le_generated:
+  "card (afactored1_strong_dlform_universe r s c) \<le>
+    length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?gen = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have suc_split: "sum_list (map (\<lambda>p. Suc (rsize p)) xs) =
+      length xs + rsizes xs" for xs :: "rrexp list"
+    by (induct xs) simp_all
+  have U_eq: "afactored1_strong_dlform_universe r s c =
+      (\<Union>p \<in> set ?gen. row_dlforms (rsimpStrong_raw p))"
+    by (simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  have "card (\<Union>p \<in> set ?gen. row_dlforms (rsimpStrong_raw p)) \<le>
+      (\<Sum>p \<in> set ?gen. card (row_dlforms (rsimpStrong_raw p)))"
+    by (rule card_UN_le) simp
+  also have "... \<le> sum_list
+      (map (\<lambda>p. card (row_dlforms (rsimpStrong_raw p))) ?gen)"
+    by (rule sum_set_le_sum_list_nat)
+  also have "... \<le> sum_list (map (\<lambda>p. Suc (rsize p)) ?gen)"
+  proof (rule sum_list_mono)
+    fix p
+    assume "p \<in> set ?gen"
+    have "card (row_dlforms (rsimpStrong_raw p)) \<le>
+        Suc (rsize (rsimpStrong_raw p))"
+      by (rule card_row_dlforms_rtail_nf_le_Suc_rsize
+          [OF rtail_nf_rsimpStrong_raw])
+    also have "... \<le> Suc (rsize p)"
+      using rsize_rsimpStrong_raw_le by simp
+    finally show "card (row_dlforms (rsimpStrong_raw p)) \<le>
+        Suc (rsize p)" .
+  qed
+  also have "... = length ?gen + rsizes ?gen"
+    by (rule suc_split)
+  finally show ?thesis
+    using U_eq by simp
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

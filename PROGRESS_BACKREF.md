@@ -14818,3 +14818,20 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   the supervisor's tight dcanon interfaces directly.
 - t=128/192/256 were not run (t=64 already declining); can be added
   cheaply if anyone wants the full curve.
+
+## 2026-06-12 Fable: universe cardinality reduced to the generated-row ledger
+
+- New checked lemma `card_afactored1_strong_dlform_universe_le_generated`:
+  the dlform universe of one step has at most
+  `length gen + rsizes gen` members, where gen is the list of
+  norm-derivative rows of the current front (each strong row q
+  contributes at most `Suc (rsize q)` dlforms, sizes only shrink
+  under strong simplification).
+- Plain consequence: the dlform-universe route and the one-pass route
+  now share ONE remaining quantity: a cubic bound for
+  `rsizes gen` (total size of one derivative step's rows).  Everything
+  else - cardinality, member sizes, dcanon budgets (tight wrappers),
+  carrier, grammar - is checked and hangs off that single number.
+  The probe says this number plateaus (counter drain); the proof of
+  that drain is now THE problem.
+- Build: `Finished Posix` 07:26:46.
