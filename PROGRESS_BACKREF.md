@@ -13104,3 +13104,50 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
      one theorem gap, smoke-first if a new counting metric is needed.
 - No further multi-agent mapping launches; local rg/Read only, per
   supervisor note.
+
+## 2026-06-12 Supervisor Checkpoint: route-2 current-front containment checked
+
+- A second route-2 four-agent mapping attempt also produced only Claude API
+  `529 Overloaded` child-agent failures (`wvtgommxp.output`), with the same
+  task list as the earlier failed attempt and no new mathematical data.
+  Treat repeated 529 mapping as exhausted for now; proceed by local theorem
+  search/proof.
+- Added checked route-2 containment lemmas in
+  `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_same_strong_front
+  afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+  ```
+
+  In plain terms: every member of the current step-local universe
+  `afactored1_strong_dlform_universe root front c` really belongs to the
+  strong derivative front for `front @ [c]`, not just to the older global
+  strong universe.  This pins `U_row` to one front and is the right local
+  carrier for same-front/shared-suffix counting.
+- The main route-2 gate remains exactly:
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  Feeding this to
+  `rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI`
+  immediately gives the one-step dcanon strong-row cubic contract.
+- Do not use
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_aseq_paid_cubic_contractI`
+  as an unconditional shortcut: the checked lemma
+  `actual_strong_canonical_aseq_payment_false` shows the required
+  `aseq_terms_size_paid` premise is false for actual canonical strong rows.
+  It is a conditional diagnostic, not the next route-2 proof.
+- The card/generated wrapper is still useful, but only with sharp bounds.
+  Plugging in a generic cubic generated-size bound and a nontrivial card
+  bound will overshoot cubic.  The next useful proof should either prove the
+  displayed `rsize_set U_row` bound directly, or introduce a smaller
+  same-front/shared-suffix keyed universe whose `rsize_set` is cubic and whose
+  membership contains the actual `U_row` rows.
+- Verification: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  passed at 2026-06-12 00:57:53 (`Finished Posix`; `AntimirovFactoredTransition`
+  49.248s cumulated), and `scripts\codex-proof-workers.ps1 -Action Check`
+  reported no residual worker after the build.

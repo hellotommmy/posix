@@ -17786,6 +17786,34 @@ proof -
     by (rule subset_trans[OF x_terms strong_terms])
 qed
 
+lemma afactored1_strong_dlform_universe_same_strong_front:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+  shows "same_strong_aseq_front_row root (front @ [c]) x"
+proof -
+  obtain p where p:
+      "p \<in> set (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  obtain q where q:
+      "q \<in> set (afactored1 root front)"
+      "p \<in> set (rpder_norm_list c q)"
+    using p(1) by auto
+  show ?thesis
+    by (rule
+        row_dlforms_rsimpStrong_raw_rpder_norm_list_afactored1_same_strong_front
+        [OF q p(2)])
+qed
+
+lemma afactored1_strong_dlform_universe_aseq_subset_same_strong_front:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+  shows "aseq_terms x \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+  using afactored1_strong_dlform_universe_same_strong_front[OF x]
+  by (simp add: same_strong_aseq_front_row_def)
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
