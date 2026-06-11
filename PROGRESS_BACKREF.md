@@ -14835,3 +14835,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   The probe says this number plateaus (counter drain); the proof of
   that drain is now THE problem.
 - Build: `Finished Posix` 07:26:46.
+
+## 2026-06-12 Supervisor: committed one-step dlform universe smoke
+
+- Added `TraceOneStepDlformUniverse` to `agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`
+  and `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`.  It computes the
+  step-local object directly:
+
+  ```text
+  rows = afactored1 r s
+  gen  = concat (map (rpder_norm_list c) rows)
+  U    = union p in gen. row_dlforms (rsimpStrong_raw p)
+  ```
+
+  and prints `rsize`, `apder_awidth`, `rsize_set U`, list cost, generated
+  size, and the `2*(rsize+3)^3` budget.
+- Calibration: on the old scratch family `X=(a | 1*).1`,
+  `r=NTIMES (NTIMES X 16) 16`, the Scala probe exactly reproduced the
+  earlier Isabelle `value` numbers for `t=0,1,2,4,8,16`:
+  `56,110,217,582,1860,6080`.
+- Bigger smoke results:
+  - `star-reentry`, `n=16`, `branches=1`: peak `Usize=8960` at `t=32`,
+    then falls; budget is `159014`.
+  - `zero-branches`, `n=16`, `branches=8`: stays around `Usize=1300`,
+    budget `1882384`.
+  - `star-prefix-zero-branches`, `n=16`, `branches=8`: reaches
+    `Usize=312412` at `t=256`, ratio `0.1516`.
+  - Same family with `n=32`: reaches `Usize=1511548` at `t=1024`,
+    ratio `0.3212`.
+  - Same family with `n=64`: reached `Usize=4335992` at `t=2048`,
+    ratio `0.2836`; `t=4096` needs a faster/dedicated run and timed out
+    after the useful partial output.
+- Guidance: this replaces the slow scratch Isabelle `value` route.  The
+  current evidence still does not refute the rsize-only one-step universe
+  premise; the checked theorem route should now focus on bounding `rsizes gen`
+  using counter-drain/live-counter accounting.

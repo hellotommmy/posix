@@ -262,6 +262,18 @@ object PosixCubicSmoke {
     loop(xs, Nil, Nil)
   }
 
+  def distinctByShapeKey(xs: List[ARexp]): List[ARexp] = {
+    val seen = scala.collection.mutable.HashSet.empty[String]
+    xs.filter { x =>
+      val key = ashapeKey(x)
+      if (seen(key)) false
+      else {
+        seen += key
+        true
+      }
+    }
+  }
+
   def flts(rs: List[ARexp]): List[ARexp] = rs match {
     case Nil => Nil
     case AZERO :: tail => flts(tail)
@@ -691,6 +703,32 @@ object PosixCubicSmoke {
     val next = flts(rs)
     if (next == rs) rs else fullyFlts(next)
   }
+
+  def rfrontierList(r: ARexp): List[ARexp] = r match {
+    case AZERO => Nil
+    case AALTs(bs, rs) => rs.flatMap(q => rfrontierList(fuse(bs, q)))
+    case _ => List(r)
+  }
+
+  def rowDlformsList(r: ARexp): List[ARexp] = r match {
+    case AZERO => Nil
+    case AALTs(bs, rs) => rs.flatMap(q => rowDlformsList(fuse(bs, q)))
+    case ASEQ(bs, AALTs(abs, ps), k) =>
+      ps.flatMap(p => rowDlformsList(bsimp7ASEQAtom(bs, fuse(abs, p), k)))
+    case _ => rfrontierList(r)
+  }
+
+  def rowDlforms(r: ARexp): List[ARexp] =
+    distinctWith(rowDlformsList(r))
+
+  def rowDlformsListSize(r: ARexp): BigInt =
+    rowDlformsList(r).foldLeft(BigInt(0))((acc, q) => acc + asize(q))
+
+  def rowsSizeSet(rs: List[ARexp]): BigInt =
+    distinctWith(rs).foldLeft(BigInt(0))((acc, q) => acc + asize(q))
+
+  def rowsTreeSizeBig(rs: List[ARexp]): BigInt =
+    rs.foldLeft(BigInt(0))((acc, q) => acc + asize(q))
 
   def bpderLinearRows(c: Char, rs: List[ARexp]): List[ARexp] =
     distinctWith(fullyFlts(rs.flatMap(bpderNormList(c, _))))
@@ -5057,6 +5095,30 @@ object PosixCubicSmoke {
     SEQ(STAR(CH('a')), repeated)
   }
 
+  def oneStepDlformProbeRoot(family: String, n: Int, branches: Int): Rexp = {
+    val safeN = math.max(0, n)
+    val safeBranches = math.max(1, branches)
+    val zeroWidthBranches = (1 to safeBranches).toList.map(i => NTIMES(ONE, i))
+    family match {
+      case "star-reentry" | "starReentry" =>
+        val zeroBranch =
+          if (safeBranches == 1) List(STAR(ONE))
+          else STAR(ONE) :: zeroWidthBranches
+        val x = SEQ(altList(CH('a') :: zeroBranch), ONE)
+        NTIMES(NTIMES(x, safeN), safeN)
+      case "zero-branches" | "zeroBranches" =>
+        val x = SEQ(CH('a'), altList(zeroWidthBranches))
+        NTIMES(NTIMES(x, safeN), safeN)
+      case "star-prefix-zero-branches" | "starPrefixZeroBranches" =>
+        val x = SEQ(CH('a'), altList(zeroWidthBranches))
+        SEQ(STAR(CH('a')), NTIMES(NTIMES(x, safeN), safeN))
+      case other =>
+        throw new IllegalArgumentException(
+          s"unknown one-step dlform family '$other'; expected star-reentry, zero-branches, or star-prefix-zero-branches"
+        )
+    }
+  }
+
   def stringsUpTo(maxLen: Int): List[String] = {
     def exact(n: Int): List[String] =
       if (n == 0) List("")
@@ -7153,6 +7215,67 @@ object PosixCubicSmoke {
     println(s"wrote Chapter 7 size CSV: $path")
   }
 
+  def checkOneStepDlformUniverseTrace(
+      family: String,
+      n: Int,
+      branches: Int,
+      lengths: List[Int]
+  ): Unit = {
+    val r = oneStepDlformProbeRoot(family, n, branches)
+    val rootSize = BigInt(rsize(r))
+    val awidth = apderAwidth(r)
+    def cube(x: BigInt): BigInt = x * x * x
+    val rsizeBudget = BigInt(2) * cube(rootSize + 3)
+    val awidthBudget = BigInt(2) * cube(awidth + rootSize + 3)
+    println(
+      s"one-step dlform universe trace: family=$family n=$n branches=$branches " +
+        s"rsize=$rootSize awidth=$awidth budget2rsize=$rsizeBudget " +
+        s"budget2awidth=$awidthBudget regex=$r")
+
+    val targets = lengths.filter(_ >= 0).distinct.sorted
+    def bpderNormRowsFast(c: Char, rs: List[ARexp]): List[ARexp] =
+      distinctByShapeKey(flts(rs.flatMap(bpderNormList(c, _))))
+
+    var rows = List(intern(r))
+
+    def report(len: Int): Unit = {
+      val generated = rows.flatMap(bpderNormList('a', _))
+      val strongGenerated = generated.map(bsimpStrong)
+      val universeList = strongGenerated.flatMap(rowDlformsList)
+      val universe = distinctByShapeKey(universeList)
+      val universeSize = rowsTreeSizeBig(universe)
+      val listCost = strongGenerated.foldLeft(BigInt(0))((acc, q) => acc + rowDlformsListSize(q))
+      val generatedSize = rowsTreeSizeBig(generated)
+      val ratio = universeSize.toDouble / math.max(1.0, rsizeBudget.toDouble)
+      val listRatio = listCost.toDouble / math.max(1.0, rsizeBudget.toDouble)
+      val cardGenerated = BigInt(universe.length) * generatedSize
+      println(
+        f"one-step dlform t=$len rows=${rows.length} generated=${generated.length}" +
+          s" generatedSize=$generatedSize" +
+          s" Ucard=${universe.length} Usize=$universeSize" +
+          f" Uover2rsize=$ratio%.6f" +
+          s" listCost=$listCost" +
+          f" listCostOver2rsize=$listRatio%.6f" +
+          s" cardTimesGenerated=$cardGenerated")
+    }
+
+    var targetIndex = 0
+    while (targetIndex < targets.length && targets(targetIndex) == 0) {
+      report(0)
+      targetIndex += 1
+    }
+    val maxLen = if (targets.isEmpty) 0 else targets.max
+    var len = 0
+    while (len < maxLen) {
+      rows = bpderNormRowsFast('a', rows)
+      len += 1
+      while (targetIndex < targets.length && targets(targetIndex) == len) {
+        report(len)
+        targetIndex += 1
+      }
+    }
+  }
+
   def checkNestedNtimesRiskTrace(
       k: Int,
       m: Int,
@@ -7813,6 +7936,15 @@ object PosixCubicSmoke {
     case SEQ(r1, r2) => 1 + rsize(r1) + rsize(r2)
     case STAR(r0) => 1 + rsize(r0)
     case NTIMES(r0, n) => 1 + rsize(r0) + n
+  }
+
+  def apderAwidth(r: Rexp): BigInt = r match {
+    case ZERO | ONE => BigInt(0)
+    case CH(_) => BigInt(1)
+    case ALT(r1, r2) => apderAwidth(r1) + apderAwidth(r2)
+    case SEQ(r1, r2) => apderAwidth(r1) + apderAwidth(r2)
+    case STAR(r0) => apderAwidth(r0)
+    case NTIMES(r0, n) => BigInt(math.max(0, n)) * apderAwidth(r0)
   }
 
   def strongCoreLoopMismatch(r: Rexp, s: String): Boolean =
@@ -8481,6 +8613,20 @@ object PosixCubicSmoke {
       intSetting("posix.smoke.nestedNtimesLevels", "POSIX_SMOKE_NESTED_NTIMES_LEVELS", 3)
     val nestedNtimesLengths =
       intListSetting("posix.smoke.nestedNtimesLengths", "POSIX_SMOKE_NESTED_NTIMES_LENGTHS", List(16, 32, 64))
+    val traceOneStepDlformUniverse =
+      boolSetting("posix.smoke.traceOneStepDlformUniverse", "POSIX_SMOKE_TRACE_ONE_STEP_DLFORM_UNIVERSE", false)
+    val oneStepDlformFamily =
+      stringSetting("posix.smoke.oneStepDlformFamily", "POSIX_SMOKE_ONE_STEP_DLFORM_FAMILY", "star-reentry")
+    val oneStepDlformN =
+      intSetting("posix.smoke.oneStepDlformN", "POSIX_SMOKE_ONE_STEP_DLFORM_N", 16)
+    val oneStepDlformBranches =
+      intSetting("posix.smoke.oneStepDlformBranches", "POSIX_SMOKE_ONE_STEP_DLFORM_BRANCHES", 1)
+    val oneStepDlformLengths =
+      intListSetting(
+        "posix.smoke.oneStepDlformLengths",
+        "POSIX_SMOKE_ONE_STEP_DLFORM_LENGTHS",
+        List(0, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256)
+      )
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
@@ -8830,6 +8976,14 @@ object PosixCubicSmoke {
         nestedNtimesBranches,
         nestedNtimesLevels,
         nestedNtimesLengths
+      )
+    }
+    if (traceOneStepDlformUniverse) {
+      checkOneStepDlformUniverseTrace(
+        oneStepDlformFamily,
+        oneStepDlformN,
+        oneStepDlformBranches,
+        oneStepDlformLengths
       )
     }
     if (traceStrongSafe) {
