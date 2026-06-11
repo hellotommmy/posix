@@ -322,8 +322,22 @@ most useful routes are now:
    active owner/key-DAG accounting.  Owner active-key atoms and key sizes are
    also packaged.  The key-DAG projection into the owner DAG is now packaged
    too.  Owner-DAG member-size and conditional `rsize_set` bounds are also
-   packaged.  The missing step is a real owner-DAG finiteness/cardinality
-   bound, not another key-size, key-projection, or owner-size lemma.
+   packaged.  Finite owner-DAG side conditions are now packaged via
+   `sizeNregex`:
+
+   ```text
+   raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset
+   finite_raw_shared_prune_active_suffix_owner_dag_sizeNregex
+   afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_generatedI
+   afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_listI
+   finite_afactored1_strong_dlform_universe_owner_dag_generatedI
+   finite_afactored1_strong_dlform_universe_owner_dag_listI
+   ```
+
+   This only proves finite containment in a large ambient set.  Do not use
+   `card (sizeNregex N)` as a final cubic bound.  The missing step is now a
+   real sharp owner-DAG cardinality bound, not another finite-side-condition,
+   key-size, key-projection, or owner-size lemma.
 3. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete

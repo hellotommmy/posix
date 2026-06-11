@@ -14139,3 +14139,45 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 03:15:33 local time.
+
+## 2026-06-12 Supervisor Checkpoint: owner DAG finite via sizeNregex
+
+- Added general owner-DAG/`sizeNregex` closure facts in
+  `GeneralRegexBound.thy`:
+
+  ```text
+  raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset
+  finite_raw_shared_prune_active_suffix_owner_dag_sizeNregex
+  ```
+
+- Added step-local names in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  rsimpStrong_dlform_closure_member_legacy
+  afactored1_strong_dlform_universe_member_legacy
+  afactored1_strong_dlform_universe_subset_sizeNregex_generatedI
+  afactored1_strong_dlform_universe_subset_sizeNregex_listI
+  afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_generatedI
+  afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_listI
+  finite_afactored1_strong_dlform_universe_owner_dag_generatedI
+  finite_afactored1_strong_dlform_universe_owner_dag_listI
+  ```
+
+- Plain meaning: if the one-step universe `U` consists of old/non-backref
+  regexes and all its rows have size at most `N`, then the least owner DAG
+  generated from `U` is also contained in the finite set `sizeNregex N`.
+  Therefore Isabelle can now discharge finite-owner-DAG side conditions from
+  the generated/list row-size budgets.
+- This deliberately does not prove the owner DAG has cubic cardinality.
+  `sizeNregex N` is a finite but very large ambient set; using
+  `card (sizeNregex N)` as the final count would lose the desired cubic
+  bound.  The remaining hard task is still to count owner-DAG nodes sharply,
+  probably through the owner sequence decomposition and same-key bucket
+  structure.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 03:23:21 local time.

@@ -18895,6 +18895,161 @@ proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ key])
   qed
 qed
 
+lemma rsimpStrong_dlform_closure_member_legacy:
+  assumes legacy: "\<And>p. p \<in> U \<Longrightarrow> legacy_rrexp p"
+    and x: "x \<in> rsimpStrong_dlform_closure U"
+  shows "legacy_rrexp x"
+proof -
+  obtain p where p:
+      "p \<in> U" "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x by (auto simp add: rsimpStrong_dlform_closure_def)
+  have raw_legacy: "legacy_rrexp (rsimpStrong_raw p)"
+    by (rule legacy_rsimpStrong_raw[OF legacy[OF p(1)]])
+  have "\<forall>y \<in> row_dlforms (rsimpStrong_raw p). legacy_rrexp y"
+    by (rule legacy_row_dlforms[OF raw_legacy])
+  then show ?thesis
+    using p(2) by blast
+qed
+
+lemma afactored1_strong_dlform_universe_member_legacy:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> afactored1_strong_dlform_universe r s c"
+  shows "legacy_rrexp x"
+proof -
+  let ?G = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have base_legacy: "\<forall>q \<in> set (afactored1 r s). legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  have gen_legacy: "\<And>p. p \<in> set ?G \<Longrightarrow> legacy_rrexp p"
+  proof -
+    fix p
+    assume p: "p \<in> set ?G"
+    then obtain q where q:
+        "q \<in> set (afactored1 r s)"
+        "p \<in> set (rpder_norm_list c q)"
+      by auto
+    have q_legacy: "legacy_rrexp q"
+      using base_legacy q(1) by blast
+    have "\<forall>y \<in> set (rpder_norm_list c q). legacy_rrexp y"
+      by (rule legacy_rpder_norm_list[OF q_legacy])
+    then show "legacy_rrexp p"
+      using q(2) by blast
+  qed
+  have x_closure:
+      "x \<in> rsimpStrong_dlform_closure (set ?G)"
+    using x by (simp add: afactored1_strong_dlform_universe_def)
+  show ?thesis
+    by (rule rsimpStrong_dlform_closure_member_legacy
+        [OF gen_legacy x_closure])
+qed
+
+lemma afactored1_strong_dlform_universe_subset_sizeNregex_generatedI:
+  assumes legacy: "legacy_rrexp r"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> N"
+  shows "afactored1_strong_dlform_universe r s c \<subseteq> sizeNregex N"
+proof
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  have x_legacy: "legacy_rrexp x"
+    by (rule afactored1_strong_dlform_universe_member_legacy
+        [OF legacy x])
+  have "rsize x \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF x])
+  also have "... \<le> N"
+    by (rule generated_size)
+  finally show "x \<in> sizeNregex N"
+    using x_legacy unfolding sizeNregex_def by simp
+qed
+
+lemma afactored1_strong_dlform_universe_subset_sizeNregex_listI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> N"
+  shows "afactored1_strong_dlform_universe r s c \<subseteq> sizeNregex N"
+proof
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  have x_legacy: "legacy_rrexp x"
+    by (rule afactored1_strong_dlform_universe_member_legacy
+        [OF legacy x])
+  have "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF x])
+  also have "... \<le> N"
+    by (rule list_cost)
+  finally show "x \<in> sizeNregex N"
+    using x_legacy unfolding sizeNregex_def by simp
+qed
+
+lemma afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_generatedI:
+  assumes legacy: "legacy_rrexp r"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> N"
+  shows "rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)) \<subseteq>
+    sizeNregex N"
+proof -
+  have seed: "afactored1_strong_dlform_universe r s c \<subseteq>
+      sizeNregex N"
+    by (rule afactored1_strong_dlform_universe_subset_sizeNregex_generatedI
+        [OF legacy generated_size])
+  show ?thesis
+    by (rule raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset
+        [OF seed])
+qed
+
+lemma afactored1_strong_dlform_universe_owner_dag_subset_sizeNregex_listI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> N"
+  shows "rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)) \<subseteq>
+    sizeNregex N"
+proof -
+  have seed: "afactored1_strong_dlform_universe r s c \<subseteq>
+      sizeNregex N"
+    by (rule afactored1_strong_dlform_universe_subset_sizeNregex_listI
+        [OF legacy list_cost])
+  show ?thesis
+    by (rule raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset
+        [OF seed])
+qed
+
+lemma finite_afactored1_strong_dlform_universe_owner_dag_generatedI:
+  assumes legacy: "legacy_rrexp r"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> N"
+  shows "finite (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)))"
+proof -
+  have seed: "afactored1_strong_dlform_universe r s c \<subseteq>
+      sizeNregex N"
+    by (rule afactored1_strong_dlform_universe_subset_sizeNregex_generatedI
+        [OF legacy generated_size])
+  show ?thesis
+    by (rule finite_raw_shared_prune_active_suffix_owner_dag_sizeNregex
+        [OF seed])
+qed
+
+lemma finite_afactored1_strong_dlform_universe_owner_dag_listI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> N"
+  shows "finite (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c)))"
+proof -
+  have seed: "afactored1_strong_dlform_universe r s c \<subseteq>
+      sizeNregex N"
+    by (rule afactored1_strong_dlform_universe_subset_sizeNregex_listI
+        [OF legacy list_cost])
+  show ?thesis
+    by (rule finite_raw_shared_prune_active_suffix_owner_dag_sizeNregex
+        [OF seed])
+qed
+
 lemma afactored1_strong_dlform_universe_owner_active_suffix_keys_subset_owner_dag:
   "raw_shared_prune_active_suffix_keys
       (raw_shared_prune_active_suffix_owner

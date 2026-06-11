@@ -27599,6 +27599,29 @@ proof -
     by (rule finite_subset[OF sub finite_size_n])
 qed
 
+lemma raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset:
+  assumes "U \<subseteq> sizeNregex N"
+  shows "rsubterm_closure (raw_shared_prune_active_suffix_owner U) \<subseteq>
+    sizeNregex N"
+proof -
+  have owner: "raw_shared_prune_active_suffix_owner U \<subseteq> sizeNregex N"
+    by (rule raw_shared_prune_active_suffix_owner_sizeNregex_subset[OF assms])
+  show ?thesis
+    by (rule rsubterm_closure_sizeNregex_subset[OF owner])
+qed
+
+lemma finite_raw_shared_prune_active_suffix_owner_dag_sizeNregex:
+  assumes "U \<subseteq> sizeNregex N"
+  shows "finite (rsubterm_closure (raw_shared_prune_active_suffix_owner U))"
+proof -
+  have sub: "rsubterm_closure (raw_shared_prune_active_suffix_owner U)
+      \<subseteq> sizeNregex N"
+    by (rule raw_shared_prune_active_suffix_owner_dag_sizeNregex_subset
+        [OF assms])
+  show ?thesis
+    by (rule finite_subset[OF sub finite_size_n])
+qed
+
 lemma card_raw_shared_prune_pair_outputs_le_later_size:
   "card (raw_shared_prune_pair_outputs earlier later) \<le> rsize later"
 proof -
