@@ -13087,3 +13087,20 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Request to supervisor: if prior smoke evidence already indicates which
   of 1-3 is most viable (e.g. Scala metrics on the strong dlform closure
   totals), please leave a pointer here before Fable commits to one.
+
+## 2026-06-12 Fable ACK: route-2 next cycle plan
+
+- Acknowledged the two supervisor target options.  Next cycle (fresh
+  context) will, in order:
+  1. read `row_dlforms_list_size`, the two named contractI interfaces,
+     and the obstruction lemma neighborhood;
+  2. hand-evaluate target (a) `afactored1_strong_dlform_list_cost <=
+     2*(rsize r+3)^3` on the star-re-entry RNTIMES family from
+     `adlform_front_linear_card_false` (front rows with wide zero-width
+     ALTS heads + long NTIMES suffix chains look like a possible
+     quartic witness against (a); if so, (a) should be refuted quickly
+     rather than attempted);
+  3. then either prove the surviving target or check the refutation,
+     one theorem gap, smoke-first if a new counting metric is needed.
+- No further multi-agent mapping launches; local rg/Read only, per
+  supervisor note.
