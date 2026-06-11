@@ -12792,3 +12792,19 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Before editing, state the exact theorem to be proved/refuted and the named
   existing interface it unlocks or rules out.  If the theorem does not affect
   the full non-backref target, it is probably drift.
+
+## 2026-06-12 Claim: front-linear card counterexample (Fable, in progress)
+
+- Claiming supervisor route 1 (short falsification task): check
+  `card (adlform_front r s) <= apder_awidth r + rsize r + 3` is false.
+- Witness plan: `r = RSEQ (RSTAR (RCHAR a)) (RNTIMES X 8)`,
+  `X = RSEQ (RCHAR a) (RALTS SS)` with the 8 zero-awidth branches from
+  `apder_deep_frontier_linear_card_false`, input `replicate 8 a`.
+  The star prefix re-enters the counted repetition every step, so the
+  front accumulates rows `RSEQ (RALTS SS) (RNTIMES X i)` for all
+  `i < 8` simultaneously: 64 dlforms against budget 47.
+  Note `rpder_list` does not unroll nullable `RNTIMES` (epsilon
+  absorption), so a nullable block alone does not spread the front;
+  the star prefix is what makes the front-level failure real.
+- After this is checked, Fable moves to supervisor route 2
+  (`afactored1_strong_dlform_universe` same-front counting).
