@@ -12821,3 +12821,66 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
      which computed equality/subset failed, then move to route 2 or route 3.
 - Do not move to route 2 merely because the front-linear task was claimed.
   Move only after it is checked or explicitly abandoned.
+
+## 2026-06-12 Fable Coordination Note (front-linear CE in progress)
+
+- Acknowledged the supervisor checkpoint: the claim is not evidence; the
+  checked lemma `adlform_front_linear_card_false` is being added to
+  `AntimirovFactoredTransition.thy` right now (edit-build cycle running).
+- Thanks for the in-tree assists.  Two of the supervisor edits are kept
+  (`row_S` instantiation, the `row_direct`/`row_x` split).  The final
+  membership step is switched from
+  `auto simp: adlform_front_def row_dlformss_def` to
+  `unfolding adlform_front_def row_dlformss_member_iff ... by blast`,
+  because the simp route races `row_dlforms.simps(3)` against the local
+  image equations on the same redex; `unfolding` + `blast` avoids all
+  rewriting at witness-selection time.  The same pattern (default simp
+  rules outracing local row equations) caused the last two build
+  failures.
+- Coordination request: while a Fable edit-build cycle is running on
+  `AntimirovFactoredTransition.thy`, please prefer leaving guidance here
+  in `PROGRESS_BACKREF.md` over concurrent edits to the same lemma body;
+  mid-cycle concurrent edits make the build output ambiguous about which
+  variant was checked.  Direct edits are very welcome between cycles.
+
+## 2026-06-12 Fable Note: concurrent builds collide on the build database
+
+- The 00:39 build run checked ALL theories successfully, including the
+  new `adlform_front_linear_card_false` in
+  `AntimirovFactoredTransition.thy` (57.9s cumulated), but the run
+  exited with `SQLITE_CONSTRAINT_PRIMARYKEY ... isabelle_sources`
+  because a second concurrent `isabelle build` (supervisor session) was
+  writing the same build database.
+- Proposed convention: only one agent runs
+  `codex-isabelle-build-posix.ps1` at a time.  Before launching a
+  build, run `codex-proof-workers.ps1 -Action Check`; if matching
+  workers exist, wait for them instead of starting a second build.
+- Fable is waiting for the current build to finish, then re-running for
+  a clean PASS record before committing the front-linear
+  counterexample.
+
+## 2026-06-12 Supervisor Resolution: front-linear CE checked
+
+- The front-linear task is now checked in
+  `AntimirovFactoredTransition.thy` as lemma
+  `adlform_front_linear_card_false`.
+- Final checked witness:
+  `r = RSEQ (RSTAR (RCHAR a)) (RNTIMES X 8)`,
+  `X = RSEQ (RCHAR a) (RALTS SS)`, input `replicate 8 a`.
+  The proof exhibits 64 distinct dlforms inside `adlform_front r
+  (replicate 8 a)`, while `apder_awidth r + rsize r + 3 = 9 + 35 + 3 =
+  47`, so the front-linear premise is false.
+- Clean verification after resolving the concurrent-build issue:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` passed at
+  2026-06-12 00:41:47 (`Finished Posix`; `AntimirovFactoredTransition`
+  48.481s cumulated), and `scripts\codex-proof-workers.ps1 -Action Check`
+  reported no residual worker before this note.
+- Proof-shape note: the checked final membership step uses an explicit
+  `row_dlformss_def` witness after the local `row_S`/`row_direct`/`row_x`
+  split.  This supersedes the in-progress note above about the alternative
+  `row_dlformss_member_iff` version.
+- Route 1 is now closed at both tested levels: the deep-frontier linear-card
+  premise and the front-linear-card premise are checked false for general
+  legacy normal-form input with counted repetition.  The next full-target
+  work should move to route 2 (`afactored1_strong_dlform_universe`
+  same-front counting) or route 3 (`row_dlform_canonical_rows` projection).

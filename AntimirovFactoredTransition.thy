@@ -8958,6 +8958,205 @@ proof -
     by (simp add: card_deep aw_cex rsize_cex)
 qed
 
+lemma afactored1_snoc_norm_memberI:
+  assumes q: "q \<in> set (afactored1 r s)"
+    and p: "p \<in> set (rpder_norm_list c q)"
+    and nz: "p \<noteq> RZERO"
+    and na: "\<nexists>ps. p = RALTS ps"
+  shows "p \<in> set (afactored1 r (s @ [c]))"
+proof -
+  have concat_mem:
+      "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    using q p by auto
+  have "p \<in> set (rflts
+      (concat (map (rpder_norm_list c) (afactored1 r s))))"
+    by (rule rflts_def_idiot2[OF nz na concat_mem])
+  then show ?thesis
+    by (simp add: afactored1_snoc afactored_step_def
+        rpder_norm_rows_def rdistinct_set_equality)
+qed
+
+text \<open>
+  The front-level linear cardinality premise also fails once a star
+  prefix can re-enter a counted repetition: the current front then
+  carries rows \<open>RSEQ (RALTS SS) (RNTIMES X i)\<close> for many residual
+  counts \<open>i\<close> at the same time.  Note that plain \<open>rpder_list\<close> does not
+  unroll a nullable \<open>RNTIMES\<close> body (epsilon absorption keeps the
+  language correct), so the counted spread really needs the star
+  re-entry used here.  This refutes the premise of
+  @{thm [source] rsize_set_adlform_front_cubic_from_front_linear_card}
+  and of
+  @{thm [source] row_dlform_canonical_afactored1_same_dlfront_front_linear_card_cubic_contract}
+  for general legacy normal-form input.
+\<close>
+
+lemma adlform_front_linear_card_false:
+  fixes a :: char
+  defines "SS \<equiv>
+    [RSTAR RONE, RSTAR RZERO,
+     RNTIMES RONE 0, RNTIMES RZERO 0,
+     RSTAR (RSTAR RONE), RSTAR (RSTAR RZERO),
+     RNTIMES RONE 1, RNTIMES RZERO 1]"
+  defines "X \<equiv> RSEQ (RCHAR a) (RALTS SS)"
+  defines "r \<equiv> RSEQ (RSTAR (RCHAR a)) (RNTIMES X 8)"
+  shows "legacy_rrexp r"
+    and "apder_nf r"
+    and "\<not> card (adlform_front r (replicate 8 a)) \<le>
+      apder_awidth r + rsize r + 3"
+proof -
+  show "legacy_rrexp r"
+    by (simp add: r_def X_def SS_def)
+  show "apder_nf r"
+    by (simp add: r_def X_def SS_def)
+  have base: "afactored1 r [] = [r]"
+    by (simp add: afactored1_def)
+  have step_r_self: "r \<in> set (rpder_norm_list a r)"
+    by (simp add: rpder_norm_list_def r_def X_def SS_def)
+  have step_r_w7:
+      "RSEQ (RALTS SS) (RNTIMES X 7) \<in> set (rpder_norm_list a r)"
+    by (simp add: rpder_norm_list_def r_def X_def SS_def)
+  have step_w: "\<And>i. RSEQ (RALTS SS) (RNTIMES X i) \<in>
+      set (rpder_norm_list a
+        (RSEQ (RALTS SS) (RNTIMES X (Suc i))))"
+    by (simp add: rpder_norm_list_def X_def SS_def)
+  have invR: "\<And>j. r \<in> set (afactored1 r (replicate j a))"
+  proof -
+    fix j :: nat
+    show "r \<in> set (afactored1 r (replicate j a))"
+    proof (induct j)
+      case 0
+      then show ?case
+        by (simp add: base)
+    next
+      case (Suc j)
+      have "r \<in> set (afactored1 r (replicate j a @ [a]))"
+        by (rule afactored1_snoc_norm_memberI[OF Suc step_r_self])
+          (simp_all add: r_def)
+      then show ?case
+        by (simp add: replicate_append_same)
+    qed
+  qed
+  have invW: "\<And>d j. d \<le> 7 \<Longrightarrow> Suc d \<le> j \<Longrightarrow>
+      RSEQ (RALTS SS) (RNTIMES X (7 - d)) \<in>
+        set (afactored1 r (replicate j a))"
+  proof -
+    fix d j :: nat
+    assume "d \<le> 7" and "Suc d \<le> j"
+    then show "RSEQ (RALTS SS) (RNTIMES X (7 - d)) \<in>
+        set (afactored1 r (replicate j a))"
+    proof (induct d arbitrary: j)
+      case 0
+      obtain j' where j': "j = Suc j'"
+        using "0.prems"(2) by (cases j) auto
+      have "RSEQ (RALTS SS) (RNTIMES X 7) \<in>
+          set (afactored1 r (replicate j' a @ [a]))"
+        by (rule afactored1_snoc_norm_memberI[OF invR step_r_w7])
+          simp_all
+      then show ?case
+        by (simp add: j' replicate_append_same)
+    next
+      case (Suc d)
+      obtain j' where j': "j = Suc j'"
+        using Suc.prems(2) by (cases j) auto
+      have d7: "d \<le> 7"
+        using Suc.prems(1) by simp
+      have dj: "Suc d \<le> j'"
+        using Suc.prems(2) j' by simp
+      have shape_eq: "7 - d = Suc (7 - Suc d)"
+        using Suc.prems(1) by simp
+      have prev': "RSEQ (RALTS SS)
+          (RNTIMES X (Suc (7 - Suc d))) \<in>
+          set (afactored1 r (replicate j' a))"
+        using Suc.hyps[OF d7 dj] shape_eq by simp
+      have "RSEQ (RALTS SS) (RNTIMES X (7 - Suc d)) \<in>
+          set (afactored1 r (replicate j' a @ [a]))"
+        by (rule afactored1_snoc_norm_memberI[OF prev' step_w])
+          simp_all
+      then show ?case
+        by (simp add: j' replicate_append_same)
+    qed
+  qed
+  have row_each:
+      "\<And>S i. S \<in> set SS \<Longrightarrow>
+        row_dlforms (rsimp7_SEQ_atom S (RNTIMES X i)) =
+          {RSEQ S (RNTIMES X i)}"
+    by (auto simp add: SS_def rsimp7_SEQ_atom_def)
+  have row_seq:
+      "\<And>i. row_dlforms (RSEQ (RALTS SS) (RNTIMES X i)) =
+        (\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS"
+    by (auto simp add: row_each)
+  have dl_sub:
+      "(\<Union>i\<in>{..<8}. (\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS) \<subseteq>
+        adlform_front r (replicate 8 a)"
+  proof
+    fix x
+    assume "x \<in> (\<Union>i\<in>{..<8}.
+        (\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS)"
+    then obtain i S where iS: "i < (8::nat)" "S \<in> set SS"
+        and x: "x = RSEQ S (RNTIMES X i)"
+      by auto
+    have i7: "i \<le> 7"
+      using iS(1) by simp
+    have row_mem: "RSEQ (RALTS SS) (RNTIMES X i) \<in>
+        set (afactored1 r (replicate 8 a))"
+    proof -
+      have "RSEQ (RALTS SS) (RNTIMES X (7 - (7 - i))) \<in>
+          set (afactored1 r (replicate 8 a))"
+        by (rule invW) simp_all
+      then show ?thesis
+        using i7 by simp
+    qed
+    have row_S:
+        "row_dlforms (rsimp7_SEQ_atom S (RNTIMES X i)) =
+          {RSEQ S (RNTIMES X i)}"
+      using iS(2) by (rule row_each)
+    have row_direct: "RSEQ S (RNTIMES X i) \<in>
+        row_dlforms (RSEQ (RALTS SS) (RNTIMES X i))"
+      using iS(2) row_S by auto
+    have row_x:
+        "x \<in> row_dlforms (RSEQ (RALTS SS) (RNTIMES X i))"
+      using x row_direct by simp
+    have "x \<in> row_dlformss (afactored1 r (replicate 8 a))"
+      unfolding row_dlformss_def
+      using row_x row_mem by blast
+    then show "x \<in> adlform_front r (replicate 8 a)"
+      by (simp add: adlform_front_def)
+  qed
+  have dist: "distinct SS"
+    by (simp add: SS_def)
+  have card_SS: "card (set SS) = 8"
+    using distinct_card[OF dist] by (simp add: SS_def)
+  have inj_row: "\<And>i. inj_on (\<lambda>S. RSEQ S (RNTIMES X i)) (set SS)"
+    by (simp add: inj_on_def)
+  have card_row:
+      "\<And>i::nat. card ((\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS) = 8"
+    by (simp add: card_image[OF inj_row] card_SS)
+  have card_un:
+      "card (\<Union>i\<in>{..<8::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS) = 64"
+  proof -
+    have "card (\<Union>i\<in>{..<8::nat}.
+        (\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS) =
+      (\<Sum>i\<in>{..<8::nat}.
+        card ((\<lambda>S. RSEQ S (RNTIMES X i)) ` set SS))"
+      by (rule card_UN_disjoint) auto
+    also have "... = 64"
+      by (simp add: card_row)
+    finally show ?thesis .
+  qed
+  have fin_front: "finite (adlform_front r (replicate 8 a))"
+    by (simp add: adlform_front_def)
+  have front_ge: "64 \<le> card (adlform_front r (replicate 8 a))"
+    using card_mono[OF fin_front dl_sub] card_un by simp
+  have aw_r: "apder_awidth r = 9"
+    by (simp add: r_def X_def SS_def)
+  have rsize_r: "rsize r = 35"
+    by (simp add: r_def X_def SS_def)
+  show "\<not> card (adlform_front r (replicate 8 a)) \<le>
+      apder_awidth r + rsize r + 3"
+    using front_ge by (simp add: aw_r rsize_r)
+qed
+
 text \<open>
   The refutation above relies essentially on \<open>RNTIMES\<close>: a counted
   repetition multiplies continuations through \<open>apder_awidth\<close> while
