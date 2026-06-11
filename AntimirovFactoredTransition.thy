@@ -17222,6 +17222,25 @@ proof
     by blast
 qed
 
+lemma rsize_set_afactored1_strong_dlform_universe_le_apder_strong_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    rsize_set (apder_strong_dlfrontier r)"
+  by (rule rsize_set_mono)
+    (use afactored1_strong_dlform_universe_subset_apder_strong_dlfrontier
+      [OF nf] in auto)
+
+lemma rsize_set_afactored1_strong_dlform_universe_apder_strong_dlfrontier_cubicI:
+  assumes nf: "apder_nf r"
+    and cubic:
+      "rsize_set (apder_strong_dlfrontier r) \<le>
+        C * (apder_awidth r + rsize r + 3) ^ 3"
+  shows "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    C * (apder_awidth r + rsize r + 3) ^ 3"
+  using rsize_set_afactored1_strong_dlform_universe_le_apder_strong_dlfrontier
+    [OF nf, of s c] cubic
+  by linarith
+
 lemma row_dlformss_rpder_strong_rows_raw_subset_generated_rtail_nfI:
   assumes nf:
       "\<forall>r \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).

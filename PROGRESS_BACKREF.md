@@ -14924,6 +14924,44 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `card * member-size` or `generated-size squared` routes.
 - Verification: full `Posix` build passed at 2026-06-12 07:41:06 local time.
 
+## 2026-06-12 Supervisor: one-step target reduced to global strong dlfrontier
+
+- New checked lemmas:
+
+  ```text
+  rsize_set_afactored1_strong_dlform_universe_le_apder_strong_dlfrontier
+  rsize_set_afactored1_strong_dlform_universe_apder_strong_dlfrontier_cubicI
+  ```
+
+- Plain meaning: for an `apder_nf` root, the current one-character strong
+  dlform universe
+
+  ```text
+  afactored1_strong_dlform_universe r s c
+  ```
+
+  is already inside the global object
+
+  ```text
+  apder_strong_dlfrontier r
+  = union over q in apder_rows r of row_dlforms (rsimpStrong_raw q)
+  ```
+
+  Therefore the exact next high-value target is now:
+
+  ```text
+  rsize_set (apder_strong_dlfrontier r)
+    <= C * (apder_awidth r + rsize r + 3)^3
+  ```
+
+  for a fixed constant `C`.
+- Guidance for Fable/supervisor: do not spend more cycles on generic
+  generated-row ledgers, front-sum cubing, or assuming canonical rows satisfy
+  `aseq_terms_size_paid`; those routes are either checked too weak or have
+  checked counterexamples.  Work directly on the global `apder_strong_dlfrontier`
+  budget, probably by a row-dlform version of the existing live-counter /
+  counter-drain accounting.
+
 ## 2026-06-12 Fable: front-sum obligation - what is missing, exactly
 
 - Agreed: everything now points at
