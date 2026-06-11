@@ -78,6 +78,77 @@ Some branches have zero `apder_awidth` cost, so the row count grows like
 `repeat count * branch count` while the proposed budget only grows roughly
 linearly in the repeat count.
 
+## 2026-06-12 Route-2 Supervisor Update
+
+Latest pushed checkpoint: `3df1cef`
+(`Package route-2 active closure budget`) on `codex/backref-values`.
+
+The active route is no longer the route-1 linear frontier premise.  Work on
+the step-local universe:
+
+```text
+U = afactored1_strong_dlform_universe r s c
+```
+
+Plain definitions:
+
+- `U` is the set of row forms produced by one strong derivative step from
+  `afactored1 r s`, after taking delayed linear forms.
+- An active suffix key is the `k` in a grouped row
+  `RSEQ (RALTS rows) k`.
+- The active suffix bucket for `k` is the set of rows in `U` with exactly that
+  same key `k`.
+- The active suffix pair budget is the sum, over keys `k`, of
+  `card(bucket k) * card(bucket k)`.  This is deliberately not all heads times
+  all tails; only rows sharing the same key are paired.
+
+Checked route-2 handles now include:
+
+```text
+raw_shared_prune_active_suffix_keys_iff
+raw_shared_prune_active_suffix_bucket_iff
+
+afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same_strong_front
+card_afactored1_strong_dlform_universe_active_suffix_keys_le
+afactored1_strong_dlform_universe_active_suffix_key_size_le_generated_rsizes
+afactored1_strong_dlform_universe_active_suffix_key_size_le_list_cost
+
+afactored1_strong_dlform_universe_active_suffix_pair_budget_le_card_square
+afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_generated_rsizes
+afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_list_cost
+card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_list_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI
+```
+
+What this means: active-suffix closure does not make individual rows larger.
+It adds rows by pruning pairs of rows that share the same key.  The useful
+accounting shape is therefore:
+
+```text
+card U + pair_budget(U) * max_row_size
+```
+
+and the key-DAG accounting adds one more multiplication by `max_row_size`.
+
+The next useful theorem should close one of these real gaps:
+
+- a cubic or otherwise strong enough bound for the step-local `pair_budget(U)`;
+- a cubic/list-cost bound strong enough to feed the checked closure lemmas;
+- a bridge from `U` into the existing active-suffix owner/DAG machinery in
+  `GeneralRegexBound.thy` and `FBound.thy`;
+- a precise counterexample showing one of those subclaims is too strong.
+
+Avoid these low-value moves:
+
+- Do not introduce a generic tail-family abstraction unless it immediately
+  proves a bound for active-suffix buckets or `pair_budget(U)`.
+- Do not multiply "number of heads" by "number of tails" globally.  That loses
+  the same-key bucket structure and can overshoot cubic.
+- Do not add wrappers that merely restate current-front containment without
+  discharging a named premise of a route-2 interface.
+
 ## Read First
 
 Read only these regions first:
@@ -96,10 +167,19 @@ Read only these regions first:
    - `row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract`
    - `afactored1_strong_dlform_universe`
    - `afactored1_strong_dlform_universe_not_frontier_subset`
+   - `afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same_strong_front`
+   - `card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI`
+   - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI`
 3. `FBound.thy`
    - `strong_deferred_original_raw_row_norm_later_shared_memo_cubic_interface`
+   - `strong_deferred_row_gate_norm_active_suffix_universe_POSIX_contract`
+   - `strong_deferred_row_gate_norm_active_suffix_universe_accumulator_POSIX_contract`
 4. `GeneralRegexBound.thy`
    - `rsimpStrong_prune_rows_raw_later_shared_subsetI`
+   - `raw_shared_prune_active_suffix_keys_iff`
+   - `raw_shared_prune_active_suffix_bucket_iff`
+   - `raw_shared_prune_active_suffix_pair_budget_bucket_bound`
+   - `card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound`
    - `raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_closed_subsetI`
 5. `agent_hunt_pipeline/scala/PosixCubicSmoke.scala`
    - the factored/active row bridge and row-diff comparison harness.

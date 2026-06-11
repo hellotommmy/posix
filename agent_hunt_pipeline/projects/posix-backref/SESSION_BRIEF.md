@@ -3,6 +3,20 @@
 Read this first when context is scarce. It is intentionally shorter than the
 full handoff.
 
+## Current Fable/Cubic Run Override
+
+If this session is about the non-backref cubic-bound/Fable run, do not use the
+old BackRefPilot task list below as the active task.  Instead read:
+
+- `agent_hunt_pipeline/projects/posix-backref/FABLE_CUBIC_HANDOFF_2026_06_11.md`
+- the last 200 lines of `PROGRESS_BACKREF.md`
+
+The active branch is still `codex/backref-values`, but the current work is the
+POSIX cubic-bound route around `afactored1_strong_dlform_universe`,
+active-suffix buckets, pair budgets, and owner/DAG accounting.  The old pilot
+items below are historical context unless the user explicitly asks to resume
+the backreference pilot.
+
 ## Current Branch
 
 - Work branch: `codex/backref-values`
