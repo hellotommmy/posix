@@ -14008,3 +14008,19 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `afactored1_strong_dlform_universe_seq_member_decomp`, then the
   cardinality side: bound owner rows by (carrier heads) x (key-DAG)
   via the existing decomp contracts.
+
+## 2026-06-12 Supervisor Final State For This Round
+
+- The proof content from the bucket-bound checkpoint and Fable owner-bridge
+  checkpoint has been through a successful Posix build:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  The run finished `Posix` successfully at 2026-06-12 02:55:19 local time.
+- After that successful proof-content check, only progress/handoff notes were
+  edited.  `codex-proof-workers.ps1 -Action Check` reported no matching
+  proof-worker processes.
+- Next proof edit should still start with worker check and run only one Posix
+  build at a time.
