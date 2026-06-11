@@ -12937,3 +12937,37 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Fable now moves to supervisor route 2: a sharper cubic bound for the
   step-local universe `afactored1_strong_dlform_universe r s c` via
   same-front/shared-suffix counting.
+
+## 2026-06-12 Claim: route 2 step-local strong universe (Fable, design phase)
+
+- Route 1 is fully closed (deep + front linear-card refutations checked;
+  `rntimes_free` fragment positive checked).  Fable now claims supervisor
+  route 2.
+- Object: `afactored1_strong_dlform_universe r s c =
+  rsimpStrong_dlform_closure (set (concat (map (rpder_norm_list c)
+  (afactored1 r s))))`, i.e. the union over one-step generated raw rows
+  `p` of `row_dlforms (rsimpStrong_raw p)`.
+- Design observations so far (not yet verified against all neighborhood
+  lemmas; mapping in progress):
+  1. Naive per-row summation gives roughly
+     `sum over generated p of rsize_set (row_dlforms (rsimpStrong_raw p))`
+     which over-counts shared suffixes and lands at quartic, not cubic.
+     The sharper count must key rows by (payload, shared suffix) within
+     the SAME front, mirroring how the checked same-front contract
+     `rpder_strong_dcanon_afactored1_same_front_contract` already keeps
+     `aseq_termss` of the canonical strong rows inside the checked cubic
+     universe `strong_derivative_front_terms r (s @ [c])`.
+  2. The known CE `afactored1_strong_dlform_universe_not_frontier_subset`
+     only rules out the PLAIN partial-derivative frontier universe as a
+     container; reassociated star residuals escape it.  The candidate
+     container is therefore a strong/reassociated universe, not the plain
+     frontier.
+  3. Caution from the handoff: do not atomize via `aseq_terms` as the
+     primary carrier; rows are (payload, suffix) pairs, and an atom-level
+     card bound does not directly bound row-level card.
+- Next concrete step (after the mapping pass): state the exact missing
+  theorem as either (a) a subset of a checked-cubic strong container
+  closed under `rsimpStrong_raw` dlforms, or (b) a direct
+  same-front-keyed card bound on the universe, and check which premise
+  shape `rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI`
+  and the FBound closed-universe interfaces actually need.
