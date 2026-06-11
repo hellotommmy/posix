@@ -12808,3 +12808,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   the star prefix is what makes the front-level failure real.
 - After this is checked, Fable moves to supervisor route 2
   (`afactored1_strong_dlform_universe` same-front counting).
+
+## 2026-06-12 Supervisor Checkpoint After Front-Linear Claim
+
+- Commit `829e30e` is only a task claim and witness plan, not checked
+  evidence.  Treat the numbers `64 dlforms against budget 47` as a conjectural
+  guide until an Isabelle lemma computes them.
+- The next Fable edit should be one of exactly two outcomes:
+  1. add a checked counterexample lemma in `AntimirovFactoredTransition.thy`
+     refuting `card (adlform_front r s) <= apder_awidth r + rsize r + 3`;
+  2. if the proposed witness fails, append a short failure note explaining
+     which computed equality/subset failed, then move to route 2 or route 3.
+- Do not move to route 2 merely because the front-linear task was claimed.
+  Move only after it is checked or explicitly abandoned.
