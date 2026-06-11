@@ -18123,6 +18123,129 @@ proof (rule
   finally show "rsize q \<le> M" .
 qed
 
+lemma afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_generated_rsizes:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize x \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  obtain k where k:
+      "k \<in> raw_shared_prune_active_suffix_keys
+        (raw_shared_prune_active_suffix_closure ?U)"
+      "x \<in> rsubterms k"
+    using x
+    by (auto simp add:
+        raw_shared_prune_active_suffix_closure_key_dag_universe_def
+        rsubterm_closure_def)
+  have "rsize x \<le> rsize k"
+    by (rule rsubterms_member_size_le_rsize[OF k(2)])
+  also have "... \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  proof (rule raw_shared_prune_active_suffix_closure_keys_member_size_bound
+      [OF _ k(1)])
+    fix q
+    assume q: "q \<in> ?U"
+    show "rsize q \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+          [OF q])
+  qed
+  finally show ?thesis .
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+proof -
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  obtain k where k:
+      "k \<in> raw_shared_prune_active_suffix_keys
+        (raw_shared_prune_active_suffix_closure ?U)"
+      "x \<in> rsubterms k"
+    using x
+    by (auto simp add:
+        raw_shared_prune_active_suffix_closure_key_dag_universe_def
+        rsubterm_closure_def)
+  have "rsize x \<le> rsize k"
+    by (rule rsubterms_member_size_le_rsize[OF k(2)])
+  also have "... \<le> afactored1_strong_dlform_list_cost r s c"
+  proof (rule raw_shared_prune_active_suffix_closure_keys_member_size_bound
+      [OF _ k(1)])
+    fix q
+    assume q: "q \<in> ?U"
+    show "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+      by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+          [OF q])
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI:
+  assumes card_bound:
+      "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+        (afactored1_strong_dlform_universe r s c)) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "rsize_set (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le> C * M"
+proof -
+  let ?D = "raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)"
+  have finite: "finite ?D"
+    by simp
+  have member_size: "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> M"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      by (rule
+          afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_generated_rsizes
+          [OF x])
+    also have "... \<le> M"
+      by (rule generated_size)
+    finally show "rsize x \<le> M" .
+  qed
+  have "rsize_set ?D \<le> card ?D * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI:
+  assumes card_bound:
+      "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+        (afactored1_strong_dlform_universe r s c)) \<le> C"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "rsize_set (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le> C * M"
+proof -
+  let ?D = "raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)"
+  have finite: "finite ?D"
+    by simp
+  have member_size: "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> M"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+      by (rule
+          afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost
+          [OF x])
+    also have "... \<le> M"
+      by (rule list_cost)
+    finally show "rsize x \<le> M" .
+  qed
+  have "rsize_set ?D \<le> card ?D * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
 lemma afactored1_strong_dlform_universe_active_suffix_pair_outputs_aseq_subset_same_strong_front:
   assumes pair: "(earlier, later) \<in> raw_shared_prune_active_suffix_pairs
       (afactored1_strong_dlform_universe root front c)"
