@@ -14445,3 +14445,50 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   front-row derivative budget.  Avoid detouring into another finite-universe
   wrapper; the useful unlock is a per-step numeric count/size bound for the
   honest one-pass rows.
+
+## 2026-06-12 Supervisor Checkpoint: one-pass card charged to generated rsizes
+
+- Added and checked:
+
+  ```text
+  card_afactored1_strong_one_pass_rows_le_generated_rsizes
+  ```
+
+- Meaning: the one-pass output count is now charged through
+  `rfrontiers`/`rsizes`, not through the misleading length of the final
+  `rflts`.  Formally:
+
+  ```text
+  card (set (afactored1_strong_one_pass_rows r s c))
+    <= rsizes (afactored1_strong_generated_rows r s c)
+  ```
+
+- Proof route: every one-pass output row is already checked nonzero/nonalt, so
+  it belongs to its own `rfrontier`; `rfrontiers_rdistinct_empty` and
+  `rfrontiers_rflts` erase the final `rdistinct/rflts` wrappers; then
+  `card_rfrontiers_le_rsizes` plus `rsizes_rsimpStrong_prune_rows_raw_le`
+  charges the count back to generated rows.
+- Verification: full `Posix` build passed at 2026-06-12 05:53:01 local time.
+- Next brick: bound `rsizes (afactored1_strong_generated_rows r s c)` by the
+  derivative/front-row budget for `afactored1 r s`.
+
+## 2026-06-12 Fable Checkpoint: one-pass count side, step 1
+
+- New checked lemmas (AntimirovFactoredTransition.thy), plain meaning:
+  every front row is legacy (`legacy_afactored1_rows`), and the total
+  size of one derivative step's generated rows is at most the sum of
+  `2*(rsize q+3)^3` over the current front rows
+  (`rsizes_afactored1_strong_generated_rows_le_front_cubic_sum`).
+  Combined with the supervisor's in-tree
+  `card_afactored1_strong_one_pass_rows_le_generated_rsizes` (checked
+  in the same build), the one-pass row count is now bounded by a sum
+  of per-front-row cubes - a purely numeric per-step bound with no
+  closure object anywhere.
+- Build: `Finished Posix` 05:54:13.
+- Continuing immediately (no idle): next is the closed-form version -
+  bound the per-row cube sum by front row count times the cube of the
+  max row size, then plug the checked front budgets
+  (`afactored1_apder_rows_expanded_cubic_budget`) to get a bound in r
+  only.  Note the admin added 20k simulated USD to the pool for the
+  final cubic theorem and major progress leading to it; board update
+  is for the admin/steward to record formally in BACKREF_BOUNTIES.md.

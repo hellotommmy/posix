@@ -19743,6 +19743,97 @@ proof -
     by (rule rflts_singleton_member_rtail_nf_props[OF y_nf y(2)])
 qed
 
+lemma card_afactored1_strong_one_pass_rows_le_generated_rsizes:
+  "card (set (afactored1_strong_one_pass_rows r s c)) \<le>
+    rsizes (afactored1_strong_generated_rows r s c)"
+proof -
+  let ?gen = "afactored1_strong_generated_rows r s c"
+  let ?clean = "rsimpStrong_prune_rows_raw ?gen"
+  let ?flat = "rflts ?clean"
+  let ?rows = "afactored1_strong_one_pass_rows r s c"
+  have rows_sub_frontiers: "set ?rows \<subseteq> rfrontiers ?rows"
+  proof
+    fix x
+    assume x: "x \<in> set ?rows"
+    have props: "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+      by (rule afactored1_strong_one_pass_rows_member_rtail_nf_props[OF x])
+    have x_nonalt: "nonalt x"
+      using props by simp
+    have x_nonzero: "x \<noteq> RZERO"
+      using props by simp
+    have "x \<in> rfrontier x"
+      using x_nonzero x_nonalt by (rule rfrontier_nonzero_nonalt_self)
+    then show "x \<in> rfrontiers ?rows"
+      using x by (auto simp add: rfrontiers_member_iff)
+  qed
+  have "card (set ?rows) \<le> card (rfrontiers ?rows)"
+    by (rule card_mono) (simp_all add: rows_sub_frontiers)
+  also have "... = card (rfrontiers ?flat)"
+    by (simp add: afactored1_strong_one_pass_rows_eq)
+  also have "... = card (rfrontiers ?clean)"
+    by simp
+  also have "... \<le> rsizes ?clean"
+    by (rule card_rfrontiers_le_rsizes)
+  also have "... \<le> rsizes ?gen"
+    by (rule rsizes_rsimpStrong_prune_rows_raw_le)
+  finally show ?thesis .
+qed
+
+lemma legacy_afactored1_rows:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> set (afactored1 r s)"
+  shows "legacy_rrexp q"
+proof -
+  have all: "\<forall>x \<in> set [r]. legacy_rrexp x"
+    using legacy by simp
+  have mem: "q \<in> set (rpders_norm_rows [r] s)"
+    using q
+    by (simp add: afactored1_def afactored_steps_eq_rpders_norm_rows)
+  show ?thesis
+    by (rule legacy_rpders_norm_rows[OF all mem])
+qed
+
+lemma rsizes_afactored1_strong_generated_rows_le_front_cubic_sum:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsizes (afactored1_strong_generated_rows r s c) \<le>
+    sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+proof -
+  let ?front = "afactored1 r s"
+  have flts: "rsizes (afactored1_strong_generated_rows r s c) \<le>
+      rsizes (concat (map (rpder_strong_list_raw c) ?front))"
+    unfolding afactored1_strong_generated_rows_def
+    by (rule rflts_mono)
+  have concat_sum: "rsizes (concat (map f xs)) =
+      sum_list (map (\<lambda>x. rsizes (f x)) xs)" for f and xs :: "rrexp list"
+    by (induct xs) simp_all
+  have per_row: "\<And>q. q \<in> set ?front \<Longrightarrow>
+      rsizes (rpder_strong_list_raw c q) \<le> 2 * (rsize q + 3) ^ 3"
+  proof -
+    fix q
+    assume qf: "q \<in> set ?front"
+    have q_legacy: "legacy_rrexp q"
+      by (rule legacy_afactored1_rows[OF legacy qf])
+    have "rsizes (rpder_strong_list_raw c q) \<le>
+        rsizes (rpder_norm_list c q)"
+      unfolding rpder_strong_list_raw_def
+      using rsize_rsimpStrong_raw_le by (simp add: sum_list_mono)
+    also have "... \<le> 2 * (rsize q + 3) ^ 3"
+      by (rule rsizes_rpder_norm_list_cubic[OF q_legacy])
+    finally show "rsizes (rpder_strong_list_raw c q) \<le>
+        2 * (rsize q + 3) ^ 3" .
+  qed
+  have "rsizes (concat (map (rpder_strong_list_raw c) ?front)) =
+      sum_list (map (\<lambda>q. rsizes (rpder_strong_list_raw c q)) ?front)"
+    by (rule concat_sum)
+  also have "... \<le> sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front)"
+    by (rule sum_list_mono) (rule per_row)
+  finally have chain:
+      "rsizes (concat (map (rpder_strong_list_raw c) ?front)) \<le>
+        sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front)" .
+  show ?thesis
+    by (rule order_trans[OF flts chain])
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
