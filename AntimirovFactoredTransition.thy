@@ -17983,6 +17983,178 @@ lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_le_card_square
     card (afactored1_strong_dlform_universe r s c)"
   by (rule raw_shared_prune_active_suffix_pair_budget_le_card_square) simp
 
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and keys_bound:
+      "card (raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c)) \<le> S"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    C + S * K * K * M"
+proof -
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have closure:
+      "card (raw_shared_prune_active_suffix_closure ?U) \<le>
+        card ?U + S * K * K * M"
+  proof (rule card_raw_shared_prune_active_suffix_closure_member_bucket_bound)
+    show "finite ?U"
+      by simp
+    show "card (raw_shared_prune_active_suffix_keys ?U) \<le> S"
+      by (rule keys_bound)
+    show "\<And>k. k \<in> raw_shared_prune_active_suffix_keys ?U \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket ?U k) \<le> K"
+      by (rule bucket_bound)
+    fix q
+    assume q: "q \<in> ?U"
+    have "rsize q \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+          [OF q])
+    also have "... \<le> M"
+      by (rule generated_size)
+    finally show "rsize q \<le> M" .
+  qed
+  have "card ?U + S * K * K * M \<le> C + S * K * K * M"
+    by (rule add_right_mono[OF card_bound])
+  with closure show ?thesis
+    by linarith
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_list_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and keys_bound:
+      "card (raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c)) \<le> S"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    C + S * K * K * M"
+proof -
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have closure:
+      "card (raw_shared_prune_active_suffix_closure ?U) \<le>
+        card ?U + S * K * K * M"
+  proof (rule card_raw_shared_prune_active_suffix_closure_member_bucket_bound)
+    show "finite ?U"
+      by simp
+    show "card (raw_shared_prune_active_suffix_keys ?U) \<le> S"
+      by (rule keys_bound)
+    show "\<And>k. k \<in> raw_shared_prune_active_suffix_keys ?U \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket ?U k) \<le> K"
+      by (rule bucket_bound)
+    fix q
+    assume q: "q \<in> ?U"
+    have "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+      by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+          [OF q])
+    also have "... \<le> M"
+      by (rule list_cost)
+    finally show "rsize q \<le> M" .
+  qed
+  have "card ?U + S * K * K * M \<le> C + S * K * K * M"
+    by (rule add_right_mono[OF card_bound])
+  with closure show ?thesis
+    by linarith
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_generated_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and keys_bound:
+      "card (raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c)) \<le> S"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    (C + S * K * K * M) * M"
+proof (rule card_raw_shared_prune_active_suffix_closure_key_dag_universe_boundI)
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  show "finite ?U"
+    by simp
+  have "card (raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure ?U)) \<le>
+      card (raw_shared_prune_active_suffix_closure ?U)"
+    by (rule card_raw_shared_prune_active_suffix_closure_keys_le_closure)
+      simp
+  also have "... \<le> C + S * K * K * M"
+    by (rule
+        card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI
+        [OF card_bound keys_bound bucket_bound generated_size])
+  finally show "card (raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure ?U)) \<le>
+      C + S * K * K * M" .
+  fix q
+  assume q: "q \<in> ?U"
+  have "rsize q \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF q])
+  also have "... \<le> M"
+    by (rule generated_size)
+  finally show "rsize q \<le> M" .
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_list_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and keys_bound:
+      "card (raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c)) \<le> S"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    (C + S * K * K * M) * M"
+proof (rule card_raw_shared_prune_active_suffix_closure_key_dag_universe_boundI)
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  show "finite ?U"
+    by simp
+  have "card (raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure ?U)) \<le>
+      card (raw_shared_prune_active_suffix_closure ?U)"
+    by (rule card_raw_shared_prune_active_suffix_closure_keys_le_closure)
+      simp
+  also have "... \<le> C + S * K * K * M"
+    by (rule
+        card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_list_boundI
+        [OF card_bound keys_bound bucket_bound list_cost])
+  finally show "card (raw_shared_prune_active_suffix_keys
+      (raw_shared_prune_active_suffix_closure ?U)) \<le>
+      C + S * K * K * M" .
+  fix q
+  assume q: "q \<in> ?U"
+  have "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF q])
+  also have "... \<le> M"
+    by (rule list_cost)
+  finally show "rsize q \<le> M" .
+qed
+
 lemma afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_generated_rsizes:
   assumes x: "x \<in> raw_shared_prune_active_suffix_closure
       (afactored1_strong_dlform_universe r s c)"
@@ -18371,6 +18543,114 @@ lemma afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_union_sub
   using
     afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_subset_same_strong_front
   by blast
+
+text \<open>
+  Owner bridge: the carrier and row-grammar facts lift from the
+  one-step active-suffix closure to the full inductive least-owner set
+  \<open>raw_shared_prune_active_suffix_owner\<close>.  Iterated same-key pruning
+  never leaves the current strong front carrier and never produces a
+  non-normalized row, so owner/DAG accounting over the step-local
+  universe can charge atoms to the carrier at every pruning depth.
+\<close>
+
+lemma raw_shared_prune_pair_outputs_aseq_subsetI:
+  assumes later: "aseq_terms later \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and x: "x \<in> raw_shared_prune_pair_outputs earlier later"
+  shows "aseq_terms x \<subseteq> U"
+proof -
+  have prune_terms:
+      "aseq_terms (rsimpStrong_prune_pair_raw earlier later) \<subseteq> U"
+    by (rule aseq_terms_rsimpStrong_prune_pair_raw_subsetI
+        [OF later zero])
+  have x_flat:
+      "x \<in> set (rflts [rsimpStrong_prune_pair_raw earlier later])"
+    using x by (simp add: raw_shared_prune_pair_outputs_def)
+  have "aseq_terms x \<subseteq>
+      aseq_termss (rflts [rsimpStrong_prune_pair_raw earlier later])"
+    by (rule aseq_terms_member_subset_termss[OF x_flat])
+  also have "... \<subseteq>
+      aseq_terms (rsimpStrong_prune_pair_raw earlier later)"
+    using aseq_termss_rflts_subset[of
+        "[rsimpStrong_prune_pair_raw earlier later]"]
+    by simp
+  finally show ?thesis
+    using prune_terms by blast
+qed
+
+lemma raw_shared_prune_pair_outputs_member_rtail_nf_props:
+  assumes later_nf: "rtail_nf later"
+    and x: "x \<in> raw_shared_prune_pair_outputs earlier later"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  have prune_nf: "rtail_nf (rsimpStrong_prune_pair_raw earlier later)"
+    by (rule rtail_nf_rsimpStrong_prune_pair_raw[OF later_nf])
+  have x_front:
+      "x \<in> rfrontier (rsimpStrong_prune_pair_raw earlier later)"
+    using x
+    by (simp add: raw_shared_prune_pair_outputs_def
+        rtail_nf_rflts_singleton_eq_rfrontier[OF prune_nf])
+  show ?thesis
+    by (rule rtail_nf_rfrontier_member_props[OF prune_nf x_front])
+qed
+
+lemma afactored1_strong_dlform_universe_owner_aseq_subset_same_strong_front:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_owner
+      (afactored1_strong_dlform_universe root front c)"
+  shows "aseq_terms x \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+  using x
+proof (induct rule: raw_shared_prune_active_suffix_owner.induct)
+  case (base q)
+  then show ?case
+    by (rule
+        afactored1_strong_dlform_universe_aseq_subset_same_strong_front)
+next
+  case (step earlier later k q)
+  have zero: "RZERO \<in> strong_derivative_front_terms root (front @ [c])"
+    by (simp add: strong_derivative_front_terms_def
+        rsimpStrong_aseq_closure_zero)
+  show ?case
+    by (rule raw_shared_prune_pair_outputs_aseq_subsetI
+        [OF step.hyps(4) zero step.hyps(7)])
+qed
+
+lemma afactored1_strong_dlform_universe_owner_member_rtail_nf_props:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_owner
+      (afactored1_strong_dlform_universe root front c)"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  using x
+proof (induct rule: raw_shared_prune_active_suffix_owner.induct)
+  case (base q)
+  then show ?case
+    by (rule afactored1_strong_dlform_universe_member_rtail_nf_props)
+next
+  case (step earlier later k q)
+  have later_nf: "rtail_nf later"
+    using step.hyps(4) by simp
+  show ?case
+    by (rule raw_shared_prune_pair_outputs_member_rtail_nf_props
+        [OF later_nf step.hyps(7)])
+qed
+
+lemma afactored1_strong_dlform_universe_owner_nonseq_member_in_front_terms:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_owner
+      (afactored1_strong_dlform_universe root front c)"
+    and ns: "rnonseq x"
+  shows "x \<in> strong_derivative_front_terms root (front @ [c])"
+proof -
+  have props: "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    by (rule
+        afactored1_strong_dlform_universe_owner_member_rtail_nf_props
+        [OF x])
+  have terms: "aseq_terms x = {x}"
+    using props ns by (cases x) auto
+  show ?thesis
+    using
+      afactored1_strong_dlform_universe_owner_aseq_subset_same_strong_front
+      [OF x] terms
+    by auto
+qed
 
 text \<open>
   Row grammar for the step-local strong universe.  Every member is a

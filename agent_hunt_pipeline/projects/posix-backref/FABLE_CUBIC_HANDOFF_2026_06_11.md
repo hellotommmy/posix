@@ -80,13 +80,14 @@ linearly in the repeat count.
 
 ## 2026-06-12 Route-2 Supervisor Update
 
-Latest pushed checkpoint: `00d2125`
-(`Add nested NTIMES ID smoke probe`) on `codex/backref-values`.
+Latest prerequisite checkpoint before this supervisor update: `5649a2b`
+(`Refocus Fable cubic handoff on owner bounds`) on `codex/backref-values`.
 
 Since `3df1cef`, the route-2 support layer also gained:
 
 - active closure front/key atom preservation;
 - active closure key-DAG member-size and `rsize_set` packaging;
+- bucket-shaped active closure and key-DAG cardinality interfaces;
 - nested-`RNTIMES` raw-tree and ID/DAG smoke probes showing the risk family is
   useful stress evidence but not yet a counterexample to the active
   key-DAG/owner route.
@@ -128,6 +129,10 @@ card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI
 card_afactored1_strong_dlform_universe_active_suffix_closure_list_boundI
 card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI
 card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_list_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_generated_boundI
+card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_list_boundI
 ```
 
 What this means: active-suffix closure does not make individual rows larger.
@@ -140,8 +145,30 @@ card U + pair_budget(U) * max_row_size
 
 and the key-DAG accounting adds one more multiplication by `max_row_size`.
 
+There is now a more targeted checked interface for this shape.  In plain
+terms, prove:
+
+```text
+card U <= C
+number of active suffix keys in U <= S
+each active suffix bucket in U has size <= K
+each generated/list row-size budget for U is <= M
+```
+
+Then Isabelle already gives:
+
+```text
+active closure size <= C + S*K*K*M
+active closure key-DAG universe size <= (C + S*K*K*M)*M
+```
+
+This is the next best route because it preserves the same-key bucket structure
+instead of charging every row against every other row.
+
 The next useful theorem should close one of these real gaps:
 
+- a cubic or otherwise strong enough bound for the step-local active suffix
+  key count and per-key bucket size of `U`;
 - a cubic or otherwise strong enough bound for the step-local `pair_budget(U)`;
 - a cubic/list-cost bound strong enough to feed the checked closure lemmas;
 - a bridge from `U` into the existing active-suffix owner/DAG machinery in
@@ -179,6 +206,8 @@ Read only these regions first:
    - `afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_union_subset_same_strong_front`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI`
+   - `card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI`
+   - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_generated_boundI`
    - `afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost`
    - `rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI`
 3. `FBound.thy`
@@ -274,8 +303,9 @@ most useful routes are now:
 1. Prove a sharper cubic/cardinality bound for the actual step-local universe
    `afactored1_strong_dlform_universe r s c`, using same-front/shared-suffix
    buckets rather than arbitrary all-pairs closure.  The immediate missing
-   object is a strong enough key-DAG/owner/cardinality bound to feed the
-   checked closure and `rsize_set` lemmas.
+   object is: bound the number of active suffix keys in `U`, then bound the
+   size of each same-key bucket.  Feed those two bounds to the new
+   `...closure_bucket...` and `...key_dag_bucket...` lemmas.
 2. Bridge `afactored1_strong_dlform_universe r s c` into the existing
    active-suffix owner/DAG machinery in `GeneralRegexBound.thy` and
    `FBound.thy`, especially the least-owner DAG contracts.

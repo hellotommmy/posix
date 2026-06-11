@@ -13890,3 +13890,46 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Also added the latest checked lemma names and the nested-`RNTIMES` ID probe
   names to the handoff's "Read First" list, so Fable sees the newest handles
   before reopening older chat/context.
+
+## 2026-06-12 Supervisor Checkpoint: bucket-shaped active closure bounds
+
+- Added checked route-2 interfaces in `AntimirovFactoredTransition.thy` for the
+  step-local universe
+  `U = afactored1_strong_dlform_universe r s c`:
+
+  ```text
+  card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_list_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_generated_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_list_boundI
+  ```
+
+- Plain meaning of the new interface:
+
+  ```text
+  C = bound for card U
+  S = bound for the number of active suffix keys in U
+  K = bound for the size of each same-key active suffix bucket in U
+  M = generated/list row-size budget for elements of U
+  ```
+
+  If those four bounds are available, Isabelle now proves:
+
+  ```text
+  active closure size <= C + S*K*K*M
+  active closure key-DAG universe size <= (C + S*K*K*M)*M
+  ```
+
+- Why this matters: it avoids the too-coarse global square
+  `card U * card U`.  Active pruning only combines rows sharing the same suffix
+  key, so the next proof should bound key count and per-key bucket size.  Do
+  not return to broad counterexample hunting unless falsifying a named
+  key-count or bucket-size claim.
+
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed on the edited `Posix` session.
