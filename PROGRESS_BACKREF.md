@@ -13591,3 +13591,49 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   passed at 2026-06-12 01:56:58 (`Finished Posix`; `AntimirovFactoredTransition`
   49.617s cumulated, whole wrapper 0:01:07).
+
+## 2026-06-12 Supervisor Checkpoint: active suffix closure budget packaged
+
+- Added checked route-2 budget lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_le_card_square
+  afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_generated_rsizes
+  afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_list_cost
+  card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_list_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI
+  card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI
+  ```
+
+- Meaning in simple terms: let `U` be the current step-local strong dlform
+  universe.  The active-suffix closure does not make rows larger than the rows
+  already in `U`; it only adds rows obtained by pruning two rows that share the
+  same active suffix key.  Its useful budget is therefore:
+
+  ```text
+  starting rows in U
+  + same-key pair budget
+  * maximum row size
+  ```
+
+  and the suffix-key DAG budget is one more multiplication by the same maximum
+  row size.  This is the correct accounting handle for grouped rows; it is more
+  precise than a naive "number of heads times number of tails" abstraction.
+
+- This is still not the final cubic theorem.  The remaining hard step is to
+  prove a cubic-sized owner/closure universe, or to prove strong enough cubic
+  bounds for the step-local `pair_budget` and generated/list-cost terms.  Do
+  not restart the dead route-1 linear frontier proof, and do not introduce a
+  broad generic tail-family unless it is immediately tied to these active
+  suffix bucket/closure lemmas.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+  ```
+
+  passed at 2026-06-12 02:02:03 (`Finished Posix`; `AntimirovFactoredTransition`
+  51.477s cumulated, whole wrapper 0:01:06), followed by no matching
+  proof-worker process.

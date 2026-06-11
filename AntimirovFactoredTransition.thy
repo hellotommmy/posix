@@ -17976,6 +17976,153 @@ proof (rule raw_shared_prune_active_suffix_keys_member_size_bound[OF _ key])
         [OF x])
 qed
 
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_le_card_square:
+  "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le>
+    card (afactored1_strong_dlform_universe r s c) *
+    card (afactored1_strong_dlform_universe r s c)"
+  by (rule raw_shared_prune_active_suffix_pair_budget_le_card_square) simp
+
+lemma afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_generated_rsizes:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize x \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof (rule raw_shared_prune_active_suffix_closure_member_size_bound[OF _ x])
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize q \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF q])
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_closure_member_size_le_list_cost:
+  assumes x: "x \<in> raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)"
+  shows "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+proof (rule raw_shared_prune_active_suffix_closure_member_size_bound[OF _ x])
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF q])
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_generated_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) \<le> P"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)) \<le> C + P * M"
+proof (rule card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    by (rule card_bound)
+  show "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le> P"
+    by (rule pair_budget)
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  have "rsize q \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF q])
+  also have "... \<le> M"
+    by (rule generated_size)
+  finally show "rsize q \<le> M" .
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_list_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) \<le> P"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure
+      (afactored1_strong_dlform_universe r s c)) \<le> C + P * M"
+proof (rule card_raw_shared_prune_active_suffix_closure_member_pair_budget_card_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    by (rule card_bound)
+  show "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le> P"
+    by (rule pair_budget)
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  have "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF q])
+  also have "... \<le> M"
+    by (rule list_cost)
+  finally show "rsize q \<le> M" .
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) \<le> P"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le> (C + P * M) * M"
+proof (rule
+    card_raw_shared_prune_active_suffix_closure_key_dag_universe_member_pair_budget_card_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    by (rule card_bound)
+  show "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le> P"
+    by (rule pair_budget)
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  have "rsize q \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF q])
+  also have "... \<le> M"
+    by (rule generated_size)
+  finally show "rsize q \<le> M" .
+qed
+
+lemma card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and pair_budget:
+      "raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) \<le> P"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "card (raw_shared_prune_active_suffix_closure_key_dag_universe
+      (afactored1_strong_dlform_universe r s c)) \<le> (C + P * M) * M"
+proof (rule
+    card_raw_shared_prune_active_suffix_closure_key_dag_universe_member_pair_budget_card_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    by (rule card_bound)
+  show "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le> P"
+    by (rule pair_budget)
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  have "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF q])
+  also have "... \<le> M"
+    by (rule list_cost)
+  finally show "rsize q \<le> M" .
+qed
+
 text \<open>
   Row grammar for the step-local strong universe.  Every member is a
   tail-normal, nonalt, nonzero row.  A member that is not a sequence is
