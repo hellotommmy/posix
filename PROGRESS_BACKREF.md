@@ -14638,6 +14638,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   premise where the older interface exposed `6 * (rsize r + 3)^3`.
 - Verification: full `Posix` build passed at 2026-06-12 06:30:40 local time.
 
+## 2026-06-12 Supervisor Probe: nested-NTIMES one-step dlform size
+
+- Ran a scratch Isabelle `Probe` session (not committed) for
+  `X = (a | (1*)).1` and `r = NTIMES (NTIMES X n) n`, measuring:
+
+  ```text
+  (rsize, apder_awidth, rsize_set one_step_U, 2*(rsize+3)^3)
+  n=2:  (12, 4,   14,   6750)
+  n=4:  (16, 16,  20,   13718)
+  n=8:  (24, 64,  32,   39366)
+  n=16: (40, 256, 56,   159014)
+  ```
+
+- Also measured the same `n=16` row after consuming `t` copies of `a`:
+
+  ```text
+  (t, rsize, apder_awidth, rsize_set one_step_U, budget)
+  t=0:  (0,  40, 256, 56,   159014)
+  t=1:  (1,  40, 256, 110,  159014)
+  t=2:  (2,  40, 256, 217,  159014)
+  t=4:  (4,  40, 256, 582,  159014)
+  t=8:  (8,  40, 256, 1860, 159014)
+  t=16: (16, 40, 256, 6080, 159014)
+  ```
+
+- Interpretation: this cheap nested-NTIMES family does NOT refute the
+  rsize-only one-step dlform-universe premise.  The suspicion from missing
+  `apder_awidth` remains worth investigating, but it is not yet evidence of a
+  false theorem.  Next probe, if needed, should use a family with many
+  distinct zero-awidth payload branches and test later positions, not only this
+  star-reentry smoke case.
+
 ## 2026-06-12 Fable: the remaining premise lacks awidth - suspect, needs one probe
 
 - Target premise: rsize_set (afactored1_strong_dlform_universe r s c)
