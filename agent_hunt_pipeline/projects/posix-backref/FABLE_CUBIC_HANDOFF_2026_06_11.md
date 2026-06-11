@@ -47,6 +47,37 @@ The useful progress is a set of checked first-stage and conditional
 second-stage interfaces.  The next work should be theorem-driven, not wrapper
 generation.
 
+## 2026-06-12 Supervisor Update
+
+Fable commit `4e08917` checked
+`apder_deep_frontier_linear_card_false`.  This means the deep-frontier version
+of route 1 is closed as a dead end:
+
+```text
+card (apder_deep_frontier r) <= apder_awidth r + rsize r + 3
+```
+
+is false even for legacy `apder_nf` input.  Do not try to prove this premise
+again.  The conditional interfaces that assume it are still logically valid,
+but they cannot be made unconditional in that form.
+
+Plain-English reading of the counterexample:
+
+- `card S` means "the number of distinct elements in set `S`."
+- `RNTIMES X n` means "repeat regex `X` exactly `n` times."
+- `RALTS SS` means "choose one alternative from the list `SS`."
+- `apder_deep_frontier r` is the proof's broad set of deep derivative row
+  forms for root `r`.
+- `apder_awidth r + rsize r + 3` was the hoped-for linear budget.
+- The checked witness has 49 deep-frontier rows but budget 39, so the universal
+  theorem is impossible.
+
+Mechanism: counted repetition creates one continuation for each remaining
+repeat count, and each continuation can carry every branch of an alternative.
+Some branches have zero `apder_awidth` cost, so the row count grows like
+`repeat count * branch count` while the proposed budget only grows roughly
+linearly in the repeat count.
+
 ## Read First
 
 Read only these regions first:
@@ -60,6 +91,7 @@ Read only these regions first:
 2. `AntimirovFactoredTransition.thy`
    - `row_dlform_canonical_rows`
    - `rsizes_row_dlform_canonical_rows_cubic`
+   - `apder_deep_frontier_linear_card_false`
    - `rsize_set_adlform_front_cubic_from_deep_linear_card`
    - `row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract`
    - `afactored1_strong_dlform_universe`
@@ -113,6 +145,9 @@ Do not restart these loops:
   counterexamples already show this fails.
 - Do not prove local `row_dlforms` cost nonincrease for `rsimpStrong_raw`;
   `rsimpStrong_raw_row_dlforms_cost_not_monotone` is a checked counterexample.
+- Do not try to discharge the deep-frontier linear cardinality premise
+  `card (apder_deep_frontier r) <= apder_awidth r + rsize r + 3`;
+  `apder_deep_frontier_linear_card_false` is a checked counterexample.
 - Do not add more thin wrappers unless they discharge a named missing premise
   of an existing interface.
 - Do not use long `auto`/`blast`/Sledgehammer searches.  Split constructor
@@ -122,15 +157,23 @@ Do not restart these loops:
 
 The most promising route is one of these, in order:
 
-1. Prove the remaining cardinality/total-size bound for the same-front
-   deep-frontier object, especially the linear-cardinality premise used by
-   `rsize_set_adlform_front_cubic_from_deep_linear_card`.
-2. Or prove a sharper cubic bound for the actual step-local universe
+1. Optionally check the smaller front-specific counterexample suggested in
+   `PROGRESS_BACKREF.md` for the premise
+   `card (adlform_front r s) <= apder_awidth r + rsize r + 3`.  This is a
+   short falsification task only; stop once the counterexample is checked.
+2. Prove a sharper cubic bound for the actual step-local universe
    `afactored1_strong_dlform_universe r s c`, using same-front/shared-suffix
    counting rather than arbitrary all-pairs closure.
-3. Or replace the raw strong-row representation by a checked canonical
+3. Replace the raw strong-row representation by a checked canonical
    projection via `row_dlform_canonical_rows`, then prove the production route
    computes or soundly refines that projection while preserving POSIX values.
+
+If you attempt a bounded-repetition-free side theorem such as a
+`rntimes_free` version of the old deep-frontier linear bound, treat it only as
+a fragment/boundary result.  It does not solve the user's target, because the
+non-backref fragment includes counted repetition.  Do at most one short proof
+repair cycle for such a side theorem; if it fails a build again, abandon it and
+return to route 2 or 3.
 
 For each route, first state the exact missing theorem and identify the smallest
 checked interface it would unlock.  If the theorem does not unlock one of the
@@ -141,6 +184,12 @@ interfaces above, it is probably drift.
 - Start every session with `git status --short --branch`.
 - Keep work on a fresh branch or a clean worktree.
 - Prefer one theorem gap per session.
+- On Windows, use the repository PowerShell wrappers.  Do not use Bash
+  `sleep && tail` polling for background builds; use Claude's TaskOutput/Read
+  on the output file instead.
+- Proof-search discipline: broad `auto`/`simp`/`blast` should normally return
+  in about 0.5s; one Isabelle command should usually finish in 5-10s.  A slow
+  command means split the proof, not raise the timeout.
 - After a meaningful Isabelle change, run:
 
 ```powershell
