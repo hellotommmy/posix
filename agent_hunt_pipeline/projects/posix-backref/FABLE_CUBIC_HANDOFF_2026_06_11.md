@@ -208,6 +208,8 @@ Read only these regions first:
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI`
    - `card_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_bucket_generated_boundI`
+   - `afactored1_strong_dlform_universe_owner_seq_member_decomp`
+   - `afactored1_strong_dlform_universe_owner_seq_nonalt_head_in_front_terms`
    - `afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost`
    - `rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI`
 3. `FBound.thy`
@@ -308,7 +310,10 @@ most useful routes are now:
    `...closure_bucket...` and `...key_dag_bucket...` lemmas.
 2. Bridge `afactored1_strong_dlform_universe r s c` into the existing
    active-suffix owner/DAG machinery in `GeneralRegexBound.thy` and
-   `FBound.thy`, especially the least-owner DAG contracts.
+   `FBound.thy`, especially the least-owner DAG contracts.  The owner-set
+   `RSEQ h t` decomposition is already packaged; use it to charge nonalt
+   heads to the current strong-front carrier and suffix/key pieces to the
+   active owner/key-DAG accounting.
 3. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete

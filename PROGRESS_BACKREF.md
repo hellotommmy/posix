@@ -14024,3 +14024,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   proof-worker processes.
 - Next proof edit should still start with worker check and run only one Posix
   build at a time.
+
+## 2026-06-12 Supervisor Checkpoint: owner SEQ decomposition packaged
+
+- Added checked owner-set counterparts of the step-local row decomposition:
+
+  ```text
+  afactored1_strong_dlform_universe_owner_seq_member_decomp
+  afactored1_strong_dlform_universe_owner_seq_nonalt_head_in_front_terms
+  ```
+
+- Plain meaning: if a row in the least-owner set has shape `RSEQ h t`, then
+  the head `h` and tail `t` are still normalized, nonzero structural pieces,
+  and all atoms obtained by splitting `h` or `t` are still paid by the current
+  strong front carrier.  If the head is not an alternation block, then the head
+  itself is one of those carrier atoms.
+- Why this matters: the next owner/cardinality argument can charge sequence
+  heads to the carrier and suffixes/keys to the active owner key-DAG, instead
+  of treating every owner row as an arbitrary new regex.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 03:02:31 local time.

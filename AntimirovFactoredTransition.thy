@@ -18755,6 +18755,52 @@ proof -
     by auto
 qed
 
+lemma afactored1_strong_dlform_universe_owner_seq_member_decomp:
+  assumes x: "RSEQ h t \<in> raw_shared_prune_active_suffix_owner
+      (afactored1_strong_dlform_universe root front c)"
+  shows "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+    rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
+    aseq_terms h \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    aseq_terms t \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+proof -
+  have props: "rtail_nf (RSEQ h t) \<and> nonalt (RSEQ h t) \<and>
+      RSEQ h t \<noteq> RZERO"
+    by (rule afactored1_strong_dlform_universe_owner_member_rtail_nf_props
+        [OF x])
+  have shape: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE"
+    using props by simp
+  have aseq: "aseq_terms h \<union> aseq_terms t \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    using afactored1_strong_dlform_universe_owner_aseq_subset_same_strong_front
+      [OF x]
+    by simp
+  show ?thesis
+    using shape aseq by blast
+qed
+
+lemma afactored1_strong_dlform_universe_owner_seq_nonalt_head_in_front_terms:
+  assumes x: "RSEQ h t \<in> raw_shared_prune_active_suffix_owner
+      (afactored1_strong_dlform_universe root front c)"
+    and na: "nonalt h"
+  shows "h \<in> strong_derivative_front_terms root (front @ [c])"
+proof -
+  have decomp: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
+      aseq_terms h \<subseteq>
+        strong_derivative_front_terms root (front @ [c]) \<and>
+      aseq_terms t \<subseteq>
+        strong_derivative_front_terms root (front @ [c])"
+    by (rule
+        afactored1_strong_dlform_universe_owner_seq_member_decomp[OF x])
+  have terms: "aseq_terms h = {h}"
+    using decomp na by (cases h) auto
+  show ?thesis
+    using decomp terms by auto
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
