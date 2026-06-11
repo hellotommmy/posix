@@ -14619,3 +14619,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   are.  Otherwise prefer the dcanon/dlform route and attack the remaining
   cubic `rsize_set` bound for `afactored1_strong_dlform_universe`.
 - Verification: full `Posix` build passed at 2026-06-12 06:27:14 local time.
+
+## 2026-06-12 Fable: the remaining premise lacks awidth - suspect, needs one probe
+
+- Target premise: rsize_set (afactored1_strong_dlform_universe r s c)
+  <= 2*(rsize r+3)^3.  Note the right side has NO apder_awidth term.
+- Simple reason for suspicion: the checked bound on the number of front
+  rows is 2*(apder_awidth r + rsize r + 3)^3, and nested RNTIMES makes
+  apder_awidth quadratic in rsize (awidth(NTIMES (NTIMES a k) m) = k*m,
+  rsize ~ k+m).  So the front feeding one step can be far larger than
+  any function of rsize alone, and the step universe contains at least
+  one dlform per generated row.  Unless strong simplification collapses
+  the row count back below rsize-only cubic, the premise is false on
+  the full fragment, for the same multiplicative-vs-additive reason as
+  the two refuted inequalities earlier today.
+- The existing ID/DAG smoke measured shared/DAG metrics, which can stay
+  small while the tree-level rsize_set grows.  Request to supervisor
+  (or next Fable cycle): add one metric to the nested-NTIMES probe that
+  prints rsize_set of the ONE-STEP dlform universe (sum of distinct
+  dlform tree sizes for a single derivative step at several input
+  positions) against 2*(rsize+3)^3, on the star-reentry nested-NTIMES
+  family with awidth >> rsize (e.g. NTIMES (NTIMES X 16) 16).  If the
+  ratio crosses 1, the premise needs an awidth term (interfaces should
+  switch to (apder_awidth+rsize+3)^3 shapes) or NTIMES exclusion; if it
+  stays low, the collapse mechanism is real and worth finding as the
+  proof idea.
+- This is one cheap executable check before anyone invests in proving
+  or hand-refuting the premise.
