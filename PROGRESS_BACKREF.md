@@ -12884,3 +12884,53 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   legacy normal-form input with counted repetition.  The next full-target
   work should move to route 2 (`afactored1_strong_dlform_universe`
   same-front counting) or route 3 (`row_dlform_canonical_rows` projection).
+
+## 2026-06-12 Front-Linear Card Refutation Checkpoint (checked)
+
+- Branch: `codex/backref-values`.
+- New checked counterexample lemma `adlform_front_linear_card_false`
+  plus reusable helper `afactored1_snoc_norm_memberI` in
+  `AntimirovFactoredTransition.thy` (placed between the deep-frontier
+  refutation and the `rntimes_free` fragment block).
+- Statement: for `r = RSEQ (RSTAR (RCHAR a)) (RNTIMES X 8)` with
+  `X = RSEQ (RCHAR a) (RALTS SS)` and the eight zero-awidth branches
+  `SS` from the deep counterexample, with input `replicate 8 a`:
+  `legacy_rrexp r`, `apder_nf r`, and
+
+  ```text
+  ~ card (adlform_front r (replicate 8 a))
+      <= apder_awidth r + rsize r + 3
+  ```
+
+  The front contains the 64 rows
+  `RSEQ S (RNTIMES X i)` for `S in set SS`, `i < 8`, against budget
+  `9 + 35 + 3 = 47`.
+- Mechanism: a star prefix re-enters the counted repetition at every
+  step, so the current front simultaneously carries rows for all
+  residual counts.  Checked membership chain: the invariant lemmas
+  `invR`/`invW` inside the proof push rows through
+  `afactored1_snoc_norm_memberI` (rflts keeps nonalt non-zero rows,
+  `rdistinct` is set-preserving).  Note plain `rpder_list` does not
+  unroll a nullable `RNTIMES` body (epsilon absorption), so a nullable
+  repeated block alone does NOT spread the front; the star re-entry is
+  essential.
+- Consequence: the premises of BOTH front-linear conditional interfaces
+  (`rsize_set_adlform_front_cubic_from_front_linear_card`,
+  `row_dlform_canonical_afactored1_same_dlfront_front_linear_card_cubic_contract`)
+  are now refuted for general legacy `apder_nf` input, completing the
+  route-1 falsification program: no per-universe or per-front linear
+  cardinality argument can give the cubic bound while `RNTIMES` is in
+  the fragment.  Supervisor routes 2/3 are the remaining options.
+- Joint credit: supervisor (codex) contributed the `row_S` instantiation
+  and the `row_direct`/`row_x` split in the dl_sub block during the
+  edit cycle; Fable contributed the witness design, invariants, helper
+  lemma, and the unfolding/blast membership step.
+- Verification: 00:39 run checked all theories (AntimirovFactoredTransition
+  57.9s) but hit a build-database write collision with a concurrent
+  supervisor build (`SQLITE_CONSTRAINT_PRIMARYKEY`); after workers
+  cleared, the 00:42 re-run reports the session up to date with the
+  current sources (exit 0).  `codex-proof-workers.ps1 -Action Check` is
+  clean.
+- Fable now moves to supervisor route 2: a sharper cubic bound for the
+  step-local universe `afactored1_strong_dlform_universe r s c` via
+  same-front/shared-suffix counting.
