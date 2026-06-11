@@ -13182,3 +13182,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Process note: the scratch theory was deleted after evaluation.  The
   timeout left two local `poly.exe` children, both stopped by the supervisor;
   `codex-proof-workers.ps1 -Action Check` then reported no residual worker.
+
+## 2026-06-12 Supervisor Checkpoint: current-front atom budget packaged
+
+- Added checked lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_aseq_union_subset_same_strong_front
+  afactored1_strong_dlform_universe_same_strong_budget_contract
+  ```
+
+- These lift the previous per-member current-front containment to the whole
+  step-local universe: the union of all `aseq_terms x` for
+  `x in afactored1_strong_dlform_universe root front c` is contained in
+  `strong_derivative_front_terms root (front @ [c])`.  For legacy roots this
+  carrier has the existing checked cubic card and `rsize_set` budgets, plus
+  the existing linear member-size bound.
+- Caveat: this is an atom/payload budget, not yet the final row-size budget.
+  It should be used as the carrier for a same-front/shared-suffix accounting
+  proof.  It does not by itself prove
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  because rows can carry copied suffix structure around those atoms.
+- Verification: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  passed at 2026-06-12 01:14:17 (`Finished Posix`; `AntimirovFactoredTransition`
+  55.454s cumulated).

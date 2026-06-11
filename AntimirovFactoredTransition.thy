@@ -17814,6 +17814,42 @@ lemma afactored1_strong_dlform_universe_aseq_subset_same_strong_front:
   using afactored1_strong_dlform_universe_same_strong_front[OF x]
   by (simp add: same_strong_aseq_front_row_def)
 
+lemma afactored1_strong_dlform_universe_aseq_union_subset_same_strong_front:
+  "(\<Union>x \<in> afactored1_strong_dlform_universe root front c.
+      aseq_terms x) \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+  using afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+  by blast
+
+lemma afactored1_strong_dlform_universe_same_strong_budget_contract:
+  assumes legacy: "legacy_rrexp root"
+  shows "(\<Union>x \<in> afactored1_strong_dlform_universe root front c.
+      aseq_terms x) \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    (\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root))"
+proof (intro conjI)
+  show "(\<Union>x \<in> afactored1_strong_dlform_universe root front c.
+      aseq_terms x) \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    by (rule
+        afactored1_strong_dlform_universe_aseq_union_subset_same_strong_front)
+  show "card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule card_strong_derivative_front_terms_cubic[OF legacy])
+  show "rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_derivative_front_terms_cubic[OF legacy])
+  show "\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root)"
+    by (rule ballI)
+      (rule strong_derivative_front_terms_member_size_linear[OF legacy])
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
