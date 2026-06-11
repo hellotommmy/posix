@@ -18945,6 +18945,108 @@ lemma card_afactored1_strong_dlform_universe_owner_active_suffix_key_dag_le_owne
   by (rule card_raw_shared_prune_active_suffix_key_dag_le_rsubterm_closure
       [OF finite])
 
+lemma afactored1_strong_dlform_universe_owner_dag_member_size_le_generated_rsizes:
+  assumes x: "x \<in> rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  shows "rsize x \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof (rule raw_shared_prune_active_suffix_owner_dag_member_size_bound[OF _ x])
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize q \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+        [OF q])
+qed
+
+lemma afactored1_strong_dlform_universe_owner_dag_member_size_le_list_cost:
+  assumes x: "x \<in> rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  shows "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+proof (rule raw_shared_prune_active_suffix_owner_dag_member_size_bound[OF _ x])
+  fix q
+  assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+  show "rsize q \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule afactored1_strong_dlform_universe_member_size_le_list_cost
+        [OF q])
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_owner_dag_generated_boundI:
+  assumes finite:
+      "finite (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))"
+    and card_bound:
+      "card (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c))) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "rsize_set (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))) \<le> C * M"
+proof -
+  let ?D = "rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  have member_size: "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> M"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      by (rule
+          afactored1_strong_dlform_universe_owner_dag_member_size_le_generated_rsizes
+          [OF x])
+    also have "... \<le> M"
+      by (rule generated_size)
+    finally show "rsize x \<le> M" .
+  qed
+  have "rsize_set ?D \<le> card ?D * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_owner_dag_list_boundI:
+  assumes finite:
+      "finite (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c)))"
+    and card_bound:
+      "card (rsubterm_closure
+        (raw_shared_prune_active_suffix_owner
+          (afactored1_strong_dlform_universe r s c))) \<le> C"
+    and list_cost: "afactored1_strong_dlform_list_cost r s c \<le> M"
+  shows "rsize_set (rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))) \<le> C * M"
+proof -
+  let ?D = "rsubterm_closure
+      (raw_shared_prune_active_suffix_owner
+        (afactored1_strong_dlform_universe r s c))"
+  have member_size: "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> M"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+      by (rule
+          afactored1_strong_dlform_universe_owner_dag_member_size_le_list_cost
+          [OF x])
+    also have "... \<le> M"
+      by (rule list_cost)
+    finally show "rsize x \<le> M" .
+  qed
+  have "rsize_set ?D \<le> card ?D * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

@@ -14112,3 +14112,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed, finishing `Posix` at 2026-06-12 03:11:24 local time.
+
+## 2026-06-12 Supervisor Checkpoint: owner DAG size budget packaged
+
+- Added checked step-local owner-DAG member-size and conditional `rsize_set`
+  bounds:
+
+  ```text
+  afactored1_strong_dlform_universe_owner_dag_member_size_le_generated_rsizes
+  afactored1_strong_dlform_universe_owner_dag_member_size_le_list_cost
+  rsize_set_afactored1_strong_dlform_universe_owner_dag_generated_boundI
+  rsize_set_afactored1_strong_dlform_universe_owner_dag_list_boundI
+  ```
+
+- Plain meaning: every node inside the owner DAG has size bounded by the same
+  generated/list budget as the original step-local universe.  Therefore, once a
+  finite cardinality bound `card owner_dag <= C` is proved, Isabelle now gives
+  `rsize_set owner_dag <= C * M`.
+- This deliberately does not claim the owner DAG is cubic yet.  It removes the
+  separate size-budget obligation so the remaining hard task is the owner-DAG
+  finiteness/cardinality argument itself.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 03:15:33 local time.

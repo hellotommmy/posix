@@ -214,6 +214,8 @@ Read only these regions first:
    - `afactored1_strong_dlform_universe_owner_active_suffix_key_size_le_list_cost`
    - `afactored1_strong_dlform_universe_owner_active_suffix_key_dag_subset_owner_dag`
    - `card_afactored1_strong_dlform_universe_owner_active_suffix_key_dag_le_owner_dag`
+   - `afactored1_strong_dlform_universe_owner_dag_member_size_le_list_cost`
+   - `rsize_set_afactored1_strong_dlform_universe_owner_dag_list_boundI`
    - `afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost`
    - `rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI`
 3. `FBound.thy`
@@ -319,8 +321,9 @@ most useful routes are now:
    heads to the current strong-front carrier and suffix/key pieces to the
    active owner/key-DAG accounting.  Owner active-key atoms and key sizes are
    also packaged.  The key-DAG projection into the owner DAG is now packaged
-   too; the missing step is a real owner-DAG/cardinality bound, not another
-   key-size or key-projection lemma.
+   too.  Owner-DAG member-size and conditional `rsize_set` bounds are also
+   packaged.  The missing step is a real owner-DAG finiteness/cardinality
+   bound, not another key-size, key-projection, or owner-size lemma.
 3. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete
