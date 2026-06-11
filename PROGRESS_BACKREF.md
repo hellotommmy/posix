@@ -14492,3 +14492,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   only.  Note the admin added 20k simulated USD to the pool for the
   final cubic theorem and major progress leading to it; board update
   is for the admin/steward to record formally in BACKREF_BOUNTIES.md.
+
+## 2026-06-12 Fable Checkpoint: first unconditional per-step count bound in r only
+
+- New checked lemmas:
+
+  ```text
+  sum_front_cubes_le_length_times_total
+  card_afactored1_strong_one_pass_rows_root_budget
+  ```
+
+- Plain meaning: under legacy + apder_nf, one derivative step of the
+  one-pass route produces at most
+  `2*B^3 * (2*(2*B^3+3)^3)` distinct rows, where
+  `B = apder_awidth r + rsize r + 3`.  This is the first end-to-end
+  numeric bound depending only on r, with no closure object and no
+  unproved premise.
+- Honest assessment: the bound is crude (around B^12).  The loss is in
+  one specific step: bounding every front row size by the front TOTAL
+  size before cubing.  Tightening means using per-row budgets
+  (front members sit in apder_rows r, whose member sizes have checked
+  square bounds), which would give roughly B^3 * (B^2+3)^3 ~ B^9, and
+  the real cubic target needs the same-front sharing argument on top.
+  The chain to tighten is now fully explicit and numeric:
+  card one_pass <= rsizes generated <= sum of per-front-row cubes
+  <= (count) * (max row)^3.
+- Build: `Finished Posix` 05:58:50.  Continuing immediately with the
+  per-row tightening (replace total-size by the checked apder_rows
+  member square bound).
