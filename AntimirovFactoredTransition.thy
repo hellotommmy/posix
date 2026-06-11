@@ -18545,6 +18545,109 @@ lemma afactored1_strong_dlform_universe_active_suffix_closure_key_aseq_union_sub
   by blast
 
 text \<open>
+  Row grammar for the step-local strong universe.  Every member is a
+  tail-normal, nonalt, nonzero row.  A member that is not a sequence is
+  itself an atom of the checked current-front carrier
+  \<open>strong_derivative_front_terms root (front @ [c])\<close>; a sequence member
+  splits into a non-sequence head (an atom of the carrier when the head
+  is nonalt, otherwise an \<open>RALTS\<close> row block, i.e. a keyed row) and a
+  tail-normal suffix whose atoms also lie in the carrier.  This is the
+  structural basis for a step-local (payload, suffix-key) accounting of
+  the universe.
+\<close>
+
+lemma afactored1_strong_dlform_universe_member_rtail_nf_props:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  obtain p where p:
+      "p \<in> set (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  show ?thesis
+    by (rule row_dlforms_member_rtail_nf_props
+        [OF rtail_nf_rsimpStrong_raw p(2)])
+qed
+
+lemma afactored1_strong_dlform_universe_member_atomic:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+  shows "row_dlforms x = {x}"
+proof -
+  obtain p where p:
+      "p \<in> set (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  show ?thesis
+    by (rule row_dlforms_member_atomic_rtail_nf
+        [OF rtail_nf_rsimpStrong_raw p(2)])
+qed
+
+lemma afactored1_strong_dlform_universe_nonseq_member_in_front_terms:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+    and ns: "rnonseq x"
+  shows "x \<in> strong_derivative_front_terms root (front @ [c])"
+proof -
+  have props: "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    by (rule afactored1_strong_dlform_universe_member_rtail_nf_props
+        [OF x])
+  have terms: "aseq_terms x = {x}"
+    using props ns by (cases x) auto
+  show ?thesis
+    using afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+      [OF x] terms
+    by auto
+qed
+
+lemma afactored1_strong_dlform_universe_seq_member_decomp:
+  assumes x: "RSEQ h t \<in> afactored1_strong_dlform_universe root front c"
+  shows "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+    rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
+    aseq_terms h \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    aseq_terms t \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+proof -
+  have props: "rtail_nf (RSEQ h t) \<and> nonalt (RSEQ h t) \<and>
+      RSEQ h t \<noteq> RZERO"
+    by (rule afactored1_strong_dlform_universe_member_rtail_nf_props
+        [OF x])
+  have shape: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE"
+    using props by simp
+  have aseq: "aseq_terms h \<union> aseq_terms t \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    using afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+      [OF x]
+    by simp
+  show ?thesis
+    using shape aseq by blast
+qed
+
+lemma afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms:
+  assumes x: "RSEQ h t \<in> afactored1_strong_dlform_universe root front c"
+    and na: "nonalt h"
+  shows "h \<in> strong_derivative_front_terms root (front @ [c])"
+proof -
+  have decomp: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
+      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
+      aseq_terms h \<subseteq>
+        strong_derivative_front_terms root (front @ [c]) \<and>
+      aseq_terms t \<subseteq>
+        strong_derivative_front_terms root (front @ [c])"
+    by (rule afactored1_strong_dlform_universe_seq_member_decomp[OF x])
+  have terms: "aseq_terms h = {h}"
+    using decomp na by (cases h) auto
+  show ?thesis
+    using decomp terms by auto
+qed
+
+text \<open>
   Owner bridge: the carrier and row-grammar facts lift from the
   one-step active-suffix closure to the full inductive least-owner set
   \<open>raw_shared_prune_active_suffix_owner\<close>.  Iterated same-key pruning
@@ -18650,109 +18753,6 @@ proof -
       afactored1_strong_dlform_universe_owner_aseq_subset_same_strong_front
       [OF x] terms
     by auto
-qed
-
-text \<open>
-  Row grammar for the step-local strong universe.  Every member is a
-  tail-normal, nonalt, nonzero row.  A member that is not a sequence is
-  itself an atom of the checked current-front carrier
-  \<open>strong_derivative_front_terms root (front @ [c])\<close>; a sequence member
-  splits into a non-sequence head (an atom of the carrier when the head
-  is nonalt, otherwise an \<open>RALTS\<close> row block, i.e. a keyed row) and a
-  tail-normal suffix whose atoms also lie in the carrier.  This is the
-  structural basis for a step-local (payload, suffix-key) accounting of
-  the universe.
-\<close>
-
-lemma afactored1_strong_dlform_universe_member_rtail_nf_props:
-  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
-  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
-proof -
-  obtain p where p:
-      "p \<in> set (concat (map (rpder_norm_list c)
-        (afactored1 root front)))"
-      "x \<in> row_dlforms (rsimpStrong_raw p)"
-    using x
-    by (auto simp add: afactored1_strong_dlform_universe_def
-        rsimpStrong_dlform_closure_def)
-  show ?thesis
-    by (rule row_dlforms_member_rtail_nf_props
-        [OF rtail_nf_rsimpStrong_raw p(2)])
-qed
-
-lemma afactored1_strong_dlform_universe_member_atomic:
-  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
-  shows "row_dlforms x = {x}"
-proof -
-  obtain p where p:
-      "p \<in> set (concat (map (rpder_norm_list c)
-        (afactored1 root front)))"
-      "x \<in> row_dlforms (rsimpStrong_raw p)"
-    using x
-    by (auto simp add: afactored1_strong_dlform_universe_def
-        rsimpStrong_dlform_closure_def)
-  show ?thesis
-    by (rule row_dlforms_member_atomic_rtail_nf
-        [OF rtail_nf_rsimpStrong_raw p(2)])
-qed
-
-lemma afactored1_strong_dlform_universe_nonseq_member_in_front_terms:
-  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
-    and ns: "rnonseq x"
-  shows "x \<in> strong_derivative_front_terms root (front @ [c])"
-proof -
-  have props: "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
-    by (rule afactored1_strong_dlform_universe_member_rtail_nf_props
-        [OF x])
-  have terms: "aseq_terms x = {x}"
-    using props ns by (cases x) auto
-  show ?thesis
-    using afactored1_strong_dlform_universe_aseq_subset_same_strong_front
-      [OF x] terms
-    by auto
-qed
-
-lemma afactored1_strong_dlform_universe_seq_member_decomp:
-  assumes x: "RSEQ h t \<in> afactored1_strong_dlform_universe root front c"
-  shows "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
-    rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
-    aseq_terms h \<subseteq>
-      strong_derivative_front_terms root (front @ [c]) \<and>
-    aseq_terms t \<subseteq>
-      strong_derivative_front_terms root (front @ [c])"
-proof -
-  have props: "rtail_nf (RSEQ h t) \<and> nonalt (RSEQ h t) \<and>
-      RSEQ h t \<noteq> RZERO"
-    by (rule afactored1_strong_dlform_universe_member_rtail_nf_props
-        [OF x])
-  have shape: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
-      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE"
-    using props by simp
-  have aseq: "aseq_terms h \<union> aseq_terms t \<subseteq>
-      strong_derivative_front_terms root (front @ [c])"
-    using afactored1_strong_dlform_universe_aseq_subset_same_strong_front
-      [OF x]
-    by simp
-  show ?thesis
-    using shape aseq by blast
-qed
-
-lemma afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms:
-  assumes x: "RSEQ h t \<in> afactored1_strong_dlform_universe root front c"
-    and na: "nonalt h"
-  shows "h \<in> strong_derivative_front_terms root (front @ [c])"
-proof -
-  have decomp: "rtail_nf h \<and> rnonseq h \<and> h \<noteq> RZERO \<and> h \<noteq> RONE \<and>
-      rtail_nf t \<and> t \<noteq> RZERO \<and> t \<noteq> RONE \<and>
-      aseq_terms h \<subseteq>
-        strong_derivative_front_terms root (front @ [c]) \<and>
-      aseq_terms t \<subseteq>
-        strong_derivative_front_terms root (front @ [c])"
-    by (rule afactored1_strong_dlform_universe_seq_member_decomp[OF x])
-  have terms: "aseq_terms h = {h}"
-    using decomp na by (cases h) auto
-  show ?thesis
-    using decomp terms by auto
 qed
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:

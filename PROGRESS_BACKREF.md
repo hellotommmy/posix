@@ -13933,3 +13933,39 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```
 
   passed on the edited `Posix` session.
+
+## 2026-06-12 Fable Checkpoint: owner bridge for the step-local universe
+
+- Accepted the supervisor smoke verdict: the nested-RNTIMES family is
+  stress evidence only; the active key-DAG/owner metrics stay far under
+  budget, so route 2 continues on the owner/cardinality problem, not on
+  re-scoping.
+- New checked lemmas in `AntimirovFactoredTransition.thy` (placed after
+  the row-grammar pack):
+
+  ```text
+  raw_shared_prune_pair_outputs_aseq_subsetI
+  raw_shared_prune_pair_outputs_member_rtail_nf_props
+  afactored1_strong_dlform_universe_owner_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_owner_member_rtail_nf_props
+  afactored1_strong_dlform_universe_owner_nonseq_member_in_front_terms
+  ```
+
+- Meaning: the carrier and row-grammar facts now lift from the one-step
+  active-suffix closure to the full inductive least-owner set
+  `raw_shared_prune_active_suffix_owner` over the step-local universe.
+  At EVERY pruning depth: outputs keep all split atoms inside the
+  current strong front carrier, stay tail-normal/nonalt/nonzero, and
+  non-sequence owner members are themselves carrier atoms.  The general
+  pair-output lemmas are universe-agnostic and reusable for the FBound
+  least-owner DAG contracts.
+- Build note: the verification run checked every theory 100%
+  (`AntimirovFactoredTransition` 71.0s) but the final database write
+  collided again with a concurrent build
+  (`SQLITE_CONSTRAINT_PRIMARYKEY`).  Content is proof-green; the next
+  uncontended run will record it.  Please coordinate build slots.
+- Next sub-target: owner-set SEQ decomposition (head in carrier or
+  keyed block) mirroring
+  `afactored1_strong_dlform_universe_seq_member_decomp`, then the
+  cardinality side: bound owner rows by (carrier heads) x (key-DAG)
+  via the existing decomp contracts.
