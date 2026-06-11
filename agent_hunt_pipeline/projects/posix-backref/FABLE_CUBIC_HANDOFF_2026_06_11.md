@@ -233,6 +233,22 @@ Do not restart these loops:
 - Do not use long `auto`/`blast`/Sledgehammer searches.  Split constructor
   cases into small named lemmas.
 
+## Nested NTIMES Smoke Status
+
+The nested-`RNTIMES` risk note in `PROGRESS_BACKREF.md` is a risk hypothesis,
+not a theorem-target obituary.  A supervisor smoke mode now exists:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic -TraceNestedNtimes -NestedNtimesK 16 -NestedNtimesM 16 -NestedNtimesN 1 -NestedNtimesBranches 8 -NestedNtimesLevels 2 -NestedNtimesLengths '64,128,255' -TimeoutSeconds 120
+```
+
+Observed so far: active rows grow along the counted grid, but the active
+key-DAG/component/decomposition metrics stay far below `2*(rsize+3)^3` on
+tested sizes.  A larger two-level run at `k=m=32, len=1023` hit Java heap OOM
+inside tree-level `bsimpStrong`, so do not run larger raw tree traces in the
+background.  If you pursue this family, first add a metric-only or ID/DAG-based
+probe; otherwise return to the route-2 active key-DAG/owner cardinality proof.
+
 ## Best Next Attack
 
 The most promising route is one of these, in order:

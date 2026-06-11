@@ -13782,3 +13782,53 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - No Isabelle edit this cycle pending the smoke verdict; this avoids
   proving against a possibly-false statement and avoids colliding with
   the supervisor's active packaging pipeline.
+
+## 2026-06-12 Supervisor Smoke: nested NTIMES risk probe
+
+- Added a bounded Scala smoke trace mode for the nested counted-repetition
+  risk family:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\agent_hunt_pipeline\scripts\scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic -TraceNestedNtimes -NestedNtimesK 16 -NestedNtimesM 16 -NestedNtimesN 1 -NestedNtimesBranches 8 -NestedNtimesLevels 2 -NestedNtimesLengths '64,128,255' -TimeoutSeconds 120
+  ```
+
+- The generated family is:
+
+  ```text
+  SEQ (STAR (CH a))
+      (nested NTIMES of X)
+  X = SEQ (CH a) (ALT (NTIMES ONE 1) ... (NTIMES ONE branches))
+  ```
+
+  This matches the important part of the Fable risk analysis: the prefix
+  `STAR a` can inject a fresh counted-repetition chain at each derivative
+  step, while the branch alternatives have zero Antimirov width.
+- Checked smoke observations:
+
+  ```text
+  levels=3 k=m=n=4 branches=8, len=64:
+    strongTree=15658, activeRows=64, activeDecomp=186,
+    treeOver2cubic=0.014199, activeDecompOver2cubic=0.000169
+
+  levels=2 k=m=16 branches=8, len=255:
+    strongTree=50853, activeRows=255, activeDecomp=571,
+    treeOver2cubic=0.024679, activeDecompOver2cubic=0.000277
+
+  levels=2 k=m=32 branches=8:
+    len=256 gives strongTree=62333, activeRows=256
+    len=512 gives strongTree=122493, activeRows=512
+    attempting len=1023 hit Java heap OOM inside tree-level bsimpStrong.
+  ```
+
+- Interpretation in plain terms: this is a real stress family for the
+  executable tree simplifier, and large direct tree traces can run out of heap.
+  It is not yet a checked counterexample to the current route-2 proof target.
+  On the tested sizes, the active-suffix rows grow with the expected counted
+  grid, but the active key-DAG/component/decomposition metrics are still tiny
+  compared with `2 * (rsize r + 3)^3`.
+- Guidance: do not re-scope the theorem just from the hand asymptotic note.
+  If this family is pursued, first build a metric-only or ID/DAG-based probe
+  that avoids materializing the full tree at large lengths, then either record
+  a concrete executable counterexample or return to the active key-DAG/owner
+  cardinality proof.  Do not run larger raw tree traces in background without
+  an explicit timeout and small sampled lengths.

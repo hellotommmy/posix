@@ -5045,6 +5045,18 @@ object PosixCubicSmoke {
   def thesisCh7Evil(k: Int): Rexp =
     STAR(STAR(altList((1 to k).toList.map(n => STAR(charPower('a', n))))))
 
+  def nestedNtimesRisk(k: Int, m: Int, n: Int, branches: Int, levels: Int): Rexp = {
+    val safeBranches = math.max(1, branches)
+    val zeroWidthBranches = (1 to safeBranches).toList.map(i => NTIMES(ONE, i))
+    val step = SEQ(CH('a'), altList(zeroWidthBranches))
+    val repeated = math.max(1, math.min(3, levels)) match {
+      case 1 => NTIMES(step, k)
+      case 2 => NTIMES(NTIMES(step, k), m)
+      case _ => NTIMES(NTIMES(NTIMES(step, k), m), n)
+    }
+    SEQ(STAR(CH('a')), repeated)
+  }
+
   def stringsUpTo(maxLen: Int): List[String] = {
     def exact(n: Int): List[String] =
       if (n == 0) List("")
@@ -7075,6 +7087,74 @@ object PosixCubicSmoke {
     println(s"wrote Chapter 7 size CSV: $path")
   }
 
+  def checkNestedNtimesRiskTrace(
+      k: Int,
+      m: Int,
+      n: Int,
+      branches: Int,
+      levels: Int,
+      lengths: List[Int]
+  ): Unit = {
+    val r = nestedNtimesRisk(k, m, n, branches, levels)
+    val rootSize = rsize(r).toLong
+    def cube(x: Long): Long = x * x * x
+    val twoCubicBudget = 2L * cube(rootSize + 3L)
+    println(
+      s"nested NTIMES risk trace: levels=$levels k=$k m=$m n=$n branches=$branches " +
+        s"rsize=$rootSize budget2cubic=$twoCubicBudget regex=$r")
+    val targets = lengths.filter(_ >= 0).distinct.sorted
+    val roots = scala.collection.mutable.ListBuffer.empty[ARexp]
+    var root = intern(r)
+    roots += root
+
+    def report(len: Int): Unit = {
+      val active = activeSuffixStatsForStrongRoots(roots)
+      val finalActive = activeSuffixStatsForStrongRoots(List(root))
+      val strongTree = asize(root)
+      val strongDag = adagSize(root)
+      val strongShapeDag = ashapeDagSize(root)
+      val activeDecompRatio =
+        active.decompBoundSize.toDouble / math.max(1.0, twoCubicBudget.toDouble)
+      val finalDecompRatio =
+        finalActive.decompBoundSize.toDouble / math.max(1.0, twoCubicBudget.toDouble)
+      val treeRatio =
+        strongTree.toDouble / math.max(1.0, twoCubicBudget.toDouble)
+      println(
+        f"nested NTIMES len=$len accepts=${bnullable(root)} strongTree=$strongTree" +
+          f"/dag=$strongDag/shape=$strongShapeDag" +
+          f"/treeOver2cubic=$treeRatio%.6f" +
+          s"/activeRows=${active.rows}/activeKeys=${active.keys}" +
+          s"/activeKeyDag=${active.keyDagUniverseSize}" +
+          s"/activeComponentUnion=${active.componentUnionSize}" +
+          s"/activeDecomp=${active.decompBoundSize}" +
+          f"/activeDecompOver2cubic=$activeDecompRatio%.6f" +
+          s"/activePairs=${active.pairBudget}" +
+          s"/finalRows=${finalActive.rows}/finalKeys=${finalActive.keys}" +
+          s"/finalKeyDag=${finalActive.keyDagUniverseSize}" +
+          s"/finalComponentUnion=${finalActive.componentUnionSize}" +
+          s"/finalDecomp=${finalActive.decompBoundSize}" +
+          f"/finalDecompOver2cubic=$finalDecompRatio%.6f" +
+          s"/finalPairs=${finalActive.pairBudget}")
+    }
+
+    var targetIndex = 0
+    while (targetIndex < targets.length && targets(targetIndex) == 0) {
+      report(0)
+      targetIndex += 1
+    }
+    val maxLen = if (targets.isEmpty) 0 else targets.max
+    var len = 0
+    while (len < maxLen) {
+      root = bsimpStrong(bder('a', root))
+      roots += root
+      len += 1
+      while (targetIndex < targets.length && targets(targetIndex) == len) {
+        report(len)
+        targetIndex += 1
+      }
+    }
+  }
+
   def checkStrongDeferredMemoEvilFamilyTrace(
       k: Int,
       lengths: List[Int],
@@ -8258,6 +8338,16 @@ object PosixCubicSmoke {
     val ch7DagThreshold = intSetting("posix.smoke.ch7DagThreshold", "POSIX_SMOKE_CH7_DAG_THRESHOLD", 0)
     val ch7ShapeThreshold = intSetting("posix.smoke.ch7ShapeThreshold", "POSIX_SMOKE_CH7_SHAPE_THRESHOLD", 0)
     val ch7StrongCubicFactor = doubleSetting("posix.smoke.ch7StrongCubicFactor", "POSIX_SMOKE_CH7_STRONG_CUBIC_FACTOR", 0.0)
+    val traceNestedNtimes = boolSetting("posix.smoke.traceNestedNtimes", "POSIX_SMOKE_TRACE_NESTED_NTIMES", false)
+    val nestedNtimesK = intSetting("posix.smoke.nestedNtimesK", "POSIX_SMOKE_NESTED_NTIMES_K", 4)
+    val nestedNtimesM = intSetting("posix.smoke.nestedNtimesM", "POSIX_SMOKE_NESTED_NTIMES_M", 4)
+    val nestedNtimesN = intSetting("posix.smoke.nestedNtimesN", "POSIX_SMOKE_NESTED_NTIMES_N", 4)
+    val nestedNtimesBranches =
+      intSetting("posix.smoke.nestedNtimesBranches", "POSIX_SMOKE_NESTED_NTIMES_BRANCHES", 8)
+    val nestedNtimesLevels =
+      intSetting("posix.smoke.nestedNtimesLevels", "POSIX_SMOKE_NESTED_NTIMES_LEVELS", 3)
+    val nestedNtimesLengths =
+      intListSetting("posix.smoke.nestedNtimesLengths", "POSIX_SMOKE_NESTED_NTIMES_LENGTHS", List(16, 32, 64))
     val strongCubicFactor = doubleSetting("posix.smoke.strongCubicFactor", "POSIX_SMOKE_STRONG_CUBIC_FACTOR", 0.0)
     val strongCubicMinRegexSize = intSetting("posix.smoke.strongCubicMinRegexSize", "POSIX_SMOKE_STRONG_CUBIC_MIN_REGEX_SIZE", 5)
     val strongCubicTop = intSetting("posix.smoke.strongCubicTop", "POSIX_SMOKE_STRONG_CUBIC_TOP", 1)
@@ -8587,6 +8677,16 @@ object PosixCubicSmoke {
         strongCubicMinRegexSize,
         strongCubicTop,
         strongFinalActiveConfig
+      )
+    }
+    if (traceNestedNtimes) {
+      checkNestedNtimesRiskTrace(
+        nestedNtimesK,
+        nestedNtimesM,
+        nestedNtimesN,
+        nestedNtimesBranches,
+        nestedNtimesLevels,
+        nestedNtimesLengths
       )
     }
     if (traceStrongSafe) {
