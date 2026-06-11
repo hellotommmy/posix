@@ -13956,6 +13956,23 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   passed, and `codex-proof-workers.ps1 -Action Check` reported no matching
   proof-worker processes.
 
+- Fable background task `b0q9m40dl.output` later reached 100% on the relevant
+  theories and then ended with:
+
+  ```text
+  SQLITE_CONSTRAINT_PRIMARYKEY
+  ```
+
+  This is also not a proof error.  It happened while another Posix build was
+  running in the same repository, so two Isabelle processes raced on the build
+  database.  Before rerunning, check workers first:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+  ```
+
+  Then run only one Posix build at a time.
+
 ## 2026-06-12 Fable Checkpoint: owner bridge for the step-local universe
 
 - Accepted the supervisor smoke verdict: the nested-RNTIMES family is

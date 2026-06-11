@@ -347,5 +347,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-isabelle-build
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-proof-workers.ps1 -Action Check
 ```
 
+- Run only one Posix build at a time.  If all theories reach 100% and the
+  build then ends with `SQLITE_CONSTRAINT_PRIMARYKEY`, treat it as a concurrent
+  Isabelle build database collision, not as a proof failure.  Check workers,
+  wait for the other build to finish, and rerun the wrapper.
 - Record only concise progress notes.  Avoid copying long chat transcripts into
   the repo or prompt context.
