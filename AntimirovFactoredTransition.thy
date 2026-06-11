@@ -19903,6 +19903,36 @@ proof -
     by (rule order_trans[OF flts chain])
 qed
 
+lemma rsizes_afactored1_generated_rows_le_front_cubic_sum:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le>
+    sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+proof -
+  let ?front = "afactored1 r s"
+  have per_row: "\<And>q. q \<in> set ?front \<Longrightarrow>
+      rsizes (rpder_norm_list c q) \<le> 2 * (rsize q + 3) ^ 3"
+  proof -
+    fix q
+    assume qf: "q \<in> set ?front"
+    have q_legacy: "legacy_rrexp q"
+      by (rule legacy_afactored1_rows[OF legacy qf])
+    show "rsizes (rpder_norm_list c q) \<le> 2 * (rsize q + 3) ^ 3"
+      by (rule rsizes_rpder_norm_list_cubic[OF q_legacy])
+  qed
+  have "rsizes (concat (map (rpder_norm_list c) ?front)) =
+      sum_list (map (\<lambda>q. rsizes (rpder_norm_list c q)) ?front)"
+    by (rule rsizes_concat_map)
+  also have "... \<le> sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front)"
+    by (rule sum_list_mono) (rule per_row)
+  finally show ?thesis .
+qed
+
+lemma afactored1_strong_dlform_universe_generated_size_le_front_cubic_sum:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le>
+    sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+  by (rule rsizes_afactored1_generated_rows_le_front_cubic_sum[OF legacy])
+
 lemma card_afactored1_strong_dlform_universe_le_generated:
   "card (afactored1_strong_dlform_universe r s c) \<le>
     length (concat (map (rpder_norm_list c) (afactored1 r s))) +
@@ -19939,6 +19969,30 @@ proof -
     by (rule suc_split)
   finally show ?thesis
     using U_eq by simp
+qed
+
+lemma card_afactored1_strong_dlform_universe_le_twice_front_cubic_sum:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (afactored1_strong_dlform_universe r s c) \<le>
+    2 * sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+proof -
+  let ?gen = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  let ?S = "sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+  have card_gen:
+      "card (afactored1_strong_dlform_universe r s c) \<le>
+        length ?gen + rsizes ?gen"
+    by (rule card_afactored1_strong_dlform_universe_le_generated)
+  have len_gen: "length ?gen \<le> rsizes ?gen"
+    by (rule length_le_rsizes)
+  have size_gen: "rsizes ?gen \<le> ?S"
+    by (rule rsizes_afactored1_generated_rows_le_front_cubic_sum[OF legacy])
+  have "length ?gen + rsizes ?gen \<le> 2 * rsizes ?gen"
+    using len_gen by linarith
+  also have "... \<le> 2 * ?S"
+    by (rule mult_left_mono[OF size_gen]) simp
+  finally have "length ?gen + rsizes ?gen \<le> 2 * ?S" .
+  then show ?thesis
+    using card_gen by linarith
 qed
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:

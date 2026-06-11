@@ -14870,3 +14870,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   current evidence still does not refute the rsize-only one-step universe
   premise; the checked theorem route should now focus on bounding `rsizes gen`
   using counter-drain/live-counter accounting.
+
+## 2026-06-12 Supervisor: generated ledger reduced to front-sum
+
+- New checked lemmas:
+
+  ```text
+  rsizes_afactored1_generated_rows_le_front_cubic_sum
+  afactored1_strong_dlform_universe_generated_size_le_front_cubic_sum
+  card_afactored1_strong_dlform_universe_le_twice_front_cubic_sum
+  ```
+
+- Plain meaning: let `front = afactored1 r s` and
+  `gen = concat (map (rpder_norm_list c) front)`.  The total tree size of
+  `gen` is now bounded by the explicit front-sum
+
+  ```text
+  sum over q in front of 2 * (rsize q + 3)^3
+  ```
+
+  and the cardinality of the one-step dlform universe is at most twice that
+  same sum.
+- This is not the final cubic theorem.  It is the useful next reduction:
+  the remaining proof should show that this front-sum is cubic in the root
+  `rsize r`, using the live-counter/counter-drain structure of
+  `afactored1 r s`.  Do not return to broad universe/cardinality wrappers;
+  they now all point at this single front-sum obligation.
+- Verification: full `Posix` build passed at 2026-06-12 07:32:56 local time.
