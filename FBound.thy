@@ -2774,6 +2774,44 @@ lemma strong_deferred_strong_rows_raw_bridge_rows_append:
   by (simp add: strong_deferred_strong_rows_raw_bridge_rows_def
       rpders_strong1_rows_raw_append)
 
+lemma card_strong_deferred_strong_rows_raw_bridge_rows_le_length:
+  "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le>
+    length (rpders_strong1_rows_raw (rerase (intern r)) s)"
+  unfolding strong_deferred_strong_rows_raw_bridge_rows_def
+  by (rule card_length)
+
+lemma card_strong_deferred_strong_rows_raw_bridge_rows_finite_universe_boundI:
+  assumes init: "rerase (intern r) \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows_raw c xs) \<subseteq> U"
+      and finite: "finite U"
+  shows "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> card U"
+proof -
+  have "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le>
+      length (rpders_strong1_rows_raw (rerase (intern r)) s)"
+    by (rule card_strong_deferred_strong_rows_raw_bridge_rows_le_length)
+  also have "... \<le> card U"
+    by (rule length_rpders_strong1_rows_raw_finite_universe_boundI
+        [OF init step finite])
+  finally show ?thesis .
+qed
+
+lemma card_strong_deferred_strong_rows_raw_bridge_rows_card_boundI:
+  assumes init: "rerase (intern r) \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows_raw c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+  shows "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> C"
+proof -
+  have "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> card U"
+    by (rule card_strong_deferred_strong_rows_raw_bridge_rows_finite_universe_boundI
+        [OF init step finite])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
+qed
+
 lemma finite_strong_deferred_strong_rows_raw_bridge_owner [simp]:
   "finite (strong_deferred_strong_rows_raw_bridge_owner r s)"
   by (simp add: strong_deferred_strong_rows_raw_bridge_owner_def)
@@ -3009,6 +3047,29 @@ proof -
     by (rule
         card_strong_deferred_strong_rows_raw_least_owner_dag_closed_universe_boundI
         [OF rows active_suffix_closed subterm_closed finite card_bound])
+qed
+
+lemma card_strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_boundI:
+  assumes init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+  shows "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> C"
+proof -
+  have rows: "strong_deferred_strong_rows_raw_bridge_rows r s \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_subsetI
+        [OF init flat_closed norm active_suffix_closed])
+  have "card (strong_deferred_strong_rows_raw_bridge_rows r s) \<le> card U"
+    by (rule card_mono[OF finite rows])
+  also have "... \<le> C"
+    by (rule card_bound)
+  finally show ?thesis .
 qed
 
 lemma strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_member_sizeI:
@@ -9710,6 +9771,592 @@ lemma rxsize_ge1:
   "1 \<le> rxsize r"
   by (induct r) simp_all
 
+lemma length_rpder_norm_rows_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "length (rpder_norm_rows c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "length (rpder_norm_rows c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_norm_rows_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_norm_rows_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "card (set (rpder_norm_rows c [rerase (intern r)])) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "card (set (rpder_norm_rows c [rerase (intern r)])) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_norm_rows_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "length (rpder_strong_rows c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "length (rpder_strong_rows c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "card (set (rpder_strong_rows c [rerase (intern r)])) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "card (set (rpder_strong_rows c [rerase (intern r)])) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "rlinear_termss (rpder_strong_rows c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "rlinear_termss (rpder_strong_rows c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rlinear_termss_rpder_strong_rows_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_rerase_intern_single_cubic_budget_contract:
+  assumes legacy: "legacy_rexp r"
+  shows "RLS (set (rpder_strong_rows c [rerase (intern r)])) =
+      Der c (RL (rerase (intern r))) \<and>
+    length (rpder_strong_rows c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows c [rerase (intern r)])) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have contract:
+    "RLS (set (rpder_strong_rows c [rerase (intern r)])) =
+        Der c (RL (rerase (intern r))) \<and>
+      length (rpder_strong_rows c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set (rpder_strong_rows c [rerase (intern r)])) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss (rpder_strong_rows c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rsizes (rpder_strong_rows c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rpder_strong_rows_single_cubic_budget_contract[OF legacy_raw])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma length_rpder_strong_rows_clean_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "length (rpder_strong_rows_clean c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "length (rpder_strong_rows_clean c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_clean_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "card (set (rpder_strong_rows_clean c [rerase (intern r)])) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "card (set (rpder_strong_rows_clean c [rerase (intern r)])) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_clean_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_absorbed c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_clean_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_absorbed c [rerase (intern r)] rows"
+  shows "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "card (set rows) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_clean_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_absorbed c [rerase (intern r)] rows"
+  shows "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "rlinear_termss rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rlinear_termss_rpder_strong_rows_clean_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_absorbed_pruned c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_clean_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_absorbed_pruned c [rerase (intern r)] rows"
+  shows "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "rlinear_termss rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_absorbed_pruned c [rerase (intern r)] rows"
+  shows "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "card (set rows) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_clean_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_clean_terms_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "card (set rows) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_clean_terms_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "rlinear_termss rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_single_cubic
+        [OF legacy_raw absorbed])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "rlinear_termss rows \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule
+        rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "card (set rows) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+        [OF legacy_raw pruned])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic_bounds:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rpder_strong_rows_clean_terms_absorbed_single_cubic_bounds
+        [OF legacy_raw absorbed])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic_bounds:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_bounds
+        [OF legacy_raw pruned])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_bounds
+        [OF legacy_raw absorbed])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have "length rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule
+        rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_bounds
+        [OF legacy_raw pruned])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic_budget_contract:
+  assumes legacy: "legacy_rexp r"
+    and absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c [rerase (intern r)] rows"
+  shows "RLS (set rows) = Der c (RL (rerase (intern r))) \<and>
+    length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof (intro conjI)
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  show "RLS (set rows) = Der c (RL (rerase (intern r)))"
+    using rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_contract
+        [OF legacy_raw absorbed]
+    by simp
+  have budget:
+    "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+    by (rule
+        rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic_budget_bounds
+        [OF legacy absorbed])
+  show "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic_budget_contract:
+  assumes legacy: "legacy_rexp r"
+    and pruned:
+      "rpder_strong_rows_clean_terms_absorbed_pruned c [rerase (intern r)] rows"
+  shows "RLS (set rows) = Der c (RL (rerase (intern r))) \<and>
+    length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof (intro conjI)
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  show "RLS (set rows) = Der c (RL (rerase (intern r)))"
+    using
+      rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_contract
+        [OF legacy_raw pruned]
+    by simp
+  have budget:
+    "length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+    by (rule
+        rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic_budget_bounds
+        [OF legacy pruned])
+  show "length rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set rows) \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_choice_rerase_intern_single_cubic_budget_contract:
+  assumes legacy: "legacy_rexp r"
+    and choice:
+      "rpder_strong_rows_clean_terms_choice c [rerase (intern r)] rows"
+  shows "RLS (set rows) = Der c (RL (rerase (intern r))) \<and>
+    length rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  show ?thesis
+    using
+      rpder_strong_rows_clean_terms_choice_single_cubic_budget_contract
+        [OF legacy_raw choice]
+    by (simp add: rsize_rerase_intern)
+qed
+
+lemma length_rpder_strong_rows_raw_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "length (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "length (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule length_rpder_strong_rows_raw_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_raw_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "card (set (rpder_strong_rows_raw c [rerase (intern r)])) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "card (set (rpder_strong_rows_raw c [rerase (intern r)])) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule card_set_rpder_strong_rows_raw_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_raw_rerase_intern_single_cubic:
+  assumes "legacy_rexp r"
+  shows "rlinear_termss (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+    2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using assms by (simp add: legacy_rerase_intern)
+  have "rlinear_termss (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+      2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rlinear_termss_rpder_strong_rows_raw_single_cubic[OF legacy_raw])
+  also have "... = 2 * (rxsize r + 3) ^ 3"
+    by (simp add: rsize_rerase_intern)
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_raw_rerase_intern_single_cubic_budget_contract:
+  assumes legacy: "legacy_rexp r"
+  shows "RLS (set (rpder_strong_rows_raw c [rerase (intern r)])) =
+      Der c (RL (rerase (intern r))) \<and>
+    length (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows_raw c [rerase (intern r)])) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+      2 * (rxsize r + 3) ^ 3"
+proof -
+  have legacy_raw: "legacy_rrexp (rerase (intern r))"
+    using legacy by (simp add: legacy_rerase_intern)
+  have contract:
+    "RLS (set (rpder_strong_rows_raw c [rerase (intern r)])) =
+        Der c (RL (rerase (intern r))) \<and>
+      length (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      card (set (rpder_strong_rows_raw c [rerase (intern r)])) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rlinear_termss (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3 \<and>
+      rsizes (rpder_strong_rows_raw c [rerase (intern r)]) \<le>
+        2 * (rsize (rerase (intern r)) + 3) ^ 3"
+    by (rule rpder_strong_rows_raw_single_cubic_budget_contract[OF legacy_raw])
+  then show ?thesis
+    by (simp add: rsize_rerase_intern)
+qed
+
 lemma nat_square_le_cube_if_pos:
   fixes n :: nat
   assumes "1 \<le> n"
@@ -11329,6 +11976,30 @@ proof (rule rsizes_distinct_finite_universe_bound)
     by (rule member_size)
 qed
 
+lemma rpders_strong1_rows_raw_intern_least_owner_dag_budget_boundI:
+  assumes finite:
+      "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+    and member_size:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_least_owner_dag r s \<Longrightarrow>
+        rsize q \<le> M"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le>
+      card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M"
+    by (rule rsizes_rpders_strong1_rows_raw_intern_least_owner_dag_boundI
+        [OF finite member_size])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
+qed
+
 lemma strong_deferred_row_gate_least_owner_dag_POSIX_contract:
   assumes legacy: "legacy_rexp r"
     and finite:
@@ -11400,6 +12071,98 @@ proof -
       \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
     by (rule
         raw_final_active_suffix_row_dag_universe_rsimpStrong_ALTs_raw_bridge_rows_subset_least_owner_dag)
+qed
+
+lemma strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract:
+  assumes legacy: "legacy_rexp r"
+    and finite:
+      "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+    and card_bound:
+      "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
+    and member_size:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_least_owner_dag r s \<Longrightarrow>
+        rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    and "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+proof -
+  have card_times:
+    "card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  have budget_target:
+    "card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<le> B"
+    using card_times cubic by linarith
+  have raw_budget:
+    "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+        card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+      card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le>
+        card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+      rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+        card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M \<and>
+      rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+        card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M"
+    by (rule rpders_strong1_rows_raw_intern_least_owner_dag_budget_boundI
+        [OF finite member_size])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(1)
+        [OF legacy finite card_bound member_size cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(2)
+        [OF legacy finite card_bound member_size cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(3)
+        [OF legacy finite card_bound member_size cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(4)
+        [OF legacy finite card_bound member_size cubic])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget budget_target by linarith
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    using raw_budget budget_target by linarith
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget budget_target by linarith
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget budget_target by linarith
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(6)
+        [OF legacy finite card_bound member_size cubic])
+  show "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(7)
+        [OF legacy finite card_bound member_size cubic])
+  show "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_POSIX_contract(8)
+        [OF legacy finite card_bound member_size cubic])
 qed
 
 lemma strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract:
@@ -11562,6 +12325,120 @@ proof -
       \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
     by (rule strong_deferred_row_gate_least_owner_dag_rows_member_POSIX_contract(8)
         [OF legacy dag_card rows_member cubic])
+qed
+
+lemma strong_deferred_row_gate_norm_active_suffix_universe_accumulator_POSIX_contract:
+  assumes legacy: "legacy_rexp r"
+    and init: "rerase (intern r) \<in> U"
+    and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+    and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+      q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+    and active_suffix_closed:
+      "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+    and subterm_closed: "\<And>q. q \<in> U \<Longrightarrow> rsubterms q \<subseteq> U"
+    and finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> B"
+  shows "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    and "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+proof -
+  have rows:
+      "rsubterm_closure (strong_deferred_strong_rows_raw_bridge_rows r s)
+        \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_bridge_rows_subterm_closure_norm_active_suffix_subsetI
+        [OF init flat_closed norm active_suffix_closed subterm_closed])
+  have dag_subset:
+      "strong_deferred_strong_rows_raw_least_owner_dag r s \<subseteq> U"
+    by (rule
+        strong_deferred_strong_rows_raw_least_owner_dag_subset_closed_universeI
+        [OF rows active_suffix_closed subterm_closed])
+  have dag_finite:
+      "finite (strong_deferred_strong_rows_raw_least_owner_dag r s)"
+    by (rule finite_subset[OF dag_subset finite])
+  have dag_card:
+      "card (strong_deferred_strong_rows_raw_least_owner_dag r s) \<le> C"
+    by (rule
+        card_strong_deferred_strong_rows_raw_least_owner_dag_norm_active_suffix_universe_boundI
+        [OF init flat_closed norm active_suffix_closed subterm_closed finite
+          card_bound])
+  have dag_member:
+      "\<And>q. q \<in> strong_deferred_strong_rows_raw_least_owner_dag r s \<Longrightarrow>
+        rsize q \<le> M"
+  proof -
+    fix q
+    assume q: "q \<in> strong_deferred_strong_rows_raw_least_owner_dag r s"
+    have "q \<in> U"
+      using dag_subset q by blast
+    then show "rsize q \<le> M"
+      by (rule member_size)
+  qed
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(1)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(2)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "((if (\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(3)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(4)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(5)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(6)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(7)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(8)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(9)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "set (map rerase (bpders_strong1_rows (intern r) s)) \<subseteq>
+      strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(10)
+        [OF legacy dag_finite dag_card dag_member cubic])
+  show "raw_final_active_suffix_row_dag_universe
+        (rsimpStrong_ALTs_raw
+          (rpders_strong1_rows_raw (rerase (intern r)) s))
+      \<subseteq> strong_deferred_strong_rows_raw_least_owner_dag r s"
+    by (rule strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract(11)
+        [OF legacy dag_finite dag_card dag_member cubic])
 qed
 
 lemma length_bpders_strong_rows_finite_universe_boundI:
@@ -11857,6 +12734,27 @@ proof -
     by (rule asize_intern)
 qed
 
+lemma strong_deferred_original_raw_row_accumulator_budget_contract:
+  assumes init: "rerase (intern r) \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows_raw c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule rsizes_rpders_strong1_rows_raw_cubic_universe_boundI
+        [OF init step finite card_bound member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
+qed
+
 lemma asizes_bpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI:
   assumes init: "rerase r \<in> U"
     and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
@@ -11935,6 +12833,34 @@ proof -
     by (rule asize_intern)
 qed
 
+lemma strong_deferred_original_raw_row_norm_later_shared_accumulator_budget_contract:
+  assumes init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and shared: "\<And>lrs rrs k.
+        RSEQ (RALTS rrs) k \<in> U \<Longrightarrow>
+        set (rflts [rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rrs)) k]) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_later_shared_cubic_universe_boundI
+        [OF init flat_closed norm shared finite card_bound member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
+qed
+
 lemma asizes_bpders_strong1_rows_raw_norm_closed_cubic_universe_boundI:
   assumes init: "rerase r \<in> U"
     and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
@@ -11964,6 +12890,30 @@ proof -
   qed
   then show ?thesis
     using raw_bound by simp
+qed
+
+lemma strong_deferred_original_raw_row_norm_closed_accumulator_budget_contract:
+  assumes init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and closed: "raw_shared_prune_closed U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule rsizes_rpders_strong1_rows_raw_norm_closed_cubic_universe_boundI
+        [OF init flat_closed norm closed finite card_bound member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
 qed
 
 lemma asizes_bpders_strong1_rows_raw_norm_same_suffix_cubic_universe_boundI:
@@ -11999,6 +12949,32 @@ proof -
     using raw_bound by simp
 qed
 
+lemma strong_deferred_original_raw_row_norm_same_suffix_accumulator_budget_contract:
+  assumes init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and same_suffix_closed: "raw_shared_prune_same_suffix_closure U \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_same_suffix_cubic_universe_boundI
+        [OF init flat_closed norm same_suffix_closed finite card_bound
+          member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
+qed
+
 lemma asizes_bpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI:
   assumes init: "rerase r \<in> U"
     and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
@@ -12018,6 +12994,32 @@ proof -
   show ?thesis
     by (rule asizes_bpders_strong1_rows_raw_norm_closed_cubic_universe_boundI
         [OF init flat_closed norm closed finite card_bound member_size cubic])
+qed
+
+lemma strong_deferred_original_raw_row_norm_active_suffix_accumulator_budget_contract:
+  assumes init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        rsizes_rpders_strong1_rows_raw_norm_active_suffix_cubic_universe_boundI
+        [OF init flat_closed norm active_suffix_closed finite card_bound
+          member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
 qed
 
 lemma strong_deferred_original_raw_row_norm_closed_cubic_universe_interface:
@@ -12529,6 +13531,151 @@ proof -
           card_bound member_size cubic])
 qed
 
+lemma strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract:
+  assumes legacy: "legacy_rexp r"
+      and init: "rerase (intern r) \<in> U"
+      and flat_closed: "\<And>q. q \<in> U \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+      and norm: "\<And>xs c q p. set xs \<subseteq> U \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> U"
+      and active_suffix_closed: "raw_shared_prune_active_suffix_closure U \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  have raw_budget:
+    "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+      card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+      rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+      rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_accumulator_budget_contract
+        [OF init flat_closed norm active_suffix_closed finite card_bound
+          member_size cubic])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_tree_POSIX_flat)
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(1)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(2)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    using raw_budget by simp
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(4)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(5)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(6)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(7)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(8)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(9)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(10)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(11)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(12)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "asize (intern r) = rxsize r"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_cubic_interface(13)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+qed
+
 lemma strong_deferred_original_sizeNregex_memo_cubic_interface:
   assumes legacy: "legacy_rexp r"
       and init_size: "rxsize r \<le> N"
@@ -12624,6 +13771,459 @@ proof -
   show "asize (intern r) = rxsize r"
     by (rule strong_deferred_original_raw_row_norm_closed_memo_cubic_interface(13)
         [OF legacy init flat_closed norm closed finite card_bound member_size cubic])
+qed
+
+lemma strong_deferred_original_sizeNregex_memo_POSIX_accumulator_budget_contract:
+  assumes legacy: "legacy_rexp r"
+      and init_size: "rxsize r \<le> N"
+      and norm: "\<And>xs c q p. set xs \<subseteq> sizeNregex N \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> sizeNregex N"
+      and card_bound: "card (sizeNregex N) \<le> C"
+      and cubic: "C * N \<le> B"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  have init: "rerase (intern r) \<in> sizeNregex N"
+  proof -
+    have legacy_raw: "legacy_rrexp (rerase (intern r))"
+      using legacy by (simp add: legacy_rerase_intern)
+    have size_raw: "rsize (rerase (intern r)) \<le> N"
+      using init_size by (simp add: rsize_rerase_intern)
+    show ?thesis
+      using legacy_raw size_raw unfolding sizeNregex_def by simp
+  qed
+  have flat_closed:
+    "\<And>q. q \<in> sizeNregex N \<Longrightarrow> set (rflts [q]) \<subseteq> sizeNregex N"
+    by (rule rflts_sizeNregex_closed)
+  have closed: "raw_shared_prune_closed (sizeNregex N)"
+    by (rule raw_shared_prune_closed_sizeNregex)
+  have finite: "finite (sizeNregex N)"
+    by (rule finite_size_n)
+  have member_size: "\<And>q. q \<in> sizeNregex N \<Longrightarrow> rsize q \<le> N"
+    by (rule sizeNregex_member_size)
+  have raw_budget:
+    "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+      card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B \<and>
+      rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B \<and>
+      rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule strong_deferred_original_raw_row_norm_closed_accumulator_budget_contract
+        [OF init flat_closed norm closed finite card_bound member_size cubic])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(1))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule strong_deferred_memo_tree_POSIX_correctness(2))
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule strong_deferred_memo_tree_POSIX_flat)
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(1)
+        [OF legacy init_size norm card_bound cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(2)
+        [OF legacy init_size norm card_bound cubic])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    using raw_budget by simp
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    using raw_budget by simp
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(4)
+        [OF legacy init_size norm card_bound cubic])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(5)
+        [OF legacy init_size norm card_bound cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(6)
+        [OF legacy init_size norm card_bound cubic])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(7)
+        [OF legacy init_size norm card_bound cubic])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(8)
+        [OF legacy init_size norm card_bound cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(9)
+        [OF legacy init_size norm card_bound cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(10)
+        [OF legacy init_size norm card_bound cubic])
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(11)
+        [OF legacy init_size norm card_bound cubic])
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(12)
+        [OF legacy init_size norm card_bound cubic])
+  show "asize (intern r) = rxsize r"
+    by (rule strong_deferred_original_sizeNregex_memo_cubic_interface(13)
+        [OF legacy init_size norm card_bound cubic])
+qed
+
+lemma strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract:
+  assumes legacy: "legacy_rexp r"
+      and init_size: "rxsize r \<le> N"
+      and norm: "\<And>xs c q p. set xs \<subseteq> sizeNregex N \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> sizeNregex N"
+      and card_bound: "card (sizeNregex N) \<le> C"
+      and cubic: "C * N \<le> B"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  have init: "rerase (intern r) \<in> sizeNregex N"
+  proof -
+    have legacy_raw: "legacy_rrexp (rerase (intern r))"
+      using legacy by (simp add: legacy_rerase_intern)
+    have size_raw: "rsize (rerase (intern r)) \<le> N"
+      using init_size by (simp add: rsize_rerase_intern)
+    show ?thesis
+      using legacy_raw size_raw unfolding sizeNregex_def by simp
+  qed
+  have flat_closed:
+    "\<And>q. q \<in> sizeNregex N \<Longrightarrow> set (rflts [q]) \<subseteq> sizeNregex N"
+    by (rule rflts_sizeNregex_closed)
+  have active_suffix_closed:
+    "raw_shared_prune_active_suffix_closure (sizeNregex N) \<subseteq>
+      sizeNregex N"
+    by (rule raw_shared_prune_active_suffix_closure_sizeNregex_subset)
+  have finite: "finite (sizeNregex N)"
+    by (rule finite_size_n)
+  have member_size: "\<And>q. q \<in> sizeNregex N \<Longrightarrow> rsize q \<le> N"
+    by (rule sizeNregex_member_size)
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(1)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(2)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(3)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(4)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(5)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(6)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(7)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(8)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le> B"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(9)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(10)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(11)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(12)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(13)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(14)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(15)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(16)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(17)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(18)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+  show "asize (intern r) = rxsize r"
+    by (rule
+        strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract(19)
+        [OF legacy init flat_closed norm active_suffix_closed finite
+          card_bound member_size cubic])
+qed
+
+lemma strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_exact_budget_contract:
+  assumes legacy: "legacy_rexp r"
+      and init_size: "rxsize r \<le> N"
+      and norm: "\<And>xs c q p. set xs \<subseteq> sizeNregex N \<Longrightarrow>
+        q \<in> set xs \<Longrightarrow> p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+        set (rflts [rsimpStrong_raw p]) \<subseteq> sizeNregex N"
+  shows "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    and "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    and "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    and "asizes (bpders_strong1_rows (intern r) s) \<le>
+      card (sizeNregex N) * N"
+    and "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    and "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le>
+      card (sizeNregex N) * N"
+    and "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    and "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    and "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    and "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    and "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    and "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    and "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    and "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    and "rsize (rerase (intern r)) = rxsize r"
+    and "asize (intern r) = rxsize r"
+proof -
+  have card_refl: "card (sizeNregex N) \<le> card (sizeNregex N)"
+    by simp
+  have cubic_refl:
+    "card (sizeNregex N) * N \<le> card (sizeNregex N) * N"
+    by simp
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<longleftrightarrow> s \<in> r \<rightarrow> v"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(1)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = None) \<longleftrightarrow> \<not> (\<exists>v. s \<in> r \<rightarrow> v)"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(2)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "((if bnullable (bders_simpStrong (intern r) s)
+      then Some (THE v. strong_deferred_span_value r s v)
+      else None) = Some v) \<Longrightarrow> flat v = s"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(3)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "legacy_rrexp (rerase (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(4)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "asizes (bpders_strong1_rows (intern r) s) \<le>
+      card (sizeNregex N) * N"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(5)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "length (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(6)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "card (set (rpders_strong1_rows_raw (rerase (intern r)) s)) \<le>
+      card (sizeNregex N) * N"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(7)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "rlinear_termss (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(8)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "rsizes (rpders_strong1_rows_raw (rerase (intern r)) s) \<le>
+      card (sizeNregex N) * N"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(9)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "((\<exists>p \<in> set (bpders_strong1_rows (intern r) s). bnullable p) \<longleftrightarrow>
+      (\<exists>!v. strong_deferred_span_value r s v))"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(10)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "((\<exists>!v. strong_deferred_span_value r s v) \<longleftrightarrow>
+      bnullable (bders_simpStrong (intern r) s))"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(11)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "map rerase (bpders_strong1_rows (intern r) s) =
+      rpders_strong1_rows_raw (rerase (intern r)) s"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(12)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "card (rexp_span_states r s) + card (rexp_span_posix_states r s) \<le>
+      2 * rxsize r * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(13)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "card (rexp_span_all_split_probes r s) \<le>
+      rxsize r * Suc (length s) * Suc (length s) * Suc (length s)"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(14)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(15)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "\<forall>q i j. (q, i, j) \<in> rexp_span_posix_states r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(16)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "\<forall>q i k j. (q, i, k, j) \<in> rexp_span_all_split_probes r s \<longrightarrow>
+      legacy_rexp q"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(17)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "rsize (rerase (intern r)) = rxsize r"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(18)
+        [OF legacy init_size norm card_refl cubic_refl])
+  show "asize (intern r) = rxsize r"
+    by (rule
+        strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract(19)
+        [OF legacy init_size norm card_refl cubic_refl])
 qed
 
 lemma asize_bp_der_strong_finite_universe_boundI:

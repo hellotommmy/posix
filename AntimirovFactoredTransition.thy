@@ -1,0 +1,20603 @@
+theory AntimirovFactoredTransition
+  imports GeneralRegexBound
+begin
+
+section \<open>Pure Antimirov/Factored Row Transition\<close>
+
+text \<open>
+  This file isolates the pure Antimirov-style factored transition.  It does
+  not use the scan/prune strong simplifier; pruning should be treated later as
+  a language-preserving, budget-nonincreasing refinement of these rows.
+\<close>
+
+definition afactored_step :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "afactored_step c rs = rpder_norm_rows c rs"
+
+fun afactored_steps :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "afactored_steps rs [] = rs"
+| "afactored_steps rs (c # s) =
+    afactored_steps (afactored_step c rs) s"
+
+definition afactored1 :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "afactored1 r s = afactored_steps [r] s"
+
+definition anorm_der :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp" where
+  "anorm_der r s = rsimp_ALTs (afactored1 r s)"
+
+lemma afactored_steps_eq_rpders_norm_rows:
+  "afactored_steps rs s = rpders_norm_rows rs s"
+  by (induct s arbitrary: rs) (simp_all add: afactored_step_def)
+
+lemma afactored1_eq_rpders_norm1_rows:
+  "afactored1 r s = rpders_norm1_rows r s"
+  by (simp add: afactored1_def afactored_steps_eq_rpders_norm_rows
+      rpders_norm1_rows_def)
+
+lemma afactored_steps_append:
+  "afactored_steps rs (s @ t) =
+    afactored_steps (afactored_steps rs s) t"
+  by (induct s arbitrary: rs) simp_all
+
+lemma afactored1_snoc:
+  "afactored1 r (s @ [c]) = afactored_step c (afactored1 r s)"
+  by (simp add: afactored1_def afactored_steps_append)
+
+lemma map_concat_map:
+  "map f (concat (map g xs)) = concat (map (\<lambda>x. map f (g x)) xs)"
+  by (induct xs) simp_all
+
+lemma rpder_norm_list_RALTS:
+  "rpder_norm_list c (RALTS rs) =
+    concat (map (rpder_norm_list c) rs)"
+proof -
+  have map_rhs:
+      "(\<lambda>a. map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c a)) =
+        rpder_norm_list c"
+    by (rule ext) (simp add: rpder_norm_list_def)
+  have "rpder_norm_list c (RALTS rs) =
+      map (\<lambda>p. rsimp4_SEQ_atom p RONE)
+        (concat (map (rpder_list c) rs))"
+    by (simp add: rpder_norm_list_def)
+  also have "... =
+      concat (map
+        (\<lambda>a. map (\<lambda>p. rsimp4_SEQ_atom p RONE) (rpder_list c a))
+        rs)"
+    by (rule map_concat_map)
+  also have "... = concat (map (rpder_norm_list c) rs)"
+    by (simp add: map_rhs)
+  finally show ?thesis .
+qed
+
+lemma rpder_norm_list_rsimp_ALTs:
+  "rpder_norm_list c (rsimp_ALTs rs) =
+    concat (map (rpder_norm_list c) rs)"
+  by (induct rs rule: rsimp_ALTs.induct)
+    (simp_all add: rpder_norm_list_RALTS rpder_norm_list_def
+      map_concat_map)
+
+lemma afactored_step_rsimp_ALTs_singleton:
+  "afactored_step c [rsimp_ALTs rs] = afactored_step c rs"
+  by (simp add: afactored_step_def rpder_norm_rows_def
+      rpder_norm_list_rsimp_ALTs)
+
+lemma anorm_der_rsimp_ALTs_start:
+  "rsimp_ALTs (afactored_steps [rsimp_ALTs rs] s) =
+    rsimp_ALTs (afactored_steps rs s)"
+  by (induct s arbitrary: rs)
+    (simp_all add: afactored_step_rsimp_ALTs_singleton)
+
+lemma rpd_der_norm_eq_anorm_der_one:
+  "rpd_der_norm c r = anorm_der r [c]"
+  by (simp add: anorm_der_def afactored1_def afactored_step_def
+      rpd_der_norm_def rpder_norm_rows_def)
+
+lemma anorm_der_eq_rders_pder_norm:
+  "anorm_der r s = rders_pder_norm r s"
+proof (induct s arbitrary: r)
+  case Nil
+  then show ?case
+    by (simp add: anorm_der_def afactored1_def)
+next
+  case (Cons c s)
+  have step:
+      "rpd_der_norm c r = rsimp_ALTs (afactored_step c [r])"
+    by (simp add: rpd_der_norm_def afactored_step_def rpder_norm_rows_def)
+  have "rders_pder_norm r (c # s) =
+      anorm_der (rpd_der_norm c r) s"
+    by (simp add: Cons.hyps)
+  also have "... =
+      rsimp_ALTs
+        (afactored_steps [rsimp_ALTs (afactored_step c [r])] s)"
+    by (simp add: anorm_der_def afactored1_def step)
+  also have "... =
+      rsimp_ALTs (afactored_steps (afactored_step c [r]) s)"
+    by (rule anorm_der_rsimp_ALTs_start)
+  also have "... = anorm_der r (c # s)"
+    by (simp add: anorm_der_def afactored1_def)
+  finally show ?case
+    by simp
+qed
+
+lemma distinct_afactored_step [simp]:
+  "distinct (afactored_step c rs)"
+  by (simp add: afactored_step_def)
+
+lemma distinct_afactored_steps:
+  assumes "distinct rs"
+  shows "distinct (afactored_steps rs s)"
+  using assms
+  by (simp add: afactored_steps_eq_rpders_norm_rows
+      distinct_rpders_norm_rows)
+
+lemma distinct_afactored1 [simp]:
+  "distinct (afactored1 r s)"
+  by (simp add: afactored1_eq_rpders_norm1_rows)
+
+lemma legacy_afactored_step:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (afactored_step c rs). legacy_rrexp p"
+  unfolding afactored_step_def
+  by (rule legacy_rpder_norm_rows[OF legacy])
+
+lemma legacy_afactored_steps:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and p: "p \<in> set (afactored_steps rs s)"
+  shows "legacy_rrexp p"
+  using legacy p
+  by (simp add: afactored_steps_eq_rpders_norm_rows
+      legacy_rpders_norm_rows)
+
+lemma legacy_afactored1:
+  assumes "legacy_rrexp r"
+  shows "\<forall>q \<in> set (afactored1 r s). legacy_rrexp q"
+proof
+  fix q
+  assume q: "q \<in> set (afactored1 r s)"
+  have q_steps: "q \<in> set (afactored_steps [r] s)"
+    using q by (simp add: afactored1_def)
+  show "legacy_rrexp q"
+    by (rule legacy_afactored_steps[of "[r]" q s])
+      (use assms q_steps in auto)
+qed
+
+lemma RLS_afactored_step:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (afactored_step c rs)) = Der c (RLS (set rs))"
+  unfolding afactored_step_def
+  by (rule RLS_rpder_norm_rows[OF legacy])
+
+lemma RLS_afactored_steps:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (afactored_steps rs s)) = Ders s (RLS (set rs))"
+  using assms
+  by (simp add: afactored_steps_eq_rpders_norm_rows
+      RLS_rpders_norm_rows)
+
+lemma RLS_afactored1:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (afactored1 r s)) = Ders s (RL r)"
+  using assms
+  by (simp add: afactored1_eq_rpders_norm1_rows
+      RLS_rpders_norm1_rows)
+
+lemma Ders_snoc:
+  "Ders (s @ [c]) A = Der c (Ders s A)"
+  by (auto simp: Ders_def Der_def)
+
+section \<open>Inductive Universe Closure\<close>
+
+lemma afactored_step_split_subsetI:
+  assumes step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq> U"
+  shows "set (afactored_step c rs) \<subseteq> U"
+proof -
+  have flat:
+      "set (rflts (concat (map (rpder_norm_list c) rs))) \<subseteq> U"
+  proof
+    fix p
+    assume p: "p \<in> set (rflts (concat (map (rpder_norm_list c) rs)))"
+    have "set (rflts (concat (map (rpder_norm_list c) rs))) \<subseteq>
+      (\<Union>q \<in> set rs. set (rflts (rpder_norm_list c q)))"
+      by (induct rs) (auto simp add: flts_append)
+    then show "p \<in> U"
+      using p step by blast
+  qed
+  have "set (rdistinct
+      (rflts (concat (map (rpder_norm_list c) rs))) {}) \<subseteq> U"
+    by (rule set_rdistinct_subset[OF flat])
+  then show ?thesis
+    by (simp add: afactored_step_def rpder_norm_rows_def)
+qed
+
+lemma rfrontiers_afactored_step_subsetI:
+  assumes step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      rfrontiers (rpder_norm_list c q) \<subseteq> U"
+  shows "rfrontiers (afactored_step c rs) \<subseteq> U"
+proof -
+  have "rfrontiers (concat (map (rpder_norm_list c) rs)) \<subseteq> U"
+  proof (rule rfrontiers_subsetI)
+    fix p
+    assume p: "p \<in> set (concat (map (rpder_norm_list c) rs))"
+    then obtain q where q:
+        "q \<in> set rs"
+        "p \<in> set (rpder_norm_list c q)"
+      by auto
+    have front: "rfrontiers (rpder_norm_list c q) \<subseteq> U"
+      by (rule step[OF q(1)])
+    show "rfrontier p \<subseteq> U"
+      using front q(2) rfrontiers_member_iff by blast
+  qed
+  then show ?thesis
+    by (simp add: afactored_step_def rpder_norm_rows_def)
+qed
+
+lemma afactored_steps_split_closed_universe_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and step: "\<And>q c. q \<in> U \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq> U"
+  shows "set (afactored_steps rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_subset: "set (afactored_step c rs) \<subseteq> U"
+  proof (rule afactored_step_split_subsetI)
+    fix q
+    assume q: "q \<in> set rs"
+    have "q \<in> U"
+      using Cons.prems q by blast
+    then show "set (rflts (rpder_norm_list c q)) \<subseteq> U"
+      by (rule step)
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
+lemma afactored1_split_closed_universe_subsetI:
+  assumes init: "r \<in> U"
+    and step: "\<And>q c. q \<in> U \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq> U"
+  shows "set (afactored1 r s) \<subseteq> U"
+  unfolding afactored1_def
+  by (rule afactored_steps_split_closed_universe_subsetI)
+    (use init step in auto)
+
+lemma rfrontiers_afactored_steps_subsetI:
+  assumes rows: "set (afactored_steps rs s) \<subseteq> U"
+    and frontier_closed: "\<And>q. q \<in> U \<Longrightarrow> rfrontier q \<subseteq> T"
+  shows "rfrontiers (afactored_steps rs s) \<subseteq> T"
+  by (rule rfrontiers_subsetI)
+    (use rows frontier_closed in blast)
+
+lemma rfrontiers_afactored_steps_split_closed_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and step: "\<And>q c. q \<in> U \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq> U"
+    and frontier_closed: "\<And>q. q \<in> U \<Longrightarrow> rfrontier q \<subseteq> T"
+  shows "rfrontiers (afactored_steps rs s) \<subseteq> T"
+proof -
+  have rows: "set (afactored_steps rs s) \<subseteq> U"
+    by (rule afactored_steps_split_closed_universe_subsetI
+        [OF init step])
+  show ?thesis
+    by (rule rfrontiers_afactored_steps_subsetI
+        [OF rows frontier_closed])
+qed
+
+section \<open>Product-Term Closure\<close>
+
+text \<open>
+  Antimirov linear forms bound the number of generated terms after products
+  are factored.  The following splitter forgets product nesting and top-level
+  alternatives, so a growing @{const RSEQ} spine can still have a bounded term
+  frontier.
+\<close>
+
+fun aseq_terms :: "rrexp \<Rightarrow> rrexp set"
+  and aseq_termss :: "rrexp list \<Rightarrow> rrexp set" where
+  "aseq_terms RZERO = {RZERO}"
+| "aseq_terms RONE = {RONE}"
+| "aseq_terms (RALTS rs) = aseq_termss rs"
+| "aseq_terms (RSEQ r1 r2) = aseq_terms r1 \<union> aseq_terms r2"
+| "aseq_terms r = {r}"
+| "aseq_termss [] = {}"
+| "aseq_termss (r # rs) = aseq_terms r \<union> aseq_termss rs"
+
+lemma aseq_termss_append [simp]:
+  "aseq_termss (xs @ ys) = aseq_termss xs \<union> aseq_termss ys"
+  by (induct xs) auto
+
+lemma aseq_termss_member_iff:
+  "x \<in> aseq_termss rs \<longleftrightarrow> (\<exists>q \<in> set rs. x \<in> aseq_terms q)"
+  by (induct rs) auto
+
+lemma aseq_terms_member_singleton:
+  "x \<in> aseq_terms r \<Longrightarrow> aseq_terms x = {x}"
+  and aseq_termss_member_singleton:
+    "x \<in> aseq_termss rs \<Longrightarrow> aseq_terms x = {x}"
+  by (induct r and rs rule: aseq_terms_aseq_termss.induct) auto
+
+lemma finite_aseq_terms [simp]:
+  "finite (aseq_terms r)"
+  and finite_aseq_termss [simp]: "finite (aseq_termss rs)"
+  by (induct r and rs rule: aseq_terms_aseq_termss.induct) auto
+
+lemma aseq_terms_member_subset_termss:
+  assumes "q \<in> set rs"
+  shows "aseq_terms q \<subseteq> aseq_termss rs"
+  using assms by (auto simp add: aseq_termss_member_iff)
+
+lemma aseq_termss_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "aseq_termss xs \<subseteq> aseq_termss ys"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss xs"
+  obtain q where q: "q \<in> set xs" "x \<in> aseq_terms q"
+    using x by (auto simp add: aseq_termss_member_iff)
+  have "q \<in> set ys"
+    using assms q(1) by blast
+  then show "x \<in> aseq_termss ys"
+    using q(2) by (auto simp add: aseq_termss_member_iff)
+qed
+
+lemma aseq_termss_rflts_subset:
+  "aseq_termss (rflts rs) \<subseteq> aseq_termss rs"
+  by (induct rs rule: rflts.induct) auto
+
+lemma aseq_termss_rdistinct_subset:
+  "aseq_termss (rdistinct rs acc) \<subseteq> aseq_termss rs"
+  by (rule aseq_termss_mono)
+    (auto simp add: rdistinct_set_equality1)
+
+lemma aseq_termss_rdistinct_empty_eq [simp]:
+  "aseq_termss (rdistinct rs {}) = aseq_termss rs"
+  by (auto simp add: aseq_termss_member_iff rdistinct_set_equality)
+
+lemma aseq_termss_rflts_insert_zero_superset:
+  "aseq_termss rs \<subseteq> insert RZERO (aseq_termss (rflts rs))"
+  by (induct rs rule: rflts.induct) auto
+
+lemma aseq_terms_subset_rsubterms:
+  "aseq_terms r \<subseteq> rsubterms r"
+  and aseq_termss_subset_rsubterms:
+    "aseq_termss rs \<subseteq> (\<Union>q \<in> set rs. rsubterms q)"
+  by (induct r and rs rule: aseq_terms_aseq_termss.induct) auto
+
+lemma card_aseq_terms_le_rsize:
+  "card (aseq_terms r) \<le> rsize r"
+proof -
+  have "card (aseq_terms r) \<le> card (rsubterms r)"
+    by (rule card_mono) (simp_all add: aseq_terms_subset_rsubterms)
+  also have "... \<le> rsize r"
+    by (rule card_rsubterms_le_rsize)
+  finally show ?thesis .
+qed
+
+definition rsize_set :: "rrexp set \<Rightarrow> nat" where
+  "rsize_set U = (\<Sum>q \<in> U. rsize q)"
+
+lemma rsize_set_Un_le:
+  assumes "finite A" "finite B"
+  shows "rsize_set (A \<union> B) \<le> rsize_set A + rsize_set B"
+proof -
+  have union_eq: "A \<union> B = A \<union> (B - A)"
+    by auto
+  have "rsize_set (A \<union> B) =
+      rsize_set A + rsize_set (B - A)"
+    unfolding union_eq rsize_set_def
+    by (subst sum.union_disjoint) (use assms in auto)
+  also have "... \<le> rsize_set A + rsize_set B"
+  proof -
+    have "(\<Sum>q \<in> B - A. rsize q) \<le> (\<Sum>q \<in> B. rsize q)"
+      by (rule sum_mono2) (use assms in auto)
+    then show ?thesis
+      by (simp add: rsize_set_def)
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsize_set_mono:
+  assumes "finite B" "A \<subseteq> B"
+  shows "rsize_set A \<le> rsize_set B"
+  using assms unfolding rsize_set_def
+  by (rule sum_mono2) auto
+
+lemma rsizes_distinct_subset_rsize_set:
+  assumes distinct: "distinct rs"
+    and rows: "set rs \<subseteq> U"
+    and finite: "finite U"
+  shows "rsizes rs \<le> rsize_set U"
+  using distinct rows finite
+proof (induct rs arbitrary: U)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons q rs)
+  have q: "q \<in> U"
+    using Cons.prems by simp
+  have rs_subset: "set rs \<subseteq> U - {q}"
+    using Cons.prems by auto
+  have fin_minus: "finite (U - {q})"
+    using Cons.prems by simp
+  have tail: "rsizes rs \<le> rsize_set (U - {q})"
+    by (rule Cons.hyps) (use Cons.prems rs_subset fin_minus in auto)
+  have split: "rsize_set U = rsize q + rsize_set (U - {q})"
+    using Cons.prems q by (simp add: rsize_set_def sum.remove)
+  show ?case
+    using tail split by simp
+qed
+
+lemma rsize_set_le_card_times_bound:
+  assumes finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "rsize_set U \<le> card U * M"
+proof -
+  have "rsize_set U = (\<Sum>q \<in> U. rsize q)"
+    by (simp add: rsize_set_def)
+  also have "... \<le> (\<Sum>q \<in> U. M)"
+    by (rule sum_mono) (rule member_size)
+  also have "... = card U * M"
+    using finite by (simp add: mult.commute)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_le_card_member_budgetI:
+  assumes finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and budget: "C * M \<le> B"
+  shows "rsize_set U \<le> B"
+proof -
+  have "rsize_set U \<le> card U * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  also have "... \<le> B"
+    by (rule budget)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_UN_le:
+  assumes finite: "finite U"
+    and finiteA: "\<And>p. p \<in> U \<Longrightarrow> finite (A p)"
+  shows "rsize_set (\<Union>p \<in> U. A p) \<le>
+    (\<Sum>p \<in> U. rsize_set (A p))"
+  using finite finiteA
+proof (induct U rule: finite_induct)
+  case empty
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (insert x F)
+  have finite_union: "finite (\<Union>p \<in> F. A p)"
+    using insert by auto
+  have "rsize_set (\<Union>p \<in> insert x F. A p) \<le>
+      rsize_set (A x) + rsize_set (\<Union>p \<in> F. A p)"
+    by (simp, rule rsize_set_Un_le)
+      (use insert finite_union in auto)
+  also have "... \<le> rsize_set (A x) +
+      (\<Sum>p \<in> F. rsize_set (A p))"
+    using insert by simp
+  also have "... = (\<Sum>p \<in> insert x F. rsize_set (A p))"
+    using insert.hyps by simp
+  finally show ?case .
+qed
+
+lemma sum_set_le_sum_list_nat:
+  "(\<Sum>x \<in> set xs. (f :: 'a \<Rightarrow> nat) x) \<le> sum_list (map f xs)"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have "(\<Sum>y \<in> set (x # xs). f y) \<le>
+      f x + (\<Sum>y \<in> set xs. f y)"
+  proof (cases "x \<in> set xs")
+    case True
+    have absorb: "insert x (set xs) = set xs"
+      using True by auto
+    have "(\<Sum>y \<in> set (x # xs). f y) =
+        (\<Sum>y \<in> set xs. f y)"
+      by (simp add: absorb)
+    also have "... \<le> f x + (\<Sum>y \<in> set xs. f y)"
+      by simp
+    finally show ?thesis .
+  next
+    case False
+    then show ?thesis by simp
+  qed
+  also have "... \<le> f x + sum_list (map f xs)"
+    using Cons.hyps by simp
+  finally show ?case by simp
+qed
+
+lemma rsize_set_UN_set_le_sum_list:
+  assumes finiteA: "\<And>x. x \<in> set xs \<Longrightarrow> finite (A x)"
+    and bound: "\<And>x. x \<in> set xs \<Longrightarrow> rsize_set (A x) \<le> B x"
+  shows "rsize_set (\<Union>x \<in> set xs. A x) \<le> sum_list (map B xs)"
+proof -
+  have "rsize_set (\<Union>x \<in> set xs. A x) \<le>
+      (\<Sum>x \<in> set xs. rsize_set (A x))"
+    by (rule rsize_set_UN_le) (use finiteA in auto)
+  also have "... \<le> (\<Sum>x \<in> set xs. B x)"
+    by (rule sum_mono) (rule bound)
+  also have "... \<le> sum_list (map B xs)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma member_le_sum_list_map_nat:
+  assumes "x \<in> set xs"
+  shows "(f :: 'a \<Rightarrow> nat) x \<le> sum_list (map f xs)"
+  using assms
+  by (induct xs) auto
+
+lemma sum_list_map_mult_right_nat:
+  "sum_list (map (\<lambda>x. (f x :: nat) * n) xs) =
+    sum_list (map f xs) * n"
+  by (induct xs) (simp_all add: algebra_simps)
+
+lemma sum_list_map_upt_const_nat:
+  "sum_list (map (\<lambda>_. (c :: nat)) [0..<n]) = n * c"
+  by (induct n) simp_all
+
+lemma rsize_set_set_le_sum_list_rsize:
+  "rsize_set (set xs) \<le> sum_list (map rsize xs)"
+proof (induct xs)
+  case Nil
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (Cons x xs)
+  have "rsize_set (set (x # xs)) =
+      rsize_set ({x} \<union> set xs)"
+    by simp
+  also have "... \<le> rsize_set {x} + rsize_set (set xs)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le> rsize x + sum_list (map rsize xs)"
+    using Cons.hyps by (simp add: rsize_set_def)
+  finally show ?case by simp
+qed
+
+lemma card_rsubterm_closure_le_rsize_set:
+  assumes finite: "finite U"
+  shows "card (rsubterm_closure U) \<le> rsize_set U"
+  using finite
+proof (induct U rule: finite_induct)
+  case empty
+  then show ?case
+    by (simp add: rsubterm_closure_def rsize_set_def)
+next
+  case (insert q U)
+  have closure_insert:
+      "rsubterm_closure (insert q U) =
+        rsubterms q \<union> rsubterm_closure U"
+    by (auto simp add: rsubterm_closure_def)
+  have "card (rsubterm_closure (insert q U)) \<le>
+      card (rsubterms q) + card (rsubterm_closure U)"
+    by (simp add: closure_insert card_Un_le)
+  also have "... \<le> rsize q + rsize_set U"
+    using insert.hyps card_rsubterms_le_rsize[of q] by linarith
+  also have "... = rsize_set (insert q U)"
+    using insert.hyps by (simp add: rsize_set_def)
+  finally show ?case .
+qed
+
+lemma rsize_set_aseq_terms_le_rsize:
+  "rsize_set (aseq_terms r) \<le> rsize r"
+  and rsize_set_aseq_termss_le_rsizes:
+    "rsize_set (aseq_termss rs) \<le> rsizes rs"
+  apply (induct r and rs rule: aseq_terms_aseq_termss.induct)
+            apply (simp_all add: rsize_set_def)
+  subgoal for r1 r2
+    using rsize_set_Un_le[of "aseq_terms r1" "aseq_terms r2"]
+    by (simp add: rsize_set_def)
+  subgoal for r rs
+    using rsize_set_Un_le[of "aseq_terms r" "aseq_termss rs"]
+    by (simp add: rsize_set_def)
+  done
+
+lemma aseq_terms_root_cubic_universe:
+  "aseq_terms r \<subseteq> partial_derivative_cubic_universe r"
+proof -
+  have "aseq_terms r \<subseteq> rsubterms r"
+    by (rule aseq_terms_subset_rsubterms)
+  then show ?thesis
+    by (auto simp add: partial_derivative_cubic_universe_def
+        partial_derivative_path_universe_def)
+qed
+
+lemma aseq_terms_rsimp4_SEQ_atom_subset:
+  "aseq_terms (rsimp4_SEQ_atom p k) \<subseteq> aseq_terms p \<union> aseq_terms k"
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  have "aseq_terms (rsimp4_SEQ_atom RONE k) = aseq_terms k"
+    by simp
+  also have "... \<subseteq> aseq_terms RONE \<union> aseq_terms k"
+    by blast
+  finally show ?case .
+next
+  case (RCHAR x)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ p1 p2)
+  have "aseq_terms (rsimp4_SEQ_atom (RSEQ p1 p2) k) =
+      aseq_terms (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))"
+    by simp
+  also have "... \<subseteq>
+      aseq_terms p1 \<union> aseq_terms (rsimp4_SEQ_atom p2 k)"
+    by (rule RSEQ.hyps(1))
+  also have "... \<subseteq> aseq_terms p1 \<union> aseq_terms p2 \<union> aseq_terms k"
+    using RSEQ.hyps(2)[of k] by blast
+  finally show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSTAR p)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES p n)
+  then show ?case
+    by (cases k) auto
+next
+  case (RBACKREF4 p1 p2 p3 p4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF p cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+lemma aseq_terms_rsimp4_SEQ_atom_RONE_subset:
+  "aseq_terms (rsimp4_SEQ_atom p RONE) \<subseteq>
+    aseq_terms p \<union> {RONE}"
+  using aseq_terms_rsimp4_SEQ_atom_subset[of p RONE] by auto
+
+lemma rpder_list_aseq_terms_subsetI:
+  assumes legacy: "legacy_rrexp q"
+    and terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and p: "p \<in> set (rpder_list c q)"
+  shows "aseq_terms p \<subseteq> U"
+  using legacy terms zero one subterm_closed ntimes_closed p
+proof (induct q arbitrary: p U)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case
+    by (cases "c = d") auto
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> set (rpder_list c q)"
+    by auto
+  have q_legacy: "legacy_rrexp q"
+    using RALTS.prems(1) q(1) by simp
+  have q_terms: "aseq_terms q \<subseteq> U"
+    using RALTS.prems(2) aseq_terms_member_subset_termss[OF q(1)]
+    by simp
+  show ?case
+    by (rule RALTS.hyps[OF q(1) q_legacy q_terms
+          RALTS.prems(3) RALTS.prems(4) RALTS.prems(5)
+          RALTS.prems(6) q(2)])
+next
+  case (RSEQ r1 r2)
+  have r1_legacy: "legacy_rrexp r1"
+    using RSEQ.prems(1) by simp
+  have r2_legacy: "legacy_rrexp r2"
+    using RSEQ.prems(1) by simp
+  have r1_terms: "aseq_terms r1 \<subseteq> U"
+    using RSEQ.prems(2) by simp
+  have r2_terms: "aseq_terms r2 \<subseteq> U"
+    using RSEQ.prems(2) by simp
+  from RSEQ.prems(7) consider z where
+      "z \<in> set (rpder_list c r1)"
+      "p = rsimp4_SEQ_atom z r2"
+    | "rnullable r1" "p \<in> set (rpder_list c r2)"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have z_terms: "aseq_terms z \<subseteq> U"
+      by (rule RSEQ.hyps(1)[OF r1_legacy r1_terms
+            RSEQ.prems(3) RSEQ.prems(4) RSEQ.prems(5)
+            RSEQ.prems(6) 1(1)])
+    have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms r2"
+      using 1(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+    then show ?thesis
+      using z_terms r2_terms by blast
+  next
+    case 2
+    show ?thesis
+      by (rule RSEQ.hyps(2)[OF r2_legacy r2_terms
+            RSEQ.prems(3) RSEQ.prems(4) RSEQ.prems(5)
+            RSEQ.prems(6) 2(2)])
+  qed
+next
+  case (RSTAR r)
+  have p_mem:
+      "p \<in> (\<lambda>z. rsimp4_SEQ_atom z (RSTAR r)) `
+        set (rpder_list c r)"
+    using RSTAR.prems(7) by simp
+  then obtain z where z:
+      "z \<in> set (rpder_list c r)"
+      "p = rsimp4_SEQ_atom z (RSTAR r)"
+    using p_mem by blast
+  have star_in: "RSTAR r \<in> U"
+    using RSTAR.prems(2) by simp
+  have body_in: "r \<in> U"
+  proof -
+    have "r \<in> rsubterms (RSTAR r)"
+      by simp
+    then show ?thesis
+      using RSTAR.prems(5)[OF star_in] by blast
+  qed
+  have body_terms: "aseq_terms r \<subseteq> U"
+  proof -
+    have "aseq_terms r \<subseteq> rsubterms r"
+      by (rule aseq_terms_subset_rsubterms)
+    also have "... \<subseteq> U"
+      by (rule RSTAR.prems(5)[OF body_in])
+    finally show ?thesis .
+  qed
+  have z_terms: "aseq_terms z \<subseteq> U"
+    by (rule RSTAR.hyps[OF _ body_terms
+          RSTAR.prems(3) RSTAR.prems(4) RSTAR.prems(5)
+          RSTAR.prems(6) z(1)])
+      (use RSTAR.prems(1) in simp)
+  have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms (RSTAR r)"
+    using z(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+  then show ?case
+    using z_terms RSTAR.prems(2) by blast
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES.prems(7) by simp
+  next
+    case (Suc m)
+    have p_mem:
+        "p \<in> (\<lambda>z. rsimp4_SEQ_atom z (RNTIMES r m)) `
+          set (rpder_list c r)"
+      using RNTIMES.prems(7) Suc by simp
+    then obtain z where z:
+        "z \<in> set (rpder_list c r)"
+        "p = rsimp4_SEQ_atom z (RNTIMES r m)"
+      using p_mem by blast
+    have ntimes_in: "RNTIMES r n \<in> U"
+      using RNTIMES.prems(2) by simp
+    have body_in: "r \<in> U"
+    proof -
+      have "r \<in> rsubterms (RNTIMES r n)"
+        using Suc by simp
+      then show ?thesis
+        using RNTIMES.prems(5)[OF ntimes_in] by blast
+    qed
+    have cont_in: "RNTIMES r m \<in> U"
+      using Suc ntimes_in RNTIMES.prems(6) by simp
+    have cont_terms: "aseq_terms (RNTIMES r m) \<subseteq> U"
+      using cont_in by simp
+    have body_terms: "aseq_terms r \<subseteq> U"
+    proof -
+      have "aseq_terms r \<subseteq> rsubterms r"
+        by (rule aseq_terms_subset_rsubterms)
+      also have "... \<subseteq> U"
+        by (rule RNTIMES.prems(5)[OF body_in])
+      finally show ?thesis .
+    qed
+    have z_terms: "aseq_terms z \<subseteq> U"
+      by (rule RNTIMES.hyps[OF _ body_terms
+            RNTIMES.prems(3) RNTIMES.prems(4) RNTIMES.prems(5)
+            RNTIMES.prems(6) z(1)])
+        (use RNTIMES.prems(1) in simp)
+    have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms (RNTIMES r m)"
+      using z(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+    then show ?thesis
+      using z_terms cont_terms by blast
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(1) by simp
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  have False
+    using RHALF.prems(1) by simp
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(1) by simp
+  then show ?case by simp
+qed
+
+lemma rpder_norm_list_aseq_terms_subsetI:
+  assumes legacy: "legacy_rrexp q"
+    and terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  shows "aseq_terms p \<subseteq> U"
+proof -
+  obtain z where z:
+      "z \<in> set (rpder_list c q)"
+      "p = rsimp4_SEQ_atom z RONE"
+    using p by (auto simp add: rpder_norm_list_def)
+  have z_terms: "aseq_terms z \<subseteq> U"
+    by (rule rpder_list_aseq_terms_subsetI
+        [OF legacy terms zero one subterm_closed ntimes_closed z(1)])
+  have "aseq_terms p \<subseteq> aseq_terms z \<union> {RONE}"
+    using z(2) aseq_terms_rsimp4_SEQ_atom_RONE_subset by blast
+  then show ?thesis
+    using z_terms one by blast
+qed
+
+lemma rpder_list_aseq_terms_fuel_subsetI:
+  assumes legacy: "legacy_rrexp q"
+    and terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and p: "p \<in> set (rpder_list c q)"
+  shows "aseq_terms p \<subseteq> U"
+  using legacy terms zero one star_body ntimes_body ntimes_closed p
+proof (induct q arbitrary: p U)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR d)
+  then show ?case
+    by (cases "c = d") auto
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> set (rpder_list c q)"
+    by auto
+  have q_legacy: "legacy_rrexp q"
+    using RALTS.prems(1) q(1) by simp
+  have q_terms: "aseq_terms q \<subseteq> U"
+    using RALTS.prems(2) aseq_terms_member_subset_termss[OF q(1)]
+    by simp
+  show ?case
+    by (rule RALTS.hyps[OF q(1) q_legacy q_terms
+          RALTS.prems(3) RALTS.prems(4) RALTS.prems(5)
+          RALTS.prems(6) RALTS.prems(7) q(2)])
+next
+  case (RSEQ r1 r2)
+  have r1_legacy: "legacy_rrexp r1"
+    using RSEQ.prems(1) by simp
+  have r2_legacy: "legacy_rrexp r2"
+    using RSEQ.prems(1) by simp
+  have r1_terms: "aseq_terms r1 \<subseteq> U"
+    using RSEQ.prems(2) by simp
+  have r2_terms: "aseq_terms r2 \<subseteq> U"
+    using RSEQ.prems(2) by simp
+  from RSEQ.prems(8) consider z where
+      "z \<in> set (rpder_list c r1)"
+      "p = rsimp4_SEQ_atom z r2"
+    | "rnullable r1" "p \<in> set (rpder_list c r2)"
+    by auto
+  then show ?case
+  proof cases
+    case 1
+    have z_terms: "aseq_terms z \<subseteq> U"
+      by (rule RSEQ.hyps(1)[OF r1_legacy r1_terms
+            RSEQ.prems(3) RSEQ.prems(4) RSEQ.prems(5)
+            RSEQ.prems(6) RSEQ.prems(7) 1(1)])
+    have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms r2"
+      using 1(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+    then show ?thesis
+      using z_terms r2_terms by blast
+  next
+    case 2
+    show ?thesis
+      by (rule RSEQ.hyps(2)[OF r2_legacy r2_terms
+            RSEQ.prems(3) RSEQ.prems(4) RSEQ.prems(5)
+            RSEQ.prems(6) RSEQ.prems(7) 2(2)])
+  qed
+next
+  case (RSTAR r)
+  have p_mem:
+      "p \<in> (\<lambda>z. rsimp4_SEQ_atom z (RSTAR r)) `
+        set (rpder_list c r)"
+    using RSTAR.prems(8) by simp
+  then obtain z where z:
+      "z \<in> set (rpder_list c r)"
+      "p = rsimp4_SEQ_atom z (RSTAR r)"
+    using p_mem by blast
+  have star_in: "RSTAR r \<in> U"
+    using RSTAR.prems(2) by simp
+  have body_terms: "aseq_terms r \<subseteq> U"
+    by (rule RSTAR.prems(5)[OF star_in])
+  have z_terms: "aseq_terms z \<subseteq> U"
+    by (rule RSTAR.hyps[OF _ body_terms
+          RSTAR.prems(3) RSTAR.prems(4) RSTAR.prems(5)
+          RSTAR.prems(6) RSTAR.prems(7) z(1)])
+      (use RSTAR.prems(1) in simp)
+  have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms (RSTAR r)"
+    using z(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+  then show ?case
+    using z_terms RSTAR.prems(2) by blast
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      using RNTIMES.prems(8) by simp
+  next
+    case (Suc m)
+    have p_mem:
+        "p \<in> (\<lambda>z. rsimp4_SEQ_atom z (RNTIMES r m)) `
+          set (rpder_list c r)"
+      using RNTIMES.prems(8) Suc by simp
+    then obtain z where z:
+        "z \<in> set (rpder_list c r)"
+        "p = rsimp4_SEQ_atom z (RNTIMES r m)"
+      using p_mem by blast
+    have ntimes_in: "RNTIMES r n \<in> U"
+      using RNTIMES.prems(2) by simp
+    have body_terms: "aseq_terms r \<subseteq> U"
+      by (rule RNTIMES.prems(6)[OF ntimes_in])
+    have cont_in: "RNTIMES r m \<in> U"
+      using Suc ntimes_in RNTIMES.prems(7) by simp
+    have cont_terms: "aseq_terms (RNTIMES r m) \<subseteq> U"
+      using cont_in by simp
+    have z_terms: "aseq_terms z \<subseteq> U"
+      by (rule RNTIMES.hyps[OF _ body_terms
+            RNTIMES.prems(3) RNTIMES.prems(4) RNTIMES.prems(5)
+            RNTIMES.prems(6) RNTIMES.prems(7) z(1)])
+        (use RNTIMES.prems(1) in simp)
+    have "aseq_terms p \<subseteq> aseq_terms z \<union> aseq_terms (RNTIMES r m)"
+      using z(2) aseq_terms_rsimp4_SEQ_atom_subset by blast
+    then show ?thesis
+      using z_terms cont_terms by blast
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RBACKREF4.prems(1) by simp
+  qed
+next
+  case (RHALF r cs rep)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RHALF.prems(1) by simp
+  qed
+next
+  case (RRESIDUE cs rep)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RRESIDUE.prems(1) by simp
+  qed
+qed
+
+lemma rpder_norm_list_aseq_terms_fuel_subsetI:
+  assumes legacy: "legacy_rrexp q"
+    and terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  shows "aseq_terms p \<subseteq> U"
+proof -
+  obtain z where z:
+      "z \<in> set (rpder_list c q)"
+      "p = rsimp4_SEQ_atom z RONE"
+    using p by (auto simp add: rpder_norm_list_def)
+  have z_terms: "aseq_terms z \<subseteq> U"
+    by (rule rpder_list_aseq_terms_fuel_subsetI
+        [OF legacy terms zero one star_body ntimes_body ntimes_closed z(1)])
+  have "aseq_terms p \<subseteq> aseq_terms z \<union> {RONE}"
+    using z(2) aseq_terms_rsimp4_SEQ_atom_RONE_subset by blast
+  then show ?thesis
+    using z_terms one by blast
+qed
+
+lemma afactored_step_aseq_termss_subsetI:
+  assumes step: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> aseq_terms p \<subseteq> U"
+  shows "aseq_termss (afactored_step c rs) \<subseteq> U"
+proof -
+  have generated:
+      "aseq_termss (concat (map (rpder_norm_list c) rs)) \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in>
+      aseq_termss (concat (map (rpder_norm_list c) rs))"
+    obtain p where p:
+        "p \<in> set (concat (map (rpder_norm_list c) rs))"
+        "x \<in> aseq_terms p"
+      using x by (auto simp add: aseq_termss_member_iff)
+    obtain q where q:
+        "q \<in> set rs"
+        "p \<in> set (rpder_norm_list c q)"
+      using p(1) by auto
+    have "aseq_terms p \<subseteq> U"
+      by (rule step[OF q])
+    then show "x \<in> U"
+      using p(2) by blast
+  qed
+  have flat:
+      "aseq_termss (rflts (concat (map (rpder_norm_list c) rs))) \<subseteq> U"
+    using aseq_termss_rflts_subset generated by blast
+  have distinct:
+      "aseq_termss
+        (rdistinct (rflts (concat (map (rpder_norm_list c) rs))) {})
+        \<subseteq> U"
+    using aseq_termss_rdistinct_subset flat by blast
+  then show ?thesis
+    by (simp add: afactored_step_def rpder_norm_rows_def)
+qed
+
+lemma afactored_steps_aseq_terms_closed_subsetI:
+  assumes init: "aseq_termss rs \<subseteq> U"
+    and step: "\<And>q c p. aseq_terms q \<subseteq> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> aseq_terms p \<subseteq> U"
+  shows "aseq_termss (afactored_steps rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_terms: "aseq_termss (afactored_step c rs) \<subseteq> U"
+  proof (rule afactored_step_aseq_termss_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    have "aseq_terms q \<subseteq> U"
+      using Cons.prems aseq_terms_member_subset_termss[OF q] by blast
+    then show "aseq_terms p \<subseteq> U"
+      by (rule step[OF _ p])
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_terms])
+qed
+
+lemma afactored1_aseq_terms_closed_subsetI:
+  assumes init: "aseq_terms r \<subseteq> U"
+    and step: "\<And>q c p. aseq_terms q \<subseteq> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> aseq_terms p \<subseteq> U"
+  shows "aseq_termss (afactored1 r s) \<subseteq> U"
+  unfolding afactored1_def
+  by (rule afactored_steps_aseq_terms_closed_subsetI)
+    (use init step in auto)
+
+lemma afactored1_aseq_terms_cubic_universe_subsetI:
+  assumes step: "\<And>q c p.
+      aseq_terms q \<subseteq> partial_derivative_cubic_universe r \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      aseq_terms p \<subseteq> partial_derivative_cubic_universe r"
+  shows "aseq_termss (afactored1 r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+  by (rule afactored1_aseq_terms_closed_subsetI
+      [OF aseq_terms_root_cubic_universe step])
+
+lemma afactored_steps_aseq_terms_closed_legacy_subsetI:
+  assumes init: "aseq_termss rs \<subseteq> U"
+    and legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+  shows "aseq_termss (afactored_steps rs s) \<subseteq> U"
+  using init legacy
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_terms: "aseq_termss (afactored_step c rs) \<subseteq> U"
+  proof (rule afactored_step_aseq_termss_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    have q_terms: "aseq_terms q \<subseteq> U"
+      using Cons.prems(1) aseq_terms_member_subset_termss[OF q]
+      by blast
+    have q_legacy: "legacy_rrexp q"
+      using Cons.prems(2) q by simp
+    show "aseq_terms p \<subseteq> U"
+      by (rule rpder_norm_list_aseq_terms_subsetI
+          [OF q_legacy q_terms zero one subterm_closed ntimes_closed p])
+  qed
+  have next_legacy:
+      "\<forall>q \<in> set (afactored_step c rs). legacy_rrexp q"
+    by (rule legacy_afactored_step[OF Cons.prems(2)])
+  show ?case
+    by (simp add: Cons.hyps[OF next_terms next_legacy])
+qed
+
+lemma afactored1_aseq_terms_closed_legacy_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and init: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+  shows "aseq_termss (afactored1 r s) \<subseteq> U"
+  unfolding afactored1_def
+  by (rule afactored_steps_aseq_terms_closed_legacy_subsetI)
+    (use legacy init zero one subterm_closed ntimes_closed in auto)
+
+lemma afactored1_aseq_terms_cubic_universe_structuralI:
+  assumes legacy: "legacy_rrexp r"
+    and subterm_closed: "\<And>x. x \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      rsubterms x \<subseteq> partial_derivative_cubic_universe r"
+    and ntimes_closed: "\<And>q n.
+      RNTIMES q (Suc n) \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      RNTIMES q n \<in> partial_derivative_cubic_universe r"
+  shows "aseq_termss (afactored1 r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+  by (rule afactored1_aseq_terms_closed_legacy_subsetI
+      [OF legacy aseq_terms_root_cubic_universe])
+    (use subterm_closed ntimes_closed in
+      \<open>auto simp add: partial_derivative_cubic_universe_def
+        partial_derivative_path_universe_def
+        partial_derivative_frontier_universe_def\<close>)
+
+lemma rlinear_continuations_ntimes_predecessor:
+  assumes "RNTIMES q (Suc n) \<in> rlinear_continuations r"
+  shows "RNTIMES q n \<in> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: q n) fastforce+
+
+lemma partial_derivative_frontier_universe_ntimes_predecessor:
+  assumes "RNTIMES q (Suc n) \<in> partial_derivative_frontier_universe r"
+  shows "RNTIMES q n \<in> partial_derivative_frontier_universe r"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rlinear_continuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have cases:
+      "RNTIMES q (Suc n) \<in> ?A \<or>
+       RNTIMES q (Suc n) \<in> ?K"
+    using assms unfolding partial_derivative_frontier_universe_def
+    by auto
+  then show ?thesis
+  proof
+    assume sub: "RNTIMES q (Suc n) \<in> ?A"
+    have "RNTIMES q n \<in> rlinear_continuations (RNTIMES q (Suc n))"
+      by simp
+    then have "RNTIMES q n \<in> ?K"
+      using rlinear_continuations_subterm_subset[OF sub] by blast
+    then show ?thesis
+      by (rule partial_derivative_frontier_universe_continuation)
+  next
+    assume cont: "RNTIMES q (Suc n) \<in> ?K"
+    have "RNTIMES q n \<in> ?K"
+      by (rule rlinear_continuations_ntimes_predecessor[OF cont])
+    then show ?thesis
+      by (rule partial_derivative_frontier_universe_continuation)
+  qed
+qed
+
+definition rderiv_fuel_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rderiv_fuel_closure U =
+    (\<Union>q \<in> U. rsubterms q \<union> rlinear_continuations q)"
+
+lemma finite_rderiv_fuel_closure [simp]:
+  assumes "finite U"
+  shows "finite (rderiv_fuel_closure U)"
+  using assms by (simp add: rderiv_fuel_closure_def)
+
+lemma rderiv_fuel_closure_extensive:
+  "U \<subseteq> rderiv_fuel_closure U"
+  by (auto simp add: rderiv_fuel_closure_def)
+
+lemma rderiv_fuel_closure_mono:
+  assumes "U \<subseteq> V"
+  shows "rderiv_fuel_closure U \<subseteq> rderiv_fuel_closure V"
+  using assms by (auto simp add: rderiv_fuel_closure_def)
+
+lemma rsubterms_rlinear_continuation_subset_fuel:
+  assumes "k \<in> rlinear_continuations r"
+  shows "rsubterms k \<subseteq> rsubterms r \<union> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: k) fastforce+
+
+lemma rlinear_continuations_continuation_subset_fuel:
+  assumes "q \<in> rlinear_continuations r"
+  shows "rlinear_continuations q \<subseteq> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: q) fastforce+
+
+lemma rderiv_fuel_closure_subterm_closed:
+  assumes "q \<in> rderiv_fuel_closure U"
+  shows "rsubterms q \<subseteq> rderiv_fuel_closure U"
+proof
+  fix p
+  assume p: "p \<in> rsubterms q"
+  obtain root where root: "root \<in> U"
+      and q_cases: "q \<in> rsubterms root \<or>
+        q \<in> rlinear_continuations root"
+    using assms by (auto simp add: rderiv_fuel_closure_def)
+  show "p \<in> rderiv_fuel_closure U"
+    using q_cases
+  proof
+    assume q_sub: "q \<in> rsubterms root"
+    have "p \<in> rsubterms root"
+      by (rule rsubterms_trans[OF q_sub p])
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  next
+    assume q_cont: "q \<in> rlinear_continuations root"
+    have "p \<in> rsubterms root \<union> rlinear_continuations root"
+      using p rsubterms_rlinear_continuation_subset_fuel[OF q_cont]
+      by blast
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  qed
+qed
+
+lemma rderiv_fuel_closure_continuation_closed:
+  assumes "q \<in> rderiv_fuel_closure U"
+  shows "rlinear_continuations q \<subseteq> rderiv_fuel_closure U"
+proof
+  fix p
+  assume p: "p \<in> rlinear_continuations q"
+  obtain root where root: "root \<in> U"
+      and q_cases: "q \<in> rsubterms root \<or>
+        q \<in> rlinear_continuations root"
+    using assms by (auto simp add: rderiv_fuel_closure_def)
+  show "p \<in> rderiv_fuel_closure U"
+    using q_cases
+  proof
+    assume q_sub: "q \<in> rsubterms root"
+    have "p \<in> rlinear_continuations root"
+      using rlinear_continuations_subterm_subset[OF q_sub] p by blast
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  next
+    assume q_cont: "q \<in> rlinear_continuations root"
+    have "p \<in> rlinear_continuations root"
+      using rlinear_continuations_continuation_subset_fuel[OF q_cont] p
+      by blast
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  qed
+qed
+
+lemma rderiv_fuel_closure_idempotent_subset:
+  "rderiv_fuel_closure (rderiv_fuel_closure U) \<subseteq>
+    rderiv_fuel_closure U"
+proof
+  fix x
+  assume x: "x \<in> rderiv_fuel_closure (rderiv_fuel_closure U)"
+  obtain q where q: "q \<in> rderiv_fuel_closure U"
+      and x_cases: "x \<in> rsubterms q \<or>
+        x \<in> rlinear_continuations q"
+    using x by (auto simp add: rderiv_fuel_closure_def)
+  show "x \<in> rderiv_fuel_closure U"
+    using x_cases
+  proof
+    assume "x \<in> rsubterms q"
+    then show ?thesis
+      using rderiv_fuel_closure_subterm_closed[OF q] by blast
+  next
+    assume "x \<in> rlinear_continuations q"
+    then show ?thesis
+      using rderiv_fuel_closure_continuation_closed[OF q] by blast
+  qed
+qed
+
+lemma rderiv_fuel_closure_star_body:
+  assumes star: "RSTAR r \<in> rderiv_fuel_closure U"
+  shows "aseq_terms r \<subseteq> rderiv_fuel_closure U"
+proof -
+  have "r \<in> rsubterms (RSTAR r)"
+    by simp
+  then have r_in: "r \<in> rderiv_fuel_closure U"
+    using rderiv_fuel_closure_subterm_closed[OF star] by blast
+  have "aseq_terms r \<subseteq> rsubterms r"
+    by (rule aseq_terms_subset_rsubterms)
+  also have "... \<subseteq> rderiv_fuel_closure U"
+    by (rule rderiv_fuel_closure_subterm_closed[OF r_in])
+  finally show ?thesis .
+qed
+
+lemma rderiv_fuel_closure_ntimes_body:
+  assumes ntimes: "RNTIMES r n \<in> rderiv_fuel_closure U"
+  shows "aseq_terms r \<subseteq> rderiv_fuel_closure U"
+proof -
+  have "r \<in> rsubterms (RNTIMES r n)"
+    by simp
+  then have r_in: "r \<in> rderiv_fuel_closure U"
+    using rderiv_fuel_closure_subterm_closed[OF ntimes] by blast
+  have "aseq_terms r \<subseteq> rsubterms r"
+    by (rule aseq_terms_subset_rsubterms)
+  also have "... \<subseteq> rderiv_fuel_closure U"
+    by (rule rderiv_fuel_closure_subterm_closed[OF r_in])
+  finally show ?thesis .
+qed
+
+lemma rderiv_fuel_closure_ntimes_predecessor:
+  assumes "RNTIMES q (Suc n) \<in> rderiv_fuel_closure U"
+  shows "RNTIMES q n \<in> rderiv_fuel_closure U"
+proof -
+  obtain root where root: "root \<in> U"
+      and cases: "RNTIMES q (Suc n) \<in> rsubterms root \<or>
+        RNTIMES q (Suc n) \<in> rlinear_continuations root"
+    using assms by (auto simp add: rderiv_fuel_closure_def)
+  show ?thesis
+    using cases
+  proof
+    assume sub: "RNTIMES q (Suc n) \<in> rsubterms root"
+    have "RNTIMES q n \<in> rlinear_continuations (RNTIMES q (Suc n))"
+      by simp
+    then have "RNTIMES q n \<in> rlinear_continuations root"
+      using rlinear_continuations_subterm_subset[OF sub] by blast
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  next
+    assume cont: "RNTIMES q (Suc n) \<in> rlinear_continuations root"
+    have "RNTIMES q n \<in> rlinear_continuations root"
+      by (rule rlinear_continuations_ntimes_predecessor[OF cont])
+    then show ?thesis
+      using root by (auto simp add: rderiv_fuel_closure_def)
+  qed
+qed
+
+lemma card_rderiv_fuel_closure_le_rsize_set:
+  assumes finite: "finite U"
+  shows "card (rderiv_fuel_closure U) \<le> 2 * rsize_set U"
+proof -
+  have "card (rderiv_fuel_closure U) \<le>
+      (\<Sum>q \<in> U. card (rsubterms q \<union> rlinear_continuations q))"
+    unfolding rderiv_fuel_closure_def
+    by (rule card_UN_le) (use finite in auto)
+  also have "... \<le> (\<Sum>q \<in> U. 2 * rsize q)"
+  proof (rule sum_mono)
+    fix q
+    assume "q \<in> U"
+    have "card (rsubterms q \<union> rlinear_continuations q) \<le>
+        card (rsubterms q) + card (rlinear_continuations q)"
+      by (rule card_Un_le)
+    also have "... \<le> rsize q + rsize q"
+      using card_rsubterms_le_rsize[of q]
+        card_rlinear_continuations_le_rsize[of q]
+      by linarith
+    finally show "card (rsubterms q \<union> rlinear_continuations q) \<le>
+        2 * rsize q"
+      by simp
+  qed
+  also have "(\<Sum>q \<in> U. 2 * rsize q) =
+      2 * (\<Sum>q \<in> U. rsize q)"
+    by (simp add: sum_distrib_left)
+  also have "... = 2 * rsize_set U"
+    by (simp add: rsize_set_def)
+  finally show ?thesis .
+qed
+
+lemma rderiv_fuel_closure_member_size_boundI:
+  assumes member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and x: "x \<in> rderiv_fuel_closure U"
+  shows "rsize x \<le> M"
+proof -
+  obtain q where q: "q \<in> U"
+      and x_cases: "x \<in> rsubterms q \<or> x \<in> rlinear_continuations q"
+    using x by (auto simp add: rderiv_fuel_closure_def)
+  show ?thesis
+    using x_cases
+  proof
+    assume "x \<in> rsubterms q"
+    then have "rsize x \<le> rsize q"
+      by (rule rsubterms_member_size_le_rsize)
+    also have "... \<le> M"
+      by (rule member_size[OF q])
+    finally show ?thesis .
+  next
+    assume "x \<in> rlinear_continuations q"
+    then have "rsize x \<le> rsize q"
+      by (rule rlinear_continuations_member_size_le_rsize)
+    also have "... \<le> M"
+      by (rule member_size[OF q])
+    finally show ?thesis .
+  qed
+qed
+
+lemma aseq_terms_root_frontier_universe:
+  "aseq_terms r \<subseteq> partial_derivative_frontier_universe r"
+proof - 
+  have "aseq_terms r \<subseteq> rsubterms r"
+    by (rule aseq_terms_subset_rsubterms)
+  then show ?thesis
+    by (auto intro: partial_derivative_frontier_universe_subterm)
+qed
+
+lemma afactored1_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss (afactored1 r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+  by (rule afactored1_aseq_terms_closed_legacy_subsetI
+      [OF legacy aseq_terms_root_frontier_universe])
+    (use partial_derivative_frontier_universe_ntimes_predecessor
+      rsubterms_frontier_universe_member_subset in auto)
+
+lemma card_aseq_termss_afactored1_frontier_universe:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_termss (afactored1 r s)) \<le> (rsize r + 2) ^ 2"
+proof -
+  have subset: "aseq_termss (afactored1 r s) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+  have "card (aseq_termss (afactored1 r s)) \<le>
+      card (partial_derivative_frontier_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  finally show ?thesis .
+qed
+
+lemma aseq_termss_afactored1_member_size_linear:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> aseq_termss (afactored1 r s)"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have "q \<in> partial_derivative_frontier_universe r"
+    using afactored1_aseq_terms_frontier_universe_subset[OF legacy] q
+    by blast
+  then show ?thesis
+    by (rule partial_derivative_frontier_universe_member_size_linear)
+qed
+
+lemma afactored1_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss (afactored1 r s) \<subseteq>
+      partial_derivative_frontier_universe r \<and>
+    card (aseq_termss (afactored1 r s)) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_termss (afactored1 r s).
+      rsize q \<le> Suc (rsize r + rsize r))"
+  using assms afactored1_aseq_terms_frontier_universe_subset
+    card_aseq_termss_afactored1_frontier_universe
+    aseq_termss_afactored1_member_size_linear
+  by blast
+
+section \<open>Front-Indexed Antimirov Terms\<close>
+
+text \<open>
+  Same-front accounting must not use @{const aseq_terms} directly: that splitter
+  intentionally opens every @{const RSEQ}, so it would put the suffix of
+  @{term "RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"} into the root front.
+  For the front invariant we use @{const rfrontier}, which splits alternatives
+  but keeps product residuals intact.
+\<close>
+
+definition ader_front :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "ader_front r s = rfrontiers (afactored1 r s)"
+
+lemma rfrontier_anorm_der_eq_ader_front:
+  "rfrontier (anorm_der r s) = ader_front r s"
+  by (simp add: anorm_der_def ader_front_def)
+
+lemma rfrontier_rders_pder_norm_eq_ader_front:
+  "rfrontier (rders_pder_norm r s) = ader_front r s"
+  by (simp add: anorm_der_eq_rders_pder_norm[symmetric]
+      rfrontier_anorm_der_eq_ader_front)
+
+definition same_front_row :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "same_front_row root front row \<longleftrightarrow>
+    rfrontier row \<subseteq> ader_front root front"
+
+definition same_front_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "same_front_rows root front rows \<longleftrightarrow>
+    rfrontiers rows \<subseteq> ader_front root front"
+
+lemma same_front_rowsI:
+  assumes "\<And>row. row \<in> set rows \<Longrightarrow>
+    rfrontier row \<subseteq> ader_front root front"
+  shows "same_front_rows root front rows"
+proof -
+  have "rfrontiers rows \<subseteq> ader_front root front"
+  proof
+    fix x
+    assume x: "x \<in> rfrontiers rows"
+    obtain row where row: "row \<in> set rows" "x \<in> rfrontier row"
+      using x by (auto simp add: rfrontiers_member_iff)
+    have "rfrontier row \<subseteq> ader_front root front"
+      by (rule assms[OF row(1)])
+    then show "x \<in> ader_front root front"
+      using row(2) by blast
+  qed
+  then show ?thesis
+    by (simp add: same_front_rows_def)
+qed
+
+lemma same_front_rowsD:
+  assumes "same_front_rows root front rows"
+    and "row \<in> set rows"
+  shows "same_front_row root front row"
+proof -
+  have rows: "rfrontiers rows \<subseteq> ader_front root front"
+    using assms(1) by (simp add: same_front_rows_def)
+  have "rfrontier row \<subseteq> ader_front root front"
+  proof
+    fix x
+    assume x: "x \<in> rfrontier row"
+    have "x \<in> rfrontiers rows"
+      using assms(2) x by (auto simp add: rfrontiers_member_iff)
+    then show "x \<in> ader_front root front"
+      using rows by blast
+  qed
+  then show ?thesis
+    by (simp add: same_front_row_def)
+qed
+
+lemma afactored1_same_front_rows [simp]:
+  "same_front_rows r s (afactored1 r s)"
+  by (simp add: same_front_rows_def ader_front_def)
+
+lemma afactored1_member_same_front_row:
+  assumes "row \<in> set (afactored1 r s)"
+  shows "same_front_row r s row"
+  using same_front_rowsD[OF afactored1_same_front_rows assms] .
+
+lemma rders_pder_norm_same_front_row:
+  "same_front_row r s (rders_pder_norm r s)"
+  by (simp add: same_front_row_def
+      rfrontier_rders_pder_norm_eq_ader_front)
+
+lemma rders_pder_norm_frontier_in_same_front:
+  assumes "x \<in> rfrontier (rders_pder_norm r s)"
+  shows "x \<in> ader_front r s"
+  using assms
+  by (simp add: rfrontier_rders_pder_norm_eq_ader_front)
+
+lemma front_separates_seq_alt_suffix:
+  fixes a b c :: char
+  defines "r \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "r \<in> ader_front r []"
+    and "RCHAR c \<notin> ader_front r []"
+    and "RCHAR c \<in> ader_front r [a]"
+    and "RCHAR c \<in> ader_front r [b]"
+  by (simp_all add: r_def ader_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def)
+
+lemma ader_front_keeps_whole_residuals_a_aa:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "ader_front r [] = {r}"
+    and "ader_front r [a] = {RSEQ (RCHAR a) (RCHAR a)}"
+    and "ader_front r [a, a] = {RCHAR a}"
+    and "ader_front r [a, a, a] = {RONE}"
+  by (simp_all add: r_def ader_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def)
+
+lemma ader_front_keeps_whole_residuals_a_alt_tail:
+  fixes a b :: char
+  defines "r \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b])"
+  shows "ader_front r [] = {r}"
+    and "ader_front r [a] = {RCHAR b}"
+  by (auto simp add: r_def ader_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def)
+
+lemma front_allows_shared_a_prefix_residuals:
+  fixes a b c :: char
+  defines "r \<equiv>
+    RALTS [RSEQ (RSTAR (RCHAR a)) (RCHAR b),
+      RSEQ (RCHAR a) (RCHAR c)]"
+  shows "RSEQ (RSTAR (RCHAR a)) (RCHAR b) \<in> ader_front r [a]"
+    and "RCHAR c \<in> ader_front r [a]"
+  by (simp_all add: r_def ader_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def)
+
+section \<open>Exact Antimirov Residual Frontier\<close>
+
+text \<open>
+  The first-stage universe below follows the usual Antimirov residual
+  recursion.  It does not recursively atomize products.  In particular,
+  a product residual such as @{term "RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"}
+  remains visible as a whole residual at the empty front; only alternatives
+  are exposed by @{const rfrontier}.
+\<close>
+
+fun apder_terms :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_terms RZERO = {}"
+| "apder_terms RONE = {}"
+| "apder_terms (RCHAR c) = {RONE}"
+| "apder_terms (RALTS rs) = (\<Union>q \<in> set rs. apder_terms q)"
+| "apder_terms (RSEQ r1 r2) =
+    ((\<lambda>p. rsimp4_SEQ_atom p r2) ` apder_terms r1 \<union>
+      apder_terms r2)"
+| "apder_terms (RSTAR r) =
+    ((\<lambda>p. rsimp4_SEQ_atom p (RSTAR r)) ` apder_terms r)"
+| "apder_terms (RNTIMES r n) =
+    (\<Union>m \<in> {..<n}.
+      ((\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r m)) ` apder_terms r))"
+| "apder_terms (RBACKREF4 r1 r2 r3 r4 cs) = {}"
+| "apder_terms (RHALF r cs rep) = {}"
+| "apder_terms (RRESIDUE cs rep) = {}"
+
+definition apder_frontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_frontier r =
+    rfrontier r \<union> (\<Union>q \<in> apder_terms r. rfrontier q)"
+
+definition apder_rows :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_rows r = insert r (apder_frontier r)"
+
+fun apder_term_frontier_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_term_frontier_acc RZERO k = {}"
+| "apder_term_frontier_acc RONE k = {}"
+| "apder_term_frontier_acc (RCHAR c) k = rfrontier k"
+| "apder_term_frontier_acc (RALTS rs) k =
+    (\<Union>q \<in> set rs. apder_term_frontier_acc q k)"
+| "apder_term_frontier_acc (RSEQ r1 r2) k =
+    apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    apder_term_frontier_acc r2 k"
+| "apder_term_frontier_acc (RSTAR r) k =
+    apder_term_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "apder_term_frontier_acc (RNTIMES r n) k =
+    (\<Union>m \<in> {..<n}.
+      apder_term_frontier_acc r (rsimp4_SEQ_atom (RNTIMES r m) k))"
+| "apder_term_frontier_acc (RBACKREF4 r1 r2 r3 r4 cs) k = {}"
+| "apder_term_frontier_acc (RHALF r cs rep) k = {}"
+| "apder_term_frontier_acc (RRESIDUE cs rep) k = {}"
+
+definition apder_term_frontiers :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_term_frontiers r = apder_term_frontier_acc r RONE"
+
+fun apder_term_frontier_acc_budget :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "apder_term_frontier_acc_budget RZERO k = 0"
+| "apder_term_frontier_acc_budget RONE k = 0"
+| "apder_term_frontier_acc_budget (RCHAR c) k = rsize_set (rfrontier k)"
+| "apder_term_frontier_acc_budget (RALTS rs) k =
+    sum_list (map (\<lambda>q. apder_term_frontier_acc_budget q k) rs)"
+| "apder_term_frontier_acc_budget (RSEQ r1 r2) k =
+    apder_term_frontier_acc_budget r1 (rsimp4_SEQ_atom r2 k) +
+    apder_term_frontier_acc_budget r2 k"
+| "apder_term_frontier_acc_budget (RSTAR r) k =
+    apder_term_frontier_acc_budget r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "apder_term_frontier_acc_budget (RNTIMES r n) k =
+    sum_list (map
+      (\<lambda>m. apder_term_frontier_acc_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) [0..<n])"
+| "apder_term_frontier_acc_budget (RBACKREF4 r1 r2 r3 r4 cs) k = 0"
+| "apder_term_frontier_acc_budget (RHALF r cs rep) k = 0"
+| "apder_term_frontier_acc_budget (RRESIDUE cs rep) k = 0"
+
+fun apder_awidth :: "rrexp \<Rightarrow> nat" where
+  "apder_awidth RZERO = 0"
+| "apder_awidth RONE = 0"
+| "apder_awidth (RCHAR c) = 1"
+| "apder_awidth (RALTS rs) = sum_list (map apder_awidth rs)"
+| "apder_awidth (RSEQ r1 r2) = apder_awidth r1 + apder_awidth r2"
+| "apder_awidth (RSTAR r) = apder_awidth r"
+| "apder_awidth (RNTIMES r n) = n * apder_awidth r"
+| "apder_awidth (RBACKREF4 r1 r2 r3 r4 cs) = 0"
+| "apder_awidth (RHALF r cs rep) = 0"
+| "apder_awidth (RRESIDUE cs rep) = 0"
+
+fun apder_nf :: "rrexp \<Rightarrow> bool" where
+  "apder_nf RZERO = True"
+| "apder_nf RONE = True"
+| "apder_nf (RCHAR c) = True"
+| "apder_nf (RALTS rs) =
+    (\<forall>q \<in> set rs. apder_nf q \<and> nonalt q \<and> q \<noteq> RZERO)"
+| "apder_nf (RSEQ r1 r2) =
+    (apder_nf r1 \<and> apder_nf r2 \<and>
+      rnonseq r1 \<and> r1 \<noteq> RZERO \<and> r1 \<noteq> RONE \<and>
+      r2 \<noteq> RZERO \<and> r2 \<noteq> RONE)"
+| "apder_nf (RSTAR r) = apder_nf r"
+| "apder_nf (RNTIMES r n) = apder_nf r"
+| "apder_nf (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "apder_nf (RHALF r cs rep) = True"
+| "apder_nf (RRESIDUE cs rep) = True"
+
+lemma apder_nf_imp_rtail_nf:
+  assumes "apder_nf r"
+  shows "rtail_nf r"
+  using assms
+  by (induct r) auto
+
+lemma apder_nf_rsimp4_SEQ_atom:
+  assumes p: "apder_nf p"
+    and k: "apder_nf k"
+  shows "apder_nf (rsimp4_SEQ_atom p k)"
+  using p k
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ p1 p2)
+  have p1_nf: "apder_nf p1"
+    using RSEQ.prems by simp
+  have p2_nf: "apder_nf p2"
+    using RSEQ.prems by simp
+  have cont_nf: "apder_nf (rsimp4_SEQ_atom p2 k)"
+    by (rule RSEQ.hyps(2)[OF p2_nf RSEQ.prems(2)])
+  have "apder_nf (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))"
+    by (rule RSEQ.hyps(1)[OF p1_nf cont_nf])
+  then show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) auto
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+lemma finite_apder_terms [simp]:
+  "finite (apder_terms r)"
+  by (induct r) auto
+
+lemma card_apder_terms_le_awidth:
+  "card (apder_terms r) \<le> apder_awidth r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have "card (\<Union>q \<in> set rs. apder_terms q) \<le>
+      (\<Sum>q \<in> set rs. card (apder_terms q))"
+    by (rule card_UN_le) auto
+  also have "... \<le> sum_list (map (\<lambda>q. card (apder_terms q)) rs)"
+    by (rule sum_set_le_sum_list_nat)
+  also have "... \<le> sum_list (map apder_awidth rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  have image_le:
+      "card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` apder_terms r1) \<le>
+        card (apder_terms r1)"
+    by (rule card_image_le) simp
+  have "card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` apder_terms r1 \<union>
+      apder_terms r2) \<le>
+      card ((\<lambda>p. rsimp4_SEQ_atom p r2) ` apder_terms r1) +
+      card (apder_terms r2)"
+    by (rule card_Un_le)
+  also have "... \<le> card (apder_terms r1) + card (apder_terms r2)"
+    using image_le by simp
+  also have "... \<le> apder_awidth r1 + apder_awidth r2"
+    using RSEQ by simp
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  have "card ((\<lambda>p. rsimp4_SEQ_atom p (RSTAR r)) ` apder_terms r) \<le>
+      card (apder_terms r)"
+    by (rule card_image_le) simp
+  also have "... \<le> apder_awidth r"
+    by (rule RSTAR)
+  finally show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  have image_le: "\<And>m.
+      card ((\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r m)) `
+          apder_terms r) \<le>
+        card (apder_terms r)"
+    by (rule card_image_le) simp
+  have "card
+      (\<Union>m \<in> {..<n}.
+        (\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r m)) ` apder_terms r)
+      \<le>
+      (\<Sum>m \<in> {..<n}.
+        card ((\<lambda>p. rsimp4_SEQ_atom p (RNTIMES r m)) `
+          apder_terms r))"
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>m \<in> {..<n}. card (apder_terms r))"
+    by (rule sum_mono) (rule image_le)
+  also have "... = n * card (apder_terms r)"
+    by simp
+  also have "... \<le> n * apder_awidth r"
+    by (rule mult_left_mono[OF RNTIMES]) simp
+  finally show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma apder_awidth_zero_apder_terms_empty:
+  assumes "apder_awidth r = 0"
+  shows "apder_terms r = {}"
+proof -
+  have "card (apder_terms r) = 0"
+    using card_apder_terms_le_awidth[of r] assms by simp
+  then show ?thesis
+    by simp
+qed
+
+lemma finite_apder_frontier [simp]:
+  "finite (apder_frontier r)"
+  by (simp add: apder_frontier_def)
+
+lemma finite_apder_rows [simp]:
+  "finite (apder_rows r)"
+  by (simp add: apder_rows_def)
+
+lemma finite_apder_term_frontier_acc [simp]:
+  "finite (apder_term_frontier_acc r k)"
+  by (induct r arbitrary: k) auto
+
+lemma finite_apder_term_frontiers [simp]:
+  "finite (apder_term_frontiers r)"
+  by (simp add: apder_term_frontiers_def)
+
+lemma apder_term_frontier_acc_eq:
+  "apder_term_frontier_acc r k =
+    (\<Union>p \<in> apder_terms r. rfrontier (rsimp4_SEQ_atom p k))"
+  by (induct r arbitrary: k)
+    (auto simp add: rsimp4_SEQ_atom_assoc[symmetric])
+
+lemma rsize_set_rfrontier_le_rsize:
+  "rsize_set (rfrontier r) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by (simp add: rsize_set_def)
+next
+  case RONE
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RCHAR x)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RALTS rs)
+  have list_bound: "\<And>xs. set xs \<subseteq> set rs \<Longrightarrow>
+      rsize_set (rfrontiers xs) \<le> rsizes xs"
+  proof -
+    fix xs
+    assume xs: "set xs \<subseteq> set rs"
+    show "rsize_set (rfrontiers xs) \<le> rsizes xs"
+    using xs
+  proof (induct xs)
+    case Nil
+    then show ?case by (simp add: rsize_set_def)
+  next
+    case (Cons q qs)
+    have q_bound: "rsize_set (rfrontier q) \<le> rsize q"
+      by (rule RALTS.hyps) (use Cons.prems in auto)
+    have qs_bound: "rsize_set (rfrontiers qs) \<le> rsizes qs"
+      by (rule Cons.hyps) (use Cons.prems in auto)
+    have "rsize_set (rfrontier q \<union> rfrontiers qs) \<le>
+        rsize_set (rfrontier q) + rsize_set (rfrontiers qs)"
+      by (rule rsize_set_Un_le) simp_all
+    also have "... \<le> rsize q + rsizes qs"
+      using q_bound qs_bound by linarith
+    finally show ?case by simp
+  qed
+  qed
+  have "rsize_set (rfrontiers rs) \<le> rsizes rs"
+    by (rule list_bound) simp
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RSTAR r)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RNTIMES r n)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 x5)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RHALF r x2 x3)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RRESIDUE x1 x2)
+  then show ?case by (simp add: rsize_set_def)
+qed
+
+lemma rsize_set_rfrontiers_le_rsizes:
+  "rsize_set (rfrontiers rs) \<le> rsizes rs"
+proof (induct rs)
+  case Nil
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (Cons r rs)
+  have "rsize_set (rfrontier r \<union> rfrontiers rs) \<le>
+      rsize_set (rfrontier r) + rsize_set (rfrontiers rs)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le> rsize r + rsizes rs"
+  proof -
+    have head: "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    show ?thesis
+      using head Cons.hyps by simp
+  qed
+  finally show ?case by simp
+qed
+
+lemma rsize_set_rfrontier_le_square:
+  "rsize_set (rfrontier r) \<le> rsize r * rsize r"
+proof -
+  have "rsize_set (rfrontier r) \<le> rsize r"
+    by (rule rsize_set_rfrontier_le_rsize)
+  also have "... \<le> rsize r * rsize r"
+    using size_geq1[of r] by (simp add: mult_le_mono)
+  finally show ?thesis .
+qed
+
+lemma apder_ntimes_budget_component_le:
+  assumes m: "m < n"
+  shows "rsize (rsimp4_SEQ_atom (RNTIMES r m) k) +
+      (rsize r + 2)\<^sup>2 \<le>
+    rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+proof -
+  have seq_le: "rsize (rsimp4_SEQ_atom (RNTIMES r m) k) \<le>
+      Suc (rsize (RNTIMES r m) + rsize k)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  have m_le: "m \<le> n"
+    using m by simp
+  have size_m: "rsize (RNTIMES r m) \<le> rsize (RNTIMES r n)"
+    using m_le by simp
+  have base_le:
+      "Suc (rsize (RNTIMES r m)) + (rsize r + 2)\<^sup>2 \<le>
+        (rsize (RNTIMES r n) + 2)\<^sup>2"
+  proof -
+    let ?a = "rsize r + 2"
+    let ?b = "n"
+    have m_part: "Suc (rsize (RNTIMES r m)) \<le> rsize r + n + 2"
+      using m by simp
+    have sq_part: "(rsize r + 2)\<^sup>2 \<le> (rsize r + n + 2)\<^sup>2"
+      by (rule square_mono_nat) simp
+    have "Suc (rsize (RNTIMES r m)) + (rsize r + 2)\<^sup>2 \<le>
+        (rsize r + n + 2) + (rsize r + n + 2)\<^sup>2"
+      using m_part sq_part by linarith
+    also have "... \<le> (Suc (rsize r + n + 2))\<^sup>2"
+      by (rule add_square_le_Suc_square)
+    also have "... = (rsize (RNTIMES r n) + 2)\<^sup>2"
+      by simp
+    finally show ?thesis .
+  qed
+  have "rsize (rsimp4_SEQ_atom (RNTIMES r m) k) +
+      (rsize r + 2)\<^sup>2 \<le>
+      Suc (rsize (RNTIMES r m) + rsize k) +
+      (rsize r + 2)\<^sup>2"
+    using seq_le by linarith
+  also have "... =
+      rsize k + (Suc (rsize (RNTIMES r m)) +
+        (rsize r + 2)\<^sup>2)"
+    by simp
+  also have "... \<le>
+      rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+    using base_le by simp
+  finally show ?thesis .
+qed
+
+lemma apder_term_frontier_acc_budget_le_awidth:
+  "apder_term_frontier_acc_budget r k \<le>
+    apder_awidth r * (rsize k + (rsize r + 2)\<^sup>2)"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  have "rsize_set (rfrontier k) \<le> rsize k"
+    by (rule rsize_set_rfrontier_le_rsize)
+  also have "... \<le> rsize k + (rsize (RCHAR c) + 2)\<^sup>2"
+    by simp
+  finally show ?case by simp
+next
+  case (RALTS rs)
+  have each: "\<And>q. q \<in> set rs \<Longrightarrow>
+      apder_term_frontier_acc_budget q k \<le>
+      apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+  proof -
+    fix q
+    assume q: "q \<in> set rs"
+    have "apder_term_frontier_acc_budget q k \<le>
+        apder_awidth q * (rsize k + (rsize q + 2)\<^sup>2)"
+      by (rule RALTS.hyps[OF q])
+    also have "... \<le>
+        apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+    proof -
+      have "rsize q + 2 \<le> rsize (RALTS rs) + 2"
+        using rsize_member_le_rsizes[OF q] by simp
+      then have "(rsize q + 2)\<^sup>2 \<le>
+          (rsize (RALTS rs) + 2)\<^sup>2"
+        by (rule square_mono_nat)
+      then have inner: "rsize k + (rsize q + 2)\<^sup>2 \<le>
+          rsize k + (rsize (RALTS rs) + 2)\<^sup>2"
+        by simp
+      then show ?thesis
+        using inner by simp
+    qed
+    finally show "apder_term_frontier_acc_budget q k \<le>
+      apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)" .
+  qed
+  have "sum_list (map (\<lambda>q. apder_term_frontier_acc_budget q k) rs) \<le>
+      sum_list (map
+        (\<lambda>q. apder_awidth q *
+          (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)) rs)"
+    by (rule sum_list_mono) (use each in auto)
+  also have "... =
+      apder_awidth (RALTS rs) *
+        (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+    by (simp add: sum_list_map_mult_right_nat)
+  finally show ?case by simp
+next
+  case (RSEQ r1 r2)
+  let ?G = "rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+  have left_component:
+      "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom r2 k) \<le>
+        Suc (rsize r2 + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le>
+        Suc (rsize r2 + rsize k) + (rsize r1 + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (Suc (rsize r2) + (rsize r1 + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+    proof -
+      have "Suc (rsize r2) + (rsize r1 + 2)\<^sup>2 \<le>
+          (Suc (rsize r1 + rsize r2) + 2)\<^sup>2"
+        by (rule component_Suc_plus_shifted_square_le)
+      then show ?thesis by simp
+    qed
+    finally show ?thesis .
+  qed
+  have right_component:
+      "rsize k + (rsize r2 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have "(rsize r2 + 2)\<^sup>2 \<le>
+        (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+      by (rule square_mono_nat) simp
+    then show ?thesis by linarith
+  qed
+  have left: "apder_term_frontier_acc_budget r1
+      (rsimp4_SEQ_atom r2 k) \<le> apder_awidth r1 * ?G"
+  proof -
+    have "apder_term_frontier_acc_budget r1
+        (rsimp4_SEQ_atom r2 k) \<le>
+        apder_awidth r1 *
+          (rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2)"
+      by (rule RSEQ.hyps(1))
+    also have "... \<le> apder_awidth r1 * ?G"
+      by (rule mult_left_mono[OF left_component]) simp
+    finally show ?thesis .
+  qed
+  have right: "apder_term_frontier_acc_budget r2 k \<le>
+      apder_awidth r2 * ?G"
+  proof -
+    have "apder_term_frontier_acc_budget r2 k \<le>
+        apder_awidth r2 * (rsize k + (rsize r2 + 2)\<^sup>2)"
+      by (rule RSEQ.hyps(2))
+    also have "... \<le> apder_awidth r2 * ?G"
+      by (rule mult_left_mono[OF right_component]) simp
+    finally show ?thesis .
+  qed
+  show ?case
+    using left right by (simp add: algebra_simps)
+next
+  case (RSTAR r)
+  let ?G = "rsize k + (rsize (RSTAR r) + 2)\<^sup>2"
+  have component:
+      "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom (RSTAR r) k) \<le>
+        Suc (rsize (RSTAR r) + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le>
+        Suc (rsize (RSTAR r) + rsize k) + (rsize r + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (rsize r + 2 + (rsize r + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+      using add_square_le_Suc_square[of "rsize r + 2"] by simp
+    finally show ?thesis .
+  qed
+  have "apder_term_frontier_acc_budget r
+      (rsimp4_SEQ_atom (RSTAR r) k) \<le>
+      apder_awidth r *
+        (rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+          (rsize r + 2)\<^sup>2)"
+    by (rule RSTAR.hyps)
+  also have "... \<le> apder_awidth r * ?G"
+    by (rule mult_left_mono[OF component]) simp
+  finally show ?case by simp
+next
+  case (RNTIMES r n)
+  let ?G = "rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+  have each: "\<And>m. m \<in> set [0..<n] \<Longrightarrow>
+      apder_term_frontier_acc_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<le>
+      apder_awidth r * ?G"
+  proof -
+    fix m
+    assume m_set: "m \<in> set [0..<n]"
+    then have m: "m < n"
+      by simp
+    have "apder_term_frontier_acc_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<le>
+        apder_awidth r *
+          (rsize (rsimp4_SEQ_atom (RNTIMES r m) k) +
+            (rsize r + 2)\<^sup>2)"
+      by (rule RNTIMES.hyps)
+    also have "... \<le> apder_awidth r * ?G"
+      by (rule mult_left_mono[OF apder_ntimes_budget_component_le[OF m]]) simp
+    finally show "apder_term_frontier_acc_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<le>
+      apder_awidth r * ?G" .
+  qed
+  have "sum_list (map
+      (\<lambda>m. apder_term_frontier_acc_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) [0..<n]) \<le>
+      sum_list (map (\<lambda>m. apder_awidth r * ?G) [0..<n])"
+    by (rule sum_list_mono) (use each in auto)
+  also have "... = n * (apder_awidth r * ?G)"
+    by (rule sum_list_map_upt_const_nat)
+  also have "... = (n * apder_awidth r) * ?G"
+    by (simp add: algebra_simps)
+  finally show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+definition apder_terms_acc :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_terms_acc r k =
+    ((\<lambda>p. rsimp4_SEQ_atom p k) ` apder_terms r)"
+
+lemma finite_apder_terms_acc [simp]:
+  "finite (apder_terms_acc r k)"
+  by (simp add: apder_terms_acc_def)
+
+lemma rsize_set_apder_terms_acc_le_awidth:
+  "rsize_set (apder_terms_acc r k) \<le>
+    apder_awidth r * (rsize k + (rsize r + 2)\<^sup>2)"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by (simp add: apder_terms_acc_def rsize_set_def)
+next
+  case RONE
+  then show ?case by (simp add: apder_terms_acc_def rsize_set_def)
+next
+  case (RCHAR c)
+  have "rsize_set (apder_terms_acc (RCHAR c) k) = rsize k"
+    by (simp add: apder_terms_acc_def rsize_set_def)
+  also have "... \<le> rsize k + (rsize (RCHAR c) + 2)\<^sup>2"
+    by simp
+  finally show ?case by simp
+next
+  case (RALTS rs)
+  have acc_eq:
+      "apder_terms_acc (RALTS rs) k =
+        (\<Union>q \<in> set rs. apder_terms_acc q k)"
+    by (auto simp add: apder_terms_acc_def)
+  have each: "\<And>q. q \<in> set rs \<Longrightarrow>
+      rsize_set (apder_terms_acc q k) \<le>
+      apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+  proof -
+    fix q
+    assume q: "q \<in> set rs"
+    have "rsize_set (apder_terms_acc q k) \<le>
+        apder_awidth q * (rsize k + (rsize q + 2)\<^sup>2)"
+      by (rule RALTS.hyps[OF q])
+    also have "... \<le>
+        apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+    proof -
+      have "rsize q + 2 \<le> rsize (RALTS rs) + 2"
+        using rsize_member_le_rsizes[OF q] by simp
+      then have "(rsize q + 2)\<^sup>2 \<le>
+          (rsize (RALTS rs) + 2)\<^sup>2"
+        by (rule square_mono_nat)
+      then have "rsize k + (rsize q + 2)\<^sup>2 \<le>
+          rsize k + (rsize (RALTS rs) + 2)\<^sup>2"
+        by simp
+      then show ?thesis
+        by (rule mult_left_mono) simp
+    qed
+    finally show "rsize_set (apder_terms_acc q k) \<le>
+      apder_awidth q * (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)" .
+  qed
+  have "rsize_set (apder_terms_acc (RALTS rs) k) \<le>
+      sum_list (map (\<lambda>q. rsize_set (apder_terms_acc q k)) rs)"
+    unfolding acc_eq
+    by (rule rsize_set_UN_set_le_sum_list) simp_all
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>q. apder_awidth q *
+          (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)) rs)"
+    by (rule sum_list_mono) (use each in auto)
+  also have "... =
+      apder_awidth (RALTS rs) *
+        (rsize k + (rsize (RALTS rs) + 2)\<^sup>2)"
+    by (simp add: sum_list_map_mult_right_nat)
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  let ?G = "rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+  have acc_eq:
+      "apder_terms_acc (RSEQ r1 r2) k =
+        apder_terms_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+        apder_terms_acc r2 k"
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have left_component:
+      "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom r2 k) \<le>
+        Suc (rsize r2 + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le>
+        Suc (rsize r2 + rsize k) + (rsize r1 + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (Suc (rsize r2) + (rsize r1 + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+    proof -
+      have "Suc (rsize r2) + (rsize r1 + 2)\<^sup>2 \<le>
+          (Suc (rsize r1 + rsize r2) + 2)\<^sup>2"
+        by (rule component_Suc_plus_shifted_square_le)
+      then show ?thesis by simp
+    qed
+    finally show ?thesis .
+  qed
+  have right_component:
+      "rsize k + (rsize r2 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have "(rsize r2 + 2)\<^sup>2 \<le>
+        (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+      by (rule square_mono_nat) simp
+    then show ?thesis by linarith
+  qed
+  have left: "rsize_set (apder_terms_acc r1
+      (rsimp4_SEQ_atom r2 k)) \<le> apder_awidth r1 * ?G"
+  proof -
+    have "rsize_set (apder_terms_acc r1 (rsimp4_SEQ_atom r2 k)) \<le>
+        apder_awidth r1 *
+          (rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2)"
+      by (rule RSEQ.hyps(1))
+    also have "... \<le> apder_awidth r1 * ?G"
+      by (rule mult_left_mono[OF left_component]) simp
+    finally show ?thesis .
+  qed
+  have right: "rsize_set (apder_terms_acc r2 k) \<le>
+      apder_awidth r2 * ?G"
+  proof -
+    have "rsize_set (apder_terms_acc r2 k) \<le>
+        apder_awidth r2 * (rsize k + (rsize r2 + 2)\<^sup>2)"
+      by (rule RSEQ.hyps(2))
+    also have "... \<le> apder_awidth r2 * ?G"
+      by (rule mult_left_mono[OF right_component]) simp
+    finally show ?thesis .
+  qed
+  have "rsize_set (apder_terms_acc (RSEQ r1 r2) k) \<le>
+      rsize_set (apder_terms_acc r1 (rsimp4_SEQ_atom r2 k)) +
+      rsize_set (apder_terms_acc r2 k)"
+    unfolding acc_eq by (rule rsize_set_Un_le) simp_all
+  also have "... \<le> (apder_awidth r1 + apder_awidth r2) * ?G"
+    using left right by (simp add: algebra_simps)
+  finally show ?case by simp
+next
+  case (RSTAR r)
+  let ?G = "rsize k + (rsize (RSTAR r) + 2)\<^sup>2"
+  have acc_eq:
+      "apder_terms_acc (RSTAR r) k =
+        apder_terms_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have component:
+      "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom (RSTAR r) k) \<le>
+        Suc (rsize (RSTAR r) + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le>
+        Suc (rsize (RSTAR r) + rsize k) + (rsize r + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (rsize r + 2 + (rsize r + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+      using add_square_le_Suc_square[of "rsize r + 2"] by simp
+    finally show ?thesis .
+  qed
+  have "rsize_set (apder_terms_acc (RSTAR r) k) =
+      rsize_set (apder_terms_acc r (rsimp4_SEQ_atom (RSTAR r) k))"
+    by (simp add: acc_eq)
+  also have "... \<le>
+      apder_awidth r *
+        (rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+          (rsize r + 2)\<^sup>2)"
+    by (rule RSTAR.hyps)
+  also have "... \<le> apder_awidth r * ?G"
+    by (rule mult_left_mono[OF component]) simp
+  finally show ?case by simp
+next
+  case (RNTIMES r n)
+  let ?G = "rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+  have acc_eq:
+      "apder_terms_acc (RNTIMES r n) k =
+        (\<Union>m \<in> {..<n}.
+          apder_terms_acc r (rsimp4_SEQ_atom (RNTIMES r m) k))"
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have each: "\<And>m. m \<in> set [0..<n] \<Longrightarrow>
+      rsize_set (apder_terms_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le>
+      apder_awidth r * ?G"
+  proof -
+    fix m
+    assume m_set: "m \<in> set [0..<n]"
+    then have m: "m < n"
+      by simp
+    have "rsize_set (apder_terms_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le>
+        apder_awidth r *
+          (rsize (rsimp4_SEQ_atom (RNTIMES r m) k) +
+            (rsize r + 2)\<^sup>2)"
+      by (rule RNTIMES.hyps)
+    also have "... \<le> apder_awidth r * ?G"
+      by (rule mult_left_mono[OF apder_ntimes_budget_component_le[OF m]]) simp
+    finally show "rsize_set (apder_terms_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le>
+      apder_awidth r * ?G" .
+  qed
+  have "rsize_set (apder_terms_acc (RNTIMES r n) k) \<le>
+      (\<Sum>m \<in> {..<n}. rsize_set (apder_terms_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)))"
+    unfolding acc_eq by (rule rsize_set_UN_le) auto
+  also have "... \<le>
+      (\<Sum>m \<in> {..<n}. apder_awidth r * ?G)"
+  proof (rule sum_mono)
+    fix m
+    assume "m \<in> {..<n}"
+    then show "rsize_set (apder_terms_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le>
+      apder_awidth r * ?G"
+      using each[of m] by simp
+  qed
+  also have "... = n * (apder_awidth r * ?G)"
+    by simp
+  also have "... = (n * apder_awidth r) * ?G"
+    by (simp add: algebra_simps)
+  finally show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: apder_terms_acc_def rsize_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: apder_terms_acc_def rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: apder_terms_acc_def rsize_set_def)
+qed
+
+lemma apder_terms_acc_member_size_quadratic:
+  assumes p: "p \<in> apder_terms_acc r k"
+  shows "rsize p \<le> rsize k + (rsize r + 2)\<^sup>2"
+  using p
+proof (induct r arbitrary: k p)
+  case RZERO
+  then show ?case by (simp add: apder_terms_acc_def)
+next
+  case RONE
+  then show ?case by (simp add: apder_terms_acc_def)
+next
+  case (RCHAR c)
+  then show ?case by (simp add: apder_terms_acc_def)
+next
+  case (RALTS rs)
+  obtain q where q: "q \<in> set rs" "p \<in> apder_terms_acc q k"
+    using RALTS.prems by (auto simp add: apder_terms_acc_def)
+  have "rsize p \<le> rsize k + (rsize q + 2)\<^sup>2"
+    by (rule RALTS.hyps[OF q(1) q(2)])
+  also have "... \<le> rsize k + (rsize (RALTS rs) + 2)\<^sup>2"
+  proof -
+    have "rsize q + 2 \<le> rsize (RALTS rs) + 2"
+      using rsize_member_le_rsizes[OF q(1)] by simp
+    then have "(rsize q + 2)\<^sup>2 \<le>
+        (rsize (RALTS rs) + 2)\<^sup>2"
+      by (rule square_mono_nat)
+    then show ?thesis by simp
+  qed
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  let ?G = "rsize k + (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+  have p_cases:
+      "p \<in> apder_terms_acc r1 (rsimp4_SEQ_atom r2 k) \<or>
+       p \<in> apder_terms_acc r2 k"
+    using RSEQ.prems
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have left_component:
+      "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom r2 k) \<le>
+        Suc (rsize r2 + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2 \<le>
+        Suc (rsize r2 + rsize k) + (rsize r1 + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (Suc (rsize r2) + (rsize r1 + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+    proof -
+      have "Suc (rsize r2) + (rsize r1 + 2)\<^sup>2 \<le>
+          (Suc (rsize r1 + rsize r2) + 2)\<^sup>2"
+        by (rule component_Suc_plus_shifted_square_le)
+      then show ?thesis by simp
+    qed
+    finally show ?thesis .
+  qed
+  have right_component:
+      "rsize k + (rsize r2 + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have "(rsize r2 + 2)\<^sup>2 \<le>
+        (rsize (RSEQ r1 r2) + 2)\<^sup>2"
+      by (rule square_mono_nat) simp
+    then show ?thesis by linarith
+  qed
+  show ?case
+  proof (rule disjE[OF p_cases])
+    assume left: "p \<in> apder_terms_acc r1 (rsimp4_SEQ_atom r2 k)"
+    have "rsize p \<le>
+        rsize (rsimp4_SEQ_atom r2 k) + (rsize r1 + 2)\<^sup>2"
+      by (rule RSEQ.hyps(1)[OF left])
+    also have "... \<le> ?G"
+      by (rule left_component)
+    finally show ?thesis .
+  next
+    assume right: "p \<in> apder_terms_acc r2 k"
+    have "rsize p \<le> rsize k + (rsize r2 + 2)\<^sup>2"
+      by (rule RSEQ.hyps(2)[OF right])
+    also have "... \<le> ?G"
+      by (rule right_component)
+    finally show ?thesis .
+  qed
+next
+  case (RSTAR r)
+  let ?G = "rsize k + (rsize (RSTAR r) + 2)\<^sup>2"
+  have p_in: "p \<in> apder_terms_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    using RSTAR.prems
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have component:
+      "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le> ?G"
+  proof -
+    have seq_le: "rsize (rsimp4_SEQ_atom (RSTAR r) k) \<le>
+        Suc (rsize (RSTAR r) + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    have "rsize (rsimp4_SEQ_atom (RSTAR r) k) +
+        (rsize r + 2)\<^sup>2 \<le>
+        Suc (rsize (RSTAR r) + rsize k) + (rsize r + 2)\<^sup>2"
+      using seq_le by linarith
+    also have "... =
+        rsize k + (rsize r + 2 + (rsize r + 2)\<^sup>2)"
+      by simp
+    also have "... \<le> ?G"
+      using add_square_le_Suc_square[of "rsize r + 2"] by simp
+    finally show ?thesis .
+  qed
+  have "rsize p \<le>
+      rsize (rsimp4_SEQ_atom (RSTAR r) k) + (rsize r + 2)\<^sup>2"
+    by (rule RSTAR.hyps[OF p_in])
+  also have "... \<le> ?G"
+    by (rule component)
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  let ?G = "rsize k + (rsize (RNTIMES r n) + 2)\<^sup>2"
+  obtain m where m: "m < n"
+      "p \<in> apder_terms_acc r (rsimp4_SEQ_atom (RNTIMES r m) k)"
+    using RNTIMES.prems
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  have "rsize p \<le>
+      rsize (rsimp4_SEQ_atom (RNTIMES r m) k) +
+        (rsize r + 2)\<^sup>2"
+    by (rule RNTIMES.hyps[OF m(2)])
+  also have "... \<le> ?G"
+    by (rule apder_ntimes_budget_component_le[OF m(1)])
+  finally show ?case .
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: apder_terms_acc_def)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: apder_terms_acc_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: apder_terms_acc_def)
+qed
+
+lemma rsize_set_apder_term_frontier_acc_le_budget:
+  "rsize_set (apder_term_frontier_acc r k) \<le>
+    apder_term_frontier_acc_budget r k"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by (simp add: rsize_set_def)
+next
+  case RONE
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have "rsize_set (\<Union>q \<in> set rs. apder_term_frontier_acc q k) \<le>
+      sum_list (map (\<lambda>q. apder_term_frontier_acc_budget q k) rs)"
+    by (rule rsize_set_UN_set_le_sum_list) (use RALTS.hyps in auto)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have "rsize_set
+      (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+        apder_term_frontier_acc r2 k) \<le>
+      rsize_set (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)) +
+      rsize_set (apder_term_frontier_acc r2 k)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      apder_term_frontier_acc_budget r1 (rsimp4_SEQ_atom r2 k) +
+      apder_term_frontier_acc_budget r2 k"
+  proof -
+    have left:
+        "rsize_set
+          (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)) \<le>
+        apder_term_frontier_acc_budget r1 (rsimp4_SEQ_atom r2 k)"
+      by (rule RSEQ.hyps(1))
+    have right:
+        "rsize_set (apder_term_frontier_acc r2 k) \<le>
+        apder_term_frontier_acc_budget r2 k"
+      by (rule RSEQ.hyps(2))
+    show ?thesis
+      using left right by simp
+  qed
+  finally show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  have "rsize_set
+      (\<Union>m \<in> {..<n}.
+        apder_term_frontier_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le>
+      (\<Sum>m \<in> {..<n}. rsize_set
+        (apder_term_frontier_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)))"
+    by (rule rsize_set_UN_le) auto
+  also have "... \<le>
+      (\<Sum>m \<in> {..<n}.
+        apder_term_frontier_acc_budget r
+          (rsimp4_SEQ_atom (RNTIMES r m) k))"
+    by (rule sum_mono) (rule RNTIMES.hyps)
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>m. apder_term_frontier_acc_budget r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)) [0..<n])"
+  proof -
+    let ?B = "\<lambda>m. apder_term_frontier_acc_budget r
+      (rsimp4_SEQ_atom (RNTIMES r m) k)"
+    have sum_eq: "(\<Sum>m \<in> {..<n}. ?B m) =
+        (\<Sum>m \<in> set [0..<n]. ?B m)"
+      by (rule sum.cong) auto
+    have list_bound:
+        "(\<Sum>m \<in> set [0..<n]. ?B m) \<le>
+          sum_list (map ?B [0..<n])"
+      by (rule sum_set_le_sum_list_nat)
+    show ?thesis
+      using sum_eq list_bound by linarith
+  qed
+  finally show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: rsize_set_def)
+qed
+
+lemma rpder_subset_apder_terms:
+  "rpder c r \<subseteq> apder_terms r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case by auto
+next
+  case (RSEQ r1 r2)
+  then show ?case by auto
+next
+  case (RSTAR r)
+  then show ?case by auto
+next
+  case (RNTIMES r n)
+  show ?case
+  proof
+    fix p
+    assume p: "p \<in> rpder c (RNTIMES r n)"
+    then show "p \<in> apder_terms (RNTIMES r n)"
+    proof (cases n)
+      case 0
+      then show ?thesis
+        using p by simp
+    next
+      case (Suc m)
+      then obtain x where x: "x \<in> rpder c r"
+        "p = rsimp4_SEQ_atom x (RNTIMES r m)"
+        using p by auto
+      have "x \<in> apder_terms r"
+        using RNTIMES.hyps x(1) by blast
+      moreover have "m < n"
+        using Suc by simp
+      ultimately show ?thesis
+        using x(2) by auto
+    qed
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma apder_nf_apder_terms:
+  assumes nf: "apder_nf r"
+    and p: "p \<in> apder_terms r"
+  shows "apder_nf p"
+  using nf p
+proof (induct r arbitrary: p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> apder_terms q"
+    by auto
+  have "apder_nf q"
+    using RALTS.prems q by simp
+  then show ?case
+    using RALTS.hyps[OF q(1)] q by blast
+next
+  case (RSEQ r1 r2)
+  have p_cases:
+      "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<or>
+        p \<in> apder_terms r2"
+    using RSEQ.prems by simp
+  show ?case
+  proof (rule disjE[OF p_cases])
+    assume left: "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1"
+    then obtain x where x: "x \<in> apder_terms r1"
+      "p = rsimp4_SEQ_atom x r2"
+      by blast
+    have "apder_nf x"
+      by (rule RSEQ.hyps(1)[OF _ x(1)])
+        (use RSEQ.prems in simp)
+    moreover have "apder_nf r2"
+      using RSEQ.prems by simp
+    ultimately show "apder_nf p"
+      by (simp add: x(2) apder_nf_rsimp4_SEQ_atom)
+  next
+    assume right: "p \<in> apder_terms r2"
+    show "apder_nf p"
+      by (rule RSEQ.hyps(2)[OF _ right])
+        (use RSEQ.prems in simp)
+  qed
+next
+  case (RSTAR r)
+  then obtain x where x: "x \<in> apder_terms r"
+    "p = rsimp4_SEQ_atom x (RSTAR r)"
+    by auto
+  have "apder_nf x"
+    by (rule RSTAR.hyps[OF _ x(1)])
+      (use RSTAR.prems in simp)
+  moreover have "apder_nf (RSTAR r)"
+    using RSTAR.prems by simp
+  then show ?case
+    using calculation by (simp add: x(2) apder_nf_rsimp4_SEQ_atom)
+next
+  case (RNTIMES r n)
+  then obtain m x where x: "x \<in> apder_terms r"
+    "p = rsimp4_SEQ_atom x (RNTIMES r m)"
+    by auto
+  have "apder_nf x"
+    by (rule RNTIMES.hyps[OF _ x(1)])
+      (use RNTIMES.prems in simp)
+  moreover have "apder_nf (RNTIMES r m)"
+    using RNTIMES.prems by simp
+  then show ?case
+    using calculation by (simp add: x(2) apder_nf_rsimp4_SEQ_atom)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(2) by simp
+  then show ?case ..
+next
+  case (RHALF r cs rep)
+  have False
+    using RHALF.prems(2) by simp
+  then show ?case ..
+next
+  case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(2) by simp
+  then show ?case ..
+qed
+
+lemma rtail_nf_apder_terms:
+  assumes nf: "apder_nf r"
+    and p: "p \<in> apder_terms r"
+  shows "rtail_nf p"
+  by (rule apder_nf_imp_rtail_nf)
+    (rule apder_nf_apder_terms[OF nf p])
+
+lemma apder_terms_member_size_quadratic:
+  assumes nf: "apder_nf r"
+    and p: "p \<in> apder_terms r"
+  shows "rsize p \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+proof -
+  have "p \<in> apder_terms_acc r RONE"
+  proof -
+    have "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p])
+    then have "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable)
+    then show ?thesis
+      using p unfolding apder_terms_acc_def by (metis image_eqI)
+  qed
+  then show ?thesis
+    by (rule apder_terms_acc_member_size_quadratic)
+qed
+
+lemma rsize_set_apder_terms_le_awidth:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_terms r) \<le>
+    apder_awidth r * (rsize RONE + (rsize r + 2)\<^sup>2)"
+proof -
+  have acc_eq: "apder_terms_acc r RONE = apder_terms r"
+  proof
+    show "apder_terms_acc r RONE \<subseteq> apder_terms r"
+    proof
+      fix x
+      assume x: "x \<in> apder_terms_acc r RONE"
+      then obtain p where p: "p \<in> apder_terms r"
+        "x = rsimp4_SEQ_atom p RONE"
+        by (auto simp add: apder_terms_acc_def)
+      have "rtail_nf p"
+        by (rule rtail_nf_apder_terms[OF nf p(1)])
+      then have "rsimp4_SEQ_atom p RONE = p"
+        by (rule rtail_nf_RONE_stable)
+      then show "x \<in> apder_terms r"
+        using p by simp
+    qed
+    show "apder_terms r \<subseteq> apder_terms_acc r RONE"
+    proof
+      fix p
+      assume p: "p \<in> apder_terms r"
+      have "rtail_nf p"
+        by (rule rtail_nf_apder_terms[OF nf p])
+      then have "rsimp4_SEQ_atom p RONE = p"
+        by (rule rtail_nf_RONE_stable)
+      then show "p \<in> apder_terms_acc r RONE"
+        using p unfolding apder_terms_acc_def by (metis image_eqI)
+    qed
+  qed
+  have "rsize_set (apder_terms r) =
+      rsize_set (apder_terms_acc r RONE)"
+    by (simp add: acc_eq)
+  also have "... \<le>
+      apder_awidth r * (rsize RONE + (rsize r + 2)\<^sup>2)"
+    by (rule rsize_set_apder_terms_acc_le_awidth)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_terms_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_terms r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "rsize_set (apder_terms r) \<le>
+      apder_awidth r * (rsize RONE + (rsize r + 2)\<^sup>2)"
+    by (rule rsize_set_apder_terms_le_awidth[OF nf])
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma apder_frontier_eq_rfrontier_union_acc:
+  assumes nf: "apder_nf r"
+  shows "apder_frontier r =
+    rfrontier r \<union> apder_term_frontiers r"
+proof -
+  have stable: "\<And>p. p \<in> apder_terms r \<Longrightarrow>
+      rsimp4_SEQ_atom p RONE = p"
+  proof -
+    fix p
+    assume p: "p \<in> apder_terms r"
+    have "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p])
+    then show "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable)
+  qed
+  have term_fronts:
+      "(\<Union>p \<in> apder_terms r. rfrontier p) =
+        (\<Union>p \<in> apder_terms r.
+          rfrontier (rsimp4_SEQ_atom p RONE))"
+    using stable by auto
+  show ?thesis
+    using term_fronts apder_term_frontier_acc_eq[of r RONE]
+    by (simp add: apder_frontier_def apder_term_frontiers_def)
+qed
+
+lemma rsize_set_apder_frontier_le_budget:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_frontier r) \<le>
+    rsize r * rsize r + apder_term_frontier_acc_budget r RONE"
+proof -
+  have front_eq:
+      "apder_frontier r = rfrontier r \<union> apder_term_frontiers r"
+    by (rule apder_frontier_eq_rfrontier_union_acc[OF nf])
+  have "rsize_set (apder_frontier r) \<le>
+      rsize_set (rfrontier r) + rsize_set (apder_term_frontiers r)"
+    unfolding front_eq
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize r * rsize r + apder_term_frontier_acc_budget r RONE"
+  proof -
+    have root: "rsize_set (rfrontier r) \<le> rsize r * rsize r"
+      by (rule rsize_set_rfrontier_le_square)
+    have terms: "rsize_set (apder_term_frontiers r) \<le>
+        apder_term_frontier_acc_budget r RONE"
+      unfolding apder_term_frontiers_def
+      by (rule rsize_set_apder_term_frontier_acc_le_budget)
+    show ?thesis
+      using root terms by linarith
+  qed
+  finally show ?thesis .
+qed
+
+lemma apder_frontier_expanded_cubic_size_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_frontier r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "rsize_set (apder_frontier r) \<le>
+      rsize r * rsize r + apder_term_frontier_acc_budget r RONE"
+    by (rule rsize_set_apder_frontier_le_budget[OF nf])
+  also have "... \<le>
+      rsize r * rsize r +
+        apder_awidth r * (rsize RONE + (rsize r + 2)\<^sup>2)"
+  proof -
+    have "apder_term_frontier_acc_budget r RONE \<le>
+        apder_awidth r * (rsize RONE + (rsize r + 2)\<^sup>2)"
+      by (rule apder_term_frontier_acc_budget_le_awidth)
+    then show ?thesis
+      by linarith
+  qed
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma card_apder_frontier_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "card (apder_frontier r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "card (apder_frontier r) =
+      (\<Sum>q \<in> apder_frontier r. 1)"
+    by simp
+  also have "... \<le> rsize_set (apder_frontier r)"
+    unfolding rsize_set_def
+    by (rule sum_mono) (use size_geq1 in blast)
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (rule apder_frontier_expanded_cubic_size_bound[OF nf])
+  finally show ?thesis .
+qed
+
+lemma apder_terms_RONE_image_rtail_nf:
+  assumes nf: "apder_nf r"
+  shows "apder_terms r \<subseteq>
+    ((\<lambda>x. rsimp4_SEQ_atom x RONE) ` apder_terms r)"
+proof
+  fix x
+  assume x: "x \<in> apder_terms r"
+  have "rtail_nf x"
+    by (rule rtail_nf_apder_terms[OF nf x])
+  then have "rsimp4_SEQ_atom x RONE = x"
+    by (rule rtail_nf_RONE_stable)
+  then show "x \<in> (\<lambda>x. rsimp4_SEQ_atom x RONE) ` apder_terms r"
+    using x by (metis image_eqI)
+qed
+
+lemma apder_terms_rsimp4_SEQ_atom_subset_rtail_nf:
+  assumes p_nf: "apder_nf p"
+    and k_nf: "apder_nf k"
+  shows "apder_terms (rsimp4_SEQ_atom p k) \<subseteq>
+    ((\<lambda>x. rsimp4_SEQ_atom x k) ` apder_terms p \<union> apder_terms k)"
+  using p_nf k_nf
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+  proof (cases k)
+    case RONE
+    then show ?thesis
+      using apder_terms_RONE_image_rtail_nf[OF RCHAR.prems(1)]
+      by simp
+  qed auto
+next
+  case (RSEQ p1 p2)
+  have p1_nf: "apder_nf p1"
+    using RSEQ.prems by simp
+  have p2_nf: "apder_nf p2"
+    using RSEQ.prems by simp
+  have cont_nf: "apder_nf (rsimp4_SEQ_atom p2 k)"
+    by (rule apder_nf_rsimp4_SEQ_atom[OF p2_nf RSEQ.prems(2)])
+  have left: "apder_terms
+      (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k)) \<subseteq>
+      ((\<lambda>x. rsimp4_SEQ_atom x (rsimp4_SEQ_atom p2 k)) `
+        apder_terms p1 \<union> apder_terms (rsimp4_SEQ_atom p2 k))"
+    by (rule RSEQ.hyps(1)[OF p1_nf cont_nf])
+  have right: "apder_terms (rsimp4_SEQ_atom p2 k) \<subseteq>
+      ((\<lambda>x. rsimp4_SEQ_atom x k) ` apder_terms p2 \<union> apder_terms k)"
+    by (rule RSEQ.hyps(2)[OF p2_nf RSEQ.prems(2)])
+  show ?case
+  proof
+    fix z
+    assume z: "z \<in> apder_terms (rsimp4_SEQ_atom (RSEQ p1 p2) k)"
+    have z_simp: "z \<in>
+        apder_terms (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))"
+      using z by simp
+    then have z_left: "z \<in>
+        ((\<lambda>x. rsimp4_SEQ_atom x (rsimp4_SEQ_atom p2 k)) `
+          apder_terms p1 \<union> apder_terms (rsimp4_SEQ_atom p2 k))"
+      using left by blast
+    then show "z \<in>
+        (\<lambda>x. rsimp4_SEQ_atom x k) ` apder_terms (RSEQ p1 p2) \<union>
+          apder_terms k"
+    proof
+      assume "z \<in> (\<lambda>x. rsimp4_SEQ_atom x (rsimp4_SEQ_atom p2 k)) `
+          apder_terms p1"
+      then obtain x where x: "x \<in> apder_terms p1"
+        "z = rsimp4_SEQ_atom x (rsimp4_SEQ_atom p2 k)"
+        by blast
+      have xp2: "rsimp4_SEQ_atom x p2 \<in> apder_terms (RSEQ p1 p2)"
+        using x(1) by simp
+      have "z = rsimp4_SEQ_atom (rsimp4_SEQ_atom x p2) k"
+        using x(2) by (simp add: rsimp4_SEQ_atom_assoc[symmetric])
+      then show ?thesis
+        using xp2 by blast
+    next
+      assume z_tail: "z \<in> apder_terms (rsimp4_SEQ_atom p2 k)"
+      have "z \<in> (\<lambda>x. rsimp4_SEQ_atom x k) ` apder_terms p2 \<union>
+          apder_terms k"
+        using right z_tail by blast
+      then show ?thesis
+      proof
+        assume "z \<in> (\<lambda>x. rsimp4_SEQ_atom x k) ` apder_terms p2"
+        then obtain x where x: "x \<in> apder_terms p2"
+          "z = rsimp4_SEQ_atom x k"
+          by blast
+        have "x \<in> apder_terms (RSEQ p1 p2)"
+          using x(1) by simp
+        then show ?thesis
+          using x(2) by blast
+      next
+        assume "z \<in> apder_terms k"
+        then show ?thesis by blast
+      qed
+    qed
+  qed
+next
+  case (RALTS rs)
+  then show ?case
+  proof (cases k)
+    case RONE
+    then show ?thesis
+      using apder_terms_RONE_image_rtail_nf[OF RALTS.prems(1)]
+      by simp
+  qed auto
+next
+  case (RSTAR r)
+  then show ?case
+  proof (cases k)
+    case RONE
+    then show ?thesis
+      using apder_terms_RONE_image_rtail_nf[OF RSTAR.prems(1)]
+      by simp
+  qed auto
+next
+  case (RNTIMES r n)
+  then show ?case
+  proof (cases k)
+    case RONE
+    then show ?thesis
+      using apder_terms_RONE_image_rtail_nf[OF RNTIMES.prems(1)]
+      by simp
+  qed auto
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+lemma apder_terms_member_closed_rtail_nf:
+  assumes nf: "apder_nf r"
+    and p: "p \<in> apder_terms r"
+  shows "apder_terms p \<subseteq> apder_terms r"
+  using nf p
+proof (induct r arbitrary: p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> apder_terms q"
+    by auto
+  have "apder_nf q"
+    using RALTS.prems q by simp
+  have "apder_terms p \<subseteq> apder_terms q"
+    by (rule RALTS.hyps[OF q(1) \<open>apder_nf q\<close> q(2)])
+  then show ?case
+    using q by auto
+next
+  case (RSEQ r1 r2)
+  have p_cases:
+      "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<or>
+        p \<in> apder_terms r2"
+    using RSEQ.prems by simp
+  show ?case
+  proof (rule disjE[OF p_cases])
+    assume left: "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1"
+    then obtain x where x: "x \<in> apder_terms r1"
+      "p = rsimp4_SEQ_atom x r2"
+      by blast
+    have r1_nf: "apder_nf r1"
+      using RSEQ.prems by simp
+    have r2_nf: "apder_nf r2"
+      using RSEQ.prems by simp
+    have x_nf: "apder_nf x"
+      by (rule apder_nf_apder_terms[OF r1_nf x(1)])
+    have x_closed: "apder_terms x \<subseteq> apder_terms r1"
+      by (rule RSEQ.hyps(1)[OF r1_nf x(1)])
+    have p_terms: "apder_terms p \<subseteq>
+        ((\<lambda>y. rsimp4_SEQ_atom y r2) ` apder_terms x \<union>
+          apder_terms r2)"
+      using apder_terms_rsimp4_SEQ_atom_subset_rtail_nf[OF x_nf r2_nf]
+      by (simp add: x(2))
+    have target: "apder_terms p \<subseteq>
+        (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<union>
+          apder_terms r2"
+      using p_terms x_closed by blast
+    from target show ?thesis
+      by simp
+  next
+    assume right: "p \<in> apder_terms r2"
+    have r2_nf: "apder_nf r2"
+      using RSEQ.prems by simp
+    have p_terms: "apder_terms p \<subseteq> apder_terms r2"
+      by (rule RSEQ.hyps(2)[OF r2_nf right])
+    have target: "apder_terms p \<subseteq>
+        (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<union>
+          apder_terms r2"
+      using p_terms by blast
+    from target show ?thesis
+      by simp
+  qed
+next
+  case (RSTAR r)
+  then obtain x where x: "x \<in> apder_terms r"
+    "p = rsimp4_SEQ_atom x (RSTAR r)"
+    by auto
+  have r_nf: "apder_nf r"
+    using RSTAR.prems by simp
+  have x_nf: "apder_nf x"
+    by (rule apder_nf_apder_terms[OF r_nf x(1)])
+  have x_closed: "apder_terms x \<subseteq> apder_terms r"
+    by (rule RSTAR.hyps[OF r_nf x(1)])
+  have p_terms: "apder_terms p \<subseteq>
+      ((\<lambda>y. rsimp4_SEQ_atom y (RSTAR r)) ` apder_terms x \<union>
+        apder_terms (RSTAR r))"
+    using apder_terms_rsimp4_SEQ_atom_subset_rtail_nf
+      [OF x_nf, of "RSTAR r"] r_nf
+    by (simp add: x(2))
+  show ?case
+    using p_terms x_closed by auto
+next
+  case (RNTIMES r n)
+  then obtain m x where mx: "m < n" "x \<in> apder_terms r"
+    "p = rsimp4_SEQ_atom x (RNTIMES r m)"
+    by auto
+  have r_nf: "apder_nf r"
+    using RNTIMES.prems by simp
+  have x_nf: "apder_nf x"
+    by (rule apder_nf_apder_terms[OF r_nf mx(2)])
+  have x_closed: "apder_terms x \<subseteq> apder_terms r"
+    by (rule RNTIMES.hyps[OF r_nf mx(2)])
+  have p_terms: "apder_terms p \<subseteq>
+      ((\<lambda>y. rsimp4_SEQ_atom y (RNTIMES r m)) ` apder_terms x \<union>
+        apder_terms (RNTIMES r m))"
+    using apder_terms_rsimp4_SEQ_atom_subset_rtail_nf
+      [OF x_nf, of "RNTIMES r m"] r_nf
+    by (simp add: mx(3))
+  have tail_subset: "apder_terms (RNTIMES r m) \<subseteq>
+      apder_terms (RNTIMES r n)"
+  proof
+    fix z
+    assume z: "z \<in> apder_terms (RNTIMES r m)"
+    then obtain i y where iy: "i < m" "y \<in> apder_terms r"
+      "z = rsimp4_SEQ_atom y (RNTIMES r i)"
+      by auto
+    have "i < n"
+      using iy(1) mx(1) by simp
+    then show "z \<in> apder_terms (RNTIMES r n)"
+      using iy(2,3) by auto
+  qed
+  have head_subset:
+      "(\<lambda>y. rsimp4_SEQ_atom y (RNTIMES r m)) ` apder_terms x \<subseteq>
+        apder_terms (RNTIMES r n)"
+  proof
+    fix z
+    assume z: "z \<in> (\<lambda>y. rsimp4_SEQ_atom y (RNTIMES r m)) ` apder_terms x"
+    then obtain y where y: "y \<in> apder_terms x"
+      "z = rsimp4_SEQ_atom y (RNTIMES r m)"
+      by blast
+    show "z \<in> apder_terms (RNTIMES r n)"
+      using mx(1) x_closed y by auto
+  qed
+  show ?case
+    using p_terms tail_subset head_subset by blast
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rtail_nf_rfrontier_member_props:
+  assumes nf: "rtail_nf r"
+    and x: "x \<in> rfrontier r"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  using nf x
+proof (cases r)
+  case RZERO
+  then show ?thesis
+    using x by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "x \<in> rfrontier q"
+    using x by (auto simp add: rfrontiers_member_iff)
+  have q_props: "rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    using nf RALTS q(1) by simp
+  have "rfrontier q = {q}"
+    using q_props by (cases q) auto
+  then have "x = q"
+    using q by simp
+  then show ?thesis
+    using q_props by simp
+qed auto
+
+lemma apder_nf_rfrontier_member_props:
+  assumes nf: "apder_nf r"
+    and x: "x \<in> rfrontier r"
+  shows "apder_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  using nf x
+proof (cases r)
+  case RZERO
+  then show ?thesis
+    using x by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "x \<in> rfrontier q"
+    using x by (auto simp add: rfrontiers_member_iff)
+  have q_props: "apder_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    using nf RALTS q(1) by simp
+  have "rfrontier q = {q}"
+    using q_props by (cases q) auto
+  then have "x = q"
+    using q by simp
+  then show ?thesis
+    using q_props by simp
+qed auto
+
+lemma rtail_nf_rflts_singleton_eq_rfrontier:
+  assumes nf: "rtail_nf r"
+  shows "set (rflts [r]) = rfrontier r"
+  using nf
+proof (cases r)
+  case (RALTS rs)
+  have child_front: "\<And>x. x \<in> set rs \<Longrightarrow> rfrontier x = {x}"
+  proof -
+    fix x
+    assume x: "x \<in> set rs"
+    have "nonalt x" "x \<noteq> RZERO"
+      using nf RALTS x by auto
+    then show "rfrontier x = {x}"
+      by (cases x) auto
+  qed
+  have "set rs = rfrontiers rs"
+    using child_front by (auto simp add: rfrontiers_member_iff)
+  then show ?thesis
+    using RALTS by simp
+qed auto
+
+lemma rpder_rfrontier_subset_apder_terms:
+  assumes x: "x \<in> rfrontier r"
+  shows "rpder c x \<subseteq> apder_terms r"
+  using x
+proof (induct r arbitrary: x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by (simp add: rpder_subset_apder_terms)
+next
+  case (RCHAR d)
+  then show ?case by (simp add: rpder_subset_apder_terms)
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "x \<in> rfrontier q"
+    by (auto simp add: rfrontiers_member_iff)
+  have "rpder c x \<subseteq> apder_terms q"
+    by (rule RALTS.hyps[OF q])
+  then show ?case
+    using q by auto
+next
+  case (RSEQ r1 r2)
+  have "x = RSEQ r1 r2"
+    using RSEQ.prems by simp
+  then show ?case
+    using rpder_subset_apder_terms[of c "RSEQ r1 r2"] by simp
+next
+  case (RSTAR r)
+  have "x = RSTAR r"
+    using RSTAR.prems by simp
+  then show ?case
+    using rpder_subset_apder_terms[of c "RSTAR r"] by simp
+next
+  case (RNTIMES r n)
+  have "x = RNTIMES r n"
+    using RNTIMES.prems by simp
+  then show ?case
+    using rpder_subset_apder_terms[of c "RNTIMES r n"] by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma apder_rows_member_apder_nf:
+  assumes nf: "apder_nf r"
+    and q: "q \<in> apder_rows r"
+  shows "apder_nf q"
+  using q unfolding apder_rows_def apder_frontier_def
+proof
+  assume "q = r"
+  then show ?thesis
+    using nf by simp
+next
+  assume "q \<in> rfrontier r \<union> (\<Union>x \<in> apder_terms r. rfrontier x)"
+  then show ?thesis
+  proof
+    assume "q \<in> rfrontier r"
+    then show ?thesis
+      using apder_nf_rfrontier_member_props[OF nf] by blast
+  next
+    assume "q \<in> (\<Union>x \<in> apder_terms r. rfrontier x)"
+    then obtain x where x: "x \<in> apder_terms r" "q \<in> rfrontier x"
+      by blast
+    have "apder_nf x"
+      by (rule apder_nf_apder_terms[OF nf x(1)])
+    then show ?thesis
+      using apder_nf_rfrontier_member_props[OF _ x(2)] by blast
+  qed
+qed
+
+lemma apder_rows_member_rtail_nf:
+  assumes nf: "apder_nf r"
+    and q: "q \<in> apder_rows r"
+  shows "rtail_nf q"
+  by (rule apder_nf_imp_rtail_nf)
+    (rule apder_rows_member_apder_nf[OF nf q])
+
+lemma rpder_apder_rows_subset:
+  assumes nf: "apder_nf r"
+    and q: "q \<in> apder_rows r"
+  shows "rpder c q \<subseteq> apder_terms r"
+  using q unfolding apder_rows_def apder_frontier_def
+proof
+  assume "q = r"
+  then show ?thesis
+    by (simp add: rpder_subset_apder_terms)
+next
+  assume q_front:
+      "q \<in> rfrontier r \<union> (\<Union>x \<in> apder_terms r. rfrontier x)"
+  then show ?thesis
+  proof
+    assume "q \<in> rfrontier r"
+    then show ?thesis
+      by (rule rpder_rfrontier_subset_apder_terms)
+  next
+    assume "q \<in> (\<Union>x \<in> apder_terms r. rfrontier x)"
+    then obtain x where x: "x \<in> apder_terms r" "q \<in> rfrontier x"
+      by blast
+    have "rpder c q \<subseteq> apder_terms x"
+      by (rule rpder_rfrontier_subset_apder_terms[OF x(2)])
+    also have "... \<subseteq> apder_terms r"
+      by (rule apder_terms_member_closed_rtail_nf[OF nf x(1)])
+    finally show ?thesis .
+  qed
+qed
+
+lemma set_rpder_norm_list_eq_rpder_rtail_nf:
+  assumes nf: "apder_nf q"
+  shows "set (rpder_norm_list c q) = rpder c q"
+proof
+  show "set (rpder_norm_list c q) \<subseteq> rpder c q"
+  proof
+    fix p
+    assume p: "p \<in> set (rpder_norm_list c q)"
+    then obtain x where x: "x \<in> rpder c q"
+      "p = rsimp4_SEQ_atom x RONE"
+      by (auto simp add: rpder_norm_list_def set_rpder_list)
+    have "x \<in> apder_terms q"
+      using rpder_subset_apder_terms x(1) by blast
+    have "rtail_nf x"
+      by (rule rtail_nf_apder_terms[OF nf \<open>x \<in> apder_terms q\<close>])
+    then show "p \<in> rpder c q"
+      using x by (simp add: rtail_nf_RONE_stable)
+  qed
+next
+  show "rpder c q \<subseteq> set (rpder_norm_list c q)"
+  proof
+    fix p
+    assume p: "p \<in> rpder c q"
+    have "p \<in> apder_terms q"
+      using rpder_subset_apder_terms p by blast
+    have "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf \<open>p \<in> apder_terms q\<close>])
+    then have stable: "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable)
+    have "p \<in> (\<lambda>x. rsimp4_SEQ_atom x RONE) ` rpder c q"
+      using p stable by (metis image_eqI)
+    then show "p \<in> set (rpder_norm_list c q)"
+      by (simp add: rpder_norm_list_def set_rpder_list)
+  qed
+qed
+
+lemma set_rflts_subset_singletonsI:
+  assumes "\<And>q. q \<in> set qs \<Longrightarrow> set (rflts [q]) \<subseteq> U"
+  shows "set (rflts qs) \<subseteq> U"
+  using assms
+proof (induct qs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have head: "set (rflts [q]) \<subseteq> U"
+    by (rule Cons.prems) simp
+  have tail: "set (rflts qs) \<subseteq> U"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have "rflts (q # qs) = rflts [q] @ rflts qs"
+    using flts_append[of "[q]" qs, symmetric] by simp
+  then show ?case
+    using head tail by auto
+qed
+
+lemma afactored_step_apder_rows_subset:
+  assumes nf: "apder_nf r"
+    and rows: "set rows \<subseteq> apder_rows r"
+  shows "set (afactored_step c rows) \<subseteq> apder_rows r"
+proof (rule afactored_step_split_subsetI)
+  fix q
+  assume q: "q \<in> set rows"
+  have q_row: "q \<in> apder_rows r"
+    using rows q by blast
+  have q_nf: "apder_nf q"
+    by (rule apder_rows_member_apder_nf[OF nf q_row])
+  have gen_subset: "set (rpder_norm_list c q) \<subseteq> apder_terms r"
+    using set_rpder_norm_list_eq_rpder_rtail_nf[OF q_nf]
+      rpder_apder_rows_subset[OF nf q_row]
+    by simp
+  show "set (rflts (rpder_norm_list c q)) \<subseteq> apder_rows r"
+  proof (rule set_rflts_subset_singletonsI)
+    fix p
+    assume p: "p \<in> set (rpder_norm_list c q)"
+    have p_term: "p \<in> apder_terms r"
+      using gen_subset p by blast
+    have p_nf: "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p_term])
+    have "set (rflts [p]) = rfrontier p"
+      by (rule rtail_nf_rflts_singleton_eq_rfrontier[OF p_nf])
+    also have "... \<subseteq> apder_rows r"
+      using p_term by (auto simp add: apder_rows_def apder_frontier_def)
+    finally show "set (rflts [p]) \<subseteq> apder_rows r" .
+  qed
+qed
+
+lemma afactored1_apder_rows_subset:
+  assumes nf: "apder_nf r"
+  shows "set (afactored1 r s) \<subseteq> apder_rows r"
+  unfolding afactored1_def
+proof (rule afactored_steps_split_closed_universe_subsetI)
+  show "set [r] \<subseteq> apder_rows r"
+    by (simp add: apder_rows_def)
+next
+  fix q c
+  assume q: "q \<in> apder_rows r"
+  have "set (afactored_step c [q]) \<subseteq> apder_rows r"
+    by (rule afactored_step_apder_rows_subset[OF nf]) (use q in simp)
+  then show "set (rflts (rpder_norm_list c q)) \<subseteq> apder_rows r"
+    by (simp add: afactored_step_def rpder_norm_rows_def
+        rdistinct_set_equality)
+qed
+
+lemma rsize_set_apder_rows_expanded_cubic_size_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_rows r) \<le>
+    2 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have rows_un: "apder_rows r = {r} \<union> apder_frontier r"
+    by (auto simp add: apder_rows_def)
+  have "rsize_set (apder_rows r) \<le>
+      rsize_set {r} + rsize_set (apder_frontier r)"
+    unfolding rows_un
+    by (rule rsize_set_Un_le) simp_all
+  also have "... = rsize r + rsize_set (apder_frontier r)"
+    by (simp add: rsize_set_def)
+  also have "... \<le> ?B + ?B"
+  proof -
+    have root: "rsize r \<le> ?B"
+    proof -
+      have "rsize r \<le> apder_awidth r + rsize r + 3"
+        by simp
+      also have "... \<le> ?B"
+        by (simp add: power3_eq_cube)
+      finally show ?thesis .
+    qed
+    have front: "rsize_set (apder_frontier r) \<le> ?B"
+      by (rule apder_frontier_expanded_cubic_size_bound[OF nf])
+    show ?thesis
+      using root front by linarith
+  qed
+  also have "... = 2 * ?B"
+    by simp
+  finally show ?thesis .
+qed
+
+theorem afactored1_apder_rows_expanded_cubic_budget:
+  assumes nf: "apder_nf r"
+  shows "set (afactored1 r s) \<subseteq> apder_rows r \<and>
+    length (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "afactored1 r s"
+  let ?B = "2 * (apder_awidth r + rsize r + 3) ^ 3"
+  have rows: "set ?rows \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  have size_bound: "rsizes ?rows \<le> ?B"
+  proof -
+    have "rsizes ?rows \<le> rsize_set (apder_rows r)"
+      by (rule rsizes_distinct_subset_rsize_set)
+        (use rows in auto)
+    also have "... \<le> ?B"
+      by (rule rsize_set_apder_rows_expanded_cubic_size_bound[OF nf])
+    finally show ?thesis .
+  qed
+  show "set ?rows \<subseteq> apder_rows r"
+    by (rule rows)
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size_bound by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size_bound by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size_bound)
+qed
+
+theorem afactored1_apder_rows_expanded_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "RLS (set (afactored1 r s)) = Ders s (RL r) \<and>
+    set (afactored1 r s) \<subseteq> apder_rows r \<and>
+    length (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  have budget:
+      "set (afactored1 r s) \<subseteq> apder_rows r \<and>
+      length (afactored1 r s) \<le>
+        2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+      card (set (afactored1 r s)) \<le>
+        2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+      rlinear_termss (afactored1 r s) \<le>
+        2 * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+      rsizes (afactored1 r s) \<le>
+        2 * (apder_awidth r + rsize r + 3) ^ 3"
+    by (rule afactored1_apder_rows_expanded_cubic_budget[OF nf])
+  show "set (afactored1 r s) \<subseteq> apder_rows r"
+    using budget by blast
+  show "length (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+    using budget by blast
+  show "card (set (afactored1 r s)) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+    using budget by blast
+  show "rlinear_termss (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+    using budget by blast
+  show "rsizes (afactored1 r s) \<le>
+      2 * (apder_awidth r + rsize r + 3) ^ 3"
+    using budget by blast
+qed
+
+theorem rsize_rders_pder_norm_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize (rders_pder_norm r s) \<le>
+    Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+proof -
+  have "rsize (rders_pder_norm r s) =
+      rsize (rsimp_ALTs (afactored1 r s))"
+    by (simp add: anorm_der_eq_rders_pder_norm[symmetric]
+        anorm_der_def)
+  also have "... \<le> Suc (rsizes (afactored1 r s))"
+    by (rule rsize_rsimp_ALTs_le)
+  also have "... \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+  proof -
+    have "rsizes (afactored1 r s) \<le>
+        2 * (apder_awidth r + rsize r + 3) ^ 3"
+      using afactored1_apder_rows_expanded_cubic_budget[OF nf]
+      by blast
+    then show ?thesis
+      by simp
+  qed
+  finally show ?thesis .
+qed
+
+theorem rders_pder_norm_expanded_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "RL (rders_pder_norm r s) = Ders s (RL r) \<and>
+    rsize (rders_pder_norm r s) \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+proof
+  show "RL (rders_pder_norm r s) = Ders s (RL r)"
+    by (rule RL_rders_pder_norm[OF legacy])
+  show "rsize (rders_pder_norm r s) \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+    by (rule rsize_rders_pder_norm_expanded_cubic_bound[OF nf])
+qed
+
+theorem rsize_rsimpStrong_raw_rders_pder_norm_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize (rsimpStrong_raw (rders_pder_norm r s)) \<le>
+    Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+proof -
+  have "rsize (rsimpStrong_raw (rders_pder_norm r s)) \<le>
+      rsize (rders_pder_norm r s)"
+    by (rule rsize_rsimpStrong_raw_le)
+  also have "... \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+    by (rule rsize_rders_pder_norm_expanded_cubic_bound[OF nf])
+  finally show ?thesis .
+qed
+
+theorem rsimpStrong_raw_rders_pder_norm_expanded_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "RL (rsimpStrong_raw (rders_pder_norm r s)) =
+      Ders s (RL r) \<and>
+    rsize (rsimpStrong_raw (rders_pder_norm r s)) \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+proof
+  show "RL (rsimpStrong_raw (rders_pder_norm r s)) =
+      Ders s (RL r)"
+    by (simp add: RL_rsimpStrong_raw RL_rders_pder_norm[OF legacy])
+  show "rsize (rsimpStrong_raw (rders_pder_norm r s)) \<le>
+      Suc (2 * (apder_awidth r + rsize r + 3) ^ 3)"
+    by (rule rsize_rsimpStrong_raw_rders_pder_norm_expanded_cubic_bound
+        [OF nf])
+qed
+
+lemma rfrontier_apder_rows_subset:
+  assumes nf: "apder_nf r"
+    and q: "q \<in> apder_rows r"
+  shows "rfrontier q \<subseteq> apder_frontier r"
+proof -
+  have q_cases: "q = r \<or> q \<in> apder_frontier r"
+    using q by (auto simp add: apder_rows_def)
+  then show ?thesis
+  proof
+    assume "q = r"
+    then show ?thesis
+      by (auto simp add: apder_frontier_def)
+  next
+    assume q_front0: "q \<in> apder_frontier r"
+    have q_front:
+        "q \<in> rfrontier r \<union> (\<Union>x \<in> apder_terms r. rfrontier x)"
+      using q_front0 by (simp add: apder_frontier_def)
+    have q_nf: "rtail_nf q"
+      by (rule apder_rows_member_rtail_nf[OF nf])
+          (use q in auto)
+    have q_nonalt: "nonalt q" and q_nonzero: "q \<noteq> RZERO"
+    proof -
+      from q_front show "nonalt q"
+      proof
+        assume "q \<in> rfrontier r"
+        then show ?thesis
+          using apder_nf_rfrontier_member_props[OF nf] by blast
+      next
+        assume "q \<in> (\<Union>x \<in> apder_terms r. rfrontier x)"
+        then obtain x where x: "x \<in> apder_terms r" "q \<in> rfrontier x"
+          by blast
+        have "apder_nf x"
+          by (rule apder_nf_apder_terms[OF nf x(1)])
+        then show ?thesis
+          using apder_nf_rfrontier_member_props[OF _ x(2)] by blast
+      qed
+      from q_front show "q \<noteq> RZERO"
+      proof
+        assume "q \<in> rfrontier r"
+        then show ?thesis
+          using apder_nf_rfrontier_member_props[OF nf] by blast
+      next
+        assume "q \<in> (\<Union>x \<in> apder_terms r. rfrontier x)"
+        then obtain x where x: "x \<in> apder_terms r" "q \<in> rfrontier x"
+          by blast
+        have "apder_nf x"
+          by (rule apder_nf_apder_terms[OF nf x(1)])
+        then show ?thesis
+          using apder_nf_rfrontier_member_props[OF _ x(2)] by blast
+      qed
+    qed
+    have "rfrontier q = {q}"
+      using q_nonalt q_nonzero by (cases q) auto
+    then have "rfrontier q \<subseteq>
+        rfrontier r \<union> (\<Union>x \<in> apder_terms r. rfrontier x)"
+      using q_front by auto
+    then show ?thesis
+      by (simp add: apder_frontier_def)
+  qed
+qed
+
+lemma ader_front_subset_apder_frontier:
+  assumes nf: "apder_nf r"
+  shows "ader_front r s \<subseteq> apder_frontier r"
+proof -
+  have rows: "set (afactored1 r s) \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  show ?thesis
+    unfolding ader_front_def
+  proof (rule rfrontiers_subsetI)
+    fix q
+    assume "q \<in> set (afactored1 r s)"
+    then have "q \<in> apder_rows r"
+      using rows by blast
+    then show "rfrontier q \<subseteq> apder_frontier r"
+      by (rule rfrontier_apder_rows_subset[OF nf])
+  qed
+qed
+
+lemma rfrontier_rders_pder_norm_subset_apder_frontier:
+  assumes nf: "apder_nf r"
+  shows "rfrontier (rders_pder_norm r s) \<subseteq> apder_frontier r"
+  using ader_front_subset_apder_frontier[OF nf, of s]
+  by (simp add: rfrontier_rders_pder_norm_eq_ader_front)
+
+theorem rfrontier_rders_pder_norm_expanded_cubic_size_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (rfrontier (rders_pder_norm r s)) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have sub: "rfrontier (rders_pder_norm r s) \<subseteq> apder_frontier r"
+    by (rule rfrontier_rders_pder_norm_subset_apder_frontier[OF nf])
+  have "rsize_set (rfrontier (rders_pder_norm r s)) \<le>
+      rsize_set (apder_frontier r)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (rule apder_frontier_expanded_cubic_size_bound[OF nf])
+  finally show ?thesis .
+qed
+
+theorem rfrontier_rders_pder_norm_expanded_cubic_card_bound:
+  assumes nf: "apder_nf r"
+  shows "card (rfrontier (rders_pder_norm r s)) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "card (rfrontier (rders_pder_norm r s)) =
+      (\<Sum>q \<in> rfrontier (rders_pder_norm r s). 1)"
+    by simp
+  also have "... \<le> rsize_set (rfrontier (rders_pder_norm r s))"
+    unfolding rsize_set_def
+    by (rule sum_mono) (use size_geq1 in blast)
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (rule rfrontier_rders_pder_norm_expanded_cubic_size_bound[OF nf])
+  finally show ?thesis .
+qed
+
+lemma apder_frontier_keeps_whole_residuals_a_aa:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "r \<in> apder_frontier r"
+    and "RSEQ (RCHAR a) (RCHAR a) \<in> apder_frontier r"
+    and "RCHAR a \<in> apder_frontier r"
+    and "RONE \<in> apder_frontier r"
+  by (simp_all add: r_def apder_frontier_def)
+
+lemma apder_frontier_keeps_whole_residuals_a_alt_tail:
+  fixes a b :: char
+  assumes neq: "a \<noteq> b"
+  defines "r \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b])"
+  shows "r \<in> apder_frontier r"
+    and "RCHAR b \<in> apder_frontier r"
+    and "RCHAR a \<notin> apder_frontier r"
+  using neq by (auto simp add: r_def apder_frontier_def)
+
+section \<open>Front-Indexed Linear Forms\<close>
+
+text \<open>
+  The row-level front above deliberately keeps a whole product residual intact.
+  For the Antimirov accounting used in the cubic route we also need the
+  linear-form view of rows: alternatives at the top are split, and a row of
+  shape @{term "RSEQ (RALTS ps) k"} is viewed as the forms obtained by
+  attaching the shared suffix @{term k} to each payload in @{term ps}.  This
+  is the formal version of the "same derivative front" bookkeeping: the
+  suffix of @{term "(RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c))"} is not in
+  the root front, while it appears after consuming @{term a} or @{term b}.
+\<close>
+
+fun rfrontier_list :: "rrexp \<Rightarrow> rrexp list"
+  and rfrontiers_list :: "rrexp list \<Rightarrow> rrexp list" where
+  "rfrontier_list RZERO = []"
+| "rfrontier_list (RALTS rs) = rfrontiers_list rs"
+| "rfrontier_list r = [r]"
+| "rfrontiers_list [] = []"
+| "rfrontiers_list (r # rs) =
+    rfrontier_list r @ rfrontiers_list rs"
+
+lemma set_rfrontier_list [simp]:
+  "set (rfrontier_list r) = rfrontier r"
+  and set_rfrontiers_list [simp]:
+  "set (rfrontiers_list rs) = rfrontiers rs"
+  by (induct r and rs rule: rfrontier_list_rfrontiers_list.induct)
+    auto
+
+lemma RL_rfrontier_UN:
+  "(\<Union>x \<in> rfrontier r. RL x) = RL r"
+  and RL_rfrontiers_UN:
+  "(\<Union>x \<in> rfrontiers rs. RL x) = RL (RALTS rs)"
+  by (induct r and rs rule: rfrontier_rfrontiers.induct) auto
+
+fun row_lforms :: "rrexp \<Rightarrow> rrexp set"
+  and row_lformss :: "rrexp list \<Rightarrow> rrexp set" where
+  "row_lforms RZERO = {}"
+| "row_lforms (RALTS rs) = row_lformss rs"
+| "row_lforms (RSEQ (RALTS ps) k) =
+    (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p k))"
+| "row_lforms r = rfrontier r"
+| "row_lformss [] = {}"
+| "row_lformss (r # rs) = row_lforms r \<union> row_lformss rs"
+
+fun row_lforms_list :: "rrexp \<Rightarrow> rrexp list"
+  and row_lformss_list :: "rrexp list \<Rightarrow> rrexp list" where
+  "row_lforms_list RZERO = []"
+| "row_lforms_list (RALTS rs) = row_lformss_list rs"
+| "row_lforms_list (RSEQ (RALTS ps) k) =
+    concat (map (\<lambda>p. rfrontier_list (rsimp7_SEQ_atom p k)) ps)"
+| "row_lforms_list r = rfrontier_list r"
+| "row_lformss_list [] = []"
+| "row_lformss_list (r # rs) =
+    row_lforms_list r @ row_lformss_list rs"
+
+lemma set_row_lforms_list [simp]:
+  "set (row_lforms_list r) = row_lforms r"
+  and set_row_lformss_list [simp]:
+  "set (row_lformss_list rs) = row_lformss rs"
+  by (induct r and rs rule: row_lforms_list_row_lformss_list.induct)
+    auto
+
+lemma finite_row_lforms [simp]:
+  "finite (row_lforms r)"
+  and finite_row_lformss [simp]:
+  "finite (row_lformss rs)"
+  by (induct r and rs rule: row_lforms_row_lformss.induct) auto
+
+lemma sum_list_rsimp7_SEQ_atom_size_le_rsizes_times:
+  "sum_list (map (\<lambda>p. rsize (rsimp7_SEQ_atom p k)) ps) \<le>
+    rsizes ps * (rsize k + 2)"
+proof -
+  have each: "\<And>p. p \<in> set ps \<Longrightarrow>
+      rsize (rsimp7_SEQ_atom p k) \<le> rsize p * (rsize k + 2)"
+  proof -
+    fix p
+    assume "p \<in> set ps"
+    have "rsize (rsimp7_SEQ_atom p k) \<le> Suc (rsize p + rsize k)"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    also have "... \<le> rsize p * (rsize k + 2)"
+    proof -
+      have one_le: "1 \<le> rsize p"
+        by (rule size_geq1)
+      have k_le: "rsize k \<le> rsize p * rsize k"
+      proof -
+        have "1 * rsize k \<le> rsize p * rsize k"
+          by (rule mult_right_mono[OF one_le]) simp
+        then show ?thesis by simp
+      qed
+      have "Suc (rsize p + rsize k) \<le>
+          rsize p + (rsize p * rsize k + rsize p)"
+        using k_le one_le by linarith
+      also have "... = rsize p * (rsize k + 2)"
+        by (simp add: algebra_simps)
+      finally show ?thesis .
+    qed
+    finally show "rsize (rsimp7_SEQ_atom p k) \<le>
+      rsize p * (rsize k + 2)" .
+  qed
+  have "sum_list (map (\<lambda>p. rsize (rsimp7_SEQ_atom p k)) ps) \<le>
+      sum_list (map (\<lambda>p. rsize p * (rsize k + 2)) ps)"
+    by (rule sum_list_mono) (use each in auto)
+  also have "... = rsizes ps * (rsize k + 2)"
+    by (rule sum_list_map_mult_right_nat)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_lforms_le_square:
+  "rsize_set (row_lforms r) \<le> (rsize r)\<^sup>2"
+proof (induct "rsize r" arbitrary: r rule: less_induct)
+  case less
+  show ?case
+  proof (cases r)
+    case RZERO
+    then show ?thesis by (simp add: rsize_set_def)
+  next
+    case RONE
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    then show ?thesis
+      using RONE by (simp add: rsize_set_def)
+  next
+    case (RCHAR c)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    then show ?thesis
+      using RCHAR by (simp add: rsize_set_def)
+  next
+    case (RALTS rs)
+    have list_bound: "\<And>xs. set xs \<subseteq> set rs \<Longrightarrow>
+        rsize_set (row_lformss xs) \<le> (rsizes xs)\<^sup>2"
+    proof -
+      fix xs
+      assume xs: "set xs \<subseteq> set rs"
+      show "rsize_set (row_lformss xs) \<le> (rsizes xs)\<^sup>2"
+        using xs
+      proof (induct xs)
+        case Nil
+        then show ?case by (simp add: rsize_set_def)
+      next
+        case (Cons q qs)
+        have q_lt: "rsize q < rsize r"
+        proof -
+          have "rsize q \<le> rsizes rs"
+            using rsize_member_le_rsizes[of q rs] Cons.prems by auto
+          then show ?thesis
+            using RALTS by simp
+        qed
+        have q_bound: "rsize_set (row_lforms q) \<le> (rsize q)\<^sup>2"
+          by (rule less.hyps[rule_format, OF q_lt])
+        have qs_bound: "rsize_set (row_lformss qs) \<le> (rsizes qs)\<^sup>2"
+          by (rule Cons.hyps) (use Cons.prems in auto)
+        have "rsize_set (row_lforms q \<union> row_lformss qs) \<le>
+            rsize_set (row_lforms q) + rsize_set (row_lformss qs)"
+          by (rule rsize_set_Un_le) simp_all
+        also have "... \<le> (rsize q)\<^sup>2 + (rsizes qs)\<^sup>2"
+          using q_bound qs_bound by linarith
+        also have "... \<le> (rsize q + rsizes qs)\<^sup>2"
+          by (simp add: power2_eq_square algebra_simps)
+        finally show ?case by simp
+      qed
+    qed
+    have "rsize_set (row_lformss rs) \<le> (rsizes rs)\<^sup>2"
+      by (rule list_bound) simp
+    also have "... \<le> (rsize r)\<^sup>2"
+      using RALTS by (rule_tac square_mono_nat) simp
+    finally show ?thesis
+      using RALTS by simp
+  next
+    case (RSEQ r1 r2)
+    note r_outer = RSEQ
+    show ?thesis
+    proof (cases r1)
+      case (RALTS ps)
+      have "rsize_set
+          (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p r2)) \<le>
+          sum_list (map
+            (\<lambda>p. rsize_set (rfrontier (rsimp7_SEQ_atom p r2))) ps)"
+        by (rule rsize_set_UN_set_le_sum_list) auto
+      also have "... \<le>
+          sum_list (map (\<lambda>p. rsize (rsimp7_SEQ_atom p r2)) ps)"
+        by (rule sum_list_mono, rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> rsizes ps * (rsize r2 + 2)"
+        by (rule sum_list_rsimp7_SEQ_atom_size_le_rsizes_times)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using RSEQ RALTS by (simp add: power2_eq_square algebra_simps)
+      finally show ?thesis
+        using RSEQ RALTS by simp
+    next
+      case RZERO
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RZERO by simp
+    next
+      case RONE
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RONE by simp
+    next
+      case (RCHAR c)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RCHAR by simp
+    next
+      case (RSEQ a b)
+      have row_eq: "row_lforms r = rfrontier r"
+        using r_outer RSEQ by simp
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally have "rsize_set (rfrontier r) \<le> (rsize r)\<^sup>2" .
+      then show ?thesis
+        using row_eq by simp
+    next
+      case (RSTAR a)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RSTAR by simp
+    next
+      case (RNTIMES a n)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RNTIMES by simp
+    next
+      case (RBACKREF4 a b c d cs)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RBACKREF4 by simp
+    next
+      case (RHALF a cs rep)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RHALF by simp
+    next
+      case (RRESIDUE cs rep)
+      have "rsize_set (rfrontier r) \<le> rsize r"
+        by (rule rsize_set_rfrontier_le_rsize)
+      also have "... \<le> (rsize r)\<^sup>2"
+        using size_geq1[of r] by (simp add: power2_eq_square)
+      finally show ?thesis
+        using RSEQ RRESIDUE by simp
+    qed
+  next
+    case (RSTAR a)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r] by (simp add: power2_eq_square)
+    finally show ?thesis
+      using RSTAR by simp
+  next
+    case (RNTIMES a n)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r] by (simp add: power2_eq_square)
+    finally show ?thesis
+      using RNTIMES by simp
+  next
+    case (RBACKREF4 a b c d cs)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r] by (simp add: power2_eq_square)
+    finally show ?thesis
+      using RBACKREF4 by simp
+  next
+    case (RHALF a cs rep)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r] by (simp add: power2_eq_square)
+    finally show ?thesis
+      using RHALF by simp
+  next
+    case (RRESIDUE cs rep)
+    have "rsize_set (rfrontier r) \<le> rsize r"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r] by (simp add: power2_eq_square)
+    finally show ?thesis
+      using RRESIDUE by simp
+  qed
+qed
+
+lemma rsize_set_row_lformss_le_square:
+  "rsize_set (row_lformss rs) \<le> (rsizes rs)\<^sup>2"
+proof (induct rs)
+  case Nil
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (Cons r rs)
+  have "rsize_set (row_lforms r \<union> row_lformss rs) \<le>
+      rsize_set (row_lforms r) + rsize_set (row_lformss rs)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le> (rsize r)\<^sup>2 + (rsizes rs)\<^sup>2"
+    using Cons.hyps rsize_set_row_lforms_le_square[of r] by linarith
+  also have "... \<le> (rsize r + rsizes rs)\<^sup>2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?case by simp
+qed
+
+definition apder_lfrontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_lfrontier r =
+    (\<Union>q \<in> apder_rows r. row_lforms q)"
+
+lemma finite_apder_lfrontier [simp]:
+  "finite (apder_lfrontier r)"
+  by (simp add: apder_lfrontier_def)
+
+lemma finite_sum_square_le_square_sum:
+  fixes f :: "'a \<Rightarrow> nat"
+  assumes "finite A"
+  shows "(\<Sum>x \<in> A. (f x)\<^sup>2) \<le> (\<Sum>x \<in> A. f x)\<^sup>2"
+  using assms
+proof (induct A rule: finite_induct)
+  case empty
+  then show ?case by simp
+next
+  case (insert x A)
+  have "(f x)\<^sup>2 + (\<Sum>y \<in> A. (f y)\<^sup>2) \<le>
+      (f x)\<^sup>2 + (\<Sum>y \<in> A. f y)\<^sup>2"
+    using insert.hyps by simp
+  also have "... \<le> (f x + (\<Sum>y \<in> A. f y))\<^sup>2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?case
+    using insert.hyps by simp
+qed
+
+lemma rsize_set_apder_lfrontier_le_square_rows:
+  "rsize_set (apder_lfrontier r) \<le> (rsize_set (apder_rows r))\<^sup>2"
+proof -
+  have "rsize_set (apder_lfrontier r) \<le>
+      (\<Sum>q \<in> apder_rows r. rsize_set (row_lforms q))"
+    unfolding apder_lfrontier_def
+    by (rule rsize_set_UN_le) auto
+  also have "... \<le> (\<Sum>q \<in> apder_rows r. (rsize q)\<^sup>2)"
+    by (rule sum_mono) (rule rsize_set_row_lforms_le_square)
+  also have "... \<le> (rsize_set (apder_rows r))\<^sup>2"
+    unfolding rsize_set_def
+    by (rule finite_sum_square_le_square_sum) simp
+  finally show ?thesis .
+qed
+
+lemma RL_row_lforms_UN:
+  "(\<Union>x \<in> row_lforms r. RL x) = RL r"
+  and RL_row_lformss_UN:
+  "(\<Union>x \<in> row_lformss rs. RL x) = RL (RALTS rs)"
+  by (induct r and rs rule: row_lforms_row_lformss.induct)
+    (auto simp add: RL_rfrontier_UN RL_rsimp7_SEQ_atom Sequ_def)
+
+lemma RL_RALTS_row_lforms_list:
+  "RL (RALTS (row_lforms_list r)) = RL r"
+  using RL_row_lforms_UN[of r] by auto
+
+lemma RL_RALTS_row_lformss_list:
+  "RL (RALTS (row_lformss_list rs)) = RL (RALTS rs)"
+  using RL_row_lformss_UN[of rs] by auto
+
+lemma aseq_terms_not_antimirov_lforms_a_aa:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "row_lforms r = {r}"
+    and "aseq_terms r = {RCHAR a}"
+  by (simp_all add: r_def)
+
+lemma aseq_terms_not_antimirov_lforms_a_alt_tail:
+  fixes a b :: char
+  defines "r \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b])"
+  shows "row_lforms r = {r}"
+    and "aseq_terms r = {RCHAR a, RCHAR b}"
+  by (auto simp add: r_def)
+
+definition row_lform_canonical_rows :: "rrexp list \<Rightarrow> rrexp list" where
+  "row_lform_canonical_rows rs =
+    rdistinct (row_lformss_list rs) {}"
+
+lemma distinct_row_lform_canonical_rows:
+  "distinct (row_lform_canonical_rows rs)"
+  by (simp add: row_lform_canonical_rows_def rdistinct_does_the_job)
+
+lemma set_row_lform_canonical_rows [simp]:
+  "set (row_lform_canonical_rows rs) = row_lformss rs"
+  by (simp add: row_lform_canonical_rows_def rdistinct_set_equality)
+
+lemma RL_RALTS_row_lform_canonical_rows:
+  "RL (RALTS (row_lform_canonical_rows rs)) = RL (RALTS rs)"
+proof -
+  have "set (row_lform_canonical_rows rs) =
+      set (row_lformss_list rs)"
+    by simp
+  then have "RL (RALTS (row_lform_canonical_rows rs)) =
+      RL (RALTS (row_lformss_list rs))"
+    by (rule RL_RALTS_set_eq)
+  also have "... = RL (RALTS rs)"
+    by (rule RL_RALTS_row_lformss_list)
+  finally show ?thesis .
+qed
+
+lemma RLS_set_row_lform_canonical_rows:
+  "RLS (set (row_lform_canonical_rows rs)) = RLS (set rs)"
+  using RL_RALTS_row_lform_canonical_rows[of rs]
+  by (simp add: RLS_def)
+
+lemma row_lformss_append [simp]:
+  "row_lformss (xs @ ys) = row_lformss xs \<union> row_lformss ys"
+  by (induct xs) auto
+
+lemma row_lformss_member_iff:
+  "x \<in> row_lformss rs \<longleftrightarrow> (\<exists>q \<in> set rs. x \<in> row_lforms q)"
+  by (induct rs) auto
+
+lemma row_lformss_rflts_eq [simp]:
+  "row_lformss (rflts rs) = row_lformss rs"
+  by (induct rs rule: rflts.induct) auto
+
+lemma row_lformss_rdistinct_empty_eq [simp]:
+  "row_lformss (rdistinct rs {}) = row_lformss rs"
+  by (auto simp add: row_lformss_member_iff rdistinct_set_equality)
+
+lemma row_lformss_afactored_step_eq_generated:
+  "row_lformss (afactored_step c rs) =
+    row_lformss (concat (map (rpder_norm_list c) rs))"
+  by (simp add: afactored_step_def rpder_norm_rows_def)
+
+lemma row_lforms_member_subset_lformss:
+  assumes "q \<in> set rs"
+  shows "row_lforms q \<subseteq> row_lformss rs"
+  using assms by (auto simp add: row_lformss_member_iff)
+
+lemma row_lformss_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "row_lformss xs \<subseteq> row_lformss ys"
+proof
+  fix x
+  assume x: "x \<in> row_lformss xs"
+  obtain q where q: "q \<in> set xs" "x \<in> row_lforms q"
+    using x by (auto simp add: row_lformss_member_iff)
+  then have "q \<in> set ys"
+    using assms by blast
+  then show "x \<in> row_lformss ys"
+    using q(2) by (auto simp add: row_lformss_member_iff)
+qed
+
+lemma row_lformss_rflts_subset:
+  "row_lformss (rflts rs) \<subseteq> row_lformss rs"
+  by (induct rs rule: rflts.induct) auto
+
+lemma row_lformss_rdistinct_subset:
+  "row_lformss (rdistinct rs acc) \<subseteq> row_lformss rs"
+  by (rule row_lformss_mono)
+    (simp add: rdistinct_set_equality1)
+
+lemma row_lformss_rprune_eq_against_subset:
+  "row_lformss (rprune_eq_against covered rs) \<subseteq> row_lformss rs"
+  by (induct rs) auto
+
+lemma set_rprune_eq_against_subset:
+  "set (rprune_eq_against covered rs) \<subseteq> set rs"
+  by (induct rs) auto
+
+lemma row_lforms_rsimp_ALTs_eq [simp]:
+  "row_lforms (rsimp_ALTs rs) = row_lformss rs"
+  by (cases rs rule: rsimp_ALTs.cases) auto
+
+lemma row_lforms_rsimp_ALTs_subsetI:
+  assumes "row_lformss rs \<subseteq> U"
+  shows "row_lforms (rsimp_ALTs rs) \<subseteq> U"
+  using assms by simp
+
+definition row_lforms_suffix_stable :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "row_lforms_suffix_stable r k \<longleftrightarrow>
+    row_lforms (rsimp7_SEQ_atom r k) \<subseteq>
+      rfrontier (rsimp7_SEQ_atom r k)"
+
+definition row_lforms_tail_stable :: "rrexp \<Rightarrow> bool" where
+  "row_lforms_tail_stable r \<longleftrightarrow>
+    row_lforms r \<subseteq> rfrontier (rsimp7_SEQ_atom r RONE)"
+
+definition row_payload_lform_stable :: "rrexp \<Rightarrow> bool" where
+  "row_payload_lform_stable r \<longleftrightarrow>
+    row_lforms_tail_stable r \<and>
+    (\<forall>k. row_lforms_suffix_stable r k)"
+
+lemma row_lformss_tail_stable_subset_RONE:
+  assumes stable:
+      "\<forall>p \<in> set ps. row_lforms_tail_stable p"
+  shows "row_lformss ps \<subseteq>
+    (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p RONE))"
+proof
+  fix x
+  assume x: "x \<in> row_lformss ps"
+  obtain p where p: "p \<in> set ps" "x \<in> row_lforms p"
+    using x by (auto simp add: row_lformss_member_iff)
+  have "row_lforms p \<subseteq> rfrontier (rsimp7_SEQ_atom p RONE)"
+    using stable p(1) by (simp add: row_lforms_tail_stable_def)
+  then show "x \<in>
+      (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p RONE))"
+    using p by blast
+qed
+
+lemma row_lforms_rsimp7_SEQ_atom_rsimp_ALTs_subset:
+  assumes suffix_stable:
+      "\<forall>p \<in> set ps. row_lforms_suffix_stable p k"
+    and tail_stable:
+      "\<forall>p \<in> set ps. row_lforms_tail_stable p"
+  shows "row_lforms (rsimp7_SEQ_atom (rsimp_ALTs ps) k) \<subseteq>
+    (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p k))"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (Cons p ps')
+  note ps_cons = Cons
+  then show ?thesis
+  proof (cases ps')
+    case Nil
+    then show ?thesis
+      using ps_cons suffix_stable
+      by (simp add: row_lforms_suffix_stable_def)
+  next
+    case (Cons q qs)
+    have ps_shape: "ps = p # q # qs"
+      using ps_cons Cons by simp
+    show ?thesis
+    proof (cases k)
+      case RZERO
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case RONE
+      have tail:
+          "row_lformss ps \<subseteq>
+            (\<Union>p \<in> set ps. rfrontier (rsimp7_SEQ_atom p RONE))"
+        by (rule row_lformss_tail_stable_subset_RONE[OF tail_stable])
+      show ?thesis
+        using ps_shape RONE tail by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RCHAR c)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RSEQ k1 k2)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RALTS rs)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RSTAR r)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RNTIMES r n)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RBACKREF4 r1 r2 r3 r4 cs)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RHALF r cs rep)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case (RRESIDUE cs rep)
+      then show ?thesis
+        using ps_shape by (simp add: rsimp7_SEQ_atom_def)
+    qed
+  qed
+qed
+
+lemma row_lforms_rsimpStrong_prune_pair_raw_subset_laterI:
+  assumes suffix_stable:
+      "\<forall>p \<in> set rrs. row_lforms_suffix_stable p k"
+    and tail_stable:
+      "\<forall>p \<in> set rrs. row_lforms_tail_stable p"
+    and earlier: "earlier = RSEQ (RALTS lrs) k"
+    and later: "later = RSEQ (RALTS rrs) k"
+  shows "row_lforms
+      (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+    row_lforms later"
+proof -
+  let ?ps = "rprune_eq_against lrs rrs"
+  have pruned_suffix_stable:
+      "\<forall>p \<in> set ?ps. row_lforms_suffix_stable p k"
+    using suffix_stable set_rprune_eq_against_subset[of lrs rrs] by blast
+  have pruned_tail_stable:
+      "\<forall>p \<in> set ?ps. row_lforms_tail_stable p"
+    using tail_stable set_rprune_eq_against_subset[of lrs rrs] by blast
+  have step:
+      "row_lforms (rsimp7_SEQ_atom (rsimp_ALTs ?ps) k) \<subseteq>
+        (\<Union>p \<in> set ?ps. rfrontier (rsimp7_SEQ_atom p k))"
+    by (rule row_lforms_rsimp7_SEQ_atom_rsimp_ALTs_subset
+        [OF pruned_suffix_stable pruned_tail_stable])
+  have pruned_subset:
+      "(\<Union>p \<in> set ?ps. rfrontier (rsimp7_SEQ_atom p k)) \<subseteq>
+        (\<Union>p \<in> set rrs. rfrontier (rsimp7_SEQ_atom p k))"
+    using set_rprune_eq_against_subset[of lrs rrs] by blast
+  show ?thesis
+    using step pruned_subset earlier later
+    by (simp add: rsimpStrong_prune_pair_raw_def)
+qed
+
+lemma row_lforms_rsimpStrong_prune_pair_raw_subset_later_unless_sharedI:
+  assumes shared: "\<And>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      \<forall>p \<in> set rrs. row_lforms_suffix_stable p k \<and>
+        row_lforms_tail_stable p"
+  shows "row_lforms
+      (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+    row_lforms later"
+proof -
+  consider
+    (same) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and>
+      later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (same lrs rrs k)
+    have suffix_stable:
+        "\<forall>p \<in> set rrs. row_lforms_suffix_stable p k"
+      using shared[OF same] by blast
+    have tail_stable:
+        "\<forall>p \<in> set rrs. row_lforms_tail_stable p"
+      using shared[OF same] by blast
+    show ?thesis
+      by (rule row_lforms_rsimpStrong_prune_pair_raw_subset_laterI
+          [OF suffix_stable tail_stable same])
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      by simp
+  qed
+qed
+
+lemma row_lforms_rsimpStrong_prune_pair_raw_subset_later_payload_stableI:
+  assumes shared: "\<And>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      \<forall>p \<in> set rrs. row_payload_lform_stable p"
+  shows "row_lforms
+      (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+    row_lforms later"
+proof (rule row_lforms_rsimpStrong_prune_pair_raw_subset_later_unless_sharedI)
+  fix lrs rrs k
+  assume earlier: "earlier = RSEQ (RALTS lrs) k"
+    and later: "later = RSEQ (RALTS rrs) k"
+  show "\<forall>p \<in> set rrs. row_lforms_suffix_stable p k \<and>
+      row_lforms_tail_stable p"
+    using shared[OF earlier later]
+    by (auto simp add: row_payload_lform_stable_def)
+qed
+
+lemma row_lforms_rsimpStrong_prune_against_rows_raw_subset_pairI:
+  assumes pair: "\<And>earlier later.
+      earlier \<in> set seen \<Longrightarrow>
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+  shows "row_lforms
+      (rsimpStrong_prune_against_rows_raw seen r) \<subseteq>
+    row_lforms r"
+  using pair
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair_raw x r"
+  have first: "row_lforms ?p \<subseteq> row_lforms r"
+    by (rule Cons.prems) simp
+  have rest:
+      "row_lforms
+        (rsimpStrong_prune_against_rows_raw xs ?p) \<subseteq>
+       row_lforms ?p"
+  proof (rule Cons.hyps)
+    fix earlier later
+    assume earlier: "earlier \<in> set xs"
+    show "row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+      by (rule Cons.prems) (use earlier in simp)
+  qed
+  show ?case
+    using first rest by simp
+qed
+
+lemma row_lformss_rsimpStrong_prune_rows_acc_raw_subset_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+  shows "row_lformss (rsimpStrong_prune_rows_acc_raw seen rs) \<subseteq>
+    row_lformss rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have head: "row_lforms ?r' \<subseteq> row_lforms r"
+  proof (rule row_lforms_rsimpStrong_prune_against_rows_raw_subset_pairI)
+    fix earlier later
+    assume "earlier \<in> set seen"
+    show "row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+      by (rule pair)
+  qed
+  have tail:
+      "row_lformss (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)
+        \<subseteq> row_lformss rs"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by (auto simp add: Let_def)
+qed
+
+lemma row_lformss_rsimpStrong_prune_rows_raw_subset_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+  shows "row_lformss (rsimpStrong_prune_rows_raw rs) \<subseteq>
+    row_lformss rs"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule row_lformss_rsimpStrong_prune_rows_acc_raw_subset_pairI
+      [OF pair])
+
+lemma row_lformss_rpder_strong_rows_raw_subset_generated_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+  shows "row_lformss (rpder_strong_rows_raw c rs) \<subseteq>
+    row_lformss (concat (map (rpder_strong_list_raw c) rs))"
+proof -
+  have pruned:
+      "row_lformss (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))) \<subseteq>
+       row_lformss (rflts (concat (map (rpder_strong_list_raw c) rs)))"
+    by (rule row_lformss_rsimpStrong_prune_rows_raw_subset_pairI
+        [OF pair])
+  show ?thesis
+    using pruned
+    by (simp add: rpder_strong_rows_raw_def)
+qed
+
+lemma row_lformss_rpder_strong_rows_raw_subset_generated_payload_stableI:
+  assumes shared: "\<And>earlier later lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      \<forall>p \<in> set rrs. row_payload_lform_stable p"
+  shows "row_lformss (rpder_strong_rows_raw c rs) \<subseteq>
+    row_lformss (concat (map (rpder_strong_list_raw c) rs))"
+proof (rule row_lformss_rpder_strong_rows_raw_subset_generated_pairI)
+  fix earlier later
+  show "row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+      row_lforms later"
+  proof (rule row_lforms_rsimpStrong_prune_pair_raw_subset_later_payload_stableI)
+    fix lrs rrs k
+    assume "earlier = RSEQ (RALTS lrs) k"
+      and "later = RSEQ (RALTS rrs) k"
+    then show "\<forall>p \<in> set rrs. row_payload_lform_stable p"
+      by (rule shared)
+  qed
+qed
+
+section \<open>Deep Linear Forms for Nested Row Payloads\<close>
+
+text \<open>
+  The one-layer row-linear-form view above is intentionally close to the raw
+  scan/prune implementation, but it is too shallow when a payload is itself a
+  grouped row.  The following deep view recursively opens grouped payloads
+  after the shared suffix has been attached.  This matches the proof idea that
+  pruning should delete forms from the same frontier instead of manufacturing
+  new forms by exposing a nested row.
+\<close>
+
+lemma rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS:
+  assumes "p \<in> set ps"
+  shows "rsize (rsimp7_SEQ_atom p k) < rsize (RSEQ (RALTS ps) k)"
+proof -
+  have p_size: "rsize p \<le> rsizes ps"
+    by (rule elem_size_le_rsizes[OF assms])
+  have "rsize (rsimp7_SEQ_atom p k) \<le> Suc (rsize p + rsize k)"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsizes ps + rsize k)"
+    using p_size by simp
+  also have "... < Suc (Suc (rsizes ps) + rsize k)"
+    by simp
+  finally show ?thesis
+    by simp
+qed
+
+function (sequential) row_dlforms :: "rrexp \<Rightarrow> rrexp set" where
+  "row_dlforms RZERO = {}"
+| "row_dlforms (RALTS rs) = (\<Union>q \<in> set rs. row_dlforms q)"
+| "row_dlforms (RSEQ (RALTS ps) k) =
+    (\<Union>p \<in> set ps. row_dlforms (rsimp7_SEQ_atom p k))"
+| "row_dlforms r = rfrontier r"
+  by pat_completeness auto
+termination
+proof (relation "measure rsize")
+  show "wf (measure rsize)"
+    by simp
+next
+  fix rs :: "rrexp list" and q :: rrexp
+  assume q: "q \<in> set rs"
+  have "rsize q \<le> rsizes rs"
+    by (rule elem_size_le_rsizes[OF q])
+  then show "(q, RALTS rs) \<in> measure rsize"
+    by simp
+next
+  fix ps :: "rrexp list" and k :: rrexp and p :: rrexp
+  assume p: "p \<in> set ps"
+  show "(rsimp7_SEQ_atom p k, RSEQ (RALTS ps) k) \<in> measure rsize"
+    using rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p]
+    by simp
+qed
+
+function (sequential) row_dlforms_list :: "rrexp \<Rightarrow> rrexp list" where
+  "row_dlforms_list RZERO = []"
+| "row_dlforms_list (RALTS rs) = concat (map row_dlforms_list rs)"
+| "row_dlforms_list (RSEQ (RALTS ps) k) =
+    concat (map (\<lambda>p. row_dlforms_list (rsimp7_SEQ_atom p k)) ps)"
+| "row_dlforms_list r = [r]"
+  by pat_completeness auto
+termination
+proof (relation "measure rsize")
+  show "wf (measure rsize)"
+    by simp
+next
+  fix rs :: "rrexp list" and q :: rrexp
+  assume q: "q \<in> set rs"
+  have "rsize q \<le> rsizes rs"
+    by (rule elem_size_le_rsizes[OF q])
+  then show "(q, RALTS rs) \<in> measure rsize"
+    by simp
+next
+  fix ps :: "rrexp list" and k :: rrexp and p :: rrexp
+  assume p: "p \<in> set ps"
+  show "(rsimp7_SEQ_atom p k, RSEQ (RALTS ps) k) \<in> measure rsize"
+    using rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p]
+    by simp
+qed
+
+lemma set_row_dlforms_list [simp]:
+  "set (row_dlforms_list r) = row_dlforms r"
+  by (induct r rule: row_dlforms_list.induct) auto
+
+lemma rsizes_concat_map:
+  "rsizes (concat (map f xs)) =
+    sum_list (map (\<lambda>x. rsizes (f x)) xs)"
+  by (induct xs) simp_all
+
+definition row_dlforms_list_size :: "rrexp \<Rightarrow> nat" where
+  "row_dlforms_list_size r = sum_list (map rsize (row_dlforms_list r))"
+
+lemma row_dlforms_list_size_RZERO [simp]:
+  "row_dlforms_list_size RZERO = 0"
+  by (simp add: row_dlforms_list_size_def)
+
+lemma row_dlforms_list_size_RALTS [simp]:
+  "row_dlforms_list_size (RALTS rs) =
+    sum_list (map row_dlforms_list_size rs)"
+  by (induct rs) (simp_all add: row_dlforms_list_size_def)
+
+lemma row_dlforms_list_size_RSEQ_RALTS [simp]:
+  "row_dlforms_list_size (RSEQ (RALTS ps) k) =
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
+  by (induct ps) (simp_all add: row_dlforms_list_size_def)
+
+lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
+  "rsize_set (row_dlforms r) \<le> row_dlforms_list_size r"
+  using rsize_set_set_le_sum_list_rsize[of "row_dlforms_list r"]
+  by (simp add: row_dlforms_list_size_def)
+
+definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
+  "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
+
+definition row_dlformss_list :: "rrexp list \<Rightarrow> rrexp list" where
+  "row_dlformss_list rs = concat (map row_dlforms_list rs)"
+
+lemma set_row_dlformss_list [simp]:
+  "set (row_dlformss_list rs) = row_dlformss rs"
+  by (auto simp add: row_dlformss_list_def row_dlformss_def)
+
+lemma RL_row_dlforms_UN:
+  "(\<Union>x \<in> row_dlforms r. RL x) = RL r"
+  by (induct r rule: row_dlforms.induct)
+    (auto simp add: RL_rsimp7_SEQ_atom Sequ_def)
+
+lemma RL_RALTS_row_dlforms_list:
+  "RL (RALTS (row_dlforms_list r)) = RL r"
+  using RL_row_dlforms_UN[of r] by auto
+
+lemma RL_RALTS_row_dlformss_list:
+  "RL (RALTS (row_dlformss_list rs)) = RL (RALTS rs)"
+proof -
+  have "RL (RALTS (row_dlformss_list rs)) =
+      (\<Union>x \<in> row_dlformss rs. RL x)"
+    by auto
+  also have "... = (\<Union>r \<in> set rs. RL r)"
+    using RL_row_dlforms_UN
+    by (auto simp add: row_dlformss_def)
+  also have "... = RL (RALTS rs)"
+    by auto
+  finally show ?thesis .
+qed
+
+lemma row_dlforms_member_atomic_rtail_nf:
+  assumes nf: "rtail_nf r"
+    and x: "x \<in> row_dlforms r"
+  shows "row_dlforms x = {x}"
+  using nf x
+  by (induct r arbitrary: x rule: row_dlforms.induct)
+    (auto simp add: rtail_nf_rsimp7_SEQ_atom)
+
+lemma finite_row_dlforms [simp]:
+  "finite (row_dlforms r)"
+  by (induct r rule: row_dlforms.induct) auto
+
+lemma rtail_nf_RONE_stable7:
+  assumes "rtail_nf r"
+  shows "rsimp7_SEQ_atom r RONE = r"
+proof -
+  have stable4: "rsimp4_SEQ_atom r RONE = r"
+    by (rule rtail_nf_RONE_stable[OF assms])
+  show ?thesis
+    using assms stable4
+    by (cases r) (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+qed
+
+lemma card_row_dlforms_SEQ_atom_diff_le_both:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k) \<le>
+      rsize r \<and>
+    card (row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k) \<le>
+      rsize r"
+  using r_nf k_nf
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case RONE
+  then show ?case
+    by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RCHAR c)
+  have atom4: "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+        row_dlforms k) \<le> 1"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis .
+  qed
+  have atom7: "card (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k) -
+        row_dlforms k) \<le> 1"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+    finally show ?thesis .
+  qed
+  show ?case
+    using atom4 atom7 by simp
+next
+  case (RSEQ r1 r2)
+  let ?k4 = "rsimp4_SEQ_atom r2 k"
+  let ?k7 = "rsimp7_SEQ_atom r2 k"
+  let ?C = "row_dlforms k"
+  have r1_nf: "rtail_nf r1"
+    using RSEQ.prems by simp
+  have r2_nf: "rtail_nf r2"
+    using RSEQ.prems by simp
+  have k4_nf: "rtail_nf ?k4"
+    by (rule rtail_nf_rsimp4_SEQ_atom[OF r2_nf RSEQ.prems(2)])
+  have k7_nf: "rtail_nf ?k7"
+    by (rule rtail_nf_rsimp7_SEQ_atom[OF r2_nf RSEQ.prems(2)])
+  have seq4:
+      "card (row_dlforms (rsimp4_SEQ_atom (RSEQ r1 r2) k) - ?C) \<le>
+        rsize (RSEQ r1 r2)"
+  proof -
+    let ?A = "row_dlforms (rsimp4_SEQ_atom r1 ?k4)"
+    let ?B = "row_dlforms ?k4"
+    have eq4:
+        "row_dlforms (rsimp4_SEQ_atom (RSEQ r1 r2) k) = ?A"
+      by simp
+    have split:
+        "?A - ?C \<subseteq> (?A - ?B) \<union> (?B - ?C)"
+      by auto
+    have "card (?A - ?C) \<le> card ((?A - ?B) \<union> (?B - ?C))"
+      by (rule card_mono) auto
+    also have "... \<le> card (?A - ?B) + card (?B - ?C)"
+      by (rule card_Un_le)
+    also have "... \<le> rsize r1 + rsize r2"
+    proof -
+      have left: "card (?A - ?B) \<le> rsize r1"
+        using RSEQ.hyps(1)[OF r1_nf k4_nf] by simp
+      have right: "card (?B - ?C) \<le> rsize r2"
+        using RSEQ.hyps(2)[OF r2_nf RSEQ.prems(2)] by simp
+      show ?thesis
+        using left right by linarith
+    qed
+    also have "... \<le> rsize (RSEQ r1 r2)"
+      by simp
+    finally show ?thesis
+      using eq4 by simp
+  qed
+  have seq7:
+      "card (row_dlforms (rsimp7_SEQ_atom (RSEQ r1 r2) k) - ?C) \<le>
+        rsize (RSEQ r1 r2)"
+  proof -
+    have eq7:
+        "rsimp7_SEQ_atom (RSEQ r1 r2) k =
+          rsimp4_SEQ_atom (RSEQ r1 r2) k"
+      by (simp add: rsimp7_SEQ_atom_def)
+    show ?thesis
+      using seq4 eq7 by simp
+  qed
+  show ?case
+    using seq4 seq7 by simp
+next
+  case (RALTS rs)
+  let ?A = "\<lambda>q. row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k"
+  have elems: "\<And>q. q \<in> set rs \<Longrightarrow> rtail_nf q"
+    using RALTS.prems by simp
+  have diff4_subset:
+      "row_dlforms (rsimp4_SEQ_atom (RALTS rs) k) - row_dlforms k \<subseteq>
+        (\<Union>q \<in> set rs. ?A q)"
+  proof (cases k)
+    case RONE
+    have stable: "\<And>q. q \<in> set rs \<Longrightarrow>
+        rsimp7_SEQ_atom q RONE = q"
+      by (rule rtail_nf_RONE_stable7[OF elems])
+    show ?thesis
+      using RONE stable by auto
+  qed (use RALTS.prems in
+      \<open>auto simp add: rsimp7_SEQ_atom_def\<close>)
+  have diff7_subset:
+      "row_dlforms (rsimp7_SEQ_atom (RALTS rs) k) - row_dlforms k \<subseteq>
+        (\<Union>q \<in> set rs. ?A q)"
+  proof (cases k)
+    case RONE
+    have stable: "\<And>q. q \<in> set rs \<Longrightarrow>
+        rsimp7_SEQ_atom q RONE = q"
+      by (rule rtail_nf_RONE_stable7[OF elems])
+    show ?thesis
+      using RONE stable by (auto simp add: rsimp7_SEQ_atom_def)
+  qed (use RALTS.prems in
+      \<open>auto simp add: rsimp7_SEQ_atom_def\<close>)
+  have union_card: "card (\<Union>q \<in> set rs. ?A q) \<le> rsizes rs"
+  proof -
+    have "card (\<Union>q \<in> set rs. ?A q) \<le>
+        (\<Sum>q \<in> set rs. card (?A q))"
+      by (rule card_UN_le) auto
+    also have "... \<le> (\<Sum>q \<in> set rs. rsize q)"
+      by (rule sum_mono) (use RALTS.hyps elems RALTS.prems in auto)
+    also have "... \<le> rsizes rs"
+      by (rule sum_set_le_sum_list_nat)
+    finally show ?thesis .
+  qed
+  have diff4:
+      "card (row_dlforms (rsimp4_SEQ_atom (RALTS rs) k) -
+        row_dlforms k) \<le> rsize (RALTS rs)"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RALTS rs) k) -
+          row_dlforms k) \<le> card (\<Union>q \<in> set rs. ?A q)"
+      by (rule card_mono) (use diff4_subset in auto)
+    also have "... \<le> rsizes rs"
+      by (rule union_card)
+    also have "... \<le> rsize (RALTS rs)"
+      by simp
+    finally show ?thesis .
+  qed
+  have diff7:
+      "card (row_dlforms (rsimp7_SEQ_atom (RALTS rs) k) -
+        row_dlforms k) \<le> rsize (RALTS rs)"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RALTS rs) k) -
+          row_dlforms k) \<le> card (\<Union>q \<in> set rs. ?A q)"
+      by (rule card_mono) (use diff7_subset in auto)
+    also have "... \<le> rsizes rs"
+      by (rule union_card)
+    also have "... \<le> rsize (RALTS rs)"
+      by simp
+    finally show ?thesis .
+  qed
+  show ?case
+    using diff4 diff7 by simp
+next
+  case (RSTAR r)
+  have star4: "card (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) -
+        row_dlforms k) \<le> rsize (RSTAR r)"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis by simp
+  qed
+  have star7: "card (row_dlforms (rsimp7_SEQ_atom (RSTAR r) k) -
+        row_dlforms k) \<le> rsize (RSTAR r)"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RSTAR r) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp7_SEQ_atom (RSTAR r) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+    finally show ?thesis by simp
+  qed
+  show ?case
+    using star4 star7 by simp
+next
+  case (RNTIMES r n)
+  have ntimes4: "card (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+        row_dlforms k) \<le> rsize (RNTIMES r n)"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis by simp
+  qed
+  have ntimes7: "card (row_dlforms (rsimp7_SEQ_atom (RNTIMES r n) k) -
+        row_dlforms k) \<le> rsize (RNTIMES r n)"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RNTIMES r n) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp7_SEQ_atom (RNTIMES r n) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+    finally show ?thesis by simp
+  qed
+  show ?case
+    using ntimes4 ntimes7 by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have back4: "card (row_dlforms
+        (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+        row_dlforms k) \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs)"
+  proof -
+    have "card (row_dlforms
+          (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms
+          (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis by simp
+  qed
+  have back7: "card (row_dlforms
+        (rsimp7_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+        row_dlforms k) \<le> rsize (RBACKREF4 r1 r2 r3 r4 cs)"
+  proof -
+    have "card (row_dlforms
+          (rsimp7_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms
+          (rsimp7_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+    finally show ?thesis by simp
+  qed
+  show ?case
+    using back4 back7 by simp
+next
+  case (RHALF r cs rep)
+  have half4: "card (row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+        row_dlforms k) \<le> rsize (RHALF r cs rep)"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis by simp
+  qed
+  have half7: "card (row_dlforms (rsimp7_SEQ_atom (RHALF r cs rep) k) -
+        row_dlforms k) \<le> rsize (RHALF r cs rep)"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RHALF r cs rep) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp7_SEQ_atom (RHALF r cs rep) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+    finally show ?thesis by simp
+  qed
+  show ?case
+    using half4 half7 by simp
+next
+  case (RRESIDUE cs rep)
+  have residue4: "card (row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+        row_dlforms k) \<le> rsize (RRESIDUE cs rep)"
+  proof -
+    have "card (row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) simp_all
+    finally show ?thesis by simp
+  qed
+  have residue7: "card (row_dlforms (rsimp7_SEQ_atom (RRESIDUE cs rep) k) -
+        row_dlforms k) \<le> rsize (RRESIDUE cs rep)"
+  proof -
+    have "card (row_dlforms (rsimp7_SEQ_atom (RRESIDUE cs rep) k) -
+          row_dlforms k) \<le>
+        card (row_dlforms (rsimp7_SEQ_atom (RRESIDUE cs rep) k))"
+      by (rule card_mono) auto
+    also have "... \<le> 1"
+      by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+    finally show ?thesis by simp
+  qed
+  show ?case
+    using residue4 residue7 by simp
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_diff_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k) \<le>
+    rsize r"
+  using card_row_dlforms_SEQ_atom_diff_le_both[OF r_nf k_nf] by simp
+
+lemma card_row_dlforms_rsimp7_SEQ_atom_diff_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k) \<le>
+    rsize r"
+  using card_row_dlforms_SEQ_atom_diff_le_both[OF r_nf k_nf] by simp
+
+lemma card_row_dlforms_rsimp7_SEQ_atom_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (row_dlforms (rsimp7_SEQ_atom r k)) \<le>
+    card (row_dlforms k) + rsize r"
+proof -
+  let ?A = "row_dlforms (rsimp7_SEQ_atom r k)"
+  let ?K = "row_dlforms k"
+  have split: "?A \<subseteq> ?K \<union> (?A - ?K)"
+    by auto
+  have "card ?A \<le> card (?K \<union> (?A - ?K))"
+    by (rule card_mono) (use split in auto)
+  also have "... \<le> card ?K + card (?A - ?K)"
+    by (rule card_Un_le)
+  also have "... \<le> card ?K + rsize r"
+    using card_row_dlforms_rsimp7_SEQ_atom_diff_le[OF r_nf k_nf]
+    by simp
+  finally show ?thesis .
+qed
+
+lemma card_row_dlforms_rtail_nf_le_Suc_rsize:
+  assumes nf: "rtail_nf r"
+  shows "card (row_dlforms r) \<le> Suc (rsize r)"
+proof -
+  have "card (row_dlforms (rsimp7_SEQ_atom r RONE)) \<le>
+      card (row_dlforms RONE) + rsize r"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_le[OF nf]) simp
+  then show ?thesis
+    using rtail_nf_RONE_stable7[OF nf] by simp
+qed
+
+lemma row_dlforms_member_size_le_list_size:
+  assumes "x \<in> row_dlforms r"
+  shows "rsize x \<le> row_dlforms_list_size r"
+proof -
+  have x_list: "x \<in> set (row_dlforms_list r)"
+    using assms by simp
+  have "rsize x \<le> rsizes (row_dlforms_list r)"
+    by (rule rsize_member_le_rsizes[OF x_list])
+  then show ?thesis
+    by (simp add: row_dlforms_list_size_def)
+qed
+
+lemma row_dlforms_member_size_le_rsize:
+  assumes "x \<in> row_dlforms r"
+  shows "rsize x \<le> rsize r"
+  using assms
+proof (induct "rsize r" arbitrary: r x rule: less_induct)
+  case less
+  show ?case
+  proof (cases r)
+    case RZERO
+    then show ?thesis
+      using less.prems by simp
+  next
+    case (RALTS rs)
+    then obtain q where q:
+        "q \<in> set rs" "x \<in> row_dlforms q"
+      using less.prems by auto
+    have q_lt: "rsize q < rsize r"
+      using RALTS q(1) elem_size_le_rsizes[OF q(1)] by simp
+    have "rsize x \<le> rsize q"
+      by (rule less.hyps[rule_format, OF q_lt q(2)])
+    also have "... \<le> rsize r"
+      using RALTS q(1) elem_size_le_rsizes[OF q(1)] by simp
+    finally show ?thesis .
+  next
+    case (RSEQ r1 r2)
+    show ?thesis
+    proof (cases r1)
+      case (RALTS ps)
+      then obtain p where p:
+          "p \<in> set ps"
+          "x \<in> row_dlforms (rsimp7_SEQ_atom p r2)"
+        using less.prems RSEQ by auto
+      have step_lt:
+          "rsize (rsimp7_SEQ_atom p r2) < rsize r"
+        using RSEQ RALTS
+          rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p(1)]
+        by simp
+      have "rsize x \<le> rsize (rsimp7_SEQ_atom p r2)"
+        by (rule less.hyps[rule_format, OF step_lt p(2)])
+      also have "... \<le> rsize r"
+        using step_lt by simp
+      finally show ?thesis .
+    qed (use less.prems RSEQ rfrontier_member_size_le_rsize in auto)
+  qed (use less.prems rfrontier_member_size_le_rsize in auto)
+qed
+
+lemma rsize_set_row_dlforms_rsimp4_SEQ_atom_diff_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "rsize_set
+      (row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k) \<le>
+    rsize r * Suc (rsize r + rsize k)"
+proof -
+  let ?D = "row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k"
+  have cardD: "card ?D \<le> rsize r"
+    by (rule card_row_dlforms_rsimp4_SEQ_atom_diff_le[OF r_nf k_nf])
+  have memberD:
+      "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> Suc (rsize r + rsize k)"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le> rsize (rsimp4_SEQ_atom r k)"
+      by (rule row_dlforms_member_size_le_rsize)
+        (use x in auto)
+    also have "... \<le> Suc (rsize r + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    finally show "rsize x \<le> Suc (rsize r + rsize k)" .
+  qed
+  show ?thesis
+    by (rule rsize_set_le_card_member_budgetI)
+      (use cardD memberD in auto)
+qed
+
+lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_diff_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "rsize_set
+      (row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k) \<le>
+    rsize r * Suc (rsize r + rsize k)"
+proof -
+  let ?D = "row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k"
+  have cardD: "card ?D \<le> rsize r"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_diff_le[OF r_nf k_nf])
+  have memberD:
+      "\<And>x. x \<in> ?D \<Longrightarrow> rsize x \<le> Suc (rsize r + rsize k)"
+  proof -
+    fix x
+    assume x: "x \<in> ?D"
+    have "rsize x \<le> rsize (rsimp7_SEQ_atom r k)"
+      by (rule row_dlforms_member_size_le_rsize)
+        (use x in auto)
+    also have "... \<le> Suc (rsize r + rsize k)"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    finally show "rsize x \<le> Suc (rsize r + rsize k)" .
+  qed
+  show ?thesis
+    by (rule rsize_set_le_card_member_budgetI)
+      (use cardD memberD in auto)
+qed
+
+lemma rsize_set_row_dlforms_rsimp4_SEQ_atom_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "rsize_set (row_dlforms (rsimp4_SEQ_atom r k)) \<le>
+    rsize_set (row_dlforms k) +
+      rsize r * Suc (rsize r + rsize k)"
+proof -
+  let ?A = "row_dlforms (rsimp4_SEQ_atom r k)"
+  let ?K = "row_dlforms k"
+  let ?D = "?A - ?K"
+  have split: "?A \<subseteq> ?K \<union> ?D"
+    by auto
+  have "rsize_set ?A \<le> rsize_set (?K \<union> ?D)"
+    by (rule rsize_set_mono) (use split in auto)
+  also have "... \<le> rsize_set ?K + rsize_set ?D"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set ?K + rsize r * Suc (rsize r + rsize k)"
+    using rsize_set_row_dlforms_rsimp4_SEQ_atom_diff_le[OF r_nf k_nf]
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlforms_rsimp4_SEQ_atom_RSTAR_linear:
+  "rsize_set (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k)) \<le>
+    Suc (rsize (RSTAR r) + rsize k)"
+  by (cases k) (simp_all add: rsize_set_def)
+
+lemma rsize_set_row_dlforms_rsimp4_SEQ_atom_RNTIMES_linear:
+  "rsize_set (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k)) \<le>
+    Suc (rsize (RNTIMES r n) + rsize k)"
+  by (cases k) (simp_all add: rsize_set_def)
+
+lemma rsize_set_row_dlforms_rsimp4_SEQ_atom_square_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "rsize_set (row_dlforms (rsimp4_SEQ_atom r k)) \<le>
+    rsize_set (row_dlforms k) +
+      (rsize r)\<^sup>2 * Suc (rsize k) + (rsize r + 2)\<^sup>2"
+proof -
+  have base: "rsize_set (row_dlforms (rsimp4_SEQ_atom r k)) \<le>
+      rsize_set (row_dlforms k) +
+        rsize r * Suc (rsize r + rsize k)"
+    by (rule rsize_set_row_dlforms_rsimp4_SEQ_atom_le[OF r_nf k_nf])
+  have arith:
+      "rsize r * Suc (rsize r + rsize k) \<le>
+        (rsize r)\<^sup>2 * Suc (rsize k) + (rsize r + 2)\<^sup>2"
+  proof -
+    have size_sq: "rsize r \<le> (rsize r)\<^sup>2"
+      using size_geq1[of r]
+      by (simp add: power2_eq_square mult_le_mono)
+    have k_part: "rsize k * rsize r \<le> rsize k * (rsize r)\<^sup>2"
+      by (rule mult_left_mono[OF size_sq]) simp
+    have expanded:
+        "rsize r * Suc (rsize r + rsize k) =
+        (rsize r)\<^sup>2 + rsize r + rsize k * rsize r"
+      by (simp add: power2_eq_square algebra_simps)
+    have step1:
+        "(rsize r)\<^sup>2 + rsize r + rsize k * rsize r \<le>
+        (rsize r)\<^sup>2 + rsize r + rsize k * (rsize r)\<^sup>2"
+      using k_part by simp
+    have r_absorb: "rsize r \<le> (rsize r + 2)\<^sup>2"
+    proof -
+      have "rsize r \<le> rsize r + 2"
+        by simp
+      also have "rsize r + 2 \<le> (rsize r + 2)\<^sup>2"
+        by (simp add: power2_eq_square mult_le_mono)
+      finally show ?thesis .
+    qed
+    have step2:
+        "(rsize r)\<^sup>2 + rsize r + rsize k * (rsize r)\<^sup>2 \<le>
+        (rsize r)\<^sup>2 + (rsize r + 2)\<^sup>2 +
+          rsize k * (rsize r)\<^sup>2"
+      using r_absorb by simp
+    have "rsize r * Suc (rsize r + rsize k) =
+        (rsize r)\<^sup>2 + rsize r + rsize k * rsize r"
+      by (rule expanded)
+    also have "... \<le>
+        (rsize r)\<^sup>2 + rsize r + rsize k * (rsize r)\<^sup>2"
+      by (rule step1)
+    also have "... \<le>
+        (rsize r)\<^sup>2 + (rsize r + 2)\<^sup>2 +
+          rsize k * (rsize r)\<^sup>2"
+      by (rule step2)
+    also have "... =
+        (rsize r)\<^sup>2 * Suc (rsize k) + (rsize r + 2)\<^sup>2"
+      by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    using base arith by linarith
+qed
+
+lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_le:
+  assumes r_nf: "rtail_nf r"
+    and k_nf: "rtail_nf k"
+  shows "rsize_set (row_dlforms (rsimp7_SEQ_atom r k)) \<le>
+    rsize_set (row_dlforms k) +
+      rsize r * Suc (rsize r + rsize k)"
+proof -
+  let ?A = "row_dlforms (rsimp7_SEQ_atom r k)"
+  let ?K = "row_dlforms k"
+  let ?D = "?A - ?K"
+  have split: "?A \<subseteq> ?K \<union> ?D"
+    by auto
+  have "rsize_set ?A \<le> rsize_set (?K \<union> ?D)"
+    by (rule rsize_set_mono) (use split in auto)
+  also have "... \<le> rsize_set ?K + rsize_set ?D"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set ?K + rsize r * Suc (rsize r + rsize k)"
+    using rsize_set_row_dlforms_rsimp7_SEQ_atom_diff_le[OF r_nf k_nf]
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlforms_rtail_nf_quadratic:
+  assumes nf: "rtail_nf r"
+  shows "rsize_set (row_dlforms r) \<le> Suc (rsize r) * rsize r"
+proof -
+  have card_bound: "card (row_dlforms r) \<le> Suc (rsize r)"
+    by (rule card_row_dlforms_rtail_nf_le_Suc_rsize[OF nf])
+  have member: "\<And>q. q \<in> row_dlforms r \<Longrightarrow> rsize q \<le> rsize r"
+    by (rule row_dlforms_member_size_le_rsize)
+  show ?thesis
+    by (rule rsize_set_le_card_member_budgetI)
+      (use card_bound member in auto)
+qed
+
+lemma rsize_set_row_dlforms_apder_nf_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (row_dlforms r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "rsize_set (row_dlforms r) \<le> Suc (rsize r) * rsize r"
+    by (rule rsize_set_row_dlforms_rtail_nf_quadratic)
+      (rule apder_nf_imp_rtail_nf[OF nf])
+  also have "... \<le> (apder_awidth r + rsize r + 3) ^ 3"
+    by (simp add: power3_eq_cube algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma finite_row_dlformss [simp]:
+  "finite (row_dlformss rs)"
+  by (simp add: row_dlformss_def)
+
+lemma row_dlformss_append [simp]:
+  "row_dlformss (xs @ ys) = row_dlformss xs \<union> row_dlformss ys"
+  by (auto simp add: row_dlformss_def)
+
+lemma row_dlformss_Cons [simp]:
+  "row_dlformss (r # rs) = row_dlforms r \<union> row_dlformss rs"
+  by (auto simp add: row_dlformss_def)
+
+lemma row_dlformss_member_iff:
+  "x \<in> row_dlformss rs \<longleftrightarrow> (\<exists>q \<in> set rs. x \<in> row_dlforms q)"
+  by (auto simp add: row_dlformss_def)
+
+lemma row_dlforms_member_subset_dlformss:
+  assumes "q \<in> set rs"
+  shows "row_dlforms q \<subseteq> row_dlformss rs"
+  using assms by (auto simp add: row_dlformss_def)
+
+lemma row_dlformss_rflts_eq [simp]:
+  "row_dlformss (rflts rs) = row_dlformss rs"
+  by (induct rs rule: rflts.induct) (auto simp add: row_dlformss_def)
+
+lemma row_dlformss_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "row_dlformss xs \<subseteq> row_dlformss ys"
+  using assms by (auto simp add: row_dlformss_def)
+
+lemma row_dlforms_rfrontier_member_subset:
+  assumes x: "x \<in> rfrontier r"
+  shows "row_dlforms x \<subseteq> row_dlforms r"
+  using x
+proof (induct r arbitrary: x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q:
+      "q \<in> set rs" "x \<in> rfrontier q"
+    by (auto simp add: rfrontiers_member_iff)
+  have "row_dlforms x \<subseteq> row_dlforms q"
+    by (rule RALTS.hyps[OF q(1) q(2)])
+  also have "... \<subseteq> row_dlforms (RALTS rs)"
+    using q(1) by auto
+  finally show ?case
+    using RALTS by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma row_dlformss_rdistinct_subset:
+  "row_dlformss (rdistinct rs acc) \<subseteq> row_dlformss rs"
+  by (rule row_dlformss_mono)
+    (simp add: rdistinct_set_equality1)
+
+lemma row_dlformss_rdistinct_empty_eq [simp]:
+  "row_dlformss (rdistinct rs {}) = row_dlformss rs"
+  by (auto simp add: row_dlformss_member_iff rdistinct_set_equality)
+
+lemma row_dlformss_rprune_eq_against_subset:
+  "row_dlformss (rprune_eq_against covered rs) \<subseteq> row_dlformss rs"
+  by (rule row_dlformss_mono)
+    (simp add: set_rprune_eq_against_subset)
+
+fun row_dlformss_disjoint :: "rrexp list \<Rightarrow> bool" where
+  "row_dlformss_disjoint [] = True"
+| "row_dlformss_disjoint (r # rs) =
+    (row_dlforms r \<inter> row_dlformss rs = {} \<and>
+      row_dlformss_disjoint rs)"
+
+definition row_dlforms_size_paid :: "rrexp \<Rightarrow> bool" where
+  "row_dlforms_size_paid r \<longleftrightarrow>
+    rsize r \<le> Suc (2 * rsize_set (row_dlforms r))"
+
+definition row_dlforms_live :: "rrexp \<Rightarrow> bool" where
+  "row_dlforms_live r \<longleftrightarrow> row_dlforms r \<noteq> {}"
+
+definition row_dlform_canonical_rows :: "rrexp list \<Rightarrow> rrexp list" where
+  "row_dlform_canonical_rows rs =
+    rdistinct (row_dlformss_list rs) {}"
+
+lemma distinct_row_dlform_canonical_rows:
+  "distinct (row_dlform_canonical_rows rs)"
+  by (simp add: row_dlform_canonical_rows_def
+      rdistinct_does_the_job)
+
+lemma set_row_dlform_canonical_rows [simp]:
+  "set (row_dlform_canonical_rows rs) = row_dlformss rs"
+  by (simp add: row_dlform_canonical_rows_def
+      rdistinct_set_equality)
+
+lemma aseq_termss_row_dlform_canonical_rows_subsetI:
+  assumes terms:
+    "\<forall>x \<in> row_dlformss rs. aseq_terms x \<subseteq> U"
+  shows "aseq_termss (row_dlform_canonical_rows rs) \<subseteq> U"
+proof
+  fix q
+  assume q: "q \<in> aseq_termss (row_dlform_canonical_rows rs)"
+  obtain x where x:
+      "x \<in> set (row_dlform_canonical_rows rs)"
+      "q \<in> aseq_terms x"
+    using q by (auto simp add: aseq_termss_member_iff)
+  have "x \<in> row_dlformss rs"
+    using x(1) by simp
+  then have "aseq_terms x \<subseteq> U"
+    using terms by blast
+  then show "q \<in> U"
+    using x(2) by blast
+qed
+
+lemma RL_RALTS_row_dlform_canonical_rows:
+  "RL (RALTS (row_dlform_canonical_rows rs)) = RL (RALTS rs)"
+proof -
+  have "set (row_dlform_canonical_rows rs) =
+      set (row_dlformss_list rs)"
+    by simp
+  then have "RL (RALTS (row_dlform_canonical_rows rs)) =
+      RL (RALTS (row_dlformss_list rs))"
+    by (rule RL_RALTS_set_eq)
+  also have "... = RL (RALTS rs)"
+    by (rule RL_RALTS_row_dlformss_list)
+  finally show ?thesis .
+qed
+
+lemma RLS_set_row_dlform_canonical_rows:
+  "RLS (set (row_dlform_canonical_rows rs)) = RLS (set rs)"
+  using RL_RALTS_row_dlform_canonical_rows[of rs]
+  by (simp add: RLS_def)
+
+lemma legacy_row_dlforms:
+  assumes "legacy_rrexp r"
+  shows "\<forall>x \<in> row_dlforms r. legacy_rrexp x"
+  using assms
+  apply (induct r rule: row_dlforms.induct)
+  apply simp
+  apply fastforce
+  apply (fastforce intro: legacy_rsimp7_SEQ_atom)
+  apply simp_all
+  done
+
+lemma legacy_row_dlformss:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>x \<in> row_dlformss rs. legacy_rrexp x"
+  using assms legacy_row_dlforms
+  by (auto simp add: row_dlformss_def)
+
+lemma legacy_row_dlform_canonical_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>x \<in> set (row_dlform_canonical_rows rs). legacy_rrexp x"
+  using legacy_row_dlformss[OF assms] by simp
+
+lemma row_dlforms_atomic_row_dlformss_rtail_nf:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+    and x: "x \<in> row_dlformss rs"
+  shows "row_dlforms x = {x}"
+proof -
+  obtain r where r:
+      "r \<in> set rs" "x \<in> row_dlforms r"
+    using x by (auto simp add: row_dlformss_member_iff)
+  have "rtail_nf r"
+    using nf r(1) by simp
+  then show ?thesis
+    by (rule row_dlforms_member_atomic_rtail_nf[OF _ r(2)])
+qed
+
+lemma row_dlformss_atomic_eq_set:
+  assumes atomic: "\<forall>x \<in> set xs. row_dlforms x = {x}"
+  shows "row_dlformss xs = set xs"
+  using atomic by (auto simp add: row_dlformss_member_iff)
+
+lemma row_dlformss_disjoint_atomic_distinct:
+  assumes distinct: "distinct xs"
+    and atomic: "\<forall>x \<in> set xs. row_dlforms x = {x}"
+  shows "row_dlformss_disjoint xs"
+  using distinct atomic
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have tail_atomic:
+      "\<forall>y \<in> set xs. row_dlforms y = {y}"
+    using Cons.prems by simp
+  have tail_eq: "row_dlformss xs = set xs"
+    by (rule row_dlformss_atomic_eq_set[OF tail_atomic])
+  have head: "row_dlforms x = {x}"
+    using Cons.prems by simp
+  have disj: "row_dlforms x \<inter> row_dlformss xs = {}"
+    using Cons.prems head tail_eq by auto
+  have tail: "row_dlformss_disjoint xs"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using disj tail by simp
+qed
+
+lemma row_dlformss_row_dlform_canonical_rows_eq:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss (row_dlform_canonical_rows rs) =
+    row_dlformss rs"
+proof -
+  have atomic:
+      "\<forall>x \<in> set (row_dlform_canonical_rows rs).
+        row_dlforms x = {x}"
+  proof
+    fix x
+    assume x: "x \<in> set (row_dlform_canonical_rows rs)"
+    have x_dl: "x \<in> row_dlformss rs"
+      using x by simp
+    show "row_dlforms x = {x}"
+      by (rule row_dlforms_atomic_row_dlformss_rtail_nf[OF nf x_dl])
+  qed
+  have "row_dlformss (row_dlform_canonical_rows rs) =
+      set (row_dlform_canonical_rows rs)"
+    by (rule row_dlformss_atomic_eq_set[OF atomic])
+  then show ?thesis by simp
+qed
+
+lemma row_dlformss_disjoint_row_dlform_canonical_rows:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss_disjoint (row_dlform_canonical_rows rs)"
+proof -
+  have atomic:
+      "\<forall>x \<in> set (row_dlform_canonical_rows rs).
+        row_dlforms x = {x}"
+  proof
+    fix x
+    assume x: "x \<in> set (row_dlform_canonical_rows rs)"
+    have x_dl: "x \<in> row_dlformss rs"
+      using x by simp
+    show "row_dlforms x = {x}"
+      by (rule row_dlforms_atomic_row_dlformss_rtail_nf[OF nf x_dl])
+  qed
+  show ?thesis
+    by (rule row_dlformss_disjoint_atomic_distinct
+        [OF distinct_row_dlform_canonical_rows atomic])
+qed
+
+lemma row_dlforms_live_atomic:
+  assumes "row_dlforms r = {r}"
+  shows "row_dlforms_live r"
+  using assms by (simp add: row_dlforms_live_def)
+
+lemma row_dlforms_size_paid_atomic:
+  assumes "row_dlforms r = {r}"
+  shows "row_dlforms_size_paid r"
+  using assms size_geq1[of r]
+  by (simp add: row_dlforms_size_paid_def rsize_set_def)
+
+lemma row_dlform_canonical_rows_live_paid:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "(\<forall>x \<in> set (row_dlform_canonical_rows rs).
+      row_dlforms_live x) \<and>
+    (\<forall>x \<in> set (row_dlform_canonical_rows rs).
+      row_dlforms_size_paid x)"
+proof
+  show "\<forall>x \<in> set (row_dlform_canonical_rows rs).
+      row_dlforms_live x"
+  proof
+    fix x
+    assume x: "x \<in> set (row_dlform_canonical_rows rs)"
+    have x_dl: "x \<in> row_dlformss rs"
+      using x by simp
+    have atomic: "row_dlforms x = {x}"
+      by (rule row_dlforms_atomic_row_dlformss_rtail_nf[OF nf x_dl])
+    show "row_dlforms_live x"
+      by (rule row_dlforms_live_atomic[OF atomic])
+  qed
+next
+  show "\<forall>x \<in> set (row_dlform_canonical_rows rs).
+      row_dlforms_size_paid x"
+  proof
+    fix x
+    assume x: "x \<in> set (row_dlform_canonical_rows rs)"
+    have x_dl: "x \<in> row_dlformss rs"
+      using x by simp
+    have atomic: "row_dlforms x = {x}"
+      by (rule row_dlforms_atomic_row_dlformss_rtail_nf[OF nf x_dl])
+    show "row_dlforms_size_paid x"
+      by (rule row_dlforms_size_paid_atomic[OF atomic])
+  qed
+qed
+
+lemma atomic_rtail_nf_aseq_terms_payment_false:
+  fixes a b :: char
+  assumes diff: "a \<noteq> b"
+  defines "x \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b, RCHAR b, RCHAR b])"
+  shows "rtail_nf x"
+    and "row_dlforms x = {x}"
+    and "\<not> rsize x \<le> Suc (2 * rsize_set (aseq_terms x))"
+  using diff
+  by (simp_all add: x_def rsize_set_def)
+
+lemma row_dlforms_suffix_copy_rsize_set_not_paid_by_row_size:
+  fixes a b c :: char
+  assumes diff: "a \<noteq> b"
+  defines "row \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "\<not> rsize_set (row_dlforms row) \<le> rsize row"
+  using diff
+  by (simp add: row_def rsize_set_def rsimp7_SEQ_atom_def)
+
+lemma card_le_rsize_set_early:
+  assumes "finite U"
+  shows "card U \<le> rsize_set U"
+proof -
+  have "card U = (\<Sum>q \<in> U. 1)"
+    by simp
+  also have "... \<le> (\<Sum>q \<in> U. rsize q)"
+    by (rule sum_mono) (use size_geq1 in blast)
+  finally show ?thesis
+    by (simp add: rsize_set_def)
+qed
+
+lemma rsize_set_row_dlformss_disjoint:
+  assumes "row_dlformss_disjoint rs"
+  shows "rsize_set (row_dlformss rs) =
+    sum_list (map (\<lambda>r. rsize_set (row_dlforms r)) rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def rsize_set_def)
+next
+  case (Cons r rs)
+  have disj: "row_dlforms r \<inter> row_dlformss rs = {}"
+    using Cons.prems by simp
+  have tail_disj: "row_dlformss_disjoint rs"
+    using Cons.prems by simp
+  have "rsize_set (row_dlformss (r # rs)) =
+      rsize_set (row_dlforms r) + rsize_set (row_dlformss rs)"
+  proof -
+    have "rsize_set (row_dlformss (r # rs)) =
+        rsize_set (row_dlforms r \<union> row_dlformss rs)"
+      by simp
+    also have "... =
+        rsize_set (row_dlforms r) + rsize_set (row_dlformss rs)"
+      using disj
+      unfolding rsize_set_def
+      by (subst sum.union_disjoint) auto
+    finally show ?thesis .
+  qed
+  also have "... =
+      rsize_set (row_dlforms r) +
+      sum_list (map (\<lambda>r. rsize_set (row_dlforms r)) rs)"
+    by (simp add: Cons.hyps[OF tail_disj])
+  finally show ?case
+    by simp
+qed
+
+lemma length_row_dlformss_disjoint_live_le_card:
+  assumes disjoint: "row_dlformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_dlforms_live r"
+  shows "length rs \<le> card (row_dlformss rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def)
+next
+  case (Cons r rs)
+  have tail_distinct: "row_dlformss_disjoint rs"
+    using Cons.prems by simp
+  have tail_live: "\<forall>r \<in> set rs. row_dlforms_live r"
+    using Cons.prems by simp
+  have tail_len: "length rs \<le> card (row_dlformss rs)"
+    by (rule Cons.hyps[OF tail_distinct tail_live])
+  have head_live: "row_dlforms r \<noteq> {}"
+    using Cons.prems by (simp add: row_dlforms_live_def)
+  have head_card: "1 \<le> card (row_dlforms r)"
+  proof -
+    have "0 < card (row_dlforms r)"
+      using head_live finite_row_dlforms
+      by (simp add: card_gt_0_iff)
+    then show ?thesis by simp
+  qed
+  have card_split:
+      "card (row_dlformss (r # rs)) =
+        card (row_dlforms r) + card (row_dlformss rs)"
+    using Cons.prems
+    by (simp add: row_dlformss_def card_Un_disjoint)
+  have "length (r # rs) \<le> Suc (card (row_dlformss rs))"
+    using tail_len by simp
+  also have "... \<le> card (row_dlforms r) + card (row_dlformss rs)"
+    using head_card by simp
+  also have "... = card (row_dlformss (r # rs))"
+    using card_split by simp
+  finally show ?case .
+qed
+
+lemma rsizes_row_dlforms_size_paid_disjoint_bound:
+  assumes disjoint: "row_dlformss_disjoint rs"
+    and paid: "\<forall>r \<in> set rs. row_dlforms_size_paid r"
+  shows "rsizes rs \<le>
+    length rs + 2 * rsize_set (row_dlformss rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def rsize_set_def)
+next
+  case (Cons r rs)
+  have r_paid:
+      "rsize r \<le> Suc (2 * rsize_set (row_dlforms r))"
+    using Cons.prems by (simp add: row_dlforms_size_paid_def)
+  have rs_disjoint: "row_dlformss_disjoint rs"
+    using Cons.prems by simp
+  have rs_paid: "\<forall>r \<in> set rs. row_dlforms_size_paid r"
+    using Cons.prems by simp
+  have tail:
+      "rsizes rs \<le> length rs + 2 * rsize_set (row_dlformss rs)"
+    by (rule Cons.hyps[OF rs_disjoint rs_paid])
+  have "rsizes (r # rs) \<le>
+      Suc (2 * rsize_set (row_dlforms r)) +
+        (length rs + 2 * rsize_set (row_dlformss rs))"
+    using r_paid tail by simp
+  also have "... =
+      length (r # rs) +
+        2 * (rsize_set (row_dlforms r) +
+          rsize_set (row_dlformss rs))"
+    by simp
+  also have "... =
+      length (r # rs) + 2 * rsize_set (row_dlformss (r # rs))"
+  proof -
+    have split:
+        "rsize_set (row_dlformss (r # rs)) =
+          rsize_set (row_dlforms r) + rsize_set (row_dlformss rs)"
+    proof -
+      have total_eq:
+          "rsize_set (row_dlformss (r # rs)) =
+            sum_list (map (\<lambda>r. rsize_set (row_dlforms r)) (r # rs))"
+        by (rule rsize_set_row_dlformss_disjoint[OF Cons.prems(1)])
+      have tail_eq:
+          "rsize_set (row_dlformss rs) =
+            sum_list (map (\<lambda>r. rsize_set (row_dlforms r)) rs)"
+        by (rule rsize_set_row_dlformss_disjoint[OF rs_disjoint])
+      show ?thesis
+        using total_eq tail_eq by simp
+    qed
+    show ?thesis
+      using split by simp
+  qed
+  finally show ?case .
+qed
+
+lemma rsizes_row_dlforms_paid_live_disjoint_bound:
+  assumes disjoint: "row_dlformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_dlforms_live r"
+    and paid: "\<forall>r \<in> set rs. row_dlforms_size_paid r"
+  shows "rsizes rs \<le> 3 * rsize_set (row_dlformss rs)"
+proof -
+  have len: "length rs \<le> card (row_dlformss rs)"
+    by (rule length_row_dlformss_disjoint_live_le_card
+        [OF disjoint live])
+  have card: "card (row_dlformss rs) \<le> rsize_set (row_dlformss rs)"
+    by (rule card_le_rsize_set_early) simp
+  have "rsizes rs \<le>
+      length rs + 2 * rsize_set (row_dlformss rs)"
+    by (rule rsizes_row_dlforms_size_paid_disjoint_bound
+        [OF disjoint paid])
+  also have "... \<le>
+      rsize_set (row_dlformss rs) +
+      2 * rsize_set (row_dlformss rs)"
+    using len card by linarith
+  also have "... = 3 * rsize_set (row_dlformss rs)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_partial_derivative_frontier_universe_cubic:
+  "rsize_set (partial_derivative_frontier_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?F = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have "rsize_set ?F \<le> card ?F * ?M"
+  proof -
+    have "rsize_set ?F = (\<Sum>q \<in> ?F. rsize q)"
+      by (simp add: rsize_set_def)
+    also have "... \<le> (\<Sum>q \<in> ?F. ?M)"
+      by (rule sum_mono)
+        (auto intro: partial_derivative_frontier_universe_member_size_linear)
+    also have "... = card ?F * ?M"
+      by simp
+    finally show ?thesis .
+  qed
+  also have "... \<le> (rsize r + 2) ^ 2 * ?M"
+  proof -
+    have F_card: "card ?F \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    show ?thesis
+      by (rule mult_right_mono[OF F_card]) simp
+  qed
+  also have "... \<le> (rsize r + 2) ^ 2 * (2 * (rsize r + 2))"
+    by (rule mult_left_mono) simp_all
+  also have "... = 2 * (rsize r + 2) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rows_canonical_frontier_dlforms_cubic:
+  assumes disjoint: "row_dlformss_disjoint rs"
+    and live: "\<forall>q \<in> set rs. row_dlforms_live q"
+    and paid: "\<forall>q \<in> set rs. row_dlforms_size_paid q"
+    and dlforms: "row_dlformss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "rsizes rs \<le> 6 * (rsize root + 2) ^ 3"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (row_dlformss rs)"
+    by (rule rsizes_row_dlforms_paid_live_disjoint_bound
+        [OF disjoint live paid])
+  have mono: "rsize_set (row_dlformss rs) \<le>
+      rsize_set (partial_derivative_frontier_universe root)"
+    by (rule rsize_set_mono) (use dlforms in auto)
+  have cubic: "rsize_set (partial_derivative_frontier_universe root) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_partial_derivative_frontier_universe_cubic)
+  have "rsizes rs \<le>
+      3 * rsize_set (partial_derivative_frontier_universe root)"
+    using base mono by simp
+  also have "... \<le> 3 * (2 * (rsize root + 2) ^ 3)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 6 * (rsize root + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsizes_rows_canonical_dlforms_rsize_set_boundI:
+  assumes disjoint: "row_dlformss_disjoint rs"
+    and live: "\<forall>q \<in> set rs. row_dlforms_live q"
+    and paid: "\<forall>q \<in> set rs. row_dlforms_size_paid q"
+    and finite: "finite U"
+    and dlforms: "row_dlformss rs \<subseteq> U"
+  shows "rsizes rs \<le> 3 * rsize_set U"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (row_dlformss rs)"
+    by (rule rsizes_row_dlforms_paid_live_disjoint_bound
+        [OF disjoint live paid])
+  have mono: "rsize_set (row_dlformss rs) \<le> rsize_set U"
+    by (rule rsize_set_mono[OF finite dlforms])
+  have "rsizes rs \<le> 3 * rsize_set U"
+    using base mono by simp
+  then show ?thesis .
+qed
+
+lemma rsizes_row_dlform_canonical_rows_rsize_set_boundI:
+  assumes nf: "\<forall>q \<in> set rs. rtail_nf q"
+    and finite: "finite U"
+    and dlforms: "row_dlformss rs \<subseteq> U"
+  shows "rsizes (row_dlform_canonical_rows rs) \<le> 3 * rsize_set U"
+proof -
+  let ?canon = "row_dlform_canonical_rows rs"
+  have disjoint: "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  have live_paid: "(\<forall>x \<in> set ?canon. row_dlforms_live x) \<and>
+      (\<forall>x \<in> set ?canon. row_dlforms_size_paid x)"
+    by (rule row_dlform_canonical_rows_live_paid[OF nf])
+  have canon_dlforms: "row_dlformss ?canon \<subseteq> U"
+    using row_dlformss_row_dlform_canonical_rows_eq[OF nf] dlforms
+    by simp
+  show ?thesis
+    by (rule rsizes_rows_canonical_dlforms_rsize_set_boundI
+        [OF disjoint _ _ finite canon_dlforms])
+      (use live_paid in auto)
+qed
+
+lemma rsizes_row_dlform_canonical_rows_self_bound:
+  assumes nf: "\<forall>q \<in> set rs. rtail_nf q"
+  shows "rsizes (row_dlform_canonical_rows rs) \<le>
+    3 * rsize_set (row_dlformss rs)"
+  by (rule rsizes_row_dlform_canonical_rows_rsize_set_boundI
+      [OF nf _ subset_refl])
+    simp
+
+lemma rsizes_row_dlform_canonical_rows_cubic:
+  assumes nf: "\<forall>q \<in> set rs. rtail_nf q"
+    and dlforms: "row_dlformss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "rsizes (row_dlform_canonical_rows rs) \<le>
+    6 * (rsize root + 2) ^ 3"
+proof -
+  let ?canon = "row_dlform_canonical_rows rs"
+  have disjoint: "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  have live_paid: "(\<forall>x \<in> set ?canon. row_dlforms_live x) \<and>
+      (\<forall>x \<in> set ?canon. row_dlforms_size_paid x)"
+    by (rule row_dlform_canonical_rows_live_paid[OF nf])
+  have canon_dlforms: "row_dlformss ?canon \<subseteq>
+      partial_derivative_frontier_universe root"
+    using row_dlformss_row_dlform_canonical_rows_eq[OF nf] dlforms
+    by simp
+  show ?thesis
+    by (rule rsizes_rows_canonical_frontier_dlforms_cubic
+        [OF disjoint _ _ canon_dlforms])
+      (use live_paid in auto)
+qed
+
+lemma row_dlform_canonical_rows_cubic_contractI:
+  assumes nf: "\<forall>q \<in> set rs. rtail_nf q"
+    and dlforms: "row_dlformss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "RL (RALTS (row_dlform_canonical_rows rs)) =
+      RL (RALTS rs) \<and>
+    row_dlformss_disjoint (row_dlform_canonical_rows rs) \<and>
+    row_dlformss (row_dlform_canonical_rows rs) = row_dlformss rs \<and>
+    rsizes (row_dlform_canonical_rows rs) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof (intro conjI)
+  show "RL (RALTS (row_dlform_canonical_rows rs)) = RL (RALTS rs)"
+    by (rule RL_RALTS_row_dlform_canonical_rows)
+  show "row_dlformss_disjoint (row_dlform_canonical_rows rs)"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  show "row_dlformss (row_dlform_canonical_rows rs) = row_dlformss rs"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF nf])
+  show "rsizes (row_dlform_canonical_rows rs) \<le>
+      6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_row_dlform_canonical_rows_cubic[OF nf dlforms])
+qed
+
+lemma row_dlforms_rsimp7_SEQ_atom_rsimp_ALTs_subset_nonunit_suffix:
+  assumes k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+    and ps: "set ps \<subseteq> set qs"
+  shows "row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs ps) k) \<subseteq>
+    (\<Union>q \<in> set qs. row_dlforms (rsimp7_SEQ_atom q k))"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (Cons p ps')
+  note ps_cons = Cons
+  show ?thesis
+  proof (cases ps')
+    case Nil
+    then show ?thesis
+      using ps_cons ps by auto
+  next
+    case (Cons q qs')
+    have ps_shape: "ps = p # q # qs'"
+      using ps_cons Cons by simp
+    show ?thesis
+      using ps_shape ps k0 k1
+      by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+  qed
+qed
+
+lemma rfrontier_aseq_terms_subset:
+  assumes x: "x \<in> rfrontier r"
+  shows "aseq_terms x \<subseteq> aseq_terms r"
+  using x
+proof (induct r arbitrary: x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  obtain q where q: "q \<in> set rs" "x \<in> rfrontier q"
+    using RALTS.prems by (auto simp add: rfrontiers_member_iff)
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms q"
+    by (rule RALTS.hyps[OF q(1) q(2)])
+  have q_terms: "aseq_terms q \<subseteq> aseq_termss rs"
+    using q(1) by (auto simp add: aseq_termss_member_iff)
+  have "aseq_terms x \<subseteq> aseq_termss rs"
+    by (rule subset_trans[OF x_terms q_terms])
+  then show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 s)
+  then show ?case by simp
+next
+  case (RHALF r s1 s2)
+  then show ?case by simp
+next
+  case (RRESIDUE s1 s2)
+  then show ?case by simp
+qed
+
+lemma rfrontiers_aseq_terms_subset:
+  assumes x: "x \<in> rfrontiers rs"
+  shows "aseq_terms x \<subseteq> aseq_termss rs"
+proof -
+  obtain q where q: "q \<in> set rs" "x \<in> rfrontier q"
+    using x by (auto simp add: rfrontiers_member_iff)
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms q"
+    by (rule rfrontier_aseq_terms_subset[OF q(2)])
+  have q_terms: "aseq_terms q \<subseteq> aseq_termss rs"
+    using q(1) by (auto simp add: aseq_termss_member_iff)
+  show ?thesis
+    by (rule subset_trans[OF x_terms q_terms])
+qed
+
+lemma aseq_terms_rsimp7_SEQ_atom_subset_front:
+  "aseq_terms (rsimp7_SEQ_atom p k) \<subseteq>
+    aseq_terms p \<union> aseq_terms k"
+  using aseq_terms_rsimp4_SEQ_atom_subset[of p k]
+  by (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma rsize_member_lt_RALTS:
+  assumes "q \<in> set rs"
+  shows "rsize q < rsize (RALTS rs)"
+  using assms by (induct rs) auto
+
+lemma row_dlforms_aseq_terms_subset:
+  assumes x: "x \<in> row_dlforms r"
+  shows "aseq_terms x \<subseteq> aseq_terms r"
+proof
+  fix y
+  assume y: "y \<in> aseq_terms x"
+  show "y \<in> aseq_terms r"
+    using x y
+  proof (induct "rsize r" arbitrary: r x y rule: less_induct)
+    case less
+    show ?case
+    proof (cases r)
+      case RZERO
+      then show ?thesis
+        using less.prems by simp
+    next
+      case RONE
+      then show ?thesis
+        using less.prems by simp
+    next
+      case (RCHAR c)
+      then show ?thesis
+        using less.prems by simp
+    next
+      case (RALTS rs)
+      obtain q where q: "q \<in> set rs" "x \<in> row_dlforms q"
+        using less.prems RALTS by auto
+      have size: "rsize q < rsize r"
+        using RALTS rsize_member_lt_RALTS[OF q(1)] by simp
+      have "y \<in> aseq_terms q"
+        by (rule less.hyps[OF size q(2) less.prems(2)])
+      then show ?thesis
+        using RALTS q(1) by (auto simp add: aseq_termss_member_iff)
+    next
+      case (RSEQ r1 r2)
+      show ?thesis
+      proof (cases r1)
+        case (RALTS ps)
+        obtain p where p:
+            "p \<in> set ps"
+            "x \<in> row_dlforms (rsimp7_SEQ_atom p r2)"
+          using less.prems RSEQ RALTS by auto
+        have size:
+            "rsize (rsimp7_SEQ_atom p r2) < rsize r"
+          using RSEQ RALTS
+            rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p(1)]
+          by simp
+        have x_terms:
+            "y \<in> aseq_terms (rsimp7_SEQ_atom p r2)"
+          by (rule less.hyps[OF size p(2) less.prems(2)])
+        have "y \<in> aseq_terms p \<or> y \<in> aseq_terms r2"
+          using aseq_terms_rsimp7_SEQ_atom_subset_front[of p r2]
+            x_terms by blast
+        then show ?thesis
+          using RSEQ RALTS p(1)
+          by (auto simp add: aseq_termss_member_iff)
+      qed (use less.prems RSEQ rfrontier_aseq_terms_subset in auto)
+    next
+      case (RSTAR r')
+      then show ?thesis
+        using less.prems rfrontier_aseq_terms_subset by auto
+    next
+      case (RNTIMES r' n)
+      then show ?thesis
+        using less.prems rfrontier_aseq_terms_subset by auto
+    next
+      case (RBACKREF4 r1 r2 r3 r4 cs)
+      then show ?thesis
+        using less.prems rfrontier_aseq_terms_subset by auto
+    next
+      case (RHALF r' cs rep)
+      then show ?thesis
+        using less.prems rfrontier_aseq_terms_subset by auto
+    next
+      case (RRESIDUE cs rep)
+      then show ?thesis
+        using less.prems rfrontier_aseq_terms_subset by auto
+    qed
+  qed
+qed
+
+lemma row_dlformss_aseq_terms_subset:
+  assumes x: "x \<in> row_dlformss rs"
+  shows "aseq_terms x \<subseteq> aseq_termss rs"
+proof -
+  obtain q where q: "q \<in> set rs" "x \<in> row_dlforms q"
+    using x by (auto simp add: row_dlformss_member_iff)
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms q"
+    by (rule row_dlforms_aseq_terms_subset[OF q(2)])
+  have q_terms: "aseq_terms q \<subseteq> aseq_termss rs"
+    using q(1) by (auto simp add: aseq_termss_member_iff)
+  show ?thesis
+    by (rule subset_trans[OF x_terms q_terms])
+qed
+
+lemma row_dlformss_afactored_step_eq_generated:
+  "row_dlformss (afactored_step c rs) =
+    row_dlformss (concat (map (rpder_norm_list c) rs))"
+  by (simp add: afactored_step_def rpder_norm_rows_def)
+
+lemma row_dlforms_rsimp_ALTs_eq [simp]:
+  "row_dlforms (rsimp_ALTs rs) = row_dlformss rs"
+  by (cases rs rule: rsimp_ALTs.cases) (auto simp add: row_dlformss_def)
+
+definition adlform_front :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "adlform_front r s = row_dlformss (afactored1 r s)"
+
+definition apder_dlfrontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_dlfrontier r =
+    (\<Union>q \<in> apder_rows r. row_dlforms q)"
+
+definition apder_dfrontier_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_dfrontier_acc r k =
+    (\<Union>p \<in> apder_terms r. row_dlforms (rsimp4_SEQ_atom p k))"
+
+definition apder_dfrontier_delta_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_dfrontier_delta_acc r k =
+    apder_dfrontier_acc r k - row_dlforms k"
+
+definition apder_deep_frontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_deep_frontier r =
+    row_dlforms r \<union> apder_dfrontier_acc r RONE"
+
+definition apder_deep_frontier_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_deep_frontier_acc r k =
+    row_dlforms (rsimp4_SEQ_atom r k) \<union>
+    row_dlforms (rsimp7_SEQ_atom r k) \<union>
+    apder_dfrontier_acc r k"
+
+definition apder_deep_frontier_delta_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_deep_frontier_delta_acc r k =
+    apder_deep_frontier_acc r k - row_dlforms k"
+
+lemma finite_apder_dlfrontier [simp]:
+  "finite (apder_dlfrontier r)"
+  by (simp add: apder_dlfrontier_def)
+
+lemma finite_apder_dfrontier_acc [simp]:
+  "finite (apder_dfrontier_acc r k)"
+  by (simp add: apder_dfrontier_acc_def)
+
+lemma finite_apder_dfrontier_delta_acc [simp]:
+  "finite (apder_dfrontier_delta_acc r k)"
+  by (simp add: apder_dfrontier_delta_acc_def)
+
+lemma finite_apder_deep_frontier_acc [simp]:
+  "finite (apder_deep_frontier_acc r k)"
+  by (simp add: apder_deep_frontier_acc_def)
+
+lemma finite_apder_deep_frontier_delta_acc [simp]:
+  "finite (apder_deep_frontier_delta_acc r k)"
+  by (simp add: apder_deep_frontier_delta_acc_def)
+
+lemma apder_deep_frontier_eq_acc_RONE:
+  assumes nf: "apder_nf r"
+  shows "apder_deep_frontier r = apder_deep_frontier_acc r RONE"
+proof -
+  have stable4: "rsimp4_SEQ_atom r RONE = r"
+    by (rule rtail_nf_RONE_stable)
+      (rule apder_nf_imp_rtail_nf[OF nf])
+  have stable7: "rsimp7_SEQ_atom r RONE = r"
+    by (rule rtail_nf_RONE_stable7)
+      (rule apder_nf_imp_rtail_nf[OF nf])
+  show ?thesis
+    by (simp add: apder_deep_frontier_def
+        apder_deep_frontier_acc_def stable4 stable7)
+qed
+
+lemma row_dlforms_rsimp4_SEQ_atom_subset_row_or_deep_delta:
+  "row_dlforms (rsimp4_SEQ_atom p k) \<subseteq>
+    row_dlforms k \<union> apder_deep_frontier_delta_acc p k"
+  by (auto simp add: apder_deep_frontier_delta_acc_def
+      apder_deep_frontier_acc_def)
+
+lemma row_dlforms_rsimp7_SEQ_atom_subset_row_or_deep_delta:
+  "row_dlforms (rsimp7_SEQ_atom p k) \<subseteq>
+    row_dlforms k \<union> apder_deep_frontier_delta_acc p k"
+  by (auto simp add: apder_deep_frontier_delta_acc_def
+      apder_deep_frontier_acc_def)
+
+lemma apder_deep_frontier_delta_acc_RALTS_subset:
+  assumes nf: "apder_nf (RALTS rs)"
+    and k_nf: "apder_nf k"
+  shows "apder_deep_frontier_delta_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. apder_deep_frontier_delta_acc q k)"
+proof
+  fix x
+  assume x: "x \<in> apder_deep_frontier_delta_acc (RALTS rs) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_deep_frontier_delta_acc_def)
+  have src:
+      "x \<in> row_dlforms (rsimp4_SEQ_atom (RALTS rs) k) \<or>
+       x \<in> apder_dfrontier_acc (RALTS rs) k"
+    using x
+    by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def rsimp7_SEQ_atom_def)
+  then obtain q where q: "q \<in> set rs"
+      and q_src:
+        "x \<in> row_dlforms (rsimp7_SEQ_atom q k) \<or>
+         x \<in> apder_dfrontier_acc q k"
+  proof -
+    have child_nf: "\<And>q. q \<in> set rs \<Longrightarrow> apder_nf q"
+      using nf by simp
+    have row_cases:
+      "x \<in> row_dlforms (rsimp4_SEQ_atom (RALTS rs) k) \<Longrightarrow>
+        \<exists>q \<in> set rs. x \<in> row_dlforms (rsimp7_SEQ_atom q k)"
+    proof (cases k)
+      case RONE
+      assume row: "x \<in> row_dlforms (rsimp4_SEQ_atom (RALTS rs) k)"
+      then obtain q where q: "q \<in> set rs" "x \<in> row_dlforms q"
+        using RONE by auto
+      have q_tail: "rtail_nf q"
+        by (rule apder_nf_imp_rtail_nf[OF child_nf[OF q(1)]])
+      have stable: "rsimp7_SEQ_atom q RONE = q"
+        by (rule rtail_nf_RONE_stable7[OF q_tail])
+      show ?thesis
+      proof (rule bexI[of _ q])
+        show "x \<in> row_dlforms (rsimp7_SEQ_atom q k)"
+          using q(2) RONE stable by simp
+        show "q \<in> set rs"
+          by (rule q(1))
+      qed
+    qed auto
+    have acc_cases:
+      "x \<in> apder_dfrontier_acc (RALTS rs) k \<Longrightarrow>
+        \<exists>q \<in> set rs. x \<in> apder_dfrontier_acc q k"
+      by (auto simp add: apder_dfrontier_acc_def)
+    show ?thesis
+      using src row_cases acc_cases that by blast
+  qed
+  have "x \<in> apder_deep_frontier_delta_acc q k"
+  proof (rule disjE[OF q_src])
+    assume row: "x \<in> row_dlforms (rsimp7_SEQ_atom q k)"
+    have "x \<in> row_dlforms k \<or>
+        x \<in> apder_deep_frontier_delta_acc q k"
+      using row_dlforms_rsimp7_SEQ_atom_subset_row_or_deep_delta[of q k]
+        row by blast
+    then show ?thesis
+      using not_k nf q by auto
+  next
+    assume acc: "x \<in> apder_dfrontier_acc q k"
+    then show ?thesis
+      using not_k
+      by (auto simp add: apder_deep_frontier_delta_acc_def
+          apder_deep_frontier_acc_def)
+  qed
+  then show "x \<in>
+      (\<Union>q \<in> set rs. apder_deep_frontier_delta_acc q k)"
+    using q by blast
+qed
+
+lemma apder_dfrontier_delta_acc_RSEQ_deep_subset:
+  "apder_dfrontier_delta_acc (RSEQ r1 r2) k \<subseteq>
+    apder_dfrontier_delta_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    apder_deep_frontier_delta_acc r2 k"
+proof
+  fix x
+  let ?k2 = "rsimp4_SEQ_atom r2 k"
+  assume x: "x \<in> apder_dfrontier_delta_acc (RSEQ r1 r2) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_dfrontier_delta_acc_def)
+  have src:
+      "x \<in> apder_dfrontier_acc r1 ?k2 \<or>
+       x \<in> apder_dfrontier_acc r2 k"
+    using x by (auto simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsimp4_SEQ_atom_assoc[symmetric])
+  then show "x \<in>
+      apder_dfrontier_delta_acc r1 ?k2 \<union>
+      apder_deep_frontier_delta_acc r2 k"
+  proof
+    assume left: "x \<in> apder_dfrontier_acc r1 ?k2"
+    show ?thesis
+    proof (cases "x \<in> row_dlforms ?k2")
+      case True
+      then have "x \<in> apder_deep_frontier_delta_acc r2 k"
+        using not_k
+        by (auto simp add: apder_deep_frontier_delta_acc_def
+            apder_deep_frontier_acc_def)
+      then show ?thesis by blast
+    next
+      case False
+      then have "x \<in> apder_dfrontier_delta_acc r1 ?k2"
+        using left by (simp add: apder_dfrontier_delta_acc_def)
+      then show ?thesis by blast
+    qed
+  next
+    assume right: "x \<in> apder_dfrontier_acc r2 k"
+    then have "x \<in> apder_deep_frontier_delta_acc r2 k"
+      using not_k
+      by (auto simp add: apder_deep_frontier_delta_acc_def
+          apder_deep_frontier_acc_def)
+    then show ?thesis by blast
+  qed
+qed
+
+lemma apder_deep_frontier_delta_acc_RSEQ_subset:
+  "apder_deep_frontier_delta_acc (RSEQ r1 r2) k \<subseteq>
+    apder_deep_frontier_delta_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    apder_deep_frontier_delta_acc r2 k"
+proof
+  fix x
+  let ?k2 = "rsimp4_SEQ_atom r2 k"
+  assume x: "x \<in> apder_deep_frontier_delta_acc (RSEQ r1 r2) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_deep_frontier_delta_acc_def)
+  have src:
+      "x \<in> row_dlforms (rsimp4_SEQ_atom r1 ?k2) \<or>
+       x \<in> apder_dfrontier_acc (RSEQ r1 r2) k"
+    using x by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def rsimp7_SEQ_atom_def)
+  then show "x \<in>
+      apder_deep_frontier_delta_acc r1 ?k2 \<union>
+      apder_deep_frontier_delta_acc r2 k"
+  proof
+    assume row: "x \<in> row_dlforms (rsimp4_SEQ_atom r1 ?k2)"
+    show ?thesis
+    proof (cases "x \<in> row_dlforms ?k2")
+      case True
+      then have "x \<in> apder_deep_frontier_delta_acc r2 k"
+        using not_k
+        by (auto simp add: apder_deep_frontier_delta_acc_def
+            apder_deep_frontier_acc_def)
+      then show ?thesis by blast
+    next
+      case False
+      then have "x \<in> apder_deep_frontier_delta_acc r1 ?k2"
+        using row
+        by (auto simp add: apder_deep_frontier_delta_acc_def
+            apder_deep_frontier_acc_def)
+      then show ?thesis by blast
+    qed
+  next
+    assume acc: "x \<in> apder_dfrontier_acc (RSEQ r1 r2) k"
+    have "x \<in>
+        apder_dfrontier_delta_acc r1 ?k2 \<union>
+        apder_deep_frontier_delta_acc r2 k"
+      using acc not_k
+      by (auto simp add: apder_dfrontier_delta_acc_def
+          apder_dfrontier_acc_def apder_deep_frontier_delta_acc_def
+          apder_deep_frontier_acc_def
+          rsimp4_SEQ_atom_assoc[symmetric])
+    then show ?thesis
+      by (auto simp add: apder_dfrontier_delta_acc_def
+          apder_deep_frontier_delta_acc_def
+          apder_deep_frontier_acc_def)
+  qed
+qed
+
+lemma apder_dfrontier_delta_acc_RSTAR_deep_subset:
+  "apder_dfrontier_delta_acc (RSTAR r) k \<subseteq>
+    apder_dfrontier_delta_acc r (rsimp4_SEQ_atom (RSTAR r) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k)"
+proof
+  fix x
+  let ?k1 = "rsimp4_SEQ_atom (RSTAR r) k"
+  assume x: "x \<in> apder_dfrontier_delta_acc (RSTAR r) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_dfrontier_delta_acc_def)
+  have src: "x \<in> apder_dfrontier_acc r ?k1"
+    using x by (auto simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsimp4_SEQ_atom_assoc[symmetric])
+  show "x \<in>
+      apder_dfrontier_delta_acc r ?k1 \<union>
+      (row_dlforms ?k1 - row_dlforms k)"
+  proof (cases "x \<in> row_dlforms ?k1")
+    case True
+    then show ?thesis
+      using not_k by blast
+  next
+    case False
+    then have "x \<in> apder_dfrontier_delta_acc r ?k1"
+      using src by (simp add: apder_dfrontier_delta_acc_def)
+    then show ?thesis by blast
+  qed
+qed
+
+lemma row_dlforms_rsimp7_RSTAR_delta_subset_rsimp4:
+  "row_dlforms (rsimp7_SEQ_atom (RSTAR r) k) - row_dlforms k \<subseteq>
+    row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k"
+proof (cases k)
+  case (RSEQ k1 k2)
+  then show ?thesis
+    by (cases k1) (auto simp add: rsimp7_SEQ_atom_def)
+qed (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma apder_deep_frontier_delta_acc_RSTAR_subset:
+  "apder_deep_frontier_delta_acc (RSTAR r) k \<subseteq>
+    apder_dfrontier_delta_acc r (rsimp4_SEQ_atom (RSTAR r) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k)"
+proof
+  fix x
+  let ?k1 = "rsimp4_SEQ_atom (RSTAR r) k"
+  assume x: "x \<in> apder_deep_frontier_delta_acc (RSTAR r) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_deep_frontier_delta_acc_def)
+  have src:
+      "x \<in> row_dlforms ?k1 \<or>
+       x \<in> row_dlforms (rsimp7_SEQ_atom (RSTAR r) k) \<or>
+       x \<in> apder_dfrontier_acc (RSTAR r) k"
+    using x by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def rsimp7_SEQ_atom_def)
+  then show "x \<in>
+      apder_dfrontier_delta_acc r ?k1 \<union>
+      (row_dlforms ?k1 - row_dlforms k)"
+  proof (elim disjE)
+    assume "x \<in> row_dlforms ?k1"
+    then show ?thesis
+      using not_k by blast
+  next
+    assume row7: "x \<in> row_dlforms (rsimp7_SEQ_atom (RSTAR r) k)"
+    then have "x \<in> row_dlforms ?k1 - row_dlforms k"
+      using not_k row_dlforms_rsimp7_RSTAR_delta_subset_rsimp4[of r k]
+      by blast
+    then show ?thesis by blast
+  next
+    assume acc: "x \<in> apder_dfrontier_acc (RSTAR r) k"
+    have "x \<in> apder_dfrontier_delta_acc (RSTAR r) k"
+      using acc not_k by (simp add: apder_dfrontier_delta_acc_def)
+    then show ?thesis
+      using apder_dfrontier_delta_acc_RSTAR_deep_subset[of r k]
+      by blast
+  qed
+qed
+
+lemma apder_dfrontier_delta_acc_RNTIMES_deep_subset:
+  "apder_dfrontier_delta_acc (RNTIMES r n) k \<subseteq>
+    (\<Union>m \<in> {..<n}.
+      apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+      (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+        row_dlforms k))"
+proof
+  fix x
+  assume x: "x \<in> apder_dfrontier_delta_acc (RNTIMES r n) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_dfrontier_delta_acc_def)
+  obtain m where m: "m < n"
+      and x_m: "x \<in> apder_dfrontier_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)"
+    using x
+    by (auto simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsimp4_SEQ_atom_assoc[symmetric])
+  let ?km = "rsimp4_SEQ_atom (RNTIMES r m) k"
+  have "x \<in>
+      apder_dfrontier_delta_acc r ?km \<union>
+      (row_dlforms ?km - row_dlforms k)"
+  proof (cases "x \<in> row_dlforms ?km")
+    case True
+    then show ?thesis
+      using not_k by blast
+  next
+    case False
+    then have "x \<in> apder_dfrontier_delta_acc r ?km"
+      using x_m by (simp add: apder_dfrontier_delta_acc_def)
+    then show ?thesis by blast
+  qed
+  then show "x \<in>
+      (\<Union>m \<in> {..<n}.
+        apder_dfrontier_delta_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+        (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k))"
+    using m by auto
+qed
+
+lemma apder_deep_frontier_delta_acc_RNTIMES_subset:
+  "apder_deep_frontier_delta_acc (RNTIMES r n) k \<subseteq>
+    (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+      row_dlforms k) \<union>
+    (\<Union>m \<in> {..<n}.
+      apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+      (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+        row_dlforms k))"
+proof
+  fix x
+  let ?kn = "rsimp4_SEQ_atom (RNTIMES r n) k"
+  assume x: "x \<in> apder_deep_frontier_delta_acc (RNTIMES r n) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_deep_frontier_delta_acc_def)
+  have src:
+      "x \<in> row_dlforms ?kn \<or>
+       x \<in> apder_dfrontier_acc (RNTIMES r n) k"
+    using x by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def rsimp7_SEQ_atom_def)
+  then show "x \<in>
+      (row_dlforms ?kn - row_dlforms k) \<union>
+      (\<Union>m \<in> {..<n}.
+        apder_dfrontier_delta_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+        (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k))"
+  proof
+    assume "x \<in> row_dlforms ?kn"
+    then show ?thesis
+      using not_k by blast
+  next
+    assume acc: "x \<in> apder_dfrontier_acc (RNTIMES r n) k"
+    have "x \<in> apder_dfrontier_delta_acc (RNTIMES r n) k"
+      using acc not_k by (simp add: apder_dfrontier_delta_acc_def)
+    then have "x \<in>
+        (\<Union>m \<in> {..<n}.
+          apder_dfrontier_delta_acc r
+            (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+          (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+            row_dlforms k))"
+      using apder_dfrontier_delta_acc_RNTIMES_deep_subset[of r n k]
+      by blast
+    then show ?thesis by blast
+  qed
+qed
+
+definition apder_terms_diff_rows ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "apder_terms_diff_rows r k =
+    \<Union> ((\<lambda>p.
+      row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k) `
+      apder_terms r)"
+
+lemma finite_apder_terms_diff_rows [simp]:
+  "finite (apder_terms_diff_rows r k)"
+  by (simp add: apder_terms_diff_rows_def)
+
+lemma apder_dfrontier_delta_acc_subset_terms_diff:
+  "apder_dfrontier_delta_acc r k \<subseteq>
+    apder_terms_diff_rows r k"
+proof
+  fix x
+  assume x: "x \<in> apder_dfrontier_delta_acc r k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_dfrontier_delta_acc_def)
+  obtain p where p: "p \<in> apder_terms r"
+      "x \<in> row_dlforms (rsimp4_SEQ_atom p k)"
+    using x
+    by (auto simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def)
+  then show "x \<in>
+      apder_terms_diff_rows r k"
+    using not_k by (auto simp add: apder_terms_diff_rows_def)
+qed
+
+lemma apder_deep_frontier_delta_acc_subset_root_terms_diff:
+  "apder_deep_frontier_delta_acc r k \<subseteq>
+    (row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k) \<union>
+    (row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k) \<union>
+    apder_terms_diff_rows r k"
+proof
+  fix x
+  assume x: "x \<in> apder_deep_frontier_delta_acc r k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: apder_deep_frontier_delta_acc_def)
+  have src:
+      "x \<in> row_dlforms (rsimp4_SEQ_atom r k) \<or>
+       x \<in> row_dlforms (rsimp7_SEQ_atom r k) \<or>
+       x \<in> apder_dfrontier_acc r k"
+    using x by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def)
+  then show "x \<in>
+      (row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k) \<union>
+      (row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k) \<union>
+      apder_terms_diff_rows r k"
+  proof (elim disjE)
+    assume "x \<in> row_dlforms (rsimp4_SEQ_atom r k)"
+    then show ?thesis
+      using not_k by blast
+  next
+    assume "x \<in> row_dlforms (rsimp7_SEQ_atom r k)"
+    then show ?thesis
+      using not_k by blast
+  next
+    assume acc: "x \<in> apder_dfrontier_acc r k"
+    then obtain p where p: "p \<in> apder_terms r"
+        "x \<in> row_dlforms (rsimp4_SEQ_atom p k)"
+      by (auto simp add: apder_dfrontier_acc_def)
+    then show ?thesis
+      using not_k by (auto simp add: apder_terms_diff_rows_def)
+  qed
+qed
+
+lemma card_apder_terms_diff_union_le_rsize_set:
+  assumes nf: "apder_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (apder_terms_diff_rows r k) \<le>
+    rsize_set (apder_terms r)"
+proof -
+  let ?T = "apder_terms r"
+  let ?D = "\<lambda>p.
+    row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k"
+  have eq: "apder_terms_diff_rows r k = (\<Union>p \<in> ?T. ?D p)"
+    by (auto simp add: apder_terms_diff_rows_def)
+  have "card (apder_terms_diff_rows r k) =
+      card (\<Union>p \<in> ?T. ?D p)"
+    by (simp add: eq)
+  also have "... \<le>
+      (\<Sum>p \<in> ?T. card (?D p))"
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>p \<in> ?T. rsize p)"
+  proof (rule sum_mono)
+    fix p
+    assume p: "p \<in> ?T"
+    have p_nf: "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p])
+    show "card (?D p) \<le> rsize p"
+      by (rule card_row_dlforms_rsimp4_SEQ_atom_diff_le
+          [OF p_nf k_nf])
+  qed
+  finally show ?thesis
+    by (simp add: rsize_set_def)
+qed
+
+lemma card_apder_dfrontier_delta_acc_le_rsize_set_terms:
+  assumes nf: "apder_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (apder_dfrontier_delta_acc r k) \<le>
+    rsize_set (apder_terms r)"
+proof -
+  let ?U = "apder_terms_diff_rows r k"
+  have sub: "apder_dfrontier_delta_acc r k \<subseteq> ?U"
+    by (rule apder_dfrontier_delta_acc_subset_terms_diff)
+  have "card (apder_dfrontier_delta_acc r k) \<le> card ?U"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> rsize_set (apder_terms r)"
+    by (rule card_apder_terms_diff_union_le_rsize_set[OF nf k_nf])
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_le_root_terms:
+  assumes nf: "apder_nf r"
+    and k_nf: "rtail_nf k"
+  shows "card (apder_deep_frontier_delta_acc r k) \<le>
+    2 * rsize r + rsize_set (apder_terms r)"
+proof -
+  let ?D4 = "row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k"
+  let ?D7 = "row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k"
+  let ?T = "apder_terms_diff_rows r k"
+  have r_nf: "rtail_nf r"
+    by (rule apder_nf_imp_rtail_nf[OF nf])
+  have sub:
+      "apder_deep_frontier_delta_acc r k \<subseteq> ?D4 \<union> ?D7 \<union> ?T"
+    by (rule apder_deep_frontier_delta_acc_subset_root_terms_diff)
+  have "card (apder_deep_frontier_delta_acc r k) \<le>
+      card (?D4 \<union> ?D7 \<union> ?T)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?D4 + card ?D7 + card ?T"
+  proof -
+    let ?BC = "?D7 \<union> ?T"
+    have assoc: "?D4 \<union> ?D7 \<union> ?T = ?D4 \<union> ?BC"
+      by auto
+    have "card (?D4 \<union> ?D7 \<union> ?T) =
+        card (?D4 \<union> ?BC)"
+      by (simp add: assoc)
+    also have "... \<le> card ?D4 + card ?BC"
+      by (rule card_Un_le)
+    also have "... \<le> card ?D4 + (card ?D7 + card ?T)"
+    proof -
+      have "card ?BC \<le> card ?D7 + card ?T"
+        by (rule card_Un_le)
+      then show ?thesis by simp
+    qed
+    finally show ?thesis by simp
+  qed
+  also have "... \<le>
+      rsize r + rsize r + rsize_set (apder_terms r)"
+  proof -
+    have d4: "card ?D4 \<le> rsize r"
+      by (rule card_row_dlforms_rsimp4_SEQ_atom_diff_le
+          [OF r_nf k_nf])
+    have d7: "card ?D7 \<le> rsize r"
+      by (rule card_row_dlforms_rsimp7_SEQ_atom_diff_le
+          [OF r_nf k_nf])
+    have t: "card ?T \<le> rsize_set (apder_terms r)"
+      by (rule card_apder_terms_diff_union_le_rsize_set[OF nf k_nf])
+    show ?thesis
+      using d4 d7 t by linarith
+  qed
+  finally show ?thesis
+    by simp
+qed
+
+lemma card_subset_singleton_le_one:
+  assumes "S \<subseteq> {x}"
+  shows "card S \<le> 1"
+proof -
+  have "card S \<le> card {x}"
+    by (rule card_mono) (use assms in auto)
+  then show ?thesis by simp
+qed
+
+lemma card_singleton_Diff_le_one [simp]:
+  "card ({x} - A) \<le> 1"
+  by (rule card_subset_singleton_le_one) auto
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RCHAR_diff_le_one:
+  "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+        row_dlforms k \<subseteq> {rsimp4_SEQ_atom (RCHAR c) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RSTAR_diff_le_one:
+  "card (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) -
+        row_dlforms k \<subseteq> {rsimp4_SEQ_atom (RSTAR r) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RNTIMES_diff_le_one:
+  "card (row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+        row_dlforms k \<subseteq> {rsimp4_SEQ_atom (RNTIMES r n) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RBACKREF4_diff_le_one:
+  "card (row_dlforms
+      (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms
+        (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+        row_dlforms k \<subseteq>
+        {rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RHALF_diff_le_one:
+  "card (row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+        row_dlforms k \<subseteq> {rsimp4_SEQ_atom (RHALF r cs rep) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_row_dlforms_rsimp4_SEQ_atom_RRESIDUE_diff_le_one:
+  "card (row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+    row_dlforms k) \<le> 1"
+proof -
+  have sub:
+      "row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+        row_dlforms k \<subseteq> {rsimp4_SEQ_atom (RRESIDUE cs rep) k}"
+    by (cases k) auto
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RALTS_le:
+  assumes nf: "apder_nf (RALTS rs)"
+    and k_nf: "apder_nf k"
+  shows "card (apder_deep_frontier_delta_acc (RALTS rs) k) \<le>
+    sum_list
+      (map (\<lambda>q. card (apder_deep_frontier_delta_acc q k)) rs)"
+proof -
+  have sub:
+      "apder_deep_frontier_delta_acc (RALTS rs) k \<subseteq>
+        (\<Union>q \<in> set rs. apder_deep_frontier_delta_acc q k)"
+    by (rule apder_deep_frontier_delta_acc_RALTS_subset[OF nf k_nf])
+  have "card (apder_deep_frontier_delta_acc (RALTS rs) k) \<le>
+      card (\<Union>q \<in> set rs. apder_deep_frontier_delta_acc q k)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le>
+      (\<Sum>q \<in> set rs. card (apder_deep_frontier_delta_acc q k))"
+    by (rule card_UN_le) auto
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>q. card (apder_deep_frontier_delta_acc q k)) rs)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma card_apder_dfrontier_delta_acc_RSEQ_deep_le:
+  "card (apder_dfrontier_delta_acc (RSEQ r1 r2) k) \<le>
+    card (apder_dfrontier_delta_acc r1 (rsimp4_SEQ_atom r2 k)) +
+    card (apder_deep_frontier_delta_acc r2 k)"
+proof -
+  let ?L = "apder_dfrontier_delta_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?R = "apder_deep_frontier_delta_acc r2 k"
+  have sub:
+      "apder_dfrontier_delta_acc (RSEQ r1 r2) k \<subseteq> ?L \<union> ?R"
+    by (rule apder_dfrontier_delta_acc_RSEQ_deep_subset)
+  have "card (apder_dfrontier_delta_acc (RSEQ r1 r2) k) \<le>
+      card (?L \<union> ?R)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?L + card ?R"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RSEQ_le:
+  "card (apder_deep_frontier_delta_acc (RSEQ r1 r2) k) \<le>
+    card (apder_deep_frontier_delta_acc r1 (rsimp4_SEQ_atom r2 k)) +
+    card (apder_deep_frontier_delta_acc r2 k)"
+proof -
+  let ?L = "apder_deep_frontier_delta_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?R = "apder_deep_frontier_delta_acc r2 k"
+  have sub:
+      "apder_deep_frontier_delta_acc (RSEQ r1 r2) k \<subseteq> ?L \<union> ?R"
+    by (rule apder_deep_frontier_delta_acc_RSEQ_subset)
+  have "card (apder_deep_frontier_delta_acc (RSEQ r1 r2) k) \<le>
+      card (?L \<union> ?R)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?L + card ?R"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma card_apder_dfrontier_delta_acc_RSTAR_deep_le:
+  "card (apder_dfrontier_delta_acc (RSTAR r) k) \<le>
+    card (apder_dfrontier_delta_acc r
+      (rsimp4_SEQ_atom (RSTAR r) k)) + 1"
+proof -
+  let ?A = "apder_dfrontier_delta_acc r
+    (rsimp4_SEQ_atom (RSTAR r) k)"
+  let ?D = "row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k"
+  have sub: "apder_dfrontier_delta_acc (RSTAR r) k \<subseteq> ?A \<union> ?D"
+    by (rule apder_dfrontier_delta_acc_RSTAR_deep_subset)
+  have "card (apder_dfrontier_delta_acc (RSTAR r) k) \<le>
+      card (?A \<union> ?D)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?A + card ?D"
+    by (rule card_Un_le)
+  also have "... \<le> card ?A + 1"
+    using card_row_dlforms_rsimp4_SEQ_atom_RSTAR_diff_le_one[of r k]
+    by simp
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RSTAR_le:
+  "card (apder_deep_frontier_delta_acc (RSTAR r) k) \<le>
+    card (apder_dfrontier_delta_acc r
+      (rsimp4_SEQ_atom (RSTAR r) k)) + 1"
+proof -
+  let ?A = "apder_dfrontier_delta_acc r
+    (rsimp4_SEQ_atom (RSTAR r) k)"
+  let ?D = "row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k"
+  have sub: "apder_deep_frontier_delta_acc (RSTAR r) k \<subseteq> ?A \<union> ?D"
+    by (rule apder_deep_frontier_delta_acc_RSTAR_subset)
+  have "card (apder_deep_frontier_delta_acc (RSTAR r) k) \<le>
+      card (?A \<union> ?D)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?A + card ?D"
+    by (rule card_Un_le)
+  also have "... \<le> card ?A + 1"
+    using card_row_dlforms_rsimp4_SEQ_atom_RSTAR_diff_le_one[of r k]
+    by simp
+  finally show ?thesis .
+qed
+
+lemma card_apder_dfrontier_delta_acc_RNTIMES_deep_le:
+  "card (apder_dfrontier_delta_acc (RNTIMES r n) k) \<le>
+    sum_list
+      (map
+        (\<lambda>m. card (apder_dfrontier_delta_acc r
+            (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+        [0..<n])"
+proof -
+  let ?F = "\<lambda>m. apder_dfrontier_delta_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) - row_dlforms k)"
+  have sub:
+      "apder_dfrontier_delta_acc (RNTIMES r n) k \<subseteq>
+        (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule apder_dfrontier_delta_acc_RNTIMES_deep_subset)
+  have "card (apder_dfrontier_delta_acc (RNTIMES r n) k) \<le>
+      card (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> (\<Sum>m \<in> {..<n}. card (?F m))"
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>m \<in> {..<n}.
+      card (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)"
+  proof (rule sum_mono)
+    fix m
+    assume "m \<in> {..<n}"
+    let ?A = "apder_dfrontier_delta_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k)"
+    let ?D = "row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+      row_dlforms k"
+    have "card (?A \<union> ?D) \<le> card ?A + card ?D"
+      by (rule card_Un_le)
+    also have "... \<le> card ?A + 1"
+      using card_row_dlforms_rsimp4_SEQ_atom_RNTIMES_diff_le_one
+        [of r m k] by simp
+    finally show "card (?F m) \<le>
+      card (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1" .
+  qed
+  also have "... =
+      (\<Sum>m \<in> set [0..<n].
+        card (apder_dfrontier_delta_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)"
+    by (rule sum.cong) auto
+  also have "... \<le>
+      sum_list
+        (map
+          (\<lambda>m. card (apder_dfrontier_delta_acc r
+              (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+          [0..<n])"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RNTIMES_le:
+  "card (apder_deep_frontier_delta_acc (RNTIMES r n) k) \<le>
+    1 +
+    sum_list
+      (map
+        (\<lambda>m. card (apder_dfrontier_delta_acc r
+            (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+        [0..<n])"
+proof -
+  let ?D0 = "row_dlforms (rsimp4_SEQ_atom (RNTIMES r n) k) -
+    row_dlforms k"
+  let ?F = "\<lambda>m. apder_dfrontier_delta_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) - row_dlforms k)"
+  have sub:
+      "apder_deep_frontier_delta_acc (RNTIMES r n) k \<subseteq>
+        ?D0 \<union> (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule apder_deep_frontier_delta_acc_RNTIMES_subset)
+  have "card (apder_deep_frontier_delta_acc (RNTIMES r n) k) \<le>
+      card (?D0 \<union> (\<Union>m \<in> {..<n}. ?F m))"
+    by (rule card_mono) (simp_all add: sub)
+  also have "... \<le> card ?D0 + card (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule card_Un_le)
+  also have "... \<le> 1 +
+      sum_list
+        (map
+          (\<lambda>m. card (apder_dfrontier_delta_acc r
+              (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+          [0..<n])"
+  proof -
+    have root: "card ?D0 \<le> 1"
+      by (rule card_row_dlforms_rsimp4_SEQ_atom_RNTIMES_diff_le_one)
+    have tail: "card (\<Union>m \<in> {..<n}. ?F m) \<le>
+        sum_list
+          (map
+            (\<lambda>m. card (apder_dfrontier_delta_acc r
+                (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+            [0..<n])"
+    proof -
+      have "card (\<Union>m \<in> {..<n}. ?F m) \<le>
+          (\<Sum>m \<in> {..<n}. card (?F m))"
+        by (rule card_UN_le) auto
+      also have "... \<le> (\<Sum>m \<in> {..<n}.
+          card (apder_dfrontier_delta_acc r
+            (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)"
+      proof (rule sum_mono)
+        fix m
+        assume "m \<in> {..<n}"
+        let ?A = "apder_dfrontier_delta_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)"
+        let ?D = "row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k"
+        have "card (?A \<union> ?D) \<le> card ?A + card ?D"
+          by (rule card_Un_le)
+        also have "... \<le> card ?A + 1"
+          using card_row_dlforms_rsimp4_SEQ_atom_RNTIMES_diff_le_one
+            [of r m k] by simp
+        finally show "card (?F m) \<le>
+          card (apder_dfrontier_delta_acc r
+            (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1" .
+      qed
+      also have "... =
+          (\<Sum>m \<in> set [0..<n].
+            card (apder_dfrontier_delta_acc r
+              (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)"
+        by (rule sum.cong) auto
+      also have "... \<le>
+          sum_list
+            (map
+              (\<lambda>m. card (apder_dfrontier_delta_acc r
+                  (rsimp4_SEQ_atom (RNTIMES r m) k)) + 1)
+              [0..<n])"
+        by (rule sum_set_le_sum_list_nat)
+      finally show ?thesis .
+    qed
+    show ?thesis
+      using root tail by linarith
+  qed
+  finally show ?thesis .
+qed
+
+lemma apder_awidth_zero_dfrontier_acc_empty:
+  assumes "apder_awidth r = 0"
+  shows "apder_dfrontier_acc r k = {}"
+  using apder_awidth_zero_apder_terms_empty[OF assms]
+  by (simp add: apder_dfrontier_acc_def)
+
+lemma apder_dfrontier_acc_RCHAR [simp]:
+  "apder_dfrontier_acc (RCHAR c) k = row_dlforms k"
+  by (simp add: apder_dfrontier_acc_def)
+
+lemma apder_dfrontier_acc_RALTS [simp]:
+  "apder_dfrontier_acc (RALTS rs) k =
+    (\<Union>q \<in> set rs. apder_dfrontier_acc q k)"
+  by (auto simp add: apder_dfrontier_acc_def)
+
+lemma apder_dfrontier_acc_RSEQ [simp]:
+  "apder_dfrontier_acc (RSEQ r1 r2) k =
+    apder_dfrontier_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    apder_dfrontier_acc r2 k"
+  by (auto simp add: apder_dfrontier_acc_def
+      rsimp4_SEQ_atom_assoc[symmetric])
+
+lemma apder_dfrontier_acc_RSTAR [simp]:
+  "apder_dfrontier_acc (RSTAR r) k =
+    apder_dfrontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+  by (auto simp add: apder_dfrontier_acc_def
+      rsimp4_SEQ_atom_assoc[symmetric])
+
+lemma apder_dfrontier_acc_RNTIMES [simp]:
+  "apder_dfrontier_acc (RNTIMES r n) k =
+    (\<Union>m \<in> {..<n}.
+      apder_dfrontier_acc r (rsimp4_SEQ_atom (RNTIMES r m) k))"
+  by (auto simp add: apder_dfrontier_acc_def
+      rsimp4_SEQ_atom_assoc[symmetric])
+
+fun apder_dfrontier_acc_size_budget :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "apder_dfrontier_acc_size_budget RZERO k = 0"
+| "apder_dfrontier_acc_size_budget RONE k = 0"
+| "apder_dfrontier_acc_size_budget (RCHAR c) k =
+    rsize_set (row_dlforms k)"
+| "apder_dfrontier_acc_size_budget (RALTS rs) k =
+    sum_list (map (\<lambda>q. apder_dfrontier_acc_size_budget q k) rs)"
+| "apder_dfrontier_acc_size_budget (RSEQ r1 r2) k =
+    apder_dfrontier_acc_size_budget r1 (rsimp4_SEQ_atom r2 k) +
+    apder_dfrontier_acc_size_budget r2 k"
+| "apder_dfrontier_acc_size_budget (RSTAR r) k =
+    apder_dfrontier_acc_size_budget r
+      (rsimp4_SEQ_atom (RSTAR r) k)"
+| "apder_dfrontier_acc_size_budget (RNTIMES r n) k =
+    sum_list (map
+      (\<lambda>m. apder_dfrontier_acc_size_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) [0..<n])"
+| "apder_dfrontier_acc_size_budget (RBACKREF4 r1 r2 r3 r4 cs) k = 0"
+| "apder_dfrontier_acc_size_budget (RHALF r cs rep) k = 0"
+| "apder_dfrontier_acc_size_budget (RRESIDUE cs rep) k = 0"
+
+lemma rsize_set_apder_dfrontier_acc_le_budget:
+  "rsize_set (apder_dfrontier_acc r k) \<le>
+    apder_dfrontier_acc_size_budget r k"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_dfrontier_acc_def rsize_set_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (RALTS rs)
+  have "rsize_set (apder_dfrontier_acc (RALTS rs) k) \<le>
+      sum_list (map (\<lambda>q. rsize_set (apder_dfrontier_acc q k)) rs)"
+    by simp (rule rsize_set_UN_set_le_sum_list, simp_all)
+  also have "... \<le>
+      sum_list (map (\<lambda>q. apder_dfrontier_acc_size_budget q k) rs)"
+    by (rule sum_list_mono) (use RALTS.hyps in auto)
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  have "rsize_set (apder_dfrontier_acc (RSEQ r1 r2) k) \<le>
+      rsize_set (apder_dfrontier_acc r1 (rsimp4_SEQ_atom r2 k)) +
+      rsize_set (apder_dfrontier_acc r2 k)"
+    by simp (rule rsize_set_Un_le, simp_all)
+  also have "... \<le>
+      apder_dfrontier_acc_size_budget r1 (rsimp4_SEQ_atom r2 k) +
+      apder_dfrontier_acc_size_budget r2 k"
+  proof -
+    have left:
+        "rsize_set
+          (apder_dfrontier_acc r1 (rsimp4_SEQ_atom r2 k)) \<le>
+        apder_dfrontier_acc_size_budget r1 (rsimp4_SEQ_atom r2 k)"
+      by (rule RSEQ.hyps(1))
+    have right:
+        "rsize_set (apder_dfrontier_acc r2 k) \<le>
+        apder_dfrontier_acc_size_budget r2 k"
+      by (rule RSEQ.hyps(2))
+    show ?thesis
+      using left right by linarith
+  qed
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  let ?F = "\<lambda>m. apder_dfrontier_acc r
+    (rsimp4_SEQ_atom (RNTIMES r m) k)"
+  have un_eq:
+      "apder_dfrontier_acc (RNTIMES r n) k =
+        (\<Union>m \<in> set [0..<n]. ?F m)"
+    by auto
+  have "rsize_set (apder_dfrontier_acc (RNTIMES r n) k) =
+      rsize_set (\<Union>m \<in> set [0..<n]. ?F m)"
+    by (simp add: un_eq atLeast0LessThan)
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>m. rsize_set (apder_dfrontier_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k))) [0..<n])"
+    by (rule rsize_set_UN_set_le_sum_list) simp_all
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>m. apder_dfrontier_acc_size_budget r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)) [0..<n])"
+    by (rule sum_list_mono) (use RNTIMES.hyps in auto)
+  finally show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_acc_def rsize_set_def)
+qed
+
+lemma apder_dfrontier_delta_acc_RCHAR [simp]:
+  "apder_dfrontier_delta_acc (RCHAR c) k = {}"
+  by (simp add: apder_dfrontier_delta_acc_def)
+
+lemma apder_dfrontier_delta_acc_RALTS_subset:
+  "apder_dfrontier_delta_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. apder_dfrontier_delta_acc q k)"
+  by (auto simp add: apder_dfrontier_delta_acc_def)
+
+lemma apder_dfrontier_delta_acc_RSEQ_subset:
+  "apder_dfrontier_delta_acc (RSEQ r1 r2) k \<subseteq>
+    apder_dfrontier_delta_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom r2 k) - row_dlforms k) \<union>
+    apder_dfrontier_delta_acc r2 k"
+  by (auto simp add: apder_dfrontier_delta_acc_def)
+
+lemma apder_dfrontier_delta_acc_RSTAR_subset:
+  "apder_dfrontier_delta_acc (RSTAR r) k \<subseteq>
+    apder_dfrontier_delta_acc r (rsimp4_SEQ_atom (RSTAR r) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k)"
+  by (auto simp add: apder_dfrontier_delta_acc_def)
+
+lemma apder_dfrontier_delta_acc_RNTIMES_subset:
+  "apder_dfrontier_delta_acc (RNTIMES r n) k \<subseteq>
+    (\<Union>m \<in> {..<n}.
+      apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+      (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+        row_dlforms k))"
+  by (auto simp add: apder_dfrontier_delta_acc_def)
+
+fun apder_dfrontier_delta_budget :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "apder_dfrontier_delta_budget RZERO k = 0"
+| "apder_dfrontier_delta_budget RONE k = 0"
+| "apder_dfrontier_delta_budget (RCHAR c) k = 0"
+| "apder_dfrontier_delta_budget (RALTS rs) k =
+    sum_list (map (\<lambda>q. apder_dfrontier_delta_budget q k) rs)"
+| "apder_dfrontier_delta_budget (RSEQ r1 r2) k =
+    apder_dfrontier_delta_budget r1 (rsimp4_SEQ_atom r2 k) +
+    rsize_set
+      (row_dlforms (rsimp4_SEQ_atom r2 k) - row_dlforms k) +
+    apder_dfrontier_delta_budget r2 k"
+| "apder_dfrontier_delta_budget (RSTAR r) k =
+    apder_dfrontier_delta_budget r
+      (rsimp4_SEQ_atom (RSTAR r) k) +
+    rsize_set
+      (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k)"
+| "apder_dfrontier_delta_budget (RNTIMES r n) k =
+    sum_list (map
+      (\<lambda>m. apder_dfrontier_delta_budget r
+          (rsimp4_SEQ_atom (RNTIMES r m) k) +
+        rsize_set
+          (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+            row_dlforms k)) [0..<n])"
+| "apder_dfrontier_delta_budget (RBACKREF4 r1 r2 r3 r4 cs) k = 0"
+| "apder_dfrontier_delta_budget (RHALF r cs rep) k = 0"
+| "apder_dfrontier_delta_budget (RRESIDUE cs rep) k = 0"
+
+lemma rsize_set_apder_dfrontier_delta_acc_le_budget:
+  "rsize_set (apder_dfrontier_delta_acc r k) \<le>
+    apder_dfrontier_delta_budget r k"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (RALTS rs)
+  have sub:
+      "apder_dfrontier_delta_acc (RALTS rs) k \<subseteq>
+        (\<Union>q \<in> set rs. apder_dfrontier_delta_acc q k)"
+    by (rule apder_dfrontier_delta_acc_RALTS_subset)
+  have "rsize_set (apder_dfrontier_delta_acc (RALTS rs) k) \<le>
+      rsize_set (\<Union>q \<in> set rs. apder_dfrontier_delta_acc q k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>q. rsize_set (apder_dfrontier_delta_acc q k)) rs)"
+    by (rule rsize_set_UN_set_le_sum_list) simp_all
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>q. apder_dfrontier_delta_budget q k) rs)"
+    by (rule sum_list_mono) (use RALTS.hyps in auto)
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  let ?k2 = "rsimp4_SEQ_atom r2 k"
+  let ?L = "apder_dfrontier_delta_acc r1 ?k2"
+  let ?D = "row_dlforms ?k2 - row_dlforms k"
+  let ?R = "apder_dfrontier_delta_acc r2 k"
+  have sub:
+      "apder_dfrontier_delta_acc (RSEQ r1 r2) k \<subseteq>
+        ?L \<union> ?D \<union> ?R"
+    by (rule apder_dfrontier_delta_acc_RSEQ_subset)
+  have "rsize_set (apder_dfrontier_delta_acc (RSEQ r1 r2) k) \<le>
+      rsize_set (?L \<union> ?D \<union> ?R)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> rsize_set ?L + rsize_set ?D + rsize_set ?R"
+  proof -
+    have "rsize_set (?L \<union> ?D \<union> ?R) \<le>
+        rsize_set (?L \<union> ?D) + rsize_set ?R"
+      by (rule rsize_set_Un_le) simp_all
+    also have "... \<le>
+        rsize_set ?L + rsize_set ?D + rsize_set ?R"
+    proof -
+      have ld: "rsize_set (?L \<union> ?D) \<le>
+          rsize_set ?L + rsize_set ?D"
+        by (rule rsize_set_Un_le) simp_all
+      show ?thesis
+        using ld by linarith
+    qed
+    finally show ?thesis .
+  qed
+  also have "... \<le>
+      apder_dfrontier_delta_budget r1 ?k2 +
+      rsize_set ?D +
+      apder_dfrontier_delta_budget r2 k"
+  proof -
+    have left: "rsize_set ?L \<le>
+        apder_dfrontier_delta_budget r1 ?k2"
+      by (rule RSEQ.hyps(1))
+    have right: "rsize_set ?R \<le>
+        apder_dfrontier_delta_budget r2 k"
+      by (rule RSEQ.hyps(2))
+    show ?thesis
+      using left right by linarith
+  qed
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  let ?k1 = "rsimp4_SEQ_atom (RSTAR r) k"
+  let ?L = "apder_dfrontier_delta_acc r ?k1"
+  let ?D = "row_dlforms ?k1 - row_dlforms k"
+  have sub:
+      "apder_dfrontier_delta_acc (RSTAR r) k \<subseteq> ?L \<union> ?D"
+    by (rule apder_dfrontier_delta_acc_RSTAR_subset)
+  have "rsize_set (apder_dfrontier_delta_acc (RSTAR r) k) \<le>
+      rsize_set (?L \<union> ?D)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> rsize_set ?L + rsize_set ?D"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      apder_dfrontier_delta_budget r ?k1 + rsize_set ?D"
+  proof -
+    have left: "rsize_set ?L \<le>
+        apder_dfrontier_delta_budget r ?k1"
+      by (rule RSTAR.hyps)
+    show ?thesis
+      using left by linarith
+  qed
+  finally show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  let ?F = "\<lambda>m. apder_dfrontier_delta_acc r
+    (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+      row_dlforms k)"
+  have sub:
+      "apder_dfrontier_delta_acc (RNTIMES r n) k \<subseteq>
+        (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule apder_dfrontier_delta_acc_RNTIMES_subset)
+  have "rsize_set (apder_dfrontier_delta_acc (RNTIMES r n) k) \<le>
+      rsize_set (\<Union>m \<in> {..<n}. ?F m)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> (\<Sum>m \<in> {..<n}. rsize_set (?F m))"
+    by (rule rsize_set_UN_le) auto
+  also have "... \<le> (\<Sum>m \<in> {..<n}.
+      rsize_set (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RNTIMES r m) k)) +
+      rsize_set
+        (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k))"
+    by (rule sum_mono) (rule rsize_set_Un_le, simp_all)
+  also have "... \<le> (\<Sum>m \<in> {..<n}.
+      apder_dfrontier_delta_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) +
+      rsize_set
+        (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k))"
+    by (rule sum_mono) (use RNTIMES.hyps in auto)
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>m. apder_dfrontier_delta_budget r
+            (rsimp4_SEQ_atom (RNTIMES r m) k) +
+          rsize_set
+            (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+              row_dlforms k)) [0..<n])"
+  proof -
+    let ?B = "\<lambda>m. apder_dfrontier_delta_budget r
+        (rsimp4_SEQ_atom (RNTIMES r m) k) +
+      rsize_set
+        (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+          row_dlforms k)"
+    have sum_eq: "(\<Sum>m \<in> {..<n}. ?B m) =
+        (\<Sum>m \<in> set [0..<n]. ?B m)"
+      by (rule sum.cong) auto
+    have list_bound:
+        "(\<Sum>m \<in> set [0..<n]. ?B m) \<le>
+          sum_list (map ?B [0..<n])"
+      by (rule sum_set_le_sum_list_nat)
+    show ?thesis
+      using sum_eq list_bound by linarith
+  qed
+  finally show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+qed
+
+lemma apder_dfrontier_acc_subset_row_delta:
+  "apder_dfrontier_acc r k \<subseteq>
+    row_dlforms k \<union> apder_dfrontier_delta_acc r k"
+  by (auto simp add: apder_dfrontier_delta_acc_def)
+
+lemma rsize_set_apder_dfrontier_acc_le_delta_budget:
+  "rsize_set (apder_dfrontier_acc r k) \<le>
+    rsize_set (row_dlforms k) +
+    apder_dfrontier_delta_budget r k"
+proof -
+  have sub: "apder_dfrontier_acc r k \<subseteq>
+      row_dlforms k \<union> apder_dfrontier_delta_acc r k"
+    by (rule apder_dfrontier_acc_subset_row_delta)
+  have "rsize_set (apder_dfrontier_acc r k) \<le>
+      rsize_set (row_dlforms k \<union> apder_dfrontier_delta_acc r k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      rsize_set (row_dlforms k) +
+      rsize_set (apder_dfrontier_delta_acc r k)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set (row_dlforms k) +
+      apder_dfrontier_delta_budget r k"
+    using rsize_set_apder_dfrontier_delta_acc_le_budget[of r k]
+    by linarith
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_deep_frontier_le_delta_budget:
+  "rsize_set (apder_deep_frontier r) \<le>
+    rsize_set (row_dlforms r) +
+    rsize_set (row_dlforms RONE) +
+    apder_dfrontier_delta_budget r RONE"
+proof -
+  have "rsize_set (apder_deep_frontier r) \<le>
+      rsize_set (row_dlforms r) +
+      rsize_set (apder_dfrontier_acc r RONE)"
+    unfolding apder_deep_frontier_def
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set (row_dlforms r) +
+      (rsize_set (row_dlforms RONE) +
+        apder_dfrontier_delta_budget r RONE)"
+    using rsize_set_apder_dfrontier_acc_le_delta_budget[of r RONE]
+    by linarith
+  finally show ?thesis
+    by simp
+qed
+
+fun apder_dfrontier_delta_budget_tight ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "apder_dfrontier_delta_budget_tight RZERO k = 0"
+| "apder_dfrontier_delta_budget_tight RONE k = 0"
+| "apder_dfrontier_delta_budget_tight (RCHAR c) k = 0"
+| "apder_dfrontier_delta_budget_tight (RALTS rs) k =
+    sum_list
+      (map (\<lambda>q. apder_dfrontier_delta_budget_tight q k) rs)"
+| "apder_dfrontier_delta_budget_tight (RSEQ r1 r2) k =
+    apder_dfrontier_delta_budget_tight r1
+      (rsimp4_SEQ_atom r2 k) +
+    (if apder_awidth r1 = 0 then 0 else
+      rsize_set
+        (row_dlforms (rsimp4_SEQ_atom r2 k) - row_dlforms k)) +
+    apder_dfrontier_delta_budget_tight r2 k"
+| "apder_dfrontier_delta_budget_tight (RSTAR r) k =
+    (if apder_awidth r = 0 then 0 else
+      apder_dfrontier_delta_budget_tight r
+        (rsimp4_SEQ_atom (RSTAR r) k) +
+      rsize_set
+        (row_dlforms (rsimp4_SEQ_atom (RSTAR r) k) - row_dlforms k))"
+| "apder_dfrontier_delta_budget_tight (RNTIMES r n) k =
+    (if apder_awidth r = 0 then 0 else
+      sum_list (map
+        (\<lambda>m. apder_dfrontier_delta_budget_tight r
+            (rsimp4_SEQ_atom (RNTIMES r m) k) +
+          rsize_set
+            (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+              row_dlforms k)) [0..<n]))"
+| "apder_dfrontier_delta_budget_tight (RBACKREF4 r1 r2 r3 r4 cs) k = 0"
+| "apder_dfrontier_delta_budget_tight (RHALF r cs rep) k = 0"
+| "apder_dfrontier_delta_budget_tight (RRESIDUE cs rep) k = 0"
+
+lemma rsize_set_apder_dfrontier_delta_acc_le_tight_budget:
+  "rsize_set (apder_dfrontier_delta_acc r k) \<le>
+    apder_dfrontier_delta_budget_tight r k"
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (RALTS rs)
+  have sub:
+      "apder_dfrontier_delta_acc (RALTS rs) k \<subseteq>
+        (\<Union>q \<in> set rs. apder_dfrontier_delta_acc q k)"
+    by (rule apder_dfrontier_delta_acc_RALTS_subset)
+  have "rsize_set (apder_dfrontier_delta_acc (RALTS rs) k) \<le>
+      rsize_set (\<Union>q \<in> set rs. apder_dfrontier_delta_acc q k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>q. rsize_set (apder_dfrontier_delta_acc q k)) rs)"
+    by (rule rsize_set_UN_set_le_sum_list) simp_all
+  also have "... \<le>
+      sum_list (map
+        (\<lambda>q. apder_dfrontier_delta_budget_tight q k) rs)"
+    by (rule sum_list_mono) (use RALTS.hyps in auto)
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  let ?k2 = "rsimp4_SEQ_atom r2 k"
+  let ?L = "apder_dfrontier_delta_acc r1 ?k2"
+  let ?D = "row_dlforms ?k2 - row_dlforms k"
+  let ?R = "apder_dfrontier_delta_acc r2 k"
+  show ?case
+  proof (cases "apder_awidth r1 = 0")
+    case True
+    have terms_left_empty:
+        "apder_terms r1 = {}"
+      by (rule apder_awidth_zero_apder_terms_empty[OF True])
+    have delta_eq:
+        "apder_dfrontier_delta_acc (RSEQ r1 r2) k = ?R"
+      using terms_left_empty
+      by (auto simp add: apder_dfrontier_delta_acc_def
+          apder_dfrontier_acc_def)
+    have "rsize_set (apder_dfrontier_delta_acc (RSEQ r1 r2) k) =
+        rsize_set ?R"
+      by (simp add: delta_eq)
+    also have "... \<le>
+        apder_dfrontier_delta_budget_tight r2 k"
+      by (rule RSEQ.hyps(2))
+    finally show ?thesis
+      using True by simp
+  next
+    case False
+    have sub:
+        "apder_dfrontier_delta_acc (RSEQ r1 r2) k \<subseteq>
+          ?L \<union> ?D \<union> ?R"
+      by (rule apder_dfrontier_delta_acc_RSEQ_subset)
+    have "rsize_set (apder_dfrontier_delta_acc (RSEQ r1 r2) k) \<le>
+        rsize_set (?L \<union> ?D \<union> ?R)"
+      by (rule rsize_set_mono) (use sub in auto)
+    also have "... \<le> rsize_set ?L + rsize_set ?D + rsize_set ?R"
+    proof -
+      have "rsize_set (?L \<union> ?D \<union> ?R) \<le>
+          rsize_set (?L \<union> ?D) + rsize_set ?R"
+        by (rule rsize_set_Un_le) simp_all
+      also have "... \<le>
+          rsize_set ?L + rsize_set ?D + rsize_set ?R"
+      proof -
+        have ld: "rsize_set (?L \<union> ?D) \<le>
+            rsize_set ?L + rsize_set ?D"
+          by (rule rsize_set_Un_le) simp_all
+        show ?thesis
+          using ld by linarith
+      qed
+      finally show ?thesis .
+    qed
+    also have "... \<le>
+        apder_dfrontier_delta_budget_tight r1 ?k2 +
+        rsize_set ?D +
+        apder_dfrontier_delta_budget_tight r2 k"
+    proof -
+      have left: "rsize_set ?L \<le>
+          apder_dfrontier_delta_budget_tight r1 ?k2"
+        by (rule RSEQ.hyps(1))
+      have right: "rsize_set ?R \<le>
+          apder_dfrontier_delta_budget_tight r2 k"
+        by (rule RSEQ.hyps(2))
+      show ?thesis
+        using left right by linarith
+    qed
+    finally show ?thesis
+      using False by simp
+  qed
+next
+  case (RSTAR r)
+  let ?k1 = "rsimp4_SEQ_atom (RSTAR r) k"
+  let ?L = "apder_dfrontier_delta_acc r ?k1"
+  let ?D = "row_dlforms ?k1 - row_dlforms k"
+  show ?case
+  proof (cases "apder_awidth r = 0")
+    case True
+    have star_empty:
+        "apder_dfrontier_acc (RSTAR r) k = {}"
+      by (rule apder_awidth_zero_dfrontier_acc_empty)
+        (use True in simp)
+    then show ?thesis
+      using True
+      by (simp add: apder_dfrontier_delta_acc_def rsize_set_def)
+  next
+    case False
+    have sub:
+        "apder_dfrontier_delta_acc (RSTAR r) k \<subseteq> ?L \<union> ?D"
+      by (rule apder_dfrontier_delta_acc_RSTAR_subset)
+    have "rsize_set (apder_dfrontier_delta_acc (RSTAR r) k) \<le>
+        rsize_set (?L \<union> ?D)"
+      by (rule rsize_set_mono) (use sub in auto)
+    also have "... \<le> rsize_set ?L + rsize_set ?D"
+      by (rule rsize_set_Un_le) simp_all
+    also have "... \<le>
+        apder_dfrontier_delta_budget_tight r ?k1 + rsize_set ?D"
+    proof -
+      have left: "rsize_set ?L \<le>
+          apder_dfrontier_delta_budget_tight r ?k1"
+        by (rule RSTAR.hyps)
+      show ?thesis
+        using left by linarith
+    qed
+    finally show ?thesis
+      using False by simp
+  qed
+next
+  case (RNTIMES r n)
+  let ?F = "\<lambda>m. apder_dfrontier_delta_acc r
+    (rsimp4_SEQ_atom (RNTIMES r m) k) \<union>
+    (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+      row_dlforms k)"
+  show ?case
+  proof (cases "apder_awidth r = 0")
+    case True
+    have ntimes_empty:
+        "apder_dfrontier_acc (RNTIMES r n) k = {}"
+      by (rule apder_awidth_zero_dfrontier_acc_empty)
+        (use True in simp)
+    then show ?thesis
+      using True
+      by (simp add: apder_dfrontier_delta_acc_def rsize_set_def)
+  next
+    case False
+    have sub:
+        "apder_dfrontier_delta_acc (RNTIMES r n) k \<subseteq>
+          (\<Union>m \<in> {..<n}. ?F m)"
+      by (rule apder_dfrontier_delta_acc_RNTIMES_subset)
+    have "rsize_set (apder_dfrontier_delta_acc (RNTIMES r n) k) \<le>
+        rsize_set (\<Union>m \<in> {..<n}. ?F m)"
+      by (rule rsize_set_mono) (use sub in auto)
+    also have "... \<le> (\<Sum>m \<in> {..<n}. rsize_set (?F m))"
+      by (rule rsize_set_UN_le) auto
+    also have "... \<le> (\<Sum>m \<in> {..<n}.
+        rsize_set (apder_dfrontier_delta_acc r
+          (rsimp4_SEQ_atom (RNTIMES r m) k)) +
+        rsize_set
+          (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+            row_dlforms k))"
+      by (rule sum_mono) (rule rsize_set_Un_le, simp_all)
+    also have "... \<le> (\<Sum>m \<in> {..<n}.
+        apder_dfrontier_delta_budget_tight r
+          (rsimp4_SEQ_atom (RNTIMES r m) k) +
+        rsize_set
+          (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+            row_dlforms k))"
+      by (rule sum_mono) (use RNTIMES.hyps in auto)
+    also have "... \<le>
+        sum_list (map
+          (\<lambda>m. apder_dfrontier_delta_budget_tight r
+              (rsimp4_SEQ_atom (RNTIMES r m) k) +
+            rsize_set
+              (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+                row_dlforms k)) [0..<n])"
+    proof -
+      let ?B = "\<lambda>m. apder_dfrontier_delta_budget_tight r
+          (rsimp4_SEQ_atom (RNTIMES r m) k) +
+        rsize_set
+          (row_dlforms (rsimp4_SEQ_atom (RNTIMES r m) k) -
+            row_dlforms k)"
+      have sum_eq: "(\<Sum>m \<in> {..<n}. ?B m) =
+          (\<Sum>m \<in> set [0..<n]. ?B m)"
+        by (rule sum.cong) auto
+      have list_bound:
+          "(\<Sum>m \<in> set [0..<n]. ?B m) \<le>
+            sum_list (map ?B [0..<n])"
+        by (rule sum_set_le_sum_list_nat)
+      show ?thesis
+        using sum_eq list_bound by linarith
+    qed
+    finally show ?thesis
+      using False by simp
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: apder_dfrontier_delta_acc_def
+        apder_dfrontier_acc_def rsize_set_def)
+qed
+
+lemma rsize_set_apder_dfrontier_acc_le_tight_delta_budget:
+  "rsize_set (apder_dfrontier_acc r k) \<le>
+    rsize_set (row_dlforms k) +
+    apder_dfrontier_delta_budget_tight r k"
+proof -
+  have sub: "apder_dfrontier_acc r k \<subseteq>
+      row_dlforms k \<union> apder_dfrontier_delta_acc r k"
+    by (rule apder_dfrontier_acc_subset_row_delta)
+  have "rsize_set (apder_dfrontier_acc r k) \<le>
+      rsize_set (row_dlforms k \<union> apder_dfrontier_delta_acc r k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      rsize_set (row_dlforms k) +
+      rsize_set (apder_dfrontier_delta_acc r k)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set (row_dlforms k) +
+      apder_dfrontier_delta_budget_tight r k"
+    using rsize_set_apder_dfrontier_delta_acc_le_tight_budget[of r k]
+    by linarith
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_deep_frontier_le_tight_delta_budget:
+  "rsize_set (apder_deep_frontier r) \<le>
+    rsize_set (row_dlforms r) +
+    rsize_set (row_dlforms RONE) +
+    apder_dfrontier_delta_budget_tight r RONE"
+proof -
+  have "rsize_set (apder_deep_frontier r) \<le>
+      rsize_set (row_dlforms r) +
+      rsize_set (apder_dfrontier_acc r RONE)"
+    unfolding apder_deep_frontier_def
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set (row_dlforms r) +
+      (rsize_set (row_dlforms RONE) +
+        apder_dfrontier_delta_budget_tight r RONE)"
+    using rsize_set_apder_dfrontier_acc_le_tight_delta_budget[of r RONE]
+    by linarith
+  finally show ?thesis
+    by simp
+qed
+
+lemma finite_apder_deep_frontier [simp]:
+  "finite (apder_deep_frontier r)"
+  by (simp add: apder_deep_frontier_def)
+
+lemma apder_dfrontier_acc_RONE_contains_term:
+  assumes nf: "apder_nf r"
+    and p: "p \<in> apder_terms r"
+  shows "row_dlforms p \<subseteq> apder_dfrontier_acc r RONE"
+proof -
+  have p_nf: "rtail_nf p"
+    by (rule rtail_nf_apder_terms[OF nf p])
+  have stable: "rsimp4_SEQ_atom p RONE = p"
+    by (rule rtail_nf_RONE_stable[OF p_nf])
+  show ?thesis
+    using p stable
+    by (auto simp add: apder_dfrontier_acc_def)
+qed
+
+lemma apder_dfrontier_acc_RONE_eq_terms:
+  assumes nf: "apder_nf r"
+  shows "apder_dfrontier_acc r RONE =
+    (\<Union>p \<in> apder_terms r. row_dlforms p)"
+proof
+  show "apder_dfrontier_acc r RONE \<subseteq>
+      (\<Union>p \<in> apder_terms r. row_dlforms p)"
+  proof
+    fix x
+    assume x: "x \<in> apder_dfrontier_acc r RONE"
+    then obtain p where p: "p \<in> apder_terms r"
+      "x \<in> row_dlforms (rsimp4_SEQ_atom p RONE)"
+      by (auto simp add: apder_dfrontier_acc_def)
+    have p_nf: "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p(1)])
+    have stable: "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable[OF p_nf])
+    have x_p: "x \<in> row_dlforms p"
+      using p(2) stable by simp
+    show "x \<in> (\<Union>p \<in> apder_terms r. row_dlforms p)"
+      using p(1) x_p by auto
+  qed
+  show "(\<Union>p \<in> apder_terms r. row_dlforms p) \<subseteq>
+      apder_dfrontier_acc r RONE"
+  proof
+    fix x
+    assume x: "x \<in> (\<Union>p \<in> apder_terms r. row_dlforms p)"
+    then obtain p where p: "p \<in> apder_terms r" "x \<in> row_dlforms p"
+      by blast
+    have "row_dlforms p \<subseteq> apder_dfrontier_acc r RONE"
+      by (rule apder_dfrontier_acc_RONE_contains_term[OF nf p(1)])
+    then show "x \<in> apder_dfrontier_acc r RONE"
+      using p(2) by blast
+  qed
+qed
+
+lemma card_apder_dfrontier_acc_RONE_le_terms_size:
+  assumes nf: "apder_nf r"
+  shows "card (apder_dfrontier_acc r RONE) \<le>
+    card (apder_terms r) + rsize_set (apder_terms r)"
+proof -
+  let ?T = "apder_terms r"
+  have "card (apder_dfrontier_acc r RONE) =
+      card (\<Union>p \<in> ?T. row_dlforms p)"
+    by (simp add: apder_dfrontier_acc_RONE_eq_terms[OF nf])
+  also have "... \<le> (\<Sum>p \<in> ?T. card (row_dlforms p))"
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>p \<in> ?T. Suc (rsize p))"
+  proof (rule sum_mono)
+    fix p
+    assume p: "p \<in> ?T"
+    have "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p])
+    then show "card (row_dlforms p) \<le> Suc (rsize p)"
+      by (rule card_row_dlforms_rtail_nf_le_Suc_rsize)
+  qed
+  also have "... = (\<Sum>p \<in> ?T. (1::nat) + rsize p)"
+    by (rule sum.cong) simp_all
+  also have "... = (\<Sum>p \<in> ?T. (1::nat)) + (\<Sum>p \<in> ?T. rsize p)"
+    by (rule sum.distrib)
+  also have "... = card ?T + rsize_set ?T"
+    by (simp add: rsize_set_def)
+  finally show ?thesis .
+qed
+
+lemma card_apder_dfrontier_acc_RONE_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "card (apder_dfrontier_acc r RONE) \<le>
+    2 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have "card (apder_dfrontier_acc r RONE) \<le>
+      card (apder_terms r) + rsize_set (apder_terms r)"
+    by (rule card_apder_dfrontier_acc_RONE_le_terms_size[OF nf])
+  also have "... \<le> apder_awidth r + ?B"
+  proof -
+    have "card (apder_terms r) \<le> apder_awidth r"
+      by (rule card_apder_terms_le_awidth)
+    moreover have "rsize_set (apder_terms r) \<le> ?B"
+      by (rule rsize_set_apder_terms_expanded_cubic_bound[OF nf])
+    ultimately show ?thesis by linarith
+  qed
+  also have "... \<le> ?B + ?B"
+  proof -
+    let ?N = "apder_awidth r + rsize r + 3"
+    have "apder_awidth r \<le> ?N"
+      by simp
+    also have "?N \<le> ?N ^ 3"
+      by (simp add: power3_eq_cube)
+    finally have "apder_awidth r \<le> ?B" .
+    then show ?thesis by simp
+  qed
+  also have "... = 2 * ?B"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_expanded_cubic_bound:
+  assumes nf: "apder_nf r"
+  shows "card (apder_deep_frontier r) \<le>
+    3 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have root: "card (row_dlforms r) \<le> ?B"
+  proof -
+    have "card (row_dlforms r) \<le> Suc (rsize r)"
+      by (rule card_row_dlforms_rtail_nf_le_Suc_rsize)
+        (rule apder_nf_imp_rtail_nf[OF nf])
+    also have "... \<le> apder_awidth r + rsize r + 3"
+      by simp
+    also have "... \<le> ?B"
+      by (simp add: power3_eq_cube)
+    finally show ?thesis .
+  qed
+  have acc: "card (apder_dfrontier_acc r RONE) \<le> 2 * ?B"
+    by (rule card_apder_dfrontier_acc_RONE_expanded_cubic_bound[OF nf])
+  have "card (apder_deep_frontier r) \<le>
+      card (row_dlforms r) + card (apder_dfrontier_acc r RONE)"
+    unfolding apder_deep_frontier_def by (rule card_Un_le)
+  also have "... \<le> ?B + 2 * ?B"
+    using root acc by linarith
+  also have "... = 3 * ?B"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma apder_deep_frontier_member_expanded_square_size:
+  assumes nf: "apder_nf r"
+    and x: "x \<in> apder_deep_frontier r"
+  shows "rsize x \<le> (apder_awidth r + rsize r + 3) ^ 2"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have x_cases:
+      "x \<in> row_dlforms r \<or>
+       x \<in> apder_dfrontier_acc r RONE"
+    using x by (auto simp add: apder_deep_frontier_def)
+  have size_linear_or_quad:
+      "rsize x \<le> rsize r \<or>
+       rsize x \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+  proof (rule disjE[OF x_cases])
+    assume xr: "x \<in> row_dlforms r"
+    have "rsize x \<le> rsize r"
+      by (rule row_dlforms_member_size_le_rsize[OF xr])
+    then show ?thesis by simp
+  next
+    assume xa: "x \<in> apder_dfrontier_acc r RONE"
+    then obtain p where p:
+        "p \<in> apder_terms r"
+        "x \<in> row_dlforms (rsimp4_SEQ_atom p RONE)"
+      by (auto simp add: apder_dfrontier_acc_def)
+    have p_nf: "rtail_nf p"
+      by (rule rtail_nf_apder_terms[OF nf p(1)])
+    have stable: "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable[OF p_nf])
+    have "rsize x \<le> rsize p"
+      by (rule row_dlforms_member_size_le_rsize)
+        (use p(2) stable in auto)
+    also have "... \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+      by (rule apder_terms_member_size_quadratic[OF nf p(1)])
+    finally show ?thesis by simp
+  qed
+  then show ?thesis
+  proof
+    assume "rsize x \<le> rsize r"
+    also have "... \<le> ?B"
+      by simp
+    also have "... \<le> ?B ^ 2"
+      by (simp add: power2_eq_square mult_le_mono)
+    finally show ?thesis .
+  next
+    assume "rsize x \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+    also have "... \<le> ?B ^ 2"
+      by (simp add: power2_eq_square algebra_simps)
+    finally show ?thesis .
+  qed
+qed
+
+lemma apder_dlfrontier_subset_apder_deep_frontier:
+  assumes nf: "apder_nf r"
+  shows "apder_dlfrontier r \<subseteq> apder_deep_frontier r"
+proof
+  fix x
+  assume x: "x \<in> apder_dlfrontier r"
+  obtain q where q:
+      "q \<in> apder_rows r" "x \<in> row_dlforms q"
+    using x by (auto simp add: apder_dlfrontier_def)
+  have q_cases:
+      "q = r \<or> q \<in> rfrontier r \<or>
+        (\<exists>p \<in> apder_terms r. q \<in> rfrontier p)"
+    using q(1)
+    by (auto simp add: apder_rows_def apder_frontier_def)
+  show "x \<in> apder_deep_frontier r"
+  proof (rule disjE[OF q_cases])
+    assume "q = r"
+    then show ?thesis
+      using q(2) by (auto simp add: apder_deep_frontier_def)
+  next
+    assume rest:
+      "q \<in> rfrontier r \<or>
+        (\<exists>p\<in>apder_terms r. q \<in> rfrontier p)"
+    then show ?thesis
+    proof
+      assume q_front: "q \<in> rfrontier r"
+      have "row_dlforms q \<subseteq> row_dlforms r"
+        by (rule row_dlforms_rfrontier_member_subset[OF q_front])
+      then show ?thesis
+        using q(2) by (auto simp add: apder_deep_frontier_def)
+    next
+      assume term_front:
+        "\<exists>p\<in>apder_terms r. q \<in> rfrontier p"
+      then obtain p where p:
+          "p \<in> apder_terms r" "q \<in> rfrontier p"
+        by blast
+      have q_subset: "row_dlforms q \<subseteq> row_dlforms p"
+        by (rule row_dlforms_rfrontier_member_subset[OF p(2)])
+      have p_subset: "row_dlforms p \<subseteq>
+          apder_dfrontier_acc r RONE"
+        by (rule apder_dfrontier_acc_RONE_contains_term[OF nf p(1)])
+      show ?thesis
+        using q(2) q_subset p_subset
+        by (auto simp add: apder_deep_frontier_def)
+    qed
+  qed
+qed
+
+lemma rsize_set_apder_dlfrontier_cubic_from_universeI:
+  assumes nf: "apder_nf r"
+    and sub: "apder_deep_frontier r \<subseteq> U"
+    and finite: "finite U"
+    and card_bound:
+      "card U \<le> (apder_awidth r + rsize r + 3) ^ 2"
+    and member_size:
+      "\<And>q. q \<in> U \<Longrightarrow>
+        rsize q \<le> apder_awidth r + rsize r + 3"
+  shows "rsize_set (apder_dlfrontier r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have dl_sub: "apder_dlfrontier r \<subseteq> U"
+    using apder_dlfrontier_subset_apder_deep_frontier[OF nf] sub
+    by blast
+  have card_dl: "card (apder_dlfrontier r) \<le> ?B ^ 2"
+    by (rule card_mono[OF finite dl_sub, THEN order_trans])
+      (rule card_bound)
+  have member_dl:
+      "\<And>q. q \<in> apder_dlfrontier r \<Longrightarrow> rsize q \<le> ?B"
+    using dl_sub member_size by blast
+  have "rsize_set (apder_dlfrontier r) \<le> (?B ^ 2) * ?B"
+    by (rule rsize_set_le_card_member_budgetI)
+      (use card_dl member_dl in auto)
+  also have "... = ?B ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_dlfrontier_cubic_from_linear_cardI:
+  assumes nf: "apder_nf r"
+    and sub: "apder_deep_frontier r \<subseteq> U"
+    and finite: "finite U"
+    and card_bound:
+      "card U \<le> apder_awidth r + rsize r + 3"
+    and member_size:
+      "\<And>q. q \<in> U \<Longrightarrow>
+        rsize q \<le> (apder_awidth r + rsize r + 3) ^ 2"
+  shows "rsize_set (apder_dlfrontier r) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have dl_sub: "apder_dlfrontier r \<subseteq> U"
+    using apder_dlfrontier_subset_apder_deep_frontier[OF nf] sub
+    by blast
+  have card_dl: "card (apder_dlfrontier r) \<le> ?B"
+    by (rule card_mono[OF finite dl_sub, THEN order_trans])
+      (rule card_bound)
+  have member_dl:
+      "\<And>q. q \<in> apder_dlfrontier r \<Longrightarrow> rsize q \<le> ?B ^ 2"
+    using dl_sub member_size by blast
+  have "rsize_set (apder_dlfrontier r) \<le> ?B * (?B ^ 2)"
+    by (rule rsize_set_le_card_member_budgetI)
+      (use card_dl member_dl in auto)
+  also have "... = ?B ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+lemma adlform_front_subset_apder_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "adlform_front r s \<subseteq> apder_dlfrontier r"
+proof
+  fix x
+  assume x: "x \<in> adlform_front r s"
+  obtain q where q:
+      "q \<in> set (afactored1 r s)"
+      "x \<in> row_dlforms q"
+    using x by (auto simp add: adlform_front_def row_dlformss_member_iff)
+  have "q \<in> apder_rows r"
+    using afactored1_apder_rows_subset[OF nf, of s] q(1) by blast
+  then show "x \<in> apder_dlfrontier r"
+    using q(2) by (auto simp add: apder_dlfrontier_def)
+qed
+
+lemma rsize_set_apder_deep_frontier_le_acc_size_budget:
+  "rsize_set (apder_deep_frontier r) \<le>
+    rsize_set (row_dlforms r) +
+    apder_dfrontier_acc_size_budget r RONE"
+proof -
+  have "rsize_set (apder_deep_frontier r) \<le>
+      rsize_set (row_dlforms r) +
+      rsize_set (apder_dfrontier_acc r RONE)"
+    unfolding apder_deep_frontier_def
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      rsize_set (row_dlforms r) +
+      apder_dfrontier_acc_size_budget r RONE"
+    using rsize_set_apder_dfrontier_acc_le_budget[of r RONE]
+    by linarith
+  finally show ?thesis .
+qed
+
+lemma rsize_set_adlform_front_le_acc_size_budget:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (adlform_front r s) \<le>
+    rsize_set (row_dlforms r) +
+    apder_dfrontier_acc_size_budget r RONE"
+proof -
+  have front_sub: "adlform_front r s \<subseteq> apder_deep_frontier r"
+    using adlform_front_subset_apder_dlfrontier[OF nf, of s]
+      apder_dlfrontier_subset_apder_deep_frontier[OF nf]
+    by blast
+  have "rsize_set (adlform_front r s) \<le>
+      rsize_set (apder_deep_frontier r)"
+    by (rule rsize_set_mono) (use front_sub in auto)
+  also have "... \<le>
+      rsize_set (row_dlforms r) +
+      apder_dfrontier_acc_size_budget r RONE"
+    by (rule rsize_set_apder_deep_frontier_le_acc_size_budget)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_adlform_front_le_tight_delta_budget:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (adlform_front r s) \<le>
+    rsize_set (row_dlforms r) +
+    rsize_set (row_dlforms RONE) +
+    apder_dfrontier_delta_budget_tight r RONE"
+proof -
+  have front_sub: "adlform_front r s \<subseteq> apder_deep_frontier r"
+    using adlform_front_subset_apder_dlfrontier[OF nf, of s]
+      apder_dlfrontier_subset_apder_deep_frontier[OF nf]
+    by blast
+  have "rsize_set (adlform_front r s) \<le>
+      rsize_set (apder_deep_frontier r)"
+    by (rule rsize_set_mono) (use front_sub in auto)
+  also have "... \<le>
+      rsize_set (row_dlforms r) +
+      rsize_set (row_dlforms RONE) +
+      apder_dfrontier_delta_budget_tight r RONE"
+    by (rule rsize_set_apder_deep_frontier_le_tight_delta_budget)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_adlform_front_le_afactored1_row_dlforms_list_size:
+  "rsize_set (adlform_front r s) \<le>
+    sum_list (map row_dlforms_list_size (afactored1 r s))"
+proof -
+  have "rsize_set (adlform_front r s) =
+      rsize_set
+        (\<Union>q \<in> set (afactored1 r s). row_dlforms q)"
+    by (simp add: adlform_front_def row_dlformss_def)
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>q. rsize_set (row_dlforms q)) (afactored1 r s))"
+    by (rule rsize_set_UN_set_le_sum_list) simp_all
+  also have "... \<le>
+      sum_list (map row_dlforms_list_size (afactored1 r s))"
+    by (rule sum_list_mono)
+      (simp add: rsize_set_row_dlforms_le_row_dlforms_list_size)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_adlform_front_cubic_from_deep_linear_card:
+  assumes nf: "apder_nf r"
+    and card_bound:
+      "card (apder_deep_frontier r) \<le>
+        apder_awidth r + rsize r + 3"
+  shows "rsize_set (adlform_front r s) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have front_sub: "adlform_front r s \<subseteq> apder_deep_frontier r"
+    using adlform_front_subset_apder_dlfrontier[OF nf, of s]
+      apder_dlfrontier_subset_apder_deep_frontier[OF nf]
+    by blast
+  have card_front: "card (adlform_front r s) \<le> ?B"
+    by (rule card_mono[OF finite_apder_deep_frontier front_sub,
+          THEN order_trans])
+      (rule card_bound)
+  have member_front:
+      "\<And>q. q \<in> adlform_front r s \<Longrightarrow> rsize q \<le> ?B ^ 2"
+    using front_sub apder_deep_frontier_member_expanded_square_size[OF nf]
+    by blast
+  have "rsize_set (adlform_front r s) \<le> ?B * (?B ^ 2)"
+    by (rule rsize_set_le_card_member_budgetI)
+      (use card_front member_front in
+        \<open>auto simp add: adlform_front_def power2_eq_square\<close>)
+  also have "... = ?B ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_adlform_front_cubic_from_front_linear_card:
+  assumes nf: "apder_nf r"
+    and card_bound:
+      "card (adlform_front r s) \<le>
+        apder_awidth r + rsize r + 3"
+  shows "rsize_set (adlform_front r s) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have front_sub: "adlform_front r s \<subseteq> apder_deep_frontier r"
+    using adlform_front_subset_apder_dlfrontier[OF nf, of s]
+      apder_dlfrontier_subset_apder_deep_frontier[OF nf]
+    by blast
+  have member_front:
+      "\<And>q. q \<in> adlform_front r s \<Longrightarrow> rsize q \<le> ?B ^ 2"
+    using front_sub apder_deep_frontier_member_expanded_square_size[OF nf]
+    by blast
+  have "rsize_set (adlform_front r s) \<le> ?B * (?B ^ 2)"
+    by (rule rsize_set_le_card_member_budgetI)
+      (use card_bound member_front in
+        \<open>auto simp add: adlform_front_def power2_eq_square\<close>)
+  also have "... = ?B ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube)
+  finally show ?thesis .
+qed
+
+definition derivative_front_terms ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "derivative_front_terms r s = aseq_termss (afactored1 r s)"
+
+definition same_aseq_front_row ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "same_aseq_front_row root front row \<longleftrightarrow>
+    aseq_terms row \<subseteq> derivative_front_terms root front"
+
+definition same_aseq_front_rows ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "same_aseq_front_rows root front rows \<longleftrightarrow>
+    aseq_termss rows \<subseteq> derivative_front_terms root front"
+
+lemma derivative_front_terms_frontier_universe_subset:
+  assumes "legacy_rrexp r"
+  shows "derivative_front_terms r s \<subseteq>
+    partial_derivative_frontier_universe r"
+  using afactored1_aseq_terms_frontier_universe_subset[OF assms]
+  by (simp add: derivative_front_terms_def)
+
+lemma aseq_termss_generated_subset_afactored_step_insert_zero:
+  "aseq_termss (concat (map (rpder_norm_list c) rows)) \<subseteq>
+    insert RZERO (aseq_termss (afactored_step c rows))"
+proof -
+  let ?gen = "concat (map (rpder_norm_list c) rows)"
+  have "aseq_termss ?gen \<subseteq> insert RZERO (aseq_termss (rflts ?gen))"
+    by (rule aseq_termss_rflts_insert_zero_superset)
+  also have "... = insert RZERO (aseq_termss (afactored_step c rows))"
+    by (simp add: afactored_step_def rpder_norm_rows_def)
+  finally show ?thesis .
+qed
+
+lemma derivative_front_terms_snoc_generated_insert_zero:
+  "aseq_termss
+      (concat (map (rpder_norm_list c) (afactored1 root front))) \<subseteq>
+    insert RZERO (derivative_front_terms root (front @ [c]))"
+  using aseq_termss_generated_subset_afactored_step_insert_zero
+    [of c "afactored1 root front"]
+  by (simp add: derivative_front_terms_def afactored1_snoc)
+
+lemma same_aseq_front_rowsD:
+  assumes "same_aseq_front_rows root front rows"
+    and "row \<in> set rows"
+  shows "same_aseq_front_row root front row"
+proof -
+  have "aseq_terms row \<subseteq> aseq_termss rows"
+    using assms(2) by (auto simp add: aseq_termss_member_iff)
+  also have "... \<subseteq> derivative_front_terms root front"
+    using assms(1) by (simp add: same_aseq_front_rows_def)
+  finally show ?thesis
+    by (simp add: same_aseq_front_row_def)
+qed
+
+lemma same_aseq_front_row_row_dlformsD:
+  assumes row: "same_aseq_front_row root front row"
+    and x: "x \<in> row_dlforms row"
+  shows "same_aseq_front_row root front x"
+proof -
+  have "aseq_terms x \<subseteq> aseq_terms row"
+    by (rule row_dlforms_aseq_terms_subset[OF x])
+  also have "... \<subseteq> derivative_front_terms root front"
+    using row by (simp add: same_aseq_front_row_def)
+  finally show ?thesis
+    by (simp add: same_aseq_front_row_def)
+qed
+
+lemma same_aseq_front_rows_row_dlformssD:
+  assumes rows: "same_aseq_front_rows root front rows"
+    and x: "x \<in> row_dlformss rows"
+  shows "same_aseq_front_row root front x"
+proof -
+  have "aseq_terms x \<subseteq> aseq_termss rows"
+    by (rule row_dlformss_aseq_terms_subset[OF x])
+  also have "... \<subseteq> derivative_front_terms root front"
+    using rows by (simp add: same_aseq_front_rows_def)
+  finally show ?thesis
+    by (simp add: same_aseq_front_row_def)
+qed
+
+lemma same_aseq_front_rows_subsetI:
+  assumes sub: "aseq_termss rows' \<subseteq> aseq_termss rows"
+    and rows: "same_aseq_front_rows root front rows"
+  shows "same_aseq_front_rows root front rows'"
+  using sub rows by (auto simp add: same_aseq_front_rows_def)
+
+lemma same_aseq_front_rows_rflts:
+  assumes "same_aseq_front_rows root front rows"
+  shows "same_aseq_front_rows root front (rflts rows)"
+  by (rule same_aseq_front_rows_subsetI
+      [OF aseq_termss_rflts_subset assms])
+
+lemma same_aseq_front_rows_rdistinct:
+  assumes "same_aseq_front_rows root front rows"
+  shows "same_aseq_front_rows root front (rdistinct rows acc)"
+  by (rule same_aseq_front_rows_subsetI
+      [OF aseq_termss_rdistinct_subset assms])
+
+lemma afactored1_same_aseq_front_rows [simp]:
+  "same_aseq_front_rows r s (afactored1 r s)"
+  by (simp add: same_aseq_front_rows_def derivative_front_terms_def)
+
+lemma row_dlformss_afactored1_same_aseq_front:
+  assumes "x \<in> row_dlformss (afactored1 r s)"
+  shows "same_aseq_front_row r s x"
+  by (rule same_aseq_front_rows_row_dlformssD
+      [OF afactored1_same_aseq_front_rows assms])
+
+lemma row_dlforms_rpder_norm_list_afactored1_same_aseq_front:
+  assumes q: "q \<in> set (afactored1 root front)"
+    and p: "p \<in> set (rpder_norm_list c q)"
+    and x: "x \<in> row_dlforms p"
+  shows "same_aseq_front_row root (front @ [c]) x"
+proof -
+  have x_front:
+      "x \<in> row_dlformss (afactored1 root (front @ [c]))"
+    using q p x
+    by (auto simp add: afactored1_snoc afactored_step_def
+        rpder_norm_rows_def row_dlformss_member_iff)
+  show ?thesis
+    by (rule row_dlformss_afactored1_same_aseq_front[OF x_front])
+qed
+
+definition same_dlfront_row :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "same_dlfront_row root front row \<longleftrightarrow>
+    row_dlforms row \<subseteq> adlform_front root front"
+
+definition same_dlfront_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "same_dlfront_rows root front rows \<longleftrightarrow>
+    row_dlformss rows \<subseteq> adlform_front root front"
+
+lemma row_dlforms_anorm_der_eq_adlform_front:
+  "row_dlforms (anorm_der r s) = adlform_front r s"
+  by (simp add: anorm_der_def adlform_front_def)
+
+lemma row_dlforms_rders_pder_norm_eq_adlform_front:
+  "row_dlforms (rders_pder_norm r s) = adlform_front r s"
+  by (simp add: anorm_der_eq_rders_pder_norm[symmetric]
+      row_dlforms_anorm_der_eq_adlform_front)
+
+lemma row_dlforms_rders_pder_norm_subset_apder_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "row_dlforms (rders_pder_norm r s) \<subseteq>
+    apder_dlfrontier r"
+  using adlform_front_subset_apder_dlfrontier[OF nf, of s]
+  by (simp add: row_dlforms_rders_pder_norm_eq_adlform_front)
+
+lemma rsize_set_row_dlforms_rders_pder_norm_le_apder_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (row_dlforms (rders_pder_norm r s)) \<le>
+    rsize_set (apder_dlfrontier r)"
+  by (rule rsize_set_mono)
+    (use row_dlforms_rders_pder_norm_subset_apder_dlfrontier[OF nf, of s]
+      in auto)
+
+lemma row_dlforms_rders_pder_norm_same_aseq_front:
+  assumes "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "same_aseq_front_row r s x"
+proof -
+  have "x \<in> row_dlformss (afactored1 r s)"
+    using assms
+    by (simp add: row_dlforms_rders_pder_norm_eq_adlform_front
+        adlform_front_def)
+  then show ?thesis
+    by (rule row_dlformss_afactored1_same_aseq_front)
+qed
+
+lemma row_dlforms_rders_pder_norm_same_frontier_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "same_aseq_front_row r s x \<and>
+    derivative_front_terms r s \<subseteq>
+      partial_derivative_frontier_universe r \<and>
+    aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof (intro conjI)
+  show "same_aseq_front_row r s x"
+    by (rule row_dlforms_rders_pder_norm_same_aseq_front[OF x])
+  show "derivative_front_terms r s \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule derivative_front_terms_frontier_universe_subset[OF legacy])
+  show "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+  proof -
+    have "aseq_terms x \<subseteq> derivative_front_terms r s"
+      using row_dlforms_rders_pder_norm_same_aseq_front[OF x]
+      by (simp add: same_aseq_front_row_def)
+    also have "... \<subseteq> partial_derivative_frontier_universe r"
+      by (rule derivative_front_terms_frontier_universe_subset[OF legacy])
+    finally show ?thesis .
+  qed
+qed
+
+lemma rders_pder_norm_same_dlfront_row:
+  "same_dlfront_row r s (rders_pder_norm r s)"
+  by (simp add: same_dlfront_row_def
+      row_dlforms_rders_pder_norm_eq_adlform_front)
+
+lemma rders_pder_norm_split_term_in_same_dlfront:
+  assumes "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "x \<in> adlform_front r s"
+  using assms by (simp add: row_dlforms_rders_pder_norm_eq_adlform_front)
+
+lemma adlform_front_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> adlform_front r s"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have x_terms: "aseq_terms x \<subseteq> aseq_termss (afactored1 r s)"
+    using x
+    by (simp add: adlform_front_def row_dlformss_aseq_terms_subset)
+  have rows_terms:
+      "aseq_termss (afactored1 r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+  show ?thesis
+    by (rule subset_trans[OF x_terms rows_terms])
+qed
+
+lemma adlform_front_snoc:
+  "adlform_front r (s @ [c]) =
+    row_dlformss (afactored_step c (afactored1 r s))"
+  by (simp add: adlform_front_def afactored1_snoc)
+
+lemma row_dlforms_rpder_norm_list_afactored1_subset:
+  assumes q: "q \<in> set (afactored1 root front)"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  shows "row_dlforms p \<subseteq> adlform_front root (front @ [c])"
+proof -
+  have p_in:
+      "p \<in> set (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+    using q p by auto
+  have "row_dlforms p \<subseteq>
+      row_dlformss (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+    by (rule row_dlforms_member_subset_dlformss[OF p_in])
+  also have "... =
+      row_dlformss (afactored_step c (afactored1 root front))"
+    by (rule row_dlformss_afactored_step_eq_generated[symmetric])
+  also have "... = adlform_front root (front @ [c])"
+    by (rule adlform_front_snoc[symmetric])
+  finally show ?thesis .
+qed
+
+lemma same_dlfront_rowsI:
+  assumes "\<And>row. row \<in> set rows \<Longrightarrow>
+    row_dlforms row \<subseteq> adlform_front root front"
+  shows "same_dlfront_rows root front rows"
+proof -
+  have "row_dlformss rows \<subseteq> adlform_front root front"
+  proof
+    fix x
+    assume x: "x \<in> row_dlformss rows"
+    obtain row where row: "row \<in> set rows" "x \<in> row_dlforms row"
+      using x by (auto simp add: row_dlformss_member_iff)
+    have "row_dlforms row \<subseteq> adlform_front root front"
+      by (rule assms[OF row(1)])
+    then show "x \<in> adlform_front root front"
+      using row(2) by blast
+  qed
+  then show ?thesis
+    by (simp add: same_dlfront_rows_def)
+qed
+
+lemma same_dlfront_rowsD:
+  assumes "same_dlfront_rows root front rows"
+    and "row \<in> set rows"
+  shows "same_dlfront_row root front row"
+proof -
+  have rows: "row_dlformss rows \<subseteq> adlform_front root front"
+    using assms(1) by (simp add: same_dlfront_rows_def)
+  have "row_dlforms row \<subseteq> adlform_front root front"
+  proof
+    fix x
+    assume x: "x \<in> row_dlforms row"
+    have "x \<in> row_dlformss rows"
+      using assms(2) x by (auto simp add: row_dlformss_member_iff)
+    then show "x \<in> adlform_front root front"
+      using rows by blast
+  qed
+  then show ?thesis
+    by (simp add: same_dlfront_row_def)
+qed
+
+lemma afactored1_same_dlfront_rows [simp]:
+  "same_dlfront_rows r s (afactored1 r s)"
+  by (simp add: same_dlfront_rows_def adlform_front_def)
+
+lemma afactored1_member_same_dlfront_row:
+  assumes "row \<in> set (afactored1 r s)"
+  shows "same_dlfront_row r s row"
+  using same_dlfront_rowsD[OF afactored1_same_dlfront_rows assms] .
+
+lemma same_dlfront_rows_subsetI:
+  assumes rows': "row_dlformss rows' \<subseteq> row_dlformss rows"
+    and rows: "same_dlfront_rows root front rows"
+  shows "same_dlfront_rows root front rows'"
+proof -
+  have "row_dlformss rows' \<subseteq> adlform_front root front"
+    using rows' rows by (auto simp add: same_dlfront_rows_def)
+  then show ?thesis
+    by (simp add: same_dlfront_rows_def)
+qed
+
+lemma same_dlfront_rows_rflts:
+  assumes "same_dlfront_rows root front rows"
+  shows "same_dlfront_rows root front (rflts rows)"
+  using assms by (simp add: same_dlfront_rows_def)
+
+lemma same_dlfront_rows_rdistinct:
+  assumes "same_dlfront_rows root front rows"
+  shows "same_dlfront_rows root front (rdistinct rows acc)"
+  by (rule same_dlfront_rows_subsetI[OF row_dlformss_rdistinct_subset assms])
+
+lemma same_dlfront_rows_row_dlform_canonical_rows:
+  assumes nf: "\<forall>q \<in> set rows. rtail_nf q"
+    and rows: "same_dlfront_rows root front rows"
+  shows "same_dlfront_rows root front (row_dlform_canonical_rows rows)"
+proof -
+  have "row_dlformss (row_dlform_canonical_rows rows) =
+      row_dlformss rows"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF nf])
+  then have "row_dlformss (row_dlform_canonical_rows rows) \<subseteq>
+      adlform_front root front"
+    using rows by (simp add: same_dlfront_rows_def)
+  then show ?thesis
+    by (simp add: same_dlfront_rows_def)
+qed
+
+lemma rtail_nf_afactored1:
+  assumes nf: "apder_nf r"
+  shows "\<forall>q \<in> set (afactored1 r s). rtail_nf q"
+proof
+  fix q
+  assume q: "q \<in> set (afactored1 r s)"
+  have rows: "set (afactored1 r s) \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  then have "q \<in> apder_rows r"
+    using q by blast
+  then show "rtail_nf q"
+    by (rule apder_rows_member_rtail_nf[OF nf])
+qed
+
+lemma row_dlform_canonical_afactored1_same_dlfront_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "RLS (set (row_dlform_canonical_rows (afactored1 r s))) =
+      Ders s (RL r) \<and>
+    same_dlfront_rows r s
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (afactored1 r s)) =
+      adlform_front r s \<and>
+    rsizes (row_dlform_canonical_rows (afactored1 r s)) \<le>
+      3 * rsize_set (adlform_front r s)"
+proof (intro conjI)
+  let ?rows = "afactored1 r s"
+  let ?canon = "row_dlform_canonical_rows ?rows"
+  have rows_nf: "\<forall>q \<in> set ?rows. rtail_nf q"
+    by (rule rtail_nf_afactored1[OF nf])
+  have lang_canon: "RLS (set ?canon) = RLS (set ?rows)"
+    by (rule RLS_set_row_dlform_canonical_rows)
+  show "RLS (set ?canon) = Ders s (RL r)"
+    using lang_canon RLS_afactored1[OF legacy] by simp
+  show "same_dlfront_rows r s ?canon"
+    by (rule same_dlfront_rows_row_dlform_canonical_rows
+        [OF rows_nf afactored1_same_dlfront_rows])
+  show "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF rows_nf])
+  have canon_eq: "row_dlformss ?canon = row_dlformss ?rows"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF rows_nf])
+  show "row_dlformss ?canon = adlform_front r s"
+    using canon_eq by (simp add: adlform_front_def)
+  show "rsizes ?canon \<le> 3 * rsize_set (adlform_front r s)"
+  proof (rule rsizes_row_dlform_canonical_rows_rsize_set_boundI
+      [OF rows_nf])
+    show "finite (adlform_front r s)"
+      by (simp add: adlform_front_def)
+    show "row_dlformss ?rows \<subseteq> adlform_front r s"
+      by (simp add: adlform_front_def)
+  qed
+qed
+
+lemma row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and card_bound:
+      "card (apder_deep_frontier r) \<le>
+        apder_awidth r + rsize r + 3"
+  shows "RLS (set (row_dlform_canonical_rows (afactored1 r s))) =
+      Ders s (RL r) \<and>
+    same_dlfront_rows r s
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (afactored1 r s)) =
+      adlform_front r s \<and>
+    rsizes (row_dlform_canonical_rows (afactored1 r s)) \<le>
+      3 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?canon = "row_dlform_canonical_rows (afactored1 r s)"
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have base:
+      "RLS (set ?canon) = Ders s (RL r) \<and>
+       same_dlfront_rows r s ?canon \<and>
+       row_dlformss_disjoint ?canon \<and>
+       row_dlformss ?canon = adlform_front r s \<and>
+       rsizes ?canon \<le> 3 * rsize_set (adlform_front r s)"
+    by (rule row_dlform_canonical_afactored1_same_dlfront_contract
+        [OF legacy nf])
+  have front_cubic:
+      "rsize_set (adlform_front r s) \<le> ?B"
+    by (rule rsize_set_adlform_front_cubic_from_deep_linear_card
+        [OF nf card_bound])
+  have "rsizes ?canon \<le> 3 * ?B"
+    using base front_cubic by simp
+  then show ?thesis
+    using base by blast
+qed
+
+lemma row_dlform_canonical_afactored1_same_dlfront_front_linear_card_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and card_bound:
+      "card (adlform_front r s) \<le>
+        apder_awidth r + rsize r + 3"
+  shows "RLS (set (row_dlform_canonical_rows (afactored1 r s))) =
+      Ders s (RL r) \<and>
+    same_dlfront_rows r s
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (afactored1 r s)) =
+      adlform_front r s \<and>
+    rsizes (row_dlform_canonical_rows (afactored1 r s)) \<le>
+      3 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  let ?canon = "row_dlform_canonical_rows (afactored1 r s)"
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have base:
+      "RLS (set ?canon) = Ders s (RL r) \<and>
+       same_dlfront_rows r s ?canon \<and>
+       row_dlformss_disjoint ?canon \<and>
+       row_dlformss ?canon = adlform_front r s \<and>
+       rsizes ?canon \<le> 3 * rsize_set (adlform_front r s)"
+    by (rule row_dlform_canonical_afactored1_same_dlfront_contract
+        [OF legacy nf])
+  have front_cubic:
+      "rsize_set (adlform_front r s) \<le> ?B"
+    by (rule rsize_set_adlform_front_cubic_from_front_linear_card
+        [OF nf card_bound])
+  have "rsizes ?canon \<le> 3 * ?B"
+    using base front_cubic by simp
+  then show ?thesis
+    using base by blast
+qed
+
+lemma same_dlfront_rows_rprune_eq_against:
+  assumes "same_dlfront_rows root front rows"
+  shows "same_dlfront_rows root front (rprune_eq_against covered rows)"
+  by (rule same_dlfront_rows_subsetI
+      [OF row_dlformss_rprune_eq_against_subset assms])
+
+lemma same_dlfront_row_rsimp_ALTs:
+  assumes "same_dlfront_rows root front rows"
+  shows "same_dlfront_row root front (rsimp_ALTs rows)"
+proof -
+  have "row_dlforms (rsimp_ALTs rows) \<subseteq> adlform_front root front"
+    using assms by (simp add: same_dlfront_rows_def)
+  then show ?thesis
+    by (simp add: same_dlfront_row_def)
+qed
+
+lemma rders_pder_norm_split_terms_frontier_universe_subset_dlfront:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have "x \<in> adlform_front r s"
+    by (rule rders_pder_norm_split_term_in_same_dlfront[OF x])
+  then show ?thesis
+    by (rule adlform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma same_dlfront_rows_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_dlfront_rows root front rows"
+    and x: "x \<in> row_dlformss rows"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root"
+proof -
+  have "x \<in> adlform_front root front"
+    using rows x by (auto simp add: same_dlfront_rows_def)
+  then show ?thesis
+    by (rule adlform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma same_dlfront_row_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp root"
+    and row: "same_dlfront_row root front row"
+    and x: "x \<in> row_dlforms row"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root"
+proof -
+  have "x \<in> adlform_front root front"
+    using row x by (auto simp add: same_dlfront_row_def)
+  then show ?thesis
+    by (rule adlform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma adlform_front_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> adlform_front r s"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule adlform_front_aseq_terms_frontier_universe_subset
+        [OF legacy x])
+  have card:
+      "card (aseq_terms x) \<le> (rsize r + 2) ^ 2"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (partial_derivative_frontier_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+  proof
+    fix q
+    assume q: "q \<in> aseq_terms x"
+    then have "q \<in> partial_derivative_frontier_universe r"
+      using subset by auto
+    then show "rsize q \<le> Suc (rsize r + rsize r)"
+      by (rule partial_derivative_frontier_universe_member_size_linear)
+  qed
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma same_dlfront_rows_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_dlfront_rows root front rows"
+    and x: "x \<in> row_dlformss rows"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root \<and>
+    card (aseq_terms x) \<le> (rsize root + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize root + rsize root))"
+proof -
+  have "x \<in> adlform_front root front"
+    using rows x by (auto simp add: same_dlfront_rows_def)
+  then show ?thesis
+    by (rule adlform_front_aseq_terms_frontier_universe_contract[OF legacy])
+qed
+
+lemma same_dlfront_rows_cleaned_rprune_contract:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_dlfront_rows root front rows"
+    and x: "x \<in>
+      row_dlformss (rdistinct (rflts (rprune_eq_against covered rows)) acc)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root \<and>
+    card (aseq_terms x) \<le> (rsize root + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x.
+      rsize q \<le> Suc (rsize root + rsize root))"
+proof -
+  have pruned:
+      "same_dlfront_rows root front (rprune_eq_against covered rows)"
+    by (rule same_dlfront_rows_rprune_eq_against[OF rows])
+  have flat:
+      "same_dlfront_rows root front
+        (rflts (rprune_eq_against covered rows))"
+    by (rule same_dlfront_rows_rflts[OF pruned])
+  have clean:
+      "same_dlfront_rows root front
+        (rdistinct (rflts (rprune_eq_against covered rows)) acc)"
+    by (rule same_dlfront_rows_rdistinct[OF flat])
+  show ?thesis
+    by (rule same_dlfront_rows_aseq_terms_frontier_universe_contract
+        [OF legacy clean x])
+qed
+
+lemma pure_adlform_front_not_closed_under_rsimpStrong_raw:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSTAR RZERO)"
+  shows "RSTAR RZERO \<in> set (rpder_norm_list a r)"
+    and "RONE \<in> row_dlforms (rsimpStrong_raw (RSTAR RZERO))"
+    and "RONE \<notin> adlform_front r [a]"
+  by (simp_all add: r_def adlform_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      row_dlformss_def)
+
+lemma same_dlfront_rsimpStrong_raw_step_counterexample:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSTAR RZERO)"
+  defines "rows \<equiv> [r]"
+  defines "q \<equiv> r"
+  defines "p \<equiv> RSTAR RZERO"
+  shows "same_dlfront_rows r [] rows"
+    and "q \<in> set rows"
+    and "p \<in> set (rpder_norm_list a q)"
+    and "\<not> row_dlforms (rsimpStrong_raw p) \<subseteq>
+      adlform_front r [a]"
+  by (simp_all add: r_def rows_def q_def p_def same_dlfront_rows_def
+      adlform_front_def afactored1_def afactored_step_def
+      rpder_norm_rows_def rpder_norm_list_def row_dlformss_def)
+
+lemma rsimpStrong_raw_row_dlforms_cost_not_monotone:
+  fixes a b c d :: char
+  assumes ab: "a \<noteq> b"
+    and ac: "a \<noteq> c"
+    and bc: "b \<noteq> c"
+  defines "k \<equiv>
+    RSEQ (RALTS [RCHAR a, RCHAR b, RCHAR c])
+      (RSTAR (RCHAR d))"
+  defines "p \<equiv> RSEQ (RSTAR RZERO) k"
+  shows "apder_nf p"
+    and "rsize_set (row_dlforms (rsimpStrong_raw p)) = 12"
+    and "rsize_set (row_dlforms p) = 10"
+    and "row_dlforms_list_size p = 10"
+    and "\<not> rsize_set (row_dlforms (rsimpStrong_raw p)) \<le>
+      rsize_set (row_dlforms p)"
+    and "\<not> rsize_set (row_dlforms (rsimpStrong_raw p)) \<le>
+      row_dlforms_list_size p"
+  using assms
+  by (simp_all add: k_def p_def rsize_set_def row_dlforms_list_size_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def Let_def)
+
+definition rsimpStrong_dlform_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsimpStrong_dlform_closure U =
+    (\<Union>p \<in> U. row_dlforms (rsimpStrong_raw p))"
+
+definition afactored1_strong_dlform_universe ::
+  "rrexp \<Rightarrow> string \<Rightarrow> char \<Rightarrow> rrexp set" where
+  "afactored1_strong_dlform_universe r s c =
+    rsimpStrong_dlform_closure
+      (set (concat (map (rpder_norm_list c) (afactored1 r s))))"
+
+definition afactored1_strong_dlform_list_cost ::
+  "rrexp \<Rightarrow> string \<Rightarrow> char \<Rightarrow> nat" where
+  "afactored1_strong_dlform_list_cost r s c =
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+        (concat (map (rpder_norm_list c) (afactored1 r s))))"
+
+definition rsimpStrong_lform_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsimpStrong_lform_closure U =
+    (\<Union>p \<in> U. row_lforms (rsimpStrong_raw p))"
+
+definition afactored1_strong_lform_universe ::
+  "rrexp \<Rightarrow> string \<Rightarrow> char \<Rightarrow> rrexp set" where
+  "afactored1_strong_lform_universe r s c =
+    rsimpStrong_lform_closure
+      (set (concat (map (rpder_norm_list c) (afactored1 r s))))"
+
+lemma finite_rsimpStrong_lform_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsimpStrong_lform_closure U)"
+  using assms by (simp add: rsimpStrong_lform_closure_def)
+
+lemma finite_afactored1_strong_lform_universe [simp]:
+  "finite (afactored1_strong_lform_universe r s c)"
+  by (simp add: afactored1_strong_lform_universe_def)
+
+lemma rsimpStrong_lform_closureI:
+  assumes "p \<in> U"
+    and "x \<in> row_lforms (rsimpStrong_raw p)"
+  shows "x \<in> rsimpStrong_lform_closure U"
+  using assms by (auto simp add: rsimpStrong_lform_closure_def)
+
+lemma rsize_set_rsimpStrong_lform_closure_le_sum:
+  assumes finite: "finite U"
+  shows "rsize_set (rsimpStrong_lform_closure U) \<le>
+    (\<Sum>p \<in> U. rsize_set (row_lforms (rsimpStrong_raw p)))"
+  unfolding rsimpStrong_lform_closure_def
+  by (rule rsize_set_UN_le[OF finite]) simp
+
+lemma rsize_set_afactored1_strong_lform_universe_le_sum:
+  "rsize_set (afactored1_strong_lform_universe r s c) \<le>
+    (\<Sum>p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s))).
+      rsize_set (row_lforms (rsimpStrong_raw p)))"
+  unfolding afactored1_strong_lform_universe_def
+  by (rule rsize_set_rsimpStrong_lform_closure_le_sum) simp
+
+lemma finite_rsimpStrong_dlform_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsimpStrong_dlform_closure U)"
+  using assms by (simp add: rsimpStrong_dlform_closure_def)
+
+lemma finite_afactored1_strong_dlform_universe [simp]:
+  "finite (afactored1_strong_dlform_universe r s c)"
+  by (simp add: afactored1_strong_dlform_universe_def)
+
+definition apder_strong_dlfrontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_strong_dlfrontier r =
+    rsimpStrong_dlform_closure (apder_rows r)"
+
+lemma finite_apder_strong_dlfrontier [simp]:
+  "finite (apder_strong_dlfrontier r)"
+  by (simp add: apder_strong_dlfrontier_def)
+
+definition rsimpStrong_frontier_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsimpStrong_frontier_closure U =
+    (\<Union>p \<in> U. rfrontier (rsimpStrong_raw p))"
+
+definition apder_strong_frontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_strong_frontier r =
+    rsimpStrong_frontier_closure (apder_rows r)"
+
+lemma finite_rsimpStrong_frontier_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsimpStrong_frontier_closure U)"
+  using assms by (simp add: rsimpStrong_frontier_closure_def)
+
+lemma finite_apder_strong_frontier [simp]:
+  "finite (apder_strong_frontier r)"
+  by (simp add: apder_strong_frontier_def)
+
+lemma rsimpStrong_frontier_closureI:
+  assumes "p \<in> U"
+    and "x \<in> rfrontier (rsimpStrong_raw p)"
+  shows "x \<in> rsimpStrong_frontier_closure U"
+  using assms by (auto simp add: rsimpStrong_frontier_closure_def)
+
+lemma rsize_set_rsimpStrong_frontier_closure_le:
+  assumes finite: "finite U"
+  shows "rsize_set (rsimpStrong_frontier_closure U) \<le> rsize_set U"
+proof -
+  have "rsize_set (rsimpStrong_frontier_closure U) \<le>
+      (\<Sum>p \<in> U. rsize_set (rfrontier (rsimpStrong_raw p)))"
+    unfolding rsimpStrong_frontier_closure_def
+    by (rule rsize_set_UN_le[OF finite]) simp
+  also have "... \<le> (\<Sum>p \<in> U. rsize p)"
+  proof (rule sum_mono)
+    fix p
+    assume "p \<in> U"
+    have "rsize_set (rfrontier (rsimpStrong_raw p)) \<le>
+        rsize (rsimpStrong_raw p)"
+      by (rule rsize_set_rfrontier_le_rsize)
+    also have "... \<le> rsize p"
+      by (rule rsize_rsimpStrong_raw_le)
+    finally show "rsize_set (rfrontier (rsimpStrong_raw p)) \<le> rsize p" .
+  qed
+  also have "... = rsize_set U"
+    by (simp add: rsize_set_def)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_strong_frontier_expanded_cubic_size_bound:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (apder_strong_frontier r) \<le>
+    2 * (apder_awidth r + rsize r + 3) ^ 3"
+proof -
+  have "rsize_set (apder_strong_frontier r) \<le>
+      rsize_set (apder_rows r)"
+    unfolding apder_strong_frontier_def
+    by (rule rsize_set_rsimpStrong_frontier_closure_le) simp
+  also have "... \<le> 2 * (apder_awidth r + rsize r + 3) ^ 3"
+    by (rule rsize_set_apder_rows_expanded_cubic_size_bound[OF nf])
+  finally show ?thesis .
+qed
+
+lemma rsimpStrong_dlform_closureI:
+  assumes "p \<in> U"
+    and "x \<in> row_dlforms (rsimpStrong_raw p)"
+  shows "x \<in> rsimpStrong_dlform_closure U"
+  using assms by (auto simp add: rsimpStrong_dlform_closure_def)
+
+lemma row_dlforms_rsimpStrong_raw_self_closure:
+  assumes "p \<in> U"
+  shows "row_dlforms (rsimpStrong_raw p) \<subseteq>
+    rsimpStrong_dlform_closure U"
+  using assms by (auto intro: rsimpStrong_dlform_closureI)
+
+lemma rsimpStrong_dlform_closure_member_size_bound:
+  assumes member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+    and x: "x \<in> rsimpStrong_dlform_closure U"
+  shows "rsize x \<le> M"
+proof -
+  obtain p where p:
+      "p \<in> U" "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x by (auto simp add: rsimpStrong_dlform_closure_def)
+  have "rsize x \<le> rsize (rsimpStrong_raw p)"
+    by (rule row_dlforms_member_size_le_rsize[OF p(2)])
+  also have "... \<le> rsize p"
+    by (rule rsize_rsimpStrong_raw_le)
+  also have "... \<le> M"
+    by (rule member_size[OF p(1)])
+  finally show ?thesis .
+qed
+
+lemma rsimpStrong_dlform_closure_member_list_size_bound:
+  assumes member_size: "\<And>p. p \<in> U \<Longrightarrow>
+      row_dlforms_list_size (rsimpStrong_raw p) \<le> M"
+    and x: "x \<in> rsimpStrong_dlform_closure U"
+  shows "rsize x \<le> M"
+proof -
+  obtain p where p:
+      "p \<in> U" "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x by (auto simp add: rsimpStrong_dlform_closure_def)
+  have "rsize x \<le> row_dlforms_list_size (rsimpStrong_raw p)"
+    by (rule row_dlforms_member_size_le_list_size[OF p(2)])
+  also have "... \<le> M"
+    by (rule member_size[OF p(1)])
+  finally show ?thesis .
+qed
+
+lemma afactored1_strong_dlform_universe_member_size_le_generated_rsizes:
+  assumes "x \<in> afactored1_strong_dlform_universe r s c"
+  shows "rsize x \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof (rule rsimpStrong_dlform_closure_member_size_bound)
+  fix p
+  assume p: "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  show "rsize p \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule elem_size_le_rsizes[OF p])
+next
+  show "x \<in> rsimpStrong_dlform_closure
+      (set (concat (map (rpder_norm_list c) (afactored1 r s))))"
+    using assms
+    by (simp add: afactored1_strong_dlform_universe_def)
+qed
+
+lemma afactored1_strong_dlform_universe_member_size_le_list_cost:
+  assumes "x \<in> afactored1_strong_dlform_universe r s c"
+  shows "rsize x \<le>
+    afactored1_strong_dlform_list_cost r s c"
+proof (rule rsimpStrong_dlform_closure_member_list_size_bound)
+  fix p
+  let ?G = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  let ?f = "\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p)"
+  assume p: "p \<in> set ?G"
+  show "row_dlforms_list_size (rsimpStrong_raw p) \<le>
+      afactored1_strong_dlform_list_cost r s c"
+    using member_le_sum_list_map_nat[OF p, of ?f]
+    by (simp add: afactored1_strong_dlform_list_cost_def)
+next
+  show "x \<in> rsimpStrong_dlform_closure
+      (set (concat (map (rpder_norm_list c) (afactored1 r s))))"
+    using assms
+    by (simp add: afactored1_strong_dlform_universe_def)
+qed
+
+lemma rsimpStrong_dlform_closure_mono:
+  assumes "U \<subseteq> V"
+  shows "rsimpStrong_dlform_closure U \<subseteq>
+    rsimpStrong_dlform_closure V"
+  using assms by (auto simp add: rsimpStrong_dlform_closure_def)
+
+lemma card_rsimpStrong_dlform_closure_boundI:
+  assumes finite: "finite U"
+    and bound: "\<And>p. p \<in> U \<Longrightarrow>
+      card (row_dlforms (rsimpStrong_raw p)) \<le> M"
+  shows "card (rsimpStrong_dlform_closure U) \<le> card U * M"
+proof -
+  have "card (rsimpStrong_dlform_closure U) \<le>
+      (\<Sum>p \<in> U. card (row_dlforms (rsimpStrong_raw p)))"
+    unfolding rsimpStrong_dlform_closure_def
+    by (rule card_UN_le[OF finite])
+  also have "... \<le> (\<Sum>p \<in> U. M)"
+    by (rule sum_mono) (rule bound)
+  also have "... = card U * M"
+    using finite by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_rsimpStrong_dlform_closure_le_sum:
+  assumes finite: "finite U"
+  shows "rsize_set (rsimpStrong_dlform_closure U) \<le>
+    (\<Sum>p \<in> U. rsize_set (row_dlforms (rsimpStrong_raw p)))"
+  unfolding rsimpStrong_dlform_closure_def
+  by (rule rsize_set_UN_le[OF finite]) simp
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_sum:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    (\<Sum>p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s))).
+      rsize_set (row_dlforms (rsimpStrong_raw p)))"
+  unfolding afactored1_strong_dlform_universe_def
+  by (rule rsize_set_rsimpStrong_dlform_closure_le_sum) simp
+
+lemma sum_rsize_set_row_dlforms_rsimpStrong_raw_le_list_size:
+  "(\<Sum>p \<in> set ps. rsize_set (row_dlforms (rsimpStrong_raw p))) \<le>
+    sum_list (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p)) ps)"
+proof -
+  have "(\<Sum>p \<in> set ps. rsize_set (row_dlforms (rsimpStrong_raw p))) \<le>
+      (\<Sum>p \<in> set ps. row_dlforms_list_size (rsimpStrong_raw p))"
+    by (rule sum_mono)
+      (rule rsize_set_row_dlforms_le_row_dlforms_list_size)
+  also have "... \<le>
+      sum_list (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p)) ps)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_list_size:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+        (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?G = "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      (\<Sum>p \<in> set ?G. rsize_set (row_dlforms (rsimpStrong_raw p)))"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_sum)
+  also have "... \<le>
+      sum_list (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p)) ?G)"
+    by (rule sum_rsize_set_row_dlforms_rsimpStrong_raw_le_list_size)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_list_cost:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    afactored1_strong_dlform_list_cost r s c"
+  unfolding afactored1_strong_dlform_list_cost_def
+  by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+
+lemma afactored1_strong_dlform_universe_list_cost_budget:
+  "finite (afactored1_strong_dlform_universe r s c) \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      rsize x \<le> afactored1_strong_dlform_list_cost r s c) \<and>
+    rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      afactored1_strong_dlform_list_cost r s c"
+proof -
+  have finite: "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  have member:
+      "\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+        rsize x \<le> afactored1_strong_dlform_list_cost r s c"
+    by (auto intro: afactored1_strong_dlform_universe_member_size_le_list_cost)
+  have size:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      afactored1_strong_dlform_list_cost r s c"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_list_cost)
+  show ?thesis
+    using finite member size by blast
+qed
+
+lemma afactored1_strong_dlform_universe_generated_size_budget:
+  "finite (afactored1_strong_dlform_universe r s c) \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      rsize x \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))) \<and>
+    rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      afactored1_strong_dlform_list_cost r s c"
+proof -
+  have finite: "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  have member:
+      "\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+        rsize x \<le>
+          rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (auto intro:
+        afactored1_strong_dlform_universe_member_size_le_generated_rsizes)
+  have size:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      afactored1_strong_dlform_list_cost r s c"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_list_cost)
+  show ?thesis
+    using finite member size by blast
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_card_generated_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+  shows "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    C * M"
+proof -
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have finite: "finite ?U"
+    by simp
+  have member_size: "\<And>x. x \<in> ?U \<Longrightarrow> rsize x \<le> M"
+  proof -
+    fix x
+    assume x: "x \<in> ?U"
+    have "rsize x \<le>
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      by (rule afactored1_strong_dlform_universe_member_size_le_generated_rsizes
+          [OF x])
+    also have "... \<le> M"
+      by (rule generated_size)
+    finally show "rsize x \<le> M" .
+  qed
+  have "rsize_set ?U \<le> card ?U * M"
+    by (rule rsize_set_le_card_times_bound[OF finite member_size])
+  also have "... \<le> C * M"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+    and cubic:
+      "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "rsize_set (afactored1_strong_dlform_universe r s c) \<le> C * M"
+    by (rule
+        rsize_set_afactored1_strong_dlform_universe_card_generated_boundI
+        [OF card_bound generated_size])
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule cubic)
+  finally show ?thesis .
+qed
+
+lemma rsimpStrong_raw_seq_alt_dlform_closure_counterexample:
+  fixes a :: char
+  defines "star \<equiv> RSTAR (RCHAR a)"
+  defines "p \<equiv> RSEQ (RCHAR a) star"
+  defines "k \<equiv> RALTS [star, star]"
+  defines "r \<equiv> RSEQ (RALTS [p]) k"
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ star star)"
+  shows "x \<in> row_dlforms (rsimpStrong_raw r)"
+    and "x \<notin> rsimpStrong_dlform_closure (row_dlforms r)"
+  by (simp_all add: star_def p_def k_def r_def x_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def
+      rsimp7_SEQ_atom_def Let_def)
+
+function (sequential) rsimpDeep_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp"
+where
+  "rsimpDeep_SEQ_atom RZERO k = RZERO"
+| "rsimpDeep_SEQ_atom RONE k = k"
+| "rsimpDeep_SEQ_atom (RSEQ r1 r2) k =
+    rsimpDeep_SEQ_atom r1 (rsimpDeep_SEQ_atom r2 k)"
+| "rsimpDeep_SEQ_atom p RZERO = RZERO"
+| "rsimpDeep_SEQ_atom p RONE = p"
+| "rsimpDeep_SEQ_atom (RSTAR r) (RSTAR s) =
+    (if r = s then RSTAR r else RSEQ (RSTAR r) (RSTAR s))"
+| "rsimpDeep_SEQ_atom (RSTAR r) (RSEQ (RSTAR s) k) =
+    (if r = s then RSEQ (RSTAR r) k
+     else RSEQ (RSTAR r) (RSEQ (RSTAR s) k))"
+| "rsimpDeep_SEQ_atom p k = RSEQ p k"
+  by pat_completeness auto
+termination
+  by (relation "measure (\<lambda>(p, k). rsize p)") auto
+
+lemma rsimpDeep_SEQ_atom_repairs_nested_star_absorption:
+  fixes a :: char
+  defines "star \<equiv> RSTAR (RCHAR a)"
+  defines "p \<equiv> RSEQ (RCHAR a) star"
+  shows "rsimpDeep_SEQ_atom p star = p"
+  by (simp add: star_def p_def)
+
+lemma RL_rsimpDeep_SEQ_atom:
+  "RL (rsimpDeep_SEQ_atom p k) = RL p ;; RL k"
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct)
+    (auto simp add: Star_Sequ_idem Star_Sequ_prefix_idem conc_assoc)
+
+lemma rsize_rsimpDeep_SEQ_atom_le:
+  "rsize (rsimpDeep_SEQ_atom p k) \<le> Suc (rsize p + rsize k)"
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct) auto
+
+lemma aseq_terms_rsimpDeep_SEQ_atom_subset:
+  "aseq_terms (rsimpDeep_SEQ_atom p k) \<subseteq>
+    aseq_terms p \<union> aseq_terms k"
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct) auto
+
+fun rsimpDeep_raw :: "rrexp \<Rightarrow> rrexp"
+where
+  "rsimpDeep_raw (RSEQ r1 r2) =
+    rsimpDeep_SEQ_atom (rsimpDeep_raw r1) (rsimpDeep_raw r2)"
+| "rsimpDeep_raw (RALTS rs) =
+    rsimp_ALTs (rdistinct (rflts (map rsimpDeep_raw rs)) {})"
+| "rsimpDeep_raw (RSTAR r) =
+    (case rsimpDeep_raw r of
+      RZERO \<Rightarrow> RONE
+    | RONE \<Rightarrow> RONE
+    | RSTAR s \<Rightarrow> RSTAR s
+    | s \<Rightarrow> RSTAR s)"
+| "rsimpDeep_raw (RNTIMES r n) = RNTIMES (rsimpDeep_raw r) n"
+| "rsimpDeep_raw r = r"
+
+lemma RL_rsimpDeep_raw:
+  "RL (rsimpDeep_raw r) = RL r"
+proof (induct r rule: rsimpDeep_raw.induct)
+  case (1 r1 r2)
+  then show ?case
+    by (simp add: RL_rsimpDeep_SEQ_atom)
+next
+  case (2 rs)
+  have "RL (rsimpDeep_raw (RALTS rs)) =
+      (\<Union> (set (map RL (map rsimpDeep_raw rs))))"
+    by (simp add: RL_rsimp_ALTs_normalize)
+  also have "... = (\<Union> (set (map RL rs)))"
+    using 2 by auto
+  also have "... = RL (RALTS rs)"
+    by simp
+  finally show ?case .
+next
+  case (3 r)
+  show ?case
+  proof (cases "rsimpDeep_raw r")
+    case RZERO
+    have "RL r = {}"
+      using 3 RZERO by simp
+    then show ?thesis
+      using RZERO by simp
+  next
+    case RONE
+    have "RL r = {[]}"
+      using 3 RONE by simp
+    then show ?thesis
+      using RONE by simp
+  next
+    case (RSTAR s)
+    have "RL r = RL (RSTAR s)"
+      using 3 RSTAR by simp
+    then show ?thesis
+      using RSTAR by (simp add: Star_idem)
+  qed (use 3 in simp_all)
+qed simp_all
+
+lemma rsize_rsimpDeep_raw_le:
+  "rsize (rsimpDeep_raw r) \<le> rsize r"
+proof (induct r rule: rsimpDeep_raw.induct)
+  case (1 r1 r2)
+  have "rsize (rsimpDeep_raw (RSEQ r1 r2)) \<le>
+      Suc (rsize (rsimpDeep_raw r1) + rsize (rsimpDeep_raw r2))"
+    by (simp add: rsize_rsimpDeep_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r1 + rsize r2)"
+    using 1 by simp
+  finally show ?case
+    by simp
+next
+  case (2 rs)
+  have elems: "rsizes (map rsimpDeep_raw rs) \<le> rsizes rs"
+    using 2 by (simp add: sum_list_mono)
+  have "rsize (rsimpDeep_raw (RALTS rs)) =
+      rsize (rsimp_ALTs (rdistinct (rflts (map rsimpDeep_raw rs)) {}))"
+    by simp
+  also have "... \<le> Suc (rsizes (rdistinct (rflts (map rsimpDeep_raw rs)) {}))"
+    by (rule rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes (rflts (map rsimpDeep_raw rs)))"
+    using rdistinct_smaller[of "rflts (map rsimpDeep_raw rs)" "{}"]
+    by simp
+  also have "... \<le> Suc (rsizes (map rsimpDeep_raw rs))"
+    using rflts_mono[of "map rsimpDeep_raw rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using elems by simp
+  finally show ?case
+    by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimpDeep_raw r") simp_all
+qed simp_all
+
+lemma rsimpDeep_raw_repairs_atomic_aseq_payment_counterexample:
+  fixes a b :: char
+  assumes diff: "a \<noteq> b"
+  defines "x \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b, RCHAR b, RCHAR b])"
+  shows "rsimpDeep_raw x = RSEQ (RCHAR a) (RCHAR b)"
+    and "rsize (rsimpDeep_raw x) \<le>
+      Suc (2 * rsize_set (aseq_terms (rsimpDeep_raw x)))"
+  using diff
+  by (simp_all add: x_def rsize_set_def)
+
+definition rsimpDeep_fuel_fixed :: "rrexp \<Rightarrow> bool" where
+  "rsimpDeep_fuel_fixed r \<longleftrightarrow>
+    (\<forall>q \<in> rsubterms r \<union> rlinear_continuations r.
+      rsimpDeep_raw q = q)"
+
+lemma rsimpDeep_fixed_aseq_terms_payment_false:
+  fixes a :: char
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "rsimpDeep_fuel_fixed x"
+    and "nonalt x"
+    and "x \<noteq> RZERO"
+    and "\<not> rsize x \<le> Suc (2 * rsize_set (aseq_terms x))"
+  by (simp_all add: x_def rsimpDeep_fuel_fixed_def rsize_set_def)
+
+lemma rsimpDeep_fuel_fixed_RZERO [simp]:
+  "rsimpDeep_fuel_fixed RZERO"
+  by (simp add: rsimpDeep_fuel_fixed_def)
+
+lemma rsimpDeep_fuel_fixed_RONE [simp]:
+  "rsimpDeep_fuel_fixed RONE"
+  by (simp add: rsimpDeep_fuel_fixed_def)
+
+lemma rsimpDeep_fuel_fixed_RCHAR [simp]:
+  "rsimpDeep_fuel_fixed (RCHAR c)"
+  by (simp add: rsimpDeep_fuel_fixed_def)
+
+lemma rsimpDeep_fuel_fixed_self:
+  assumes "rsimpDeep_fuel_fixed r"
+  shows "rsimpDeep_raw r = r"
+  using assms by (auto simp add: rsimpDeep_fuel_fixed_def)
+
+lemma rlinear_continuations_continuation_subset:
+  assumes "q \<in> rlinear_continuations r"
+  shows "rlinear_continuations q \<subseteq> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: q) fastforce+
+
+lemma rlinear_continuations_subterm_subset_fuel:
+  assumes "q \<in> rsubterms r"
+    and "x \<in> rlinear_continuations q"
+  shows "x \<in> rsubterms r \<union> rlinear_continuations r"
+  using assms
+  by (induct r arbitrary: q x) fastforce+
+
+lemma rsimpDeep_fuel_fixed_subterm:
+  assumes fixed: "rsimpDeep_fuel_fixed r"
+    and sub: "q \<in> rsubterms r"
+  shows "rsimpDeep_fuel_fixed q"
+proof -
+  have "\<And>x. x \<in> rsubterms q \<union> rlinear_continuations q \<Longrightarrow>
+      rsimpDeep_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms q \<union> rlinear_continuations q"
+    then show "rsimpDeep_raw x = x"
+    proof
+      assume "x \<in> rsubterms q"
+      then have "x \<in> rsubterms r"
+        by (rule rsubterms_trans[OF sub])
+      then show ?thesis
+        using fixed by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      assume "x \<in> rlinear_continuations q"
+      then have "x \<in> rlinear_continuations r"
+        using rlinear_continuations_subterm_subset[OF sub] by blast
+      then show ?thesis
+        using fixed by (auto simp add: rsimpDeep_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma rsimpDeep_fuel_fixed_continuation:
+  assumes fixed: "rsimpDeep_fuel_fixed r"
+    and cont: "q \<in> rlinear_continuations r"
+  shows "rsimpDeep_fuel_fixed q"
+proof -
+  have "\<And>x. x \<in> rsubterms q \<union> rlinear_continuations q \<Longrightarrow>
+      rsimpDeep_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms q \<union> rlinear_continuations q"
+    then show "rsimpDeep_raw x = x"
+    proof
+      assume "x \<in> rsubterms q"
+      then have "x \<in> rsubterms r \<union> rlinear_continuations r"
+        using rsubterms_rlinear_continuation_subset_fuel[OF cont]
+        by blast
+      then show ?thesis
+        using fixed by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      assume "x \<in> rlinear_continuations q"
+      then have "x \<in> rlinear_continuations r"
+        using rlinear_continuations_continuation_subset[OF cont] by blast
+      then show ?thesis
+        using fixed by (auto simp add: rsimpDeep_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma rsimpDeep_fuel_fixed_RSEQI:
+  assumes left: "rsimpDeep_fuel_fixed p"
+    and right: "rsimpDeep_fuel_fixed k"
+    and seq: "rsimpDeep_SEQ_atom p k = RSEQ p k"
+  shows "rsimpDeep_fuel_fixed (RSEQ p k)"
+proof -
+  have left_self: "rsimpDeep_raw p = p"
+    by (rule rsimpDeep_fuel_fixed_self[OF left])
+  have right_self: "rsimpDeep_raw k = k"
+    by (rule rsimpDeep_fuel_fixed_self[OF right])
+  have self: "rsimpDeep_raw (RSEQ p k) = RSEQ p k"
+    using seq by (simp add: left_self right_self)
+  have "\<And>x. x \<in> rsubterms (RSEQ p k) \<union>
+      rlinear_continuations (RSEQ p k) \<Longrightarrow>
+      rsimpDeep_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms (RSEQ p k) \<union>
+      rlinear_continuations (RSEQ p k)"
+    then consider
+        "x = RSEQ p k"
+      | "x \<in> rsubterms p"
+      | "x \<in> rsubterms k"
+      | "x = k"
+      | "x \<in> rlinear_continuations p"
+      | "x \<in> rlinear_continuations k"
+      by auto
+    then show "rsimpDeep_raw x = x"
+    proof cases
+      case 1
+      then show ?thesis
+        using self by auto
+    next
+      case 2
+      then show ?thesis
+        using left by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 3
+      then show ?thesis
+        using right by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 4
+      then show ?thesis
+        by (simp add: right_self)
+    next
+      case 5
+      then show ?thesis
+        using left by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 6
+      then show ?thesis
+        using right by (auto simp add: rsimpDeep_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma rsimpDeep_fuel_fixed_SEQ_atom:
+  assumes left: "rsimpDeep_fuel_fixed p"
+    and right: "rsimpDeep_fuel_fixed k"
+  shows "rsimpDeep_fuel_fixed (rsimpDeep_SEQ_atom p k)"
+  using left right
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case
+    by simp
+next
+  case RONE
+  then show ?case
+    by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+next
+  case (RSEQ r1 r2)
+  have r1_fixed: "rsimpDeep_fuel_fixed r1"
+  proof (rule rsimpDeep_fuel_fixed_subterm)
+    show "rsimpDeep_fuel_fixed (RSEQ r1 r2)"
+      by (rule RSEQ.prems(1))
+    show "r1 \<in> rsubterms (RSEQ r1 r2)"
+      by simp
+  qed
+  have r2_fixed: "rsimpDeep_fuel_fixed r2"
+  proof (rule rsimpDeep_fuel_fixed_subterm)
+    show "rsimpDeep_fuel_fixed (RSEQ r1 r2)"
+      by (rule RSEQ.prems(1))
+    show "r2 \<in> rsubterms (RSEQ r1 r2)"
+      by simp
+  qed
+  have mid: "rsimpDeep_fuel_fixed (rsimpDeep_SEQ_atom r2 k)"
+    by (rule RSEQ.hyps(2)[OF r2_fixed RSEQ.prems(2)])
+  show ?case
+    by (simp, rule RSEQ.hyps(1)[OF r1_fixed mid])
+next
+  case (RSTAR r)
+  note left_fixed = RSTAR.prems(1)
+  note right_fixed = RSTAR.prems(2)
+  show ?case
+  proof (cases k)
+    case RZERO
+    then show ?thesis
+      by simp
+  next
+    case RONE
+    then show ?thesis
+      using left_fixed right_fixed by simp
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  next
+    case (RALTS rs)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  next
+    case (RSEQ k1 k2)
+    show ?thesis
+    proof (cases k1)
+      case (RSTAR s)
+      have star_s_fixed: "rsimpDeep_fuel_fixed (RSTAR s)"
+        using RSEQ RSTAR
+        by (intro rsimpDeep_fuel_fixed_subterm[OF right_fixed])
+          simp
+      have k2_fixed: "rsimpDeep_fuel_fixed k2"
+        using RSEQ RSTAR
+        by (intro rsimpDeep_fuel_fixed_subterm[OF right_fixed])
+          simp
+      have star_s_self: "rsimpDeep_raw (RSTAR s) = RSTAR s"
+        by (rule rsimpDeep_fuel_fixed_self[OF star_s_fixed])
+      have k2_self: "rsimpDeep_raw k2 = k2"
+        by (rule rsimpDeep_fuel_fixed_self[OF k2_fixed])
+      have right_shape: "k = RSEQ (RSTAR s) k2"
+        using RSEQ RSTAR by simp
+      have right_shaped_fixed:
+          "rsimpDeep_fuel_fixed (RSEQ (RSTAR s) k2)"
+        using right_fixed right_shape by simp
+      have right_self_k: "rsimpDeep_raw k = k"
+        by (rule rsimpDeep_fuel_fixed_self[OF right_fixed])
+      have right_self:
+          "rsimpDeep_raw (RSEQ (RSTAR s) k2) =
+            RSEQ (RSTAR s) k2"
+        using right_self_k right_shape by simp
+      have right_seq:
+          "rsimpDeep_SEQ_atom (rsimpDeep_raw (RSTAR s))
+            (rsimpDeep_raw k2) =
+            RSEQ (RSTAR s) k2"
+        using right_self by simp
+      have seq_s: "rsimpDeep_SEQ_atom (RSTAR s) k2 =
+          RSEQ (RSTAR s) k2"
+        using right_seq by (simp only: star_s_self k2_self)
+      show ?thesis
+      proof (cases "r = s")
+        case True
+        have seq_r: "rsimpDeep_SEQ_atom (RSTAR r) k2 =
+            RSEQ (RSTAR r) k2"
+          using seq_s True by simp
+        have goal_eq: "rsimpDeep_SEQ_atom (RSTAR r) k =
+            RSEQ (RSTAR r) k2"
+          using RSEQ RSTAR True seq_r by simp
+        have fixed_result: "rsimpDeep_fuel_fixed (RSEQ (RSTAR r) k2)"
+          by (rule rsimpDeep_fuel_fixed_RSEQI
+              [OF left_fixed k2_fixed seq_r])
+        show ?thesis
+          using fixed_result goal_eq by simp
+      next
+        case False
+        have seq:
+            "rsimpDeep_SEQ_atom (RSTAR r) (RSEQ (RSTAR s) k2) =
+              RSEQ (RSTAR r) (RSEQ (RSTAR s) k2)"
+          using False by simp
+        have goal_eq: "rsimpDeep_SEQ_atom (RSTAR r) k =
+            RSEQ (RSTAR r) (RSEQ (RSTAR s) k2)"
+          using RSEQ RSTAR False by simp
+        have fixed_result:
+            "rsimpDeep_fuel_fixed
+              (RSEQ (RSTAR r) (RSEQ (RSTAR s) k2))"
+          by (rule rsimpDeep_fuel_fixed_RSEQI
+              [OF left_fixed right_shaped_fixed seq])
+        show ?thesis
+          using fixed_result goal_eq by simp
+      qed
+    qed (use RSEQ left_fixed right_fixed in
+      \<open>auto intro!: rsimpDeep_fuel_fixed_RSEQI\<close>)
+  next
+    case (RSTAR s)
+    show ?thesis
+    proof (cases "r = s")
+      case True
+      then show ?thesis
+        using left_fixed right_fixed by (simp add: RSTAR)
+    next
+      case False
+      have seq: "rsimpDeep_SEQ_atom (RSTAR r) (RSTAR s) =
+          RSEQ (RSTAR r) (RSTAR s)"
+        using False by simp
+      have right_star_fixed: "rsimpDeep_fuel_fixed (RSTAR s)"
+        using right_fixed RSTAR by simp
+      have fixed_result:
+          "rsimpDeep_fuel_fixed (RSEQ (RSTAR r) (RSTAR s))"
+        by (rule rsimpDeep_fuel_fixed_RSEQI
+            [OF left_fixed right_star_fixed seq])
+      show ?thesis
+        using fixed_result RSTAR False by simp
+    qed
+  next
+    case (RNTIMES r n)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  next
+    case (RBACKREF4 r1 r2 r3 r4 cs)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  next
+    case (RHALF r cs rep)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using left_fixed right_fixed
+      by (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) (auto intro!: rsimpDeep_fuel_fixed_RSEQI)
+qed
+
+lemma rsimpDeep_fuel_fixed_RSTARI:
+  assumes body: "rsimpDeep_fuel_fixed r"
+    and self: "rsimpDeep_raw (RSTAR r) = RSTAR r"
+  shows "rsimpDeep_fuel_fixed (RSTAR r)"
+proof -
+  have body_self: "rsimpDeep_raw r = r"
+    by (rule rsimpDeep_fuel_fixed_self[OF body])
+  have "\<And>x. x \<in> rsubterms (RSTAR r) \<union>
+      rlinear_continuations (RSTAR r) \<Longrightarrow>
+      rsimpDeep_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms (RSTAR r) \<union>
+      rlinear_continuations (RSTAR r)"
+    then consider
+        "x = RSTAR r"
+      | "x \<in> rsubterms r"
+      | "x \<in> rlinear_continuations r"
+      by auto
+    then show "rsimpDeep_raw x = x"
+    proof cases
+      case 1
+      then show ?thesis
+        using self by auto
+    next
+      case 2
+      then show ?thesis
+        using body by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 3
+      then show ?thesis
+        using body by (auto simp add: rsimpDeep_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def body_self)
+qed
+
+lemma rsimpDeep_fuel_fixed_RNTIMESI:
+  assumes body: "rsimpDeep_fuel_fixed r"
+  shows "rsimpDeep_fuel_fixed (RNTIMES r n)"
+proof -
+  have body_self: "rsimpDeep_raw r = r"
+    by (rule rsimpDeep_fuel_fixed_self[OF body])
+  have "\<And>x. x \<in> rsubterms (RNTIMES r n) \<union>
+      rlinear_continuations (RNTIMES r n) \<Longrightarrow>
+      rsimpDeep_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms (RNTIMES r n) \<union>
+      rlinear_continuations (RNTIMES r n)"
+    then consider
+        "x = RNTIMES r n"
+      | "x \<in> rsubterms r"
+      | "x \<in> rlinear_continuations r"
+      | k where "k \<le> n" "x = RNTIMES r k"
+      by auto
+    then show "rsimpDeep_raw x = x"
+    proof cases
+      case 1
+      then show ?thesis
+        by (simp add: body_self)
+    next
+      case 2
+      then show ?thesis
+        using body by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 3
+      then show ?thesis
+        using body by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 4
+      then show ?thesis
+        by (simp add: body_self)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma rsimpDeep_raw_repairs_seq_alt_dlform_counterexample:
+  fixes a :: char
+  defines "star \<equiv> RSTAR (RCHAR a)"
+  defines "p \<equiv> RSEQ (RCHAR a) star"
+  defines "k \<equiv> RALTS [star, star]"
+  defines "r \<equiv> RSEQ (RALTS [p]) k"
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ star star)"
+  shows "rsimpDeep_raw r = p"
+    and "x \<notin> row_dlforms (rsimpDeep_raw r)"
+  by (simp_all add: star_def p_def k_def r_def x_def)
+
+lemma pure_adlform_front_not_closed_under_rsimpDeep_raw:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSTAR RZERO)"
+  shows "RSTAR RZERO \<in> set (rpder_norm_list a r)"
+    and "RONE \<in> row_dlforms (rsimpDeep_raw (RSTAR RZERO))"
+    and "RONE \<notin> adlform_front r [a]"
+  by (simp_all add: r_def adlform_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      row_dlformss_def)
+
+lemma rtail_nf_rsimpDeep_SEQ_atom:
+  assumes "rtail_nf p" "rtail_nf k"
+  shows "rtail_nf (rsimpDeep_SEQ_atom p k)"
+  using assms
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct)
+    (auto split: if_splits)
+
+lemma rtail_nf_rflts_map_rsimpDeep_raw:
+  assumes ih: "\<And>q. q \<in> set rs \<Longrightarrow> rtail_nf (rsimpDeep_raw q)"
+    and x: "x \<in> set (rflts (map rsimpDeep_raw rs))"
+  shows "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  obtain q where q: "q \<in> set rs" "x \<in> set (rflts [rsimpDeep_raw q])"
+    using x by (rule set_rflts_map_memberE)
+  show ?thesis
+    by (rule rtail_nf_flat_member_props[OF ih[OF q(1)] q(2)])
+qed
+
+lemma rtail_nf_rsimpDeep_raw:
+  "rtail_nf (rsimpDeep_raw r)"
+proof (induction r rule: rsimpDeep_raw.induct)
+  case (1 r1 r2)
+  have nf1: "rtail_nf (rsimpDeep_raw r1)"
+    using 1 by blast
+  have nf2: "rtail_nf (rsimpDeep_raw r2)"
+    using 1 by blast
+  show ?case
+    by (simp add: rtail_nf_rsimpDeep_SEQ_atom[OF nf1 nf2])
+next
+  case (2 rs)
+  let ?flat = "rflts (map rsimpDeep_raw rs)"
+  let ?xs = "rdistinct ?flat {}"
+  have flat_props:
+    "\<And>x. x \<in> set ?flat \<Longrightarrow>
+      rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    by (rule rtail_nf_rflts_map_rsimpDeep_raw) (use 2 in auto)
+  have distinct_props:
+    "\<And>x. x \<in> set ?xs \<Longrightarrow>
+      rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    using flat_props by (auto simp add: rdistinct_set_equality1)
+  show ?case
+    by (simp add: rtail_nf_rsimp_ALTs[OF distinct_props])
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimpDeep_raw r") simp_all
+qed simp_all
+
+lemma rsimpDeep_fuel_fixed_rflts_member_props:
+  assumes elems: "\<forall>q \<in> set rs. rsimpDeep_fuel_fixed q"
+    and x: "x \<in> set (rflts rs)"
+  shows "rsimpDeep_fuel_fixed x \<and> nonalt x \<and> x \<noteq> RZERO"
+proof -
+  have x_map: "x \<in> set (rflts (map id rs))"
+    using x by simp
+  obtain q where q: "q \<in> set rs" "x \<in> set (rflts [id q])"
+    using x_map by (rule set_rflts_map_memberE)
+  have q_fixed: "rsimpDeep_fuel_fixed q"
+    using elems q(1) by blast
+  have q_nf: "rtail_nf q"
+  proof -
+    have "q = rsimpDeep_raw q"
+      using rsimpDeep_fuel_fixed_self[OF q_fixed] by simp
+    then show ?thesis
+      using rtail_nf_rsimpDeep_raw[of q] by simp
+  qed
+  have x_props: "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+    by (rule rtail_nf_flat_member_props[OF q_nf])
+      (use q(2) in simp)
+  have x_sub: "x \<in> rsubterms q"
+  proof -
+    have x_mem: "x \<in> set (rflts [q])"
+      using q(2) by simp
+    have "set (rflts [q]) \<subseteq> (\<Union>r \<in> set [q]. rsubterms r)"
+      by (rule set_rflts_subset_rsubterms_list)
+    then have "x \<in> (\<Union>r \<in> set [q]. rsubterms r)"
+      using x_mem by auto
+    then show ?thesis
+      by simp
+  qed
+  have x_fixed: "rsimpDeep_fuel_fixed x"
+    by (rule rsimpDeep_fuel_fixed_subterm[OF q_fixed x_sub])
+  show ?thesis
+    using x_fixed x_props by blast
+qed
+
+lemma rsimpDeep_fuel_fixed_RALTSI:
+  assumes elems: "\<forall>x \<in> set xs. rsimpDeep_fuel_fixed x"
+    and nonalt: "\<forall>x \<in> set xs. nonalt x"
+    and nonzero: "\<forall>x \<in> set xs. x \<noteq> RZERO"
+    and distinct: "distinct xs"
+    and len: "2 \<le> length xs"
+  shows "rsimpDeep_fuel_fixed (RALTS xs)"
+proof -
+  obtain a b zs where xs_eq: "xs = a # b # zs"
+    using len
+    by (cases xs) (auto, metis Suc_1 Suc_le_length_iff le_Suc_eq)
+  have map_id: "map rsimpDeep_raw xs = xs"
+    using elems rsimpDeep_fuel_fixed_self by (induct xs) auto
+  have flat: "rflts xs = xs"
+    by (rule nonalt0_fltseq) (use nonalt nonzero in blast)
+  have rd: "rdistinct xs {} = xs"
+    by (rule rdistinct_on_distinct[OF distinct])
+  have alts_xs: "rsimp_ALTs xs = RALTS xs"
+    using xs_eq by simp
+  have self: "rsimpDeep_raw (RALTS xs) = RALTS xs"
+    by (simp add: map_id flat rd alts_xs)
+  have "\<And>q. q \<in> rsubterms (RALTS xs) \<union>
+      rlinear_continuations (RALTS xs) \<Longrightarrow>
+      rsimpDeep_raw q = q"
+  proof -
+    fix q
+    assume q: "q \<in> rsubterms (RALTS xs) \<union>
+      rlinear_continuations (RALTS xs)"
+    then consider
+        "q = RALTS xs"
+      | x where "x \<in> set xs" "q \<in> rsubterms x"
+      | x where "x \<in> set xs" "q \<in> rlinear_continuations x"
+      by auto
+    then show "rsimpDeep_raw q = q"
+    proof cases
+      case 1
+      then show ?thesis
+        using self by auto
+    next
+      case 2
+      then show ?thesis
+        using elems by (auto simp add: rsimpDeep_fuel_fixed_def)
+    next
+      case 3
+      then show ?thesis
+        using elems by (auto simp add: rsimpDeep_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma rsimpDeep_fuel_fixed_rsimp_ALTsI:
+  assumes elems: "\<forall>x \<in> set xs. rsimpDeep_fuel_fixed x"
+    and nonalt: "\<forall>x \<in> set xs. nonalt x"
+    and nonzero: "\<forall>x \<in> set xs. x \<noteq> RZERO"
+    and distinct: "distinct xs"
+  shows "rsimpDeep_fuel_fixed (rsimp_ALTs xs)"
+proof (cases xs)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons a ys)
+  note xs_cons = Cons
+  show ?thesis
+  proof (cases ys)
+    case Nil
+    then show ?thesis
+      using Cons elems by simp
+  next
+    case (Cons b zs)
+    note ys_cons = Cons
+    have len: "2 \<le> length xs"
+      using xs_cons ys_cons by simp
+    have alts: "rsimp_ALTs xs = RALTS xs"
+      using xs_cons ys_cons by simp
+    show ?thesis
+      unfolding alts
+      by (rule rsimpDeep_fuel_fixed_RALTSI
+          [OF elems nonalt nonzero distinct len])
+  qed
+qed
+
+lemma legacy_rsimpDeep_SEQ_atom:
+  assumes "legacy_rrexp p" "legacy_rrexp k"
+  shows "legacy_rrexp (rsimpDeep_SEQ_atom p k)"
+  using assms
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct)
+    (auto split: if_splits)
+
+lemma legacy_rsimpDeep_raw:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimpDeep_raw r)"
+  using assms
+proof (induction r rule: rsimpDeep_raw.induct)
+  case (1 r1 r2)
+  have left: "legacy_rrexp (rsimpDeep_raw r1)"
+    using 1 by simp
+  have right: "legacy_rrexp (rsimpDeep_raw r2)"
+    using 1 by simp
+  show ?case
+    by (simp add: legacy_rsimpDeep_SEQ_atom[OF left right])
+next
+  case (2 rs)
+  have mapped: "\<forall>r \<in> set (map rsimpDeep_raw rs). legacy_rrexp r"
+    using 2 by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimpDeep_raw rs)). legacy_rrexp r"
+    using legacy_rflts[OF mapped] .
+  have distinct:
+      "\<forall>r \<in> set (rdistinct (rflts (map rsimpDeep_raw rs)) {}).
+        legacy_rrexp r"
+    using legacy_rdistinct[OF flat] .
+  show ?case
+    using legacy_rsimp_ALTs[OF distinct] by simp
+next
+  case (3 r)
+  then show ?case
+    by (cases "rsimpDeep_raw r") simp_all
+qed simp_all
+
+lemma rsimpDeep_fuel_fixed_rsimpDeep_raw_legacy:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsimpDeep_fuel_fixed (rsimpDeep_raw r)"
+  using legacy
+proof (induct r)
+  case RZERO
+  then show ?case
+    by simp
+next
+  case RONE
+  then show ?case
+    by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by simp
+next
+  case (RALTS rs)
+  let ?mapped = "map rsimpDeep_raw rs"
+  let ?flat = "rflts ?mapped"
+  let ?xs = "rdistinct ?flat {}"
+  have mapped_fixed:
+      "\<forall>q \<in> set ?mapped. rsimpDeep_fuel_fixed q"
+    using RALTS by auto
+  have flat_props:
+      "\<forall>x \<in> set ?flat.
+        rsimpDeep_fuel_fixed x \<and> nonalt x \<and> x \<noteq> RZERO"
+  proof
+    fix x
+    assume x: "x \<in> set ?flat"
+    show "rsimpDeep_fuel_fixed x \<and> nonalt x \<and> x \<noteq> RZERO"
+      by (rule rsimpDeep_fuel_fixed_rflts_member_props
+          [OF mapped_fixed x])
+  qed
+  have xs_fixed: "\<forall>x \<in> set ?xs. rsimpDeep_fuel_fixed x"
+    using flat_props by (auto simp add: rdistinct_set_equality1)
+  have xs_nonalt: "\<forall>x \<in> set ?xs. nonalt x"
+    using flat_props by (auto simp add: rdistinct_set_equality1)
+  have xs_nonzero: "\<forall>x \<in> set ?xs. x \<noteq> RZERO"
+    using flat_props by (auto simp add: rdistinct_set_equality1)
+  have xs_distinct: "distinct ?xs"
+    by (rule rdistinct_does_the_job)
+  show ?case
+    by (simp, rule rsimpDeep_fuel_fixed_rsimp_ALTsI
+        [OF xs_fixed xs_nonalt xs_nonzero xs_distinct])
+next
+  case (RSEQ r1 r2)
+  have left: "rsimpDeep_fuel_fixed (rsimpDeep_raw r1)"
+    using RSEQ by simp
+  have right: "rsimpDeep_fuel_fixed (rsimpDeep_raw r2)"
+    using RSEQ by simp
+  show ?case
+    by (simp, rule rsimpDeep_fuel_fixed_SEQ_atom[OF left right])
+next
+  case (RSTAR r)
+  have star_case: "rsimpDeep_fuel_fixed (rsimpDeep_raw (RSTAR r))"
+    using RSTAR legacy_rsimpDeep_raw[of r]
+    by (cases "rsimpDeep_raw r")
+      (auto intro!: rsimpDeep_fuel_fixed_RSTARI
+        simp add: rsimpDeep_fuel_fixed_def)
+  then show ?case .
+next
+  case (RNTIMES r n)
+  have body: "rsimpDeep_fuel_fixed (rsimpDeep_raw r)"
+    using RNTIMES by simp
+  show ?case
+    by (simp, rule rsimpDeep_fuel_fixed_RNTIMESI[OF body])
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by simp
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by simp
+qed
+
+lemma row_group_deep_nf_rsimpDeep_SEQ_atom:
+  assumes "row_group_deep_nf p" "row_group_deep_nf k"
+  shows "row_group_deep_nf (rsimpDeep_SEQ_atom p k)"
+  using assms
+  by (induct p k rule: rsimpDeep_SEQ_atom.induct)
+    (auto split: if_splits)
+
+lemma row_group_deep_nf_rsimpDeep_raw:
+  "row_group_deep_nf (rsimpDeep_raw r)"
+proof (induction r rule: rsimpDeep_raw.induct)
+  case (1 r1 r2)
+  have left: "row_group_deep_nf (rsimpDeep_raw r1)"
+    using 1 by blast
+  have right: "row_group_deep_nf (rsimpDeep_raw r2)"
+    using 1 by blast
+  show ?case
+    by (simp add: row_group_deep_nf_rsimpDeep_SEQ_atom[OF left right])
+next
+  case (2 rs)
+  have elems: "\<forall>r \<in> set (map rsimpDeep_raw rs). row_group_deep_nf r"
+    using 2 by auto
+  have flat: "\<forall>r \<in> set (rflts (map rsimpDeep_raw rs)).
+      row_group_deep_nf r"
+    by (rule row_group_deep_nf_rflts[OF elems])
+  have distinct: "\<forall>r \<in> set (rdistinct (rflts (map rsimpDeep_raw rs)) {}).
+      row_group_deep_nf r"
+    by (rule row_group_deep_nf_rdistinct[OF flat])
+  show ?case
+    by (simp add: row_group_deep_nf_rsimp_ALTs[OF distinct])
+next
+  case (3 r)
+  have inner: "row_group_deep_nf (rsimpDeep_raw r)"
+    using 3 by blast
+  show ?case
+    using inner by (cases "rsimpDeep_raw r") simp_all
+qed simp_all
+
+definition rpder_deep_list :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "rpder_deep_list c r = map rsimpDeep_raw (rpder_norm_list c r)"
+
+definition rpder_deep_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rpder_deep_rows c rs =
+    rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}"
+
+fun rpders_deep_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_deep_rows rs [] = rs"
+| "rpders_deep_rows rs (c # s) =
+    rpders_deep_rows (rpder_deep_rows c rs) s"
+
+definition rpders_deep1_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_deep1_rows r s = rpders_deep_rows [r] s"
+
+lemma RLS_set_map_rsimpDeep_raw:
+  "RLS (set (map rsimpDeep_raw rs)) = RLS (set rs)"
+  unfolding RLS_def using RL_rsimpDeep_raw by auto
+
+lemma RLS_set_concat_rpder_deep_list:
+  assumes "\<forall>q \<in> set rs. legacy_rrexp q"
+  shows "RLS (set (concat (map (rpder_deep_list c) rs))) =
+    Der c (RLS (set rs))"
+proof -
+  have "RLS (set (concat (map (rpder_deep_list c) rs))) =
+      RLS (set (concat (map (rpder_norm_list c) rs)))"
+    unfolding rpder_deep_list_def RLS_def
+    using RL_rsimpDeep_raw by auto
+  also have "... = RLS (rpder_norm_set c (set rs))"
+    by (rule RLS_set_concat_rpder_norm_list)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_norm_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_deep_rows:
+  assumes "\<forall>q \<in> set rs. legacy_rrexp q"
+  shows "RLS (set (rpder_deep_rows c rs)) = Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_deep_rows c rs)) =
+      RLS (set (concat (map (rpder_deep_list c) rs)))"
+    unfolding rpder_deep_rows_def by (rule RLS_set_rdistinct_rflts)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_set_concat_rpder_deep_list[OF assms])
+  finally show ?thesis .
+qed
+
+lemma RLS_rpders_deep_rows:
+  assumes "\<forall>q \<in> set rs. legacy_rrexp q"
+  shows "RLS (set (rpders_deep_rows rs s)) = Ders s (RLS (set rs))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have step_legacy:
+      "\<forall>q \<in> set (rpder_deep_rows c rs). legacy_rrexp q"
+  proof -
+    have generated:
+        "\<forall>q \<in> set (concat (map (rpder_deep_list c) rs)).
+          legacy_rrexp q"
+      unfolding rpder_deep_list_def
+      using Cons.prems legacy_rpder_norm_list legacy_rsimpDeep_raw
+      by auto
+    have flat:
+        "\<forall>q \<in> set (rflts (concat (map (rpder_deep_list c) rs))).
+          legacy_rrexp q"
+      by (rule legacy_rflts[OF generated])
+    have distinct:
+        "\<forall>q \<in> set
+          (rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}).
+          legacy_rrexp q"
+      by (rule legacy_rdistinct[OF flat])
+    show ?thesis
+      using distinct by (simp add: rpder_deep_rows_def)
+  qed
+  have "RLS (set (rpders_deep_rows rs (c # s))) =
+      Ders s (RLS (set (rpder_deep_rows c rs)))"
+    by (simp add: Cons.hyps[OF step_legacy])
+  also have "... = Ders s (Der c (RLS (set rs)))"
+    by (simp add: RLS_rpder_deep_rows[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS (set rs))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders_deep1_rows:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (rpders_deep1_rows r s)) = Ders s (RL r)"
+  using RLS_rpders_deep_rows[of "[r]" s] assms
+  by (simp add: rpders_deep1_rows_def RLS_def)
+
+lemma legacy_rpder_deep_list:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_deep_list c r). legacy_rrexp p"
+  unfolding rpder_deep_list_def
+  using assms legacy_rpder_norm_list legacy_rsimpDeep_raw by auto
+
+lemma legacy_rpder_deep_rows:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_deep_rows c rs). legacy_rrexp p"
+proof -
+  have generated:
+      "\<forall>p \<in> set (concat (map (rpder_deep_list c) rs)).
+        legacy_rrexp p"
+    using assms legacy_rpder_deep_list by auto
+  have flat:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_deep_list c) rs))).
+        legacy_rrexp p"
+    by (rule legacy_rflts[OF generated])
+  have distinct:
+      "\<forall>p \<in> set
+        (rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}).
+        legacy_rrexp p"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    using distinct by (simp add: rpder_deep_rows_def)
+qed
+
+lemma rtail_nf_rpder_deep_list:
+  "\<forall>p \<in> set (rpder_deep_list c r). rtail_nf p"
+  unfolding rpder_deep_list_def
+  using rtail_nf_rsimpDeep_raw by auto
+
+lemma rtail_nf_rpder_deep_rows:
+  "\<forall>p \<in> set (rpder_deep_rows c rs). rtail_nf p"
+proof -
+  have generated:
+      "\<forall>p \<in> set (concat (map (rpder_deep_list c) rs)). rtail_nf p"
+    using rtail_nf_rpder_deep_list by auto
+  have flat:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_deep_list c) rs))).
+        rtail_nf p"
+  proof
+    fix p
+    assume p: "p \<in> set (rflts (concat (map (rpder_deep_list c) rs)))"
+    have p_map:
+        "p \<in> set (rflts (map (\<lambda>x. x)
+          (concat (map (rpder_deep_list c) rs))))"
+      using p by simp
+    obtain q where q:
+        "q \<in> set (concat (map (rpder_deep_list c) rs))"
+        "p \<in> set (rflts [q])"
+      using p_map by (rule set_rflts_map_memberE)
+    have "rtail_nf q"
+      using generated q(1) by auto
+    show "rtail_nf p"
+      using rtail_nf_flat_member_props[OF \<open>rtail_nf q\<close> q(2)]
+      by blast
+  qed
+  have distinct:
+      "\<forall>p \<in> set
+        (rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}).
+        rtail_nf p"
+    using flat by (auto simp add: rdistinct_set_equality1)
+  show ?thesis
+    using distinct by (simp add: rpder_deep_rows_def)
+qed
+
+lemma distinct_rpder_deep_rows:
+  "distinct (rpder_deep_rows c rs)"
+  unfolding rpder_deep_rows_def
+  by (rule rdistinct_does_the_job)
+
+lemma distinct_rpders_deep_rows:
+  assumes "distinct rs"
+  shows "distinct (rpders_deep_rows rs s)"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_rows: "distinct (rpder_deep_rows c rs)"
+    by (rule distinct_rpder_deep_rows)
+  show ?case
+    by (simp add: Cons.hyps[OF next_rows])
+qed
+
+lemma distinct_rpders_deep1_rows:
+  "distinct (rpders_deep1_rows r s)"
+  unfolding rpders_deep1_rows_def
+proof -
+  have "distinct [r]"
+    by simp
+  then show "distinct (rpders_deep_rows [r] s)"
+    by (rule distinct_rpders_deep_rows)
+qed
+
+lemma rsimpDeep_fuel_fixed_rpder_deep_list:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_deep_list c r). rsimpDeep_fuel_fixed p"
+  unfolding rpder_deep_list_def
+  using assms legacy_rpder_norm_list
+    rsimpDeep_fuel_fixed_rsimpDeep_raw_legacy
+  by auto
+
+lemma rsimpDeep_fuel_fixed_rpder_deep_rows:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_deep_rows c rs).
+    rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+proof -
+  have generated:
+      "\<forall>p \<in> set (concat (map (rpder_deep_list c) rs)).
+        rsimpDeep_fuel_fixed p"
+    using legacy rsimpDeep_fuel_fixed_rpder_deep_list by auto
+  have flat:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_deep_list c) rs))).
+        rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+  proof
+    fix p
+    assume p: "p \<in>
+      set (rflts (concat (map (rpder_deep_list c) rs)))"
+    show "rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+      by (rule rsimpDeep_fuel_fixed_rflts_member_props
+          [OF generated p])
+  qed
+  have distinct:
+      "\<forall>p \<in> set
+        (rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}).
+        rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+    using flat by (auto simp add: rdistinct_set_equality1)
+  show ?thesis
+    using distinct by (simp add: rpder_deep_rows_def)
+qed
+
+lemma rsimpDeep_fuel_fixed_rpders_deep_rows:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and props: "\<forall>p \<in> set rs.
+      rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+  shows "\<forall>p \<in> set (rpders_deep_rows rs s).
+    rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+  using legacy props
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy:
+      "\<forall>p \<in> set (rpder_deep_rows c rs). legacy_rrexp p"
+    by (rule legacy_rpder_deep_rows[OF Cons.prems(1)])
+  have next_props:
+      "\<forall>p \<in> set (rpder_deep_rows c rs).
+        rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+    by (rule rsimpDeep_fuel_fixed_rpder_deep_rows[OF Cons.prems(1)])
+  show ?case
+    by (simp add: Cons.hyps[OF next_legacy next_props])
+qed
+
+lemma rsimpDeep_fuel_fixed_rpders_deep1_rows_nonempty:
+  assumes legacy: "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpders_deep1_rows r (c # s)).
+    rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+proof -
+  have first_legacy:
+      "\<forall>p \<in> set (rpder_deep_rows c [r]). legacy_rrexp p"
+    by (rule legacy_rpder_deep_rows) (use legacy in auto)
+  have first_props:
+      "\<forall>p \<in> set (rpder_deep_rows c [r]).
+        rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+    by (rule rsimpDeep_fuel_fixed_rpder_deep_rows) (use legacy in auto)
+  have "\<forall>p \<in>
+      set (rpders_deep_rows (rpder_deep_rows c [r]) s).
+      rsimpDeep_fuel_fixed p \<and> nonalt p \<and> p \<noteq> RZERO"
+    by (rule rsimpDeep_fuel_fixed_rpders_deep_rows
+        [OF first_legacy first_props])
+  then show ?thesis
+    by (simp add: rpders_deep1_rows_def)
+qed
+
+lemma row_group_deep_nf_rpder_deep_list:
+  "\<forall>p \<in> set (rpder_deep_list c r). row_group_deep_nf p"
+  unfolding rpder_deep_list_def
+  using row_group_deep_nf_rsimpDeep_raw by auto
+
+lemma row_group_deep_nf_rpder_deep_rows:
+  "\<forall>p \<in> set (rpder_deep_rows c rs). row_group_deep_nf p"
+proof -
+  have generated:
+      "\<forall>p \<in> set (concat (map (rpder_deep_list c) rs)).
+        row_group_deep_nf p"
+    using row_group_deep_nf_rpder_deep_list by auto
+  have flat:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_deep_list c) rs))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rflts[OF generated])
+  have distinct:
+      "\<forall>p \<in> set
+        (rdistinct (rflts (concat (map (rpder_deep_list c) rs))) {}).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rdistinct[OF flat])
+  show ?thesis
+    using distinct by (simp add: rpder_deep_rows_def)
+qed
+
+lemma row_group_deep_nf_rpders_deep_rows:
+  assumes "\<forall>p \<in> set rs. row_group_deep_nf p"
+  shows "\<forall>p \<in> set (rpders_deep_rows rs s). row_group_deep_nf p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_rows:
+      "\<forall>p \<in> set (rpder_deep_rows c rs). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpder_deep_rows)
+  show ?case
+    by (simp add: Cons.hyps[OF next_rows])
+qed
+
+lemma row_group_deep_nf_rpders_deep1_rows:
+  assumes "row_group_deep_nf r"
+  shows "\<forall>p \<in> set (rpders_deep1_rows r s). row_group_deep_nf p"
+  unfolding rpders_deep1_rows_def
+proof -
+  have rows: "\<forall>p \<in> set [r]. row_group_deep_nf p"
+    using assms by simp
+  show "\<forall>p \<in> set (rpders_deep_rows [r] s). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpders_deep_rows[OF rows])
+qed
+
+lemma rsizes_map_rsimpDeep_raw_le:
+  "rsizes (map rsimpDeep_raw xs) \<le> rsizes xs"
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons p ps)
+  have head: "rsize (rsimpDeep_raw p) \<le> rsize p"
+    by (rule rsize_rsimpDeep_raw_le)
+  have tail: "rsizes (map rsimpDeep_raw ps) \<le> rsizes ps"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by simp
+qed
+
+lemma rsizes_rpder_deep_list_le:
+  "rsizes (rpder_deep_list c r) \<le> rsizes (rpder_norm_list c r)"
+  unfolding rpder_deep_list_def
+  by (rule rsizes_map_rsimpDeep_raw_le)
+
+lemma rsizes_concat_rpder_deep_list_le:
+  "rsizes (concat (map (rpder_deep_list c) rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head:
+      "rsizes (rpder_deep_list c r) \<le> rsizes (rpder_norm_list c r)"
+    by (rule rsizes_rpder_deep_list_le)
+  have tail:
+      "rsizes (concat (map (rpder_deep_list c) rs)) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by simp
+qed
+
+lemma rsizes_rpder_deep_rows_le:
+  "rsizes (rpder_deep_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rsizes (rpder_deep_rows c rs) \<le>
+      rsizes (rflts (concat (map (rpder_deep_list c) rs)))"
+    unfolding rpder_deep_rows_def
+    using rdistinct_smaller[
+      of "rflts (concat (map (rpder_deep_list c) rs))" "{}"]
+    by simp
+  also have "... \<le> rsizes (concat (map (rpder_deep_list c) rs))"
+    using rflts_mono[of "concat (map (rpder_deep_list c) rs)"] by simp
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_concat_rpder_deep_list_le)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_deep_rows_le_generated_rsizes:
+  "length (rpder_deep_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length (rpder_deep_rows c rs) \<le> rsizes (rpder_deep_rows c rs)"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_deep_rows_le)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_deep_rows_le_generated_rsizes:
+  "card (set (rpder_deep_rows c rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set (rpder_deep_rows c rs)) \<le> rsizes (rpder_deep_rows c rs)"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_deep_rows_le)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_deep_rows_le_generated_rsizes:
+  "rlinear_termss (rpder_deep_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss (rpder_deep_rows c rs) \<le>
+      rsizes (rpder_deep_rows c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_deep_rows_le)
+  finally show ?thesis .
+qed
+
+lemma rpder_deep_rows_generated_budget:
+  shows "length (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_deep_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_deep_rows_le_generated_rsizes)
+  show "card (set (rpder_deep_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_deep_rows_le_generated_rsizes)
+  show "rlinear_termss (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_deep_rows_le_generated_rsizes)
+  show "rsizes (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_deep_rows_le)
+qed
+
+lemma rpder_deep_rows_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_deep_rows c rs)) = Der c (RLS (set rs)) \<and>
+    length (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_deep_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set (rpder_deep_rows c rs)) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_deep_rows[OF legacy])
+  show "length (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_deep_rows_le_generated_rsizes)
+  show "card (set (rpder_deep_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_deep_rows_le_generated_rsizes)
+  show "rlinear_termss (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_deep_rows_le_generated_rsizes)
+  show "rsizes (rpder_deep_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_deep_rows_le)
+qed
+
+lemma length_rpder_deep_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_deep_rows c [r]) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "length (rpder_deep_rows c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_deep_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_deep_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_deep_rows c [r])) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set (rpder_deep_rows c [r])) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_deep_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+definition rsimpDeep_aseq_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsimpDeep_aseq_closure U =
+    (\<Union>p \<in> U. aseq_terms (rsimpDeep_raw p))"
+
+lemma rsimpDeep_aseq_closureI:
+  assumes "p \<in> U"
+    and "x \<in> aseq_terms (rsimpDeep_raw p)"
+  shows "x \<in> rsimpDeep_aseq_closure U"
+  using assms by (auto simp add: rsimpDeep_aseq_closure_def)
+
+lemma aseq_terms_rsimpDeep_raw_self_closure:
+  assumes "p \<in> U"
+  shows "aseq_terms (rsimpDeep_raw p) \<subseteq>
+    rsimpDeep_aseq_closure U"
+  using assms by (auto intro: rsimpDeep_aseq_closureI)
+
+lemma rsimpDeep_aseq_closure_zero:
+  assumes "RZERO \<in> U"
+  shows "RZERO \<in> rsimpDeep_aseq_closure U"
+  using aseq_terms_rsimpDeep_raw_self_closure[OF assms] by simp
+
+lemma aseq_termss_map_rsimpDeep_raw_closureI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq> rsimpDeep_aseq_closure U"
+  shows "aseq_termss (map rsimpDeep_raw rs) \<subseteq>
+    rsimpDeep_aseq_closure U"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss (map rsimpDeep_raw rs)"
+  obtain q where q: "q \<in> set rs"
+      and xq: "x \<in> aseq_terms (rsimpDeep_raw q)"
+    using x by (auto simp add: aseq_termss_member_iff)
+  have q_terms: "aseq_terms q \<subseteq> U"
+  proof
+    fix y
+    assume y: "y \<in> aseq_terms q"
+    have "y \<in> aseq_termss rs"
+      using q y by (auto simp add: aseq_termss_member_iff)
+    then show "y \<in> U"
+      using rows by blast
+  qed
+  have "aseq_terms (rsimpDeep_raw q) \<subseteq>
+      rsimpDeep_aseq_closure U"
+    by (rule step[OF q q_terms])
+  then show "x \<in> rsimpDeep_aseq_closure U"
+    using xq by blast
+qed
+
+lemma aseq_terms_rsimp_ALTs_subsetI_deep:
+  assumes zero: "RZERO \<in> U"
+    and rows: "aseq_termss rs \<subseteq> U"
+  shows "aseq_terms (rsimp_ALTs rs) \<subseteq> U"
+  using assms
+  by (induct rs rule: rsimp_ALTs.induct) auto
+
+lemma aseq_terms_rsimpDeep_raw_RALTS_subset_closureI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq> rsimpDeep_aseq_closure U"
+  shows "aseq_terms (rsimpDeep_raw (RALTS rs)) \<subseteq>
+    rsimpDeep_aseq_closure U"
+proof -
+  have mapped:
+      "aseq_termss (map rsimpDeep_raw rs) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    by (rule aseq_termss_map_rsimpDeep_raw_closureI
+        [OF rows zero step])
+  have flat:
+      "aseq_termss (rflts (map rsimpDeep_raw rs)) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    using aseq_termss_rflts_subset mapped by blast
+  have distinct:
+      "aseq_termss (rdistinct (rflts (map rsimpDeep_raw rs)) {})
+        \<subseteq> rsimpDeep_aseq_closure U"
+    using aseq_termss_rdistinct_subset flat by blast
+  have zero_closure:
+      "RZERO \<in> rsimpDeep_aseq_closure U"
+    by (rule rsimpDeep_aseq_closure_zero[OF zero])
+  show ?thesis
+    by (simp, rule aseq_terms_rsimp_ALTs_subsetI_deep
+        [OF zero_closure distinct])
+qed
+
+lemma aseq_terms_rsimpDeep_raw_subset_closureI:
+  assumes terms: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_terms (rsimpDeep_raw r) \<subseteq>
+    rsimpDeep_aseq_closure U"
+  using terms zero
+proof (induct r arbitrary: U)
+  case RZERO
+  have "RZERO \<in> U"
+    using RZERO.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case RONE
+  have "RONE \<in> U"
+    using RONE.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RCHAR x)
+  have "RCHAR x \<in> U"
+    using RCHAR.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RSEQ r1 r2)
+  have r1_terms: "aseq_terms r1 \<subseteq> U"
+    using RSEQ.prems by simp
+  have r2_terms: "aseq_terms r2 \<subseteq> U"
+    using RSEQ.prems by simp
+  have zeroU: "RZERO \<in> U"
+    using RSEQ.prems by simp
+  have left:
+      "aseq_terms (rsimpDeep_raw r1) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    by (rule RSEQ.hyps(1)[OF r1_terms zeroU])
+  have right:
+      "aseq_terms (rsimpDeep_raw r2) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    by (rule RSEQ.hyps(2)[OF r2_terms zeroU])
+  have seq_subset:
+      "aseq_terms
+        (rsimpDeep_SEQ_atom (rsimpDeep_raw r1) (rsimpDeep_raw r2))
+        \<subseteq> aseq_terms (rsimpDeep_raw r1) \<union>
+          aseq_terms (rsimpDeep_raw r2)"
+    by (rule aseq_terms_rsimpDeep_SEQ_atom_subset)
+  show ?case
+    using seq_subset left right by auto
+next
+  case (RALTS rs)
+  show ?case
+    by (rule aseq_terms_rsimpDeep_raw_RALTS_subset_closureI)
+      (use RALTS in auto)
+next
+  case (RSTAR r)
+  have "RSTAR r \<in> U"
+    using RSTAR.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RNTIMES r n)
+  have "RNTIMES r n \<in> U"
+    using RNTIMES.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "RBACKREF4 r1 r2 r3 r4 cs \<in> U"
+    using RBACKREF4.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RHALF r cs rep)
+  have "RHALF r cs rep \<in> U"
+    using RHALF.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+next
+  case (RRESIDUE cs rep)
+  have "RRESIDUE cs rep \<in> U"
+    using RRESIDUE.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpDeep_raw_self_closure)
+qed
+
+lemma finite_rsimpDeep_aseq_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsimpDeep_aseq_closure U)"
+  using assms by (simp add: rsimpDeep_aseq_closure_def)
+
+lemma card_aseq_terms_rsimpDeep_raw_le:
+  "card (aseq_terms (rsimpDeep_raw p)) \<le> rsize p"
+proof -
+  have "card (aseq_terms (rsimpDeep_raw p)) \<le>
+      rsize (rsimpDeep_raw p)"
+    by (rule card_aseq_terms_le_rsize)
+  also have "... \<le> rsize p"
+    by (rule rsize_rsimpDeep_raw_le)
+  finally show ?thesis .
+qed
+
+lemma card_rsimpDeep_aseq_closure_boundI:
+  assumes finite: "finite U"
+    and member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+  shows "card (rsimpDeep_aseq_closure U) \<le> card U * M"
+  using finite member_size
+proof (induct U rule: finite_induct)
+  case empty
+  then show ?case
+    by (simp add: rsimpDeep_aseq_closure_def)
+next
+  case (insert x F)
+  have closure_insert:
+      "rsimpDeep_aseq_closure (insert x F) =
+        aseq_terms (rsimpDeep_raw x) \<union> rsimpDeep_aseq_closure F"
+    by (auto simp add: rsimpDeep_aseq_closure_def)
+  have finite_closure: "finite (rsimpDeep_aseq_closure F)"
+    by (rule finite_rsimpDeep_aseq_closure[OF insert.hyps(1)])
+  have "card (rsimpDeep_aseq_closure (insert x F)) \<le>
+      card (aseq_terms (rsimpDeep_raw x)) +
+      card (rsimpDeep_aseq_closure F)"
+    by (simp add: closure_insert card_Un_le finite_closure)
+  also have "... \<le> M + card F * M"
+  proof -
+    have x_bound: "card (aseq_terms (rsimpDeep_raw x)) \<le> M"
+    proof -
+      have "card (aseq_terms (rsimpDeep_raw x)) \<le> rsize x"
+        by (rule card_aseq_terms_rsimpDeep_raw_le)
+      also have "... \<le> M"
+        by (rule insert.prems) simp
+      finally show ?thesis .
+    qed
+    have F_bound: "card (rsimpDeep_aseq_closure F) \<le> card F * M"
+      by (rule insert.hyps(3)) (use insert.prems in auto)
+    show ?thesis
+      using x_bound F_bound by linarith
+  qed
+  also have "... = card (insert x F) * M"
+    using insert.hyps by simp
+  finally show ?case .
+qed
+
+lemma rsize_set_rsimpDeep_aseq_closure_boundI:
+  assumes finite: "finite U"
+    and member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+  shows "rsize_set (rsimpDeep_aseq_closure U) \<le> card U * M"
+proof -
+  have union_bound:
+      "rsize_set (rsimpDeep_aseq_closure U) \<le>
+        (\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpDeep_raw p)))"
+    unfolding rsimpDeep_aseq_closure_def
+    by (rule rsize_set_UN_le[OF finite]) simp
+  have summand:
+      "\<And>p. p \<in> U \<Longrightarrow>
+        rsize_set (aseq_terms (rsimpDeep_raw p)) \<le> rsize p"
+  proof -
+    fix p
+    assume "p \<in> U"
+    have "rsize_set (aseq_terms (rsimpDeep_raw p)) \<le>
+        rsize (rsimpDeep_raw p)"
+      by (rule rsize_set_aseq_terms_le_rsize)
+    also have "... \<le> rsize p"
+      by (rule rsize_rsimpDeep_raw_le)
+    finally show "rsize_set (aseq_terms (rsimpDeep_raw p)) \<le> rsize p" .
+  qed
+  have "(\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpDeep_raw p))) \<le>
+      (\<Sum>p \<in> U. rsize p)"
+    by (rule sum_mono) (use summand in blast)
+  also have "... \<le> (\<Sum>p \<in> U. M)"
+    by (rule sum_mono) (use member_size in blast)
+  also have "... = card U * M"
+    using finite by simp
+  finally show ?thesis
+    using union_bound by linarith
+qed
+
+lemma rsize_set_rsimpDeep_aseq_closure_le:
+  assumes finite: "finite U"
+  shows "rsize_set (rsimpDeep_aseq_closure U) \<le> rsize_set U"
+proof -
+  have union_bound:
+      "rsize_set (rsimpDeep_aseq_closure U) \<le>
+        (\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpDeep_raw p)))"
+    unfolding rsimpDeep_aseq_closure_def
+    by (rule rsize_set_UN_le[OF finite]) simp
+  have summand:
+      "\<And>p. p \<in> U \<Longrightarrow>
+        rsize_set (aseq_terms (rsimpDeep_raw p)) \<le> rsize p"
+  proof -
+    fix p
+    assume "p \<in> U"
+    have "rsize_set (aseq_terms (rsimpDeep_raw p)) \<le>
+        rsize (rsimpDeep_raw p)"
+      by (rule rsize_set_aseq_terms_le_rsize)
+    also have "... \<le> rsize p"
+      by (rule rsize_rsimpDeep_raw_le)
+    finally show "rsize_set (aseq_terms (rsimpDeep_raw p)) \<le>
+        rsize p" .
+  qed
+  have sum_bound:
+      "(\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpDeep_raw p))) \<le>
+      (\<Sum>p \<in> U. rsize p)"
+    by (rule sum_mono) (use summand in blast)
+  show ?thesis
+    using union_bound sum_bound by (simp add: rsize_set_def)
+qed
+
+lemma rsimpDeep_aseq_closure_subset_idemI:
+  assumes idem: "\<And>p. p \<in> U \<Longrightarrow> rsimpDeep_raw p = p"
+    and subterm_closed: "\<And>p. p \<in> U \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "rsimpDeep_aseq_closure U \<subseteq> U"
+proof
+  fix x
+  assume "x \<in> rsimpDeep_aseq_closure U"
+  then obtain p where p: "p \<in> U"
+      and x: "x \<in> aseq_terms (rsimpDeep_raw p)"
+    by (auto simp add: rsimpDeep_aseq_closure_def)
+  have "x \<in> aseq_terms p"
+    using x by (simp add: idem[OF p])
+  then have "x \<in> rsubterms p"
+    using aseq_terms_subset_rsubterms by blast
+  then show "x \<in> U"
+    using subterm_closed[OF p] by blast
+qed
+
+lemma aseq_terms_rsimpDeep_raw_idem_closed_subsetI:
+  assumes terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and idem: "\<And>p. p \<in> U \<Longrightarrow> rsimpDeep_raw p = p"
+    and subterm_closed: "\<And>p. p \<in> U \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "aseq_terms (rsimpDeep_raw q) \<subseteq> U"
+proof -
+  have closure: "aseq_terms (rsimpDeep_raw q) \<subseteq>
+      rsimpDeep_aseq_closure U"
+    by (rule aseq_terms_rsimpDeep_raw_subset_closureI[OF terms zero])
+  have "rsimpDeep_aseq_closure U \<subseteq> U"
+    by (rule rsimpDeep_aseq_closure_subset_idemI[OF idem subterm_closed])
+  then show ?thesis
+    using closure by blast
+qed
+
+lemma rsimpDeep_aseq_closure_member_size_boundI:
+  assumes member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+    and q: "q \<in> rsimpDeep_aseq_closure U"
+  shows "rsize q \<le> M"
+proof -
+  obtain p where p: "p \<in> U"
+      and qp: "q \<in> aseq_terms (rsimpDeep_raw p)"
+    using q by (auto simp add: rsimpDeep_aseq_closure_def)
+  have "q \<in> rsubterms (rsimpDeep_raw p)"
+    using qp aseq_terms_subset_rsubterms by blast
+  then have "rsize q \<le> rsize (rsimpDeep_raw p)"
+    by (rule rsubterms_member_size_le_rsize)
+  also have "... \<le> rsize p"
+    by (rule rsize_rsimpDeep_raw_le)
+  also have "... \<le> M"
+    by (rule member_size[OF p])
+  finally show ?thesis .
+qed
+
+definition deep_simp_frontier_aseq_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "deep_simp_frontier_aseq_universe r =
+    rsimpDeep_aseq_closure (partial_derivative_frontier_universe r)"
+
+lemma finite_deep_simp_frontier_aseq_universe [simp]:
+  "finite (deep_simp_frontier_aseq_universe r)"
+  by (simp add: deep_simp_frontier_aseq_universe_def)
+
+lemma deep_simp_frontier_aseq_universe_zero [simp]:
+  "RZERO \<in> deep_simp_frontier_aseq_universe r"
+  unfolding deep_simp_frontier_aseq_universe_def
+  by (rule rsimpDeep_aseq_closure_zero) simp
+
+lemma rsimpDeep_aseq_closure_one:
+  assumes "RONE \<in> U"
+  shows "RONE \<in> rsimpDeep_aseq_closure U"
+  using aseq_terms_rsimpDeep_raw_self_closure[OF assms] by simp
+
+lemma deep_simp_frontier_aseq_universe_one [simp]:
+  "RONE \<in> deep_simp_frontier_aseq_universe r"
+  unfolding deep_simp_frontier_aseq_universe_def
+  by (rule rsimpDeep_aseq_closure_one) simp
+
+lemma aseq_terms_rsimpDeep_raw_frontier_closure:
+  assumes "aseq_terms p \<subseteq> partial_derivative_frontier_universe r"
+  shows "aseq_terms (rsimpDeep_raw p) \<subseteq>
+    deep_simp_frontier_aseq_universe r"
+  unfolding deep_simp_frontier_aseq_universe_def
+  by (rule aseq_terms_rsimpDeep_raw_subset_closureI)
+    (use assms in auto)
+
+lemma card_deep_simp_frontier_aseq_universe_cubic:
+  "card (deep_simp_frontier_aseq_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?F = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have card_closure:
+      "card (rsimpDeep_aseq_closure ?F) \<le> card ?F * ?M"
+    by (rule card_rsimpDeep_aseq_closure_boundI)
+      (auto intro: partial_derivative_frontier_universe_member_size_linear)
+  have F_card: "card ?F \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  have scaled:
+      "card ?F * ?M \<le> (rsize r + 2) ^ 2 * ?M"
+    by (rule mult_right_mono[OF F_card]) simp
+  have "card (rsimpDeep_aseq_closure ?F) \<le>
+      (rsize r + 2) ^ 2 * ?M"
+    using card_closure scaled by linarith
+  also have "... \<le> (rsize r + 2) ^ 2 * (2 * (rsize r + 2))"
+    by (rule mult_left_mono) simp_all
+  also have "... = 2 * (rsize r + 2) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis
+    by (simp add: deep_simp_frontier_aseq_universe_def)
+qed
+
+lemma rsize_set_deep_simp_frontier_aseq_universe_cubic:
+  "rsize_set (deep_simp_frontier_aseq_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?F = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have closure:
+      "rsize_set (rsimpDeep_aseq_closure ?F) \<le> card ?F * ?M"
+    by (rule rsize_set_rsimpDeep_aseq_closure_boundI)
+      (auto intro: partial_derivative_frontier_universe_member_size_linear)
+  have F_card: "card ?F \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  have scaled:
+      "card ?F * ?M \<le> (rsize r + 2) ^ 2 * ?M"
+    by (rule mult_right_mono[OF F_card]) simp
+  have "rsize_set (rsimpDeep_aseq_closure ?F) \<le>
+      (rsize r + 2) ^ 2 * ?M"
+    using closure scaled by linarith
+  also have "... \<le> (rsize r + 2) ^ 2 * (2 * (rsize r + 2))"
+    by (rule mult_left_mono) simp_all
+  also have "... = 2 * (rsize r + 2) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis
+    by (simp add: deep_simp_frontier_aseq_universe_def)
+qed
+
+lemma deep_simp_frontier_aseq_universe_member_size_linear:
+  assumes "q \<in> deep_simp_frontier_aseq_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have q: "q \<in> rsimpDeep_aseq_closure
+      (partial_derivative_frontier_universe r)"
+    using assms by (simp add: deep_simp_frontier_aseq_universe_def)
+  show ?thesis
+    by (rule rsimpDeep_aseq_closure_member_size_boundI[OF _ q])
+      (rule partial_derivative_frontier_universe_member_size_linear)
+qed
+
+definition deep_simp_frontier_subterm_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "deep_simp_frontier_subterm_universe r =
+    rsubterm_closure (deep_simp_frontier_aseq_universe r)"
+
+lemma finite_deep_simp_frontier_subterm_universe [simp]:
+  "finite (deep_simp_frontier_subterm_universe r)"
+  by (simp add: deep_simp_frontier_subterm_universe_def)
+
+lemma deep_simp_frontier_aseq_subset_subterm_universe:
+  "deep_simp_frontier_aseq_universe r \<subseteq>
+    deep_simp_frontier_subterm_universe r"
+  by (simp add: deep_simp_frontier_subterm_universe_def
+      rsubterm_closure_extensive)
+
+lemma deep_simp_frontier_subterm_universe_closed:
+  assumes "q \<in> deep_simp_frontier_subterm_universe r"
+  shows "rsubterms q \<subseteq> deep_simp_frontier_subterm_universe r"
+  using assms
+  by (simp add: deep_simp_frontier_subterm_universe_def
+      rsubterm_closure_closed)
+
+lemma card_deep_simp_frontier_subterm_universe_cubic:
+  "card (deep_simp_frontier_subterm_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have "card (deep_simp_frontier_subterm_universe r) \<le>
+      rsize_set (deep_simp_frontier_aseq_universe r)"
+    unfolding deep_simp_frontier_subterm_universe_def
+    by (rule card_rsubterm_closure_le_rsize_set) simp
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule rsize_set_deep_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma deep_simp_frontier_subterm_universe_member_size_linear:
+  assumes "q \<in> deep_simp_frontier_subterm_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  obtain p where p:
+      "p \<in> deep_simp_frontier_aseq_universe r"
+      "q \<in> rsubterms p"
+    using assms
+    by (auto simp add: deep_simp_frontier_subterm_universe_def
+        rsubterm_closure_def)
+  have "rsize q \<le> rsize p"
+    by (rule rsubterms_member_size_le_rsize[OF p(2)])
+  also have "... \<le> Suc (rsize r + rsize r)"
+    by (rule deep_simp_frontier_aseq_universe_member_size_linear[OF p(1)])
+  finally show ?thesis .
+qed
+
+definition deep_simp_frontier_fuel_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "deep_simp_frontier_fuel_universe r =
+    rderiv_fuel_closure (deep_simp_frontier_aseq_universe r)"
+
+lemma finite_deep_simp_frontier_fuel_universe [simp]:
+  "finite (deep_simp_frontier_fuel_universe r)"
+  by (simp add: deep_simp_frontier_fuel_universe_def)
+
+lemma deep_simp_frontier_aseq_subset_fuel_universe:
+  "deep_simp_frontier_aseq_universe r \<subseteq>
+    deep_simp_frontier_fuel_universe r"
+  by (simp add: deep_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_extensive)
+
+lemma deep_simp_frontier_fuel_universe_zero [simp]:
+  "RZERO \<in> deep_simp_frontier_fuel_universe r"
+  using deep_simp_frontier_aseq_subset_fuel_universe[of r] by auto
+
+lemma deep_simp_frontier_fuel_universe_one [simp]:
+  "RONE \<in> deep_simp_frontier_fuel_universe r"
+  using deep_simp_frontier_aseq_subset_fuel_universe[of r] by auto
+
+lemma deep_simp_frontier_fuel_universe_subterm_closed:
+  assumes "q \<in> deep_simp_frontier_fuel_universe r"
+  shows "rsubterms q \<subseteq> deep_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: deep_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_subterm_closed)
+
+lemma deep_simp_frontier_fuel_universe_star_body:
+  assumes "RSTAR q \<in> deep_simp_frontier_fuel_universe r"
+  shows "aseq_terms q \<subseteq> deep_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: deep_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_star_body)
+
+lemma deep_simp_frontier_fuel_universe_ntimes_body:
+  assumes "RNTIMES q n \<in> deep_simp_frontier_fuel_universe r"
+  shows "aseq_terms q \<subseteq> deep_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: deep_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_ntimes_body)
+
+lemma deep_simp_frontier_fuel_universe_ntimes_predecessor:
+  assumes "RNTIMES q (Suc n) \<in> deep_simp_frontier_fuel_universe r"
+  shows "RNTIMES q n \<in> deep_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: deep_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_ntimes_predecessor)
+
+lemma card_deep_simp_frontier_fuel_universe_cubic:
+  "card (deep_simp_frontier_fuel_universe r) \<le>
+    4 * (rsize r + 2) ^ 3"
+proof -
+  have "card (deep_simp_frontier_fuel_universe r) \<le>
+      2 * rsize_set (deep_simp_frontier_aseq_universe r)"
+    unfolding deep_simp_frontier_fuel_universe_def
+    by (rule card_rderiv_fuel_closure_le_rsize_set) simp
+  also have "... \<le> 2 * (2 * (rsize r + 2) ^ 3)"
+  proof -
+    have size: "rsize_set (deep_simp_frontier_aseq_universe r) \<le>
+        2 * (rsize r + 2) ^ 3"
+      by (rule rsize_set_deep_simp_frontier_aseq_universe_cubic)
+    show ?thesis
+      by (rule mult_left_mono[OF size]) simp
+  qed
+  also have "... = 4 * (rsize r + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma deep_simp_frontier_fuel_universe_member_size_linear:
+  assumes "q \<in> deep_simp_frontier_fuel_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+  unfolding deep_simp_frontier_fuel_universe_def
+proof (rule rderiv_fuel_closure_member_size_boundI)
+  fix p
+  assume "p \<in> deep_simp_frontier_aseq_universe r"
+  then show "rsize p \<le> Suc (rsize r + rsize r)"
+    by (rule deep_simp_frontier_aseq_universe_member_size_linear)
+next
+  show "q \<in> rderiv_fuel_closure (deep_simp_frontier_aseq_universe r)"
+    using assms by (simp add: deep_simp_frontier_fuel_universe_def)
+qed
+
+lemma legacy_rlinear_continuations:
+  assumes legacy: "legacy_rrexp r"
+    and k: "k \<in> rlinear_continuations r"
+  shows "legacy_rrexp k"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "k \<in> rlinear_continuations q"
+    by auto
+  have q_legacy: "legacy_rrexp q"
+    using RALTS.prems q(1) by simp
+  show ?case
+    by (rule RALTS.hyps[OF q(1) q_legacy q(2)])
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "k = r2")
+    case True
+    then show ?thesis
+      using RSEQ.prems by simp
+  next
+    case False
+    have split:
+        "k \<in> rlinear_continuations r1 \<or>
+         k \<in> rlinear_continuations r2"
+      using RSEQ.prems False by auto
+    then show ?thesis
+    proof
+      assume k1: "k \<in> rlinear_continuations r1"
+      show ?thesis
+        by (rule RSEQ.hyps(1)[OF _ k1]) (use RSEQ.prems in simp)
+    next
+      assume k2: "k \<in> rlinear_continuations r2"
+      show ?thesis
+        by (rule RSEQ.hyps(2)[OF _ k2]) (use RSEQ.prems in simp)
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "k = RSTAR r")
+    case True
+    then show ?thesis
+      using RSTAR.prems by simp
+  next
+    case False
+    have k_cont: "k \<in> rlinear_continuations r"
+      using RSTAR.prems False by auto
+    have r_legacy: "legacy_rrexp r"
+      using RSTAR.prems by simp
+    show ?thesis
+      by (rule RSTAR.hyps[OF r_legacy k_cont])
+  qed
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases "k \<in> (\<lambda>m. RNTIMES r m) ` {..n}")
+    case True
+    then obtain m where "k = RNTIMES r m"
+      by auto
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case False
+    have k_cont: "k \<in> rlinear_continuations r"
+      using RNTIMES.prems False by auto
+    have r_legacy: "legacy_rrexp r"
+      using RNTIMES.prems by simp
+    show ?thesis
+      by (rule RNTIMES.hyps[OF r_legacy k_cont])
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RBACKREF4.prems(1) by simp
+  qed
+next
+  case (RHALF r cs rep)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RHALF.prems(1) by simp
+  qed
+next
+  case (RRESIDUE cs rep)
+  show ?case
+  proof (rule FalseE)
+    show False
+      using RRESIDUE.prems(1) by simp
+  qed
+qed
+
+lemma legacy_partial_derivative_frontier_universe:
+  assumes legacy: "legacy_rrexp r"
+    and p: "p \<in> partial_derivative_frontier_universe r"
+  shows "legacy_rrexp p"
+proof -
+  let ?A = "rsubterms r"
+  let ?K = "rlinear_continuations r"
+  let ?P = "(\<lambda>(p, k). RSEQ p k) ` (?A \<times> ?K)"
+  have cases:
+      "p = RZERO \<or> p = RONE \<or> p \<in> ?A \<or> p \<in> ?K \<or> p \<in> ?P"
+    using p by (auto simp add: partial_derivative_frontier_universe_def)
+  then show ?thesis
+  proof
+    assume "p = RZERO"
+    then show ?thesis by simp
+  next
+    assume rest: "p = RONE \<or> p \<in> ?A \<or> p \<in> ?K \<or> p \<in> ?P"
+    then show ?thesis
+    proof
+      assume "p = RONE"
+      then show ?thesis by simp
+    next
+      assume rest2: "p \<in> ?A \<or> p \<in> ?K \<or> p \<in> ?P"
+      then show ?thesis
+      proof
+        assume sub: "p \<in> ?A"
+        show ?thesis
+          by (rule legacy_rrexp_rsubterms[OF legacy sub])
+      next
+        assume rest3: "p \<in> ?K \<or> p \<in> ?P"
+        then show ?thesis
+        proof
+          assume cont: "p \<in> ?K"
+          show ?thesis
+            by (rule legacy_rlinear_continuations[OF legacy cont])
+        next
+          assume prod: "p \<in> ?P"
+          obtain a k where ak:
+              "a \<in> ?A" "k \<in> ?K" "p = RSEQ a k"
+            using prod by auto
+          have a_legacy: "legacy_rrexp a"
+            by (rule legacy_rrexp_rsubterms[OF legacy ak(1)])
+          have k_legacy: "legacy_rrexp k"
+            by (rule legacy_rlinear_continuations[OF legacy ak(2)])
+          show ?thesis
+            using ak(3) a_legacy k_legacy by simp
+        qed
+      qed
+    qed
+  qed
+qed
+
+lemma rsimpDeep_raw_deep_simp_frontier_fuel_universe_idem:
+  assumes legacy: "legacy_rrexp root"
+    and p: "p \<in> deep_simp_frontier_fuel_universe root"
+  shows "rsimpDeep_raw p = p"
+proof -
+  obtain q where q:
+      "q \<in> deep_simp_frontier_aseq_universe root"
+      "p \<in> rsubterms q \<union> rlinear_continuations q"
+    using p
+    by (auto simp add: deep_simp_frontier_fuel_universe_def
+        rderiv_fuel_closure_def)
+  obtain f where f:
+      "f \<in> partial_derivative_frontier_universe root"
+      "q \<in> aseq_terms (rsimpDeep_raw f)"
+    using q(1)
+    by (auto simp add: deep_simp_frontier_aseq_universe_def
+        rsimpDeep_aseq_closure_def)
+  have f_legacy: "legacy_rrexp f"
+    by (rule legacy_partial_derivative_frontier_universe
+        [OF legacy f(1)])
+  have fixed_f: "rsimpDeep_fuel_fixed (rsimpDeep_raw f)"
+    by (rule rsimpDeep_fuel_fixed_rsimpDeep_raw_legacy[OF f_legacy])
+  have q_sub: "q \<in> rsubterms (rsimpDeep_raw f)"
+    using f(2) aseq_terms_subset_rsubterms by blast
+  have q_fixed: "rsimpDeep_fuel_fixed q"
+    by (rule rsimpDeep_fuel_fixed_subterm[OF fixed_f q_sub])
+  show ?thesis
+    using q(2) q_fixed by (auto simp add: rsimpDeep_fuel_fixed_def)
+qed
+
+lemma concat_map_rpder_deep_list_eq:
+  "concat (map (rpder_deep_list c) rs) =
+    map rsimpDeep_raw (concat (map (rpder_norm_list c) rs))"
+  by (induct rs) (simp_all add: rpder_deep_list_def)
+
+lemma aseq_termss_concat_map_rpder_norm_list_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+  shows "aseq_termss (concat (map (rpder_norm_list c) rs)) \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss (concat (map (rpder_norm_list c) rs))"
+  obtain p q where q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+      and xp: "x \<in> aseq_terms p"
+    using x by (auto simp add: aseq_termss_member_iff)
+  have q_terms: "aseq_terms q \<subseteq> U"
+  proof
+    fix y
+    assume y: "y \<in> aseq_terms q"
+    then have "y \<in> aseq_termss rs"
+      using q by (auto simp add: aseq_termss_member_iff)
+    then show "y \<in> U"
+      using rows by blast
+  qed
+  have p_terms: "aseq_terms p \<subseteq> U"
+    by (rule rpder_norm_list_aseq_terms_subsetI
+        [OF _ q_terms zero one subterm_closed ntimes_closed p])
+      (use legacy q in auto)
+  then show "x \<in> U"
+    using xp by blast
+qed
+
+lemma aseq_termss_concat_map_rpder_norm_list_fuel_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+  shows "aseq_termss (concat (map (rpder_norm_list c) rs)) \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss (concat (map (rpder_norm_list c) rs))"
+  obtain p q where q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+      and xp: "x \<in> aseq_terms p"
+    using x by (auto simp add: aseq_termss_member_iff)
+  have q_terms: "aseq_terms q \<subseteq> U"
+  proof
+    fix y
+    assume y: "y \<in> aseq_terms q"
+    then have "y \<in> aseq_termss rs"
+      using q by (auto simp add: aseq_termss_member_iff)
+    then show "y \<in> U"
+      using rows by blast
+  qed
+  have p_terms: "aseq_terms p \<subseteq> U"
+    by (rule rpder_norm_list_aseq_terms_fuel_subsetI
+        [OF _ q_terms zero one star_body ntimes_body ntimes_closed p])
+      (use legacy q in auto)
+  then show "x \<in> U"
+    using xp by blast
+qed
+
+lemma aseq_termss_concat_map_rpder_norm_list_deep_fuel_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      deep_simp_frontier_fuel_universe root"
+  shows "aseq_termss (concat (map (rpder_norm_list c) rs)) \<subseteq>
+    deep_simp_frontier_fuel_universe root"
+proof (rule aseq_termss_concat_map_rpder_norm_list_fuel_subsetI
+    [OF legacy rows])
+  show "RZERO \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "RONE \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "\<And>r. RSTAR r \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms r \<subseteq> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_star_body)
+  show "\<And>r n. RNTIMES r n \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms r \<subseteq> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_ntimes_body)
+  show "\<And>r n. RNTIMES r (Suc n) \<in>
+      deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      RNTIMES r n \<in> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_ntimes_predecessor)
+qed
+
+lemma aseq_termss_rpder_deep_rows_closure_transformI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+  shows "aseq_termss (rpder_deep_rows c rs) \<subseteq>
+    rsimpDeep_aseq_closure U"
+proof -
+  let ?generated = "concat (map (rpder_norm_list c) rs)"
+  have generated_terms: "aseq_termss ?generated \<subseteq> U"
+    by (rule aseq_termss_concat_map_rpder_norm_list_subsetI
+        [OF legacy rows zero one subterm_closed ntimes_closed])
+  have mapped:
+      "aseq_termss (map rsimpDeep_raw ?generated) \<subseteq>
+        rsimpDeep_aseq_closure U"
+  proof (rule aseq_termss_map_rsimpDeep_raw_closureI
+      [OF generated_terms zero])
+    fix q
+    assume "q \<in> set ?generated"
+      and q_terms: "aseq_terms q \<subseteq> U"
+    show "aseq_terms (rsimpDeep_raw q) \<subseteq>
+        rsimpDeep_aseq_closure U"
+      by (rule aseq_terms_rsimpDeep_raw_subset_closureI[OF q_terms zero])
+  qed
+  have flat:
+      "aseq_termss (rflts (map rsimpDeep_raw ?generated)) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    using aseq_termss_rflts_subset mapped by blast
+  have distinct:
+      "aseq_termss
+        (rdistinct (rflts (map rsimpDeep_raw ?generated)) {}) \<subseteq>
+        rsimpDeep_aseq_closure U"
+    using aseq_termss_rdistinct_subset flat by blast
+  show ?thesis
+    using distinct
+    by (simp add: rpder_deep_rows_def concat_map_rpder_deep_list_eq)
+qed
+
+lemma aseq_termss_rpder_deep_rows_frontier_closureI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "aseq_termss (rpder_deep_rows c rs) \<subseteq>
+    deep_simp_frontier_aseq_universe root"
+  unfolding deep_simp_frontier_aseq_universe_def
+  by (rule aseq_termss_rpder_deep_rows_closure_transformI
+      [OF legacy rows])
+    (use partial_derivative_frontier_universe_ntimes_predecessor
+      rsubterms_frontier_universe_member_subset in auto)
+
+lemma aseq_termss_rpder_deep_rows_deep_fuel_closureI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      deep_simp_frontier_fuel_universe root"
+  shows "aseq_termss (rpder_deep_rows c rs) \<subseteq>
+    rsimpDeep_aseq_closure (deep_simp_frontier_fuel_universe root)"
+proof (rule aseq_termss_rpder_deep_rows_closure_transformI
+    [OF legacy rows])
+  show "RZERO \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "RONE \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "\<And>x. x \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsubterms x \<subseteq> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_subterm_closed)
+  show "\<And>r n. RNTIMES r (Suc n) \<in>
+      deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      RNTIMES r n \<in> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_ntimes_predecessor)
+qed
+
+lemma aseq_termss_rpder_deep_rows_fuel_closed_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and norm: "\<And>q. aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq> U"
+  shows "aseq_termss (rpder_deep_rows c rs) \<subseteq> U"
+proof -
+  let ?generated = "concat (map (rpder_norm_list c) rs)"
+  have generated_terms: "aseq_termss ?generated \<subseteq> U"
+    by (rule aseq_termss_concat_map_rpder_norm_list_fuel_subsetI
+        [OF legacy rows zero one star_body ntimes_body ntimes_closed])
+  have mapped: "aseq_termss (map rsimpDeep_raw ?generated) \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in> aseq_termss (map rsimpDeep_raw ?generated)"
+    obtain q where q: "q \<in> set ?generated"
+        and xq: "x \<in> aseq_terms (rsimpDeep_raw q)"
+      using x by (auto simp add: aseq_termss_member_iff)
+    have q_terms: "aseq_terms q \<subseteq> U"
+    proof
+      fix y
+      assume y: "y \<in> aseq_terms q"
+      then have "y \<in> aseq_termss ?generated"
+        using q by (auto simp add: aseq_termss_member_iff)
+      then show "y \<in> U"
+        using generated_terms by blast
+    qed
+    have "aseq_terms (rsimpDeep_raw q) \<subseteq> U"
+      by (rule norm[OF q_terms])
+    then show "x \<in> U"
+      using xq by blast
+  qed
+  have flat: "aseq_termss (rflts (map rsimpDeep_raw ?generated)) \<subseteq> U"
+    using aseq_termss_rflts_subset mapped by blast
+  have distinct:
+      "aseq_termss
+        (rdistinct (rflts (map rsimpDeep_raw ?generated)) {}) \<subseteq> U"
+    using aseq_termss_rdistinct_subset flat by blast
+  show ?thesis
+    using distinct
+    by (simp add: rpder_deep_rows_def concat_map_rpder_deep_list_eq)
+qed
+
+lemma aseq_termss_rpders_deep_rows_fuel_closed_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and norm: "\<And>q. aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq> U"
+  shows "aseq_termss (rpders_deep_rows rs s) \<subseteq> U"
+  using legacy rows
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_terms: "aseq_termss (rpder_deep_rows c rs) \<subseteq> U"
+    by (rule aseq_termss_rpder_deep_rows_fuel_closed_subsetI
+        [OF Cons.prems(1) Cons.prems(2) zero one star_body ntimes_body
+          ntimes_closed norm])
+  have next_legacy:
+      "\<forall>q \<in> set (rpder_deep_rows c rs). legacy_rrexp q"
+    by (rule legacy_rpder_deep_rows[OF Cons.prems(1)])
+  show ?case
+    by (simp add: Cons.hyps[OF next_legacy next_terms])
+qed
+
+lemma aseq_termss_rpders_deep_rows_deep_fuel_idem_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      deep_simp_frontier_fuel_universe root"
+    and idem: "\<And>p. p \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsimpDeep_raw p = p"
+  shows "aseq_termss (rpders_deep_rows rs s) \<subseteq>
+    deep_simp_frontier_fuel_universe root"
+proof (rule aseq_termss_rpders_deep_rows_fuel_closed_subsetI
+    [OF legacy rows])
+  show "RZERO \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "RONE \<in> deep_simp_frontier_fuel_universe root"
+    by simp
+  show "\<And>r. RSTAR r \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms r \<subseteq> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_star_body)
+  show "\<And>r n. RNTIMES r n \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms r \<subseteq> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_ntimes_body)
+  show "\<And>r n. RNTIMES r (Suc n) \<in>
+      deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      RNTIMES r n \<in> deep_simp_frontier_fuel_universe root"
+    by (rule deep_simp_frontier_fuel_universe_ntimes_predecessor)
+  show "\<And>q. aseq_terms q \<subseteq> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq>
+        deep_simp_frontier_fuel_universe root"
+  proof -
+    fix q
+    assume q_terms:
+      "aseq_terms q \<subseteq> deep_simp_frontier_fuel_universe root"
+    show "aseq_terms (rsimpDeep_raw q) \<subseteq>
+        deep_simp_frontier_fuel_universe root"
+    proof (rule aseq_terms_rsimpDeep_raw_idem_closed_subsetI)
+      show "aseq_terms q \<subseteq> deep_simp_frontier_fuel_universe root"
+        by (rule q_terms)
+      show "RZERO \<in> deep_simp_frontier_fuel_universe root"
+        by simp
+      show "\<And>p. p \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+          rsimpDeep_raw p = p"
+        by (rule idem)
+      show "\<And>p. p \<in> deep_simp_frontier_fuel_universe root \<Longrightarrow>
+          rsubterms p \<subseteq> deep_simp_frontier_fuel_universe root"
+        by (rule deep_simp_frontier_fuel_universe_subterm_closed)
+    qed
+  qed
+qed
+
+lemma aseq_termss_rpders_deep_rows_deep_fuel_subset:
+  assumes root_legacy: "legacy_rrexp root"
+    and legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      deep_simp_frontier_fuel_universe root"
+  shows "aseq_termss (rpders_deep_rows rs s) \<subseteq>
+    deep_simp_frontier_fuel_universe root"
+  by (rule aseq_termss_rpders_deep_rows_deep_fuel_idem_subsetI
+      [OF legacy rows])
+    (rule rsimpDeep_raw_deep_simp_frontier_fuel_universe_idem
+      [OF root_legacy])
+
+lemma aseq_termss_rpders_deep_rows_after_frontier_step_deep_fuel_subset:
+  assumes root_legacy: "legacy_rrexp root"
+    and legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "aseq_termss (rpders_deep_rows (rpder_deep_rows c rs) s) \<subseteq>
+    deep_simp_frontier_fuel_universe root"
+proof -
+  have first_aseq:
+      "aseq_termss (rpder_deep_rows c rs) \<subseteq>
+        deep_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_deep_rows_frontier_closureI
+        [OF legacy rows])
+  have first_fuel:
+      "aseq_termss (rpder_deep_rows c rs) \<subseteq>
+        deep_simp_frontier_fuel_universe root"
+    using first_aseq deep_simp_frontier_aseq_subset_fuel_universe
+    by blast
+  have first_legacy:
+      "\<forall>q \<in> set (rpder_deep_rows c rs). legacy_rrexp q"
+    by (rule legacy_rpder_deep_rows[OF legacy])
+  show ?thesis
+    by (rule aseq_termss_rpders_deep_rows_deep_fuel_subset
+        [OF root_legacy first_legacy first_fuel])
+qed
+
+lemma aseq_termss_rpders_deep1_rows_nonempty_deep_fuel_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss (rpders_deep1_rows r (c # s)) \<subseteq>
+    deep_simp_frontier_fuel_universe r"
+proof -
+  have "aseq_termss (rpders_deep_rows (rpder_deep_rows c [r]) s) \<subseteq>
+      deep_simp_frontier_fuel_universe r"
+    by (rule aseq_termss_rpders_deep_rows_after_frontier_step_deep_fuel_subset)
+      (use legacy aseq_terms_root_frontier_universe in auto)
+  then show ?thesis
+    by (simp add: rpders_deep1_rows_def)
+qed
+
+lemma card_aseq_termss_rpders_deep1_rows_nonempty_cubic:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_termss (rpders_deep1_rows r (c # s))) \<le>
+    4 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss (rpders_deep1_rows r (c # s)) \<subseteq>
+        deep_simp_frontier_fuel_universe r"
+    by (rule aseq_termss_rpders_deep1_rows_nonempty_deep_fuel_subset
+        [OF legacy])
+  have "card (aseq_termss (rpders_deep1_rows r (c # s))) \<le>
+      card (deep_simp_frontier_fuel_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 4 * (rsize r + 2) ^ 3"
+    by (rule card_deep_simp_frontier_fuel_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma aseq_termss_rpders_deep1_rows_fuel_closed_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and init: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and star_body: "\<And>r. RSTAR r \<in> U \<Longrightarrow> aseq_terms r \<subseteq> U"
+    and ntimes_body: "\<And>r n. RNTIMES r n \<in> U \<Longrightarrow>
+      aseq_terms r \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and norm: "\<And>q. aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpDeep_raw q) \<subseteq> U"
+  shows "aseq_termss (rpders_deep1_rows r s) \<subseteq> U"
+  unfolding rpders_deep1_rows_def
+  by (rule aseq_termss_rpders_deep_rows_fuel_closed_subsetI)
+    (use legacy init zero one star_body ntimes_body ntimes_closed norm in auto)
+
+lemma row_lforms_aseq_terms_subset:
+  assumes x: "x \<in> row_lforms r"
+  shows "aseq_terms x \<subseteq> aseq_terms r"
+  using x
+proof (induct r arbitrary: x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "\<exists>ps. r1 = RALTS ps")
+    case True
+    then obtain ps where r1: "r1 = RALTS ps"
+      by blast
+    obtain p where p:
+        "p \<in> set ps"
+        "x \<in> rfrontier (rsimp7_SEQ_atom p r2)"
+      using RSEQ.prems r1 by auto
+    have x_terms:
+        "aseq_terms x \<subseteq> aseq_terms (rsimp7_SEQ_atom p r2)"
+      by (rule rfrontier_aseq_terms_subset[OF p(2)])
+    have p_terms: "aseq_terms p \<subseteq> aseq_termss ps"
+      using p(1) by (auto simp add: aseq_termss_member_iff)
+    show ?thesis
+      using x_terms p_terms aseq_terms_rsimp7_SEQ_atom_subset_front[of p r2] r1
+      by auto
+  next
+    case False
+    then have "row_lforms (RSEQ r1 r2) = {RSEQ r1 r2}"
+      by (cases r1) auto
+    then show ?thesis
+      using RSEQ.prems by simp
+  qed
+next
+  case (RALTS rs)
+  obtain q where q: "q \<in> set rs" "x \<in> row_lforms q"
+    using RALTS.prems by (auto simp add: row_lformss_member_iff)
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms q"
+    by (rule RALTS.hyps[OF q(1) q(2)])
+  have q_terms: "aseq_terms q \<subseteq> aseq_termss rs"
+    using q(1) by (auto simp add: aseq_termss_member_iff)
+  have "aseq_terms x \<subseteq> aseq_termss rs"
+    by (rule subset_trans[OF x_terms q_terms])
+  then show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 s)
+  then show ?case by simp
+next
+  case (RHALF r s1 s2)
+  then show ?case by simp
+next
+  case (RRESIDUE s1 s2)
+  then show ?case by simp
+qed
+
+lemma row_lformss_aseq_terms_subset:
+  assumes x: "x \<in> row_lformss rs"
+  shows "aseq_terms x \<subseteq> aseq_termss rs"
+proof -
+  obtain q where q: "q \<in> set rs" "x \<in> row_lforms q"
+    using x by (auto simp add: row_lformss_member_iff)
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms q"
+    by (rule row_lforms_aseq_terms_subset[OF q(2)])
+  have q_terms: "aseq_terms q \<subseteq> aseq_termss rs"
+    using q(1) by (auto simp add: aseq_termss_member_iff)
+  show ?thesis
+    by (rule subset_trans[OF x_terms q_terms])
+qed
+
+section \<open>Linear-Form Size Accounting\<close>
+
+text \<open>
+  This is the row-size side of the second-stage route.  The Antimirov
+  invariant gives a bounded universe of possible linear forms; the strong
+  simplifier still has to show that its rows are canonical enough that those
+  forms are not counted twice.  The following predicates isolate exactly the
+  two canonical obligations we need later:
+
+    \<^item> rows have pairwise-disjoint linear-form sets;
+    \<^item> every live row has at least one linear form paying for it.
+
+  Once those are available, the row-size budget follows from the aggregate
+  @{const rsize_set} budget for the linear forms.
+\<close>
+
+fun row_lformss_disjoint :: "rrexp list \<Rightarrow> bool" where
+  "row_lformss_disjoint [] = True"
+| "row_lformss_disjoint (r # rs) =
+    (row_lforms r \<inter> row_lformss rs = {} \<and>
+      row_lformss_disjoint rs)"
+
+definition row_lforms_size_paid :: "rrexp \<Rightarrow> bool" where
+  "row_lforms_size_paid r \<longleftrightarrow>
+    rsize r \<le> Suc (2 * rsize_set (row_lforms r))"
+
+definition row_lforms_live :: "rrexp \<Rightarrow> bool" where
+  "row_lforms_live r \<longleftrightarrow> row_lforms r \<noteq> {}"
+
+lemma card_le_rsize_set:
+  assumes "finite U"
+  shows "card U \<le> rsize_set U"
+proof -
+  have "card U = (\<Sum>q \<in> U. 1)"
+    by simp
+  also have "... \<le> (\<Sum>q \<in> U. rsize q)"
+    by (rule sum_mono) (use size_geq1 in blast)
+  finally show ?thesis
+    by (simp add: rsize_set_def)
+qed
+
+text \<open>
+  Split-term payment separates the two obligations suggested by the
+  Antimirov-frontier view: derivative generation proves that all split atoms
+  stay in the original frontier universe, while the simplifier/canonicalizer
+  should prove that no two surviving rows ask the same split atom to pay twice.
+\<close>
+
+fun aseq_termss_disjoint :: "rrexp list \<Rightarrow> bool" where
+  "aseq_termss_disjoint [] = True"
+| "aseq_termss_disjoint (r # rs) =
+    (aseq_terms r \<inter> aseq_termss rs = {} \<and>
+      aseq_termss_disjoint rs)"
+
+definition aseq_terms_live :: "rrexp \<Rightarrow> bool" where
+  "aseq_terms_live r \<longleftrightarrow> aseq_terms r \<noteq> {}"
+
+definition aseq_terms_size_paid :: "rrexp \<Rightarrow> bool" where
+  "aseq_terms_size_paid r \<longleftrightarrow>
+    rsize r \<le> Suc (2 * rsize_set (aseq_terms r))"
+
+lemma rsize_set_aseq_termss_disjoint:
+  assumes "aseq_termss_disjoint rs"
+  shows "rsize_set (aseq_termss rs) =
+    sum_list (map (\<lambda>r. rsize_set (aseq_terms r)) rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (Cons r rs)
+  have disj: "aseq_terms r \<inter> aseq_termss rs = {}"
+    using Cons.prems by simp
+  have tail: "aseq_termss_disjoint rs"
+    using Cons.prems by simp
+  have "rsize_set (aseq_termss (r # rs)) =
+      rsize_set (aseq_terms r) + rsize_set (aseq_termss rs)"
+    unfolding rsize_set_def
+    by (simp, subst sum.union_disjoint)
+      (use disj in auto)
+  also have "... =
+      rsize_set (aseq_terms r) +
+      sum_list (map (\<lambda>r. rsize_set (aseq_terms r)) rs)"
+    by (simp add: Cons.hyps[OF tail])
+  finally show ?case
+    by simp
+qed
+
+lemma length_aseq_termss_disjoint_live_le_card:
+  assumes disjoint: "aseq_termss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. aseq_terms_live r"
+  shows "length rs \<le> card (aseq_termss rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head_live: "aseq_terms r \<noteq> {}"
+    using Cons.prems by (simp add: aseq_terms_live_def)
+  have disj: "aseq_terms r \<inter> aseq_termss rs = {}"
+    using Cons.prems by simp
+  have tail_disj: "aseq_termss_disjoint rs"
+    using Cons.prems by simp
+  have tail_live: "\<forall>r \<in> set rs. aseq_terms_live r"
+    using Cons.prems by simp
+  have tail_len: "length rs \<le> card (aseq_termss rs)"
+    by (rule Cons.hyps[OF tail_disj tail_live])
+  have head_card: "1 \<le> card (aseq_terms r)"
+  proof -
+    have "0 < card (aseq_terms r)"
+      using head_live by (simp add: card_gt_0_iff)
+    then show ?thesis by simp
+  qed
+  have card_union:
+      "card (aseq_termss (r # rs)) =
+        card (aseq_terms r) + card (aseq_termss rs)"
+    using disj
+    by (simp add: card_Un_disjoint)
+  have "length (r # rs) \<le> Suc (card (aseq_termss rs))"
+    using tail_len by simp
+  also have "... \<le> card (aseq_terms r) + card (aseq_termss rs)"
+    using head_card by simp
+  also have "... = card (aseq_termss (r # rs))"
+    using card_union by simp
+  finally show ?case .
+qed
+
+lemma rsizes_aseq_terms_size_paid_disjoint_bound:
+  assumes disjoint: "aseq_termss_disjoint rs"
+    and paid: "\<forall>r \<in> set rs. aseq_terms_size_paid r"
+  shows "rsizes rs \<le>
+    length rs + 2 * rsize_set (aseq_termss rs)"
+proof -
+  have "rsizes rs \<le>
+      length rs +
+      2 * sum_list (map (\<lambda>r. rsize_set (aseq_terms r)) rs)"
+    using paid
+  proof (induct rs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons r rs)
+    have r_paid:
+        "rsize r \<le> Suc (2 * rsize_set (aseq_terms r))"
+      using Cons.prems by (simp add: aseq_terms_size_paid_def)
+    have rs_paid: "\<forall>r \<in> set rs. aseq_terms_size_paid r"
+      using Cons.prems by simp
+    have "rsizes (r # rs) = rsize r + rsizes rs"
+      by simp
+    also have "... \<le>
+        Suc (2 * rsize_set (aseq_terms r)) +
+        (length rs +
+          2 * sum_list (map (\<lambda>r. rsize_set (aseq_terms r)) rs))"
+      using r_paid Cons.hyps[OF rs_paid] by simp
+    also have "... =
+        length (r # rs) +
+        2 * sum_list (map (\<lambda>r. rsize_set (aseq_terms r)) (r # rs))"
+      by simp
+    finally show ?case .
+  qed
+  also have "... = length rs + 2 * rsize_set (aseq_termss rs)"
+    by (simp add: rsize_set_aseq_termss_disjoint[OF disjoint])
+  finally show ?thesis .
+qed
+
+lemma rsizes_aseq_terms_paid_live_disjoint_bound:
+  assumes disjoint: "aseq_termss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. aseq_terms_live r"
+    and paid: "\<forall>r \<in> set rs. aseq_terms_size_paid r"
+  shows "rsizes rs \<le> 3 * rsize_set (aseq_termss rs)"
+proof -
+  have len: "length rs \<le> card (aseq_termss rs)"
+    by (rule length_aseq_termss_disjoint_live_le_card
+        [OF disjoint live])
+  have card: "card (aseq_termss rs) \<le> rsize_set (aseq_termss rs)"
+    by (rule card_le_rsize_set) simp
+  have "rsizes rs \<le>
+      length rs + 2 * rsize_set (aseq_termss rs)"
+    by (rule rsizes_aseq_terms_size_paid_disjoint_bound
+        [OF disjoint paid])
+  also have "... \<le>
+      rsize_set (aseq_termss rs) +
+      2 * rsize_set (aseq_termss rs)"
+    using len card by linarith
+  also have "... = 3 * rsize_set (aseq_termss rs)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsizes_aseq_terms_paid_universe_boundI:
+  assumes disjoint: "aseq_termss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. aseq_terms_live r"
+    and paid: "\<forall>r \<in> set rs. aseq_terms_size_paid r"
+    and finite: "finite U"
+    and terms: "aseq_termss rs \<subseteq> U"
+  shows "rsizes rs \<le> 3 * rsize_set U"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (aseq_termss rs)"
+    by (rule rsizes_aseq_terms_paid_live_disjoint_bound
+        [OF disjoint live paid])
+  have mono: "rsize_set (aseq_termss rs) \<le> rsize_set U"
+    by (rule rsize_set_mono[OF finite terms])
+  show ?thesis
+    using base mono by simp
+qed
+
+lemma row_dlform_canonical_rows_aseq_payment_false:
+  fixes a b :: char
+  assumes diff: "a \<noteq> b"
+  defines "x \<equiv> RSEQ (RCHAR a)
+    (RALTS [RCHAR b, RCHAR b, RCHAR b, RCHAR b, RCHAR b])"
+  shows "rtail_nf x"
+    and "\<not> (\<forall>q \<in> set (row_dlform_canonical_rows [x]).
+      aseq_terms_size_paid q)"
+proof -
+  have atom:
+      "rtail_nf x"
+      "row_dlforms x = {x}"
+      "\<not> rsize x \<le> Suc (2 * rsize_set (aseq_terms x))"
+    using atomic_rtail_nf_aseq_terms_payment_false[OF diff]
+    by (simp_all add: x_def)
+  show "rtail_nf x"
+    using atom by simp
+  have x_in: "x \<in> set (row_dlform_canonical_rows [x])"
+    using atom(2) by simp
+  have "\<not> aseq_terms_size_paid x"
+    using atom(3) by (simp add: aseq_terms_size_paid_def)
+  then show "\<not> (\<forall>q \<in> set (row_dlform_canonical_rows [x]).
+      aseq_terms_size_paid q)"
+    using x_in by blast
+qed
+
+lemma rsize_set_row_lformss_disjoint:
+  assumes "row_lformss_disjoint rs"
+  shows "rsize_set (row_lformss rs) =
+    sum_list (map (\<lambda>r. rsize_set (row_lforms r)) rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (Cons r rs)
+  have disj: "row_lforms r \<inter> row_lformss rs = {}"
+    using Cons.prems by simp
+  have tail: "row_lformss_disjoint rs"
+    using Cons.prems by simp
+  have "rsize_set (row_lformss (r # rs)) =
+      rsize_set (row_lforms r) + rsize_set (row_lformss rs)"
+    unfolding rsize_set_def
+    by (simp, subst sum.union_disjoint)
+      (use disj in auto)
+  also have "... =
+      rsize_set (row_lforms r) +
+      sum_list (map (\<lambda>r. rsize_set (row_lforms r)) rs)"
+    by (simp add: Cons.hyps[OF tail])
+  finally show ?case
+    by simp
+qed
+
+lemma length_row_lformss_disjoint_live_le_card:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_lforms_live r"
+  shows "length rs \<le> card (row_lformss rs)"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have head_live: "row_lforms r \<noteq> {}"
+    using Cons.prems by (simp add: row_lforms_live_def)
+  have disj: "row_lforms r \<inter> row_lformss rs = {}"
+    using Cons.prems by simp
+  have tail_disj: "row_lformss_disjoint rs"
+    using Cons.prems by simp
+  have tail_live: "\<forall>r \<in> set rs. row_lforms_live r"
+    using Cons.prems by simp
+  have tail_len: "length rs \<le> card (row_lformss rs)"
+    by (rule Cons.hyps[OF tail_disj tail_live])
+  have head_card: "1 \<le> card (row_lforms r)"
+  proof -
+    have "0 < card (row_lforms r)"
+      using head_live by (simp add: card_gt_0_iff)
+    then show ?thesis by simp
+  qed
+  have card_union:
+      "card (row_lformss (r # rs)) =
+       card (row_lforms r) + card (row_lformss rs)"
+    by (simp, subst card_Un_disjoint)
+      (use disj in auto)
+  have "length (r # rs) = Suc (length rs)"
+    by simp
+  also have "... \<le> Suc (card (row_lformss rs))"
+    using tail_len by simp
+  also have "... \<le>
+      card (row_lforms r) + card (row_lformss rs)"
+    using head_card by simp
+  also have "... = card (row_lformss (r # rs))"
+    using card_union by simp
+  finally show ?case .
+qed
+
+lemma rsizes_row_lforms_size_paid_disjoint_bound:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and paid: "\<forall>r \<in> set rs. row_lforms_size_paid r"
+  shows "rsizes rs \<le>
+    length rs + 2 * rsize_set (row_lformss rs)"
+proof -
+  have "rsizes rs \<le>
+      length rs +
+      2 * sum_list (map (\<lambda>r. rsize_set (row_lforms r)) rs)"
+    using paid
+  proof (induct rs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons r rs)
+    have r_paid:
+        "rsize r \<le> Suc (2 * rsize_set (row_lforms r))"
+      using Cons.prems by (simp add: row_lforms_size_paid_def)
+    have rs_paid: "\<forall>r \<in> set rs. row_lforms_size_paid r"
+      using Cons.prems by simp
+    have "rsizes (r # rs) = rsize r + rsizes rs"
+      by simp
+    also have "... \<le>
+        Suc (2 * rsize_set (row_lforms r)) +
+        (length rs +
+          2 * sum_list (map (\<lambda>r. rsize_set (row_lforms r)) rs))"
+      using r_paid Cons.hyps[OF rs_paid] by simp
+    also have "... =
+        length (r # rs) +
+        2 * sum_list (map (\<lambda>r. rsize_set (row_lforms r)) (r # rs))"
+      by simp
+    finally show ?case .
+  qed
+  also have "... = length rs + 2 * rsize_set (row_lformss rs)"
+    by (simp add: rsize_set_row_lformss_disjoint[OF disjoint])
+  finally show ?thesis .
+qed
+
+lemma rsizes_row_lforms_paid_live_disjoint_bound:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_lforms_live r"
+    and paid: "\<forall>r \<in> set rs. row_lforms_size_paid r"
+  shows "rsizes rs \<le> 3 * rsize_set (row_lformss rs)"
+proof -
+  have len: "length rs \<le> card (row_lformss rs)"
+    by (rule length_row_lformss_disjoint_live_le_card
+        [OF disjoint live])
+  have card: "card (row_lformss rs) \<le> rsize_set (row_lformss rs)"
+    by (rule card_le_rsize_set) simp
+  have "rsizes rs \<le>
+      length rs + 2 * rsize_set (row_lformss rs)"
+    by (rule rsizes_row_lforms_size_paid_disjoint_bound
+        [OF disjoint paid])
+  also have "... \<le>
+      rsize_set (row_lformss rs) +
+      2 * rsize_set (row_lformss rs)"
+    using len card by linarith
+  also have "... = 3 * rsize_set (row_lformss rs)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsizes_rows_canonical_lform_universe_boundI:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_lforms_live r"
+    and paid: "\<forall>r \<in> set rs. row_lforms_size_paid r"
+    and finite: "finite U"
+    and lforms: "row_lformss rs \<subseteq> U"
+  shows "rsizes rs \<le> 3 * rsize_set U"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (row_lformss rs)"
+    by (rule rsizes_row_lforms_paid_live_disjoint_bound
+        [OF disjoint live paid])
+  have mono: "rsize_set (row_lformss rs) \<le> rsize_set U"
+    by (rule rsize_set_mono[OF finite lforms])
+  show ?thesis
+    using base mono by simp
+qed
+
+lemma rsizes_rows_canonical_lform_universe_cubicI:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and live: "\<forall>r \<in> set rs. row_lforms_live r"
+    and paid: "\<forall>r \<in> set rs. row_lforms_size_paid r"
+    and finite: "finite U"
+    and lforms: "row_lformss rs \<subseteq> U"
+    and cubic: "rsize_set U \<le> 2 * (rsize root + 3) ^ 3"
+  shows "rsizes rs \<le> 6 * (rsize root + 3) ^ 3"
+proof -
+  have "rsizes rs \<le> 3 * rsize_set U"
+    by (rule rsizes_rows_canonical_lform_universe_boundI
+        [OF disjoint live paid finite lforms])
+  also have "... \<le> 3 * (2 * (rsize root + 3) ^ 3)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 6 * (rsize root + 3) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma row_lformss_eq_set_if_singletons:
+  assumes "\<forall>r \<in> set rs. row_lforms r = {r}"
+  shows "row_lformss rs = set rs"
+  using assms by (induct rs) auto
+
+lemma row_lformss_disjoint_if_singletons_distinct:
+  assumes distinct: "distinct rs"
+    and singletons: "\<forall>r \<in> set rs. row_lforms r = {r}"
+  shows "row_lformss_disjoint rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have tail_distinct: "distinct rs"
+    using Cons.prems by simp
+  have tail_singletons: "\<forall>r \<in> set rs. row_lforms r = {r}"
+    using Cons.prems by simp
+  have tail_disjoint: "row_lformss_disjoint rs"
+    by (rule Cons.hyps[OF tail_distinct tail_singletons])
+  have "row_lformss rs = set rs"
+    by (rule row_lformss_eq_set_if_singletons[OF tail_singletons])
+  then have "row_lforms r \<inter> row_lformss rs = {}"
+    using Cons.prems by auto
+  then show ?case
+    using tail_disjoint by simp
+qed
+
+lemma row_lforms_live_atomic:
+  assumes "row_lforms r = {r}"
+  shows "row_lforms_live r"
+  using assms by (simp add: row_lforms_live_def)
+
+lemma row_lforms_size_paid_atomic:
+  assumes "row_lforms r = {r}"
+  shows "row_lforms_size_paid r"
+  using assms size_geq1[of r]
+  by (simp add: row_lforms_size_paid_def rsize_set_def)
+
+lemma row_lformss_row_lform_canonical_rows_eq:
+  assumes atomic:
+    "\<forall>x \<in> row_lformss rs. row_lforms x = {x}"
+  shows "row_lformss (row_lform_canonical_rows rs) =
+    row_lformss rs"
+proof -
+  have singletons:
+      "\<forall>x \<in> set (row_lform_canonical_rows rs).
+        row_lforms x = {x}"
+    using atomic by simp
+  have "row_lformss (row_lform_canonical_rows rs) =
+      set (row_lform_canonical_rows rs)"
+    by (rule row_lformss_eq_set_if_singletons[OF singletons])
+  then show ?thesis by simp
+qed
+
+lemma row_lformss_disjoint_row_lform_canonical_rows:
+  assumes atomic:
+    "\<forall>x \<in> row_lformss rs. row_lforms x = {x}"
+  shows "row_lformss_disjoint (row_lform_canonical_rows rs)"
+proof -
+  have singletons:
+      "\<forall>x \<in> set (row_lform_canonical_rows rs).
+        row_lforms x = {x}"
+    using atomic by simp
+  show ?thesis
+    by (rule row_lformss_disjoint_if_singletons_distinct
+        [OF distinct_row_lform_canonical_rows singletons])
+qed
+
+lemma row_lform_canonical_rows_live_paid:
+  assumes atomic:
+    "\<forall>x \<in> row_lformss rs. row_lforms x = {x}"
+  shows "(\<forall>x \<in> set (row_lform_canonical_rows rs).
+      row_lforms_live x) \<and>
+    (\<forall>x \<in> set (row_lform_canonical_rows rs).
+      row_lforms_size_paid x)"
+proof
+  show "\<forall>x \<in> set (row_lform_canonical_rows rs).
+      row_lforms_live x"
+    using atomic row_lforms_live_atomic by auto
+next
+  show "\<forall>x \<in> set (row_lform_canonical_rows rs).
+      row_lforms_size_paid x"
+    using atomic row_lforms_size_paid_atomic by auto
+qed
+
+lemma rsizes_row_lform_canonical_rows_rsize_set_boundI:
+  assumes atomic:
+    "\<forall>x \<in> row_lformss rs. row_lforms x = {x}"
+    and finite: "finite U"
+    and lforms: "row_lformss rs \<subseteq> U"
+  shows "rsizes (row_lform_canonical_rows rs) \<le>
+    3 * rsize_set U"
+proof -
+  let ?canon = "row_lform_canonical_rows rs"
+  have disjoint: "row_lformss_disjoint ?canon"
+    by (rule row_lformss_disjoint_row_lform_canonical_rows[OF atomic])
+  have live_paid: "(\<forall>x \<in> set ?canon. row_lforms_live x) \<and>
+      (\<forall>x \<in> set ?canon. row_lforms_size_paid x)"
+    by (rule row_lform_canonical_rows_live_paid[OF atomic])
+  have canon_lforms: "row_lformss ?canon \<subseteq> U"
+    using row_lformss_row_lform_canonical_rows_eq[OF atomic] lforms
+    by simp
+  show ?thesis
+    by (rule rsizes_rows_canonical_lform_universe_boundI
+        [OF disjoint _ _ finite canon_lforms])
+      (use live_paid in auto)
+qed
+
+lemma row_nf_row_lforms_singleton:
+  assumes "row_nf r"
+  shows "row_lforms r = {r}"
+  using assms
+proof (cases r)
+  case (RSEQ r1 r2)
+  have "r1 \<noteq> RALTS rs" for rs
+    using assms RSEQ row_nf_nonalt by auto
+  then show ?thesis
+    using RSEQ by (cases r1) auto
+qed auto
+
+lemma row_nf_row_lforms_live:
+  assumes "row_nf r"
+  shows "row_lforms_live r"
+  using row_nf_row_lforms_singleton[OF assms]
+  by (simp add: row_lforms_live_def)
+
+lemma row_nf_row_lforms_size_paid:
+  assumes "row_nf r"
+  shows "row_lforms_size_paid r"
+proof -
+  have "row_lforms r = {r}"
+    by (rule row_nf_row_lforms_singleton[OF assms])
+  then show ?thesis
+    by (simp add: row_lforms_size_paid_def rsize_set_def)
+qed
+
+lemma row_lformss_row_nf_atomic:
+  assumes nf: "\<forall>r \<in> set rs. row_nf r"
+  shows "\<forall>x \<in> row_lformss rs. row_lforms x = {x}"
+proof
+  fix x
+  assume x: "x \<in> row_lformss rs"
+  have singletons: "\<forall>r \<in> set rs. row_lforms r = {r}"
+    using nf row_nf_row_lforms_singleton by blast
+  then have "row_lformss rs = set rs"
+    by (rule row_lformss_eq_set_if_singletons)
+  then have "x \<in> set rs"
+    using x by simp
+  then have "row_nf x"
+    using nf by blast
+  then show "row_lforms x = {x}"
+    by (rule row_nf_row_lforms_singleton)
+qed
+
+lemma rsizes_row_lform_canonical_rows_row_nf_boundI:
+  assumes nf: "\<forall>r \<in> set rs. row_nf r"
+    and finite: "finite U"
+    and lforms: "row_lformss rs \<subseteq> U"
+  shows "rsizes (row_lform_canonical_rows rs) \<le>
+    3 * rsize_set U"
+  by (rule rsizes_row_lform_canonical_rows_rsize_set_boundI
+      [OF row_lformss_row_nf_atomic[OF nf] finite lforms])
+
+lemma row_lformss_disjoint_row_nf_distinct:
+  assumes distinct: "distinct rs"
+    and nf: "\<forall>r \<in> set rs. row_nf r"
+  shows "row_lformss_disjoint rs"
+  by (rule row_lformss_disjoint_if_singletons_distinct[OF distinct])
+    (use nf row_nf_row_lforms_singleton in blast)
+
+lemma rsizes_row_nf_distinct_lforms_bound:
+  assumes distinct: "distinct rs"
+    and nf: "\<forall>r \<in> set rs. row_nf r"
+  shows "rsizes rs \<le> 3 * rsize_set (row_lformss rs)"
+proof (rule rsizes_row_lforms_paid_live_disjoint_bound)
+  show "row_lformss_disjoint rs"
+    by (rule row_lformss_disjoint_row_nf_distinct[OF distinct nf])
+  show "\<forall>r \<in> set rs. row_lforms_live r"
+    using nf row_nf_row_lforms_live by blast
+  show "\<forall>r \<in> set rs. row_lforms_size_paid r"
+    using nf row_nf_row_lforms_size_paid by blast
+qed
+
+definition alform_front :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "alform_front r s = row_lformss (afactored1 r s)"
+
+lemma alform_front_subset_apder_lfrontier:
+  assumes nf: "apder_nf r"
+  shows "alform_front r s \<subseteq> apder_lfrontier r"
+proof
+  fix x
+  assume x: "x \<in> alform_front r s"
+  obtain q where q:
+      "q \<in> set (afactored1 r s)"
+      "x \<in> row_lforms q"
+    using x
+    by (auto simp add: alform_front_def row_lformss_member_iff)
+  have "q \<in> apder_rows r"
+    using afactored1_apder_rows_subset[OF nf, of s] q(1) by blast
+  then show "x \<in> apder_lfrontier r"
+    using q(2) by (auto simp add: apder_lfrontier_def)
+qed
+
+lemma rsize_set_alform_front_le_apder_lfrontier:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (alform_front r s) \<le>
+    rsize_set (apder_lfrontier r)"
+  by (rule rsize_set_mono)
+    (use alform_front_subset_apder_lfrontier[OF nf, of s] in auto)
+
+lemma row_lforms_anorm_der_eq_alform_front:
+  "row_lforms (anorm_der r s) = alform_front r s"
+  by (simp add: anorm_der_def alform_front_def)
+
+lemma row_lforms_rders_pder_norm_eq_alform_front:
+  "row_lforms (rders_pder_norm r s) = alform_front r s"
+  by (simp add: anorm_der_eq_rders_pder_norm[symmetric]
+      row_lforms_anorm_der_eq_alform_front)
+
+lemma row_lforms_rders_pder_norm_subset_apder_lfrontier:
+  assumes nf: "apder_nf r"
+  shows "row_lforms (rders_pder_norm r s) \<subseteq> apder_lfrontier r"
+  using alform_front_subset_apder_lfrontier[OF nf, of s]
+  by (simp add: row_lforms_rders_pder_norm_eq_alform_front)
+
+lemma rsize_set_row_lforms_rders_pder_norm_le_apder_lfrontier:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (row_lforms (rders_pder_norm r s)) \<le>
+    rsize_set (apder_lfrontier r)"
+  by (rule rsize_set_mono)
+    (use row_lforms_rders_pder_norm_subset_apder_lfrontier[OF nf, of s]
+      in auto)
+
+definition same_lfront_row :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "same_lfront_row root front row \<longleftrightarrow>
+    row_lforms row \<subseteq> alform_front root front"
+
+definition same_lfront_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "same_lfront_rows root front rows \<longleftrightarrow>
+    row_lformss rows \<subseteq> alform_front root front"
+
+lemma alform_front_snoc:
+  "alform_front r (s @ [c]) =
+    row_lformss (afactored_step c (afactored1 r s))"
+  by (simp add: alform_front_def afactored1_snoc)
+
+lemma row_lforms_rpder_norm_list_afactored1_subset:
+  assumes q: "q \<in> set (afactored1 root front)"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  shows "row_lforms p \<subseteq> alform_front root (front @ [c])"
+proof -
+  have p_in:
+      "p \<in> set (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+    using q p by auto
+  have "row_lforms p \<subseteq>
+      row_lformss (concat (map (rpder_norm_list c)
+        (afactored1 root front)))"
+    by (rule row_lforms_member_subset_lformss[OF p_in])
+  also have "... =
+      row_lformss (afactored_step c (afactored1 root front))"
+    by (rule row_lformss_afactored_step_eq_generated[symmetric])
+  also have "... = alform_front root (front @ [c])"
+    by (rule alform_front_snoc[symmetric])
+  finally show ?thesis .
+qed
+
+lemma same_lfront_rowsI:
+  assumes "\<And>row. row \<in> set rows \<Longrightarrow>
+    row_lforms row \<subseteq> alform_front root front"
+  shows "same_lfront_rows root front rows"
+proof -
+  have "row_lformss rows \<subseteq> alform_front root front"
+  proof
+    fix x
+    assume x: "x \<in> row_lformss rows"
+    obtain row where row: "row \<in> set rows" "x \<in> row_lforms row"
+      using x by (auto simp add: row_lformss_member_iff)
+    have "row_lforms row \<subseteq> alform_front root front"
+      by (rule assms[OF row(1)])
+    then show "x \<in> alform_front root front"
+      using row(2) by blast
+  qed
+  then show ?thesis
+    by (simp add: same_lfront_rows_def)
+qed
+
+lemma same_lfront_rowsD:
+  assumes "same_lfront_rows root front rows"
+    and "row \<in> set rows"
+  shows "same_lfront_row root front row"
+proof -
+  have rows: "row_lformss rows \<subseteq> alform_front root front"
+    using assms(1) by (simp add: same_lfront_rows_def)
+  have "row_lforms row \<subseteq> alform_front root front"
+  proof
+    fix x
+    assume x: "x \<in> row_lforms row"
+    have "x \<in> row_lformss rows"
+      using assms(2) x by (auto simp add: row_lformss_member_iff)
+    then show "x \<in> alform_front root front"
+      using rows by blast
+  qed
+  then show ?thesis
+    by (simp add: same_lfront_row_def)
+qed
+
+lemma afactored1_same_lfront_rows [simp]:
+  "same_lfront_rows r s (afactored1 r s)"
+  by (simp add: same_lfront_rows_def alform_front_def)
+
+lemma afactored1_member_same_lfront_row:
+  assumes "row \<in> set (afactored1 r s)"
+  shows "same_lfront_row r s row"
+  using same_lfront_rowsD[OF afactored1_same_lfront_rows assms] .
+
+lemma same_lfront_rows_subset_apder_lfrontier:
+  assumes nf: "apder_nf root"
+    and rows: "same_lfront_rows root front rows"
+  shows "row_lformss rows \<subseteq> apder_lfrontier root"
+proof -
+  have "row_lformss rows \<subseteq> alform_front root front"
+    using rows by (simp add: same_lfront_rows_def)
+  also have "... \<subseteq> apder_lfrontier root"
+    by (rule alform_front_subset_apder_lfrontier[OF nf])
+  finally show ?thesis .
+qed
+
+lemma rsize_set_same_lfront_rows_le_apder_lfrontier:
+  assumes nf: "apder_nf root"
+    and rows: "same_lfront_rows root front rows"
+  shows "rsize_set (row_lformss rows) \<le>
+    rsize_set (apder_lfrontier root)"
+  by (rule rsize_set_mono)
+    (use same_lfront_rows_subset_apder_lfrontier[OF nf rows] in auto)
+
+lemma same_lfront_rows_subsetI:
+  assumes rows': "row_lformss rows' \<subseteq> row_lformss rows"
+    and rows: "same_lfront_rows root front rows"
+  shows "same_lfront_rows root front rows'"
+proof -
+  have "row_lformss rows' \<subseteq> alform_front root front"
+    using rows' rows by (auto simp add: same_lfront_rows_def)
+  then show ?thesis
+    by (simp add: same_lfront_rows_def)
+qed
+
+lemma same_lfront_rows_rflts:
+  assumes "same_lfront_rows root front rows"
+  shows "same_lfront_rows root front (rflts rows)"
+  by (rule same_lfront_rows_subsetI[OF row_lformss_rflts_subset assms])
+
+lemma same_lfront_rows_rdistinct:
+  assumes "same_lfront_rows root front rows"
+  shows "same_lfront_rows root front (rdistinct rows acc)"
+  by (rule same_lfront_rows_subsetI[OF row_lformss_rdistinct_subset assms])
+
+lemma same_lfront_rows_rprune_eq_against:
+  assumes "same_lfront_rows root front rows"
+  shows "same_lfront_rows root front (rprune_eq_against covered rows)"
+  by (rule same_lfront_rows_subsetI[OF row_lformss_rprune_eq_against_subset assms])
+
+lemma same_lfront_row_rsimp_ALTs:
+  assumes "same_lfront_rows root front rows"
+  shows "same_lfront_row root front (rsimp_ALTs rows)"
+proof -
+  have "row_lforms (rsimp_ALTs rows) \<subseteq> alform_front root front"
+    using assms by (simp add: same_lfront_rows_def)
+  then show ?thesis
+    by (simp add: same_lfront_row_def)
+qed
+
+lemma alform_front_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> alform_front r s"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq> aseq_termss (afactored1 r s)"
+    using x
+    by (simp add: alform_front_def row_lformss_aseq_terms_subset)
+  have rows_terms:
+      "aseq_termss (afactored1 r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+  show ?thesis
+    using x_terms rows_terms by blast
+qed
+
+lemma same_lfront_rows_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_lfront_rows root front rows"
+    and x: "x \<in> row_lformss rows"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root"
+proof -
+  have "x \<in> alform_front root front"
+    using rows x by (auto simp add: same_lfront_rows_def)
+  then show ?thesis
+    by (rule alform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma same_lfront_row_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp root"
+    and row: "same_lfront_row root front row"
+    and x: "x \<in> row_lforms row"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root"
+proof -
+  have "x \<in> alform_front root front"
+    using row x by (auto simp add: same_lfront_row_def)
+  then show ?thesis
+    by (rule alform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma alform_front_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> alform_front r s"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule alform_front_aseq_terms_frontier_universe_subset
+        [OF legacy x])
+  have card: "card (aseq_terms x) \<le> (rsize r + 2) ^ 2"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (partial_derivative_frontier_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+  proof
+    fix q
+    assume q: "q \<in> aseq_terms x"
+    then have "q \<in> partial_derivative_frontier_universe r"
+      using subset by auto
+    then show "rsize q \<le> Suc (rsize r + rsize r)"
+      by (rule partial_derivative_frontier_universe_member_size_linear)
+  qed
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma rders_pder_norm_same_lfront_row:
+  "same_lfront_row r s (rders_pder_norm r s)"
+  by (simp add: same_lfront_row_def
+      row_lforms_rders_pder_norm_eq_alform_front)
+
+lemma rders_pder_norm_lform_in_same_lfront:
+  assumes "x \<in> row_lforms (rders_pder_norm r s)"
+  shows "x \<in> alform_front r s"
+  using assms
+  by (simp add: row_lforms_rders_pder_norm_eq_alform_front)
+
+lemma row_lforms_rders_pder_norm_split_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_lforms (rders_pder_norm r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have "x \<in> alform_front r s"
+    by (rule rders_pder_norm_lform_in_same_lfront[OF x])
+  then show ?thesis
+    by (rule alform_front_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma rders_pder_norm_lform_split_aseq_termss_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "(\<Union>x \<in> row_lforms (rders_pder_norm r s). aseq_terms x) \<subseteq>
+    partial_derivative_frontier_universe r"
+proof
+  fix q
+  assume q: "q \<in>
+      (\<Union>x \<in> row_lforms (rders_pder_norm r s). aseq_terms x)"
+  obtain x where x:
+      "x \<in> row_lforms (rders_pder_norm r s)"
+      "q \<in> aseq_terms x"
+    using q by blast
+  have "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule row_lforms_rders_pder_norm_split_terms_frontier_universe_subset
+        [OF legacy x(1)])
+  then show "q \<in> partial_derivative_frontier_universe r"
+    using x(2) by blast
+qed
+
+lemma row_lforms_rders_pder_norm_split_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_lforms (rders_pder_norm r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have "x \<in> alform_front r s"
+    by (rule rders_pder_norm_lform_in_same_lfront[OF x])
+  then show ?thesis
+    by (rule alform_front_aseq_terms_frontier_universe_contract[OF legacy])
+qed
+
+lemma same_lfront_rows_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_lfront_rows root front rows"
+    and x: "x \<in> row_lformss rows"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root \<and>
+    card (aseq_terms x) \<le> (rsize root + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize root + rsize root))"
+proof -
+  have "x \<in> alform_front root front"
+    using rows x by (auto simp add: same_lfront_rows_def)
+  then show ?thesis
+    by (rule alform_front_aseq_terms_frontier_universe_contract[OF legacy])
+qed
+
+lemma same_lfront_rows_cleaned_rprune_contract:
+  assumes legacy: "legacy_rrexp root"
+    and rows: "same_lfront_rows root front rows"
+    and x: "x \<in>
+      row_lformss (rdistinct (rflts (rprune_eq_against covered rows)) acc)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe root \<and>
+    card (aseq_terms x) \<le> (rsize root + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x.
+      rsize q \<le> Suc (rsize root + rsize root))"
+proof -
+  have pruned:
+      "same_lfront_rows root front (rprune_eq_against covered rows)"
+    by (rule same_lfront_rows_rprune_eq_against[OF rows])
+  have flat:
+      "same_lfront_rows root front
+        (rflts (rprune_eq_against covered rows))"
+    by (rule same_lfront_rows_rflts[OF pruned])
+  have clean:
+      "same_lfront_rows root front
+        (rdistinct (rflts (rprune_eq_against covered rows)) acc)"
+    by (rule same_lfront_rows_rdistinct[OF flat])
+  show ?thesis
+    by (rule same_lfront_rows_aseq_terms_frontier_universe_contract
+        [OF legacy clean x])
+qed
+
+lemma same_lfront_rows_rpder_strong_rows_raw_step_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+    and generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front root (front @ [c])"
+  shows "same_lfront_rows root (front @ [c])
+    (rpder_strong_rows_raw c rows)"
+proof -
+  have cleaned:
+      "row_lformss (rpder_strong_rows_raw c rows) \<subseteq>
+        row_lformss (concat (map (rpder_strong_list_raw c) rows))"
+    by (rule row_lformss_rpder_strong_rows_raw_subset_generated_pairI
+        [OF pair])
+  have gen:
+      "row_lformss (concat (map (rpder_strong_list_raw c) rows))
+        \<subseteq> alform_front root (front @ [c])"
+  proof
+    fix x
+    assume x:
+        "x \<in> row_lformss
+          (concat (map (rpder_strong_list_raw c) rows))"
+    obtain q p where qp:
+        "q \<in> set rows"
+        "p \<in> set (rpder_norm_list c q)"
+        "x \<in> row_lforms (rsimpStrong_raw p)"
+      using x
+      by (auto simp add: row_lformss_member_iff
+          rpder_strong_list_raw_def)
+    have "row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front root (front @ [c])"
+      by (rule generated[OF qp(1) qp(2)])
+    then show "x \<in> alform_front root (front @ [c])"
+      using qp(3) by blast
+  qed
+  have "row_lformss (rpder_strong_rows_raw c rows) \<subseteq>
+      alform_front root (front @ [c])"
+    by (rule subset_trans[OF cleaned gen])
+  then show ?thesis
+    by (simp add: same_lfront_rows_def)
+qed
+
+lemma same_lfront_rows_rpders_strong_rows_raw_pairI:
+  assumes init: "same_lfront_rows root front rows"
+    and pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+    and step: "\<And>front rows c q p.
+      same_lfront_rows root front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front root (front @ [c])"
+  shows "same_lfront_rows root (front @ s)
+    (rpders_strong_rows_raw rows s)"
+  using init
+proof (induct s arbitrary: rows front)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_front:
+      "same_lfront_rows root (front @ [c])
+        (rpder_strong_rows_raw c rows)"
+  proof (rule same_lfront_rows_rpder_strong_rows_raw_step_pairI
+      [OF pair])
+    fix q p
+    assume q: "q \<in> set rows"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    show "row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front root (front @ [c])"
+      by (rule step[OF Cons.prems q p])
+  qed
+  have tail:
+      "same_lfront_rows root ((front @ [c]) @ s)
+        (rpders_strong_rows_raw
+          (rpder_strong_rows_raw c rows) s)"
+    by (rule Cons.hyps[OF next_front])
+  then show ?case
+    by simp
+qed
+
+lemma same_lfront_rows_rpders_strong1_rows_raw_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+    and step: "\<And>front rows c q p.
+      same_lfront_rows root front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front root (front @ [c])"
+  shows "same_lfront_rows root s
+    (rpders_strong1_rows_raw root s)"
+proof -
+  have init: "same_lfront_rows root [] [root]"
+    by (simp add: same_lfront_rows_def alform_front_def afactored1_def)
+  have "same_lfront_rows root ([] @ s)
+      (rpders_strong_rows_raw [root] s)"
+    by (rule same_lfront_rows_rpders_strong_rows_raw_pairI
+        [OF init pair step])
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_raw_def)
+qed
+
+lemma row_lformss_rpders_strong1_rows_raw_split_terms_frontier_universe_pair_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+    and step: "\<And>front rows c q p.
+      same_lfront_rows r front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_lforms (rsimpStrong_raw p) \<subseteq>
+        alform_front r (front @ [c])"
+    and x: "x \<in> row_lformss (rpders_strong1_rows_raw r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have rows: "same_lfront_rows r s (rpders_strong1_rows_raw r s)"
+    by (rule same_lfront_rows_rpders_strong1_rows_raw_pairI
+        [OF pair step])
+  show ?thesis
+    by (rule same_lfront_rows_aseq_terms_frontier_universe_contract
+        [OF legacy rows x])
+qed
+
+lemma lfront_separates_seq_alt_suffix:
+  fixes a b c :: char
+  defines "r \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "RSEQ (RCHAR a) (RCHAR c) \<in> alform_front r []"
+    and "RSEQ (RCHAR b) (RCHAR c) \<in> alform_front r []"
+    and "RCHAR c \<notin> alform_front r []"
+    and "RCHAR c \<in> alform_front r [a]"
+    and "RCHAR c \<in> alform_front r [b]"
+  by (simp_all add: r_def alform_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      rsimp7_SEQ_atom_def)
+
+lemma linear_forms_are_not_stage_one_for_seq_alt_suffix:
+  fixes a b c :: char
+  defines "r \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "ader_front r [] = {r}"
+    and "row_lforms r =
+      {RSEQ (RCHAR a) (RCHAR c), RSEQ (RCHAR b) (RCHAR c)}"
+    and "row_dlforms r =
+      {RSEQ (RCHAR a) (RCHAR c), RSEQ (RCHAR b) (RCHAR c)}"
+    and "r \<notin> row_lforms r"
+    and "r \<notin> row_dlforms r"
+  by (auto simp add: r_def ader_front_def afactored1_def
+      rsimp7_SEQ_atom_def)
+
+lemma lfront_allows_shared_a_prefix_residuals:
+  fixes a b c :: char
+  defines "r \<equiv>
+    RALTS [RSEQ (RSTAR (RCHAR a)) (RCHAR b),
+      RSEQ (RCHAR a) (RCHAR c)]"
+  shows "RSEQ (RSTAR (RCHAR a)) (RCHAR b) \<in> alform_front r [a]"
+    and "RCHAR c \<in> alform_front r [a]"
+  by (simp_all add: r_def alform_front_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      rsimp7_SEQ_atom_def)
+
+section \<open>Second-Step Simplifier Diagnostics\<close>
+
+lemma rsimpStrong_raw_aseq_terms_not_monotone:
+  "\<not> aseq_terms (rsimpStrong_raw (RSTAR RZERO)) \<subseteq>
+    aseq_terms (RSTAR RZERO)"
+  by simp
+
+lemma rsimpStrong_raw_not_idempotent:
+  fixes a b :: char
+  defines "star \<equiv> RSTAR (RCHAR b)"
+  defines "p \<equiv> RSEQ (RCHAR b) (RSEQ (RCHAR a) star)"
+  defines "k \<equiv> RSEQ star (RALTS [RCHAR b, RONE])"
+  defines "t \<equiv> RSEQ p k"
+  shows "rsimpStrong_raw (rsimpStrong_raw t) \<noteq> rsimpStrong_raw t"
+  by (simp add: star_def p_def k_def t_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def Let_def)
+
+lemma deep_fixed_rows_do_not_force_dlform_disjoint:
+  fixes a b :: char
+  assumes diff: "a \<noteq> b"
+  defines "alts1 \<equiv> RALTS [RCHAR a, RCHAR b, RONE]"
+  defines "alts2 \<equiv>
+    RALTS [RSEQ (RCHAR b) (RCHAR a),
+      RSEQ (RCHAR b) (RCHAR b), RONE]"
+  defines "k \<equiv>
+    RSTAR (RSEQ alts1 (RSEQ alts2 (RSTAR (RCHAR a))))"
+  defines "row0 \<equiv> RSEQ (RSTAR (RCHAR a)) k"
+  defines "row1 \<equiv> RSEQ alts2 row0"
+  shows "distinct [row0, row1]"
+    and "\<forall>q \<in> set [row0, row1].
+      rsimpDeep_fuel_fixed q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and "\<not> row_dlformss_disjoint [row0, row1]"
+  using diff
+  by (simp_all add: alts1_def alts2_def k_def row0_def row1_def
+      rsimpDeep_fuel_fixed_def row_dlformss_def rsimp7_SEQ_atom_def)
+
+definition row_cover_prefixes :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp list" where
+  "row_cover_prefixes earlier k =
+    (if earlier = k then [RONE]
+     else
+      (case earlier of
+        RSEQ (RALTS lrs) k' \<Rightarrow> if k' = k then lrs else []
+      | RSEQ p k' \<Rightarrow> if k' = k then [p] else []
+      | _ \<Rightarrow> []))"
+
+lemma RL_row_cover_prefixes_suffix_subset:
+  "RL (RALTS (row_cover_prefixes earlier k)) ;; RL k \<subseteq>
+    RL earlier"
+proof (cases "earlier = k")
+  case True
+  then show ?thesis
+    by (simp add: row_cover_prefixes_def)
+next
+  case not_suffix: False
+  show ?thesis
+  proof (cases earlier)
+    case (RSEQ p k')
+    note earlier_seq = RSEQ
+    show ?thesis
+    proof (cases "k' = k")
+      case True
+      then show ?thesis
+        using earlier_seq not_suffix
+        by (cases p) (auto simp add: row_cover_prefixes_def Sequ_def)
+    next
+      case False
+      then show ?thesis
+        using earlier_seq not_suffix
+        by (cases p) (simp_all add: row_cover_prefixes_def)
+    qed
+  qed (use not_suffix in \<open>simp_all add: row_cover_prefixes_def\<close>)
+qed
+
+definition rsimpWide_prune_pair_raw :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpWide_prune_pair_raw earlier later =
+    (case later of
+      RSEQ p k \<Rightarrow>
+        (case p of
+          RALTS rrs \<Rightarrow>
+            rsimp7_SEQ_atom
+              (rsimp_ALTs (rprune_eq_against
+                (row_cover_prefixes earlier k) rrs)) k
+        | _ \<Rightarrow>
+            if p \<in> set (row_cover_prefixes earlier k)
+            then RZERO
+            else RSEQ p k)
+    | _ \<Rightarrow> later)"
+
+lemma RL_rsimpWide_prune_pair_raw_RSEQ:
+  "RL earlier \<union>
+      RL (rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against
+          (row_cover_prefixes earlier k) rrs)) k) =
+    RL earlier \<union> RL (RSEQ (RALTS rrs) k)"
+proof -
+  let ?covered = "row_cover_prefixes earlier k"
+  have cover_subset:
+      "RL (RALTS ?covered) ;; RL k \<subseteq> RL earlier"
+    by (rule RL_row_cover_prefixes_suffix_subset)
+  have prune:
+      "(RL (RALTS ?covered) ;; RL k) \<union>
+        ((\<Union>r \<in> set (rprune_eq_against ?covered rrs). RL r) ;; RL k) =
+       (RL (RALTS ?covered) ;; RL k) \<union> (RL (RALTS rrs) ;; RL k)"
+    by (rule RL_rprune_eq_against_shared_suffix)
+  have "RL earlier \<union>
+      RL (rsimp7_SEQ_atom
+        (rsimp_ALTs (rprune_eq_against ?covered rrs)) k) =
+      RL earlier \<union>
+        ((\<Union>r \<in> set (rprune_eq_against ?covered rrs). RL r) ;; RL k)"
+    by (simp add: RL_rsimp7_SEQ_atom RL_rsimp_RALTS)
+  also have "... =
+      RL earlier \<union> (RL (RALTS rrs) ;; RL k)"
+    using prune cover_subset by blast
+  also have "... = RL earlier \<union> RL (RSEQ (RALTS rrs) k)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma RL_rsimpWide_prune_pair_raw_RSEQ_single:
+  "RL earlier \<union>
+      RL (if p \<in> set (row_cover_prefixes earlier k)
+          then RZERO
+          else RSEQ p k) =
+    RL earlier \<union> RL (RSEQ p k)"
+proof -
+  let ?covered = "row_cover_prefixes earlier k"
+  have cover_subset:
+      "RL (RALTS ?covered) ;; RL k \<subseteq> RL earlier"
+    by (rule RL_row_cover_prefixes_suffix_subset)
+  show ?thesis
+  proof (cases "p \<in> set ?covered")
+    case True
+    have p_cover:
+        "RL p ;; RL k \<subseteq> RL (RALTS ?covered) ;; RL k"
+      using True by auto
+    have "RL (RSEQ p k) \<subseteq> RL earlier"
+      using p_cover cover_subset by auto
+    then show ?thesis
+      using True by auto
+  next
+    case False
+    then show ?thesis by simp
+  qed
+qed
+
+lemma RL_rsimpWide_prune_pair_raw_RSEQ_nonalt:
+  assumes nonalt: "\<nexists>rrs. p = RALTS rrs"
+  shows "RL earlier \<union>
+      RL (rsimpWide_prune_pair_raw earlier (RSEQ p k)) =
+    RL earlier \<union> RL (RSEQ p k)"
+proof -
+  have unfold:
+      "rsimpWide_prune_pair_raw earlier (RSEQ p k) =
+        (if p \<in> set (row_cover_prefixes earlier k)
+         then RZERO
+         else RSEQ p k)"
+    using nonalt
+    by (cases p) (simp_all add: rsimpWide_prune_pair_raw_def)
+  show ?thesis
+    unfolding unfold
+    by (rule RL_rsimpWide_prune_pair_raw_RSEQ_single)
+qed
+
+lemma RL_rsimpWide_prune_pair_raw_with_earlier:
+  "RL earlier \<union> RL (rsimpWide_prune_pair_raw earlier later) =
+    RL earlier \<union> RL later"
+proof (cases later)
+  case (RSEQ p k)
+  note later_seq = RSEQ
+  show ?thesis
+  proof (cases p)
+    case (RALTS rrs)
+    then show ?thesis
+      using later_seq
+      by (simp add: rsimpWide_prune_pair_raw_def
+          RL_rsimpWide_prune_pair_raw_RSEQ)
+  next
+    case RZERO
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case RONE
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RCHAR x)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RSEQ x1 x2)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RSTAR x)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RNTIMES x1 x2)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RHALF x1 x2 x3)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  next
+    case (RRESIDUE x1 x2)
+    then show ?thesis
+      using later_seq
+      by (simp add: RL_rsimpWide_prune_pair_raw_RSEQ_nonalt)
+  qed
+qed (simp_all add: rsimpWide_prune_pair_raw_def)
+
+fun rsimpWide_prune_against_rows_raw :: "rrexp list \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpWide_prune_against_rows_raw [] r = r"
+| "rsimpWide_prune_against_rows_raw (x # xs) r =
+    rsimpWide_prune_against_rows_raw xs
+      (rsimpWide_prune_pair_raw x r)"
+
+fun rsimpWide_prune_rows_acc_raw :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimpWide_prune_rows_acc_raw seen [] = []"
+| "rsimpWide_prune_rows_acc_raw seen (r # rs) =
+    (let r' = rsimpWide_prune_against_rows_raw seen r
+     in r' # rsimpWide_prune_rows_acc_raw (r' # seen) rs)"
+
+definition rsimpWide_prune_rows_raw :: "rrexp list \<Rightarrow> rrexp list" where
+  "rsimpWide_prune_rows_raw rs = rsimpWide_prune_rows_acc_raw [] rs"
+
+lemma length_rsimpWide_prune_rows_acc_raw:
+  "length (rsimpWide_prune_rows_acc_raw seen rs) = length rs"
+  by (induct rs arbitrary: seen) (simp_all add: Let_def)
+
+lemma length_rsimpWide_prune_rows_raw:
+  "length (rsimpWide_prune_rows_raw rs) = length rs"
+  by (simp add: rsimpWide_prune_rows_raw_def
+      length_rsimpWide_prune_rows_acc_raw)
+
+lemma RL_rsimpWide_prune_against_rows_raw:
+  "RL (RALTS (seen @ [rsimpWide_prune_against_rows_raw seen r])) =
+    RL (RALTS (seen @ [r]))"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpWide_prune_pair_raw x r"
+  have tail:
+      "RL (RALTS (xs @ [rsimpWide_prune_against_rows_raw xs ?p])) =
+        RL (RALTS (xs @ [?p]))"
+    by (rule Cons.hyps)
+  have pair: "RL x \<union> RL ?p = RL x \<union> RL r"
+    by (rule RL_rsimpWide_prune_pair_raw_with_earlier)
+  have "RL (RALTS ((x # xs) @
+        [rsimpWide_prune_against_rows_raw xs ?p])) =
+      RL x \<union>
+        RL (RALTS (xs @
+          [rsimpWide_prune_against_rows_raw xs ?p]))"
+    by simp
+  also have "... = RL x \<union> RL (RALTS (xs @ [?p]))"
+    using tail by simp
+  also have "... = RL (RALTS ((x # xs) @ [?p]))"
+    by simp
+  also have "... = RL (RALTS ((x # xs) @ [r]))"
+    using pair by auto
+  finally show ?case by simp
+qed
+
+lemma RL_rsimpWide_prune_rows_acc_raw:
+  "RL (RALTS (seen @ rsimpWide_prune_rows_acc_raw seen rs)) =
+    RL (RALTS (seen @ rs))"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpWide_prune_against_rows_raw seen r"
+  have tail:
+      "RL (RALTS ((?r' # seen) @
+          rsimpWide_prune_rows_acc_raw (?r' # seen) rs)) =
+        RL (RALTS ((?r' # seen) @ rs))"
+    by (rule Cons.hyps)
+  have head:
+      "RL (RALTS (seen @ [?r'])) = RL (RALTS (seen @ [r]))"
+    by (rule RL_rsimpWide_prune_against_rows_raw)
+  have tail_seen:
+      "RL (RALTS (seen @ ?r' #
+          rsimpWide_prune_rows_acc_raw (?r' # seen) rs)) =
+        RL (RALTS (seen @ ?r' # rs))"
+  proof -
+    have left:
+        "set (seen @ ?r' #
+          rsimpWide_prune_rows_acc_raw (?r' # seen) rs) =
+          set ((?r' # seen) @
+            rsimpWide_prune_rows_acc_raw (?r' # seen) rs)"
+      by auto
+    have right: "set (seen @ ?r' # rs) = set ((?r' # seen) @ rs)"
+      by auto
+    show ?thesis
+      using tail RL_RALTS_set_eq[OF left] RL_RALTS_set_eq[OF right]
+      by simp
+  qed
+  have head_tail:
+      "RL (RALTS (seen @ ?r' # rs)) =
+        RL (RALTS (seen @ r # rs))"
+  proof -
+    have "RL (RALTS ((seen @ [?r']) @ rs)) =
+        RL (RALTS ((seen @ [r]) @ rs))"
+      by (rule RL_RALTS_append_cong[OF head])
+    then show ?thesis by simp
+  qed
+  have start_set:
+      "set (seen @ rsimpWide_prune_rows_acc_raw seen (r # rs)) =
+        set (seen @ ?r' #
+          rsimpWide_prune_rows_acc_raw (?r' # seen) rs)"
+    by (simp add: Let_def)
+  have "RL (RALTS (seen @ rsimpWide_prune_rows_acc_raw seen (r # rs))) =
+      RL (RALTS (seen @ ?r' #
+        rsimpWide_prune_rows_acc_raw (?r' # seen) rs))"
+    by (rule RL_RALTS_set_eq[OF start_set])
+  also have "... = RL (RALTS (seen @ ?r' # rs))"
+    by (rule tail_seen)
+  also have "... = RL (RALTS (seen @ r # rs))"
+    by (rule head_tail)
+  finally show ?case by simp
+qed
+
+lemma RL_rsimpWide_prune_rows_raw:
+  "RL (RALTS (rsimpWide_prune_rows_raw rs)) = RL (RALTS rs)"
+  using RL_rsimpWide_prune_rows_acc_raw[of "[]" rs]
+  by (simp add: rsimpWide_prune_rows_raw_def)
+
+lemma row_lforms_do_not_cover_dead_seq_aseq_terms:
+  fixes a :: char
+  defines "row \<equiv> RSEQ (RALTS [RCHAR a]) RZERO"
+  shows "RCHAR a \<in> aseq_terms row"
+    and "row_lforms row = {}"
+  by (simp_all add: row_def rsimp7_SEQ_atom_def)
+
+lemma rtail_nf_does_not_atomize_row_lforms:
+  fixes a b c :: char
+  assumes diff: "a \<noteq> b"
+  defines "row \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "rtail_nf row"
+    and "RSEQ (RCHAR a) (RCHAR c) \<in> row_lforms row"
+    and "row_lforms row \<noteq> {row}"
+  using diff
+  by (simp_all add: row_def rsimp7_SEQ_atom_def)
+
+lemma row_group_deep_nf_does_not_imply_lform_payment:
+  fixes a :: char
+  defines "row \<equiv> RSEQ (RALTS []) (RCHAR a)"
+  shows "row_group_deep_nf row"
+    and "\<not> row_lforms_live row"
+    and "\<not> row_lforms_size_paid row"
+  by (simp_all add: row_def row_lforms_live_def
+      row_lforms_size_paid_def rsize_set_def)
+
+lemma row_lforms_rsimp7_SEQ_atom_RONE_subset_false:
+  fixes a :: char
+  defines "p \<equiv> RSEQ (RCHAR a) RZERO"
+  shows "\<not> row_lforms p \<subseteq>
+    rfrontier (rsimp7_SEQ_atom p RONE)"
+  by (simp add: p_def rsimp7_SEQ_atom_def)
+
+lemma row_lforms_rsimpStrong_prune_pair_raw_not_monotone:
+  fixes a b :: char
+  defines "dead \<equiv> RSEQ (RCHAR a) RZERO"
+  defines "earlier \<equiv> RSEQ (RALTS []) RONE"
+  defines "later \<equiv> RSEQ (RALTS [dead, RCHAR b]) RONE"
+  shows "dead \<in> row_lforms
+      (rsimpStrong_prune_pair_raw earlier later)"
+    and "dead \<notin> row_lforms later"
+  by (simp_all add: dead_def earlier_def later_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+
+lemma row_nf_does_not_imply_tail_stable:
+  fixes a b c :: char
+  defines "p \<equiv> RSEQ (RSEQ (RCHAR a) (RCHAR b)) (RCHAR c)"
+  shows "row_nf p"
+    and "\<not> row_lforms_tail_stable p"
+  by (simp_all add: p_def row_lforms_tail_stable_def
+      rsimp7_SEQ_atom_def)
+
+lemma rtail_nf_does_not_imply_tail_stable:
+  fixes a b c :: char
+  defines "p \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "rtail_nf p"
+    and "\<not> row_lforms_tail_stable p"
+  by (simp_all add: p_def row_lforms_tail_stable_def
+      rsimp7_SEQ_atom_def)
+
+lemma nested_star_row_not_cubic_but_terms_are_cubic:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSTAR (RCHAR a))"
+  defines "q \<equiv> RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a))"
+  defines "p \<equiv>
+    RSEQ (RSTAR (RCHAR a))
+      (RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a)))"
+  shows "q \<in> partial_derivative_cubic_universe r"
+    and "p \<in> set (rpder_norm_list a q)"
+    and "p \<notin> partial_derivative_cubic_universe r"
+    and "aseq_terms p \<subseteq> partial_derivative_cubic_universe r"
+  by (simp_all add: r_def q_def p_def rpder_norm_list_def
+      partial_derivative_cubic_universe_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rsimp4_SEQ_def)
+
+lemma nested_star_lform_not_cubic_but_atoms_are_cubic:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RSTAR (RCHAR a))"
+  defines "q \<equiv> RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a))"
+  defines "p \<equiv>
+    RSEQ (RSTAR (RCHAR a))
+      (RSEQ (RSTAR (RSTAR (RCHAR a))) (RSTAR (RCHAR a)))"
+  shows "q \<in> partial_derivative_cubic_universe r"
+    and "p \<in> row_lformss (rpder_norm_list a q)"
+    and "p \<notin> partial_derivative_cubic_universe r"
+    and "aseq_terms p \<subseteq> partial_derivative_cubic_universe r"
+  by (simp_all add: r_def q_def p_def rpder_norm_list_def
+      partial_derivative_cubic_universe_def
+      partial_derivative_frontier_universe_def
+      partial_derivative_path_universe_def
+      rpath_continuations_def rsimp4_SEQ_def)
+
+fun aseq_repeat1 :: "rrexp \<Rightarrow> nat \<Rightarrow> rrexp" where
+  "aseq_repeat1 q 0 = q"
+| "aseq_repeat1 q (Suc n) = RSEQ q (aseq_repeat1 q n)"
+
+lemma aseq_terms_repeat1:
+  "aseq_terms (aseq_repeat1 q n) = aseq_terms q"
+  by (induct n) auto
+
+lemma rsize_aseq_repeat1_char:
+  "rsize (aseq_repeat1 (RCHAR a) n) = Suc (2 * n)"
+  by (induct n) auto
+
+lemma bounded_aseq_terms_do_not_bound_raw_product_size:
+  "aseq_terms (aseq_repeat1 (RCHAR a) n) = {RCHAR a}"
+  "rsize (aseq_repeat1 (RCHAR a) n) = Suc (2 * n)"
+  by (simp_all add: aseq_terms_repeat1 rsize_aseq_repeat1_char)
+
+section \<open>Strong Raw Pruning Preserves Product Terms\<close>
+
+lemma aseq_terms_rsimp_ALTs_subsetI:
+  assumes zero: "RZERO \<in> U"
+    and rows: "aseq_termss rs \<subseteq> U"
+  shows "aseq_terms (rsimp_ALTs rs) \<subseteq> U"
+  using assms
+  by (induct rs rule: rsimp_ALTs.induct) auto
+
+lemma anorm_der_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (anorm_der r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+proof -
+  have rows:
+      "aseq_termss (afactored1 r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+  show ?thesis
+    unfolding anorm_der_def
+    by (rule aseq_terms_rsimp_ALTs_subsetI)
+      (use rows in auto)
+qed
+
+lemma rders_pder_norm_aseq_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rders_pder_norm r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+  using anorm_der_aseq_terms_frontier_universe_subset[OF legacy, of s]
+  by (simp add: anorm_der_eq_rders_pder_norm)
+
+lemma rders_pder_norm_aseq_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rders_pder_norm r s) \<subseteq>
+      partial_derivative_frontier_universe r \<and>
+    card (aseq_terms (rders_pder_norm r s)) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms (rders_pder_norm r s).
+      rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms (rders_pder_norm r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule rders_pder_norm_aseq_terms_frontier_universe_subset
+        [OF legacy])
+  have card:
+      "card (aseq_terms (rders_pder_norm r s)) \<le> (rsize r + 2) ^ 2"
+  proof -
+    have "card (aseq_terms (rders_pder_norm r s)) \<le>
+        card (partial_derivative_frontier_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms (rders_pder_norm r s).
+        rsize q \<le> Suc (rsize r + rsize r)"
+  proof
+    fix q
+    assume q: "q \<in> aseq_terms (rders_pder_norm r s)"
+    then have "q \<in> partial_derivative_frontier_universe r"
+      using subset by blast
+    then show "rsize q \<le> Suc (rsize r + rsize r)"
+      by (rule partial_derivative_frontier_universe_member_size_linear)
+  qed
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rsimpDeep_raw (rders_pder_norm r s)) \<subseteq>
+    deep_simp_frontier_aseq_universe r"
+  by (rule aseq_terms_rsimpDeep_raw_frontier_closure)
+    (rule rders_pder_norm_aseq_terms_frontier_universe_subset[OF legacy])
+
+lemma card_aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_terms (rsimpDeep_raw (rders_pder_norm r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_terms (rsimpDeep_raw (rders_pder_norm r s)) \<subseteq>
+        deep_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  have "card (aseq_terms (rsimpDeep_raw (rders_pder_norm r s))) \<le>
+      card (deep_simp_frontier_aseq_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule card_deep_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (aseq_terms (rsimpDeep_raw (rders_pder_norm r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_terms (rsimpDeep_raw (rders_pder_norm r s)) \<subseteq>
+        deep_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  have "rsize_set
+      (aseq_terms (rsimpDeep_raw (rders_pder_norm r s))) \<le>
+      rsize_set (deep_simp_frontier_aseq_universe r)"
+    by (rule rsize_set_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule rsize_set_deep_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_member_size:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> aseq_terms (rsimpDeep_raw (rders_pder_norm r s))"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have subset:
+      "aseq_terms (rsimpDeep_raw (rders_pder_norm r s)) \<subseteq>
+        deep_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  then have "q \<in> deep_simp_frontier_aseq_universe r"
+    using q by blast
+  then show ?thesis
+    by (rule deep_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma row_dlforms_rsimpDeep_raw_rders_pder_norm_split_terms_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_dlforms (rsimpDeep_raw (rders_pder_norm r s))"
+  shows "aseq_terms x \<subseteq> deep_simp_frontier_aseq_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_terms (rsimpDeep_raw (rders_pder_norm r s))"
+    by (rule row_dlforms_aseq_terms_subset[OF x])
+  have der_terms:
+      "aseq_terms (rsimpDeep_raw (rders_pder_norm r s)) \<subseteq>
+        deep_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpDeep_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  show ?thesis
+    by (rule subset_trans[OF x_terms der_terms])
+qed
+
+lemma row_dlforms_rders_pder_norm_split_terms_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq> aseq_terms (rders_pder_norm r s)"
+    by (rule row_dlforms_aseq_terms_subset[OF x])
+  have der_terms:
+      "aseq_terms (rders_pder_norm r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule rders_pder_norm_aseq_terms_frontier_universe_subset
+        [OF legacy])
+  show ?thesis
+    by (rule subset_trans[OF x_terms der_terms])
+qed
+
+lemma rders_pder_norm_split_aseq_termss_frontier_universe_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "(\<Union>x \<in> row_dlforms (rders_pder_norm r s). aseq_terms x) \<subseteq>
+    partial_derivative_frontier_universe r"
+proof
+  fix q
+  assume q: "q \<in>
+      (\<Union>x \<in> row_dlforms (rders_pder_norm r s). aseq_terms x)"
+  obtain x where x:
+      "x \<in> row_dlforms (rders_pder_norm r s)"
+      "q \<in> aseq_terms x"
+    using q by blast
+  have "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule row_dlforms_rders_pder_norm_split_terms_frontier_universe_subset
+        [OF legacy x(1)])
+  then show "q \<in> partial_derivative_frontier_universe r"
+    using x(2) by blast
+qed
+
+lemma row_dlforms_rders_pder_norm_split_terms_frontier_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_dlforms (rders_pder_norm r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule row_dlforms_rders_pder_norm_split_terms_frontier_universe_subset
+        [OF legacy x])
+  have card: "card (aseq_terms x) \<le> (rsize r + 2) ^ 2"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (partial_derivative_frontier_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+  proof
+    fix q
+    assume q: "q \<in> aseq_terms x"
+    then have "q \<in> partial_derivative_frontier_universe r"
+      using subset by blast
+    then show "rsize q \<le> Suc (rsize r + rsize r)"
+      by (rule partial_derivative_frontier_universe_member_size_linear)
+  qed
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma aseq_termss_rprune_eq_against_subset:
+  "aseq_termss (rprune_eq_against covered rs) \<subseteq> aseq_termss rs"
+  by (induct rs) auto
+
+lemma same_aseq_front_rows_rprune_eq_against:
+  assumes "same_aseq_front_rows root front rows"
+  shows "same_aseq_front_rows root front (rprune_eq_against covered rows)"
+  by (rule same_aseq_front_rows_subsetI
+      [OF aseq_termss_rprune_eq_against_subset assms])
+
+lemma aseq_terms_rsimp7_SEQ_atom_subset:
+  "aseq_terms (rsimp7_SEQ_atom p k) \<subseteq> aseq_terms p \<union> aseq_terms k"
+  using aseq_terms_rsimp4_SEQ_atom_subset[of p k]
+  by (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma aseq_terms_rsimp7_SEQ_atom_subsetI:
+  assumes p: "aseq_terms p \<subseteq> U"
+    and k: "aseq_terms k \<subseteq> U"
+  shows "aseq_terms (rsimp7_SEQ_atom p k) \<subseteq> U"
+  using aseq_terms_rsimp7_SEQ_atom_subset[of p k] p k by blast
+
+lemma aseq_terms_rsimpStrong_prune_pair_raw_subsetI:
+  assumes later: "aseq_terms later \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_terms (rsimpStrong_prune_pair_raw earlier later) \<subseteq> U"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have rrs_terms: "aseq_termss rrs \<subseteq> U"
+      using later shared by simp
+    have k_terms: "aseq_terms k \<subseteq> U"
+      using later shared by simp
+    have pruned_terms:
+        "aseq_termss (rprune_eq_against lrs rrs) \<subseteq> U"
+      using aseq_termss_rprune_eq_against_subset[of lrs rrs] rrs_terms
+      by blast
+    have alt_terms:
+        "aseq_terms (rsimp_ALTs (rprune_eq_against lrs rrs)) \<subseteq> U"
+      by (rule aseq_terms_rsimp_ALTs_subsetI[OF zero pruned_terms])
+    have "aseq_terms
+        (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)
+        \<subseteq> U"
+      by (rule aseq_terms_rsimp7_SEQ_atom_subsetI
+          [OF alt_terms k_terms])
+    then show ?thesis
+      using shared by (simp add: rsimpStrong_prune_pair_raw_def)
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using later by simp
+  qed
+qed
+
+lemma aseq_terms_rsimpStrong_prune_against_rows_raw_subsetI:
+  assumes row: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_terms (rsimpStrong_prune_against_rows_raw seen r) \<subseteq> U"
+  using row
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have pair:
+      "aseq_terms (rsimpStrong_prune_pair_raw x r) \<subseteq> U"
+    by (rule aseq_terms_rsimpStrong_prune_pair_raw_subsetI
+        [OF Cons.prems zero])
+  show ?case
+    using Cons.hyps[OF pair] by simp
+qed
+
+lemma aseq_termss_rsimpStrong_prune_rows_acc_raw_subsetI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_termss (rsimpStrong_prune_rows_acc_raw seen rs) \<subseteq> U"
+  using rows
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have r_terms: "aseq_terms r \<subseteq> U"
+    using Cons.prems by simp
+  have head: "aseq_terms ?r' \<subseteq> U"
+    by (rule aseq_terms_rsimpStrong_prune_against_rows_raw_subsetI
+        [OF r_terms zero])
+  have tail_terms: "aseq_termss rs \<subseteq> U"
+    using Cons.prems by simp
+  have tail:
+      "aseq_termss (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs) \<subseteq> U"
+    by (rule Cons.hyps[OF tail_terms])
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma aseq_termss_rsimpStrong_prune_rows_raw_subsetI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_termss (rsimpStrong_prune_rows_raw rs) \<subseteq> U"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule aseq_termss_rsimpStrong_prune_rows_acc_raw_subsetI
+      [OF rows zero])
+
+lemma aseq_terms_rsimpStrong_ALTs_raw_subsetI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_terms (rsimpStrong_ALTs_raw rs) \<subseteq> U"
+proof -
+  have pruned:
+      "aseq_termss (rsimpStrong_prune_rows_raw rs) \<subseteq> U"
+    by (rule aseq_termss_rsimpStrong_prune_rows_raw_subsetI
+        [OF rows zero])
+  have flat:
+      "aseq_termss (rflts (rsimpStrong_prune_rows_raw rs)) \<subseteq> U"
+    using aseq_termss_rflts_subset pruned by blast
+  have distinct:
+      "aseq_termss
+        (rdistinct (rflts (rsimpStrong_prune_rows_raw rs)) {}) \<subseteq> U"
+    using aseq_termss_rdistinct_subset flat by blast
+  show ?thesis
+    unfolding rsimpStrong_ALTs_raw_def
+    by (rule aseq_terms_rsimp_ALTs_subsetI[OF zero distinct])
+qed
+
+definition rsimpStrong_aseq_closure :: "rrexp set \<Rightarrow> rrexp set" where
+  "rsimpStrong_aseq_closure U =
+    (\<Union>p \<in> U. aseq_terms (rsimpStrong_raw p))"
+
+lemma rsimpStrong_aseq_closureI:
+  assumes "p \<in> U"
+    and "x \<in> aseq_terms (rsimpStrong_raw p)"
+  shows "x \<in> rsimpStrong_aseq_closure U"
+  using assms by (auto simp add: rsimpStrong_aseq_closure_def)
+
+lemma rsimpStrong_aseq_closure_mono:
+  assumes "U \<subseteq> V"
+  shows "rsimpStrong_aseq_closure U \<subseteq> rsimpStrong_aseq_closure V"
+  using assms by (auto simp add: rsimpStrong_aseq_closure_def)
+
+lemma aseq_terms_rsimpStrong_raw_self_closure:
+  assumes "p \<in> U"
+  shows "aseq_terms (rsimpStrong_raw p) \<subseteq>
+    rsimpStrong_aseq_closure U"
+  using assms by (auto intro: rsimpStrong_aseq_closureI)
+
+lemma rsimpStrong_aseq_closure_zero:
+  assumes "RZERO \<in> U"
+  shows "RZERO \<in> rsimpStrong_aseq_closure U"
+  using aseq_terms_rsimpStrong_raw_self_closure[OF assms] by simp
+
+lemma aseq_termss_map_rsimpStrong_raw_closureI:
+  assumes rows: "aseq_termss rs \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw q) \<subseteq> rsimpStrong_aseq_closure U"
+  shows "aseq_termss (map rsimpStrong_raw rs) \<subseteq>
+    rsimpStrong_aseq_closure U"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss (map rsimpStrong_raw rs)"
+  obtain q where q: "q \<in> set rs"
+      and xq: "x \<in> aseq_terms (rsimpStrong_raw q)"
+    using x by (auto simp add: aseq_termss_member_iff)
+  have q_terms: "aseq_terms q \<subseteq> U"
+  proof
+    fix y
+    assume y: "y \<in> aseq_terms q"
+    have "y \<in> aseq_termss rs"
+      using q y by (auto simp add: aseq_termss_member_iff)
+    then show "y \<in> U"
+      using rows by blast
+  qed
+  have "aseq_terms (rsimpStrong_raw q) \<subseteq>
+      rsimpStrong_aseq_closure U"
+    by (rule step[OF q q_terms])
+  then show "x \<in> rsimpStrong_aseq_closure U"
+    using xq by blast
+qed
+
+lemma aseq_terms_rsimpStrong_raw_subset_closureI:
+  assumes terms: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_terms (rsimpStrong_raw r) \<subseteq>
+    rsimpStrong_aseq_closure U"
+  using terms zero
+proof (induct r arbitrary: U)
+  case RZERO
+  have "RZERO \<in> U"
+    using RZERO.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case RONE
+  have "RONE \<in> U"
+    using RONE.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RCHAR x)
+  have "RCHAR x \<in> U"
+    using RCHAR.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RSEQ r1 r2)
+  have r1_terms: "aseq_terms r1 \<subseteq> U"
+    using RSEQ.prems by simp
+  have r2_terms: "aseq_terms r2 \<subseteq> U"
+    using RSEQ.prems by simp
+  have zeroU: "RZERO \<in> U"
+    using RSEQ.prems by simp
+  have left:
+      "aseq_terms (rsimpStrong_raw r1) \<subseteq>
+        rsimpStrong_aseq_closure U"
+    by (rule RSEQ.hyps(1)[OF r1_terms zeroU])
+  have right:
+      "aseq_terms (rsimpStrong_raw r2) \<subseteq>
+        rsimpStrong_aseq_closure U"
+    by (rule RSEQ.hyps(2)[OF r2_terms zeroU])
+  show ?case
+    by (simp, rule aseq_terms_rsimp7_SEQ_atom_subsetI[OF left right])
+next
+  case (RALTS rs)
+  have zeroU: "RZERO \<in> U"
+    using RALTS.prems by simp
+  have mapped:
+      "aseq_termss (map rsimpStrong_raw rs) \<subseteq>
+        rsimpStrong_aseq_closure U"
+  proof (rule aseq_termss_map_rsimpStrong_raw_closureI)
+    show "aseq_termss rs \<subseteq> U"
+      using RALTS.prems by simp
+    show "RZERO \<in> U"
+      by (rule zeroU)
+    show "\<And>q. q \<in> set rs \<Longrightarrow> aseq_terms q \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw q) \<subseteq>
+        rsimpStrong_aseq_closure U"
+      using RALTS.hyps zeroU by blast
+  qed
+  have flat:
+      "aseq_termss (rflts (map rsimpStrong_raw rs)) \<subseteq>
+        rsimpStrong_aseq_closure U"
+    using aseq_termss_rflts_subset mapped by blast
+  have zero_closure:
+      "RZERO \<in> rsimpStrong_aseq_closure U"
+    by (rule rsimpStrong_aseq_closure_zero[OF zeroU])
+  show ?case
+    by (simp, rule aseq_terms_rsimpStrong_ALTs_raw_subsetI
+        [OF flat zero_closure])
+next
+  case (RSTAR r)
+  have "RSTAR r \<in> U"
+    using RSTAR.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RNTIMES r n)
+  have "RNTIMES r n \<in> U"
+    using RNTIMES.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have "RBACKREF4 r1 r2 r3 r4 cs \<in> U"
+    using RBACKREF4.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RHALF r cs rep)
+  have "RHALF r cs rep \<in> U"
+    using RHALF.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+next
+  case (RRESIDUE cs rep)
+  have "RRESIDUE cs rep \<in> U"
+    using RRESIDUE.prems by simp
+  then show ?case
+    by (rule aseq_terms_rsimpStrong_raw_self_closure)
+qed
+
+lemma finite_rsimpStrong_aseq_closure [simp]:
+  assumes "finite U"
+  shows "finite (rsimpStrong_aseq_closure U)"
+  using assms by (simp add: rsimpStrong_aseq_closure_def)
+
+definition strong_derivative_front_terms ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp set" where
+  "strong_derivative_front_terms r s =
+    rsimpStrong_aseq_closure (insert RZERO (derivative_front_terms r s))"
+
+definition same_strong_aseq_front_row ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "same_strong_aseq_front_row root front row \<longleftrightarrow>
+    aseq_terms row \<subseteq> strong_derivative_front_terms root front"
+
+definition same_strong_aseq_front_rows ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "same_strong_aseq_front_rows root front rows \<longleftrightarrow>
+    aseq_termss rows \<subseteq> strong_derivative_front_terms root front"
+
+lemma finite_strong_derivative_front_terms [simp]:
+  "finite (strong_derivative_front_terms r s)"
+  by (simp add: strong_derivative_front_terms_def
+      derivative_front_terms_def)
+
+lemma aseq_terms_rsimpStrong_raw_same_front_terms_closure:
+  assumes "aseq_terms p \<subseteq>
+    insert RZERO (derivative_front_terms root front)"
+  shows "aseq_terms (rsimpStrong_raw p) \<subseteq>
+    strong_derivative_front_terms root front"
+  unfolding strong_derivative_front_terms_def
+  by (rule aseq_terms_rsimpStrong_raw_subset_closureI)
+    (use assms in auto)
+
+lemma row_dlforms_rsimpStrong_raw_same_front_terms_closure:
+  assumes terms: "aseq_terms p \<subseteq>
+      insert RZERO (derivative_front_terms root front)"
+    and x: "x \<in> row_dlforms (rsimpStrong_raw p)"
+  shows "same_strong_aseq_front_row root front x"
+proof -
+  have x_terms: "aseq_terms x \<subseteq> aseq_terms (rsimpStrong_raw p)"
+    by (rule row_dlforms_aseq_terms_subset[OF x])
+  have strong:
+      "aseq_terms (rsimpStrong_raw p) \<subseteq>
+        strong_derivative_front_terms root front"
+    by (rule aseq_terms_rsimpStrong_raw_same_front_terms_closure
+        [OF terms])
+  show ?thesis
+    using subset_trans[OF x_terms strong]
+    by (simp add: same_strong_aseq_front_row_def)
+qed
+
+lemma card_aseq_terms_rsimpStrong_raw_le:
+  "card (aseq_terms (rsimpStrong_raw p)) \<le> rsize p"
+proof -
+  have "card (aseq_terms (rsimpStrong_raw p)) \<le>
+      rsize (rsimpStrong_raw p)"
+    by (rule card_aseq_terms_le_rsize)
+  also have "... \<le> rsize p"
+    by (rule rsize_rsimpStrong_raw_le)
+  finally show ?thesis .
+qed
+
+lemma card_rsimpStrong_aseq_closure_boundI:
+  assumes finite: "finite U"
+    and member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+  shows "card (rsimpStrong_aseq_closure U) \<le> card U * M"
+  using finite member_size
+proof (induct U rule: finite_induct)
+  case empty
+  then show ?case
+    by (simp add: rsimpStrong_aseq_closure_def)
+next
+  case (insert x F)
+  have closure_insert:
+      "rsimpStrong_aseq_closure (insert x F) =
+        aseq_terms (rsimpStrong_raw x) \<union> rsimpStrong_aseq_closure F"
+    by (auto simp add: rsimpStrong_aseq_closure_def)
+  have finite_closure: "finite (rsimpStrong_aseq_closure F)"
+    by (rule finite_rsimpStrong_aseq_closure[OF insert.hyps(1)])
+  have "card (rsimpStrong_aseq_closure (insert x F)) \<le>
+      card (aseq_terms (rsimpStrong_raw x)) +
+      card (rsimpStrong_aseq_closure F)"
+    by (simp add: closure_insert card_Un_le finite_closure)
+  also have "... \<le> M + card F * M"
+  proof -
+    have x_bound: "card (aseq_terms (rsimpStrong_raw x)) \<le> M"
+    proof -
+      have "card (aseq_terms (rsimpStrong_raw x)) \<le> rsize x"
+        by (rule card_aseq_terms_rsimpStrong_raw_le)
+      also have "... \<le> M"
+        by (rule insert.prems) simp
+      finally show ?thesis .
+    qed
+    have F_bound: "card (rsimpStrong_aseq_closure F) \<le> card F * M"
+      by (rule insert.hyps(3)) (use insert.prems in auto)
+    show ?thesis
+      using x_bound F_bound by linarith
+  qed
+  also have "... = card (insert x F) * M"
+    using insert.hyps by simp
+  finally show ?case .
+qed
+
+lemma rsize_set_rsimpStrong_aseq_closure_boundI:
+  assumes finite: "finite U"
+    and member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+  shows "rsize_set (rsimpStrong_aseq_closure U) \<le> card U * M"
+proof -
+  have union_bound:
+      "rsize_set (rsimpStrong_aseq_closure U) \<le>
+        (\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpStrong_raw p)))"
+    unfolding rsimpStrong_aseq_closure_def
+    by (rule rsize_set_UN_le[OF finite]) simp
+  have summand:
+      "\<And>p. p \<in> U \<Longrightarrow>
+        rsize_set (aseq_terms (rsimpStrong_raw p)) \<le> rsize p"
+  proof -
+    fix p
+    assume "p \<in> U"
+    have "rsize_set (aseq_terms (rsimpStrong_raw p)) \<le>
+        rsize (rsimpStrong_raw p)"
+      by (rule rsize_set_aseq_terms_le_rsize)
+    also have "... \<le> rsize p"
+      by (rule rsize_rsimpStrong_raw_le)
+    finally show "rsize_set (aseq_terms (rsimpStrong_raw p)) \<le> rsize p" .
+  qed
+  have "(\<Sum>p \<in> U. rsize_set (aseq_terms (rsimpStrong_raw p))) \<le>
+      (\<Sum>p \<in> U. rsize p)"
+    by (rule sum_mono) (use summand in blast)
+  also have "... \<le> (\<Sum>p \<in> U. M)"
+    by (rule sum_mono) (use member_size in blast)
+  also have "... = card U * M"
+    using finite by simp
+  finally show ?thesis
+    using union_bound by linarith
+qed
+
+lemma rsimpStrong_aseq_closure_member_size_boundI:
+  assumes member_size: "\<And>p. p \<in> U \<Longrightarrow> rsize p \<le> M"
+    and q: "q \<in> rsimpStrong_aseq_closure U"
+  shows "rsize q \<le> M"
+proof -
+  obtain p where p: "p \<in> U"
+      and qp: "q \<in> aseq_terms (rsimpStrong_raw p)"
+    using q by (auto simp add: rsimpStrong_aseq_closure_def)
+  have "q \<in> rsubterms (rsimpStrong_raw p)"
+    using qp aseq_terms_subset_rsubterms by blast
+  then have "rsize q \<le> rsize (rsimpStrong_raw p)"
+    by (rule rsubterms_member_size_le_rsize)
+  also have "... \<le> rsize p"
+    by (rule rsize_rsimpStrong_raw_le)
+  also have "... \<le> M"
+    by (rule member_size[OF p])
+  finally show ?thesis .
+qed
+
+definition strong_simp_frontier_aseq_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "strong_simp_frontier_aseq_universe r =
+    rsimpStrong_aseq_closure (partial_derivative_frontier_universe r)"
+
+lemma finite_strong_simp_frontier_aseq_universe [simp]:
+  "finite (strong_simp_frontier_aseq_universe r)"
+  by (simp add: strong_simp_frontier_aseq_universe_def)
+
+lemma strong_derivative_front_terms_subset_strong_simp_frontier:
+  assumes legacy: "legacy_rrexp root"
+  shows "strong_derivative_front_terms root front \<subseteq>
+    strong_simp_frontier_aseq_universe root"
+proof -
+  have base:
+      "insert RZERO (derivative_front_terms root front) \<subseteq>
+        partial_derivative_frontier_universe root"
+    using derivative_front_terms_frontier_universe_subset[OF legacy]
+    by auto
+  show ?thesis
+    unfolding strong_derivative_front_terms_def
+      strong_simp_frontier_aseq_universe_def
+    by (rule rsimpStrong_aseq_closure_mono[OF base])
+qed
+
+lemma aseq_terms_rsimpStrong_raw_frontier_closure:
+  assumes "aseq_terms p \<subseteq> partial_derivative_frontier_universe r"
+  shows "aseq_terms (rsimpStrong_raw p) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+  unfolding strong_simp_frontier_aseq_universe_def
+  by (rule aseq_terms_rsimpStrong_raw_subset_closureI)
+    (use assms in auto)
+
+lemma card_strong_simp_frontier_aseq_universe_cubic:
+  "card (strong_simp_frontier_aseq_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?F = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have card_closure:
+      "card (rsimpStrong_aseq_closure ?F) \<le> card ?F * ?M"
+    by (rule card_rsimpStrong_aseq_closure_boundI)
+      (auto intro: partial_derivative_frontier_universe_member_size_linear)
+  have F_card: "card ?F \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  have scaled:
+      "card ?F * ?M \<le> (rsize r + 2) ^ 2 * ?M"
+    by (rule mult_right_mono[OF F_card]) simp
+  have "card (rsimpStrong_aseq_closure ?F) \<le>
+      (rsize r + 2) ^ 2 * ?M"
+    using card_closure scaled by linarith
+  also have "... \<le> (rsize r + 2) ^ 2 * (2 * (rsize r + 2))"
+    by (rule mult_left_mono) simp_all
+  also have "... = 2 * (rsize r + 2) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis
+    by (simp add: strong_simp_frontier_aseq_universe_def)
+qed
+
+lemma rsize_set_strong_simp_frontier_aseq_universe_cubic:
+  "rsize_set (strong_simp_frontier_aseq_universe r) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?F = "partial_derivative_frontier_universe r"
+  let ?M = "Suc (rsize r + rsize r)"
+  have closure:
+      "rsize_set (rsimpStrong_aseq_closure ?F) \<le> card ?F * ?M"
+    by (rule rsize_set_rsimpStrong_aseq_closure_boundI)
+      (auto intro: partial_derivative_frontier_universe_member_size_linear)
+  have F_card: "card ?F \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  have scaled:
+      "card ?F * ?M \<le> (rsize r + 2) ^ 2 * ?M"
+    by (rule mult_right_mono[OF F_card]) simp
+  have "rsize_set (rsimpStrong_aseq_closure ?F) \<le>
+      (rsize r + 2) ^ 2 * ?M"
+    using closure scaled by linarith
+  also have "... \<le> (rsize r + 2) ^ 2 * (2 * (rsize r + 2))"
+    by (rule mult_left_mono) simp_all
+  also have "... = 2 * (rsize r + 2) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  finally show ?thesis
+    by (simp add: strong_simp_frontier_aseq_universe_def)
+qed
+
+lemma rsizes_aseq_terms_paid_strong_simp_frontier_cubic:
+  assumes disjoint: "aseq_termss_disjoint rs"
+    and live: "\<forall>q \<in> set rs. aseq_terms_live q"
+    and paid: "\<forall>q \<in> set rs. aseq_terms_size_paid q"
+    and terms: "aseq_termss rs \<subseteq>
+      strong_simp_frontier_aseq_universe root"
+  shows "rsizes rs \<le> 6 * (rsize root + 2) ^ 3"
+proof -
+  have base:
+      "rsizes rs \<le>
+        3 * rsize_set (strong_simp_frontier_aseq_universe root)"
+  proof (rule rsizes_aseq_terms_paid_universe_boundI
+      [OF disjoint live paid])
+    show "finite (strong_simp_frontier_aseq_universe root)"
+      by simp
+    show "aseq_termss rs \<subseteq> strong_simp_frontier_aseq_universe root"
+      by (rule terms)
+  qed
+  have cubic:
+      "rsize_set (strong_simp_frontier_aseq_universe root) \<le>
+        2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  have "rsizes rs \<le>
+      3 * rsize_set (strong_simp_frontier_aseq_universe root)"
+    by (rule base)
+  also have "... \<le> 3 * (2 * (rsize root + 2) ^ 3)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 6 * (rsize root + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsizes_row_nf_distinct_strong_simp_lforms_cubic:
+  assumes distinct: "distinct rs"
+    and nf: "\<forall>q \<in> set rs. row_nf q"
+    and lforms: "row_lformss rs \<subseteq>
+      strong_simp_frontier_aseq_universe root"
+  shows "rsizes rs \<le> 6 * (rsize root + 2) ^ 3"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (row_lformss rs)"
+    by (rule rsizes_row_nf_distinct_lforms_bound[OF distinct nf])
+  have mono: "rsize_set (row_lformss rs) \<le>
+      rsize_set (strong_simp_frontier_aseq_universe root)"
+  proof (rule rsize_set_mono)
+    show "finite (strong_simp_frontier_aseq_universe root)"
+      by simp
+    show "row_lformss rs \<subseteq> strong_simp_frontier_aseq_universe root"
+      by (rule lforms)
+  qed
+  have cubic: "rsize_set (strong_simp_frontier_aseq_universe root) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  have "rsizes rs \<le>
+      3 * rsize_set (strong_simp_frontier_aseq_universe root)"
+    using base mono by simp
+  also have "... \<le> 3 * (2 * (rsize root + 2) ^ 3)"
+    using cubic by simp
+  also have "... = 6 * (rsize root + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsizes_rows_canonical_strong_simp_lforms_cubic:
+  assumes disjoint: "row_lformss_disjoint rs"
+    and live: "\<forall>q \<in> set rs. row_lforms_live q"
+    and paid: "\<forall>q \<in> set rs. row_lforms_size_paid q"
+    and lforms: "row_lformss rs \<subseteq>
+      strong_simp_frontier_aseq_universe root"
+  shows "rsizes rs \<le> 6 * (rsize root + 2) ^ 3"
+proof -
+  have base: "rsizes rs \<le> 3 * rsize_set (row_lformss rs)"
+    by (rule rsizes_row_lforms_paid_live_disjoint_bound
+        [OF disjoint live paid])
+  have mono: "rsize_set (row_lformss rs) \<le>
+      rsize_set (strong_simp_frontier_aseq_universe root)"
+  proof (rule rsize_set_mono)
+    show "finite (strong_simp_frontier_aseq_universe root)"
+      by simp
+    show "row_lformss rs \<subseteq> strong_simp_frontier_aseq_universe root"
+      by (rule lforms)
+  qed
+  have cubic: "rsize_set (strong_simp_frontier_aseq_universe root) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  have "rsizes rs \<le>
+      3 * rsize_set (strong_simp_frontier_aseq_universe root)"
+    using base mono by simp
+  also have "... \<le> 3 * (2 * (rsize root + 2) ^ 3)"
+    using cubic by simp
+  also have "... = 6 * (rsize root + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma strong_simp_frontier_aseq_universe_member_size_linear:
+  assumes "q \<in> strong_simp_frontier_aseq_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have q: "q \<in> rsimpStrong_aseq_closure
+      (partial_derivative_frontier_universe r)"
+    using assms by (simp add: strong_simp_frontier_aseq_universe_def)
+  show ?thesis
+    by (rule rsimpStrong_aseq_closure_member_size_boundI[OF _ q])
+      (rule partial_derivative_frontier_universe_member_size_linear)
+qed
+
+lemma card_strong_derivative_front_terms_cubic:
+  assumes legacy: "legacy_rrexp root"
+  shows "card (strong_derivative_front_terms root front) \<le>
+    2 * (rsize root + 2) ^ 3"
+proof -
+  have subset:
+      "strong_derivative_front_terms root front \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule strong_derivative_front_terms_subset_strong_simp_frontier
+        [OF legacy])
+  have "card (strong_derivative_front_terms root front) \<le>
+      card (strong_simp_frontier_aseq_universe root)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize root + 2) ^ 3"
+    by (rule card_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_strong_derivative_front_terms_cubic:
+  assumes legacy: "legacy_rrexp root"
+  shows "rsize_set (strong_derivative_front_terms root front) \<le>
+    2 * (rsize root + 2) ^ 3"
+proof -
+  have subset:
+      "strong_derivative_front_terms root front \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule strong_derivative_front_terms_subset_strong_simp_frontier
+        [OF legacy])
+  have "rsize_set (strong_derivative_front_terms root front) \<le>
+      rsize_set (strong_simp_frontier_aseq_universe root)"
+    by (rule rsize_set_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma strong_derivative_front_terms_member_size_linear:
+  assumes legacy: "legacy_rrexp root"
+    and q: "q \<in> strong_derivative_front_terms root front"
+  shows "rsize q \<le> Suc (rsize root + rsize root)"
+proof -
+  have subset:
+      "strong_derivative_front_terms root front \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule strong_derivative_front_terms_subset_strong_simp_frontier
+        [OF legacy])
+  have "q \<in> strong_simp_frontier_aseq_universe root"
+    using subset q by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma strong_simp_frontier_aseq_universe_zero [simp]:
+  "RZERO \<in> strong_simp_frontier_aseq_universe r"
+  unfolding strong_simp_frontier_aseq_universe_def
+  by (rule rsimpStrong_aseq_closure_zero) simp
+
+definition strong_simp_frontier_fuel_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "strong_simp_frontier_fuel_universe r =
+    rderiv_fuel_closure (strong_simp_frontier_aseq_universe r)"
+
+lemma finite_strong_simp_frontier_fuel_universe [simp]:
+  "finite (strong_simp_frontier_fuel_universe r)"
+  by (simp add: strong_simp_frontier_fuel_universe_def)
+
+lemma strong_simp_frontier_aseq_subset_fuel_universe:
+  "strong_simp_frontier_aseq_universe r \<subseteq>
+    strong_simp_frontier_fuel_universe r"
+  by (simp add: strong_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_extensive)
+
+lemma strong_simp_frontier_fuel_universe_zero [simp]:
+  "RZERO \<in> strong_simp_frontier_fuel_universe r"
+  using strong_simp_frontier_aseq_subset_fuel_universe[of r] by auto
+
+lemma strong_simp_frontier_fuel_universe_one [simp]:
+  "RONE \<in> strong_simp_frontier_fuel_universe r"
+proof -
+  have "RONE \<in> strong_simp_frontier_aseq_universe r"
+    unfolding strong_simp_frontier_aseq_universe_def
+    unfolding rsimpStrong_aseq_closure_def
+    by (rule UN_I[of RONE]) simp_all
+  then show ?thesis
+    using strong_simp_frontier_aseq_subset_fuel_universe[of r] by blast
+qed
+
+lemma strong_simp_frontier_fuel_universe_subterm_closed:
+  assumes "q \<in> strong_simp_frontier_fuel_universe r"
+  shows "rsubterms q \<subseteq> strong_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: strong_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_subterm_closed)
+
+lemma strong_simp_frontier_fuel_universe_star_body:
+  assumes "RSTAR q \<in> strong_simp_frontier_fuel_universe r"
+  shows "aseq_terms q \<subseteq> strong_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: strong_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_star_body)
+
+lemma strong_simp_frontier_fuel_universe_ntimes_body:
+  assumes "RNTIMES q n \<in> strong_simp_frontier_fuel_universe r"
+  shows "aseq_terms q \<subseteq> strong_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: strong_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_ntimes_body)
+
+lemma strong_simp_frontier_fuel_universe_ntimes_predecessor:
+  assumes "RNTIMES q (Suc n) \<in> strong_simp_frontier_fuel_universe r"
+  shows "RNTIMES q n \<in> strong_simp_frontier_fuel_universe r"
+  using assms
+  by (simp add: strong_simp_frontier_fuel_universe_def
+      rderiv_fuel_closure_ntimes_predecessor)
+
+lemma card_strong_simp_frontier_fuel_universe_cubic:
+  "card (strong_simp_frontier_fuel_universe r) \<le>
+    4 * (rsize r + 2) ^ 3"
+proof -
+  have "card (strong_simp_frontier_fuel_universe r) \<le>
+      2 * rsize_set (strong_simp_frontier_aseq_universe r)"
+    unfolding strong_simp_frontier_fuel_universe_def
+    by (rule card_rderiv_fuel_closure_le_rsize_set) simp
+  also have "... \<le> 2 * (2 * (rsize r + 2) ^ 3)"
+  proof -
+    have size: "rsize_set (strong_simp_frontier_aseq_universe r) \<le>
+        2 * (rsize r + 2) ^ 3"
+      by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+    show ?thesis
+      by (rule mult_left_mono[OF size]) simp
+  qed
+  also have "... = 4 * (rsize r + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma strong_simp_frontier_fuel_universe_member_size_linear:
+  assumes "q \<in> strong_simp_frontier_fuel_universe r"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+  unfolding strong_simp_frontier_fuel_universe_def
+proof (rule rderiv_fuel_closure_member_size_boundI)
+  fix p
+  assume "p \<in> strong_simp_frontier_aseq_universe r"
+  then show "rsize p \<le> Suc (rsize r + rsize r)"
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+next
+  show "q \<in> rderiv_fuel_closure
+      (strong_simp_frontier_aseq_universe r)"
+    using assms by (simp add: strong_simp_frontier_fuel_universe_def)
+qed
+
+lemma strong_simp_frontier_fuel_universe_not_strong_raw_idem:
+  fixes a b :: char
+  defines "star \<equiv> RSTAR (RCHAR b)"
+  defines "p \<equiv> RSEQ (RCHAR b) (RSEQ (RCHAR a) star)"
+  defines "k \<equiv> RSEQ star (RALTS [RCHAR b, RONE])"
+  defines "t \<equiv> RSEQ p k"
+  defines "root \<equiv> RNTIMES t 1"
+  defines "bad \<equiv> RNTIMES (rsimpStrong_raw t) 1"
+  shows "legacy_rrexp root"
+    and "bad \<in> strong_simp_frontier_fuel_universe root"
+    and "rsimpStrong_raw bad \<noteq> bad"
+    and "\<not> (\<forall>q \<in> strong_simp_frontier_fuel_universe root.
+      rsimpStrong_raw q = q)"
+proof -
+  show "legacy_rrexp root"
+    by (simp add: root_def t_def p_def k_def star_def)
+  have root_front: "root \<in> partial_derivative_frontier_universe root"
+    using partial_derivative_frontier_universe_subterm[of root root]
+    by simp
+  have bad_aseq: "bad \<in> aseq_terms (rsimpStrong_raw root)"
+    by (simp add: bad_def root_def)
+  have bad_strong:
+      "bad \<in> strong_simp_frontier_aseq_universe root"
+    unfolding strong_simp_frontier_aseq_universe_def
+      rsimpStrong_aseq_closure_def
+    using root_front bad_aseq by blast
+  then show "bad \<in> strong_simp_frontier_fuel_universe root"
+    using strong_simp_frontier_aseq_subset_fuel_universe by blast
+  show "rsimpStrong_raw bad \<noteq> bad"
+    by (simp add: bad_def star_def p_def k_def t_def
+        rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def
+        rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def
+        Let_def)
+  then show "\<not> (\<forall>q \<in> strong_simp_frontier_fuel_universe root.
+      rsimpStrong_raw q = q)"
+    using \<open>bad \<in> strong_simp_frontier_fuel_universe root\<close> by blast
+qed
+
+definition rsimpStrong_fuel_fixed :: "rrexp \<Rightarrow> bool" where
+  "rsimpStrong_fuel_fixed r \<longleftrightarrow>
+    (\<forall>q \<in> rsubterms r \<union> rlinear_continuations r.
+      rsimpStrong_raw q = q)"
+
+lemma rsimpStrong_fixed_aseq_terms_payment_false:
+  fixes a :: char
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "rsimpStrong_fuel_fixed x"
+    and "nonalt x"
+    and "x \<noteq> RZERO"
+    and "\<not> aseq_terms_size_paid x"
+  by (simp_all add: x_def rsimpStrong_fuel_fixed_def
+      aseq_terms_size_paid_def rsize_set_def rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_fuel_fixed_RZERO [simp]:
+  "rsimpStrong_fuel_fixed RZERO"
+  by (simp add: rsimpStrong_fuel_fixed_def)
+
+lemma rsimpStrong_fuel_fixed_RONE [simp]:
+  "rsimpStrong_fuel_fixed RONE"
+  by (simp add: rsimpStrong_fuel_fixed_def)
+
+lemma rsimpStrong_fuel_fixed_RCHAR [simp]:
+  "rsimpStrong_fuel_fixed (RCHAR c)"
+  by (simp add: rsimpStrong_fuel_fixed_def)
+
+lemma rsimpStrong_fuel_fixed_self:
+  assumes "rsimpStrong_fuel_fixed r"
+  shows "rsimpStrong_raw r = r"
+  using assms by (simp add: rsimpStrong_fuel_fixed_def)
+
+lemma rsimpStrong_fuel_fixed_subterm:
+  assumes fixed: "rsimpStrong_fuel_fixed r"
+    and sub: "q \<in> rsubterms r"
+  shows "rsimpStrong_fuel_fixed q"
+proof -
+  have "\<And>x. x \<in> rsubterms q \<union> rlinear_continuations q \<Longrightarrow>
+      rsimpStrong_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms q \<union> rlinear_continuations q"
+    then have "x \<in> rsubterms r \<union> rlinear_continuations r"
+    proof
+      assume "x \<in> rsubterms q"
+      then have "x \<in> rsubterms r"
+        by (rule rsubterms_trans[OF sub])
+      then show ?thesis by blast
+    next
+      assume cont: "x \<in> rlinear_continuations q"
+      show ?thesis
+        by (rule rlinear_continuations_subterm_subset_fuel[OF sub cont])
+    qed
+    then show "rsimpStrong_raw x = x"
+      using fixed by (simp add: rsimpStrong_fuel_fixed_def)
+  qed
+  then show ?thesis
+    by (simp add: rsimpStrong_fuel_fixed_def)
+qed
+
+lemma rsimpStrong_fuel_fixed_continuation:
+  assumes fixed: "rsimpStrong_fuel_fixed r"
+    and cont: "q \<in> rlinear_continuations r"
+  shows "rsimpStrong_fuel_fixed q"
+proof -
+  have "\<And>x. x \<in> rsubterms q \<union> rlinear_continuations q \<Longrightarrow>
+      rsimpStrong_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms q \<union> rlinear_continuations q"
+    then have "x \<in> rsubterms r \<union> rlinear_continuations r"
+    proof
+      assume "x \<in> rsubterms q"
+      then show ?thesis
+        using rsubterms_rlinear_continuation_subset_fuel[OF cont] by blast
+    next
+      assume "x \<in> rlinear_continuations q"
+      then show ?thesis
+        using rlinear_continuations_continuation_subset[OF cont] by blast
+    qed
+    then show "rsimpStrong_raw x = x"
+      using fixed by (simp add: rsimpStrong_fuel_fixed_def)
+  qed
+  then show ?thesis
+    by (simp add: rsimpStrong_fuel_fixed_def)
+qed
+
+lemma rsimpStrong_fuel_fixed_RSEQI:
+  assumes left: "rsimpStrong_fuel_fixed p"
+    and right: "rsimpStrong_fuel_fixed k"
+    and seq: "rsimp7_SEQ_atom p k = RSEQ p k"
+  shows "rsimpStrong_fuel_fixed (RSEQ p k)"
+proof -
+  have left_self: "rsimpStrong_raw p = p"
+    by (rule rsimpStrong_fuel_fixed_self[OF left])
+  have right_self: "rsimpStrong_raw k = k"
+    by (rule rsimpStrong_fuel_fixed_self[OF right])
+  have self: "rsimpStrong_raw (RSEQ p k) = RSEQ p k"
+    using seq by (simp add: left_self right_self)
+  have "\<And>x. x \<in> rsubterms (RSEQ p k) \<union>
+      rlinear_continuations (RSEQ p k) \<Longrightarrow>
+      rsimpStrong_raw x = x"
+  proof -
+    fix x
+    assume x: "x \<in> rsubterms (RSEQ p k) \<union>
+      rlinear_continuations (RSEQ p k)"
+    then consider
+        "x = RSEQ p k"
+      | "x \<in> rsubterms p"
+      | "x \<in> rsubterms k"
+      | "x = k"
+      | "x \<in> rlinear_continuations p"
+      | "x \<in> rlinear_continuations k"
+      by auto
+    then show "rsimpStrong_raw x = x"
+    proof cases
+      case 1
+      then show ?thesis
+        using self by auto
+    next
+      case 2
+      then show ?thesis
+        using left by (auto simp add: rsimpStrong_fuel_fixed_def)
+    next
+      case 3
+      then show ?thesis
+        using right by (auto simp add: rsimpStrong_fuel_fixed_def)
+    next
+      case 4
+      then show ?thesis
+        by (simp add: right_self)
+    next
+      case 5
+      then show ?thesis
+        using left by (auto simp add: rsimpStrong_fuel_fixed_def)
+    next
+      case 6
+      then show ?thesis
+        using right by (auto simp add: rsimpStrong_fuel_fixed_def)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: rsimpStrong_fuel_fixed_def)
+qed
+
+lemma legacy_rsimpStrong_prune_pair_raw:
+  assumes "legacy_rrexp later"
+  shows "legacy_rrexp (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and> later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have rows: "\<forall>r \<in> set rrs. legacy_rrexp r"
+      using assms shared by simp
+    have k: "legacy_rrexp k"
+      using assms shared by simp
+    show ?thesis
+      using shared legacy_rsimpStrong_raw_shared_prune_result[OF rows k]
+      by (simp add: rsimpStrong_prune_pair_raw_def)
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma legacy_rsimpStrong_prune_against_rows_raw:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong_prune_against_rows_raw seen r)"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have first: "legacy_rrexp (rsimpStrong_prune_pair_raw x r)"
+    by (rule legacy_rsimpStrong_prune_pair_raw[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF first])
+qed
+
+lemma legacy_rsimpStrong_prune_rows_acc_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rsimpStrong_prune_rows_acc_raw seen rs). legacy_rrexp r"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have head: "legacy_rrexp ?r'"
+    by (rule legacy_rsimpStrong_prune_against_rows_raw)
+      (use Cons.prems in simp)
+  have tail:
+      "\<forall>q \<in> set (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs).
+        legacy_rrexp q"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma legacy_rsimpStrong_prune_rows_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>r \<in> set (rsimpStrong_prune_rows_raw rs). legacy_rrexp r"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule legacy_rsimpStrong_prune_rows_acc_raw[OF assms])
+
+lemma legacy_rsimpStrong_ALTs_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong_ALTs_raw rs)"
+proof -
+  have pruned:
+      "\<forall>r \<in> set (rsimpStrong_prune_rows_raw rs). legacy_rrexp r"
+    by (rule legacy_rsimpStrong_prune_rows_raw[OF assms])
+  have flat:
+      "\<forall>r \<in> set (rflts (rsimpStrong_prune_rows_raw rs)).
+        legacy_rrexp r"
+    by (rule legacy_rflts[OF pruned])
+  have distinct:
+      "\<forall>r \<in> set
+        (rdistinct (rflts (rsimpStrong_prune_rows_raw rs)) {}).
+        legacy_rrexp r"
+    by (rule legacy_rdistinct[OF flat])
+  show ?thesis
+    unfolding rsimpStrong_ALTs_raw_def
+    by (rule legacy_rsimp_ALTs[OF distinct])
+qed
+
+lemma legacy_rsimpStrong_raw:
+  assumes "legacy_rrexp r"
+  shows "legacy_rrexp (rsimpStrong_raw r)"
+  using assms
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR x)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (simp add: legacy_rsimp7_SEQ_atom)
+next
+  case (RALTS rs)
+  have mapped:
+      "\<forall>r \<in> set (map rsimpStrong_raw rs). legacy_rrexp r"
+    using RALTS by auto
+  have flat:
+      "\<forall>r \<in> set (rflts (map rsimpStrong_raw rs)).
+        legacy_rrexp r"
+    by (rule legacy_rflts[OF mapped])
+  show ?case
+    by (simp add: legacy_rsimpStrong_ALTs_raw[OF flat])
+next
+  case (RSTAR r)
+  show ?case
+    by (cases "rsimpStrong_raw r") (use RSTAR in auto)
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma legacy_rpder_strong_list_raw:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_list_raw c r). legacy_rrexp p"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  show ?thesis
+    unfolding rpder_strong_list_raw_def
+    using rows legacy_rsimpStrong_raw by auto
+qed
+
+lemma legacy_rpder_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp p"
+proof -
+  have mapped:
+      "\<forall>p \<in> set (concat (map (rpder_strong_list_raw c) rs)).
+        legacy_rrexp p"
+    using assms legacy_rpder_strong_list_raw by auto
+  have flat1:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).
+        legacy_rrexp p"
+    by (rule legacy_rflts[OF mapped])
+  have pruned:
+      "\<forall>p \<in> set (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))).
+        legacy_rrexp p"
+    by (rule legacy_rsimpStrong_prune_rows_raw[OF flat1])
+  have flat2:
+      "\<forall>p \<in> set (rflts (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))).
+        legacy_rrexp p"
+    by (rule legacy_rflts[OF pruned])
+  show ?thesis
+    unfolding rpder_strong_rows_raw_def
+    by (rule legacy_rdistinct[OF flat2])
+qed
+
+lemma legacy_rpders_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+    and "p \<in> set (rpders_strong_rows_raw rs s)"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp p"
+    by (rule legacy_rpder_strong_rows_raw[OF Cons.prems(1)])
+  show ?case
+  proof -
+    have p_next:
+        "p \<in> set (rpders_strong_rows_raw
+          (rpder_strong_rows_raw c rs) s)"
+      using Cons.prems(2) by simp
+    show ?thesis
+      by (rule Cons.hyps[OF next_legacy p_next])
+  qed
+qed
+
+lemma RLS_rpders_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpders_strong_rows_raw rs s)) =
+    Ders s (RLS (set rs))"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy:
+      "\<forall>r \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp r"
+    by (rule legacy_rpder_strong_rows_raw[OF Cons.prems])
+  have "RLS (set (rpders_strong_rows_raw rs (c # s))) =
+      Ders s (RLS (set (rpder_strong_rows_raw c rs)))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS (set rs)))"
+    by (simp add: RLS_rpder_strong_rows_raw[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS (set rs))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders_strong1_rows_raw:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (rpders_strong1_rows_raw r s)) = Ders s (RL r)"
+  using RLS_rpders_strong_rows_raw[of "[r]" s] assms
+  by (simp add: rpders_strong1_rows_raw_def RLS_def)
+
+lemma RL_RALTS_row_dlform_canonical_rpders_strong1_rows_raw:
+  assumes "legacy_rrexp r"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+    Ders s (RL r)"
+proof -
+  have "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+      RL (RALTS (rpders_strong1_rows_raw r s))"
+    by (rule RL_RALTS_row_dlform_canonical_rows)
+  also have "... = RLS (set (rpders_strong1_rows_raw r s))"
+    by (simp add: RLS_def)
+  also have "... = Ders s (RL r)"
+    by (rule RLS_rpders_strong1_rows_raw[OF assms])
+  finally show ?thesis .
+qed
+
+lemma set_rflts_memberE:
+  assumes x: "x \<in> set (rflts rs)"
+  obtains q where "q \<in> set rs" "x \<in> set (rflts [q])"
+proof -
+  have ex: "\<exists>q \<in> set rs. x \<in> set (rflts [q])"
+    using x
+  proof (induct rs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons r rs)
+    have split: "rflts (r # rs) = rflts [r] @ rflts rs"
+      by (simp add: flts_append[symmetric])
+    consider
+      (head) "x \<in> set (rflts [r])"
+    | (tail) "x \<in> set (rflts rs)"
+      using Cons.prems split by auto
+    then show ?case
+    proof cases
+      case head
+      then show ?thesis
+        by auto
+    next
+      case tail
+      then show ?thesis
+        using Cons.hyps by auto
+    qed
+  qed
+  show ?thesis
+  proof (rule bexE[OF ex])
+    fix q
+    assume "q \<in> set rs" "x \<in> set (rflts [q])"
+    then show ?thesis
+      by (rule that)
+  qed
+qed
+
+lemma afactored1_member_apder_nf:
+  assumes nf: "apder_nf r"
+    and q: "q \<in> set (afactored1 r s)"
+  shows "apder_nf q"
+proof -
+  have rows: "set (afactored1 r s) \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  have "q \<in> apder_rows r"
+    using rows q by blast
+  then show ?thesis
+    by (rule apder_rows_member_apder_nf[OF nf])
+qed
+
+lemma afactored_step_nonzero_nonalt:
+  assumes rows_nf: "\<forall>q \<in> set rows. apder_nf q"
+  shows "\<forall>x \<in> set (afactored_step c rows). x \<noteq> RZERO \<and> nonalt x"
+proof
+  fix x
+  assume x: "x \<in> set (afactored_step c rows)"
+  let ?gen = "concat (map (rpder_norm_list c) rows)"
+  have x_flat: "x \<in> set (rflts ?gen)"
+    using x
+    by (auto simp add: afactored_step_def rpder_norm_rows_def
+        rdistinct_set_equality)
+  obtain p where p:
+      "p \<in> set ?gen"
+      "x \<in> set (rflts [p])"
+    using x_flat by (rule set_rflts_memberE)
+  obtain q where q:
+      "q \<in> set rows"
+      "p \<in> set (rpder_norm_list c q)"
+    using p(1) by auto
+  have q_nf: "apder_nf q"
+    using rows_nf q(1) by blast
+  have p_rpder: "p \<in> rpder c q"
+    using set_rpder_norm_list_eq_rpder_rtail_nf[OF q_nf] q(2)
+    by simp
+  have p_term: "p \<in> apder_terms q"
+    using rpder_subset_apder_terms p_rpder by blast
+  have p_nf: "rtail_nf p"
+    by (rule rtail_nf_apder_terms[OF q_nf p_term])
+  show "x \<noteq> RZERO \<and> nonalt x"
+    using rtail_nf_flat_member_props[OF p_nf p(2)] by blast
+qed
+
+lemma afactored1_snoc_nonzero_nonalt:
+  assumes nf: "apder_nf r"
+  shows "\<forall>x \<in> set (afactored1 r (s @ [c])). x \<noteq> RZERO \<and> nonalt x"
+proof -
+  have rows_nf: "\<forall>q \<in> set (afactored1 r s). apder_nf q"
+    using afactored1_member_apder_nf[OF nf] by blast
+  show ?thesis
+    by (simp add: afactored1_snoc
+        afactored_step_nonzero_nonalt[OF rows_nf])
+qed
+
+lemma rfrontiers_nonzero_nonalt_eq_setI:
+  assumes "\<forall>q \<in> set rs. q \<noteq> RZERO \<and> nonalt q"
+  shows "rfrontiers rs = set rs"
+  using assms
+  by (induct rs) (simp_all add: rfrontier_nonzero_nonalt_eq)
+
+lemma rfrontiers_afactored1_snoc_eq_set:
+  assumes nf: "apder_nf r"
+  shows "rfrontiers (afactored1 r (s @ [c])) =
+    set (afactored1 r (s @ [c]))"
+  by (rule rfrontiers_nonzero_nonalt_eq_setI)
+    (rule afactored1_snoc_nonzero_nonalt[OF nf])
+
+lemma afactored1_snoc_subset_apder_frontier:
+  assumes nf: "apder_nf r"
+  shows "set (afactored1 r (s @ [c])) \<subseteq> apder_frontier r"
+proof -
+  have front_eq: "rfrontiers (afactored1 r (s @ [c])) =
+      set (afactored1 r (s @ [c]))"
+    by (rule rfrontiers_afactored1_snoc_eq_set[OF nf])
+  have "set (afactored1 r (s @ [c])) =
+      rfrontiers (afactored1 r (s @ [c]))"
+    using front_eq by simp
+  also have "... \<subseteq> apder_frontier r"
+    using ader_front_subset_apder_frontier[OF nf, of "s @ [c]"]
+    by (simp add: ader_front_def)
+  finally show ?thesis .
+qed
+
+lemma rsimpStrong_dlform_closure_afactored1_snoc_subset_apder_frontier:
+  assumes nf: "apder_nf r"
+  shows "rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))) \<subseteq>
+    rsimpStrong_dlform_closure (apder_frontier r)"
+  by (rule rsimpStrong_dlform_closure_mono)
+    (rule afactored1_snoc_subset_apder_frontier[OF nf])
+
+lemma rsize_set_rsimpStrong_dlform_closure_afactored1_snoc_le_apder_frontier:
+  assumes nf: "apder_nf r"
+  shows "rsize_set
+      (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))) \<le>
+    rsize_set (rsimpStrong_dlform_closure (apder_frontier r))"
+  by (rule rsize_set_mono)
+    (use rsimpStrong_dlform_closure_afactored1_snoc_subset_apder_frontier
+      [OF nf, of s c] in auto)
+
+lemma rtail_nf_rprune_eq_against:
+  assumes "\<forall>r \<in> set rs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+  shows "\<forall>r \<in> set (rprune_eq_against covered rs).
+    rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+  using assms by (induct rs) auto
+
+lemma rtail_nf_rsimpStrong_raw_shared_prune_result:
+  assumes rrs:
+      "\<forall>r \<in> set rrs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and k: "rtail_nf k"
+  shows "rtail_nf
+    (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+proof -
+  have pruned:
+      "\<forall>r \<in> set (rprune_eq_against lrs rrs).
+        rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    by (rule rtail_nf_rprune_eq_against[OF rrs])
+  have alt: "rtail_nf (rsimp_ALTs (rprune_eq_against lrs rrs))"
+    by (rule rtail_nf_rsimp_ALTs) (use pruned in blast)
+  show ?thesis
+    by (rule rtail_nf_rsimp7_SEQ_atom[OF alt k])
+qed
+
+lemma rtail_nf_rsimpStrong_prune_pair_raw:
+  assumes "rtail_nf later"
+  shows "rtail_nf (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and>
+      later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have rrs_props:
+        "\<forall>r \<in> set rrs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+      using assms shared by simp
+    have k_nf: "rtail_nf k"
+      using assms shared by simp
+    show ?thesis
+      using shared rtail_nf_rsimpStrong_raw_shared_prune_result
+        [OF rrs_props k_nf]
+      by (simp add: rsimpStrong_prune_pair_raw_def)
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using assms by simp
+  qed
+qed
+
+lemma rtail_nf_rsimpStrong_prune_against_rows_raw:
+  assumes "rtail_nf r"
+  shows "rtail_nf (rsimpStrong_prune_against_rows_raw seen r)"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have pair: "rtail_nf (rsimpStrong_prune_pair_raw x r)"
+    by (rule rtail_nf_rsimpStrong_prune_pair_raw[OF Cons.prems])
+  show ?case
+    using Cons.hyps[OF pair] by simp
+qed
+
+lemma rtail_nf_rsimpStrong_prune_rows_acc_raw:
+  assumes "\<forall>x \<in> set rs. rtail_nf x"
+  shows "\<forall>x \<in> set (rsimpStrong_prune_rows_acc_raw seen rs).
+    rtail_nf x"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have r_nf: "rtail_nf r"
+    using Cons.prems by simp
+  have rs_nf: "\<forall>x \<in> set rs. rtail_nf x"
+    using Cons.prems by simp
+  have r'_nf: "rtail_nf ?r'"
+    by (rule rtail_nf_rsimpStrong_prune_against_rows_raw[OF r_nf])
+  have tail_nf:
+      "\<forall>x \<in> set (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs).
+        rtail_nf x"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using r'_nf tail_nf by (simp add: Let_def)
+qed
+
+lemma rtail_nf_rsimpStrong_prune_rows_raw:
+  assumes "\<forall>x \<in> set rs. rtail_nf x"
+  shows "\<forall>x \<in> set (rsimpStrong_prune_rows_raw rs). rtail_nf x"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule rtail_nf_rsimpStrong_prune_rows_acc_raw[OF assms])
+
+lemma rtail_nf_rsimpWide_raw_prune_result:
+  assumes rrs:
+      "\<forall>r \<in> set rrs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and k: "rtail_nf k"
+  shows "rtail_nf
+    (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+proof -
+  have pruned:
+      "\<forall>r \<in> set (rprune_eq_against lrs rrs).
+        rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    by (rule rtail_nf_rprune_eq_against[OF rrs])
+  have alt: "rtail_nf (rsimp_ALTs (rprune_eq_against lrs rrs))"
+    by (rule rtail_nf_rsimp_ALTs) (use pruned in blast)
+  show ?thesis
+    by (rule rtail_nf_rsimp7_SEQ_atom[OF alt k])
+qed
+
+lemma rtail_nf_rsimpWide_prune_pair_raw:
+  assumes nf: "rtail_nf later"
+  shows "rtail_nf (rsimpWide_prune_pair_raw earlier later)"
+proof (cases later)
+  case (RSEQ p k)
+  note later_seq = RSEQ
+  show ?thesis
+  proof (cases p)
+    case (RALTS rrs)
+    have rrs_props:
+        "\<forall>r \<in> set rrs. rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+      using nf later_seq RALTS by simp
+    have k_nf: "rtail_nf k"
+      using nf later_seq RALTS by simp
+    show ?thesis
+      using later_seq RALTS
+        rtail_nf_rsimpWide_raw_prune_result[OF rrs_props k_nf,
+          of "row_cover_prefixes earlier k"]
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case RZERO
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case RONE
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case (RCHAR c)
+    show ?thesis
+      using nf later_seq RCHAR
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RSEQ p1 p2)
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case (RSTAR r)
+    show ?thesis
+      using nf later_seq RSTAR
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RNTIMES r n)
+    show ?thesis
+      using nf later_seq RNTIMES
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    show ?thesis
+      using nf later_seq RBACKREF4
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RHALF x1 x2 x3)
+    show ?thesis
+      using nf later_seq RHALF
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RRESIDUE x1 x2)
+    show ?thesis
+      using nf later_seq RRESIDUE
+      by (simp add: rsimpWide_prune_pair_raw_def)
+  qed
+qed (use nf in \<open>simp_all add: rsimpWide_prune_pair_raw_def\<close>)
+
+lemma rtail_nf_rsimpWide_prune_against_rows_raw:
+  assumes "rtail_nf r"
+  shows "rtail_nf (rsimpWide_prune_against_rows_raw seen r)"
+  using assms
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have pair: "rtail_nf (rsimpWide_prune_pair_raw x r)"
+    by (rule rtail_nf_rsimpWide_prune_pair_raw[OF Cons.prems])
+  show ?case
+    using Cons.hyps[OF pair] by simp
+qed
+
+lemma rtail_nf_rsimpWide_prune_rows_acc_raw:
+  assumes "\<forall>x \<in> set rs. rtail_nf x"
+  shows "\<forall>x \<in> set (rsimpWide_prune_rows_acc_raw seen rs).
+    rtail_nf x"
+  using assms
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpWide_prune_against_rows_raw seen r"
+  have r_nf: "rtail_nf r"
+    using Cons.prems by simp
+  have rs_nf: "\<forall>x \<in> set rs. rtail_nf x"
+    using Cons.prems by simp
+  have r'_nf: "rtail_nf ?r'"
+    by (rule rtail_nf_rsimpWide_prune_against_rows_raw[OF r_nf])
+  have tail_nf:
+      "\<forall>x \<in> set (rsimpWide_prune_rows_acc_raw (?r' # seen) rs).
+        rtail_nf x"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using r'_nf tail_nf by (simp add: Let_def)
+qed
+
+lemma rtail_nf_rsimpWide_prune_rows_raw:
+  assumes "\<forall>x \<in> set rs. rtail_nf x"
+  shows "\<forall>x \<in> set (rsimpWide_prune_rows_raw rs). rtail_nf x"
+  unfolding rsimpWide_prune_rows_raw_def
+  by (rule rtail_nf_rsimpWide_prune_rows_acc_raw[OF assms])
+
+lemma rtail_nf_rsimpStrong_ALTs_raw:
+  assumes "\<forall>x \<in> set rs. rtail_nf x"
+  shows "rtail_nf (rsimpStrong_ALTs_raw rs)"
+proof -
+  have pruned:
+      "\<forall>x \<in> set (rsimpStrong_prune_rows_raw rs). rtail_nf x"
+    by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF assms])
+  let ?flat = "rflts (rsimpStrong_prune_rows_raw rs)"
+  have flat_props:
+      "\<And>x. x \<in> set ?flat \<Longrightarrow>
+        rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  proof -
+    fix x
+    assume x: "x \<in> set ?flat"
+    obtain q where q:
+        "q \<in> set (rsimpStrong_prune_rows_raw rs)"
+        "x \<in> set (rflts [q])"
+      using x by (rule set_rflts_memberE)
+    have "rtail_nf q"
+      using pruned q(1) by simp
+    show "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+      by (rule rtail_nf_flat_member_props[OF \<open>rtail_nf q\<close> q(2)])
+  qed
+  let ?xs = "rdistinct ?flat {}"
+  have xs_props:
+      "\<And>x. x \<in> set ?xs \<Longrightarrow>
+        rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+  proof -
+    fix x
+    assume x: "x \<in> set ?xs"
+    have "x \<in> set ?flat"
+      using x rdistinct_set_equality1[of ?flat "{}"] by auto
+    then show "rtail_nf x \<and> nonalt x \<and> x \<noteq> RZERO"
+      by (rule flat_props)
+  qed
+  show ?thesis
+    unfolding rsimpStrong_ALTs_raw_def
+    by (rule rtail_nf_rsimp_ALTs[OF xs_props])
+qed
+
+lemma rtail_nf_rflts:
+  assumes "\<forall>r \<in> set rs. rtail_nf r"
+  shows "\<forall>x \<in> set (rflts rs). rtail_nf x"
+proof
+  fix x
+  assume x: "x \<in> set (rflts rs)"
+  obtain q where q: "q \<in> set rs" "x \<in> set (rflts [q])"
+    using x by (rule set_rflts_memberE)
+  have "rtail_nf q"
+    using assms q(1) by simp
+  show "rtail_nf x"
+    using rtail_nf_flat_member_props[OF \<open>rtail_nf q\<close> q(2)]
+    by blast
+qed
+
+lemma rtail_nf_rsimpStrong_raw:
+  "rtail_nf (rsimpStrong_raw r)"
+proof (induction r rule: rsimpStrong_raw.induct)
+  case (4 r1 r2)
+  have nf1: "rtail_nf (rsimpStrong_raw r1)"
+    using 4 by blast
+  have nf2: "rtail_nf (rsimpStrong_raw r2)"
+    using 4 by blast
+  show ?case
+    by (simp add: rtail_nf_rsimp7_SEQ_atom[OF nf1 nf2])
+next
+  case (5 rs)
+  have mapped: "\<forall>x \<in> set (map rsimpStrong_raw rs). rtail_nf x"
+    using 5 by auto
+  have flat: "\<forall>x \<in> set (rflts (map rsimpStrong_raw rs)). rtail_nf x"
+    by (rule rtail_nf_rflts[OF mapped])
+  show ?case
+    by (simp add: rtail_nf_rsimpStrong_ALTs_raw[OF flat])
+next
+  case (6 r)
+  then show ?case
+    by (cases "rsimpStrong_raw r") simp_all
+qed simp_all
+
+lemma rtail_nf_rpder_strong_list_raw:
+  "\<forall>p \<in> set (rpder_strong_list_raw c r). rtail_nf p"
+  unfolding rpder_strong_list_raw_def
+  using rtail_nf_rsimpStrong_raw by auto
+
+lemma rtail_nf_concat_map_rpder_strong_list_raw:
+  "\<forall>p \<in> set (concat (map (rpder_strong_list_raw c) rs)). rtail_nf p"
+  using rtail_nf_rpder_strong_list_raw by auto
+
+lemma rtail_nf_rflts_concat_map_rpder_strong_list_raw:
+  "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).
+    rtail_nf p"
+  by (rule rtail_nf_rflts)
+    (rule rtail_nf_concat_map_rpder_strong_list_raw)
+
+lemma rtail_nf_rpder_strong_rows_raw:
+  "\<forall>p \<in> set (rpder_strong_rows_raw c rs). rtail_nf p"
+proof -
+  let ?gen = "concat (map (rpder_strong_list_raw c) rs)"
+  let ?flat = "rflts ?gen"
+  have flat_nf: "\<forall>p \<in> set ?flat. rtail_nf p"
+    by (rule rtail_nf_rflts_concat_map_rpder_strong_list_raw)
+  have pruned_nf:
+      "\<forall>p \<in> set (rsimpStrong_prune_rows_raw ?flat). rtail_nf p"
+    by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF flat_nf])
+  have flat2_nf:
+      "\<forall>p \<in> set (rflts (rsimpStrong_prune_rows_raw ?flat)).
+        rtail_nf p"
+    by (rule rtail_nf_rflts[OF pruned_nf])
+  show ?thesis
+    unfolding rpder_strong_rows_raw_def
+    using flat2_nf
+    by (auto simp add: rdistinct_set_equality1)
+qed
+
+lemma rtail_nf_rpders_strong_rows_raw:
+  assumes nf: "\<forall>p \<in> set rs. rtail_nf p"
+  shows "\<forall>p \<in> set (rpders_strong_rows_raw rs s). rtail_nf p"
+  using nf
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have step_nf:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c rs). rtail_nf p"
+    by (rule rtail_nf_rpder_strong_rows_raw)
+  show ?case
+    using Cons.hyps[OF step_nf] by simp
+qed
+
+lemma rtail_nf_rpders_strong1_rows_raw:
+  assumes "rtail_nf r"
+  shows "\<forall>p \<in> set (rpders_strong1_rows_raw r s). rtail_nf p"
+  unfolding rpders_strong1_rows_raw_def
+  by (rule rtail_nf_rpders_strong_rows_raw) (use assms in simp)
+
+lemma rtail_nf_rpders_strong1_rows_raw_nonempty:
+  "\<forall>p \<in> set (rpders_strong1_rows_raw r (c # s)). rtail_nf p"
+proof -
+  have first_nf:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c [r]). rtail_nf p"
+    by (rule rtail_nf_rpder_strong_rows_raw)
+  show ?thesis
+    unfolding rpders_strong1_rows_raw_def
+    using rtail_nf_rpders_strong_rows_raw[OF first_nf, of s]
+    by simp
+qed
+
+section \<open>Explicit Deep-Canonical Strong Transition\<close>
+
+definition rpder_strong_dcanon_rows_raw ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rpder_strong_dcanon_rows_raw c rs =
+    row_dlform_canonical_rows (rpder_strong_rows_raw c rs)"
+
+fun rpders_strong_dcanon_rows_raw ::
+  "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong_dcanon_rows_raw rs [] = rs"
+| "rpders_strong_dcanon_rows_raw rs (c # s) =
+    rpders_strong_dcanon_rows_raw
+      (rpder_strong_dcanon_rows_raw c rs) s"
+
+definition rpders_strong_dcanon1_rows_raw ::
+  "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong_dcanon1_rows_raw r s =
+    rpders_strong_dcanon_rows_raw [r] s"
+
+lemma RLS_rpder_strong_dcanon_rows_raw:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_dcanon_rows_raw c rs)) =
+    Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_strong_dcanon_rows_raw c rs)) =
+      RLS (set (rpder_strong_rows_raw c rs))"
+    unfolding rpder_strong_dcanon_rows_raw_def
+    by (rule RLS_set_row_dlform_canonical_rows)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_raw[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma legacy_rpder_strong_dcanon_rows_raw:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_dcanon_rows_raw c rs).
+    legacy_rrexp p"
+proof -
+  have raw_legacy:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp p"
+    by (rule legacy_rpder_strong_rows_raw[OF legacy])
+  show ?thesis
+    unfolding rpder_strong_dcanon_rows_raw_def
+    by (rule legacy_row_dlform_canonical_rows[OF raw_legacy])
+qed
+
+lemma row_dlformss_rpder_strong_dcanon_rows_raw_eq:
+  "row_dlformss (rpder_strong_dcanon_rows_raw c rs) =
+    row_dlformss (rpder_strong_rows_raw c rs)"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule row_dlformss_row_dlform_canonical_rows_eq)
+    (rule rtail_nf_rpder_strong_rows_raw)
+
+lemma row_dlformss_disjoint_rpder_strong_dcanon_rows_raw:
+  "row_dlformss_disjoint (rpder_strong_dcanon_rows_raw c rs)"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule row_dlformss_disjoint_row_dlform_canonical_rows)
+    (rule rtail_nf_rpder_strong_rows_raw)
+
+lemma row_dlforms_live_paid_rpder_strong_dcanon_rows_raw:
+  "(\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_size_paid q)"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule row_dlform_canonical_rows_live_paid)
+    (rule rtail_nf_rpder_strong_rows_raw)
+
+lemma rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI:
+  assumes finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq> U"
+  shows "rsizes (rpder_strong_dcanon_rows_raw c rs) \<le>
+    3 * rsize_set U"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule rsizes_row_dlform_canonical_rows_rsize_set_boundI
+      [OF rtail_nf_rpder_strong_rows_raw finite dlforms])
+
+lemma rpder_strong_dcanon_rows_raw_step_contractI:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq> U"
+  shows "RLS (set (rpder_strong_dcanon_rows_raw c rs)) =
+      Der c (RLS (set rs)) \<and>
+    row_dlformss_disjoint (rpder_strong_dcanon_rows_raw c rs) \<and>
+    (\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss (rpder_strong_dcanon_rows_raw c rs) =
+      row_dlformss (rpder_strong_rows_raw c rs) \<and>
+    rsizes (rpder_strong_dcanon_rows_raw c rs) \<le>
+      3 * rsize_set U"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_dcanon_rows_raw c rs)) =
+      Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_dcanon_rows_raw[OF legacy])
+  show "row_dlformss_disjoint (rpder_strong_dcanon_rows_raw c rs)"
+    by (rule row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+  show "\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_live q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+      row_dlforms_size_paid q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "row_dlformss (rpder_strong_dcanon_rows_raw c rs) =
+      row_dlformss (rpder_strong_rows_raw c rs)"
+    by (rule row_dlformss_rpder_strong_dcanon_rows_raw_eq)
+  show "rsizes (rpder_strong_dcanon_rows_raw c rs) \<le>
+      3 * rsize_set U"
+    by (rule rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI
+        [OF finite dlforms])
+qed
+
+lemma RLS_rpders_strong_dcanon_rows_raw:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpders_strong_dcanon_rows_raw rs s)) =
+    Ders s (RLS (set rs))"
+  using legacy
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by (simp add: Ders_def)
+next
+  case (Cons c s)
+  have next_legacy:
+      "\<forall>r \<in> set (rpder_strong_dcanon_rows_raw c rs).
+        legacy_rrexp r"
+    by (rule legacy_rpder_strong_dcanon_rows_raw[OF Cons.prems])
+  have "RLS (set (rpders_strong_dcanon_rows_raw rs (c # s))) =
+      Ders s (RLS (set (rpder_strong_dcanon_rows_raw c rs)))"
+    by (simp add: Cons.hyps[OF next_legacy])
+  also have "... = Ders s (Der c (RLS (set rs)))"
+    by (simp add: RLS_rpder_strong_dcanon_rows_raw[OF Cons.prems])
+  also have "... = Ders (c # s) (RLS (set rs))"
+    by (simp add: Ders_Cons)
+  finally show ?case .
+qed
+
+lemma RLS_rpders_strong_dcanon1_rows_raw:
+  assumes "legacy_rrexp r"
+  shows "RLS (set (rpders_strong_dcanon1_rows_raw r s)) =
+    Ders s (RL r)"
+  using RLS_rpders_strong_dcanon_rows_raw[of "[r]" s] assms
+  by (simp add: rpders_strong_dcanon1_rows_raw_def RLS_def)
+
+lemma legacy_rpders_strong_dcanon_rows_raw:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+  shows "\<forall>q \<in> set (rpders_strong_dcanon_rows_raw rs s).
+    legacy_rrexp q"
+  using legacy
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_legacy:
+      "\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs).
+        legacy_rrexp q"
+    by (rule legacy_rpder_strong_dcanon_rows_raw[OF Cons.prems])
+  show ?case
+    by (simp add: Cons.hyps[OF next_legacy])
+qed
+
+lemma row_dlformss_disjoint_rpders_strong_dcanon_rows_raw_nonempty:
+  "row_dlformss_disjoint
+    (rpders_strong_dcanon_rows_raw rs (c # s))"
+proof (induct s arbitrary: rs c)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+next
+  case (Cons d s)
+  then show ?case by simp
+qed
+
+lemma row_dlforms_live_paid_rpders_strong_dcanon_rows_raw_nonempty:
+  "(\<forall>q \<in> set (rpders_strong_dcanon_rows_raw rs (c # s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon_rows_raw rs (c # s)).
+      row_dlforms_size_paid q)"
+proof (induct s arbitrary: rs c)
+  case Nil
+  then show ?case
+    by (simp add: row_dlforms_live_paid_rpder_strong_dcanon_rows_raw)
+next
+  case (Cons d s)
+  then show ?case by simp
+qed
+
+lemma rsizes_rpders_strong_dcanon_rows_raw_nonempty_rsize_set_boundI:
+  assumes finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpders_strong_dcanon_rows_raw rs (c # s)) \<subseteq> U"
+  shows "rsizes (rpders_strong_dcanon_rows_raw rs (c # s)) \<le>
+    3 * rsize_set U"
+proof -
+  let ?rows = "rpders_strong_dcanon_rows_raw rs (c # s)"
+  have disjoint: "row_dlformss_disjoint ?rows"
+    by (rule row_dlformss_disjoint_rpders_strong_dcanon_rows_raw_nonempty)
+  have live_paid:
+      "(\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+       (\<forall>q \<in> set ?rows. row_dlforms_size_paid q)"
+    by (rule row_dlforms_live_paid_rpders_strong_dcanon_rows_raw_nonempty)
+  show ?thesis
+    by (rule rsizes_rows_canonical_dlforms_rsize_set_boundI
+        [OF disjoint _ _ finite dlforms])
+      (use live_paid in auto)
+qed
+
+lemma rpders_strong_dcanon_rows_raw_nonempty_rsize_set_budgetsI:
+  assumes finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpders_strong_dcanon_rows_raw rs (c # s)) \<subseteq> U"
+  shows "length (rpders_strong_dcanon_rows_raw rs (c # s)) \<le>
+      3 * rsize_set U \<and>
+    card (set (rpders_strong_dcanon_rows_raw rs (c # s))) \<le>
+      3 * rsize_set U \<and>
+    rlinear_termss (rpders_strong_dcanon_rows_raw rs (c # s)) \<le>
+      3 * rsize_set U \<and>
+    rsizes (rpders_strong_dcanon_rows_raw rs (c # s)) \<le>
+      3 * rsize_set U"
+proof (intro conjI)
+  let ?rows = "rpders_strong_dcanon_rows_raw rs (c # s)"
+  let ?B = "3 * rsize_set U"
+  have size: "rsizes ?rows \<le> ?B"
+    by (rule rsizes_rpders_strong_dcanon_rows_raw_nonempty_rsize_set_boundI
+        [OF finite dlforms])
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size)
+qed
+
+lemma rpders_strong_dcanon1_rows_raw_nonempty_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U"
+  shows "RLS (set (rpders_strong_dcanon1_rows_raw r (c # s))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpders_strong_dcanon1_rows_raw r (c # s)) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U \<and>
+    length (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      3 * rsize_set U \<and>
+    card (set (rpders_strong_dcanon1_rows_raw r (c # s))) \<le>
+      3 * rsize_set U \<and>
+    rlinear_termss (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      3 * rsize_set U \<and>
+    rsizes (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      3 * rsize_set U"
+proof (intro conjI)
+  let ?rows = "rpders_strong_dcanon1_rows_raw r (c # s)"
+  let ?B = "3 * rsize_set U"
+  show "RLS (set ?rows) = Ders (c # s) (RL r)"
+    by (rule RLS_rpders_strong_dcanon1_rows_raw[OF legacy])
+  show "row_dlformss_disjoint ?rows"
+    unfolding rpders_strong_dcanon1_rows_raw_def
+    by (rule row_dlformss_disjoint_rpders_strong_dcanon_rows_raw_nonempty)
+  have live_paid:
+      "(\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+       (\<forall>q \<in> set ?rows. row_dlforms_size_paid q)"
+    unfolding rpders_strong_dcanon1_rows_raw_def
+    by (rule row_dlforms_live_paid_rpders_strong_dcanon_rows_raw_nonempty)
+  show "\<forall>q \<in> set ?rows. row_dlforms_live q"
+    using live_paid by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_size_paid q"
+    using live_paid by blast
+  show "row_dlformss ?rows \<subseteq> U"
+    by (rule dlforms)
+  have dlforms1:
+      "row_dlformss (rpders_strong_dcanon_rows_raw [r] (c # s)) \<subseteq> U"
+    using dlforms by (simp add: rpders_strong_dcanon1_rows_raw_def)
+  have budgets:
+      "length (rpders_strong_dcanon_rows_raw [r] (c # s)) \<le> ?B \<and>
+      card (set (rpders_strong_dcanon_rows_raw [r] (c # s))) \<le> ?B \<and>
+      rlinear_termss (rpders_strong_dcanon_rows_raw [r] (c # s)) \<le> ?B \<and>
+      rsizes (rpders_strong_dcanon_rows_raw [r] (c # s)) \<le> ?B"
+    by (rule rpders_strong_dcanon_rows_raw_nonempty_rsize_set_budgetsI
+        [OF finite dlforms1])
+  show "length ?rows \<le> ?B"
+    using budgets by (simp add: rpders_strong_dcanon1_rows_raw_def)
+  show "card (set ?rows) \<le> ?B"
+    using budgets by (simp add: rpders_strong_dcanon1_rows_raw_def)
+  show "rlinear_termss ?rows \<le> ?B"
+    using budgets by (simp add: rpders_strong_dcanon1_rows_raw_def)
+  show "rsizes ?rows \<le> ?B"
+    using budgets by (simp add: rpders_strong_dcanon1_rows_raw_def)
+qed
+
+lemma rpders_strong_dcanon1_rows_raw_nonempty_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U"
+    and cubic: "rsize_set U \<le> 2 * (rsize r + 3) ^ 3"
+  shows "RLS (set (rpders_strong_dcanon1_rows_raw r (c # s))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpders_strong_dcanon1_rows_raw r (c # s)) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U \<and>
+    length (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpders_strong_dcanon1_rows_raw r (c # s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpders_strong_dcanon1_rows_raw r (c # s)"
+  let ?B = "6 * (rsize r + 3) ^ 3"
+  have contract:
+      "RLS (set ?rows) = Ders (c # s) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_size_paid q) \<and>
+      row_dlformss ?rows \<subseteq> U \<and>
+      length ?rows \<le> 3 * rsize_set U \<and>
+      card (set ?rows) \<le> 3 * rsize_set U \<and>
+      rlinear_termss ?rows \<le> 3 * rsize_set U \<and>
+      rsizes ?rows \<le> 3 * rsize_set U"
+    by (rule rpders_strong_dcanon1_rows_raw_nonempty_universe_contractI
+        [OF legacy finite dlforms])
+  have U_budget: "3 * rsize_set U \<le> ?B"
+    using cubic by simp
+  show "RLS (set ?rows) = Ders (c # s) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?rows"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_live q"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_size_paid q"
+    using contract by blast
+  show "row_dlformss ?rows \<subseteq> U"
+    using contract by blast
+  show "length ?rows \<le> ?B"
+    using contract U_budget by linarith
+  show "card (set ?rows) \<le> ?B"
+    using contract U_budget by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using contract U_budget by linarith
+  show "rsizes ?rows \<le> ?B"
+    using contract U_budget by linarith
+qed
+
+lemma rpders_strong_dcanon1_rows_raw_nonempty_card_member_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and finite: "finite U"
+    and dlforms:
+      "row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U"
+    and card_bound: "card U \<le> C"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+    and cubic: "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "RLS (set (rpders_strong_dcanon1_rows_raw r (c # s))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpders_strong_dcanon1_rows_raw r (c # s)) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set (rpders_strong_dcanon1_rows_raw r (c # s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq> U \<and>
+    length (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpders_strong_dcanon1_rows_raw r (c # s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpders_strong_dcanon1_rows_raw r (c # s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have U_cubic: "rsize_set U \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsize_set_le_card_member_budgetI
+        [OF finite card_bound member_size cubic])
+  show ?thesis
+    by (rule
+        rpders_strong_dcanon1_rows_raw_nonempty_universe_cubic_contractI
+        [OF legacy finite dlforms U_cubic])
+qed
+
+lemma row_dlforms_rsimpStrong_prune_pair_raw_subset_later_rtail_nf:
+  assumes nf: "rtail_nf later"
+  shows "row_dlforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+    row_dlforms later"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and>
+      later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have k0: "k \<noteq> RZERO"
+      using nf shared by simp
+    have k1: "k \<noteq> RONE"
+      using nf shared by simp
+    have pruned_subset: "set (rprune_eq_against lrs rrs) \<subseteq> set rrs"
+      by (rule set_rprune_eq_against_subset)
+    have "row_dlforms
+        (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)
+        \<subseteq> (\<Union>q \<in> set rrs. row_dlforms (rsimp7_SEQ_atom q k))"
+      by (rule row_dlforms_rsimp7_SEQ_atom_rsimp_ALTs_subset_nonunit_suffix
+          [OF k0 k1 pruned_subset])
+    then show ?thesis
+      using shared by (simp add: rsimpStrong_prune_pair_raw_def)
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis by simp
+  qed
+qed
+
+lemma row_dlforms_rsimpStrong_prune_against_rows_raw_subset_later_rtail_nf:
+  assumes nf: "rtail_nf r"
+  shows "row_dlforms (rsimpStrong_prune_against_rows_raw seen r) \<subseteq>
+    row_dlforms r"
+  using nf
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair_raw x r"
+  have first: "row_dlforms ?p \<subseteq> row_dlforms r"
+    by (rule row_dlforms_rsimpStrong_prune_pair_raw_subset_later_rtail_nf
+        [OF Cons.prems])
+  have p_nf: "rtail_nf ?p"
+    by (rule rtail_nf_rsimpStrong_prune_pair_raw[OF Cons.prems])
+  have rest:
+      "row_dlforms (rsimpStrong_prune_against_rows_raw xs ?p) \<subseteq>
+        row_dlforms ?p"
+    by (rule Cons.hyps[OF p_nf])
+  show ?case
+    using subset_trans[OF rest first] by simp
+qed
+
+lemma row_dlformss_rsimpStrong_prune_rows_acc_raw_subset_rtail_nf:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss (rsimpStrong_prune_rows_acc_raw seen rs) \<subseteq>
+    row_dlformss rs"
+  using nf
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def)
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have r_nf: "rtail_nf r"
+    using Cons.prems by simp
+  have rs_nf: "\<forall>r \<in> set rs. rtail_nf r"
+    using Cons.prems by simp
+  have head: "row_dlforms ?r' \<subseteq> row_dlforms r"
+    by (rule row_dlforms_rsimpStrong_prune_against_rows_raw_subset_later_rtail_nf
+        [OF r_nf])
+  have tail:
+      "row_dlformss (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)
+        \<subseteq> row_dlformss rs"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using head tail by (auto simp add: Let_def row_dlformss_def)
+qed
+
+lemma row_dlformss_rsimpStrong_prune_rows_raw_subset_rtail_nf:
+  assumes "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss (rsimpStrong_prune_rows_raw rs) \<subseteq>
+    row_dlformss rs"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule row_dlformss_rsimpStrong_prune_rows_acc_raw_subset_rtail_nf
+      [OF assms])
+
+lemma row_dlforms_rsimpWide_prune_pair_raw_subset_later_rtail_nf:
+  assumes nf: "rtail_nf later"
+  shows "row_dlforms (rsimpWide_prune_pair_raw earlier later) \<subseteq>
+    row_dlforms later"
+proof (cases later)
+  case (RSEQ p k)
+  note later_seq = RSEQ
+  show ?thesis
+  proof (cases p)
+    case (RALTS rrs)
+    have k0: "k \<noteq> RZERO"
+      using nf later_seq RALTS by simp
+    have k1: "k \<noteq> RONE"
+      using nf later_seq RALTS by simp
+    have pruned_subset:
+        "set (rprune_eq_against (row_cover_prefixes earlier k) rrs)
+          \<subseteq> set rrs"
+      by (rule set_rprune_eq_against_subset)
+    have "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp_ALTs
+            (rprune_eq_against (row_cover_prefixes earlier k) rrs)) k)
+        \<subseteq> (\<Union>q \<in> set rrs. row_dlforms (rsimp7_SEQ_atom q k))"
+      by (rule row_dlforms_rsimp7_SEQ_atom_rsimp_ALTs_subset_nonunit_suffix
+          [OF k0 k1 pruned_subset])
+    then show ?thesis
+      using later_seq RALTS by (simp add: rsimpWide_prune_pair_raw_def)
+  next
+    case RZERO
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case RONE
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RSEQ p1 p2)
+    then show ?thesis
+      using nf later_seq by simp
+  next
+    case (RSTAR r)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RNTIMES r n)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RBACKREF4 x1 x2 x3 x4 x5)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RHALF x1 x2 x3)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  next
+    case (RRESIDUE x1 x2)
+    then show ?thesis
+      using later_seq
+      by (cases "p \<in> set (row_cover_prefixes earlier k)")
+        (simp_all add: rsimpWide_prune_pair_raw_def)
+  qed
+qed (simp_all add: rsimpWide_prune_pair_raw_def)
+
+lemma row_dlforms_rsimpWide_prune_against_rows_raw_subset_later_rtail_nf:
+  assumes nf: "rtail_nf r"
+  shows "row_dlforms (rsimpWide_prune_against_rows_raw seen r) \<subseteq>
+    row_dlforms r"
+  using nf
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpWide_prune_pair_raw x r"
+  have first: "row_dlforms ?p \<subseteq> row_dlforms r"
+    by (rule row_dlforms_rsimpWide_prune_pair_raw_subset_later_rtail_nf
+        [OF Cons.prems])
+  have p_nf: "rtail_nf ?p"
+    by (rule rtail_nf_rsimpWide_prune_pair_raw[OF Cons.prems])
+  have rest:
+      "row_dlforms (rsimpWide_prune_against_rows_raw xs ?p) \<subseteq>
+        row_dlforms ?p"
+    by (rule Cons.hyps[OF p_nf])
+  show ?case
+    using subset_trans[OF rest first] by simp
+qed
+
+lemma row_dlformss_rsimpWide_prune_rows_acc_raw_subset_rtail_nf:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss (rsimpWide_prune_rows_acc_raw seen rs) \<subseteq>
+    row_dlformss rs"
+  using nf
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def)
+next
+  case (Cons r rs)
+  let ?r' = "rsimpWide_prune_against_rows_raw seen r"
+  have r_nf: "rtail_nf r"
+    using Cons.prems by simp
+  have rs_nf: "\<forall>r \<in> set rs. rtail_nf r"
+    using Cons.prems by simp
+  have head: "row_dlforms ?r' \<subseteq> row_dlforms r"
+    by (rule row_dlforms_rsimpWide_prune_against_rows_raw_subset_later_rtail_nf
+        [OF r_nf])
+  have tail:
+      "row_dlformss (rsimpWide_prune_rows_acc_raw (?r' # seen) rs)
+        \<subseteq> row_dlformss rs"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using head tail by (auto simp add: Let_def row_dlformss_def)
+qed
+
+lemma row_dlformss_rsimpWide_prune_rows_raw_subset_rtail_nf:
+  assumes "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlformss (rsimpWide_prune_rows_raw rs) \<subseteq>
+    row_dlformss rs"
+  unfolding rsimpWide_prune_rows_raw_def
+  by (rule row_dlformss_rsimpWide_prune_rows_acc_raw_subset_rtail_nf
+      [OF assms])
+
+lemma row_dlforms_rsimpStrong_ALTs_raw_subset_rtail_nf:
+  assumes "\<forall>r \<in> set rs. rtail_nf r"
+  shows "row_dlforms (rsimpStrong_ALTs_raw rs) \<subseteq>
+    row_dlformss rs"
+proof -
+  have pruned:
+      "row_dlformss (rsimpStrong_prune_rows_raw rs) \<subseteq>
+        row_dlformss rs"
+    by (rule row_dlformss_rsimpStrong_prune_rows_raw_subset_rtail_nf
+        [OF assms])
+  have "row_dlforms (rsimpStrong_ALTs_raw rs) =
+      row_dlformss
+        (rdistinct (rflts (rsimpStrong_prune_rows_raw rs)) {})"
+    by (simp add: rsimpStrong_ALTs_raw_def)
+  also have "... = row_dlformss (rsimpStrong_prune_rows_raw rs)"
+    by simp
+  finally show ?thesis
+    using pruned by simp
+qed
+
+lemma row_dlforms_rsimpStrong_raw_RALTS_subsetI:
+  assumes step: "\<And>q. q \<in> set rs \<Longrightarrow>
+      row_dlforms (rsimpStrong_raw q) \<subseteq> U"
+  shows "row_dlforms (rsimpStrong_raw (RALTS rs)) \<subseteq> U"
+proof -
+  let ?rows = "rflts (map rsimpStrong_raw rs)"
+  have mapped_nf:
+      "\<forall>q \<in> set (map rsimpStrong_raw rs). rtail_nf q"
+    using rtail_nf_rsimpStrong_raw by auto
+  have rows_nf: "\<forall>q \<in> set ?rows. rtail_nf q"
+    by (rule rtail_nf_rflts[OF mapped_nf])
+  have raw_subset:
+      "row_dlforms (rsimpStrong_ALTs_raw ?rows) \<subseteq>
+        row_dlformss ?rows"
+    by (rule row_dlforms_rsimpStrong_ALTs_raw_subset_rtail_nf
+        [OF rows_nf])
+  have rows_subset: "row_dlformss ?rows \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in> row_dlformss ?rows"
+    obtain q where q:
+        "q \<in> set rs"
+        "x \<in> row_dlforms (rsimpStrong_raw q)"
+      using x
+      by (auto simp add: row_dlformss_member_iff)
+    have "row_dlforms (rsimpStrong_raw q) \<subseteq> U"
+      by (rule step[OF q(1)])
+    then show "x \<in> U"
+      using q(2) by blast
+  qed
+  show ?thesis
+    using raw_subset rows_subset by simp
+qed
+
+lemma row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single:
+  assumes flat: "set (rflts [p]) \<subseteq> U"
+  shows "row_dlforms (rsimpStrong_raw p) \<subseteq>
+    rsimpStrong_dlform_closure U"
+using flat
+proof (induct p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then have "RONE \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RCHAR x)
+  then have "RCHAR x \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RSEQ p1 p2)
+  then have "RSEQ p1 p2 \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RALTS rs)
+  show ?case
+  proof (rule row_dlforms_rsimpStrong_raw_RALTS_subsetI)
+    fix q
+    assume q: "q \<in> set rs"
+    have rs_U: "set rs \<subseteq> U"
+      using RALTS.prems by simp
+    have q_U: "q \<in> U"
+      using rs_U q by blast
+    show "row_dlforms (rsimpStrong_raw q) \<subseteq>
+        rsimpStrong_dlform_closure U"
+      by (rule row_dlforms_rsimpStrong_raw_self_closure[OF q_U])
+  qed
+next
+  case (RSTAR x)
+  then have "RSTAR x \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RNTIMES x1 x2)
+  then have "RNTIMES x1 x2 \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RBACKREF4 x1 x2 x3 x4 x5)
+  then have "RBACKREF4 x1 x2 x3 x4 x5 \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RHALF x1 x2 x3)
+  then have "RHALF x1 x2 x3 \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+next
+  case (RRESIDUE x1 x2)
+  then have "RRESIDUE x1 x2 \<in> U"
+    by simp
+  then show ?case
+    by (rule row_dlforms_rsimpStrong_raw_self_closure)
+qed
+
+lemma rflts_single_member_subset_rflts_list:
+  assumes p: "p \<in> set ps"
+  shows "set (rflts [p]) \<subseteq> set (rflts ps)"
+  using p
+proof (induct ps)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  show ?case
+  proof (cases "p = q")
+    case True
+    then show ?thesis
+      by (cases q) auto
+  next
+    case False
+    have p_qs: "p \<in> set qs"
+      using Cons.prems False by simp
+    have tail: "set (rflts [p]) \<subseteq> set (rflts qs)"
+      by (rule Cons.hyps[OF p_qs])
+    show ?thesis
+      using tail by (cases q) auto
+  qed
+qed
+
+lemma afactored1_strong_dlform_universe_subset_step_rows_closure:
+  "afactored1_strong_dlform_universe r s c \<subseteq>
+    rsimpStrong_dlform_closure
+      (set (afactored_step c (afactored1 r s)))"
+proof
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  let ?rows = "afactored1 r s"
+  let ?gen = "concat (map (rpder_norm_list c) ?rows)"
+  obtain p where p:
+      "p \<in> set ?gen"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  have flat_gen: "set (rflts [p]) \<subseteq> set (rflts ?gen)"
+    by (rule rflts_single_member_subset_rflts_list[OF p(1)])
+  have flat_step:
+      "set (rflts [p]) \<subseteq> set (afactored_step c ?rows)"
+    using flat_gen
+    by (auto simp add: afactored_step_def rpder_norm_rows_def
+        rdistinct_set_equality)
+  have strong_subset:
+      "row_dlforms (rsimpStrong_raw p) \<subseteq>
+        rsimpStrong_dlform_closure (set (afactored_step c ?rows))"
+    by (rule row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+        [OF flat_step])
+  then show "x \<in>
+      rsimpStrong_dlform_closure (set (afactored_step c ?rows))"
+    using p(2) by blast
+qed
+
+lemma afactored1_strong_dlform_universe_subset_next_rows_closure:
+  "afactored1_strong_dlform_universe r s c \<subseteq>
+    rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))"
+  using afactored1_strong_dlform_universe_subset_step_rows_closure
+  by (simp add: afactored1_snoc)
+
+lemma rsize_set_afactored1_strong_dlform_universe_le_next_rows_closure:
+  "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    rsize_set
+      (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))))"
+  by (rule rsize_set_mono)
+    (simp_all add: afactored1_strong_dlform_universe_subset_next_rows_closure)
+
+lemma afactored1_strong_dlform_universe_subset_apder_strong_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "afactored1_strong_dlform_universe r s c \<subseteq>
+    apder_strong_dlfrontier r"
+proof
+  fix x
+  assume x: "x \<in> afactored1_strong_dlform_universe r s c"
+  let ?rows = "afactored1 r s"
+  let ?gen = "concat (map (rpder_norm_list c) ?rows)"
+  obtain p where p:
+      "p \<in> set ?gen"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  have flat_gen: "set (rflts [p]) \<subseteq> set (rflts ?gen)"
+    by (rule rflts_single_member_subset_rflts_list[OF p(1)])
+  have flat_step:
+      "set (rflts [p]) \<subseteq> set (afactored_step c ?rows)"
+    using flat_gen
+    by (auto simp add: afactored_step_def rpder_norm_rows_def
+        rdistinct_set_equality)
+  have rows_subset: "set ?rows \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  have step_subset: "set (afactored_step c ?rows) \<subseteq> apder_rows r"
+    by (rule afactored_step_apder_rows_subset[OF nf rows_subset])
+  have flat_apder: "set (rflts [p]) \<subseteq> apder_rows r"
+    using flat_step step_subset by blast
+  have strong_subset:
+      "row_dlforms (rsimpStrong_raw p) \<subseteq>
+        rsimpStrong_dlform_closure (apder_rows r)"
+    by (rule row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+        [OF flat_apder])
+  show "x \<in> apder_strong_dlfrontier r"
+    using strong_subset p(2)
+    unfolding apder_strong_dlfrontier_def
+    by blast
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_subset_generated_rtail_nfI:
+  assumes nf:
+      "\<forall>r \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).
+        rtail_nf r"
+  shows "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq>
+    row_dlformss (concat (map (rpder_strong_list_raw c) rs))"
+proof -
+  let ?gen = "concat (map (rpder_strong_list_raw c) rs)"
+  let ?flat = "rflts ?gen"
+  have pruned:
+      "row_dlformss (rsimpStrong_prune_rows_raw ?flat) \<subseteq>
+        row_dlformss ?flat"
+    by (rule row_dlformss_rsimpStrong_prune_rows_raw_subset_rtail_nf
+        [OF nf])
+  have clean:
+      "row_dlformss
+        (rdistinct (rflts (rsimpStrong_prune_rows_raw ?flat)) {})
+        \<subseteq> row_dlformss (rsimpStrong_prune_rows_raw ?flat)"
+    using row_dlformss_rdistinct_subset[of
+      "rflts (rsimpStrong_prune_rows_raw ?flat)" "{}"]
+    by simp
+  have "row_dlformss
+      (rdistinct (rflts (rsimpStrong_prune_rows_raw ?flat)) {})
+      \<subseteq> row_dlformss ?flat"
+    by (rule subset_trans[OF clean pruned])
+  then show ?thesis
+    by (simp add: rpder_strong_rows_raw_def)
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_subset_generated:
+  "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq>
+    row_dlformss (concat (map (rpder_strong_list_raw c) rs))"
+  by (rule row_dlformss_rpder_strong_rows_raw_subset_generated_rtail_nfI)
+    (rule rtail_nf_rflts_concat_map_rpder_strong_list_raw)
+
+lemma row_lformss_concat_rpder_strong_list_raw_subset_lform_closure:
+  "row_lformss (concat (map (rpder_strong_list_raw c) rows)) \<subseteq>
+    rsimpStrong_lform_closure
+      (set (concat (map (rpder_norm_list c) rows)))"
+proof
+  fix x
+  assume x: "x \<in>
+    row_lformss (concat (map (rpder_strong_list_raw c) rows))"
+  obtain q p where qp:
+      "q \<in> set rows"
+      "p \<in> set (rpder_norm_list c q)"
+      "x \<in> row_lforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: row_lformss_member_iff
+        rpder_strong_list_raw_def)
+  have p_in:
+      "p \<in> set (concat (map (rpder_norm_list c) rows))"
+    using qp(1,2) by auto
+  show "x \<in>
+      rsimpStrong_lform_closure
+        (set (concat (map (rpder_norm_list c) rows)))"
+    by (rule rsimpStrong_lform_closureI[OF p_in qp(3)])
+qed
+
+lemma row_lformss_concat_rpder_strong_list_raw_afactored1_subset_universe:
+  "row_lformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+    afactored1_strong_lform_universe r s c"
+  unfolding afactored1_strong_lform_universe_def
+  by (rule row_lformss_concat_rpder_strong_list_raw_subset_lform_closure)
+
+lemma row_lformss_rpder_strong_rows_raw_subset_lform_closure_pairI:
+  assumes pair: "\<And>earlier later.
+      row_lforms (rsimpStrong_prune_pair_raw earlier later) \<subseteq>
+        row_lforms later"
+  shows "row_lformss (rpder_strong_rows_raw c rows) \<subseteq>
+    rsimpStrong_lform_closure
+      (set (concat (map (rpder_norm_list c) rows)))"
+proof -
+  have cleaned:
+      "row_lformss (rpder_strong_rows_raw c rows) \<subseteq>
+        row_lformss (concat (map (rpder_strong_list_raw c) rows))"
+    by (rule row_lformss_rpder_strong_rows_raw_subset_generated_pairI
+        [OF pair])
+  have generated:
+      "row_lformss (concat (map (rpder_strong_list_raw c) rows)) \<subseteq>
+        rsimpStrong_lform_closure
+          (set (concat (map (rpder_norm_list c) rows)))"
+    by (rule row_lformss_concat_rpder_strong_list_raw_subset_lform_closure)
+  show ?thesis
+    by (rule subset_trans[OF cleaned generated])
+qed
+
+lemma row_lformss_rpder_strong_rows_raw_afactored1_subset_lform_universe_payload_stableI:
+  assumes shared: "\<And>earlier later lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<Longrightarrow>
+      later = RSEQ (RALTS rrs) k \<Longrightarrow>
+      \<forall>p \<in> set rrs. row_payload_lform_stable p"
+  shows "row_lformss
+      (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    afactored1_strong_lform_universe r s c"
+proof -
+  have cleaned:
+      "row_lformss
+        (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+       row_lformss
+        (concat (map (rpder_strong_list_raw c) (afactored1 r s)))"
+    by (rule row_lformss_rpder_strong_rows_raw_subset_generated_payload_stableI
+        [OF shared])
+  have generated:
+      "row_lformss
+        (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+    by (rule
+        row_lformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  show ?thesis
+    by (rule subset_trans[OF cleaned generated])
+qed
+
+lemma row_dlformss_concat_rpder_strong_list_raw_subset_dlform_closure:
+  "row_dlformss (concat (map (rpder_strong_list_raw c) rows)) \<subseteq>
+    rsimpStrong_dlform_closure
+      (set (concat (map (rpder_norm_list c) rows)))"
+proof
+  fix x
+  assume x: "x \<in>
+    row_dlformss (concat (map (rpder_strong_list_raw c) rows))"
+  obtain q p where qp:
+      "q \<in> set rows"
+      "p \<in> set (rpder_norm_list c q)"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: row_dlformss_member_iff
+        rpder_strong_list_raw_def)
+  have p_in:
+      "p \<in> set (concat (map (rpder_norm_list c) rows))"
+    using qp(1,2) by auto
+  show "x \<in>
+      rsimpStrong_dlform_closure
+        (set (concat (map (rpder_norm_list c) rows)))"
+    by (rule rsimpStrong_dlform_closureI[OF p_in qp(3)])
+qed
+
+lemma row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe:
+  "row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+    afactored1_strong_dlform_universe r s c"
+  unfolding afactored1_strong_dlform_universe_def
+  by (rule row_dlformss_concat_rpder_strong_list_raw_subset_dlform_closure)
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe:
+  "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    afactored1_strong_dlform_universe r s c"
+proof -
+  have raw_generated:
+      "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+        \<subseteq>
+       row_dlformss
+        (concat (map (rpder_strong_list_raw c) (afactored1 r s)))"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have generated_universe:
+      "row_dlformss
+        (concat (map (rpder_strong_list_raw c) (afactored1 r s)))
+        \<subseteq> afactored1_strong_dlform_universe r s c"
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  show ?thesis
+    by (rule subset_trans[OF raw_generated generated_universe])
+qed
+
+lemma row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_strong_dlform_universe:
+  "row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+    afactored1_strong_dlform_universe r s c"
+  by (simp add: row_dlformss_rpder_strong_dcanon_rows_raw_eq
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
+
+lemma row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_next_rows_closure:
+  "row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+    rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))"
+  using
+    row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_strong_dlform_universe
+    afactored1_strong_dlform_universe_subset_next_rows_closure
+  by blast
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+    \<subseteq> apder_strong_dlfrontier r"
+proof -
+  have generated_universe:
+      "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+        \<subseteq> afactored1_strong_dlform_universe r s c"
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
+  have universe_apder:
+      "afactored1_strong_dlform_universe r s c \<subseteq>
+        apder_strong_dlfrontier r"
+    by (rule
+        afactored1_strong_dlform_universe_subset_apder_strong_dlfrontier
+        [OF nf])
+  show ?thesis
+    by (rule subset_trans[OF generated_universe universe_apder])
+qed
+
+lemma row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_apder_strong_dlfrontier:
+  assumes nf: "apder_nf r"
+  shows "row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+    \<subseteq> apder_strong_dlfrontier r"
+  by (simp add: row_dlformss_rpder_strong_dcanon_rows_raw_eq
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier
+        [OF nf])
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_apder_strong_dlfrontier_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+      \<subseteq> apder_strong_dlfrontier r \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * rsize_set (apder_strong_dlfrontier r)"
+proof (intro conjI)
+  let ?rows = "afactored1 r s"
+  let ?raw = "rpder_strong_rows_raw c ?rows"
+  let ?canon = "rpder_strong_dcanon_rows_raw c ?rows"
+  let ?U = "apder_strong_dlfrontier r"
+  have rows_legacy: "\<forall>q \<in> set ?rows. legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  have step_lang: "RLS (set ?canon) = Der c (RLS (set ?rows))"
+    by (rule RLS_rpder_strong_dcanon_rows_raw[OF rows_legacy])
+  have rows_lang: "RLS (set ?rows) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show "RLS (set ?canon) = Ders (s @ [c]) (RL r)"
+    using step_lang rows_lang by (simp add: Ders_snoc)
+  show "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+  show "row_dlformss ?canon \<subseteq> ?U"
+    by (rule
+        row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_apder_strong_dlfrontier
+        [OF nf])
+  have raw_subset: "row_dlformss ?raw \<subseteq> ?U"
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier
+        [OF nf])
+  show "rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI)
+      (use raw_subset in auto)
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_apder_strong_dlfrontier_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and cubic:
+      "rsize_set (apder_strong_dlfrontier r) \<le>
+        C * (apder_awidth r + rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+      \<subseteq> apder_strong_dlfrontier r \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * C * (apder_awidth r + rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?U = "apder_strong_dlfrontier r"
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have contract:
+      "RLS (set ?rows) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      row_dlformss ?rows \<subseteq> ?U \<and>
+      rsizes ?rows \<le> 3 * rsize_set ?U"
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_apder_strong_dlfrontier_contractI
+        [OF legacy nf])
+  show "RLS (set ?rows) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?rows"
+    using contract by blast
+  show "row_dlformss ?rows \<subseteq> ?U"
+    using contract by blast
+  have "rsizes ?rows \<le> 3 * rsize_set ?U"
+    using contract by blast
+  also have "... \<le> 3 * (C * ?B)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 3 * C * ?B"
+    by (simp add: algebra_simps)
+  finally show "rsizes ?rows \<le> 3 * C * ?B" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_apder_strong_dlfrontier_cubic_budgetsI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and cubic:
+      "rsize_set (apder_strong_dlfrontier r) \<le>
+        C * (apder_awidth r + rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * C * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      3 * C * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * C * (apder_awidth r + rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * C * (apder_awidth r + rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?B = "3 * C * (apder_awidth r + rsize r + 3) ^ 3"
+  have contract:
+      "RLS (set ?rows) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      row_dlformss ?rows \<subseteq> apder_strong_dlfrontier r \<and>
+      rsizes ?rows \<le> ?B"
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_apder_strong_dlfrontier_cubic_contractI
+        [OF legacy nf cubic])
+  have size_bound: "rsizes ?rows \<le> ?B"
+    using contract by blast
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size_bound by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size_bound by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size_bound)
+qed
+
+lemma row_dlforms_rsimpStrong_raw_rpder_norm_list_afactored1_same_strong_front:
+  assumes q: "q \<in> set (afactored1 root front)"
+    and p: "p \<in> set (rpder_norm_list c q)"
+    and x: "x \<in> row_dlforms (rsimpStrong_raw p)"
+  shows "same_strong_aseq_front_row root (front @ [c]) x"
+proof -
+  let ?gen = "concat (map (rpder_norm_list c) (afactored1 root front))"
+  have p_gen: "p \<in> set ?gen"
+    using q p by auto
+  have p_terms_gen: "aseq_terms p \<subseteq> aseq_termss ?gen"
+    by (rule aseq_terms_member_subset_termss[OF p_gen])
+  have gen_terms:
+      "aseq_termss ?gen \<subseteq>
+        insert RZERO (derivative_front_terms root (front @ [c]))"
+    by (rule derivative_front_terms_snoc_generated_insert_zero)
+  have p_terms:
+      "aseq_terms p \<subseteq>
+        insert RZERO (derivative_front_terms root (front @ [c]))"
+    by (rule subset_trans[OF p_terms_gen gen_terms])
+  show ?thesis
+    by (rule row_dlforms_rsimpStrong_raw_same_front_terms_closure
+        [OF p_terms x])
+qed
+
+lemma row_dlformss_concat_rpder_strong_list_raw_afactored1_same_strong_front:
+  assumes x: "x \<in> row_dlformss
+    (concat (map (rpder_strong_list_raw c) (afactored1 root front)))"
+  shows "same_strong_aseq_front_row root (front @ [c]) x"
+proof -
+  obtain q p where qp:
+      "q \<in> set (afactored1 root front)"
+      "p \<in> set (rpder_norm_list c q)"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: row_dlformss_member_iff
+        rpder_strong_list_raw_def)
+  show ?thesis
+    by (rule
+        row_dlforms_rsimpStrong_raw_rpder_norm_list_afactored1_same_strong_front
+        [OF qp])
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_front:
+  assumes x: "x \<in>
+    row_dlformss (rpder_strong_rows_raw c (afactored1 root front))"
+  shows "same_strong_aseq_front_row root (front @ [c]) x"
+proof -
+  have raw_gen:
+      "row_dlformss (rpder_strong_rows_raw c (afactored1 root front)) \<subseteq>
+        row_dlformss
+          (concat (map (rpder_strong_list_raw c) (afactored1 root front)))"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have x_gen: "x \<in> row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 root front)))"
+    using raw_gen x by blast
+  show ?thesis
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_same_strong_front
+        [OF x_gen])
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_frontier_contract:
+  assumes legacy: "legacy_rrexp root"
+    and x: "x \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 root front))"
+  shows "same_strong_aseq_front_row root (front @ [c]) x \<and>
+    aseq_terms x \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe root"
+proof (intro conjI)
+  have same:
+      "same_strong_aseq_front_row root (front @ [c]) x"
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_front
+        [OF x])
+  show "same_strong_aseq_front_row root (front @ [c]) x"
+    by (rule same)
+  have x_strong:
+      "aseq_terms x \<subseteq>
+        strong_derivative_front_terms root (front @ [c])"
+    using same by (simp add: same_strong_aseq_front_row_def)
+  show "aseq_terms x \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    by (rule x_strong)
+  have front_global:
+      "strong_derivative_front_terms root (front @ [c]) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule strong_derivative_front_terms_subset_strong_simp_frontier
+        [OF legacy])
+  show "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe root"
+    by (rule subset_trans[OF x_strong front_global])
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_budget_contract:
+  assumes legacy: "legacy_rrexp root"
+    and x: "x \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 root front))"
+  shows "same_strong_aseq_front_row root (front @ [c]) x \<and>
+    aseq_terms x \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    (\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root))"
+proof (intro conjI)
+  have contract:
+      "same_strong_aseq_front_row root (front @ [c]) x \<and>
+      aseq_terms x \<subseteq>
+        strong_derivative_front_terms root (front @ [c]) \<and>
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe root"
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_frontier_contract
+        [OF legacy x])
+  show "same_strong_aseq_front_row root (front @ [c]) x"
+    using contract by blast
+  show "aseq_terms x \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    using contract by blast
+  show "card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule card_strong_derivative_front_terms_cubic[OF legacy])
+  show "rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_derivative_front_terms_cubic[OF legacy])
+  show "\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root)"
+    by (rule ballI)
+      (rule strong_derivative_front_terms_member_size_linear[OF legacy])
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front:
+  assumes x: "x \<in> row_dlformss
+    (row_dlform_canonical_rows
+      (rpder_strong_rows_raw c (afactored1 root front)))"
+  shows "same_strong_aseq_front_row root (front @ [c]) x"
+proof -
+  have nf:
+      "\<forall>q \<in> set (rpder_strong_rows_raw c (afactored1 root front)).
+        rtail_nf q"
+    by (rule rtail_nf_rpder_strong_rows_raw)
+  have x_raw:
+      "x \<in> row_dlformss
+        (rpder_strong_rows_raw c (afactored1 root front))"
+    using x row_dlformss_row_dlform_canonical_rows_eq[OF nf] by simp
+  show ?thesis
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_front
+        [OF x_raw])
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front_rows:
+  "same_strong_aseq_front_rows root (front @ [c])
+    (row_dlform_canonical_rows
+      (rpder_strong_rows_raw c (afactored1 root front)))"
+proof -
+  let ?raw = "rpder_strong_rows_raw c (afactored1 root front)"
+  let ?canon = "row_dlform_canonical_rows ?raw"
+  have nf: "\<forall>q \<in> set ?raw. rtail_nf q"
+    by (rule rtail_nf_rpder_strong_rows_raw)
+  show ?thesis
+  proof (simp add: same_strong_aseq_front_rows_def, intro subsetI)
+    fix y
+    assume y: "y \<in> aseq_termss ?canon"
+    obtain x where xy: "x \<in> set ?canon" "y \<in> aseq_terms x"
+      using y by (auto simp add: aseq_termss_member_iff)
+    have x_raw: "x \<in> row_dlformss ?raw"
+      using xy(1) by simp
+    have same:
+        "same_strong_aseq_front_row root (front @ [c]) x"
+      by (rule
+          row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_front
+          [OF x_raw])
+    show "y \<in> strong_derivative_front_terms root (front @ [c])"
+      using same xy(2) by (auto simp add: same_strong_aseq_front_row_def)
+  qed
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_budget_contract:
+  assumes legacy: "legacy_rrexp root"
+  shows "same_strong_aseq_front_rows root (front @ [c])
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<and>
+    aseq_termss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3 \<and>
+    (\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root))"
+proof (intro conjI)
+  let ?rows =
+    "row_dlform_canonical_rows
+      (rpder_strong_rows_raw c (afactored1 root front))"
+  have same:
+      "same_strong_aseq_front_rows root (front @ [c]) ?rows"
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front_rows)
+  show "same_strong_aseq_front_rows root (front @ [c]) ?rows"
+    by (rule same)
+  show "aseq_termss ?rows \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    using same by (simp add: same_strong_aseq_front_rows_def)
+  show "card (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule card_strong_derivative_front_terms_cubic[OF legacy])
+  show "rsize_set (strong_derivative_front_terms root (front @ [c])) \<le>
+      2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_derivative_front_terms_cubic[OF legacy])
+  show "\<forall>q \<in> strong_derivative_front_terms root (front @ [c]).
+      rsize q \<le> Suc (rsize root + rsize root)"
+    by (rule ballI)
+      (rule strong_derivative_front_terms_member_size_linear[OF legacy])
+qed
+
+lemma rsizes_aseq_terms_paid_strong_derivative_front_cubic:
+  assumes legacy: "legacy_rrexp root"
+    and disjoint: "aseq_termss_disjoint rows"
+    and live: "\<forall>q \<in> set rows. aseq_terms_live q"
+    and paid: "\<forall>q \<in> set rows. aseq_terms_size_paid q"
+    and terms: "aseq_termss rows \<subseteq>
+      strong_derivative_front_terms root front"
+  shows "rsizes rows \<le> 6 * (rsize root + 2) ^ 3"
+proof -
+  have base:
+      "rsizes rows \<le>
+        3 * rsize_set (strong_derivative_front_terms root front)"
+  proof (rule rsizes_aseq_terms_paid_universe_boundI
+      [OF disjoint live paid])
+    show "finite (strong_derivative_front_terms root front)"
+      by simp
+    show "aseq_termss rows \<subseteq>
+        strong_derivative_front_terms root front"
+      by (rule terms)
+  qed
+  have cubic:
+      "rsize_set (strong_derivative_front_terms root front) \<le>
+        2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_derivative_front_terms_cubic[OF legacy])
+  have "rsizes rows \<le>
+      3 * rsize_set (strong_derivative_front_terms root front)"
+    by (rule base)
+  also have "... \<le> 3 * (2 * (rsize root + 2) ^ 3)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 6 * (rsize root + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma afactored1_strong_lform_universe_aseq_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> afactored1_strong_lform_universe r s c"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+proof -
+  obtain p where p:
+      "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      "x \<in> row_lforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_lform_universe_def
+        rsimpStrong_lform_closure_def)
+  obtain q where q:
+      "q \<in> set (afactored1 r s)"
+      "p \<in> set (rpder_norm_list c q)"
+    using p(1) by auto
+  have q_terms:
+      "aseq_terms q \<subseteq> partial_derivative_frontier_universe r"
+    using q(1) afactored1_aseq_terms_frontier_universe_subset[OF legacy]
+      aseq_terms_member_subset_termss by blast
+  have q_legacy: "legacy_rrexp q"
+    using legacy q(1) legacy_afactored1 by blast
+  have p_terms:
+      "aseq_terms p \<subseteq> partial_derivative_frontier_universe r"
+    by (rule rpder_norm_list_aseq_terms_subsetI
+        [OF q_legacy q_terms])
+      (use q(2) partial_derivative_frontier_universe_ntimes_predecessor
+        rsubterms_frontier_universe_member_subset in auto)
+  have x_terms:
+      "aseq_terms x \<subseteq> aseq_terms (rsimpStrong_raw p)"
+    by (rule row_lforms_aseq_terms_subset[OF p(2)])
+  have strong_terms:
+      "aseq_terms (rsimpStrong_raw p) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpStrong_raw_frontier_closure[OF p_terms])
+  show ?thesis
+    by (rule subset_trans[OF x_terms strong_terms])
+qed
+
+lemma afactored1_strong_dlform_universe_aseq_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> afactored1_strong_dlform_universe r s c"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+proof -
+  obtain p where p:
+      "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: afactored1_strong_dlform_universe_def
+        rsimpStrong_dlform_closure_def)
+  obtain q where q:
+      "q \<in> set (afactored1 r s)"
+      "p \<in> set (rpder_norm_list c q)"
+    using p(1) by auto
+  have q_legacy: "legacy_rrexp q"
+    using legacy_afactored1[OF legacy] q(1) by simp
+  have q_terms:
+      "aseq_terms q \<subseteq> partial_derivative_frontier_universe r"
+  proof -
+    have "aseq_terms q \<subseteq> aseq_termss (afactored1 r s)"
+      using q(1) by (rule aseq_terms_member_subset_termss)
+    also have "... \<subseteq> partial_derivative_frontier_universe r"
+      by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+    finally show ?thesis .
+  qed
+  have p_terms:
+      "aseq_terms p \<subseteq> partial_derivative_frontier_universe r"
+    by (rule rpder_norm_list_aseq_terms_subsetI
+        [OF q_legacy q_terms])
+      (use q(2) partial_derivative_frontier_universe_ntimes_predecessor
+        rsubterms_frontier_universe_member_subset in auto)
+  have x_terms:
+      "aseq_terms x \<subseteq> aseq_terms (rsimpStrong_raw p)"
+    by (rule row_dlforms_aseq_terms_subset[OF p(2)])
+  have strong_terms:
+      "aseq_terms (rsimpStrong_raw p) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpStrong_raw_frontier_closure[OF p_terms])
+  show ?thesis
+    by (rule subset_trans[OF x_terms strong_terms])
+qed
+
+lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
+  assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front root (front @ [c])"
+  shows "same_dlfront_rows root (front @ [c])
+    (rpder_strong_rows_raw c rows)"
+proof -
+  have cleaned:
+      "row_dlformss (rpder_strong_rows_raw c rows) \<subseteq>
+        row_dlformss (concat (map (rpder_strong_list_raw c) rows))"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have gen:
+      "row_dlformss (concat (map (rpder_strong_list_raw c) rows))
+        \<subseteq> adlform_front root (front @ [c])"
+  proof
+    fix x
+    assume x:
+        "x \<in> row_dlformss
+          (concat (map (rpder_strong_list_raw c) rows))"
+    obtain q p where qp:
+        "q \<in> set rows"
+        "p \<in> set (rpder_norm_list c q)"
+        "x \<in> row_dlforms (rsimpStrong_raw p)"
+      using x
+      by (auto simp add: row_dlformss_member_iff
+          rpder_strong_list_raw_def)
+    have "row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front root (front @ [c])"
+      by (rule generated[OF qp(1) qp(2)])
+    then show "x \<in> adlform_front root (front @ [c])"
+      using qp(3) by blast
+  qed
+  have "row_dlformss (rpder_strong_rows_raw c rows) \<subseteq>
+      adlform_front root (front @ [c])"
+    by (rule subset_trans[OF cleaned gen])
+  then show ?thesis
+    by (simp add: same_dlfront_rows_def)
+qed
+
+lemma same_dlfront_rows_rpders_strong_rows_rawI:
+  assumes init: "same_dlfront_rows root front rows"
+    and step: "\<And>front rows c q p.
+      same_dlfront_rows root front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front root (front @ [c])"
+  shows "same_dlfront_rows root (front @ s)
+    (rpders_strong_rows_raw rows s)"
+  using init
+proof (induct s arbitrary: rows front)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_front:
+      "same_dlfront_rows root (front @ [c])
+        (rpder_strong_rows_raw c rows)"
+  proof (rule same_dlfront_rows_rpder_strong_rows_raw_stepI)
+    fix q p
+    assume q: "q \<in> set rows"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    show "row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front root (front @ [c])"
+      by (rule step[OF Cons.prems q p])
+  qed
+  have tail:
+      "same_dlfront_rows root ((front @ [c]) @ s)
+        (rpders_strong_rows_raw
+          (rpder_strong_rows_raw c rows) s)"
+    by (rule Cons.hyps[OF next_front])
+  then show ?case
+    by simp
+qed
+
+lemma same_dlfront_rows_rpders_strong1_rows_rawI:
+  assumes step: "\<And>front rows c q p.
+      same_dlfront_rows root front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front root (front @ [c])"
+  shows "same_dlfront_rows root s
+    (rpders_strong1_rows_raw root s)"
+proof -
+  have init: "same_dlfront_rows root [] [root]"
+    by (simp add: same_dlfront_rows_def adlform_front_def afactored1_def)
+  have "same_dlfront_rows root ([] @ s)
+      (rpders_strong_rows_raw [root] s)"
+    by (rule same_dlfront_rows_rpders_strong_rows_rawI
+        [OF init step])
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_raw_def)
+qed
+
+lemma row_group_deep_nf_rpder_strong_list_raw:
+  assumes "row_group_deep_nf r"
+  shows "\<forall>p \<in> set (rpder_strong_list_raw c r). row_group_deep_nf p"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_norm_list c r). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpder_norm_list[OF assms])
+  show ?thesis
+    unfolding rpder_strong_list_raw_def
+    using rows row_group_deep_nf_rsimpStrong_raw by auto
+qed
+
+lemma row_group_deep_nf_rpder_strong_list_raw_legacy:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_list_raw c r). row_group_deep_nf p"
+proof -
+  have rows: "\<forall>p \<in> set (rpder_norm_list c r). legacy_rrexp p"
+    by (rule legacy_rpder_norm_list[OF assms])
+  show ?thesis
+    unfolding rpder_strong_list_raw_def
+    using rows row_group_deep_nf_rsimpStrong_raw_legacy by auto
+qed
+
+lemma row_group_deep_nf_rpder_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. row_group_deep_nf r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_raw c rs). row_group_deep_nf p"
+proof -
+  have mapped:
+      "\<forall>p \<in> set (concat (map (rpder_strong_list_raw c) rs)).
+        row_group_deep_nf p"
+    using assms row_group_deep_nf_rpder_strong_list_raw by auto
+  have flat1:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rflts[OF mapped])
+  have pruned:
+      "\<forall>p \<in> set (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rsimpStrong_prune_rows_raw[OF flat1])
+  have flat2:
+      "\<forall>p \<in> set (rflts (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rflts[OF pruned])
+  show ?thesis
+    unfolding rpder_strong_rows_raw_def
+    by (rule row_group_deep_nf_rdistinct[OF flat2])
+qed
+
+lemma row_group_deep_nf_rpder_strong_rows_raw_legacy:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_raw c rs). row_group_deep_nf p"
+proof -
+  have mapped:
+      "\<forall>p \<in> set (concat (map (rpder_strong_list_raw c) rs)).
+        row_group_deep_nf p"
+    using assms row_group_deep_nf_rpder_strong_list_raw_legacy by auto
+  have flat1:
+      "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list_raw c) rs))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rflts[OF mapped])
+  have pruned:
+      "\<forall>p \<in> set (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rsimpStrong_prune_rows_raw[OF flat1])
+  have flat2:
+      "\<forall>p \<in> set (rflts (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))).
+        row_group_deep_nf p"
+    by (rule row_group_deep_nf_rflts[OF pruned])
+  show ?thesis
+    unfolding rpder_strong_rows_raw_def
+    by (rule row_group_deep_nf_rdistinct[OF flat2])
+qed
+
+lemma row_group_deep_nf_rpders_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. row_group_deep_nf r"
+    and "p \<in> set (rpders_strong_rows_raw rs s)"
+  shows "row_group_deep_nf p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_nf:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c rs). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpder_strong_rows_raw[OF Cons.prems(1)])
+  have p_next:
+      "p \<in> set (rpders_strong_rows_raw
+        (rpder_strong_rows_raw c rs) s)"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_nf p_next])
+qed
+
+lemma row_group_deep_nf_rpders_strong_rows_raw_legacy_Cons:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+    and "p \<in> set (rpders_strong_rows_raw rs (c # s))"
+  shows "row_group_deep_nf p"
+proof -
+  have next_nf:
+      "\<forall>p \<in> set (rpder_strong_rows_raw c rs). row_group_deep_nf p"
+    by (rule row_group_deep_nf_rpder_strong_rows_raw_legacy
+        [OF assms(1)])
+  have p_next:
+      "p \<in> set (rpders_strong_rows_raw
+        (rpder_strong_rows_raw c rs) s)"
+    using assms(2) by simp
+  show ?thesis
+    by (rule row_group_deep_nf_rpders_strong_rows_raw
+        [OF next_nf p_next])
+qed
+
+lemma row_group_deep_nf_rsimpStrong_raw_rders_pder_norm:
+  assumes "legacy_rrexp r"
+  shows "row_group_deep_nf (rsimpStrong_raw (rders_pder_norm r s))"
+  by (rule row_group_deep_nf_rsimpStrong_raw_legacy)
+    (rule legacy_rders_pder_norm[OF assms])
+
+lemma row_group_deep_nf_rpder_strong_rows_raw_rders_pder_norm:
+  assumes "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_raw c [rders_pder_norm r s]).
+    row_group_deep_nf p"
+  by (rule row_group_deep_nf_rpder_strong_rows_raw_legacy)
+    (simp add: legacy_rders_pder_norm[OF assms])
+
+lemma aseq_termss_rpder_strong_list_raw_subsetI:
+  assumes generated: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+  shows "aseq_termss (rpder_strong_list_raw c q) \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> aseq_termss (rpder_strong_list_raw c q)"
+  obtain p where p:
+      "p \<in> set (rpder_norm_list c q)"
+      "x \<in> aseq_terms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: rpder_strong_list_raw_def aseq_termss_member_iff)
+  have "aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+    by (rule generated[OF p(1)])
+  then show "x \<in> U"
+    using p(2) by blast
+qed
+
+lemma aseq_termss_rpder_strong_rows_raw_subsetI:
+  assumes step: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq> U"
+proof -
+  have generated:
+      "aseq_termss (concat (map (rpder_strong_list_raw c) rs)) \<subseteq> U"
+  proof
+    fix x
+    assume x: "x \<in>
+      aseq_termss (concat (map (rpder_strong_list_raw c) rs))"
+    obtain q p where qp:
+        "q \<in> set rs"
+        "p \<in> set (rpder_norm_list c q)"
+        "x \<in> aseq_terms (rsimpStrong_raw p)"
+      using x
+      by (auto simp add: rpder_strong_list_raw_def
+          aseq_termss_member_iff)
+    have "aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+      by (rule step[OF qp(1) qp(2)])
+    then show "x \<in> U"
+      using qp(3) by blast
+  qed
+  have flat1:
+      "aseq_termss (rflts (concat (map (rpder_strong_list_raw c) rs)))
+        \<subseteq> U"
+    using aseq_termss_rflts_subset generated by blast
+  have pruned:
+      "aseq_termss (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))
+        \<subseteq> U"
+    by (rule aseq_termss_rsimpStrong_prune_rows_raw_subsetI
+        [OF flat1 zero])
+  have flat2:
+      "aseq_termss (rflts (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))))
+        \<subseteq> U"
+    using aseq_termss_rflts_subset pruned by blast
+  have distinct:
+      "aseq_termss
+        (rdistinct
+          (rflts
+            (rsimpStrong_prune_rows_raw
+              (rflts (concat (map (rpder_strong_list_raw c) rs)))))
+          {})
+        \<subseteq> U"
+    using aseq_termss_rdistinct_subset flat2 by blast
+  then show ?thesis
+    by (simp add: rpder_strong_rows_raw_def)
+qed
+
+lemma aseq_termss_rpder_strong_list_raw_frontier_closureI:
+  assumes legacy: "legacy_rrexp q"
+    and terms: "aseq_terms q \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "aseq_termss (rpder_strong_list_raw c q) \<subseteq>
+    strong_simp_frontier_aseq_universe root"
+proof (rule aseq_termss_rpder_strong_list_raw_subsetI)
+  fix p
+  assume p: "p \<in> set (rpder_norm_list c q)"
+  have p_terms:
+      "aseq_terms p \<subseteq> partial_derivative_frontier_universe root"
+    by (rule rpder_norm_list_aseq_terms_subsetI
+        [OF legacy terms])
+      (use p partial_derivative_frontier_universe_ntimes_predecessor
+        rsubterms_frontier_universe_member_subset in auto)
+  show "aseq_terms (rsimpStrong_raw p) \<subseteq>
+      strong_simp_frontier_aseq_universe root"
+    by (rule aseq_terms_rsimpStrong_raw_frontier_closure[OF p_terms])
+qed
+
+lemma aseq_termss_rpder_strong_rows_raw_frontier_closureI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and terms: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+    strong_simp_frontier_aseq_universe root"
+proof (rule aseq_termss_rpder_strong_rows_raw_subsetI)
+  fix q p
+  assume q: "q \<in> set rs"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  have q_legacy: "legacy_rrexp q"
+    using legacy q by simp
+  have q_terms:
+      "aseq_terms q \<subseteq> partial_derivative_frontier_universe root"
+    using terms aseq_terms_member_subset_termss[OF q] by blast
+  have p_terms:
+      "aseq_terms p \<subseteq> partial_derivative_frontier_universe root"
+    by (rule rpder_norm_list_aseq_terms_subsetI
+        [OF q_legacy q_terms])
+      (use p partial_derivative_frontier_universe_ntimes_predecessor
+        rsubterms_frontier_universe_member_subset in auto)
+  show "aseq_terms (rsimpStrong_raw p) \<subseteq>
+      strong_simp_frontier_aseq_universe root"
+    by (rule aseq_terms_rsimpStrong_raw_frontier_closure[OF p_terms])
+next
+  show "RZERO \<in> strong_simp_frontier_aseq_universe root"
+    by simp
+qed
+
+lemma card_aseq_termss_rpder_strong_rows_raw_frontier_closureI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and terms: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "card (aseq_termss (rpder_strong_rows_raw c rs)) \<le>
+    2 * (rsize root + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI
+        [OF legacy terms])
+  have "card (aseq_termss (rpder_strong_rows_raw c rs)) \<le>
+      card (strong_simp_frontier_aseq_universe root)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize root + 2) ^ 3"
+    by (rule card_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_aseq_termss_rpder_strong_rows_raw_frontier_closureI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and terms: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+  shows "rsize_set (aseq_termss (rpder_strong_rows_raw c rs)) \<le>
+    2 * (rsize root + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI
+        [OF legacy terms])
+  have "rsize_set (aseq_termss (rpder_strong_rows_raw c rs)) \<le>
+      rsize_set (strong_simp_frontier_aseq_universe root)"
+    by (rule rsize_set_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize root + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma aseq_termss_rpder_strong_rows_raw_frontier_closure_member_sizeI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and terms: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+    and x: "x \<in> aseq_termss (rpder_strong_rows_raw c rs)"
+  shows "rsize x \<le> Suc (rsize root + rsize root)"
+proof -
+  have subset:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI
+        [OF legacy terms])
+  then have "x \<in> strong_simp_frontier_aseq_universe root"
+    using x by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+  by (rule aseq_terms_rsimpStrong_raw_frontier_closure)
+    (rule rders_pder_norm_aseq_terms_frontier_universe_subset[OF legacy])
+
+lemma card_aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  have "card (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      card (strong_simp_frontier_aseq_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule card_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  have "rsize_set
+      (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      rsize_set (strong_simp_frontier_aseq_universe r)"
+    by (rule rsize_set_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule rsize_set_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_member_size:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> aseq_terms (rsimpStrong_raw (rders_pder_norm r s))"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have subset:
+      "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+        [OF legacy])
+  then have "q \<in> strong_simp_frontier_aseq_universe r"
+    using q by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma rsimpStrong_raw_rders_pder_norm_frontier_closure_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    card (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    rsize_set (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_terms (rsimpStrong_raw (rders_pder_norm r s)).
+      rsize q \<le> Suc (rsize r + rsize r))"
+  using assms
+    aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+    card_aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+    rsize_set_aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_closure
+    aseq_terms_rsimpStrong_raw_rders_pder_norm_frontier_member_size
+  by blast
+
+lemma rsimpStrong_raw_rders_pder_norm_frontier_closure_nf_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    card (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    rsize_set (aseq_terms (rsimpStrong_raw (rders_pder_norm r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_terms (rsimpStrong_raw (rders_pder_norm r s)).
+      rsize q \<le> Suc (rsize r + rsize r)) \<and>
+    row_group_deep_nf (rsimpStrong_raw (rders_pder_norm r s))"
+  using assms
+    rsimpStrong_raw_rders_pder_norm_frontier_closure_contract
+    row_group_deep_nf_rsimpStrong_raw_rders_pder_norm
+  by blast
+
+lemma aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s]) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+proof (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI)
+  show "\<forall>q \<in> set [rders_pder_norm r s]. legacy_rrexp q"
+    by (simp add: legacy_rders_pder_norm[OF legacy])
+  show "aseq_termss [rders_pder_norm r s] \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (simp add: rders_pder_norm_aseq_terms_frontier_universe_subset
+        [OF legacy])
+qed
+
+lemma card_aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss
+        (rpder_strong_rows_raw c [rders_pder_norm r s]) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI
+        [OF legacy])
+  have "card (aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])) \<le>
+      card (strong_simp_frontier_aseq_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule card_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set (aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])) \<le>
+    2 * (rsize r + 2) ^ 3"
+  by (rule rsize_set_aseq_termss_rpder_strong_rows_raw_frontier_closureI)
+    (use legacy rders_pder_norm_aseq_terms_frontier_universe_subset
+      legacy_rders_pder_norm in auto)
+
+lemma aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_member_sizeI:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have subset:
+      "aseq_termss
+        (rpder_strong_rows_raw c [rders_pder_norm r s]) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI
+        [OF legacy])
+  then have "q \<in> strong_simp_frontier_aseq_universe r"
+    using q by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma rpder_strong_rows_raw_rders_pder_norm_frontier_closure_nf_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s]) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    card (aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    rsize_set (aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s])) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_termss
+      (rpder_strong_rows_raw c [rders_pder_norm r s]).
+      rsize q \<le> Suc (rsize r + rsize r)) \<and>
+    (\<forall>p \<in> set (rpder_strong_rows_raw c [rders_pder_norm r s]).
+      row_group_deep_nf p)"
+  using assms
+    aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI
+    card_aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI
+    rsize_set_aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_closureI
+    aseq_termss_rpder_strong_rows_raw_rders_pder_norm_frontier_member_sizeI
+    row_group_deep_nf_rpder_strong_rows_raw_rders_pder_norm
+  by blast
+
+lemma aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+proof (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI)
+  show "\<forall>q \<in> set (afactored1 r s). legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  show "aseq_termss (afactored1 r s) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule afactored1_aseq_terms_frontier_universe_subset[OF legacy])
+qed
+
+lemma card_aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "card (aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+        [OF legacy])
+  have "card (aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      card (strong_simp_frontier_aseq_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule card_strong_simp_frontier_aseq_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set (aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 2) ^ 3"
+  by (rule rsize_set_aseq_termss_rpder_strong_rows_raw_frontier_closureI)
+    (use legacy legacy_afactored1
+      afactored1_aseq_terms_frontier_universe_subset in auto)
+
+lemma aseq_termss_rpder_strong_rows_raw_afactored1_frontier_member_sizeI:
+  assumes legacy: "legacy_rrexp r"
+    and q: "q \<in> aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have subset:
+      "aseq_termss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+        [OF legacy])
+  then have "q \<in> strong_simp_frontier_aseq_universe r"
+    using q by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma row_lformss_rpder_strong_rows_raw_afactored1_aseq_subset:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_lformss
+      (rpder_strong_rows_raw c (afactored1 r s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_termss (rpder_strong_rows_raw c (afactored1 r s))"
+    by (rule row_lformss_aseq_terms_subset[OF x])
+  have rows_terms:
+      "aseq_termss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        strong_simp_frontier_aseq_universe r"
+    by (rule aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+        [OF legacy])
+  show ?thesis
+    by (rule subset_trans[OF x_terms rows_terms])
+qed
+
+lemma row_lformss_rpder_strong_rows_raw_afactored1_member_sizeI:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_lformss
+      (rpder_strong_rows_raw c (afactored1 r s))"
+    and q: "q \<in> aseq_terms x"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule row_lformss_rpder_strong_rows_raw_afactored1_aseq_subset
+        [OF legacy x])
+  then have "q \<in> strong_simp_frontier_aseq_universe r"
+    using q by blast
+  then show ?thesis
+    by (rule strong_simp_frontier_aseq_universe_member_size_linear)
+qed
+
+lemma row_lformss_rpder_strong_rows_raw_afactored1_aseq_contract:
+  assumes legacy: "legacy_rrexp r"
+    and x: "x \<in> row_lformss
+      (rpder_strong_rows_raw c (afactored1 r s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r \<and>
+    card (aseq_terms x) \<le> 2 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule row_lformss_rpder_strong_rows_raw_afactored1_aseq_subset
+        [OF legacy x])
+  have card: "card (aseq_terms x) \<le> 2 * (rsize r + 2) ^ 3"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (strong_simp_frontier_aseq_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> 2 * (rsize r + 2) ^ 3"
+      by (rule card_strong_simp_frontier_aseq_universe_cubic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+    by (auto intro:
+        row_lformss_rpder_strong_rows_raw_afactored1_member_sizeI
+        [OF legacy x])
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma row_group_deep_nf_rpder_strong_rows_raw_afactored1:
+  assumes legacy: "legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+    row_group_deep_nf p"
+  by (rule row_group_deep_nf_rpder_strong_rows_raw_legacy)
+    (rule legacy_afactored1[OF legacy])
+
+lemma rpder_strong_rows_raw_afactored1_frontier_closure_nf_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    card (aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    rsize_set (aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_termss
+      (rpder_strong_rows_raw c (afactored1 r s)).
+      rsize q \<le> Suc (rsize r + rsize r)) \<and>
+    (\<forall>p \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+      row_group_deep_nf p)"
+  using assms
+    aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+    card_aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+    rsize_set_aseq_termss_rpder_strong_rows_raw_afactored1_frontier_closureI
+    aseq_termss_rpder_strong_rows_raw_afactored1_frontier_member_sizeI
+    row_group_deep_nf_rpder_strong_rows_raw_afactored1
+  by blast
+
+lemma rsimpStrong_aseq_closure_subset_idemI:
+  assumes idem: "\<And>p. p \<in> U \<Longrightarrow> rsimpStrong_raw p = p"
+    and subterm_closed: "\<And>p. p \<in> U \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "rsimpStrong_aseq_closure U \<subseteq> U"
+proof
+  fix x
+  assume x: "x \<in> rsimpStrong_aseq_closure U"
+  obtain p where p: "p \<in> U"
+      and xp: "x \<in> aseq_terms (rsimpStrong_raw p)"
+    using x by (auto simp add: rsimpStrong_aseq_closure_def)
+  have "x \<in> aseq_terms p"
+    using xp by (simp add: idem[OF p])
+  then have "x \<in> rsubterms p"
+    using aseq_terms_subset_rsubterms by blast
+  then show "x \<in> U"
+    using subterm_closed[OF p] by blast
+qed
+
+lemma aseq_terms_rsimpStrong_raw_idem_closed_subsetI:
+  assumes terms: "aseq_terms q \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and idem: "\<And>p. p \<in> U \<Longrightarrow> rsimpStrong_raw p = p"
+    and subterm_closed: "\<And>p. p \<in> U \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "aseq_terms (rsimpStrong_raw q) \<subseteq> U"
+proof - 
+  have closure: "aseq_terms (rsimpStrong_raw q) \<subseteq>
+      rsimpStrong_aseq_closure U"
+    by (rule aseq_terms_rsimpStrong_raw_subset_closureI[OF terms zero])
+  have "rsimpStrong_aseq_closure U \<subseteq> U"
+    by (rule rsimpStrong_aseq_closure_subset_idemI
+        [OF idem subterm_closed])
+  then show ?thesis
+    using closure by blast
+qed
+
+lemma rpders_strong_rows_raw_aseq_terms_closed_subsetI:
+  assumes init: "aseq_termss rs \<subseteq> U"
+    and step: "\<And>q c p. aseq_terms q \<subseteq> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_termss (rpders_strong_rows_raw rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_terms:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq> U"
+  proof (rule aseq_termss_rpder_strong_rows_raw_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    have q_terms: "aseq_terms q \<subseteq> U"
+      using Cons.prems aseq_terms_member_subset_termss[OF q]
+      by blast
+    show "aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+      by (rule step[OF q_terms p])
+  next
+    show "RZERO \<in> U"
+      by (rule zero)
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_terms])
+qed
+
+lemma rpders_strong1_rows_raw_aseq_terms_closed_subsetI:
+  assumes init: "aseq_terms r \<subseteq> U"
+    and step: "\<And>q c p. aseq_terms q \<subseteq> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+    and zero: "RZERO \<in> U"
+  shows "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq> U"
+  unfolding rpders_strong1_rows_raw_def
+  by (rule rpders_strong_rows_raw_aseq_terms_closed_subsetI)
+    (use init step zero in auto)
+
+lemma rpders_strong_rows_raw_aseq_terms_closed_legacy_subsetI:
+  assumes init: "aseq_termss rs \<subseteq> U"
+    and legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and norm: "\<And>p. aseq_terms p \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+  shows "aseq_termss (rpders_strong_rows_raw rs s) \<subseteq> U"
+  using init legacy
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  have next_terms:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq> U"
+  proof (rule aseq_termss_rpder_strong_rows_raw_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    have q_terms: "aseq_terms q \<subseteq> U"
+      using Cons.prems(1) aseq_terms_member_subset_termss[OF q]
+      by blast
+    have q_legacy: "legacy_rrexp q"
+      using Cons.prems(2) q by simp
+    have p_terms: "aseq_terms p \<subseteq> U"
+      by (rule rpder_norm_list_aseq_terms_subsetI
+          [OF q_legacy q_terms zero one subterm_closed
+            ntimes_closed p])
+    show "aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+      by (rule norm[OF p_terms])
+  next
+    show "RZERO \<in> U"
+      by (rule zero)
+  qed
+  have next_legacy:
+      "\<forall>q \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp q"
+    by (rule legacy_rpder_strong_rows_raw[OF Cons.prems(2)])
+  show ?case
+    by (simp add: Cons.hyps[OF next_terms next_legacy])
+qed
+
+lemma rpders_strong1_rows_raw_aseq_terms_closed_legacy_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and init: "aseq_terms r \<subseteq> U"
+    and zero: "RZERO \<in> U"
+    and one: "RONE \<in> U"
+    and subterm_closed: "\<And>x. x \<in> U \<Longrightarrow> rsubterms x \<subseteq> U"
+    and ntimes_closed: "\<And>r n. RNTIMES r (Suc n) \<in> U \<Longrightarrow>
+      RNTIMES r n \<in> U"
+    and norm: "\<And>p. aseq_terms p \<subseteq> U \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq> U"
+  shows "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq> U"
+  unfolding rpders_strong1_rows_raw_def
+  by (rule rpders_strong_rows_raw_aseq_terms_closed_legacy_subsetI)
+    (use legacy init zero one subterm_closed ntimes_closed norm in auto)
+
+lemma aseq_termss_rpders_strong_rows_raw_strong_fuel_idem_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      strong_simp_frontier_fuel_universe root"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss (rpders_strong_rows_raw rs s) \<subseteq>
+    strong_simp_frontier_fuel_universe root"
+proof (rule rpders_strong_rows_raw_aseq_terms_closed_legacy_subsetI
+    [OF rows legacy])
+  show "RZERO \<in> strong_simp_frontier_fuel_universe root"
+    by simp
+  show "RONE \<in> strong_simp_frontier_fuel_universe root"
+    by simp
+  show "\<And>x. x \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsubterms x \<subseteq> strong_simp_frontier_fuel_universe root"
+    by (rule strong_simp_frontier_fuel_universe_subterm_closed)
+  show "\<And>r n. RNTIMES r (Suc n) \<in>
+      strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      RNTIMES r n \<in> strong_simp_frontier_fuel_universe root"
+    by (rule strong_simp_frontier_fuel_universe_ntimes_predecessor)
+  show "\<And>p. aseq_terms p \<subseteq>
+      strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        strong_simp_frontier_fuel_universe root"
+  proof -
+    fix p
+    assume p_terms:
+      "aseq_terms p \<subseteq> strong_simp_frontier_fuel_universe root"
+    show "aseq_terms (rsimpStrong_raw p) \<subseteq>
+        strong_simp_frontier_fuel_universe root"
+    proof (rule aseq_terms_rsimpStrong_raw_idem_closed_subsetI)
+      show "aseq_terms p \<subseteq> strong_simp_frontier_fuel_universe root"
+        by (rule p_terms)
+      show "RZERO \<in> strong_simp_frontier_fuel_universe root"
+        by simp
+      show "\<And>q. q \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+          rsimpStrong_raw q = q"
+        by (rule idem)
+      show "\<And>q. q \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+          rsubterms q \<subseteq> strong_simp_frontier_fuel_universe root"
+        by (rule strong_simp_frontier_fuel_universe_subterm_closed)
+    qed
+  qed
+qed
+
+lemma aseq_termss_rpders_strong_rows_raw_after_frontier_step_strong_fuel_idem_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss
+      (rpders_strong_rows_raw (rpder_strong_rows_raw c rs) s) \<subseteq>
+    strong_simp_frontier_fuel_universe root"
+proof -
+  have first_aseq:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI
+        [OF legacy rows])
+  have first_fuel:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_fuel_universe root"
+    using first_aseq strong_simp_frontier_aseq_subset_fuel_universe
+    by blast
+  have first_legacy:
+      "\<forall>q \<in> set (rpder_strong_rows_raw c rs). legacy_rrexp q"
+    by (rule legacy_rpder_strong_rows_raw[OF legacy])
+  show ?thesis
+    by (rule aseq_termss_rpders_strong_rows_raw_strong_fuel_idem_subsetI
+        [OF first_legacy first_fuel idem])
+qed
+
+lemma aseq_termss_rpders_strong1_rows_raw_nonempty_strong_fuel_idem_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss (rpders_strong1_rows_raw r (c # s)) \<subseteq>
+    strong_simp_frontier_fuel_universe r"
+proof -
+  have "aseq_termss
+      (rpders_strong_rows_raw (rpder_strong_rows_raw c [r]) s) \<subseteq>
+      strong_simp_frontier_fuel_universe r"
+    by (rule
+        aseq_termss_rpders_strong_rows_raw_after_frontier_step_strong_fuel_idem_subsetI)
+      (use legacy idem aseq_terms_root_frontier_universe in auto)
+  then show ?thesis
+    by (simp add: rpders_strong1_rows_raw_def)
+qed
+
+lemma card_aseq_termss_rpders_strong1_rows_raw_nonempty_strong_fuel_idem_cubicI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "card (aseq_termss (rpders_strong1_rows_raw r (c # s))) \<le>
+    4 * (rsize r + 2) ^ 3"
+proof -
+  have subset:
+      "aseq_termss (rpders_strong1_rows_raw r (c # s)) \<subseteq>
+        strong_simp_frontier_fuel_universe r"
+    by (rule
+        aseq_termss_rpders_strong1_rows_raw_nonempty_strong_fuel_idem_subsetI
+        [OF legacy idem])
+  have "card (aseq_termss (rpders_strong1_rows_raw r (c # s))) \<le>
+      card (strong_simp_frontier_fuel_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> 4 * (rsize r + 2) ^ 3"
+    by (rule card_strong_simp_frontier_fuel_universe_cubic)
+  finally show ?thesis .
+qed
+
+lemma row_dlformss_rpders_strong1_rows_raw_nonempty_split_terms_strong_fuel_idem_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+    and x: "x \<in> row_dlformss
+      (rpders_strong1_rows_raw r (c # s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_termss (rpders_strong1_rows_raw r (c # s))"
+    by (rule row_dlformss_aseq_terms_subset[OF x])
+  have rows_terms:
+      "aseq_termss (rpders_strong1_rows_raw r (c # s)) \<subseteq>
+        strong_simp_frontier_fuel_universe r"
+    by (rule
+        aseq_termss_rpders_strong1_rows_raw_nonempty_strong_fuel_idem_subsetI
+        [OF legacy idem])
+  show ?thesis
+    by (rule subset_trans[OF x_terms rows_terms])
+qed
+
+lemma row_dlformss_rpders_strong1_rows_raw_nonempty_split_terms_strong_fuel_idem_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+    and x: "x \<in> row_dlformss
+      (rpders_strong1_rows_raw r (c # s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r \<and>
+    card (aseq_terms x) \<le> 4 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r"
+    by (rule
+        row_dlformss_rpders_strong1_rows_raw_nonempty_split_terms_strong_fuel_idem_subsetI
+        [OF legacy idem x])
+  have card: "card (aseq_terms x) \<le> 4 * (rsize r + 2) ^ 3"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (strong_simp_frontier_fuel_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> 4 * (rsize r + 2) ^ 3"
+      by (rule card_strong_simp_frontier_fuel_universe_cubic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+    using subset strong_simp_frontier_fuel_universe_member_size_linear
+    by blast
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma rpders_strong1_rows_raw_aseq_terms_frontier_universe_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+  shows "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq>
+    partial_derivative_frontier_universe r"
+  by (rule rpders_strong1_rows_raw_aseq_terms_closed_legacy_subsetI
+      [OF legacy aseq_terms_root_frontier_universe])
+    (use norm partial_derivative_frontier_universe_ntimes_predecessor
+      rsubterms_frontier_universe_member_subset in auto)
+
+lemma card_aseq_termss_rpders_strong1_rows_raw_frontier_universeI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+  shows "card (aseq_termss (rpders_strong1_rows_raw r s)) \<le>
+    (rsize r + 2) ^ 2"
+proof -
+  have subset: "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq>
+      partial_derivative_frontier_universe r"
+    by (rule rpders_strong1_rows_raw_aseq_terms_frontier_universe_subsetI
+        [OF legacy norm])
+  have "card (aseq_termss (rpders_strong1_rows_raw r s)) \<le>
+      card (partial_derivative_frontier_universe r)"
+    by (rule card_mono) (use subset in auto)
+  also have "... \<le> (rsize r + 2) ^ 2"
+    by (rule partial_derivative_frontier_universe_card_quadratic)
+  finally show ?thesis .
+qed
+
+lemma aseq_termss_rpders_strong1_rows_raw_frontier_member_sizeI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+    and q: "q \<in> aseq_termss (rpders_strong1_rows_raw r s)"
+  shows "rsize q \<le> Suc (rsize r + rsize r)"
+proof -
+  have "q \<in> partial_derivative_frontier_universe r"
+    using rpders_strong1_rows_raw_aseq_terms_frontier_universe_subsetI
+      [OF legacy norm] q by blast
+  then show ?thesis
+    by (rule partial_derivative_frontier_universe_member_size_linear)
+qed
+
+lemma rpders_strong1_rows_raw_aseq_terms_frontier_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+  shows "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq>
+      partial_derivative_frontier_universe r \<and>
+    card (aseq_termss (rpders_strong1_rows_raw r s)) \<le>
+      (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_termss (rpders_strong1_rows_raw r s).
+      rsize q \<le> Suc (rsize r + rsize r))"
+  using assms rpders_strong1_rows_raw_aseq_terms_frontier_universe_subsetI
+    card_aseq_termss_rpders_strong1_rows_raw_frontier_universeI
+    aseq_termss_rpders_strong1_rows_raw_frontier_member_sizeI
+  by blast
+
+lemma row_dlformss_rpders_strong1_rows_raw_split_terms_frontier_universe_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+    and x: "x \<in> row_dlformss (rpders_strong1_rows_raw r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_termss (rpders_strong1_rows_raw r s)"
+    by (rule row_dlformss_aseq_terms_subset[OF x])
+  have rows_terms:
+      "aseq_termss (rpders_strong1_rows_raw r s) \<subseteq>
+        partial_derivative_frontier_universe r"
+    by (rule rpders_strong1_rows_raw_aseq_terms_frontier_universe_subsetI
+        [OF legacy norm])
+  show ?thesis
+    by (rule subset_trans[OF x_terms rows_terms])
+qed
+
+lemma row_dlformss_rpders_strong1_rows_raw_split_terms_frontier_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and norm: "\<And>p. aseq_terms p \<subseteq>
+      partial_derivative_frontier_universe r \<Longrightarrow>
+      aseq_terms (rsimpStrong_raw p) \<subseteq>
+        partial_derivative_frontier_universe r"
+    and x: "x \<in> row_dlformss (rpders_strong1_rows_raw r s)"
+  shows "aseq_terms x \<subseteq> partial_derivative_frontier_universe r \<and>
+    card (aseq_terms x) \<le> (rsize r + 2) ^ 2 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> partial_derivative_frontier_universe r"
+    by (rule row_dlformss_rpders_strong1_rows_raw_split_terms_frontier_universe_subsetI
+        [OF legacy norm x])
+  have card: "card (aseq_terms x) \<le> (rsize r + 2) ^ 2"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (partial_derivative_frontier_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> (rsize r + 2) ^ 2"
+      by (rule partial_derivative_frontier_universe_card_quadratic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+  proof
+    fix q
+    assume q: "q \<in> aseq_terms x"
+    then have "q \<in> partial_derivative_frontier_universe r"
+      using subset by blast
+    then show "rsize q \<le> Suc (rsize r + rsize r)"
+      by (rule partial_derivative_frontier_universe_member_size_linear)
+  qed
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "\<forall>q \<in> set (rpders_strong1_rows_raw r s). rtail_nf q"
+    and dlforms:
+      "row_dlformss (rpders_strong1_rows_raw r s) \<subseteq>
+        partial_derivative_frontier_universe root"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+      Ders s (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) =
+      row_dlformss (rpders_strong1_rows_raw r s) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof (intro conjI)
+  show "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+      Ders s (RL r)"
+    by (rule RL_RALTS_row_dlform_canonical_rpders_strong1_rows_raw
+        [OF legacy])
+  show "row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  show "row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) =
+      row_dlformss (rpders_strong1_rows_raw r s)"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF nf])
+  show "rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_row_dlform_canonical_rows_cubic[OF nf dlforms])
+qed
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "\<forall>q \<in> set (rpders_strong1_rows_raw r s). rtail_nf q"
+    and finite: "finite U"
+    and dlforms: "row_dlformss (rpders_strong1_rows_raw r s) \<subseteq> U"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+      Ders s (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) =
+      row_dlformss (rpders_strong1_rows_raw r s) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<le>
+      3 * rsize_set U"
+proof (intro conjI)
+  show "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))) =
+      Ders s (RL r)"
+    by (rule RL_RALTS_row_dlform_canonical_rpders_strong1_rows_raw
+        [OF legacy])
+  show "row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s))"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  show "row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) =
+      row_dlformss (rpders_strong1_rows_raw r s)"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF nf])
+  show "rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r s)) \<le>
+      3 * rsize_set U"
+    by (rule rsizes_row_dlform_canonical_rows_rsize_set_boundI
+        [OF nf finite dlforms])
+qed
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_nonempty_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and dlforms:
+      "row_dlformss (rpders_strong1_rows_raw r (c # s)) \<subseteq>
+        partial_derivative_frontier_universe root"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s)))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) =
+      row_dlformss (rpders_strong1_rows_raw r (c # s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<le>
+      6 * (rsize root + 2) ^ 3"
+  by (rule row_dlform_canonical_rpders_strong1_rows_raw_cubic_contractI
+      [OF legacy _ dlforms])
+    (rule rtail_nf_rpders_strong1_rows_raw_nonempty)
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_nonempty_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and finite: "finite U"
+    and dlforms: "row_dlformss (rpders_strong1_rows_raw r (c # s)) \<subseteq> U"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s)))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) =
+      row_dlformss (rpders_strong1_rows_raw r (c # s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<le>
+      3 * rsize_set U"
+  by (rule row_dlform_canonical_rpders_strong1_rows_raw_universe_contractI
+      [OF legacy _ finite dlforms])
+    (rule rtail_nf_rpders_strong1_rows_raw_nonempty)
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_nonempty_self_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s)))) =
+      Ders (c # s) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) =
+      row_dlformss (rpders_strong1_rows_raw r (c # s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<le>
+      3 * rsize_set (row_dlformss (rpders_strong1_rows_raw r (c # s)))"
+  by (rule row_dlform_canonical_rpders_strong1_rows_raw_nonempty_universe_contractI
+      [OF legacy _ subset_refl])
+    simp
+
+lemma row_dlform_canonical_rpders_strong1_rows_raw_nonempty_same_dlfront_self_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and step: "\<And>front rows c q p.
+      same_dlfront_rows r front rows \<Longrightarrow>
+      q \<in> set rows \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      row_dlforms (rsimpStrong_raw p) \<subseteq>
+        adlform_front r (front @ [c])"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s)))) =
+      Ders (c # s) (RL r) \<and>
+    same_dlfront_rows r (c # s)
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) =
+      row_dlformss (rpders_strong1_rows_raw r (c # s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpders_strong1_rows_raw r (c # s))) \<le>
+      3 * rsize_set (row_dlformss (rpders_strong1_rows_raw r (c # s)))"
+proof (intro conjI)
+  let ?rows = "rpders_strong1_rows_raw r (c # s)"
+  let ?canon = "row_dlform_canonical_rows ?rows"
+  have contract:
+      "RL (RALTS ?canon) = Ders (c # s) (RL r) \<and>
+      row_dlformss_disjoint ?canon \<and>
+      row_dlformss ?canon = row_dlformss ?rows \<and>
+      rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?rows)"
+    by (rule row_dlform_canonical_rpders_strong1_rows_raw_nonempty_self_contract
+        [OF legacy])
+  show "RL (RALTS ?canon) = Ders (c # s) (RL r)"
+    using contract by blast
+  have nf: "\<forall>q \<in> set ?rows. rtail_nf q"
+    by (rule rtail_nf_rpders_strong1_rows_raw_nonempty)
+  have raw_same: "same_dlfront_rows r (c # s) ?rows"
+    by (rule same_dlfront_rows_rpders_strong1_rows_rawI[OF step])
+  show "same_dlfront_rows r (c # s) ?canon"
+    by (rule same_dlfront_rows_row_dlform_canonical_rows[OF nf raw_same])
+  show "row_dlformss_disjoint ?canon"
+    using contract by blast
+  show "row_dlformss ?canon = row_dlformss ?rows"
+    using contract by blast
+  show "rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?rows)"
+    using contract by blast
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_self_contract:
+  assumes legacy: "\<forall>q \<in> set rows. legacy_rrexp q"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows))) =
+      Der c (RLS (set rows)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) =
+      row_dlformss (rpder_strong_rows_raw c rows) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) \<le>
+      3 * rsize_set (row_dlformss (rpder_strong_rows_raw c rows))"
+proof (intro conjI)
+  have raw_lang:
+      "RLS (set (rpder_strong_rows_raw c rows)) =
+        Der c (RLS (set rows))"
+    by (rule RLS_rpder_strong_rows_raw[OF legacy])
+  have "RL (RALTS
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows))) =
+      RL (RALTS (rpder_strong_rows_raw c rows))"
+    by (rule RL_RALTS_row_dlform_canonical_rows)
+  also have "... = RLS (set (rpder_strong_rows_raw c rows))"
+    by (simp add: RLS_def)
+  also have "... = Der c (RLS (set rows))"
+    by (rule raw_lang)
+  finally show "RL (RALTS
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows))) =
+      Der c (RLS (set rows))" .
+  have nf: "\<forall>q \<in> set (rpder_strong_rows_raw c rows). rtail_nf q"
+    by (rule rtail_nf_rpder_strong_rows_raw)
+  show "row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows))"
+    by (rule row_dlformss_disjoint_row_dlform_canonical_rows[OF nf])
+  show "row_dlformss
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) =
+      row_dlformss (rpder_strong_rows_raw c rows)"
+    by (rule row_dlformss_row_dlform_canonical_rows_eq[OF nf])
+  show "rsizes
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) \<le>
+      3 * rsize_set (row_dlformss (rpder_strong_rows_raw c rows))"
+    by (rule rsizes_row_dlform_canonical_rows_self_bound[OF nf])
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_generated_dlforms_contract:
+  assumes legacy: "\<forall>q \<in> set rows. legacy_rrexp q"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows))) =
+      Der c (RLS (set rows)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) =
+      row_dlformss (rpder_strong_rows_raw c rows) \<and>
+    rsizes
+      (row_dlform_canonical_rows (rpder_strong_rows_raw c rows)) \<le>
+      3 * rsize_set
+        (row_dlformss (concat (map (rpder_strong_list_raw c) rows)))"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c rows"
+  let ?gen = "concat (map (rpder_strong_list_raw c) rows)"
+  let ?canon = "row_dlform_canonical_rows ?raw"
+  have contract:
+      "RL (RALTS ?canon) = Der c (RLS (set rows)) \<and>
+      row_dlformss_disjoint ?canon \<and>
+      row_dlformss ?canon = row_dlformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?raw)"
+    by (rule row_dlform_canonical_rpder_strong_rows_raw_self_contract
+        [OF legacy])
+  show "RL (RALTS ?canon) = Der c (RLS (set rows))"
+    using contract by blast
+  show "row_dlformss_disjoint ?canon"
+    using contract by blast
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    using contract by blast
+  have subset: "row_dlformss ?raw \<subseteq> row_dlformss ?gen"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have mono:
+      "rsize_set (row_dlformss ?raw) \<le>
+        rsize_set (row_dlformss ?gen)"
+    by (rule rsize_set_mono) (simp_all add: subset)
+  show "rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?gen)"
+    using contract mono by simp
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_self_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      3 * rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+proof -
+  have contract:
+      "RL (RALTS
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s)))) =
+        Der c (RLS (set (afactored1 r s))) \<and>
+      row_dlformss_disjoint
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+      row_dlformss
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) =
+        row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+      rsizes
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        3 * rsize_set
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+    by (rule row_dlform_canonical_rpder_strong_rows_raw_self_contract)
+      (rule legacy_afactored1[OF legacy])
+  have front: "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show ?thesis
+    using contract front
+    by (simp add: Ders_snoc)
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_aseq_paid_cubic_contractI:
+  assumes legacy: "legacy_rrexp root"
+    and disjoint:
+      "aseq_termss_disjoint
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 root front)))"
+    and live:
+      "\<forall>q \<in> set
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 root front))).
+        aseq_terms_live q"
+    and paid:
+      "\<forall>q \<in> set
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 root front))).
+        aseq_terms_size_paid q"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front)))) =
+      Ders (front @ [c]) (RL root) \<and>
+    same_strong_aseq_front_rows root (front @ [c])
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 root front)) \<and>
+    aseq_termss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<subseteq>
+      strong_derivative_front_terms root (front @ [c]) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 root front))) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 root front)"
+  let ?rows = "row_dlform_canonical_rows ?raw"
+  have base:
+      "RL (RALTS ?rows) = Ders (front @ [c]) (RL root) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      row_dlformss ?rows = row_dlformss ?raw \<and>
+      rsizes ?rows \<le> 3 * rsize_set (row_dlformss ?raw)"
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_self_contract
+        [OF legacy])
+  have same:
+      "same_strong_aseq_front_rows root (front @ [c]) ?rows"
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front_rows)
+  have terms:
+      "aseq_termss ?rows \<subseteq>
+        strong_derivative_front_terms root (front @ [c])"
+    using same by (simp add: same_strong_aseq_front_rows_def)
+  have size:
+      "rsizes ?rows \<le> 6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_aseq_terms_paid_strong_derivative_front_cubic
+        [OF legacy disjoint live paid terms])
+  show "RL (RALTS ?rows) = Ders (front @ [c]) (RL root)"
+    using base by blast
+  show "same_strong_aseq_front_rows root (front @ [c]) ?rows"
+    by (rule same)
+  show "row_dlformss_disjoint ?rows"
+    using base by blast
+  show "row_dlformss ?rows = row_dlformss ?raw"
+    using base by blast
+  show "aseq_termss ?rows \<subseteq>
+      strong_derivative_front_terms root (front @ [c])"
+    by (rule terms)
+  show "rsizes ?rows \<le> 6 * (rsize root + 2) ^ 3"
+    by (rule size)
+qed
+
+lemma actual_strong_canonical_aseq_payment_false:
+  fixes a :: char
+  defines "root \<equiv>
+    RSEQ (RCHAR a)
+      (RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a)))"
+  defines "bad \<equiv>
+    RSEQ (RCHAR a) (RSEQ (RCHAR a) (RCHAR a))"
+  shows "bad \<in> set (row_dlform_canonical_rows
+      (rpder_strong_rows_raw a (afactored1 root [])))"
+    and "\<not> aseq_terms_size_paid bad"
+  by (simp_all add: root_def bad_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      rpder_strong_rows_raw_def rpder_strong_list_raw_def
+      row_dlform_canonical_rows_def row_dlformss_list_def
+      rsimpStrong_prune_rows_raw_def aseq_terms_size_paid_def
+      rsize_set_def rsimp7_SEQ_atom_def Let_def)
+
+lemma afactored1_strong_dlform_universe_not_frontier_subset:
+  fixes a b d :: char
+  assumes diff: "a \<noteq> b"
+  defines "root \<equiv>
+    RSEQ (RSEQ (RSTAR (RCHAR a)) (RCHAR b)) (RCHAR d)"
+  defines "bad \<equiv>
+    RSEQ (RSTAR (RCHAR a)) (RSEQ (RCHAR b) (RCHAR d))"
+  shows "bad \<in> afactored1_strong_dlform_universe root [] a"
+    and "bad \<notin> partial_derivative_frontier_universe root"
+  using diff
+  by (simp_all add: root_def bad_def afactored1_def
+      afactored_step_def rpder_norm_rows_def rpder_norm_list_def
+      afactored1_strong_dlform_universe_def rsimpStrong_dlform_closure_def
+      partial_derivative_frontier_universe_def rsimp7_SEQ_atom_def)
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_generated_dlforms_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      3 * rsize_set
+        (row_dlformss
+          (concat (map (rpder_strong_list_raw c) (afactored1 r s))))"
+proof -
+  have contract:
+      "RL (RALTS
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s)))) =
+        Der c (RLS (set (afactored1 r s))) \<and>
+      row_dlformss_disjoint
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+      row_dlformss
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) =
+        row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+      rsizes
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        3 * rsize_set
+          (row_dlformss
+            (concat (map (rpder_strong_list_raw c) (afactored1 r s))))"
+    by (rule row_dlform_canonical_rpder_strong_rows_raw_generated_dlforms_contract)
+      (rule legacy_afactored1[OF legacy])
+  have front: "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show ?thesis
+    using contract front
+    by (simp add: Ders_snoc)
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      3 * rsize_set (afactored1_strong_dlform_universe r s c)"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?gen = "concat (map (rpder_strong_list_raw c) (afactored1 r s))"
+  let ?canon = "row_dlform_canonical_rows ?raw"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have contract:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?canon \<and>
+      row_dlformss ?canon = row_dlformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?gen)"
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_generated_dlforms_contract
+        [OF legacy])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?canon"
+    using contract by blast
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    using contract by blast
+  show "row_dlformss ?gen \<subseteq> ?U"
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  show "\<forall>x \<in> ?U.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    using afactored1_strong_dlform_universe_aseq_subset[OF legacy] by blast
+  have mono: "rsize_set (row_dlformss ?gen) \<le> rsize_set ?U"
+    by (rule rsize_set_mono)
+      (simp_all add:
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  show "rsizes ?canon \<le> 3 * rsize_set ?U"
+    using contract mono by simp
+qed
+
+lemma aseq_termss_row_dlform_canonical_rpder_strong_rows_raw_afactored1_subset:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+proof -
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?gen = "concat (map (rpder_strong_list_raw c) (afactored1 r s))"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have raw_gen: "row_dlformss ?raw \<subseteq> row_dlformss ?gen"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have gen_U: "row_dlformss ?gen \<subseteq> ?U"
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  show ?thesis
+  proof (rule aseq_termss_row_dlform_canonical_rows_subsetI)
+    show "\<forall>x \<in> row_dlformss ?raw.
+        aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    proof
+      fix x
+      assume x: "x \<in> row_dlformss ?raw"
+      have x_U: "x \<in> ?U"
+        using x raw_gen gen_U by blast
+      show "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+        using legacy x_U afactored1_strong_dlform_universe_aseq_subset
+        by blast
+    qed
+  qed
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_aseq_paid_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "aseq_termss_disjoint
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s)))"
+    and live:
+      "\<forall>q \<in> set
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))).
+        aseq_terms_live q"
+    and paid:
+      "\<forall>q \<in> set
+        (row_dlform_canonical_rows
+          (rpder_strong_rows_raw c (afactored1 r s))).
+        aseq_terms_size_paid q"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    aseq_termss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 2) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?canon = "row_dlform_canonical_rows ?raw"
+  have contract:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?canon \<and>
+      row_dlformss ?canon = row_dlformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set (row_dlformss ?raw)"
+    by (rule row_dlform_canonical_rpder_strong_rows_raw_afactored1_self_contract
+        [OF legacy])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?canon"
+    using contract by blast
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    using contract by blast
+  have terms:
+      "aseq_termss ?canon \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_row_dlform_canonical_rpder_strong_rows_raw_afactored1_subset
+        [OF legacy])
+  show "aseq_termss ?canon \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule terms)
+  show "rsizes ?canon \<le> 6 * (rsize r + 2) ^ 3"
+    by (rule rsizes_aseq_terms_paid_strong_simp_frontier_cubic
+        [OF disjoint live paid terms])
+qed
+
+lemma row_lform_canonical_rpder_strong_rows_raw_afactored1_self_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and atomic:
+      "\<forall>x \<in> row_lformss
+        (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms x = {x}"
+  shows "RL (RALTS
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_lformss_disjoint
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_lformss
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      3 * rsize_set
+        (row_lformss
+          (rpder_strong_rows_raw c (afactored1 r s)))"
+proof (intro conjI)
+  let ?base = "afactored1 r s"
+  let ?raw = "rpder_strong_rows_raw c ?base"
+  let ?canon = "row_lform_canonical_rows ?raw"
+  have raw_lang: "RLS (set ?raw) = Der c (RLS (set ?base))"
+    by (rule RLS_rpder_strong_rows_raw)
+      (rule legacy_afactored1[OF legacy])
+  have base_lang: "RLS (set ?base) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  have "RL (RALTS ?canon) = RL (RALTS ?raw)"
+    by (rule RL_RALTS_row_lform_canonical_rows)
+  also have "... = RLS (set ?raw)"
+    by (simp add: RLS_def)
+  also have "... = Der c (RLS (set ?base))"
+    by (rule raw_lang)
+  also have "... = Ders (s @ [c]) (RL r)"
+    using base_lang by (simp add: Ders_snoc)
+  finally show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)" .
+  show "row_lformss_disjoint ?canon"
+    by (rule row_lformss_disjoint_row_lform_canonical_rows[OF atomic])
+  show "row_lformss ?canon = row_lformss ?raw"
+    by (rule row_lformss_row_lform_canonical_rows_eq[OF atomic])
+  show "rsizes ?canon \<le> 3 * rsize_set (row_lformss ?raw)"
+    by (rule rsizes_row_lform_canonical_rows_rsize_set_boundI
+        [OF atomic _ subset_refl])
+      simp
+qed
+
+lemma row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and atomic:
+      "\<forall>x \<in> row_lformss
+        (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms x = {x}"
+    and lforms:
+      "row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+  shows "RL (RALTS
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_lformss_disjoint
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_lformss
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      3 * rsize_set (afactored1_strong_lform_universe r s c)"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?canon = "row_lform_canonical_rows ?raw"
+  let ?U = "afactored1_strong_lform_universe r s c"
+  have self:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_lformss_disjoint ?canon \<and>
+      row_lformss ?canon = row_lformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set (row_lformss ?raw)"
+    by (rule
+        row_lform_canonical_rpder_strong_rows_raw_afactored1_self_contractI
+        [OF legacy atomic])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using self by blast
+  show "row_lformss_disjoint ?canon"
+    using self by blast
+  show "row_lformss ?canon = row_lformss ?raw"
+    using self by blast
+  have mono: "rsize_set (row_lformss ?raw) \<le> rsize_set ?U"
+    by (rule rsize_set_mono) (use lforms in auto)
+  show "rsizes ?canon \<le> 3 * rsize_set ?U"
+    using self mono by simp
+qed
+
+lemma row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and atomic:
+      "\<forall>x \<in> row_lformss
+        (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms x = {x}"
+    and lforms:
+      "row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+    and cubic:
+      "rsize_set (afactored1_strong_lform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_lformss_disjoint
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_lformss
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?canon = "row_lform_canonical_rows ?raw"
+  let ?U = "afactored1_strong_lform_universe r s c"
+  have contract:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_lformss_disjoint ?canon \<and>
+      row_lformss ?canon = row_lformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule
+        row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_contractI
+        [OF legacy atomic lforms])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_lformss_disjoint ?canon"
+    using contract by blast
+  show "row_lformss ?canon = row_lformss ?raw"
+    using contract by blast
+  have "rsizes ?canon \<le> 3 * rsize_set ?U"
+    using contract by blast
+  also have "... \<le> 3 * (2 * (rsize r + 3) ^ 3)"
+    by (rule mult_left_mono[OF cubic]) simp
+  also have "... = 6 * (rsize r + 3) ^ 3"
+    by simp
+  finally show "rsizes ?canon \<le> 6 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_rows_raw_afactored1_lform_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "row_lformss_disjoint
+        (rpder_strong_rows_raw c (afactored1 r s))"
+    and live:
+      "\<forall>q \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms_live q"
+    and paid:
+      "\<forall>q \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms_size_paid q"
+    and lforms:
+      "row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+    and cubic:
+      "rsize_set (afactored1_strong_lform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set (rpder_strong_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    length (rpder_strong_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?U = "afactored1_strong_lform_universe r s c"
+  let ?B = "6 * (rsize r + 3) ^ 3"
+  have raw_lang:
+      "RLS (set ?raw) = Der c (RLS (set (afactored1 r s)))"
+    by (rule RLS_rpder_strong_rows_raw)
+      (rule legacy_afactored1[OF legacy])
+  have front_lang: "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show "RLS (set ?raw) = Ders (s @ [c]) (RL r)"
+    using raw_lang front_lang by (simp add: Ders_snoc)
+  have size_bound: "rsizes ?raw \<le> ?B"
+    by (rule rsizes_rows_canonical_lform_universe_cubicI
+        [OF disjoint live paid _ lforms cubic]) simp
+  show "length ?raw \<le> ?B"
+    using length_le_rsizes[of ?raw] size_bound by linarith
+  show "card (set ?raw) \<le> ?B"
+    using card_set_le_rsizes_early[of ?raw] size_bound by linarith
+  show "rlinear_termss ?raw \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?raw] size_bound by linarith
+  show "rsizes ?raw \<le> ?B"
+    by (rule size_bound)
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?gen = "concat (map (rpder_strong_list_raw c) (afactored1 r s))"
+  let ?canon = "row_dlform_canonical_rows ?raw"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have contract:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?canon \<and>
+      row_dlformss ?canon = row_dlformss ?raw \<and>
+      row_dlformss ?gen \<subseteq> ?U \<and>
+      (\<forall>x \<in> ?U.
+        aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+      rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_contract
+        [OF legacy])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?canon"
+    using contract by blast
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    using contract by blast
+  show "row_dlformss ?gen \<subseteq> ?U"
+    using contract by blast
+  show "\<forall>x \<in> ?U.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    using contract by blast
+  have "rsizes ?canon \<le> 3 * rsize_set ?U"
+    using contract by blast
+  also have "... \<le> 3 * (2 * (rsize r + 3) ^ 3)"
+    using cubic by simp
+  also have "... = 6 * (rsize r + 3) ^ 3"
+    by simp
+  finally show "rsizes ?canon \<le> 6 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    aseq_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      3 * rsize_set (afactored1_strong_dlform_universe r s c)"
+proof (intro conjI)
+  let ?rows = "afactored1 r s"
+  let ?raw = "rpder_strong_rows_raw c ?rows"
+  let ?canon = "rpder_strong_dcanon_rows_raw c ?rows"
+  let ?gen = "concat (map (rpder_strong_list_raw c) ?rows)"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have rows_legacy: "\<forall>q \<in> set ?rows. legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  have lang_step:
+      "RLS (set ?canon) = Der c (RLS (set ?rows))"
+    by (rule RLS_rpder_strong_dcanon_rows_raw[OF rows_legacy])
+  have rows_lang: "RLS (set ?rows) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show "RLS (set ?canon) = Ders (s @ [c]) (RL r)"
+    using lang_step rows_lang by (simp add: Ders_snoc)
+  show "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+  show "\<forall>q \<in> set ?canon. row_dlforms_live q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "\<forall>q \<in> set ?canon. row_dlforms_size_paid q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  have canon_eq: "row_dlformss ?canon = row_dlformss ?raw"
+    by (rule row_dlformss_rpder_strong_dcanon_rows_raw_eq)
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    by (rule canon_eq)
+  have raw_gen: "row_dlformss ?raw \<subseteq> row_dlformss ?gen"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have gen_U: "row_dlformss ?gen \<subseteq> ?U"
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  have raw_U: "row_dlformss ?raw \<subseteq> ?U"
+    using raw_gen gen_U by blast
+  show "row_dlformss ?canon \<subseteq> ?U"
+    using canon_eq raw_U by simp
+  show "aseq_termss ?canon \<subseteq> strong_simp_frontier_aseq_universe r"
+    unfolding rpder_strong_dcanon_rows_raw_def
+    by (rule
+        aseq_termss_row_dlform_canonical_rpder_strong_rows_raw_afactored1_subset
+        [OF legacy])
+  show "\<forall>x \<in> ?U.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r"
+    using afactored1_strong_dlform_universe_aseq_subset[OF legacy] by blast
+  show "rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI)
+      (use raw_U in auto)
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "afactored1 r s"
+  let ?raw = "rpder_strong_rows_raw c ?rows"
+  let ?canon = "rpder_strong_dcanon_rows_raw c ?rows"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  have rows_legacy: "\<forall>q \<in> set ?rows. legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  have lang_step:
+      "RLS (set ?canon) = Der c (RLS (set ?rows))"
+    by (rule RLS_rpder_strong_dcanon_rows_raw[OF rows_legacy])
+  have rows_lang: "RLS (set ?rows) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show "RLS (set ?canon) = Ders (s @ [c]) (RL r)"
+    using lang_step rows_lang by (simp add: Ders_snoc)
+  show "row_dlformss_disjoint ?canon"
+    by (rule row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+  show "\<forall>q \<in> set ?canon. row_dlforms_live q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "\<forall>q \<in> set ?canon. row_dlforms_size_paid q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  have canon_eq: "row_dlformss ?canon = row_dlformss ?raw"
+    by (rule row_dlformss_rpder_strong_dcanon_rows_raw_eq)
+  show "row_dlformss ?canon = row_dlformss ?raw"
+    by (rule canon_eq)
+  have raw_gen: "row_dlformss ?raw \<subseteq>
+      row_dlformss
+        (concat (map (rpder_strong_list_raw c) ?rows))"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have gen_U: "row_dlformss
+      (concat (map (rpder_strong_list_raw c) ?rows)) \<subseteq> ?U"
+    by (rule
+        row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe)
+  have raw_U: "row_dlformss ?raw \<subseteq> ?U"
+    using raw_gen gen_U by blast
+  show "row_dlformss ?canon \<subseteq> ?U"
+    using canon_eq raw_U by simp
+  have size3: "rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule rsizes_rpder_strong_dcanon_rows_raw_rsize_set_boundI)
+      (use raw_U in auto)
+  also have "... \<le> 3 * (2 * (rsize r + 3) ^ 3)"
+    using cubic by simp
+  also have "... = 6 * (rsize r + 3) ^ 3"
+    by simp
+  finally show "rsizes ?canon \<le> 6 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_next_rows_closure_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and closure_cubic:
+      "rsize_set
+        (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        rsize_set
+          (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_next_rows_closure)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule closure_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI
+        [OF legacy cubic])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI
+        [OF legacy cubic])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "afactored1_strong_dlform_list_cost r s c \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+  by (rule
+      rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_cubic_contractI
+      [OF legacy])
+    (use list_cubic in
+      \<open>simp add: afactored1_strong_dlform_list_cost_def\<close>)
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+    and cubic:
+      "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic_U:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+    by (rule
+        rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI
+        [OF card_bound generated_size cubic])
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI
+        [OF legacy cubic_U])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_budgetsI:
+  assumes legacy: "legacy_rrexp r"
+    and cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?U = "afactored1_strong_dlform_universe r s c"
+  let ?B = "6 * (rsize r + 3) ^ 3"
+  have contract:
+      "RLS (set ?rows) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_size_paid q) \<and>
+      row_dlformss ?rows =
+        row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+      row_dlformss ?rows \<subseteq> ?U \<and>
+      aseq_termss ?rows \<subseteq> strong_simp_frontier_aseq_universe r \<and>
+      (\<forall>x \<in> ?U.
+        aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+      rsizes ?rows \<le> 3 * rsize_set ?U"
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_contract
+        [OF legacy])
+  have size_bound: "rsizes ?rows \<le> ?B"
+  proof -
+    have "rsizes ?rows \<le> 3 * rsize_set ?U"
+      using contract by blast
+    also have "... \<le> 3 * (2 * (rsize r + 3) ^ 3)"
+      using cubic by simp
+    also have "... = ?B"
+      by simp
+    finally show ?thesis .
+  qed
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size_bound by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size_bound by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size_bound)
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_cubic_budgetsI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_budgetsI
+        [OF legacy cubic])
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_named_list_cubic_budgetsI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "afactored1_strong_dlform_list_cost r s c \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+  by (rule
+      rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_cubic_budgetsI
+      [OF legacy])
+    (use list_cubic in
+      \<open>simp add: afactored1_strong_dlform_list_cost_def\<close>)
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_budgetsI:
+  assumes legacy: "legacy_rrexp r"
+    and card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and generated_size:
+      "rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) \<le> M"
+    and cubic:
+      "C * M \<le> 2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic_U:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+    by (rule
+        rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI
+        [OF card_bound generated_size cubic])
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_budgetsI
+        [OF legacy cubic_U])
+qed
+
+lemma aseq_termss_rpder_strong_dcanon_rows_raw_subsetI:
+  assumes terms:
+    "\<forall>x \<in> row_dlformss (rpder_strong_rows_raw c rs).
+      aseq_terms x \<subseteq> U"
+  shows "aseq_termss (rpder_strong_dcanon_rows_raw c rs) \<subseteq> U"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule aseq_termss_row_dlform_canonical_rows_subsetI[OF terms])
+
+lemma aseq_termss_rpders_strong_dcanon_rows_raw_strong_fuel_idem_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      strong_simp_frontier_fuel_universe root"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss (rpders_strong_dcanon_rows_raw rs s) \<subseteq>
+    strong_simp_frontier_fuel_universe root"
+  using legacy rows
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons c s)
+  let ?U = "strong_simp_frontier_fuel_universe root"
+  have raw_terms: "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq> ?U"
+  proof -
+    have "aseq_termss (rpders_strong_rows_raw rs [c]) \<subseteq> ?U"
+      by (rule aseq_termss_rpders_strong_rows_raw_strong_fuel_idem_subsetI
+          [OF Cons.prems(1) Cons.prems(2) idem])
+    then show ?thesis
+      by simp
+  qed
+  have raw_dl_terms:
+      "\<forall>x \<in> row_dlformss (rpder_strong_rows_raw c rs).
+        aseq_terms x \<subseteq> ?U"
+  proof
+    fix x
+    assume x: "x \<in> row_dlformss (rpder_strong_rows_raw c rs)"
+    have "aseq_terms x \<subseteq> aseq_termss (rpder_strong_rows_raw c rs)"
+      by (rule row_dlformss_aseq_terms_subset[OF x])
+    then show "aseq_terms x \<subseteq> ?U"
+      using raw_terms by blast
+  qed
+  have next_terms:
+      "aseq_termss (rpder_strong_dcanon_rows_raw c rs) \<subseteq> ?U"
+    by (rule aseq_termss_rpder_strong_dcanon_rows_raw_subsetI
+        [OF raw_dl_terms])
+  have next_legacy:
+      "\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs). legacy_rrexp q"
+    by (rule legacy_rpder_strong_dcanon_rows_raw[OF Cons.prems(1)])
+  show ?case
+    by (simp add: Cons.hyps[OF next_legacy next_terms])
+qed
+
+lemma aseq_termss_rpders_strong_dcanon_rows_raw_after_frontier_step_strong_fuel_idem_subsetI:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and rows: "aseq_termss rs \<subseteq>
+      partial_derivative_frontier_universe root"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe root \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss
+      (rpders_strong_dcanon_rows_raw
+        (rpder_strong_dcanon_rows_raw c rs) s) \<subseteq>
+    strong_simp_frontier_fuel_universe root"
+proof -
+  let ?U = "strong_simp_frontier_fuel_universe root"
+  have raw_front:
+      "aseq_termss (rpder_strong_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_rows_raw_frontier_closureI
+        [OF legacy rows])
+  have raw_dl_front:
+      "\<forall>x \<in> row_dlformss (rpder_strong_rows_raw c rs).
+        aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe root"
+  proof
+    fix x
+    assume x: "x \<in> row_dlformss (rpder_strong_rows_raw c rs)"
+    have "aseq_terms x \<subseteq> aseq_termss (rpder_strong_rows_raw c rs)"
+      by (rule row_dlformss_aseq_terms_subset[OF x])
+    then show "aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe root"
+      using raw_front by blast
+  qed
+  have first_aseq:
+      "aseq_termss (rpder_strong_dcanon_rows_raw c rs) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+    by (rule aseq_termss_rpder_strong_dcanon_rows_raw_subsetI
+        [OF raw_dl_front])
+  have first_fuel:
+      "aseq_termss (rpder_strong_dcanon_rows_raw c rs) \<subseteq> ?U"
+    using first_aseq strong_simp_frontier_aseq_subset_fuel_universe
+    by blast
+  have first_legacy:
+      "\<forall>q \<in> set (rpder_strong_dcanon_rows_raw c rs). legacy_rrexp q"
+    by (rule legacy_rpder_strong_dcanon_rows_raw[OF legacy])
+  show ?thesis
+    by (rule
+        aseq_termss_rpders_strong_dcanon_rows_raw_strong_fuel_idem_subsetI
+        [OF first_legacy first_fuel idem])
+qed
+
+lemma aseq_termss_rpders_strong_dcanon1_rows_raw_nonempty_strong_fuel_idem_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+  shows "aseq_termss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq>
+    strong_simp_frontier_fuel_universe r"
+proof -
+  have "aseq_termss
+      (rpders_strong_dcanon_rows_raw
+        (rpder_strong_dcanon_rows_raw c [r]) s) \<subseteq>
+      strong_simp_frontier_fuel_universe r"
+    by (rule
+        aseq_termss_rpders_strong_dcanon_rows_raw_after_frontier_step_strong_fuel_idem_subsetI)
+      (use legacy idem aseq_terms_root_frontier_universe in auto)
+  then show ?thesis
+    by (simp add: rpders_strong_dcanon1_rows_raw_def)
+qed
+
+lemma row_dlformss_rpders_strong_dcanon1_rows_raw_nonempty_split_terms_strong_fuel_idem_subsetI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+    and x: "x \<in> row_dlformss
+      (rpders_strong_dcanon1_rows_raw r (c # s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r"
+proof -
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        aseq_termss (rpders_strong_dcanon1_rows_raw r (c # s))"
+    by (rule row_dlformss_aseq_terms_subset[OF x])
+  have rows_terms:
+      "aseq_termss (rpders_strong_dcanon1_rows_raw r (c # s)) \<subseteq>
+        strong_simp_frontier_fuel_universe r"
+    by (rule
+        aseq_termss_rpders_strong_dcanon1_rows_raw_nonempty_strong_fuel_idem_subsetI
+        [OF legacy idem])
+  show ?thesis
+    by (rule subset_trans[OF x_terms rows_terms])
+qed
+
+lemma row_dlformss_rpders_strong_dcanon1_rows_raw_nonempty_split_terms_strong_fuel_idem_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and idem: "\<And>p. p \<in> strong_simp_frontier_fuel_universe r \<Longrightarrow>
+      rsimpStrong_raw p = p"
+    and x: "x \<in> row_dlformss
+      (rpders_strong_dcanon1_rows_raw r (c # s))"
+  shows "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r \<and>
+    card (aseq_terms x) \<le> 4 * (rsize r + 2) ^ 3 \<and>
+    (\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r))"
+proof -
+  have subset:
+      "aseq_terms x \<subseteq> strong_simp_frontier_fuel_universe r"
+    by (rule
+        row_dlformss_rpders_strong_dcanon1_rows_raw_nonempty_split_terms_strong_fuel_idem_subsetI
+        [OF legacy idem x])
+  have card: "card (aseq_terms x) \<le> 4 * (rsize r + 2) ^ 3"
+  proof -
+    have "card (aseq_terms x) \<le>
+        card (strong_simp_frontier_fuel_universe r)"
+      by (rule card_mono) (use subset in auto)
+    also have "... \<le> 4 * (rsize r + 2) ^ 3"
+      by (rule card_strong_simp_frontier_fuel_universe_cubic)
+    finally show ?thesis .
+  qed
+  have size:
+      "\<forall>q \<in> aseq_terms x. rsize q \<le> Suc (rsize r + rsize r)"
+    using subset strong_simp_frontier_fuel_universe_member_size_linear
+    by blast
+  show ?thesis
+    using subset card size by blast
+qed
+
+lemma aseq_termss_rpder_strong_dcanon_rows_raw_afactored1_frontier_closureI:
+  assumes legacy: "legacy_rrexp r"
+  shows "aseq_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+    strong_simp_frontier_aseq_universe r"
+  unfolding rpder_strong_dcanon_rows_raw_def
+  by (rule
+      aseq_termss_row_dlform_canonical_rpder_strong_rows_raw_afactored1_subset
+      [OF legacy])
+
+lemma rsizes_rpder_strong_dcanon_rows_raw_afactored1_aseq_paid_cubicI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "aseq_termss_disjoint
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s))"
+    and live:
+      "\<forall>q \<in> set
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+        aseq_terms_live q"
+    and paid:
+      "\<forall>q \<in> set
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+        aseq_terms_size_paid q"
+  shows "rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+    6 * (rsize r + 2) ^ 3"
+proof -
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  have terms:
+      "aseq_termss ?rows \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_rpder_strong_dcanon_rows_raw_afactored1_frontier_closureI
+        [OF legacy])
+  have "rsizes ?rows \<le>
+      3 * rsize_set (strong_simp_frontier_aseq_universe r)"
+    by (rule rsizes_aseq_terms_paid_universe_boundI
+        [OF disjoint live paid _ terms])
+      simp
+  also have "... \<le> 3 * (2 * (rsize r + 2) ^ 3)"
+    using rsize_set_strong_simp_frontier_aseq_universe_cubic[of r]
+    by simp
+  also have "... = 6 * (rsize r + 2) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_aseq_paid_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "aseq_termss_disjoint
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s))"
+    and live:
+      "\<forall>q \<in> set
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+        aseq_terms_live q"
+    and paid:
+      "\<forall>q \<in> set
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+        aseq_terms_size_paid q"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    aseq_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<subseteq>
+      strong_simp_frontier_aseq_universe r \<and>
+    length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 2) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 2) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 2) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      6 * (rsize r + 2) ^ 3"
+proof (intro conjI)
+  let ?base = "afactored1 r s"
+  let ?raw = "rpder_strong_rows_raw c ?base"
+  let ?dcanon = "rpder_strong_dcanon_rows_raw c ?base"
+  let ?B = "6 * (rsize r + 2) ^ 3"
+  have rows0_legacy:
+      "\<forall>q \<in> set (afactored1 r s). legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  have dcanon_legacy:
+      "\<forall>q \<in> set
+        (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+        legacy_rrexp q"
+    by (rule legacy_rpder_strong_dcanon_rows_raw[OF rows0_legacy])
+  have lang_step: "RLS (set ?dcanon) = Der c (RLS (set ?base))"
+  proof -
+    have "RLS (set ?dcanon) = RLS (set ?raw)"
+      unfolding rpder_strong_dcanon_rows_raw_def
+      by (rule RLS_set_row_dlform_canonical_rows)
+    also have "... = Der c (RLS (set ?base))"
+      by (rule RLS_rpder_strong_rows_raw[OF rows0_legacy])
+    finally show ?thesis .
+  qed
+  have rows_lang: "RLS (set ?base) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  show "RLS (set ?dcanon) = Ders (s @ [c]) (RL r)"
+    using lang_step rows_lang by (simp add: Ders_snoc)
+  show "row_dlformss_disjoint ?dcanon"
+    by (rule row_dlformss_disjoint_rpder_strong_dcanon_rows_raw)
+  show "\<forall>q \<in> set ?dcanon. row_dlforms_live q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "\<forall>q \<in> set ?dcanon. row_dlforms_size_paid q"
+    using row_dlforms_live_paid_rpder_strong_dcanon_rows_raw by blast
+  show "row_dlformss ?dcanon = row_dlformss ?raw"
+    by (rule row_dlformss_rpder_strong_dcanon_rows_raw_eq)
+  show "aseq_termss ?dcanon \<subseteq> strong_simp_frontier_aseq_universe r"
+    by (rule
+        aseq_termss_rpder_strong_dcanon_rows_raw_afactored1_frontier_closureI
+        [OF legacy])
+  have size_bound: "rsizes ?dcanon \<le> ?B"
+    by (rule rsizes_rpder_strong_dcanon_rows_raw_afactored1_aseq_paid_cubicI
+        [OF legacy disjoint live paid])
+  show "length ?dcanon \<le> ?B"
+    using length_le_rsizes[of ?dcanon] size_bound by linarith
+  show "card (set ?dcanon) \<le> ?B"
+    using card_set_le_rsizes_early[of ?dcanon] size_bound by linarith
+  show "rlinear_termss ?dcanon \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?dcanon] size_bound by linarith
+  show "rsizes ?dcanon \<le> ?B"
+    by (rule size_bound)
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_sum_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and sum_cubic:
+      "(\<Sum>p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s))).
+        rsize_set (row_dlforms (rsimpStrong_raw p))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        (\<Sum>p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s))).
+          rsize_set (row_dlforms (rsimpStrong_raw p)))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_sum)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule sum_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_cubic_contractI
+        [OF legacy cubic])
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_list_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3"
+proof -
+  have cubic:
+      "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule rsize_set_afactored1_strong_dlform_universe_le_list_size)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_cubic_contractI
+        [OF legacy cubic])
+qed
+
+lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_named_list_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "afactored1_strong_dlform_list_cost r s c \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s))) \<subseteq>
+      afactored1_strong_dlform_universe r s c \<and>
+    (\<forall>x \<in> afactored1_strong_dlform_universe r s c.
+      aseq_terms x \<subseteq> strong_simp_frontier_aseq_universe r) \<and>
+    rsizes
+      (row_dlform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      6 * (rsize r + 3) ^ 3"
+  by (rule
+      row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_list_cubic_contractI
+      [OF legacy])
+    (use list_cubic in
+      \<open>simp add: afactored1_strong_dlform_list_cost_def\<close>)
+
+lemma rpders_strong1_rows_raw_canonical_dlforms_cubic_budgetI:
+  assumes disjoint:
+      "row_dlformss_disjoint (rpders_strong1_rows_raw r s)"
+    and live:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_dlforms_live q"
+    and paid:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_dlforms_size_paid q"
+    and dlforms:
+      "row_dlformss (rpders_strong1_rows_raw r s) \<subseteq>
+        partial_derivative_frontier_universe root"
+  shows "length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof -
+  have raw_bound:
+      "rsizes (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_rows_canonical_frontier_dlforms_cubic
+        [OF disjoint live paid dlforms])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound
+        [OF raw_bound])
+qed
+
+lemma rpders_strong1_rows_raw_canonical_dlforms_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "row_dlformss_disjoint (rpders_strong1_rows_raw r s)"
+    and live:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_dlforms_live q"
+    and paid:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_dlforms_size_paid q"
+    and dlforms:
+      "row_dlformss (rpders_strong1_rows_raw r s) \<subseteq>
+        partial_derivative_frontier_universe root"
+  shows "RLS (set (rpders_strong1_rows_raw r s)) = Ders s (RL r) \<and>
+    length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof (intro conjI)
+  show "RLS (set (rpders_strong1_rows_raw r s)) = Ders s (RL r)"
+    by (rule RLS_rpders_strong1_rows_raw[OF legacy])
+  have budget:
+      "length (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      card (set (rpders_strong1_rows_raw r s)) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      rsizes (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3"
+    by (rule rpders_strong1_rows_raw_canonical_dlforms_cubic_budgetI
+        [OF disjoint live paid dlforms])
+  show "length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+qed
+
+lemma rpders_strong1_rows_raw_canonical_lforms_cubic_budgetI:
+  assumes disjoint:
+      "row_lformss_disjoint (rpders_strong1_rows_raw r s)"
+    and live:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_lforms_live q"
+    and paid:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_lforms_size_paid q"
+    and lforms:
+      "row_lformss (rpders_strong1_rows_raw r s) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+  shows "length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof -
+  have raw_bound:
+      "rsizes (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_rows_canonical_strong_simp_lforms_cubic
+        [OF disjoint live paid lforms])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound
+        [OF raw_bound])
+qed
+
+lemma rpders_strong1_rows_raw_row_nf_lforms_cubic_budgetI:
+  assumes nf:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s). row_nf q"
+    and lforms:
+      "row_lformss (rpders_strong1_rows_raw r s) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+  shows "length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof -
+  have raw_bound:
+      "rsizes (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3"
+    by (rule rsizes_row_nf_distinct_strong_simp_lforms_cubic)
+      (use nf lforms in auto)
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound
+        [OF raw_bound])
+qed
+
+lemma rpders_strong1_rows_raw_canonical_lforms_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "row_lformss_disjoint (rpders_strong1_rows_raw r s)"
+    and live:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_lforms_live q"
+    and paid:
+      "\<forall>q \<in> set (rpders_strong1_rows_raw r s).
+        row_lforms_size_paid q"
+    and lforms:
+      "row_lformss (rpders_strong1_rows_raw r s) \<subseteq>
+        strong_simp_frontier_aseq_universe root"
+  shows "RLS (set (rpders_strong1_rows_raw r s)) = Ders s (RL r) \<and>
+    length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3 \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+proof (intro conjI)
+  show "RLS (set (rpders_strong1_rows_raw r s)) = Ders s (RL r)"
+    by (rule RLS_rpders_strong1_rows_raw[OF legacy])
+  have budget:
+      "length (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      card (set (rpders_strong1_rows_raw r s)) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3 \<and>
+      rsizes (rpders_strong1_rows_raw r s) \<le>
+        6 * (rsize root + 2) ^ 3"
+    by (rule rpders_strong1_rows_raw_canonical_lforms_cubic_budgetI
+        [OF disjoint live paid lforms])
+  show "length (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "card (set (rpders_strong1_rows_raw r s)) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+  show "rsizes (rpders_strong1_rows_raw r s) \<le>
+      6 * (rsize root + 2) ^ 3"
+    using budget by simp
+qed
+
+lemma afactored_step_subterms_subsetI:
+  assumes step: "\<And>q p. q \<in> set rs \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "set (afactored_step c rs) \<subseteq> U"
+  unfolding afactored_step_def
+  by (rule rpder_norm_rows_subterms_subsetI[OF step])
+
+lemma afactored_steps_subterm_closed_universe_subsetI:
+  assumes init: "set rs \<subseteq> U"
+    and step: "\<And>q c p. q \<in> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "set (afactored_steps rs s) \<subseteq> U"
+  using init
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_subset: "set (afactored_step c rs) \<subseteq> U"
+  proof (rule afactored_step_subterms_subsetI)
+    fix q p
+    assume q: "q \<in> set rs"
+      and p: "p \<in> set (rpder_norm_list c q)"
+    have "q \<in> U"
+      using Cons.prems q by blast
+    then show "rsubterms p \<subseteq> U"
+      by (rule step[OF _ p])
+  qed
+  show ?case
+    by (simp add: Cons.hyps[OF next_subset])
+qed
+
+lemma afactored1_subterm_closed_universe_subsetI:
+  assumes init: "r \<in> U"
+    and step: "\<And>q c p. q \<in> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> rsubterms p \<subseteq> U"
+  shows "set (afactored1 r s) \<subseteq> U"
+  unfolding afactored1_def
+  by (rule afactored_steps_subterm_closed_universe_subsetI)
+    (use init step in auto)
+
+section \<open>Finite-Universe Budgets\<close>
+
+lemma afactored_steps_finite_universe_budget:
+  assumes rows: "set (afactored_steps rs s) \<subseteq> U"
+    and finite: "finite U"
+    and distinct: "distinct rs"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "length (afactored_steps rs s) \<le> card U * M \<and>
+    card (set (afactored_steps rs s)) \<le> card U * M \<and>
+    rlinear_termss (afactored_steps rs s) \<le> card U * M \<and>
+    rsizes (afactored_steps rs s) \<le> card U * M"
+proof -
+  have dist: "distinct (afactored_steps rs s)"
+    by (rule distinct_afactored_steps[OF distinct])
+  have raw_bound:
+      "rsizes (afactored_steps rs s) \<le> card U * M"
+    by (rule rsizes_distinct_finite_universe_bound
+        [OF finite rows dist member_size])
+  show ?thesis
+  proof (intro conjI)
+    show "length (afactored_steps rs s) \<le> card U * M"
+      using length_le_rsizes[of "afactored_steps rs s"] raw_bound
+      by linarith
+    show "card (set (afactored_steps rs s)) \<le> card U * M"
+      using card_set_le_rsizes_early[of "afactored_steps rs s"] raw_bound
+      by linarith
+    show "rlinear_termss (afactored_steps rs s) \<le> card U * M"
+      using rlinear_termss_le_rsizes[of "afactored_steps rs s"] raw_bound
+      by linarith
+    show "rsizes (afactored_steps rs s) \<le> card U * M"
+      by (rule raw_bound)
+  qed
+qed
+
+lemma afactored_steps_finite_universe_budgetI:
+  assumes init: "set rs \<subseteq> U"
+    and step: "\<And>q c p. q \<in> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> rsubterms p \<subseteq> U"
+    and finite: "finite U"
+    and distinct: "distinct rs"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "length (afactored_steps rs s) \<le> card U * M \<and>
+    card (set (afactored_steps rs s)) \<le> card U * M \<and>
+    rlinear_termss (afactored_steps rs s) \<le> card U * M \<and>
+    rsizes (afactored_steps rs s) \<le> card U * M"
+proof -
+  have rows: "set (afactored_steps rs s) \<subseteq> U"
+    by (rule afactored_steps_subterm_closed_universe_subsetI
+        [OF init step])
+  show ?thesis
+    by (rule afactored_steps_finite_universe_budget
+        [OF rows finite distinct member_size])
+qed
+
+lemma afactored1_finite_universe_budgetI:
+  assumes init: "r \<in> U"
+    and step: "\<And>q c p. q \<in> U \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow> rsubterms p \<subseteq> U"
+    and finite: "finite U"
+    and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+  shows "length (afactored1 r s) \<le> card U * M \<and>
+    card (set (afactored1 r s)) \<le> card U * M \<and>
+    rlinear_termss (afactored1 r s) \<le> card U * M \<and>
+    rsizes (afactored1 r s) \<le> card U * M"
+  unfolding afactored1_def
+  by (rule afactored_steps_finite_universe_budgetI)
+    (use init step finite member_size in auto)
+
+section \<open>Cubic Universe Interface\<close>
+
+lemma rfrontier_partial_derivative_cubic_universe_member_subset:
+  assumes q: "q \<in> partial_derivative_cubic_universe r"
+  shows "rfrontier q \<subseteq> partial_derivative_cubic_universe r"
+proof -
+  have q_cases:
+      "q \<in> partial_derivative_path_universe r \<or>
+       q \<in> partial_derivative_frontier_universe r"
+    using q by (auto simp add: partial_derivative_cubic_universe_def)
+  then show ?thesis
+  proof
+    assume path: "q \<in> partial_derivative_path_universe r"
+    then consider
+        "q = RZERO"
+      | "q = RONE"
+      | "q \<in> rsubterms r"
+      | "q \<in> rpath_continuations r"
+      unfolding partial_derivative_path_universe_def by auto
+    then show ?thesis
+    proof cases
+      case 1
+      then show ?thesis by simp
+    next
+      case 2
+      then show ?thesis
+        by (simp add: partial_derivative_cubic_universe_def
+            partial_derivative_path_universe_def)
+    next
+      case 3
+      have "rfrontier q \<subseteq> partial_derivative_frontier_universe r"
+        by (rule rfrontier_subterm_subset[OF 3])
+      then show ?thesis
+        using partial_derivative_frontier_universe_subset_cubic by blast
+    next
+      case 4
+      have "rfrontier q \<subseteq> partial_derivative_path_universe r"
+        by (rule rfrontier_path_continuation_subset_path_universe[OF 4])
+      then show ?thesis
+        using partial_derivative_path_universe_subset_cubic by blast
+    qed
+  next
+    assume front: "q \<in> partial_derivative_frontier_universe r"
+    have "rfrontier q \<subseteq> partial_derivative_frontier_universe r"
+      by (rule rfrontier_frontier_universe_member_subset[OF front])
+    then show ?thesis
+      using partial_derivative_frontier_universe_subset_cubic by blast
+  qed
+qed
+
+lemma afactored1_split_cubic_universe_subsetI:
+  assumes step: "\<And>q c.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq>
+        partial_derivative_cubic_universe r"
+  shows "set (afactored1 r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+proof -
+  have init: "r \<in> partial_derivative_cubic_universe r"
+    by (simp add: partial_derivative_cubic_universe_def
+        partial_derivative_path_universe_def)
+  show ?thesis
+    by (rule afactored1_split_closed_universe_subsetI
+        [OF init step])
+qed
+
+lemma rfrontiers_afactored1_split_cubic_universe_subsetI:
+  assumes step: "\<And>q c.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq>
+        partial_derivative_cubic_universe r"
+  shows "rfrontiers (afactored1 r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+proof -
+  have rows: "set (afactored1 r s) \<subseteq>
+      partial_derivative_cubic_universe r"
+    by (rule afactored1_split_cubic_universe_subsetI[OF step])
+  have rows_steps: "set (afactored_steps [r] s) \<subseteq>
+      partial_derivative_cubic_universe r"
+    using rows by (simp add: afactored1_def)
+  show ?thesis
+    unfolding afactored1_def
+  proof (rule rfrontiers_afactored_steps_subsetI)
+    show "set (afactored_steps [r] s) \<subseteq>
+        partial_derivative_cubic_universe r"
+      by (rule rows_steps)
+    show "\<And>q. q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+        rfrontier q \<subseteq> partial_derivative_cubic_universe r"
+      by (rule rfrontier_partial_derivative_cubic_universe_member_subset)
+  qed
+qed
+
+lemma afactored1_split_cubic_universe_budgetI:
+  assumes step: "\<And>q c.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq>
+        partial_derivative_cubic_universe r"
+  shows "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+proof -
+  have rows: "set (afactored1 r s) \<subseteq>
+      partial_derivative_cubic_universe r"
+    by (rule afactored1_split_cubic_universe_subsetI[OF step])
+  have raw_bound:
+      "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using rows
+    by (simp add: afactored1_eq_rpders_norm1_rows
+        rsizes_rpders_norm1_rows_cubic_universe_cubic)
+  show ?thesis
+  proof (intro conjI)
+    show "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      using length_le_rsizes[of "afactored1 r s"] raw_bound by linarith
+    show "card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3"
+      using card_set_le_rsizes_early[of "afactored1 r s"] raw_bound
+      by linarith
+    show "rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      using rlinear_termss_le_rsizes[of "afactored1 r s"] raw_bound
+      by linarith
+    show "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      by (rule raw_bound)
+  qed
+qed
+
+lemma afactored1_split_cubic_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and step: "\<And>q c.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      set (rflts (rpder_norm_list c q)) \<subseteq>
+        partial_derivative_cubic_universe r"
+  shows "RLS (set (afactored1 r s)) = Ders s (RL r) \<and>
+    length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  have budget:
+    "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    by (rule afactored1_split_cubic_universe_budgetI[OF step])
+  show "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma afactored1_cubic_universe_subsetI:
+  assumes step: "\<And>q c p.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      rsubterms p \<subseteq> partial_derivative_cubic_universe r"
+  shows "set (afactored1 r s) \<subseteq>
+    partial_derivative_cubic_universe r"
+proof -
+  have init: "r \<in> partial_derivative_cubic_universe r"
+    by (simp add: partial_derivative_cubic_universe_def
+        partial_derivative_path_universe_def)
+  show ?thesis
+    by (rule afactored1_subterm_closed_universe_subsetI
+        [OF init step])
+qed
+
+lemma afactored1_cubic_universe_budgetI:
+  assumes step: "\<And>q c p.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      rsubterms p \<subseteq> partial_derivative_cubic_universe r"
+  shows "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+proof -
+  have rows: "set (afactored1 r s) \<subseteq>
+      partial_derivative_cubic_universe r"
+    by (rule afactored1_cubic_universe_subsetI[OF step])
+  have raw_bound:
+      "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using rows
+    by (simp add: afactored1_eq_rpders_norm1_rows
+        rsizes_rpders_norm1_rows_cubic_universe_cubic)
+  show ?thesis
+  proof (intro conjI)
+    show "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      using length_le_rsizes[of "afactored1 r s"] raw_bound by linarith
+    show "card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3"
+      using card_set_le_rsizes_early[of "afactored1 r s"] raw_bound
+      by linarith
+    show "rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      using rlinear_termss_le_rsizes[of "afactored1 r s"] raw_bound
+      by linarith
+    show "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+      by (rule raw_bound)
+  qed
+qed
+
+lemma afactored1_cubic_universe_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and step: "\<And>q c p.
+      q \<in> partial_derivative_cubic_universe r \<Longrightarrow>
+      p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+      rsubterms p \<subseteq> partial_derivative_cubic_universe r"
+  shows "RLS (set (afactored1 r s)) = Ders s (RL r) \<and>
+    length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set (afactored1 r s)) = Ders s (RL r)"
+    by (rule RLS_afactored1[OF legacy])
+  have budget:
+    "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3 \<and>
+      rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    by (rule afactored1_cubic_universe_budgetI[OF step])
+  show "length (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set (afactored1 r s)) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+end

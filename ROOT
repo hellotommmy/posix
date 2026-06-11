@@ -10,5 +10,7 @@ theories[document = false]
      "BasicIdentities"
      "ClosedForms"
      "GeneralRegexBound"
+     "AntimirovFactoredTransition"
+     "AntimirovNormalFrontier"
      "ClosedFormsBounds"
      "FBound"

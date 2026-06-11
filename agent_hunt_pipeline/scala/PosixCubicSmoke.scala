@@ -92,6 +92,18 @@ object PosixCubicSmoke {
     seen.size
   }
 
+  def canonicalBitPlacement(r: ARexp): ARexp = r match {
+    case AZERO => AZERO
+    case AONE(bs) => AONE(bs)
+    case ACHAR(bs, c) => ACHAR(bs, c)
+    case ASEQ(bs, r1, r2) =>
+      ASEQ(Nil, canonicalBitPlacement(fuse(bs, r1)), canonicalBitPlacement(r2))
+    case AALTs(bs, rs) =>
+      AALTs(Nil, rs.map(row => canonicalBitPlacement(fuse(bs, row))))
+    case ASTAR(bs, body) => ASTAR(bs, canonicalBitPlacement(body))
+    case ANTIMES(bs, body, n) => ANTIMES(bs, canonicalBitPlacement(body), n)
+  }
+
   def adagSize(r: ARexp): Int = {
     val seen = scala.collection.mutable.Set.empty[ARexp]
     def visit(x: ARexp): Unit = {
@@ -105,7 +117,7 @@ object PosixCubicSmoke {
         }
       }
     }
-    visit(r)
+    visit(canonicalBitPlacement(r))
     seen.size
   }
 
@@ -438,6 +450,36 @@ object PosixCubicSmoke {
     }
   }
 
+  def expandedSeqKeysDeep(r: ARexp, maxKeys: Int): Option[List[List[ARexp]]] = {
+    def concat(xs: List[List[ARexp]], ys: List[List[ARexp]]): Option[List[List[ARexp]]] = {
+      val count = xs.length.toLong * ys.length.toLong
+      if (count > maxKeys) None
+      else {
+        val next = for { x <- xs; y <- ys } yield x ++ y
+        if (next.length > maxKeys) None else Some(next)
+      }
+    }
+    def appendRows(acc: List[List[ARexp]], rows: List[ARexp]): Option[List[List[ARexp]]] = rows match {
+      case Nil => Some(acc)
+      case row :: rest =>
+        expand(row).flatMap { keys =>
+          val next = acc ++ keys
+          if (next.length > maxKeys) None else appendRows(next, rest)
+        }
+    }
+    def expand(x: ARexp): Option[List[List[ARexp]]] = x match {
+      case ASEQ(_, r1, r2) =>
+        for {
+          left <- expand(r1)
+          right <- expand(r2)
+          both <- concat(left, right)
+        } yield both
+      case AALTs(_, rows) => appendRows(Nil, rows)
+      case _ => Some(List(List(x)))
+    }
+    expand(r)
+  }
+
   def seqKeyMember(key: List[ARexp], keys: List[List[ARexp]]): Boolean =
     keys.exists(eq1List(key, _))
 
@@ -641,11 +683,108 @@ object PosixCubicSmoke {
   def bpderNormList(c: Char, r: ARexp): List[ARexp] =
     bpderList(c, r).map(p => bsimp4ASEQAtom(Nil, p, AONE(Nil)))
 
+  def bpderNormRows(c: Char, rs: List[ARexp]): List[ARexp] =
+    distinctWith(flts(rs.flatMap(bpderNormList(c, _))))
+
+  @tailrec
+  def fullyFlts(rs: List[ARexp]): List[ARexp] = {
+    val next = flts(rs)
+    if (next == rs) rs else fullyFlts(next)
+  }
+
+  def bpderLinearRows(c: Char, rs: List[ARexp]): List[ARexp] =
+    distinctWith(fullyFlts(rs.flatMap(bpderNormList(c, _))))
+
+  def bpdersNormRows(rs: List[ARexp], input: String): List[ARexp] =
+    input.foldLeft(rs)((acc, c) => bpderNormRows(c, acc))
+
+  def bpdersNorm1Rows(r: ARexp, input: String): List[ARexp] =
+    bpdersNormRows(List(r), input)
+
   def bpderStrongList(c: Char, r: ARexp): List[ARexp] =
     bpderNormList(c, r).map(bsimpStrong)
 
-  def bpderStrongRows(c: Char, rs: List[ARexp]): List[ARexp] =
-    distinctWith(flts(bsimpStrongPruneRows(flts(rs.flatMap(bpderStrongList(c, _))))))
+  def bpderStrongLinearRows(c: Char, rs: List[ARexp]): List[ARexp] =
+    distinctWith(fullyFlts(rs.flatMap(bpderStrongList(c, _))))
+
+  def absorbStandaloneSuffixRows(rs: List[ARexp]): List[ARexp] = {
+    val absorbed = scala.collection.mutable.Set.empty[Int]
+    val replacements = scala.collection.mutable.Map.empty[Int, ARexp]
+
+    rs.zipWithIndex.foreach { case (row, i) =>
+      row match {
+        case ASEQ(bs, AALTs(abs, prefixes), suffix) =>
+          val suffixRows =
+            rs.zipWithIndex.collect {
+              case (candidate, j) if i != j && !absorbed(j) && eq1(candidate, suffix) => j
+            }
+          if (suffixRows.nonEmpty) {
+            suffixRows.foreach(absorbed += _)
+            replacements(i) = bsimpStrong(ASEQ(bs, AALTs(abs, prefixes :+ AONE(Nil)), suffix))
+          }
+        case _ => ()
+      }
+    }
+
+    rs.zipWithIndex.collect {
+      case (row, i) if !absorbed(i) => replacements.getOrElse(i, row)
+    }
+  }
+
+  def pruneCoveredRows(rs: List[ARexp]): List[ARexp] = {
+    var kept = rs
+    var changed = true
+
+    while (changed) {
+      changed = false
+      var i = 0
+      while (!changed && i < kept.length) {
+        val row = kept(i)
+        val candidate = kept.take(i) ++ kept.drop(i + 1)
+        if (candidate.nonEmpty && strongBridgeRowsCover(row, candidate)) {
+          kept = candidate
+          changed = true
+        } else {
+          i += 1
+        }
+      }
+    }
+
+    kept
+  }
+
+  def structuralDagBudgetNonincreasing(candidate: List[ARexp], baseline: List[ARexp]): Boolean =
+    rowsTreeSize(candidate) <= rowsTreeSize(baseline) &&
+      rowsDagSize(candidate) <= rowsDagSize(baseline) &&
+      rowsShapeDagSize(candidate) <= rowsShapeDagSize(baseline) &&
+      rowsMaxTreeSize(candidate) <= rowsMaxTreeSize(baseline) &&
+      rowsMaxDagSize(candidate) <= rowsMaxDagSize(baseline) &&
+      rowsMaxShapeDagSize(candidate) <= rowsMaxShapeDagSize(baseline)
+
+  def bpderStrongRows(c: Char, rs: List[ARexp]): List[ARexp] = {
+    val generated = flts(rs.flatMap(bpderStrongList(c, _)))
+    val linear = distinctWith(fullyFlts(generated))
+    val pruned0 =
+      distinctWith(fullyFlts(bsimpStrongPruneRows(generated).map(bsimpStrong)))
+    val base =
+      if (structuralDagBudgetNonincreasing(pruned0, linear)) pruned0 else linear
+    val absorbed0 = distinctWith(fullyFlts(absorbStandaloneSuffixRows(base)))
+    val absorbed =
+      if (structuralDagBudgetNonincreasing(absorbed0, base)) absorbed0 else base
+    val covered = pruneCoveredRows(absorbed)
+    val baseSize = rowsTreeSize(base)
+    val absorbedSize = rowsTreeSize(absorbed)
+    val coveredSize = rowsTreeSize(covered)
+    if (
+      covered.length < absorbed.length && coveredSize <= absorbedSize ||
+        covered.length == absorbed.length && coveredSize <= absorbedSize
+    ) covered
+    else if (
+      absorbed.length < base.length && absorbedSize <= baseSize ||
+        absorbed.length == base.length && absorbedSize <= baseSize
+    ) absorbed
+    else base
+  }
 
   def bpdersStrongRows(rs: List[ARexp], input: String): List[ARexp] =
     input.foldLeft(rs)((acc, c) => bpderStrongRows(c, acc))
@@ -672,13 +811,42 @@ object PosixCubicSmoke {
     )
   }
 
+  def strongBridgeRowsCover(r: ARexp, rs: Iterable[ARexp]): Boolean = {
+    val rows = rs.toList
+    strongBridgeMember(r, rows) ||
+      expandedRowKeysOption(r, 8192).exists(keys =>
+        keys.forall(key => rows.exists(rowKeyCoveredBy(key, _)))
+      ) ||
+      expandedRowKeysOption(bsimpStrong(r), 8192).exists(keys =>
+        keys.forall(key => rows.exists(rowKeyCoveredBy(key, _)))
+      )
+  }
+
   def activeRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean = {
     val topLevel = (r, q) match {
       case (ASEQ(_, AALTs(_, rRows), rKey), ASEQ(_, AALTs(_, qRows), qKey)) =>
         eq1(rKey, qKey) && rRows.forall(row => rowCoveredByRows(row, qRows))
       case _ => false
     }
-    topLevel || expandedRowSubsetCoveredBy(r, q)
+    topLevel || reassociatedActiveRowSubsetCoveredBy(r, q) ||
+      expandedRowSubsetCoveredBy(r, q) || deepExpandedRowSubsetCoveredBy(r, q)
+  }
+
+  def stripSuffixFactors(xs: List[ARexp], suffix: List[ARexp]): Option[List[ARexp]] =
+    if (suffix.nonEmpty && suffix.length <= xs.length &&
+        xs.takeRight(suffix.length).zip(suffix).forall { case (a, b) => eq1(a, b) }) {
+      Some(xs.dropRight(suffix.length))
+    } else {
+      None
+    }
+
+  def reassociatedActiveRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean = q match {
+    case ASEQ(_, AALTs(_, qRows), qKey) =>
+      stripSuffixFactors(seqFactors(r), seqFactors(qKey)).exists { prefixFactors =>
+        prefixFactors.nonEmpty &&
+          rowCoveredByRows(bsimpStrong(mkSeqFromFactors(prefixFactors)), qRows)
+      }
+    case _ => false
   }
 
   def rowCoveredByRows(row: ARexp, rows: List[ARexp]): Boolean =
@@ -694,14 +862,36 @@ object PosixCubicSmoke {
   def expandedRowKeys(row: ARexp): List[ARexp] =
     expandedRowKeysOption(row, 4096).getOrElse(List(bsimpStrong(row)))
 
+  def deepExpandedRowKeysOption(row: ARexp, maxKeys: Int): Option[List[ARexp]] =
+    expandedSeqKeysDeep(row, maxKeys).map(keys =>
+      distinctWith(keys.map(key => bsimpStrong(mkSeqFromFactors(key))))
+    )
+
   def rowKeyCoveredBy(key: ARexp, coverer: ARexp): Boolean = {
+    val kn = bsimpStrong(key)
     val cn = bsimpStrong(coverer)
-    eq1(key, coverer) || eq1(key, cn) ||
-      expandedRowKeys(coverer).exists(eq1(key, _))
+    eq1(key, coverer) || eq1(kn, coverer) ||
+      eq1(key, cn) || eq1(kn, cn) ||
+      expandedRowKeys(coverer).exists(row => eq1(key, row) || eq1(kn, row)) ||
+      deepExpandedRowKeysOption(coverer, 8192).exists(rows =>
+        rows.exists(row => eq1(key, row) || eq1(kn, row))) ||
+      expandedRowSubsetCoveredBy(key, coverer) ||
+      expandedRowSubsetCoveredBy(kn, coverer) ||
+      deepExpandedRowSubsetCoveredBy(key, coverer) ||
+      deepExpandedRowSubsetCoveredBy(kn, coverer)
   }
 
   def expandedRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean =
     (expandedRowKeysOption(r, 8192), expandedRowKeysOption(q, 8192)) match {
+      case (Some(rKeys), Some(qKeys)) =>
+        rKeys.forall(rKey =>
+          qKeys.exists(qKey => eq1(rKey, qKey) || eq1(rKey, bsimpStrong(qKey)))
+        )
+      case _ => false
+    }
+
+  def deepExpandedRowSubsetCoveredBy(r: ARexp, q: ARexp): Boolean =
+    (deepExpandedRowKeysOption(r, 8192), deepExpandedRowKeysOption(q, 8192)) match {
       case (Some(rKeys), Some(qKeys)) =>
         rKeys.forall(rKey =>
           qKeys.exists(qKey => eq1(rKey, qKey) || eq1(rKey, bsimpStrong(qKey)))
@@ -1190,6 +1380,36 @@ object PosixCubicSmoke {
         case (Some(acc), f) => step(acc, f)
         case (None, _) => None
       }
+    }
+
+    def expandedSeqKeysDeepId(id: Int, maxKeys: Int): Option[List[List[Int]]] = {
+      def concat(xs: List[List[Int]], ys: List[List[Int]]): Option[List[List[Int]]] = {
+        val count = xs.length.toLong * ys.length.toLong
+        if (count > maxKeys) None
+        else {
+          val next = for { x <- xs; y <- ys } yield x ++ y
+          if (next.length > maxKeys) None else Some(next)
+        }
+      }
+      def appendRows(acc: List[List[Int]], rows: List[Int]): Option[List[List[Int]]] = rows match {
+        case Nil => Some(acc)
+        case row :: rest =>
+          expand(row).flatMap { keys =>
+            val next = acc ++ keys
+            if (next.length > maxKeys) None else appendRows(next, rest)
+          }
+      }
+      def expand(x: Int): Option[List[List[Int]]] = node(x) match {
+        case DSeq(_, r1, r2) =>
+          for {
+            left <- expand(r1)
+            right <- expand(r2)
+            both <- concat(left, right)
+          } yield both
+        case DAlts(_, rows) => appendRows(Nil, rows)
+        case _ => Some(List(List(x)))
+      }
+      expand(id)
     }
 
     def seqKeyMemberId(key: List[Int], keys: List[List[Int]]): Boolean =
@@ -2236,6 +2456,63 @@ object PosixCubicSmoke {
       ratio: Double
   )
 
+  final case class ScanRowsDiffObservation(
+      label: String,
+      regex: Rexp,
+      input: String,
+      prefix: String,
+      regexSize: Int,
+      scanRows: Int,
+      normRows: Int,
+      scanTerms: Int,
+      normTerms: Int,
+      scanDeepTerms: Int,
+      normDeepTerms: Int,
+      scanDeepTermsCapped: Boolean,
+      normDeepTermsCapped: Boolean,
+      scanSize: Int,
+      normSize: Int,
+      scanDag: Int,
+      normDag: Int,
+      scanShapeDag: Int,
+      normShapeDag: Int,
+      scanMax: Int,
+      normMax: Int,
+      scanMaxDag: Int,
+      normMaxDag: Int,
+      scanMaxShapeDag: Int,
+      normMaxShapeDag: Int,
+      rowRatio: Double,
+      termRatio: Double,
+      deepTermRatio: Double,
+      sizeRatio: Double,
+      dagRatio: Double,
+      shapeDagRatio: Double,
+      maxRatio: Double,
+      maxDagRatio: Double,
+      maxShapeDagRatio: Double,
+      score: Double,
+      scanExtra: Option[String],
+      normExtra: Option[String],
+      explanation: Option[String],
+      capped: Boolean
+  )
+
+  final case class ScanRowsKnownRegression(
+      seed: Long,
+      targetCase: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      note: String
+  )
+
+  final case class ScanRowsShrinkResult(
+      regex: Rexp,
+      input: String,
+      probes: Int,
+      exhausted: Boolean
+  )
+
   final case class FinalActiveBudgetConfig(
       rowsFactor: Double,
       pairFactor: Double,
@@ -2790,6 +3067,885 @@ object PosixCubicSmoke {
 
   def shortObservationRegex(regex: Rexp): String =
     shortLogText(regex.toString, 220)
+
+  def rowsTreeSize(rs: List[ARexp]): Int =
+    rs.map(asize).sum
+
+  def rowsDagSize(rs: List[ARexp]): Int =
+    rs.flatMap(row => asubterms(canonicalBitPlacement(row))).toSet.size
+
+  def ashapeSubkeys(r: ARexp): Set[String] = {
+    val seen = scala.collection.mutable.Set.empty[String]
+    def visit(x: ARexp): Unit = {
+      val key = ashapeKey(x)
+      if (seen.add(key)) {
+        x match {
+          case ASEQ(_, r1, r2) => visit(r1); visit(r2)
+          case AALTs(_, rows) => rows.foreach(visit)
+          case ASTAR(_, body) => visit(body)
+          case ANTIMES(_, body, _) => visit(body)
+          case _ => ()
+        }
+      }
+    }
+    visit(r)
+    seen.toSet
+  }
+
+  def rowsShapeDagSize(rs: List[ARexp]): Int =
+    rs.flatMap(ashapeSubkeys).toSet.size
+
+  def rowsMaxTreeSize(rs: List[ARexp]): Int =
+    rs.foldLeft(0)((acc, r) => math.max(acc, asize(r)))
+
+  def rowsMaxDagSize(rs: List[ARexp]): Int =
+    rs.foldLeft(0)((acc, r) => math.max(acc, adagSize(r)))
+
+  def rowsMaxShapeDagSize(rs: List[ARexp]): Int =
+    rs.foldLeft(0)((acc, r) => math.max(acc, ashapeDagSize(r)))
+
+  def rowLinearTermCount(r: ARexp): Int = r match {
+    case AZERO => 0
+    case AALTs(_, rs) => rs.map(rowLinearTermCount).sum
+    case ASEQ(_, AALTs(_, prefixes), _) =>
+      prefixes.map(rowLinearTermCount).sum
+    case _ => 1
+  }
+
+  def rowsLinearTermCount(rs: List[ARexp]): Int =
+    rs.map(rowLinearTermCount).sum
+
+  final case class DeepLinearTermCount(count: Int, capped: Boolean)
+
+  val deepLinearTermCountMaxKeys: Int = 65536
+
+  def rowDeepLinearTermCountInfo(r: ARexp): DeepLinearTermCount = r match {
+    case AZERO => DeepLinearTermCount(0, capped = false)
+    case _ =>
+      deepExpandedRowKeysOption(r, deepLinearTermCountMaxKeys) match {
+        case Some(keys) =>
+          DeepLinearTermCount(keys.count(key => !eq1(key, AZERO)), capped = false)
+        case None => DeepLinearTermCount(rowLinearTermCount(r), capped = true)
+      }
+  }
+
+  def rowDeepLinearTermCount(r: ARexp): Int =
+    rowDeepLinearTermCountInfo(r).count
+
+  def rowsDeepLinearTermCountInfo(rs: List[ARexp]): DeepLinearTermCount =
+    rs.foldLeft(DeepLinearTermCount(0, capped = false)) { (acc, row) =>
+      val next = rowDeepLinearTermCountInfo(row)
+      DeepLinearTermCount(acc.count + next.count, acc.capped || next.capped)
+    }
+
+  def rowsDeepLinearTermCount(rs: List[ARexp]): Int =
+    rowsDeepLinearTermCountInfo(rs).count
+
+  def scanRowsDiffExplanation(scanRows: List[ARexp], normRows: List[ARexp]): Option[String] = {
+    def withoutAt[A](xs: List[A], i: Int): List[A] =
+      xs.take(i) ++ xs.drop(i + 1)
+
+    val absorbedSuffix =
+      scanRows.exists {
+        case ASEQ(_, AALTs(_, scanPrefixes), scanSuffix) =>
+          scanPrefixes.indices.exists { i =>
+            eq1(scanPrefixes(i), AONE(Nil)) &&
+              normRows.exists {
+                case ASEQ(_, AALTs(_, normPrefixes), normSuffix) =>
+                  eq1(scanSuffix, normSuffix) && eq1List(withoutAt(scanPrefixes, i), normPrefixes)
+                case _ => false
+              } &&
+              normRows.exists(row => eq1(row, scanSuffix))
+          }
+        case _ => false
+      }
+
+    val scanCoveredByNorm =
+      scanRows.forall(row => strongBridgeRowsCover(row, normRows))
+    val normCoveredByScan =
+      normRows.forall(row => strongBridgeRowsCover(row, scanRows))
+    val bidirectionalCover = scanCoveredByNorm && normCoveredByScan
+    val coveredDrop =
+      scanRows.length < normRows.length && bidirectionalCover
+
+    val scanTerms = rowsLinearTermCount(scanRows)
+    val normTerms = rowsLinearTermCount(normRows)
+    val scanDeepTermInfo = rowsDeepLinearTermCountInfo(scanRows)
+    val normDeepTermInfo = rowsDeepLinearTermCountInfo(normRows)
+    val deepTermsComparable =
+      !scanDeepTermInfo.capped && !normDeepTermInfo.capped
+    val scanSize = rowsTreeSize(scanRows)
+    val normSize = rowsTreeSize(normRows)
+    val sameBudgetCover =
+      scanRows.length == normRows.length &&
+        scanTerms == normTerms &&
+        deepTermsComparable &&
+        scanDeepTermInfo.count == normDeepTermInfo.count &&
+        scanSize == normSize &&
+        bidirectionalCover
+    val budgetNonworseCover =
+      scanRows.length <= normRows.length &&
+        scanTerms <= normTerms &&
+        deepTermsComparable &&
+        scanDeepTermInfo.count <= normDeepTermInfo.count &&
+        scanSize <= normSize &&
+        bidirectionalCover
+    val budgetNonworseOneWayCover =
+      scanRows.length <= normRows.length &&
+        scanTerms <= normTerms &&
+        deepTermsComparable &&
+        scanDeepTermInfo.count <= normDeepTermInfo.count &&
+        scanSize <= normSize &&
+        scanCoveredByNorm
+
+    if (absorbedSuffix) Some("absorbedSuffix")
+    else if (coveredDrop) Some("coveredDrop")
+    else if (sameBudgetCover) Some("sameBudgetCover")
+    else if (budgetNonworseCover) Some("budgetNonworseCover")
+    else if (budgetNonworseOneWayCover) Some("budgetNonworseOneWayCover")
+    else None
+  }
+
+  def finiteRatio(numer: Int, denom: Int): Double =
+    if (denom == 0) {
+      if (numer == 0) 1.0 else Double.PositiveInfinity
+    } else numer.toDouble / denom.toDouble
+
+  def scanRowsDiffObservation(
+      r: Rexp,
+      input: String,
+      label: String,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean
+  ): Option[ScanRowsDiffObservation] = {
+    var scanRows = List(intern(r))
+    var normRows = distinctWith(fullyFlts(List(bsimpStrong(intern(r)))))
+    var best = Option.empty[ScanRowsDiffObservation]
+    var stopped = false
+
+    def updateBest(prefix: String, capped: Boolean): Unit = {
+      val scanSize = rowsTreeSize(scanRows)
+      val normSize = rowsTreeSize(normRows)
+      val scanDag = rowsDagSize(scanRows)
+      val normDag = rowsDagSize(normRows)
+      val scanShapeDag = rowsShapeDagSize(scanRows)
+      val normShapeDag = rowsShapeDagSize(normRows)
+      val scanMax = rowsMaxTreeSize(scanRows)
+      val normMax = rowsMaxTreeSize(normRows)
+      val scanMaxDag = rowsMaxDagSize(scanRows)
+      val normMaxDag = rowsMaxDagSize(normRows)
+      val scanMaxShapeDag = rowsMaxShapeDagSize(scanRows)
+      val normMaxShapeDag = rowsMaxShapeDagSize(normRows)
+      val scanTerms = rowsLinearTermCount(scanRows)
+      val normTerms = rowsLinearTermCount(normRows)
+      val scanDeepTermInfo = rowsDeepLinearTermCountInfo(scanRows)
+      val normDeepTermInfo = rowsDeepLinearTermCountInfo(normRows)
+      val scanDeepTerms = scanDeepTermInfo.count
+      val normDeepTerms = normDeepTermInfo.count
+      val scanDeepTermsCapped = scanDeepTermInfo.capped
+      val normDeepTermsCapped = normDeepTermInfo.capped
+      val rowRatio = finiteRatio(scanRows.length, normRows.length)
+      val termRatio = finiteRatio(scanTerms, normTerms)
+      val deepTermRatio = finiteRatio(scanDeepTerms, normDeepTerms)
+      val sizeRatio = finiteRatio(scanSize, normSize)
+      val dagRatio = finiteRatio(scanDag, normDag)
+      val shapeDagRatio = finiteRatio(scanShapeDag, normShapeDag)
+      val maxRatio = finiteRatio(scanMax, normMax)
+      val maxDagRatio = finiteRatio(scanMaxDag, normMaxDag)
+      val maxShapeDagRatio = finiteRatio(scanMaxShapeDag, normMaxShapeDag)
+      val ratioScore =
+        List(rowRatio, termRatio, deepTermRatio, sizeRatio, dagRatio, shapeDagRatio,
+          maxRatio, maxDagRatio, maxShapeDagRatio).filterNot(_.isNaN).max
+      val scanExtra = scanRows.find(row => !strongBridgeRowsCover(row, normRows)).map(row => shortLogText(row.toString, 240))
+      val normExtra = normRows.find(row => !strongBridgeRowsCover(row, scanRows)).map(row => shortLogText(row.toString, 240))
+      val explanation = scanRowsDiffExplanation(scanRows, normRows)
+      val budgetCoverExplanation =
+        explanation.exists(e =>
+          e == "coveredDrop" || e == "sameBudgetCover" ||
+            e == "budgetNonworseCover" || e == "budgetNonworseOneWayCover" ||
+            (e == "absorbedSuffix" &&
+              rowRatio <= 1.0 && termRatio <= 1.0 && deepTermRatio <= 1.0 &&
+              sizeRatio <= 1.0 && shapeDagRatio <= 1.0 &&
+              maxRatio <= 1.0 && maxShapeDagRatio <= 1.0))
+      val relationBoost = if (scanExtra.nonEmpty) 10000.0 else 0.0
+      val score = ratioScore + relationBoost
+      val worseByRowsTermsOrSize = rowRatio > 1.0 || termRatio > 1.0 || sizeRatio > 1.0
+      val worseByDeepTermsOnly =
+        includeMaxOnly && deepTermRatio > 1.0 && rowRatio <= 1.0 &&
+          termRatio <= 1.0 && sizeRatio <= 1.0 && scanExtra.isEmpty &&
+          !budgetCoverExplanation
+      val deepTermCountingCapped =
+        includeMaxOnly && (scanDeepTermsCapped || normDeepTermsCapped)
+      val worseByMaxOnly =
+        includeMaxOnly && maxRatio > 1.0 && rowRatio <= 1.0 && termRatio <= 1.0 &&
+          sizeRatio <= 1.0 && scanExtra.isEmpty && !budgetCoverExplanation
+      val worseByDagOnly =
+        includeMaxOnly && dagRatio > 1.0 && rowRatio <= 1.0 && termRatio <= 1.0 &&
+          sizeRatio <= 1.0 && scanExtra.isEmpty && !budgetCoverExplanation
+      val worseByShapeDagOnly =
+        includeMaxOnly && shapeDagRatio > 1.0 && rowRatio <= 1.0 && termRatio <= 1.0 &&
+          sizeRatio <= 1.0 && scanExtra.isEmpty && !budgetCoverExplanation
+      val worseByMaxDagOnly =
+        includeMaxOnly && maxDagRatio > 1.0 && rowRatio <= 1.0 && termRatio <= 1.0 &&
+          sizeRatio <= 1.0 && dagRatio <= 1.0 && scanExtra.isEmpty &&
+          !budgetCoverExplanation
+      val worseByMaxShapeDagOnly =
+        includeMaxOnly && maxShapeDagRatio > 1.0 && rowRatio <= 1.0 && termRatio <= 1.0 &&
+          sizeRatio <= 1.0 && shapeDagRatio <= 1.0 && scanExtra.isEmpty &&
+          !budgetCoverExplanation
+      val uncoveredWithoutBudgetWin =
+        scanExtra.nonEmpty && (rowRatio >= 1.0 || termRatio >= 1.0 || sizeRatio >= 1.0)
+      val interesting =
+        capped || worseByRowsTermsOrSize || uncoveredWithoutBudgetWin ||
+          worseByDeepTermsOnly || deepTermCountingCapped ||
+          worseByMaxOnly || worseByDagOnly || worseByShapeDagOnly ||
+          worseByMaxDagOnly || worseByMaxShapeDagOnly
+
+      if (interesting) {
+        val obs =
+          ScanRowsDiffObservation(
+            label,
+            r,
+            input,
+            prefix,
+            rsize(r),
+            scanRows.length,
+            normRows.length,
+            scanTerms,
+            normTerms,
+            scanDeepTerms,
+            normDeepTerms,
+            scanDeepTermsCapped,
+            normDeepTermsCapped,
+            scanSize,
+            normSize,
+            scanDag,
+            normDag,
+            scanShapeDag,
+            normShapeDag,
+            scanMax,
+            normMax,
+            scanMaxDag,
+            normMaxDag,
+            scanMaxShapeDag,
+            normMaxShapeDag,
+            rowRatio,
+            termRatio,
+            deepTermRatio,
+            sizeRatio,
+            dagRatio,
+            shapeDagRatio,
+            maxRatio,
+            maxDagRatio,
+            maxShapeDagRatio,
+            score,
+            scanExtra,
+            normExtra,
+            explanation,
+            capped
+          )
+        best match {
+          case Some(old) if !scanRowsDiffObservationBetter(obs, old) => ()
+          case _ => best = Some(obs)
+        }
+      }
+    }
+
+    input.zipWithIndex.foreach { case (c, i) =>
+      if (!stopped) {
+        scanRows = bpderStrongRows(c, scanRows)
+        normRows = bpderStrongLinearRows(c, normRows)
+        val capped = normRows.lengthCompare(maxNormRows) > 0
+        updateBest(input.take(i + 1), capped)
+        if (capped) stopped = true
+      }
+    }
+    best
+  }
+
+  def scanRowsDiffObservationBetter(
+      a: ScanRowsDiffObservation,
+      b: ScanRowsDiffObservation
+  ): Boolean = {
+    def rank(x: ScanRowsDiffObservation): Int =
+      if (scanRowsDiffIsPrimary(x)) 5
+      else if (scanRowsDiffIsActionable(x)) 4
+      else if (x.scanExtra.nonEmpty) 3
+      else if (scanRowsDiffIsDeepTermCapped(x)) 2
+      else if (scanRowsDiffIsDeepTermOnly(x)) 2
+      else if (x.maxRatio > 1.0 && x.rowRatio <= 1.0 && x.termRatio <= 1.0 && x.sizeRatio <= 1.0) 1
+      else 0
+    val ar = rank(a)
+    val br = rank(b)
+    ar > br ||
+      (ar == br && (a.score > b.score ||
+        (a.score == b.score && (a.scanRows > b.scanRows ||
+          (a.scanRows == b.scanRows && (a.scanTerms > b.scanTerms ||
+            (a.scanTerms == b.scanTerms && (a.scanDeepTerms > b.scanDeepTerms ||
+              (a.scanDeepTerms == b.scanDeepTerms && (a.scanSize > b.scanSize ||
+              (a.scanSize == b.scanSize && (a.regexSize > b.regexSize ||
+                (a.regexSize == b.regexSize && (a.prefix < b.prefix ||
+                  (a.prefix == b.prefix && a.regex.toString < b.regex.toString)))))))))))))))
+  }
+
+  def scanRowsDiffTop(
+      current: Vector[ScanRowsDiffObservation],
+      next: ScanRowsDiffObservation,
+      limit: Int
+  ): Vector[ScanRowsDiffObservation] =
+    if (limit <= 0) current
+    else (current :+ next).sortWith(scanRowsDiffObservationBetter).take(limit)
+
+  def scanRowsDiffIsPrimary(obs: ScanRowsDiffObservation): Boolean =
+    obs.capped || obs.rowRatio > 1.0 || obs.termRatio > 1.0 || obs.sizeRatio > 1.0 ||
+      (obs.scanExtra.nonEmpty &&
+        (obs.rowRatio >= 1.0 || obs.termRatio >= 1.0 || obs.sizeRatio >= 1.0))
+
+  def scanRowsDiffIsProofBudgetWorse(obs: ScanRowsDiffObservation): Boolean =
+    obs.capped || obs.rowRatio > 1.0 || obs.termRatio > 1.0 || obs.sizeRatio > 1.0
+
+  def scanRowsDiffIsBudgetWorse(obs: ScanRowsDiffObservation): Boolean =
+    scanRowsDiffIsProofBudgetWorse(obs) || obs.deepTermRatio > 1.0 ||
+      obs.scanDeepTermsCapped || obs.normDeepTermsCapped
+
+  def scanRowsDiffIsNonworseViolation(obs: ScanRowsDiffObservation): Boolean =
+    scanRowsDiffIsBudgetWorse(obs) || scanRowsDiffHasScanCoverageGap(obs)
+
+  def scanRowsDiffHasCoverageGap(obs: ScanRowsDiffObservation): Boolean =
+    obs.scanExtra.nonEmpty || obs.normExtra.nonEmpty
+
+  def scanRowsDiffHasScanCoverageGap(obs: ScanRowsDiffObservation): Boolean =
+    obs.scanExtra.nonEmpty
+
+  def scanRowsDiffHasNormCoverageGap(obs: ScanRowsDiffObservation): Boolean =
+    obs.normExtra.nonEmpty
+
+  def scanRowsDiffIsUnexplained(obs: ScanRowsDiffObservation): Boolean =
+    obs.explanation.isEmpty &&
+      (scanRowsDiffIsPrimary(obs) || obs.scanExtra.nonEmpty || obs.normExtra.nonEmpty)
+
+  def scanRowsDiffIsActionable(obs: ScanRowsDiffObservation): Boolean =
+    scanRowsDiffIsPrimary(obs) || scanRowsDiffIsUnexplained(obs)
+
+  def scanRowsDiffHasBudgetCoverExplanation(obs: ScanRowsDiffObservation): Boolean =
+    obs.explanation.exists(e =>
+      e == "coveredDrop" || e == "sameBudgetCover" ||
+        e == "budgetNonworseCover" || e == "budgetNonworseOneWayCover" ||
+        (e == "absorbedSuffix" &&
+          obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+          obs.deepTermRatio <= 1.0 && obs.sizeRatio <= 1.0 &&
+          obs.shapeDagRatio <= 1.0 && obs.maxRatio <= 1.0 &&
+          obs.maxShapeDagRatio <= 1.0))
+
+  def scanRowsDiffIsMaxOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.maxRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsDeepTermOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.deepTermRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsDeepTermCapped(obs: ScanRowsDiffObservation): Boolean =
+    (obs.scanDeepTermsCapped || obs.normDeepTermsCapped) && !obs.capped
+
+  def scanRowsDiffIsDagOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.dagRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsShapeDagOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.shapeDagRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsMaxDagOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.maxDagRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.dagRatio <= 1.0 &&
+      obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsMaxShapeDagOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.maxShapeDagRatio > 1.0 && obs.rowRatio <= 1.0 && obs.termRatio <= 1.0 &&
+      obs.sizeRatio <= 1.0 && obs.shapeDagRatio <= 1.0 &&
+      obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffIsTermOnly(obs: ScanRowsDiffObservation): Boolean =
+    obs.termRatio > 1.0 && obs.rowRatio <= 1.0 && obs.sizeRatio <= 1.0 &&
+      obs.scanExtra.isEmpty && !obs.capped &&
+      !scanRowsDiffHasBudgetCoverExplanation(obs)
+
+  def scanRowsDiffFrontierSummary(top: Vector[ScanRowsDiffObservation]): String =
+    if (top.isEmpty) {
+      "no scan/prune row observations worse than Antimirov strong linear-form rows"
+    } else {
+      top.zipWithIndex.map { case (w, i) =>
+        val scanExtra = w.scanExtra.fold("")(x => s" scanExtra=$x")
+        val normExtra = w.normExtra.fold("")(x => s" normExtra=$x")
+        val explanation = w.explanation.fold("")(x => s" explanation=$x")
+        val capped = if (w.capped) " capped=true" else ""
+        val deepTermCapped =
+          if (w.scanDeepTermsCapped || w.normDeepTermsCapped)
+            s" deepTermCapped=${w.scanDeepTermsCapped}/${w.normDeepTermsCapped}"
+          else ""
+        f"#${i + 1}:score=${w.score}%.6f rows=${w.scanRows}/${w.normRows} rowRatio=${w.rowRatio}%.6f " +
+        f"terms=${w.scanTerms}/${w.normTerms} termRatio=${w.termRatio}%.6f " +
+        f"deepTerms=${w.scanDeepTerms}/${w.normDeepTerms} deepTermRatio=${w.deepTermRatio}%.6f " +
+        f"size=${w.scanSize}/${w.normSize} sizeRatio=${w.sizeRatio}%.6f " +
+        f"dag=${w.scanDag}/${w.normDag} dagRatio=${w.dagRatio}%.6f " +
+        f"shapeDag=${w.scanShapeDag}/${w.normShapeDag} shapeDagRatio=${w.shapeDagRatio}%.6f " +
+        f"max=${w.scanMax}/${w.normMax} maxRatio=${w.maxRatio}%.6f " +
+        f"maxDag=${w.scanMaxDag}/${w.normMaxDag} maxDagRatio=${w.maxDagRatio}%.6f " +
+        f"maxShapeDag=${w.scanMaxShapeDag}/${w.normMaxShapeDag} maxShapeDagRatio=${w.maxShapeDagRatio}%.6f " +
+        s"label=${w.label} rsize=${w.regexSize} input=${shortObservationInput(w.input)} " +
+          s"prefix=${shortObservationInput(w.prefix)} regex=${shortObservationRegex(w.regex)}$capped$deepTermCapped$explanation$scanExtra$normExtra"
+      }.mkString("top scan/prune vs Antimirov strong linear-form row diffs: ", "; ", "")
+    }
+
+  def scanRowsDiffUnexplainedSummary(top: Vector[ScanRowsDiffObservation]): String =
+    if (top.isEmpty) ""
+    else "; " + scanRowsDiffFrontierSummary(top).replace(
+      "top scan/prune vs Antimirov strong linear-form row diffs:",
+      "top unexplained scan/prune vs Antimirov row diffs:")
+
+  def scanRowsDiffShrunkFailureSummary(
+      top: Vector[ScanRowsDiffObservation],
+      unexplainedTop: Vector[ScanRowsDiffObservation],
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      mode: String = "actionable",
+      shrinkMaxProbes: Int = 0
+  ): String = {
+    val candidates = (top ++ unexplainedTop).filter(obs => scanRowsDiffMatchesMode(obs, mode))
+    candidates.headOption match {
+      case None => ""
+      case Some(obs) =>
+        val shrunk =
+          shrinkScanRowsDiffCase(
+            obs.regex,
+            obs.input,
+            maxNormRows,
+            includeMaxOnly,
+            mode,
+            shrinkMaxProbes)
+        scanRowsDiffObservation(
+          shrunk.regex,
+          shrunk.input,
+          s"${obs.label} auto-shrunk",
+          maxNormRows,
+          includeMaxOnly) match {
+          case Some(shrunkObs) =>
+            s"; auto-shrunk $mode witness: " +
+              s"originalLabel=${obs.label} originalRsize=${obs.regexSize} originalInput=${shortObservationInput(obs.input)} " +
+              s"shrunkRsize=${rsize(shrunk.regex)} shrunkInput=${shortObservationInput(shrunk.input)} " +
+              s"shrinkProbes=${shrunk.probes} shrinkExhausted=${shrunk.exhausted} " +
+              scanRowsDiffFrontierSummary(Vector(shrunkObs))
+          case None =>
+            "; auto-shrink attempted but the shrunk candidate no longer has a row diff"
+        }
+    }
+  }
+
+  def requireScanRowsDiffFixedPoint(
+      scope: String,
+      primaryCount: Int,
+      unexplainedCount: Int,
+      top: Vector[ScanRowsDiffObservation],
+      unexplainedTop: Vector[ScanRowsDiffObservation],
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      shrinkOnFailure: Boolean,
+      shrinkMaxProbes: Int = 0,
+      proofBudgetWorseCount: Int = 0,
+      budgetWorseCount: Int = 0,
+      scanCoverageGapCount: Int = 0,
+      normCoverageGapCount: Int = 0,
+      requireProofBudgetWorseFree: Boolean = false,
+      requireBudgetWorseFree: Boolean = false,
+      requireScanCoverageGapFree: Boolean = false,
+      requireNormCoverageGapFree: Boolean = false
+  ): Unit = {
+    val gateFailures =
+      Vector(
+        if (primaryCount > 0) Some(s"primary=$primaryCount") else None,
+        if (unexplainedCount > 0) Some(s"unexplained=$unexplainedCount") else None,
+        if (requireProofBudgetWorseFree && proofBudgetWorseCount > 0)
+          Some(s"proofBudgetWorse=$proofBudgetWorseCount")
+        else None,
+        if (requireBudgetWorseFree && budgetWorseCount > 0)
+          Some(s"budgetWorse=$budgetWorseCount")
+        else None,
+        if (requireScanCoverageGapFree && scanCoverageGapCount > 0)
+          Some(s"scanCoverageGap=$scanCoverageGapCount")
+        else None,
+        if (requireNormCoverageGapFree && normCoverageGapCount > 0)
+          Some(s"normCoverageGap=$normCoverageGapCount")
+        else None
+      ).flatten
+
+    if (gateFailures.nonEmpty) {
+      val shrinkMode =
+        if (primaryCount > 0 || unexplainedCount > 0) "actionable"
+        else if (requireBudgetWorseFree && budgetWorseCount > 0) "budgetWorse"
+        else if (requireProofBudgetWorseFree && proofBudgetWorseCount > 0) "proofBudgetWorse"
+        else if (requireScanCoverageGapFree && scanCoverageGapCount > 0) "scanCoverageGap"
+        else if (requireNormCoverageGapFree && normCoverageGapCount > 0) "normCoverageGap"
+        else "actionable"
+      val shrinkSummary =
+        if (shrinkOnFailure) {
+          scanRowsDiffShrunkFailureSummary(
+            top,
+            unexplainedTop,
+            maxNormRows,
+            includeMaxOnly,
+            shrinkMode,
+            shrinkMaxProbes)
+        } else ""
+      throw new AssertionError(
+        s"scan/prune vs Antimirov fixed-point gate failed on $scope: " +
+          gateFailures.mkString(" ") + "; " +
+          scanRowsDiffFrontierSummary(top) + scanRowsDiffUnexplainedSummary(unexplainedTop) +
+          shrinkSummary)
+    }
+  }
+
+  def dumpScanRowsDiffCase(
+      r: Rexp,
+      input: String,
+      label: String,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean
+  ): Unit = {
+    scanRowsDiffObservation(r, input, label, maxNormRows, includeMaxOnly) match {
+      case None =>
+        println(s"no scan/prune vs Antimirov row diff for $label")
+      case Some(obs) =>
+        var scanRows = List(intern(r))
+        var normRows = distinctWith(fullyFlts(List(bsimpStrong(intern(r)))))
+        input.zipWithIndex.foreach { case (c, i) =>
+          scanRows = bpderStrongRows(c, scanRows)
+          normRows = bpderStrongLinearRows(c, normRows)
+          val prefix = input.take(i + 1)
+          if (prefix == obs.prefix) {
+            println(
+              s"""scan/prune vs Antimirov row diff dump
+                 |label          = $label
+                 |regex          = $r
+                 |input          = $input
+                 |prefix         = $prefix
+                 |rsize          = ${rsize(r)}
+                 |scanRows       = ${scanRows.length}
+                 |normRows       = ${normRows.length}
+                 |scanTerms      = ${rowsLinearTermCount(scanRows)}
+                 |normTerms      = ${rowsLinearTermCount(normRows)}
+                 |scanDeepTerms  = ${rowsDeepLinearTermCount(scanRows)}
+                 |normDeepTerms  = ${rowsDeepLinearTermCount(normRows)}
+                 |scanDeepTermsCapped = ${rowsDeepLinearTermCountInfo(scanRows).capped}
+                 |normDeepTermsCapped = ${rowsDeepLinearTermCountInfo(normRows).capped}
+                 |scanSize       = ${rowsTreeSize(scanRows)}
+                 |normSize       = ${rowsTreeSize(normRows)}
+                 |scanDag        = ${rowsDagSize(scanRows)}
+                 |normDag        = ${rowsDagSize(normRows)}
+                 |scanShapeDag   = ${rowsShapeDagSize(scanRows)}
+                 |normShapeDag   = ${rowsShapeDagSize(normRows)}
+                 |scanMax        = ${rowsMaxTreeSize(scanRows)}
+                 |normMax        = ${rowsMaxTreeSize(normRows)}
+                 |scanMaxDag     = ${rowsMaxDagSize(scanRows)}
+                 |normMaxDag     = ${rowsMaxDagSize(normRows)}
+                 |scanMaxShapeDag = ${rowsMaxShapeDagSize(scanRows)}
+                 |normMaxShapeDag = ${rowsMaxShapeDagSize(normRows)}
+                 |rowRatio       = ${obs.rowRatio}
+                 |termRatio      = ${obs.termRatio}
+                 |deepTermRatio  = ${obs.deepTermRatio}
+                 |sizeRatio      = ${obs.sizeRatio}
+                 |dagRatio       = ${obs.dagRatio}
+                 |shapeDagRatio  = ${obs.shapeDagRatio}
+                 |maxRatio       = ${obs.maxRatio}
+                 |maxDagRatio    = ${obs.maxDagRatio}
+                 |maxShapeDagRatio = ${obs.maxShapeDagRatio}
+                 |explanation    = ${obs.explanation.getOrElse("<none>")}
+                 |scanExtra      = ${obs.scanExtra.getOrElse("<none>")}
+                 |normExtra      = ${obs.normExtra.getOrElse("<none>")}
+                 |""".stripMargin
+            )
+            println("scan rows:")
+            scanRows.zipWithIndex.foreach { case (row, j) =>
+              println(
+                s"  scan[$j] size=${asize(row)} dag=${adagSize(row)} shapeDag=${ashapeDagSize(row)} row=$row")
+            }
+            println("Antimirov strong linear-form rows:")
+            normRows.zipWithIndex.foreach { case (row, j) =>
+              println(
+                s"  norm[$j] size=${asize(row)} dag=${adagSize(row)} shapeDag=${ashapeDagSize(row)} row=$row")
+            }
+          }
+        }
+    }
+  }
+
+  def randomRegexInputAtCase(
+      seed: Long,
+      targetCase: Int,
+      maxDepth: Int,
+      maxInput: Int
+  ): (Rexp, String) = {
+    val rng = new Random(seed)
+    var r: Rexp = ZERO
+    var input = ""
+    (1 to targetCase).foreach { _ =>
+      r = randomRegex(rng, maxDepth)
+      input = randomInput(rng, maxInput)
+    }
+    (r, input)
+  }
+
+  def dumpScanRowsRandomCase(
+      seed: Long,
+      targetCase: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean
+  ): Unit = {
+    val (r, input) = randomRegexInputAtCase(seed, targetCase, maxDepth, maxInput)
+    dumpScanRowsDiffCase(
+      r,
+      input,
+      s"random seed=$seed case=$targetCase",
+      maxNormRows,
+      includeMaxOnly)
+  }
+
+  def scanRowsDiffMatchesMode(obs: ScanRowsDiffObservation, mode: String): Boolean =
+    mode.toLowerCase match {
+      case "actionable" | "fixedpoint" =>
+        scanRowsDiffIsActionable(obs)
+      case "primary" => scanRowsDiffIsPrimary(obs)
+      case "proofbudgetworse" | "proof-budget-worse" | "proofbudget" | "proof-budget" =>
+        scanRowsDiffIsProofBudgetWorse(obs)
+      case "budgetworse" | "budget-worse" | "anybudgetworse" | "any-budget-worse" =>
+        scanRowsDiffIsBudgetWorse(obs)
+      case "nonworse" | "non-worse" | "nonworseviolation" | "non-worse-violation" =>
+        scanRowsDiffIsNonworseViolation(obs)
+      case "coveragegap" | "coverage-gap" =>
+        scanRowsDiffHasCoverageGap(obs)
+      case "scancoveragegap" | "scan-coverage-gap" | "scanextra" | "scan-extra" =>
+        scanRowsDiffHasScanCoverageGap(obs)
+      case "normcoveragegap" | "norm-coverage-gap" | "normextra" | "norm-extra" =>
+        scanRowsDiffHasNormCoverageGap(obs)
+      case "unexplained" => scanRowsDiffIsUnexplained(obs)
+      case "termonly" | "term-only" => scanRowsDiffIsTermOnly(obs)
+      case "deeptermonly" | "deep-term-only" => scanRowsDiffIsDeepTermOnly(obs)
+      case "deeptermcapped" | "deep-term-capped" => scanRowsDiffIsDeepTermCapped(obs)
+      case "maxonly" | "max-only" => scanRowsDiffIsMaxOnly(obs)
+      case "dagonly" | "dag-only" => scanRowsDiffIsDagOnly(obs)
+      case "shapedagonly" | "shape-dag-only" => scanRowsDiffIsShapeDagOnly(obs)
+      case "maxdagonly" | "max-dag-only" => scanRowsDiffIsMaxDagOnly(obs)
+      case "maxshapedagonly" | "max-shape-dag-only" => scanRowsDiffIsMaxShapeDagOnly(obs)
+      case "samebudgetcover" | "same-budget-cover" =>
+        obs.explanation.contains("sameBudgetCover")
+      case "budgetnonworsecover" | "budget-nonworse-cover" | "budgetcover" | "budget-cover" =>
+        obs.explanation.contains("budgetNonworseCover")
+      case "budgetnonworseonewaycover" | "budget-nonworse-one-way-cover" |
+           "onewaybudgetcover" | "one-way-budget-cover" =>
+        obs.explanation.contains("budgetNonworseOneWayCover")
+      case "any" => true
+      case other =>
+        throw new IllegalArgumentException(
+          s"invalid scan row diff shrink mode '$other'; expected actionable, primary, proofBudgetWorse, budgetWorse, nonworse, coverageGap, scanCoverageGap, normCoverageGap, unexplained, termOnly, deepTermOnly, deepTermCapped, maxOnly, dagOnly, shapeDagOnly, maxDagOnly, maxShapeDagOnly, sameBudgetCover, budgetNonworseCover, budgetNonworseOneWayCover, or any")
+    }
+
+  def scanRowsDiffHasMode(
+      r: Rexp,
+      input: String,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      mode: String
+  ): Boolean =
+    scanRowsDiffObservation(r, input, "scan row diff shrink probe", maxNormRows, includeMaxOnly)
+      .exists(obs => scanRowsDiffMatchesMode(obs, mode))
+
+  def shrinkScanRowsDiffCase(
+      startR: Rexp,
+      startInput: String,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      mode: String,
+      maxProbes: Int = 0
+  ): ScanRowsShrinkResult = {
+    val probeLimit = math.max(0, maxProbes)
+    var probes = 0
+    var exhausted = false
+
+    def hasModeWithProbe(r: Rexp, s: String): Boolean =
+      if (probeLimit > 0 && probes >= probeLimit) {
+        exhausted = true
+        false
+      } else {
+        probes += 1
+        scanRowsDiffHasMode(r, s, maxNormRows, includeMaxOnly, mode)
+      }
+
+    @tailrec
+    def loop(r: Rexp, s: String, seen: Set[(Rexp, String)]): (Rexp, String) = {
+      val nextSeen = seen + ((r, s))
+      val inputHit = inputShrinkCandidates(s)
+        .filterNot(t => nextSeen.contains((r, t)))
+        .find(t => hasModeWithProbe(r, t))
+      inputHit match {
+        case Some(t) => loop(r, t, nextSeen)
+        case None if exhausted => (r, s)
+        case None =>
+          regexShrinkCandidates(r)
+            .filterNot(candidate => nextSeen.contains((candidate, s)))
+            .find(candidate => hasModeWithProbe(candidate, s)) match {
+            case Some(candidate) => loop(candidate, s, nextSeen)
+            case None => (r, s)
+          }
+      }
+    }
+    val (shrunkR, shrunkInput) = loop(startR, startInput, Set.empty)
+    ScanRowsShrinkResult(shrunkR, shrunkInput, probes, exhausted)
+  }
+
+  def shrinkAndDumpScanRowsRandomCase(
+      seed: Long,
+      targetCase: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      mode: String,
+      shrinkMaxProbes: Int = 0
+  ): Unit = {
+    val (r, input) = randomRegexInputAtCase(seed, targetCase, maxDepth, maxInput)
+    val label = s"random seed=$seed case=$targetCase"
+    scanRowsDiffObservation(r, input, label, maxNormRows, includeMaxOnly) match {
+      case Some(obs) if scanRowsDiffMatchesMode(obs, mode) =>
+        println(
+          s"scan/prune vs Antimirov row diff before shrinking " +
+            s"(mode=$mode, shrinkMaxProbes=$shrinkMaxProbes)")
+        dumpScanRowsDiffCase(r, input, label, maxNormRows, includeMaxOnly)
+        val shrunk =
+          shrinkScanRowsDiffCase(r, input, maxNormRows, includeMaxOnly, mode, shrinkMaxProbes)
+        println(
+          s"scan/prune vs Antimirov row diff after greedy shrinking " +
+            s"(mode=$mode, probes=${shrunk.probes}, exhausted=${shrunk.exhausted})")
+        dumpScanRowsDiffCase(shrunk.regex, shrunk.input, s"$label shrunk", maxNormRows, includeMaxOnly)
+      case Some(obs) =>
+        println(
+          s"scan/prune vs Antimirov row diff for $label does not match shrink mode=$mode; " +
+            s"primary=${scanRowsDiffIsPrimary(obs)} explanation=${obs.explanation.getOrElse("<none>")}")
+      case None =>
+        println(s"no scan/prune vs Antimirov row diff for $label")
+    }
+  }
+
+  def findAndShrinkScanRowsDiff(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seeds: List[Long],
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      maxRegexSize: Int,
+      progressEvery: Int,
+      mode: String,
+      shrinkMaxProbes: Int = 0
+  ): Boolean = {
+    var found = Option.empty[(Long, Int, Rexp, String)]
+    var totalGenerated = 0
+    var totalChecked = 0
+    var totalSkippedBySize = 0
+    println(
+      s"finding first scan/prune vs Antimirov row diff matching mode=$mode " +
+        s"over seeds=${seeds.mkString(",")} casesPerSeed=$cases depth <= $maxDepth " +
+        s"input length <= $maxInput maxRegexSize=$maxRegexSize maxNormRows=$maxNormRows " +
+        s"includeMaxOnly=$includeMaxOnly shrinkMaxProbes=$shrinkMaxProbes")
+
+    seeds.foreach { seed =>
+      if (found.isEmpty) {
+        val rng = new Random(seed)
+        var generated = 0
+        var checked = 0
+        var skippedBySize = 0
+        (0 until cases).foreach { _ =>
+          if (found.isEmpty) {
+            generated += 1
+            totalGenerated += 1
+            val r = randomRegex(rng, maxDepth)
+            val s = randomInput(rng, maxInput)
+            val size = rsize(r)
+            if (maxRegexSize > 0 && size > maxRegexSize) {
+              skippedBySize += 1
+              totalSkippedBySize += 1
+            } else {
+              checked += 1
+              totalChecked += 1
+              scanRowsDiffObservation(
+                r,
+                s,
+                s"random seed=$seed case=$generated",
+                maxNormRows,
+                includeMaxOnly) match {
+                case Some(obs) if scanRowsDiffMatchesMode(obs, mode) =>
+                  found = Some((seed, generated, r, s))
+                  println(
+                    s"found scan/prune vs Antimirov row diff matching mode=$mode " +
+                      s"at seed=$seed case=$generated checked=$checked skippedBySize=$skippedBySize")
+                  println(scanRowsDiffFrontierSummary(Vector(obs)))
+                case _ => ()
+              }
+            }
+            if (progressEvery > 0 && generated % progressEvery == 0) {
+              println(
+                s"scan/prune vs Antimirov find progress seed=$seed generated=$generated " +
+                  s"checked=$checked skippedBySize=$skippedBySize mode=$mode")
+            }
+          }
+        }
+        if (found.isEmpty) {
+          println(
+            s"no scan/prune vs Antimirov row diff matching mode=$mode found for seed=$seed " +
+              s"(checked=$checked, generated=$generated, skippedBySize=$skippedBySize)")
+        }
+      }
+    }
+
+    found match {
+      case Some((seed, targetCase, r, input)) =>
+        val label = s"random seed=$seed case=$targetCase"
+        println(s"scan/prune vs Antimirov row diff finder dump before shrinking (mode=$mode)")
+        dumpScanRowsDiffCase(r, input, label, maxNormRows, includeMaxOnly)
+        val shrunk =
+          shrinkScanRowsDiffCase(r, input, maxNormRows, includeMaxOnly, mode, shrinkMaxProbes)
+        println(
+          s"scan/prune vs Antimirov row diff finder dump after greedy shrinking " +
+            s"(mode=$mode, probes=${shrunk.probes}, exhausted=${shrunk.exhausted})")
+        dumpScanRowsDiffCase(shrunk.regex, shrunk.input, s"$label shrunk", maxNormRows, includeMaxOnly)
+        true
+      case None =>
+        println(
+          s"no scan/prune vs Antimirov row diff matching mode=$mode found across " +
+            s"$totalChecked checked random cases (generated=$totalGenerated, " +
+            s"skippedBySize=$totalSkippedBySize, seeds=${seeds.mkString(",")})")
+        false
+    }
+  }
+
+  val scanRowsKnownRegressions: Vector[ScanRowsKnownRegression] = Vector(
+    ScanRowsKnownRegression(20260622L, 15061, 10, 14, "one-level reassociation"),
+    ScanRowsKnownRegression(20260622L, 3573, 10, 14, "arbitrary-prefix reassociation"),
+    ScanRowsKnownRegression(20260623L, 11701, 10, 14, "covered-row prune primary"),
+    ScanRowsKnownRegression(20260630L, 13766, 11, 15, "coveredDrop max-only classification"),
+    ScanRowsKnownRegression(20260631L, 21040, 11, 15, "sequence-factor suffix stripping"),
+    ScanRowsKnownRegression(20260632L, 26971, 11, 15, "sequence-factor suffix stripping"),
+    ScanRowsKnownRegression(20260674L, 256, 12, 16, "nested alternative branch deep linear coverage"),
+    ScanRowsKnownRegression(20260726L, 12, 15, 18, "same-budget DAG sharing tradeoff"),
+    ScanRowsKnownRegression(20260735L, 6959, 15, 18, "one-way budget cover")
+  )
 
   def strongerCubicWorst(
       current: Option[StrongCubicObservation],
@@ -3947,6 +5103,357 @@ object PosixCubicSmoke {
     (0 until n).map(_ => alphabet(rng.nextInt(alphabet.length))).mkString
   }
 
+  def compareScanRowsExhaustive(
+      maxDepth: Int,
+      maxInput: Int,
+      maxRegexes: Int,
+      topLimit: Int,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      requireFixedPoint: Boolean,
+      shrinkOnFailure: Boolean,
+      shrinkMaxProbes: Int = 0,
+      requireProofBudgetWorseFree: Boolean = false,
+      requireBudgetWorseFree: Boolean = false,
+      requireScanCoverageGapFree: Boolean = false,
+      requireNormCoverageGapFree: Boolean = false
+  ): Unit = {
+    val regexes = regexesUpToDepth(maxDepth, maxRegexes)
+    val inputs = stringsUpTo(maxInput)
+    var checked = 0L
+    var observations = 0
+    var scanExtraCount = 0
+    var normExtraCount = 0
+    var cappedCount = 0
+    var maxOnlyCount = 0
+    var dagOnlyCount = 0
+    var shapeDagOnlyCount = 0
+    var maxDagOnlyCount = 0
+    var maxShapeDagOnlyCount = 0
+    var termOnlyCount = 0
+    var deepTermOnlyCount = 0
+    var deepTermCappedCount = 0
+    var absorbedSuffixCount = 0
+    var coveredDropCount = 0
+    var sameBudgetCoverCount = 0
+    var budgetNonworseCoverCount = 0
+    var budgetNonworseOneWayCoverCount = 0
+    var proofBudgetWorseCount = 0
+    var budgetWorseCount = 0
+    var scanCoverageGapCount = 0
+    var normCoverageGapCount = 0
+    var primaryCount = 0
+    var unexplainedCount = 0
+    var top = Vector.empty[ScanRowsDiffObservation]
+    var unexplainedTop = Vector.empty[ScanRowsDiffObservation]
+
+    regexes.foreach { r =>
+      inputs.foreach { s =>
+        checked += 1
+        scanRowsDiffObservation(r, s, s"exhaustive case $checked", maxNormRows, includeMaxOnly).foreach { obs =>
+          observations += 1
+          if (obs.scanExtra.nonEmpty) scanExtraCount += 1
+          if (obs.normExtra.nonEmpty) normExtraCount += 1
+          if (obs.capped) cappedCount += 1
+          if (scanRowsDiffIsMaxOnly(obs)) maxOnlyCount += 1
+          if (scanRowsDiffIsDagOnly(obs)) dagOnlyCount += 1
+          if (scanRowsDiffIsShapeDagOnly(obs)) shapeDagOnlyCount += 1
+          if (scanRowsDiffIsMaxDagOnly(obs)) maxDagOnlyCount += 1
+          if (scanRowsDiffIsMaxShapeDagOnly(obs)) maxShapeDagOnlyCount += 1
+          if (scanRowsDiffIsTermOnly(obs)) termOnlyCount += 1
+          if (scanRowsDiffIsDeepTermOnly(obs)) deepTermOnlyCount += 1
+          if (scanRowsDiffIsDeepTermCapped(obs)) deepTermCappedCount += 1
+          if (obs.explanation.contains("absorbedSuffix")) absorbedSuffixCount += 1
+          if (obs.explanation.contains("coveredDrop")) coveredDropCount += 1
+          if (obs.explanation.contains("sameBudgetCover")) sameBudgetCoverCount += 1
+          if (obs.explanation.contains("budgetNonworseCover")) budgetNonworseCoverCount += 1
+          if (obs.explanation.contains("budgetNonworseOneWayCover")) budgetNonworseOneWayCoverCount += 1
+          if (scanRowsDiffIsProofBudgetWorse(obs)) proofBudgetWorseCount += 1
+          if (scanRowsDiffIsBudgetWorse(obs)) budgetWorseCount += 1
+          if (scanRowsDiffHasScanCoverageGap(obs)) scanCoverageGapCount += 1
+          if (scanRowsDiffHasNormCoverageGap(obs)) normCoverageGapCount += 1
+          if (scanRowsDiffIsPrimary(obs)) primaryCount += 1
+          if (scanRowsDiffIsUnexplained(obs)) unexplainedCount += 1
+          top = scanRowsDiffTop(top, obs, topLimit)
+          if (scanRowsDiffIsUnexplained(obs)) {
+            unexplainedTop = scanRowsDiffTop(unexplainedTop, obs, topLimit)
+          }
+        }
+      }
+    }
+
+    println(
+      s"compared scan/prune rows against Antimirov strong linear-form rows on $checked regex/input pairs " +
+        s"(depth <= $maxDepth, input length <= $maxInput, maxNormRows=$maxNormRows, top=$topLimit, includeMaxOnly=$includeMaxOnly); " +
+        s"observations=$observations scanExtra=$scanExtraCount normExtra=$normExtraCount capped=$cappedCount " +
+        s"proofBudgetWorse=$proofBudgetWorseCount budgetWorse=$budgetWorseCount scanCoverageGap=$scanCoverageGapCount normCoverageGap=$normCoverageGapCount " +
+        s"termOnly=$termOnlyCount deepTermOnly=$deepTermOnlyCount deepTermCapped=$deepTermCappedCount maxOnly=$maxOnlyCount dagOnly=$dagOnlyCount maxDagOnly=$maxDagOnlyCount " +
+        s"shapeDagOnly=$shapeDagOnlyCount maxShapeDagOnly=$maxShapeDagOnlyCount " +
+        s"absorbedSuffix=$absorbedSuffixCount coveredDrop=$coveredDropCount sameBudgetCover=$sameBudgetCoverCount budgetNonworseCover=$budgetNonworseCoverCount " +
+        s"budgetNonworseOneWayCover=$budgetNonworseOneWayCoverCount " +
+        s"primary=$primaryCount unexplained=$unexplainedCount; " +
+        scanRowsDiffFrontierSummary(top) + scanRowsDiffUnexplainedSummary(unexplainedTop)
+    )
+    if (requireFixedPoint || requireProofBudgetWorseFree || requireBudgetWorseFree ||
+        requireScanCoverageGapFree || requireNormCoverageGapFree) {
+      requireScanRowsDiffFixedPoint(
+        s"exhaustive depth <= $maxDepth input length <= $maxInput",
+        primaryCount,
+        unexplainedCount,
+        top,
+        unexplainedTop,
+        maxNormRows,
+        includeMaxOnly,
+        shrinkOnFailure,
+        shrinkMaxProbes,
+        proofBudgetWorseCount,
+        budgetWorseCount,
+        scanCoverageGapCount,
+        normCoverageGapCount,
+        requireProofBudgetWorseFree,
+        requireBudgetWorseFree,
+        requireScanCoverageGapFree,
+        requireNormCoverageGapFree)
+    }
+  }
+
+  def compareScanRowsRandom(
+      cases: Int,
+      maxDepth: Int,
+      maxInput: Int,
+      seed: Long,
+      topLimit: Int,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      requireFixedPoint: Boolean,
+      maxRegexSize: Int,
+      progressEvery: Int,
+      shrinkOnFailure: Boolean,
+      shrinkMaxProbes: Int = 0,
+      requireProofBudgetWorseFree: Boolean = false,
+      requireBudgetWorseFree: Boolean = false,
+      requireScanCoverageGapFree: Boolean = false,
+      requireNormCoverageGapFree: Boolean = false
+  ): Unit = {
+    val rng = new Random(seed)
+    var generated = 0
+    var checked = 0
+    var skippedBySize = 0
+    var observations = 0
+    var scanExtraCount = 0
+    var normExtraCount = 0
+    var cappedCount = 0
+    var maxOnlyCount = 0
+    var dagOnlyCount = 0
+    var shapeDagOnlyCount = 0
+    var maxDagOnlyCount = 0
+    var maxShapeDagOnlyCount = 0
+    var termOnlyCount = 0
+    var deepTermOnlyCount = 0
+    var deepTermCappedCount = 0
+    var absorbedSuffixCount = 0
+    var coveredDropCount = 0
+    var sameBudgetCoverCount = 0
+    var budgetNonworseCoverCount = 0
+    var budgetNonworseOneWayCoverCount = 0
+    var proofBudgetWorseCount = 0
+    var budgetWorseCount = 0
+    var scanCoverageGapCount = 0
+    var normCoverageGapCount = 0
+    var primaryCount = 0
+    var unexplainedCount = 0
+    var top = Vector.empty[ScanRowsDiffObservation]
+    var unexplainedTop = Vector.empty[ScanRowsDiffObservation]
+
+    (0 until cases).foreach { _ =>
+      generated += 1
+      val r = randomRegex(rng, maxDepth)
+      val s = randomInput(rng, maxInput)
+      val size = rsize(r)
+      if (maxRegexSize > 0 && size > maxRegexSize) {
+        skippedBySize += 1
+      } else {
+        checked += 1
+        scanRowsDiffObservation(r, s, s"random seed=$seed case=$generated", maxNormRows, includeMaxOnly).foreach { obs =>
+          observations += 1
+          if (obs.scanExtra.nonEmpty) scanExtraCount += 1
+          if (obs.normExtra.nonEmpty) normExtraCount += 1
+          if (obs.capped) cappedCount += 1
+          if (scanRowsDiffIsMaxOnly(obs)) maxOnlyCount += 1
+          if (scanRowsDiffIsDagOnly(obs)) dagOnlyCount += 1
+          if (scanRowsDiffIsShapeDagOnly(obs)) shapeDagOnlyCount += 1
+          if (scanRowsDiffIsMaxDagOnly(obs)) maxDagOnlyCount += 1
+          if (scanRowsDiffIsMaxShapeDagOnly(obs)) maxShapeDagOnlyCount += 1
+          if (scanRowsDiffIsTermOnly(obs)) termOnlyCount += 1
+          if (scanRowsDiffIsDeepTermOnly(obs)) deepTermOnlyCount += 1
+          if (scanRowsDiffIsDeepTermCapped(obs)) deepTermCappedCount += 1
+          if (obs.explanation.contains("absorbedSuffix")) absorbedSuffixCount += 1
+          if (obs.explanation.contains("coveredDrop")) coveredDropCount += 1
+          if (obs.explanation.contains("sameBudgetCover")) sameBudgetCoverCount += 1
+          if (obs.explanation.contains("budgetNonworseCover")) budgetNonworseCoverCount += 1
+          if (obs.explanation.contains("budgetNonworseOneWayCover")) budgetNonworseOneWayCoverCount += 1
+          if (scanRowsDiffIsProofBudgetWorse(obs)) proofBudgetWorseCount += 1
+          if (scanRowsDiffIsBudgetWorse(obs)) budgetWorseCount += 1
+          if (scanRowsDiffHasScanCoverageGap(obs)) scanCoverageGapCount += 1
+          if (scanRowsDiffHasNormCoverageGap(obs)) normCoverageGapCount += 1
+          if (scanRowsDiffIsPrimary(obs)) primaryCount += 1
+          if (scanRowsDiffIsUnexplained(obs)) unexplainedCount += 1
+          top = scanRowsDiffTop(top, obs, topLimit)
+          if (scanRowsDiffIsUnexplained(obs)) {
+            unexplainedTop = scanRowsDiffTop(unexplainedTop, obs, topLimit)
+          }
+        }
+      }
+      if (progressEvery > 0 && generated % progressEvery == 0) {
+        println(
+          s"scan/prune vs Antimirov random progress seed=$seed generated=$generated checked=$checked skippedBySize=$skippedBySize")
+      }
+    }
+
+    println(
+      s"compared scan/prune rows against Antimirov strong linear-form rows on $checked random cases " +
+        s"(generated=$generated, skippedBySize=$skippedBySize, maxRegexSize=$maxRegexSize, " +
+        s"depth <= $maxDepth, input length <= $maxInput, seed=$seed, maxNormRows=$maxNormRows, top=$topLimit, includeMaxOnly=$includeMaxOnly); " +
+        s"observations=$observations scanExtra=$scanExtraCount normExtra=$normExtraCount capped=$cappedCount " +
+        s"proofBudgetWorse=$proofBudgetWorseCount budgetWorse=$budgetWorseCount scanCoverageGap=$scanCoverageGapCount normCoverageGap=$normCoverageGapCount " +
+        s"termOnly=$termOnlyCount deepTermOnly=$deepTermOnlyCount deepTermCapped=$deepTermCappedCount maxOnly=$maxOnlyCount dagOnly=$dagOnlyCount maxDagOnly=$maxDagOnlyCount " +
+        s"shapeDagOnly=$shapeDagOnlyCount maxShapeDagOnly=$maxShapeDagOnlyCount " +
+        s"absorbedSuffix=$absorbedSuffixCount coveredDrop=$coveredDropCount sameBudgetCover=$sameBudgetCoverCount budgetNonworseCover=$budgetNonworseCoverCount " +
+        s"budgetNonworseOneWayCover=$budgetNonworseOneWayCoverCount " +
+        s"primary=$primaryCount unexplained=$unexplainedCount; " +
+        scanRowsDiffFrontierSummary(top) + scanRowsDiffUnexplainedSummary(unexplainedTop)
+    )
+    if (requireFixedPoint || requireProofBudgetWorseFree || requireBudgetWorseFree ||
+        requireScanCoverageGapFree || requireNormCoverageGapFree) {
+      requireScanRowsDiffFixedPoint(
+        s"random depth <= $maxDepth input length <= $maxInput seed=$seed cases=$cases",
+        primaryCount,
+        unexplainedCount,
+        top,
+        unexplainedTop,
+        maxNormRows,
+        includeMaxOnly,
+        shrinkOnFailure,
+        shrinkMaxProbes,
+        proofBudgetWorseCount,
+        budgetWorseCount,
+        scanCoverageGapCount,
+        normCoverageGapCount,
+        requireProofBudgetWorseFree,
+        requireBudgetWorseFree,
+        requireScanCoverageGapFree,
+        requireNormCoverageGapFree)
+    }
+  }
+
+  def compareScanRowsKnownRegressions(
+      topLimit: Int,
+      maxNormRows: Int,
+      includeMaxOnly: Boolean,
+      shrinkMaxProbes: Int = 0,
+      requireProofBudgetWorseFree: Boolean = false,
+      requireBudgetWorseFree: Boolean = false,
+      requireScanCoverageGapFree: Boolean = false,
+      requireNormCoverageGapFree: Boolean = false
+  ): Unit = {
+    var observations = 0
+    var scanExtraCount = 0
+    var normExtraCount = 0
+    var cappedCount = 0
+    var maxOnlyCount = 0
+    var dagOnlyCount = 0
+    var shapeDagOnlyCount = 0
+    var maxDagOnlyCount = 0
+    var maxShapeDagOnlyCount = 0
+    var termOnlyCount = 0
+    var deepTermOnlyCount = 0
+    var deepTermCappedCount = 0
+    var absorbedSuffixCount = 0
+    var coveredDropCount = 0
+    var sameBudgetCoverCount = 0
+    var budgetNonworseCoverCount = 0
+    var budgetNonworseOneWayCoverCount = 0
+    var proofBudgetWorseCount = 0
+    var budgetWorseCount = 0
+    var scanCoverageGapCount = 0
+    var normCoverageGapCount = 0
+    var primaryCount = 0
+    var unexplainedCount = 0
+    var top = Vector.empty[ScanRowsDiffObservation]
+    var unexplainedTop = Vector.empty[ScanRowsDiffObservation]
+
+    scanRowsKnownRegressions.foreach { regression =>
+      val (r, s) =
+        randomRegexInputAtCase(
+          regression.seed,
+          regression.targetCase,
+          regression.maxDepth,
+          regression.maxInput)
+      val label =
+        s"known ${regression.note} seed=${regression.seed} case=${regression.targetCase}"
+      scanRowsDiffObservation(r, s, label, maxNormRows, includeMaxOnly).foreach { obs =>
+        observations += 1
+        if (obs.scanExtra.nonEmpty) scanExtraCount += 1
+        if (obs.normExtra.nonEmpty) normExtraCount += 1
+        if (obs.capped) cappedCount += 1
+        if (scanRowsDiffIsMaxOnly(obs)) maxOnlyCount += 1
+        if (scanRowsDiffIsDagOnly(obs)) dagOnlyCount += 1
+        if (scanRowsDiffIsShapeDagOnly(obs)) shapeDagOnlyCount += 1
+        if (scanRowsDiffIsMaxDagOnly(obs)) maxDagOnlyCount += 1
+        if (scanRowsDiffIsMaxShapeDagOnly(obs)) maxShapeDagOnlyCount += 1
+        if (scanRowsDiffIsTermOnly(obs)) termOnlyCount += 1
+        if (scanRowsDiffIsDeepTermOnly(obs)) deepTermOnlyCount += 1
+        if (scanRowsDiffIsDeepTermCapped(obs)) deepTermCappedCount += 1
+        if (obs.explanation.contains("absorbedSuffix")) absorbedSuffixCount += 1
+        if (obs.explanation.contains("coveredDrop")) coveredDropCount += 1
+        if (obs.explanation.contains("sameBudgetCover")) sameBudgetCoverCount += 1
+        if (obs.explanation.contains("budgetNonworseCover")) budgetNonworseCoverCount += 1
+        if (obs.explanation.contains("budgetNonworseOneWayCover")) budgetNonworseOneWayCoverCount += 1
+        if (scanRowsDiffIsProofBudgetWorse(obs)) proofBudgetWorseCount += 1
+        if (scanRowsDiffIsBudgetWorse(obs)) budgetWorseCount += 1
+        if (scanRowsDiffHasScanCoverageGap(obs)) scanCoverageGapCount += 1
+        if (scanRowsDiffHasNormCoverageGap(obs)) normCoverageGapCount += 1
+        if (scanRowsDiffIsPrimary(obs)) primaryCount += 1
+        if (scanRowsDiffIsUnexplained(obs)) unexplainedCount += 1
+        top = scanRowsDiffTop(top, obs, topLimit)
+        if (scanRowsDiffIsUnexplained(obs)) {
+          unexplainedTop = scanRowsDiffTop(unexplainedTop, obs, topLimit)
+        }
+      }
+    }
+
+    println(
+      s"checked scan/prune vs Antimirov known row-diff regressions on ${scanRowsKnownRegressions.length} cases " +
+        s"(maxNormRows=$maxNormRows, top=$topLimit, includeMaxOnly=$includeMaxOnly); " +
+        s"observations=$observations scanExtra=$scanExtraCount normExtra=$normExtraCount capped=$cappedCount " +
+        s"proofBudgetWorse=$proofBudgetWorseCount budgetWorse=$budgetWorseCount scanCoverageGap=$scanCoverageGapCount normCoverageGap=$normCoverageGapCount " +
+        s"termOnly=$termOnlyCount deepTermOnly=$deepTermOnlyCount deepTermCapped=$deepTermCappedCount maxOnly=$maxOnlyCount dagOnly=$dagOnlyCount maxDagOnly=$maxDagOnlyCount " +
+      s"shapeDagOnly=$shapeDagOnlyCount maxShapeDagOnly=$maxShapeDagOnlyCount " +
+      s"absorbedSuffix=$absorbedSuffixCount coveredDrop=$coveredDropCount sameBudgetCover=$sameBudgetCoverCount budgetNonworseCover=$budgetNonworseCoverCount " +
+      s"budgetNonworseOneWayCover=$budgetNonworseOneWayCoverCount " +
+      s"primary=$primaryCount unexplained=$unexplainedCount; " +
+        scanRowsDiffFrontierSummary(top) + scanRowsDiffUnexplainedSummary(unexplainedTop)
+    )
+    requireScanRowsDiffFixedPoint(
+      "known row-diff regressions",
+      primaryCount,
+      unexplainedCount,
+      top,
+      unexplainedTop,
+      maxNormRows,
+      includeMaxOnly,
+      true,
+      shrinkMaxProbes,
+      proofBudgetWorseCount,
+      budgetWorseCount,
+      scanCoverageGapCount,
+      normCoverageGapCount,
+      requireProofBudgetWorseFree,
+      requireBudgetWorseFree,
+      requireScanCoverageGapFree,
+      requireNormCoverageGapFree)
+  }
+
   final case class FailureCase(regex: Rexp, input: String, baseline: Option[Val], cubic: Option[Val])
 
   def checkValuePreservation(maxDepth: Int, maxInput: Int, maxRegexes: Int): Unit = {
@@ -4330,10 +5837,24 @@ object PosixCubicSmoke {
   def expandedRowKeysId(store: DagStore, row: Int): List[Int] =
     expandedRowKeysOptionId(store, row, 4096).getOrElse(List(store.bsimpStrongId(row)))
 
+  def deepExpandedRowKeysOptionId(store: DagStore, row: Int, maxKeys: Int): Option[List[Int]] =
+    store.expandedSeqKeysDeepId(row, maxKeys).map(keys =>
+      store.distinctWithIds(keys.map(key => store.bsimpStrongId(mkSeqFromFactorIds(store, key))))
+    )
+
   def rowKeyCoveredById(store: DagStore, key: Int, coverer: Int): Boolean = {
+    val kn = store.bsimpStrongId(key)
     val cn = store.bsimpStrongId(coverer)
-    store.eq1Id(key, coverer) || store.eq1Id(key, cn) ||
-      expandedRowKeysId(store, coverer).exists(store.eq1Id(key, _))
+    store.eq1Id(key, coverer) || store.eq1Id(kn, coverer) ||
+      store.eq1Id(key, cn) || store.eq1Id(kn, cn) ||
+      expandedRowKeysId(store, coverer).exists(row =>
+        store.eq1Id(key, row) || store.eq1Id(kn, row)) ||
+      deepExpandedRowKeysOptionId(store, coverer, 8192).exists(rows =>
+        rows.exists(row => store.eq1Id(key, row) || store.eq1Id(kn, row))) ||
+      expandedRowSubsetCoveredById(store, key, coverer) ||
+      expandedRowSubsetCoveredById(store, kn, coverer) ||
+      deepExpandedRowSubsetCoveredById(store, key, coverer) ||
+      deepExpandedRowSubsetCoveredById(store, kn, coverer)
   }
 
   def rowCoveredByRowsId(store: DagStore, row: Int, rows: List[Int]): Boolean =
@@ -4343,6 +5864,15 @@ object PosixCubicSmoke {
 
   def expandedRowSubsetCoveredById(store: DagStore, r: Int, q: Int): Boolean =
     (expandedRowKeysOptionId(store, r, 8192), expandedRowKeysOptionId(store, q, 8192)) match {
+      case (Some(rKeys), Some(qKeys)) =>
+        rKeys.forall(rKey =>
+          qKeys.exists(qKey => store.eq1Id(rKey, qKey) || store.eq1Id(rKey, store.bsimpStrongId(qKey)))
+        )
+      case _ => false
+    }
+
+  def deepExpandedRowSubsetCoveredById(store: DagStore, r: Int, q: Int): Boolean =
+    (deepExpandedRowKeysOptionId(store, r, 8192), deepExpandedRowKeysOptionId(store, q, 8192)) match {
       case (Some(rKeys), Some(qKeys)) =>
         rKeys.forall(rKey =>
           qKeys.exists(qKey => store.eq1Id(rKey, qKey) || store.eq1Id(rKey, store.bsimpStrongId(qKey)))
@@ -4360,7 +5890,8 @@ object PosixCubicSmoke {
         }
       case _ => false
     }
-    topLevel || expandedRowSubsetCoveredById(store, r, q)
+    topLevel || expandedRowSubsetCoveredById(store, r, q) ||
+      deepExpandedRowSubsetCoveredById(store, r, q)
   }
 
   def strongBridgeMemberId(store: DagStore, r: Int, rs: Iterable[Int]): Boolean = {
@@ -6665,6 +8196,27 @@ object PosixCubicSmoke {
       .filter(_.nonEmpty)
       .map(_.toInt)
 
+  def longListSetting(prop: String, env: String, default: List[Long]): List[Long] = {
+    def parseToken(token: String): List[Long] = {
+      token.split("\\.\\.", -1).toList match {
+        case List(single) => List(single.toLong)
+        case List(startText, endText) =>
+          val start = startText.trim.toLong
+          val end = endText.trim.toLong
+          if (start <= end) (start to end).toList else (start to end by -1).toList
+        case _ =>
+          throw new IllegalArgumentException(s"invalid long-list token $token for $env/$prop")
+      }
+    }
+
+    stringSetting(prop, env, default.mkString(","))
+      .split(",")
+      .toList
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .flatMap(parseToken)
+  }
+
   def boolSetting(prop: String, env: String, default: Boolean): Boolean =
     stringSetting(prop, env, if (default) "1" else "0").toLowerCase match {
       case "1" | "true" | "yes" | "on" => true
@@ -6757,6 +8309,51 @@ object PosixCubicSmoke {
     val checkStrongRowsBridgeCh7 = boolSetting("posix.smoke.checkStrongRowsBridgeCh7", "POSIX_SMOKE_CHECK_STRONG_ROWS_BRIDGE_CH7", false)
     val strongRowsBridgeOnlyCh7 = boolSetting("posix.smoke.strongRowsBridgeOnlyCh7", "POSIX_SMOKE_STRONG_ROWS_BRIDGE_ONLY_CH7", false)
     val strongRowsBridgeDag = boolSetting("posix.smoke.strongRowsBridgeDag", "POSIX_SMOKE_STRONG_ROWS_BRIDGE_DAG", false)
+    val compareScanRows = boolSetting("posix.smoke.compareScanRows", "POSIX_SMOKE_COMPARE_SCAN_ROWS", false)
+    val compareScanRowsTop = intSetting("posix.smoke.compareScanRowsTop", "POSIX_SMOKE_COMPARE_SCAN_ROWS_TOP", 5)
+    val compareScanRowsMaxNormRows = intSetting("posix.smoke.compareScanRowsMaxNormRows", "POSIX_SMOKE_COMPARE_SCAN_ROWS_MAX_NORM_ROWS", 4096)
+    val compareScanRowsIncludeMaxOnly =
+      boolSetting("posix.smoke.compareScanRowsIncludeMaxOnly", "POSIX_SMOKE_COMPARE_SCAN_ROWS_INCLUDE_MAX_ONLY", false)
+    val compareScanRowsRequireFixedPoint =
+      boolSetting("posix.smoke.compareScanRowsRequireFixedPoint", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_FIXED_POINT", false)
+    val compareScanRowsRequireNonworse =
+      boolSetting("posix.smoke.compareScanRowsRequireNonworse", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_NONWORSE", false)
+    val compareScanRowsRequireProofBudget =
+      boolSetting("posix.smoke.compareScanRowsRequireProofBudget", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_PROOF_BUDGET", false)
+    val compareScanRowsRequireBudget =
+      boolSetting("posix.smoke.compareScanRowsRequireBudget", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_BUDGET", false)
+    val compareScanRowsRequireScanCoverage =
+      boolSetting("posix.smoke.compareScanRowsRequireScanCoverage", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_SCAN_COVERAGE", false)
+    val compareScanRowsRequireNormCoverage =
+      boolSetting("posix.smoke.compareScanRowsRequireNormCoverage", "POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_NORM_COVERAGE", false)
+    val checkScanRowsKnownRegressions =
+      boolSetting("posix.smoke.compareScanRowsKnownRegressions", "POSIX_SMOKE_COMPARE_SCAN_ROWS_KNOWN_REGRESSIONS", false)
+    val compareScanRowsSkipExhaustive =
+      boolSetting("posix.smoke.compareScanRowsSkipExhaustive", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SKIP_EXHAUSTIVE", false)
+    val compareScanRowsRandomMaxRegexSize =
+      intSetting("posix.smoke.compareScanRowsRandomMaxRegexSize", "POSIX_SMOKE_COMPARE_SCAN_ROWS_RANDOM_MAX_REGEX_SIZE", 0)
+    val compareScanRowsProgressEvery =
+      intSetting("posix.smoke.compareScanRowsProgressEvery", "POSIX_SMOKE_COMPARE_SCAN_ROWS_PROGRESS_EVERY", 0)
+    val compareScanRowsSeeds =
+      longListSetting("posix.smoke.compareScanRowsSeeds", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SEEDS", Nil)
+    val compareScanRowsDumpCase =
+      intSetting("posix.smoke.compareScanRowsDumpCase", "POSIX_SMOKE_COMPARE_SCAN_ROWS_DUMP_CASE", 0)
+    val compareScanRowsShrinkCase =
+      intSetting("posix.smoke.compareScanRowsShrinkCase", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_CASE", 0)
+    val compareScanRowsShrinkMode =
+      stringSetting("posix.smoke.compareScanRowsShrinkMode", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MODE", "actionable")
+    val compareScanRowsShrinkMaxProbes =
+      intSetting("posix.smoke.compareScanRowsShrinkMaxProbes", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MAX_PROBES", 0)
+    val compareScanRowsFindMode =
+      stringSetting("posix.smoke.compareScanRowsFindMode", "POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE", "")
+    val compareScanRowsShrinkOnFailure =
+      boolSetting("posix.smoke.compareScanRowsShrinkOnFailure", "POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_ON_FAILURE", true)
+    val compareScanRowsRequireProofBudgetGate =
+      compareScanRowsRequireProofBudget || compareScanRowsRequireNonworse
+    val compareScanRowsRequireBudgetGate =
+      compareScanRowsRequireBudget || compareScanRowsRequireNonworse
+    val compareScanRowsRequireScanCoverageGate =
+      compareScanRowsRequireScanCoverage || compareScanRowsRequireNonworse
     val checkStrongSafe = boolSetting("posix.smoke.checkStrongSafe", "POSIX_SMOKE_CHECK_STRONG_SAFE", false)
     val traceStrongSafe = boolSetting("posix.smoke.traceStrongSafe", "POSIX_SMOKE_TRACE_STRONG_SAFE", false)
     val traceStrongRecon = boolSetting("posix.smoke.traceStrongRecon", "POSIX_SMOKE_TRACE_STRONG_RECON", false)
@@ -6819,6 +8416,97 @@ object PosixCubicSmoke {
       }
       if (checkStrongRowsBridgeCh7) {
         checkStrongRowsBridgeCh7Trace(ch7K, ch7Lengths, requireStrongRowsBridgeCoverage, strongRowsBridgeDag)
+      }
+    }
+    if (compareScanRows || checkScanRowsKnownRegressions ||
+        compareScanRowsFindMode.trim.nonEmpty ||
+        compareScanRowsDumpCase > 0 || compareScanRowsShrinkCase > 0) {
+      if (compareScanRowsDumpCase > 0) {
+        dumpScanRowsRandomCase(
+          randomSeed,
+          compareScanRowsDumpCase,
+          randomDepth,
+          randomInputMax,
+          compareScanRowsMaxNormRows,
+          compareScanRowsIncludeMaxOnly)
+      }
+      if (compareScanRowsShrinkCase > 0) {
+        shrinkAndDumpScanRowsRandomCase(
+          randomSeed,
+          compareScanRowsShrinkCase,
+          randomDepth,
+          randomInputMax,
+          compareScanRowsMaxNormRows,
+          compareScanRowsIncludeMaxOnly,
+          compareScanRowsShrinkMode,
+          compareScanRowsShrinkMaxProbes)
+      }
+      if (compareScanRowsFindMode.trim.nonEmpty) {
+        val seeds =
+          if (compareScanRowsSeeds.nonEmpty) compareScanRowsSeeds else List(randomSeed)
+        findAndShrinkScanRowsDiff(
+          math.max(randomCases, 1),
+          randomDepth,
+          randomInputMax,
+          seeds,
+          compareScanRowsMaxNormRows,
+          compareScanRowsIncludeMaxOnly,
+          compareScanRowsRandomMaxRegexSize,
+          compareScanRowsProgressEvery,
+          compareScanRowsFindMode.trim,
+          compareScanRowsShrinkMaxProbes)
+      }
+      if (checkScanRowsKnownRegressions) {
+        compareScanRowsKnownRegressions(
+          compareScanRowsTop,
+          compareScanRowsMaxNormRows,
+          compareScanRowsIncludeMaxOnly,
+          compareScanRowsShrinkMaxProbes,
+          compareScanRowsRequireProofBudgetGate,
+          compareScanRowsRequireBudgetGate,
+          compareScanRowsRequireScanCoverageGate,
+          compareScanRowsRequireNormCoverage)
+      }
+      if (compareScanRows) {
+        if (!compareScanRowsSkipExhaustive) {
+          compareScanRowsExhaustive(
+            maxDepth,
+            maxInput,
+            maxRegexes,
+            compareScanRowsTop,
+            compareScanRowsMaxNormRows,
+            compareScanRowsIncludeMaxOnly,
+            compareScanRowsRequireFixedPoint,
+            compareScanRowsShrinkOnFailure,
+            compareScanRowsShrinkMaxProbes,
+            compareScanRowsRequireProofBudgetGate,
+            compareScanRowsRequireBudgetGate,
+            compareScanRowsRequireScanCoverageGate,
+            compareScanRowsRequireNormCoverage)
+        }
+        if (randomCases > 0) {
+          val seeds =
+            if (compareScanRowsSeeds.nonEmpty) compareScanRowsSeeds else List(randomSeed)
+          seeds.foreach { seed =>
+            compareScanRowsRandom(
+              randomCases,
+              randomDepth,
+              randomInputMax,
+              seed,
+              compareScanRowsTop,
+              compareScanRowsMaxNormRows,
+              compareScanRowsIncludeMaxOnly,
+              compareScanRowsRequireFixedPoint,
+              compareScanRowsRandomMaxRegexSize,
+              compareScanRowsProgressEvery,
+              compareScanRowsShrinkOnFailure,
+              compareScanRowsShrinkMaxProbes,
+              compareScanRowsRequireProofBudgetGate,
+              compareScanRowsRequireBudgetGate,
+              compareScanRowsRequireScanCoverageGate,
+              compareScanRowsRequireNormCoverage)
+          }
+        }
       }
     }
     if (checkStrongSafe) {

@@ -6,6 +6,40 @@ lemma size_geq1:
   shows "rsize r \<ge> 1"
   by (induct r) auto 
 
+lemma length_le_rsizes:
+  "length rs \<le> rsizes rs"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have "1 \<le> rsize r"
+    by (rule size_geq1)
+  then show ?case
+    using Cons by simp
+qed
+
+lemma card_set_le_rsizes_early:
+  "card (set rs) \<le> rsizes rs"
+proof -
+  have "card (set rs) \<le> length rs"
+    by (rule card_length)
+  also have "... \<le> rsizes rs"
+    by (rule length_le_rsizes)
+  finally show ?thesis .
+qed
+
+lemma length_rflts_le_rsizes:
+  "length (rflts rs) \<le> rsizes rs"
+proof -
+  have "length (rflts rs) \<le> rsizes (rflts rs)"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes rs"
+    by (rule rflts_mono)
+  finally show ?thesis .
+qed
+
 (* BACKREF-MIGRATION-TODO (bounds invariant, ADMIN APPROVAL REQUIRED):
    The original finite-universe argument is valid only for the old regular
    rrexp skeleton. The new backreference states carry arbitrary strings while
@@ -1067,6 +1101,67 @@ definition rpder_norm8_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrex
 definition rpder_norm9_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
   "rpder_norm9_rows c rs =
     rdistinct (rflts (concat (map (rpder_norm9_list c) rs))) {}"
+
+lemma length_rpder_norm_list_le_rsize:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_norm_list c r) \<le> rsize r"
+  unfolding rpder_norm_list_def
+  using length_rpder_list_le_rsize[OF assms] by simp
+
+lemma card_set_rpder_norm_list_le_rsize:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_norm_list c r)) \<le> rsize r"
+proof -
+  have "card (set (rpder_norm_list c r)) \<le>
+      length (rpder_norm_list c r)"
+    by (rule card_length)
+  also have "... \<le> rsize r"
+    by (rule length_rpder_norm_list_le_rsize[OF assms])
+  finally show ?thesis .
+qed
+
+lemma length_concat_map_rpder_norm_list_le_rsizes:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "length (concat (map (rpder_norm_list c) rs)) \<le> rsizes rs"
+  using assms
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have head: "length (rpder_norm_list c r) \<le> rsize r"
+    by (rule length_rpder_norm_list_le_rsize) (use Cons.prems in simp)
+  have tail: "length (concat (map (rpder_norm_list c) rs)) \<le> rsizes rs"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using head tail by simp
+qed
+
+lemma length_rpder_norm_rows_le_generated_rsizes:
+  "length (rpder_norm_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  let ?rows = "concat (map (rpder_norm_list c) rs)"
+  have "length (rpder_norm_rows c rs) \<le> length (rflts ?rows)"
+    unfolding rpder_norm_rows_def
+    by (rule length_rdistinct_le)
+  also have "... \<le> rsizes ?rows"
+    by (rule length_rflts_le_rsizes)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_norm_rows_le_generated_rsizes:
+  "card (set (rpder_norm_rows c rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set (rpder_norm_rows c rs)) \<le>
+      length (rpder_norm_rows c rs)"
+    by (rule card_length)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_norm_rows_le_generated_rsizes)
+  finally show ?thesis .
+qed
 
 lemma rsize_rpd_der_le_rsizes_rpder_list:
   "rsize (rpd_der c r) \<le> Suc (rsizes (rpder_list c r))"
@@ -10657,6 +10752,32 @@ lemma rsizes_rpder_norm_list_cubic:
   unfolding rpder_norm_list_def
   by (rule rsizes_rpder_list_RONE_cubic[OF assms])
 
+lemma length_rpder_norm_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_norm_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length (rpder_norm_rows c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_norm_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_norm_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_norm_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set (rpder_norm_rows c [r])) \<le>
+      length (rpder_norm_rows c [r])"
+    by (rule card_length)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule length_rpder_norm_rows_single_cubic[OF assms])
+  finally show ?thesis .
+qed
+
 lemma rsize_rpd_der_norm_cubic:
   assumes "legacy_rrexp r"
   shows "rsize (rpd_der_norm c r) \<le> Suc (2 * (rsize r + 3) ^ 3)"
@@ -17461,6 +17582,344 @@ lemma RL_RALTS_append_cong:
   shows "RL (RALTS (xs @ zs)) = RL (RALTS (ys @ zs))"
   using assms by auto
 
+fun rlinear_terms :: "rrexp \<Rightarrow> nat" where
+  "rlinear_terms RZERO = 0"
+| "rlinear_terms RONE = 1"
+| "rlinear_terms (RCHAR c) = 1"
+| "rlinear_terms (RALTS rs) = sum_list (map rlinear_terms rs)"
+| "rlinear_terms (RSEQ r1 r2) =
+    (case r1 of
+      RALTS ps \<Rightarrow> sum_list (map rlinear_terms ps)
+    | _ \<Rightarrow> 1)"
+| "rlinear_terms (RSTAR r) = 1"
+| "rlinear_terms (RNTIMES r n) = 1"
+| "rlinear_terms (RBACKREF4 r1 r2 r3 r4 cs) = 1"
+| "rlinear_terms (RHALF r cs rep) = 1"
+| "rlinear_terms (RRESIDUE cs rep) = 1"
+
+abbreviation rlinear_termss where
+  "rlinear_termss rs \<equiv> sum_list (map rlinear_terms rs)"
+
+lemma rlinear_terms_le_rsize:
+  "rlinear_terms r \<le> rsize r"
+proof (induct r)
+  case (RALTS rs)
+  have "rlinear_termss rs \<le> rsizes rs"
+    using RALTS by (simp add: sum_list_mono)
+  then show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by (cases r1) (simp_all add: sum_list_mono)
+qed simp_all
+
+lemma rlinear_termss_le_rsizes:
+  "rlinear_termss rs \<le> rsizes rs"
+  using rlinear_terms_le_rsize
+  by (simp add: sum_list_mono)
+
+lemma RL_RALTS_absorb_standalone_suffix:
+  "RL (RALTS [RSEQ (RALTS ps) k, k]) =
+    RL (RALTS [RSEQ (RALTS (ps @ [RONE])) k])"
+  by (auto simp add: Sequ_def)
+
+lemma RL_RALTS_absorb_standalone_suffix_context:
+  "RL (RALTS (pre @ [RSEQ (RALTS ps) k, k] @ post)) =
+    RL (RALTS (pre @ [RSEQ (RALTS (ps @ [RONE])) k] @ post))"
+  by (auto simp add: Sequ_def)
+
+lemma rsizes_absorb_standalone_suffix_le:
+  "rsizes [RSEQ (RALTS (ps @ [RONE])) k] \<le>
+    rsizes [RSEQ (RALTS ps) k, k]"
+  using size_geq1[of k] by simp
+
+lemma rlinear_termss_absorb_standalone_suffix_le:
+  assumes "1 \<le> rlinear_terms k"
+  shows "rlinear_termss [RSEQ (RALTS (ps @ [RONE])) k] \<le>
+    rlinear_termss [RSEQ (RALTS ps) k, k]"
+  using assms by simp
+
+inductive rabsorb_standalone_suffix_step ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  absorb:
+    "rabsorb_standalone_suffix_step
+      (pre @ [RSEQ (RALTS ps) k, k] @ post)
+      (pre @ [RSEQ (RALTS (ps @ [RONE])) k] @ post)"
+
+inductive rabsorb_standalone_suffix_terms_step ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  absorb:
+    "1 \<le> rlinear_terms k \<Longrightarrow>
+      rabsorb_standalone_suffix_terms_step
+        (pre @ [RSEQ (RALTS ps) k, k] @ post)
+        (pre @ [RSEQ (RALTS (ps @ [RONE])) k] @ post)"
+
+inductive rabsorb_standalone_suffix ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  refl: "rabsorb_standalone_suffix rs rs"
+| trans:
+    "rabsorb_standalone_suffix xs ys \<Longrightarrow>
+      rabsorb_standalone_suffix_step ys zs \<Longrightarrow>
+      rabsorb_standalone_suffix xs zs"
+
+inductive rabsorb_standalone_suffix_terms ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  refl: "rabsorb_standalone_suffix_terms rs rs"
+| trans:
+    "rabsorb_standalone_suffix_terms xs ys \<Longrightarrow>
+      rabsorb_standalone_suffix_terms_step ys zs \<Longrightarrow>
+      rabsorb_standalone_suffix_terms xs zs"
+
+lemma rabsorb_standalone_suffix_terms_step_imp:
+  assumes "rabsorb_standalone_suffix_terms_step xs ys"
+  shows "rabsorb_standalone_suffix_step xs ys"
+  using assms
+  by cases (metis rabsorb_standalone_suffix_step.absorb)
+
+lemma rabsorb_standalone_suffix_terms_imp:
+  assumes "rabsorb_standalone_suffix_terms xs ys"
+  shows "rabsorb_standalone_suffix xs ys"
+  using assms
+proof (induct rule: rabsorb_standalone_suffix_terms.induct)
+  case (refl rs)
+  then show ?case
+    by (rule rabsorb_standalone_suffix.refl)
+next
+  case (trans xs ys zs)
+  have step: "rabsorb_standalone_suffix_step ys zs"
+    by (rule rabsorb_standalone_suffix_terms_step_imp[OF trans.hyps(3)])
+  show ?case
+    by (rule rabsorb_standalone_suffix.trans[OF trans.hyps(2) step])
+qed
+
+lemma RL_RALTS_rabsorb_standalone_suffix_step:
+  assumes "rabsorb_standalone_suffix_step xs ys"
+  shows "RL (RALTS ys) = RL (RALTS xs)"
+  using assms
+proof cases
+  case (absorb pre ps k post)
+  then show ?thesis
+    using RL_RALTS_absorb_standalone_suffix_context[of pre ps k post]
+    by simp
+qed
+
+lemma rsizes_rabsorb_standalone_suffix_step_le:
+  assumes "rabsorb_standalone_suffix_step xs ys"
+  shows "rsizes ys \<le> rsizes xs"
+  using assms
+proof cases
+  case (absorb pre ps k post)
+  have local:
+    "rsizes [RSEQ (RALTS (ps @ [RONE])) k] \<le>
+      rsizes [RSEQ (RALTS ps) k, k]"
+    by (rule rsizes_absorb_standalone_suffix_le)
+  show ?thesis
+    using absorb local by simp
+qed
+
+lemma rlinear_termss_rabsorb_standalone_suffix_terms_step_le:
+  assumes "rabsorb_standalone_suffix_terms_step xs ys"
+  shows "rlinear_termss ys \<le> rlinear_termss xs"
+  using assms
+proof cases
+  case (absorb k pre ps post)
+  then show ?thesis
+    by simp
+qed
+
+lemma legacy_rabsorb_standalone_suffix_step:
+  assumes step: "rabsorb_standalone_suffix_step xs ys"
+    and legacy: "\<forall>r \<in> set xs. legacy_rrexp r"
+  shows "\<forall>r \<in> set ys. legacy_rrexp r"
+  using step legacy
+  by cases auto
+
+lemma RL_RALTS_rabsorb_standalone_suffix:
+  assumes "rabsorb_standalone_suffix xs ys"
+  shows "RL (RALTS ys) = RL (RALTS xs)"
+  using assms
+proof (induct rule: rabsorb_standalone_suffix.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have step: "RL (RALTS zs) = RL (RALTS ys)"
+    by (rule RL_RALTS_rabsorb_standalone_suffix_step[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by simp
+qed
+
+lemma rsizes_rabsorb_standalone_suffix_le:
+  assumes "rabsorb_standalone_suffix xs ys"
+  shows "rsizes ys \<le> rsizes xs"
+  using assms
+proof (induct rule: rabsorb_standalone_suffix.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have step: "rsizes zs \<le> rsizes ys"
+    by (rule rsizes_rabsorb_standalone_suffix_step_le[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by linarith
+qed
+
+lemma legacy_rabsorb_standalone_suffix:
+  assumes absorb: "rabsorb_standalone_suffix xs ys"
+    and legacy: "\<forall>r \<in> set xs. legacy_rrexp r"
+  shows "\<forall>r \<in> set ys. legacy_rrexp r"
+  using absorb legacy
+proof (induct rule: rabsorb_standalone_suffix.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have ys_legacy: "\<forall>r \<in> set ys. legacy_rrexp r"
+    by (rule trans.hyps(2)[OF trans.prems])
+  show ?case
+    by (rule legacy_rabsorb_standalone_suffix_step[OF trans.hyps(3) ys_legacy])
+qed
+
+lemma RL_RALTS_rabsorb_standalone_suffix_terms:
+  assumes "rabsorb_standalone_suffix_terms xs ys"
+  shows "RL (RALTS ys) = RL (RALTS xs)"
+  by (rule RL_RALTS_rabsorb_standalone_suffix
+      [OF rabsorb_standalone_suffix_terms_imp[OF assms]])
+
+lemma rsizes_rabsorb_standalone_suffix_terms_le:
+  assumes "rabsorb_standalone_suffix_terms xs ys"
+  shows "rsizes ys \<le> rsizes xs"
+  by (rule rsizes_rabsorb_standalone_suffix_le
+      [OF rabsorb_standalone_suffix_terms_imp[OF assms]])
+
+lemma rlinear_termss_rabsorb_standalone_suffix_terms_le:
+  assumes "rabsorb_standalone_suffix_terms xs ys"
+  shows "rlinear_termss ys \<le> rlinear_termss xs"
+  using assms
+proof (induct rule: rabsorb_standalone_suffix_terms.induct)
+  case (refl rs)
+  then show ?case
+    by simp
+next
+  case (trans xs ys zs)
+  have step: "rlinear_termss zs \<le> rlinear_termss ys"
+    by (rule rlinear_termss_rabsorb_standalone_suffix_terms_step_le[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by linarith
+qed
+
+lemma legacy_rabsorb_standalone_suffix_terms:
+  assumes absorb: "rabsorb_standalone_suffix_terms xs ys"
+    and legacy: "\<forall>r \<in> set xs. legacy_rrexp r"
+  shows "\<forall>r \<in> set ys. legacy_rrexp r"
+  by (rule legacy_rabsorb_standalone_suffix
+      [OF rabsorb_standalone_suffix_terms_imp[OF absorb] legacy])
+
+inductive rdrop_covered_step ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  drop:
+    "RL r \<subseteq> RL (RALTS (pre @ post)) \<Longrightarrow>
+      rdrop_covered_step (pre @ [r] @ post) (pre @ post)"
+
+inductive rdrop_covered ::
+  "rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  refl: "rdrop_covered rs rs"
+| trans:
+    "rdrop_covered xs ys \<Longrightarrow>
+      rdrop_covered_step ys zs \<Longrightarrow>
+      rdrop_covered xs zs"
+
+lemma RL_RALTS_rdrop_covered_step:
+  assumes "rdrop_covered_step xs ys"
+  shows "RL (RALTS ys) = RL (RALTS xs)"
+  using assms
+proof cases
+  case (drop r pre post)
+  then show ?thesis
+    by auto
+qed
+
+lemma rsizes_rdrop_covered_step_le:
+  assumes "rdrop_covered_step xs ys"
+  shows "rsizes ys \<le> rsizes xs"
+  using assms
+  by cases auto
+
+lemma rlinear_termss_rdrop_covered_step_le:
+  assumes "rdrop_covered_step xs ys"
+  shows "rlinear_termss ys \<le> rlinear_termss xs"
+  using assms
+  by cases auto
+
+lemma legacy_rdrop_covered_step:
+  assumes step: "rdrop_covered_step xs ys"
+    and legacy: "\<forall>r \<in> set xs. legacy_rrexp r"
+  shows "\<forall>r \<in> set ys. legacy_rrexp r"
+  using step legacy
+  by cases auto
+
+lemma RL_RALTS_rdrop_covered:
+  assumes "rdrop_covered xs ys"
+  shows "RL (RALTS ys) = RL (RALTS xs)"
+  using assms
+proof (induct rule: rdrop_covered.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have step: "RL (RALTS zs) = RL (RALTS ys)"
+    by (rule RL_RALTS_rdrop_covered_step[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by simp
+qed
+
+lemma rsizes_rdrop_covered_le:
+  assumes "rdrop_covered xs ys"
+  shows "rsizes ys \<le> rsizes xs"
+  using assms
+proof (induct rule: rdrop_covered.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have step: "rsizes zs \<le> rsizes ys"
+    by (rule rsizes_rdrop_covered_step_le[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by linarith
+qed
+
+lemma rlinear_termss_rdrop_covered_le:
+  assumes "rdrop_covered xs ys"
+  shows "rlinear_termss ys \<le> rlinear_termss xs"
+  using assms
+proof (induct rule: rdrop_covered.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have step: "rlinear_termss zs \<le> rlinear_termss ys"
+    by (rule rlinear_termss_rdrop_covered_step_le[OF trans.hyps(3)])
+  show ?case
+    using step trans.hyps(2) by linarith
+qed
+
+lemma legacy_rdrop_covered:
+  assumes drop: "rdrop_covered xs ys"
+    and legacy: "\<forall>r \<in> set xs. legacy_rrexp r"
+  shows "\<forall>r \<in> set ys. legacy_rrexp r"
+  using drop legacy
+proof (induct rule: rdrop_covered.induct)
+  case (refl rs)
+  then show ?case by simp
+next
+  case (trans xs ys zs)
+  have ys_legacy: "\<forall>r \<in> set ys. legacy_rrexp r"
+    by (rule trans.hyps(2)[OF trans.prems])
+  show ?case
+    by (rule legacy_rdrop_covered_step[OF trans.hyps(3) ys_legacy])
+qed
+
 lemma RL_rsimpStrong_prune_rows_acc:
   "RL (RALTS (seen @ rsimpStrong_prune_rows_acc seen rs)) =
     RL (RALTS (seen @ rs))"
@@ -17779,6 +18238,28 @@ fun rsimpStrong_prune_rows_acc_raw :: "rrexp list \<Rightarrow> rrexp list \<Rig
 
 definition rsimpStrong_prune_rows_raw :: "rrexp list \<Rightarrow> rrexp list" where
   "rsimpStrong_prune_rows_raw rs = rsimpStrong_prune_rows_acc_raw [] rs"
+
+lemma length_rsimpStrong_prune_rows_acc_raw:
+  "length (rsimpStrong_prune_rows_acc_raw seen rs) = length rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have tail:
+    "length (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs) =
+      length rs"
+    by (rule Cons.hyps)
+  show ?case
+    using tail by (simp add: Let_def)
+qed
+
+lemma length_rsimpStrong_prune_rows_raw:
+  "length (rsimpStrong_prune_rows_raw rs) = length rs"
+  by (simp add: rsimpStrong_prune_rows_raw_def
+      length_rsimpStrong_prune_rows_acc_raw)
 
 definition rsimpStrong_ALTs_raw :: "rrexp list \<Rightarrow> rrexp" where
   "rsimpStrong_ALTs_raw rs =
@@ -18343,6 +18824,129 @@ proof -
   qed
 qed
 
+lemma rsize_rsimpStrong_prune_against_rows_raw_le:
+  "rsize (rsimpStrong_prune_against_rows_raw seen r) \<le> rsize r"
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair_raw x r"
+  have "rsize (rsimpStrong_prune_against_rows_raw (x # xs) r) =
+      rsize (rsimpStrong_prune_against_rows_raw xs ?p)"
+    by simp
+  also have "... \<le> rsize ?p"
+    by (rule Cons.hyps)
+  also have "... \<le> rsize r"
+    by (rule rsize_rsimpStrong_prune_pair_raw_le)
+  finally show ?case .
+qed
+
+lemma rsizes_rsimpStrong_prune_rows_acc_raw_le:
+  "rsizes (rsimpStrong_prune_rows_acc_raw seen rs) \<le> rsizes rs"
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have head: "rsize ?r' \<le> rsize r"
+    by (rule rsize_rsimpStrong_prune_against_rows_raw_le)
+  have tail:
+    "rsizes (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs) \<le>
+      rsizes rs"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma rsizes_rsimpStrong_prune_rows_raw_le:
+  "rsizes (rsimpStrong_prune_rows_raw rs) \<le> rsizes rs"
+  using rsizes_rsimpStrong_prune_rows_acc_raw_le[of "[]" rs]
+  by (simp add: rsimpStrong_prune_rows_raw_def)
+
+lemma rsize_rsimpStrong_ALTs_raw_le:
+  "rsize (rsimpStrong_ALTs_raw rs) \<le> Suc (rsizes rs)"
+proof -
+  have "rsize (rsimpStrong_ALTs_raw rs) =
+      rsize (rsimp_ALTs
+        (rdistinct (rflts (rsimpStrong_prune_rows_raw rs)) {}))"
+    by (simp add: rsimpStrong_ALTs_raw_def)
+  also have "... \<le> Suc
+      (rsizes (rdistinct (rflts (rsimpStrong_prune_rows_raw rs)) {}))"
+    by (rule rsize_rsimp_ALTs_le)
+  also have "... \<le> Suc (rsizes (rflts (rsimpStrong_prune_rows_raw rs)))"
+    using rdistinct_smaller[of "rflts (rsimpStrong_prune_rows_raw rs)" "{}"]
+    by simp
+  also have "... \<le> Suc (rsizes (rsimpStrong_prune_rows_raw rs))"
+    using rflts_mono[of "rsimpStrong_prune_rows_raw rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using rsizes_rsimpStrong_prune_rows_raw_le[of rs] by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_rsimpStrong_raw_le:
+  "rsize (rsimpStrong_raw r) \<le> rsize r"
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have elems: "rsizes (map rsimpStrong_raw rs) \<le> rsizes rs"
+    using RALTS by (simp add: sum_list_mono)
+  have "rsize (rsimpStrong_raw (RALTS rs)) =
+      rsize (rsimpStrong_ALTs_raw (rflts (map rsimpStrong_raw rs)))"
+    by simp
+  also have "... \<le> Suc (rsizes (rflts (map rsimpStrong_raw rs)))"
+    by (rule rsize_rsimpStrong_ALTs_raw_le)
+  also have "... \<le> Suc (rsizes (map rsimpStrong_raw rs))"
+    using rflts_mono[of "map rsimpStrong_raw rs"] by simp
+  also have "... \<le> Suc (rsizes rs)"
+    using elems by simp
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  have "rsize (rsimpStrong_raw (RSEQ r1 r2)) =
+      rsize (rsimp7_SEQ_atom (rsimpStrong_raw r1) (rsimpStrong_raw r2))"
+    by simp
+  also have "... \<le> Suc
+      (rsize (rsimpStrong_raw r1) + rsize (rsimpStrong_raw r2))"
+    by (rule rsize_rsimp7_SEQ_atom_le)
+  also have "... \<le> Suc (rsize r1 + rsize r2)"
+    using RSEQ by simp
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases "rsimpStrong_raw r") simp_all
+next
+  case (RNTIMES r n)
+  then show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 x5)
+  then show ?case
+    by simp
+next
+  case (RHALF r x2 x3)
+  then show ?case
+    by simp
+next
+  case (RRESIDUE x1 x2)
+  then show ?case
+    by simp
+qed
+
 lemma rsize_rsimpStrong_prune_pair_shared_suffix_lt:
   assumes hit: "\<exists>r \<in> set rrs. r \<in> set lrs"
   shows "rsize (rsimpStrong_prune_pair
@@ -18801,8 +19405,19 @@ definition rpder_strong_rows :: "char \<Rightarrow> rrexp list \<Rightarrow> rre
         (rsimpStrong_prune_rows
           (rflts (concat (map (rpder_strong_list c) rs))))) {}"
 
+definition rpder_strong_rows_clean :: "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rpder_strong_rows_clean c rs =
+    rdistinct
+      (rflts
+        (map rsimpStrong
+          (rsimpStrong_prune_rows
+            (rflts (concat (map (rpder_strong_list c) rs)))))) {}"
+
 definition rpd_der_strong :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
   "rpd_der_strong c r = rsimp_ALTs (rpder_strong_rows c [r])"
+
+definition rpd_der_strong_clean :: "char \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rpd_der_strong_clean c r = rsimp_ALTs (rpder_strong_rows_clean c [r])"
 
 fun rpders_strong_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_strong_rows rs [] = rs"
@@ -18812,9 +19427,83 @@ fun rpders_strong_rows :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp l
 definition rpders_strong1_rows :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
   "rpders_strong1_rows r s = rpders_strong_rows [r] s"
 
+fun rpders_strong_rows_clean :: "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong_rows_clean rs [] = rs"
+| "rpders_strong_rows_clean rs (c # s) =
+    rpders_strong_rows_clean (rpder_strong_rows_clean c rs) s"
+
+definition rpders_strong1_rows_clean :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp list" where
+  "rpders_strong1_rows_clean r s = rpders_strong_rows_clean [r] s"
+
+definition rpder_strong_rows_clean_absorbed ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "rpder_strong_rows_clean_absorbed c rs rows =
+    rabsorb_standalone_suffix (rpder_strong_rows_clean c rs) rows"
+
+definition rpder_strong_rows_clean_absorbed_pruned ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "rpder_strong_rows_clean_absorbed_pruned c rs rows =
+    (\<exists>mid.
+      rpder_strong_rows_clean_absorbed c rs mid \<and>
+      rdrop_covered mid rows)"
+
+definition rpder_strong_rows_clean_terms_absorbed ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "rpder_strong_rows_clean_terms_absorbed c rs rows =
+    rabsorb_standalone_suffix_terms (rpder_strong_rows_clean c rs) rows"
+
+definition rpder_strong_rows_clean_terms_absorbed_pruned ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows =
+    (\<exists>mid.
+      rpder_strong_rows_clean_terms_absorbed c rs mid \<and>
+      rdrop_covered mid rows)"
+
+definition rpder_strong_rows_clean_terms_choice ::
+  "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list \<Rightarrow> bool" where
+  "rpder_strong_rows_clean_terms_choice c rs rows =
+    (rows = rpder_strong_rows_clean c rs \<or>
+      rpder_strong_rows_clean_terms_absorbed_pruned c rs rows)"
+
+lemma rpder_strong_rows_clean_terms_absorbed_imp_absorbed:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "rpder_strong_rows_clean_absorbed c rs rows"
+  using assms
+  unfolding rpder_strong_rows_clean_terms_absorbed_def
+    rpder_strong_rows_clean_absorbed_def
+  by (rule rabsorb_standalone_suffix_terms_imp)
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+proof -
+  obtain mid where absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c rs mid"
+    and dropped: "rdrop_covered mid rows"
+    using assms
+    by (auto simp add: rpder_strong_rows_clean_terms_absorbed_pruned_def)
+  have old_absorbed: "rpder_strong_rows_clean_absorbed c rs mid"
+    by (rule rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF absorbed])
+  show ?thesis
+    unfolding rpder_strong_rows_clean_absorbed_pruned_def
+    using old_absorbed dropped by blast
+qed
+
 lemma distinct_rpder_strong_rows [simp]:
   "distinct (rpder_strong_rows c rs)"
   by (simp add: rpder_strong_rows_def rdistinct_does_the_job)
+
+lemma distinct_rpder_strong_rows_clean [simp]:
+  "distinct (rpder_strong_rows_clean c rs)"
+  by (simp add: rpder_strong_rows_clean_def rdistinct_does_the_job)
+
+lemma distinct_rpders_strong_rows_clean [simp]:
+  "distinct rs \<Longrightarrow> distinct (rpders_strong_rows_clean rs s)"
+  by (induct s arbitrary: rs) simp_all
+
+lemma distinct_rpders_strong1_rows_clean [simp]:
+  "distinct (rpders_strong1_rows_clean r s)"
+  by (simp add: rpders_strong1_rows_clean_def distinct_rpders_strong_rows_clean)
 
 lemma length_rpder_strong_rows_le_pruned:
   "length (rpder_strong_rows c rs) \<le>
@@ -18960,6 +19649,33 @@ proof -
     by (rule legacy_rdistinct[OF flat2])
 qed
 
+lemma legacy_rpder_strong_rows_clean:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "\<forall>p \<in> set (rpder_strong_rows_clean c rs). legacy_rrexp p"
+proof -
+  have mapped:
+    "\<forall>p \<in> set (concat (map (rpder_strong_list c) rs)). legacy_rrexp p"
+    using assms legacy_rpder_strong_list by auto
+  have flat1:
+    "\<forall>p \<in> set (rflts (concat (map (rpder_strong_list c) rs))). legacy_rrexp p"
+    by (rule legacy_rflts[OF mapped])
+  have pruned:
+    "\<forall>p \<in> set (rsimpStrong_prune_rows
+      (rflts (concat (map (rpder_strong_list c) rs)))). legacy_rrexp p"
+    by (rule legacy_rsimpStrong_prune_rows[OF flat1])
+  have cleaned:
+    "\<forall>p \<in> set (map rsimpStrong (rsimpStrong_prune_rows
+      (rflts (concat (map (rpder_strong_list c) rs))))). legacy_rrexp p"
+    using pruned legacy_rsimpStrong by auto
+  have flat2:
+    "\<forall>p \<in> set (rflts (map rsimpStrong (rsimpStrong_prune_rows
+      (rflts (concat (map (rpder_strong_list c) rs)))))). legacy_rrexp p"
+    by (rule legacy_rflts[OF cleaned])
+  show ?thesis
+    unfolding rpder_strong_rows_clean_def
+    by (rule legacy_rdistinct[OF flat2])
+qed
+
 lemma legacy_rpders_strong_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
       and "p \<in> set (rpders_strong_rows rs s)"
@@ -18977,6 +19693,89 @@ next
     using Cons.prems(2) by simp
   show ?case
     by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
+lemma legacy_rpders_strong_rows_clean:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+      and "p \<in> set (rpders_strong_rows_clean rs s)"
+  shows "legacy_rrexp p"
+  using assms
+proof (induct s arbitrary: rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons c s)
+  have next_legacy: "\<forall>r \<in> set (rpder_strong_rows_clean c rs). legacy_rrexp r"
+    by (rule legacy_rpder_strong_rows_clean[OF Cons.prems(1)])
+  have p_next: "p \<in> set (rpders_strong_rows_clean
+      (rpder_strong_rows_clean c rs) s)"
+    using Cons.prems(2) by simp
+  show ?case
+    by (rule Cons.hyps[OF next_legacy p_next])
+qed
+
+lemma legacy_rpder_strong_rows_clean_absorbed:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "\<forall>p \<in> set rows. legacy_rrexp p"
+proof -
+  have clean_legacy:
+    "\<forall>p \<in> set (rpder_strong_rows_clean c rs). legacy_rrexp p"
+    by (rule legacy_rpder_strong_rows_clean[OF legacy])
+  show ?thesis
+    using absorbed
+    unfolding rpder_strong_rows_clean_absorbed_def
+    by (rule legacy_rabsorb_standalone_suffix[OF _ clean_legacy])
+qed
+
+lemma legacy_rpder_strong_rows_clean_absorbed_pruned:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "\<forall>p \<in> set rows. legacy_rrexp p"
+proof -
+  obtain mid where absorbed:
+      "rpder_strong_rows_clean_absorbed c rs mid"
+    and dropped: "rdrop_covered mid rows"
+    using pruned
+    by (auto simp add: rpder_strong_rows_clean_absorbed_pruned_def)
+  have mid_legacy: "\<forall>p \<in> set mid. legacy_rrexp p"
+    by (rule legacy_rpder_strong_rows_clean_absorbed[OF legacy absorbed])
+  show ?thesis
+    by (rule legacy_rdrop_covered[OF dropped mid_legacy])
+qed
+
+lemma legacy_rpder_strong_rows_clean_terms_absorbed:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "\<forall>p \<in> set rows. legacy_rrexp p"
+  by (rule legacy_rpder_strong_rows_clean_absorbed
+      [OF legacy rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF absorbed]])
+
+lemma legacy_rpder_strong_rows_clean_terms_absorbed_pruned:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "\<forall>p \<in> set rows. legacy_rrexp p"
+  by (rule legacy_rpder_strong_rows_clean_absorbed_pruned
+      [OF legacy
+        rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned
+          [OF pruned]])
+
+lemma legacy_rpder_strong_rows_clean_terms_choice:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and choice: "rpder_strong_rows_clean_terms_choice c rs rows"
+  shows "\<forall>p \<in> set rows. legacy_rrexp p"
+  using choice
+  unfolding rpder_strong_rows_clean_terms_choice_def
+proof
+  assume rows: "rows = rpder_strong_rows_clean c rs"
+  show ?thesis
+    using rows by (simp add: legacy_rpder_strong_rows_clean[OF legacy])
+next
+  assume pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  show ?thesis
+    by (rule legacy_rpder_strong_rows_clean_terms_absorbed_pruned
+        [OF legacy pruned])
 qed
 
 lemma row_group_nf_map_rsimp4_SEQ_atom:
@@ -20187,9 +20986,24 @@ lemma RLS_set_rflts:
   unfolding RLS_def
   using RL_rsimp_rflts[of rs] by simp
 
+lemma RLS_set_map_rsimpStrong:
+  "RLS (set (map rsimpStrong rs)) = RLS (set rs)"
+  unfolding RLS_def
+  by (auto simp add: RL_rsimpStrong)
+
+lemma RLS_set_map_rsimpStrong_raw:
+  "RLS (set (map rsimpStrong_raw rs)) = RLS (set rs)"
+  unfolding RLS_def
+  by (auto simp add: RL_rsimpStrong_raw)
+
 lemma RLS_set_rsimpStrong_prune_rows:
   "RLS (set (rsimpStrong_prune_rows rs)) = RLS (set rs)"
   using RL_rsimpStrong_prune_rows[of rs]
+  by (simp add: RLS_def)
+
+lemma RLS_set_rsimpStrong_prune_rows_raw:
+  "RLS (set (rsimpStrong_prune_rows_raw rs)) = RLS (set rs)"
+  using RL_rsimpStrong_prune_rows_raw[of rs]
   by (simp add: RLS_def)
 
 lemma RLS_set_concat_rpder_strong_list:
@@ -20197,6 +21011,12 @@ lemma RLS_set_concat_rpder_strong_list:
     RLS (rpder_norm_set c (set rs))"
   unfolding RLS_def rpder_strong_list_def rpder_norm_set_def
   by (auto simp add: RL_rsimpStrong)
+
+lemma RLS_set_concat_rpder_strong_list_raw:
+  "RLS (set (concat (map (rpder_strong_list_raw c) rs))) =
+    RLS (rpder_norm_set c (set rs))"
+  unfolding RLS_def rpder_strong_list_raw_def rpder_norm_set_def
+  by (auto simp add: RL_rsimpStrong_raw)
 
 lemma RLS_rpder_strong_rows:
   assumes "\<forall>r \<in> set rs. legacy_rrexp r"
@@ -20217,6 +21037,120 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RLS_rpder_strong_rows_raw:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows_raw c rs)) = Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_strong_rows_raw c rs)) =
+      RLS (set (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))))"
+    unfolding rpder_strong_rows_raw_def by (rule RLS_set_rdistinct_rflts)
+  also have "... = RLS (set (rflts (concat (map (rpder_strong_list_raw c) rs))))"
+    by (rule RLS_set_rsimpStrong_prune_rows_raw)
+  also have "... = RLS (set (concat (map (rpder_strong_list_raw c) rs)))"
+    by (rule RLS_set_rflts)
+  also have "... = RLS (rpder_norm_set c (set rs))"
+    by (rule RLS_set_concat_rpder_strong_list_raw)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_norm_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_strong_rows_clean:
+  assumes "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows_clean c rs)) = Der c (RLS (set rs))"
+proof -
+  have "RLS (set (rpder_strong_rows_clean c rs)) =
+      RLS (set (map rsimpStrong (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs))))))"
+    unfolding rpder_strong_rows_clean_def by (rule RLS_set_rdistinct_rflts)
+  also have "... = RLS (set (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs)))))"
+    by (rule RLS_set_map_rsimpStrong)
+  also have "... = RLS (set (rflts (concat (map (rpder_strong_list c) rs))))"
+    by (rule RLS_set_rsimpStrong_prune_rows)
+  also have "... = RLS (set (concat (map (rpder_strong_list c) rs)))"
+    by (rule RLS_set_rflts)
+  also have "... = RLS (rpder_norm_set c (set rs))"
+    by (rule RLS_set_concat_rpder_strong_list)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_norm_set) (use assms in auto)
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_strong_rows_clean_absorbed:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs))"
+proof -
+  have rel:
+    "rabsorb_standalone_suffix (rpder_strong_rows_clean c rs) rows"
+    using absorbed by (simp add: rpder_strong_rows_clean_absorbed_def)
+  have "RLS (set rows) = RL (RALTS rows)"
+    by (simp add: RLS_def)
+  also have "... = RL (RALTS (rpder_strong_rows_clean c rs))"
+    by (rule RL_RALTS_rabsorb_standalone_suffix[OF rel])
+  also have "... = RLS (set (rpder_strong_rows_clean c rs))"
+    by (simp add: RLS_def)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_strong_rows_clean_absorbed_pruned:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs))"
+proof -
+  obtain mid where absorbed:
+      "rpder_strong_rows_clean_absorbed c rs mid"
+    and dropped: "rdrop_covered mid rows"
+    using pruned
+    by (auto simp add: rpder_strong_rows_clean_absorbed_pruned_def)
+  have "RLS (set rows) = RL (RALTS rows)"
+    by (simp add: RLS_def)
+  also have "... = RL (RALTS mid)"
+    by (rule RL_RALTS_rdrop_covered[OF dropped])
+  also have "... = RLS (set mid)"
+    by (simp add: RLS_def)
+  also have "... = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean_absorbed[OF legacy absorbed])
+  finally show ?thesis .
+qed
+
+lemma RLS_rpder_strong_rows_clean_terms_absorbed:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs))"
+  by (rule RLS_rpder_strong_rows_clean_absorbed
+      [OF legacy rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF absorbed]])
+
+lemma RLS_rpder_strong_rows_clean_terms_absorbed_pruned:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs))"
+  by (rule RLS_rpder_strong_rows_clean_absorbed_pruned
+      [OF legacy
+        rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned
+          [OF pruned]])
+
+lemma RLS_rpder_strong_rows_clean_terms_choice:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and choice: "rpder_strong_rows_clean_terms_choice c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs))"
+  using choice
+  unfolding rpder_strong_rows_clean_terms_choice_def
+proof
+  assume rows: "rows = rpder_strong_rows_clean c rs"
+  show ?thesis
+    using rows by (simp add: RLS_rpder_strong_rows_clean[OF legacy])
+next
+  assume pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  show ?thesis
+    by (rule RLS_rpder_strong_rows_clean_terms_absorbed_pruned
+        [OF legacy pruned])
+qed
+
 lemma RL_rpd_der_strong:
   assumes "legacy_rrexp r"
   shows "RL (rpd_der_strong c r) = Der c (RL r)"
@@ -20225,6 +21159,20 @@ proof -
     by (simp add: rpd_der_strong_def RLS_def RL_rsimp_RALTS)
   also have "... = Der c (RLS (set [r]))"
     by (rule RLS_rpder_strong_rows) (use assms in auto)
+  also have "... = Der c (RL r)"
+    by (simp add: RLS_def)
+  finally show ?thesis .
+qed
+
+lemma RL_rpd_der_strong_clean:
+  assumes "legacy_rrexp r"
+  shows "RL (rpd_der_strong_clean c r) = Der c (RL r)"
+proof -
+  have "RL (rpd_der_strong_clean c r) =
+      RLS (set (rpder_strong_rows_clean c [r]))"
+    by (simp add: rpd_der_strong_clean_def RLS_def RL_rsimp_RALTS)
+  also have "... = Der c (RLS (set [r]))"
+    by (rule RLS_rpder_strong_rows_clean) (use assms in auto)
   also have "... = Der c (RL r)"
     by (simp add: RLS_def)
   finally show ?thesis .
@@ -20254,6 +21202,10 @@ next
     using head tail by simp
 qed
 
+lemma rsizes_map_rsimpStrong_le:
+  "rsizes (map rsimpStrong rs) \<le> rsizes rs"
+  using rsize_rsimpStrong_le by (simp add: sum_list_mono)
+
 lemma rsizes_rpder_strong_rows_le:
   "rsizes (rpder_strong_rows c rs) \<le>
     rsizes (concat (map (rpder_norm_list c) rs))"
@@ -20280,6 +21232,1288 @@ proof -
   also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
     by (rule rsizes_concat_rpder_strong_list_le)
   finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_rows_clean_le:
+  "rsizes (rpder_strong_rows_clean c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rsizes (rpder_strong_rows_clean c rs) \<le>
+      rsizes (rflts
+        (map rsimpStrong
+          (rsimpStrong_prune_rows
+            (rflts (concat (map (rpder_strong_list c) rs))))))"
+    unfolding rpder_strong_rows_clean_def
+    using rdistinct_smaller[of
+      "rflts (map rsimpStrong
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs)))))" "{}"]
+    by simp
+  also have "... \<le> rsizes
+      (map rsimpStrong
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs)))))"
+    using rflts_mono[of
+      "map rsimpStrong
+        (rsimpStrong_prune_rows
+          (rflts (concat (map (rpder_strong_list c) rs))))"] by simp
+  also have "... \<le> rsizes
+      (rsimpStrong_prune_rows
+        (rflts (concat (map (rpder_strong_list c) rs))))"
+    by (rule rsizes_map_rsimpStrong_le)
+  also have "... \<le> rsizes (rflts (concat (map (rpder_strong_list c) rs)))"
+    by (rule rsizes_rsimpStrong_prune_rows_le)
+  also have "... \<le> rsizes (concat (map (rpder_strong_list c) rs))"
+    using rflts_mono[of "concat (map (rpder_strong_list c) rs)"] by simp
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_concat_rpder_strong_list_le)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_rows_clean_absorbed_le:
+  assumes "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have rel:
+    "rabsorb_standalone_suffix (rpder_strong_rows_clean c rs) rows"
+    using assms by (simp add: rpder_strong_rows_clean_absorbed_def)
+  have "rsizes rows \<le> rsizes (rpder_strong_rows_clean c rs)"
+    by (rule rsizes_rabsorb_standalone_suffix_le[OF rel])
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_rows_clean_absorbed_pruned_le:
+  assumes "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  obtain mid where absorbed:
+      "rpder_strong_rows_clean_absorbed c rs mid"
+    and dropped: "rdrop_covered mid rows"
+    using assms
+    by (auto simp add: rpder_strong_rows_clean_absorbed_pruned_def)
+  have "rsizes rows \<le> rsizes mid"
+    by (rule rsizes_rdrop_covered_le[OF dropped])
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_le[OF absorbed])
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_rows_clean_terms_absorbed_le:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule rsizes_rpder_strong_rows_clean_absorbed_le
+      [OF rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF assms]])
+
+lemma rsizes_rpder_strong_rows_clean_terms_absorbed_pruned_le:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule rsizes_rpder_strong_rows_clean_absorbed_pruned_le
+      [OF rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned
+        [OF assms]])
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "rlinear_termss rows \<le> rlinear_termss (rpder_strong_rows_clean c rs)"
+proof -
+  have rel:
+    "rabsorb_standalone_suffix_terms (rpder_strong_rows_clean c rs) rows"
+    using assms by (simp add: rpder_strong_rows_clean_terms_absorbed_def)
+  show ?thesis
+    by (rule rlinear_termss_rabsorb_standalone_suffix_terms_le[OF rel])
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "rlinear_termss rows \<le> rlinear_termss (rpder_strong_rows_clean c rs)"
+proof -
+  obtain mid where absorbed:
+      "rpder_strong_rows_clean_terms_absorbed c rs mid"
+    and dropped: "rdrop_covered mid rows"
+    using assms
+    by (auto simp add: rpder_strong_rows_clean_terms_absorbed_pruned_def)
+  have "rlinear_termss rows \<le> rlinear_termss mid"
+    by (rule rlinear_termss_rdrop_covered_le[OF dropped])
+  also have "... \<le> rlinear_termss (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le
+        [OF absorbed])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss rows \<le> rlinear_termss (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le[OF assms])
+  also have "... \<le> rsizes (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss rows \<le> rlinear_termss (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le
+        [OF assms])
+  also have "... \<le> rsizes (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss rows \<le> rsizes rows"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss rows \<le> rsizes rows"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_pruned_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_le_generated_rsizes:
+  "rlinear_termss (rpder_strong_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss (rpder_strong_rows c rs) \<le>
+      rsizes (rpder_strong_rows c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_le)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_le_generated_rsizes:
+  "length (rpder_strong_rows c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length (rpder_strong_rows c rs) \<le>
+      rsizes (rpder_strong_rows c rs)"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_le)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_le_generated_rsizes:
+  "length (rpder_strong_rows_clean c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length (rpder_strong_rows_clean c rs) \<le>
+      rsizes (rpder_strong_rows_clean c rs)"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length rows \<le> rsizes rows"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length rows \<le> rsizes rows"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_pruned_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_le_generated_rsizes:
+  "card (set (rpder_strong_rows c rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set (rpder_strong_rows c rs)) \<le>
+      rsizes (rpder_strong_rows c rs)"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_le)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_le_generated_rsizes:
+  "card (set (rpder_strong_rows_clean c rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set (rpder_strong_rows_clean c rs)) \<le>
+      rsizes (rpder_strong_rows_clean c rs)"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed c rs rows"
+  shows "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set rows) \<le> rsizes rows"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_absorbed_pruned c rs rows"
+  shows "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set rows) \<le> rsizes rows"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_absorbed_pruned_le[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_generated_budget:
+  shows "length (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_strong_rows_le_generated_rsizes)
+  show "card (set (rpder_strong_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_strong_rows_le_generated_rsizes)
+  show "rlinear_termss (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_strong_rows_le_generated_rsizes)
+  show "rsizes (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_le)
+qed
+
+lemma rpder_strong_rows_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows c rs)) = Der c (RLS (set rs)) \<and>
+    length (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_rows c rs)) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows[OF legacy])
+  have budget:
+    "length (rpder_strong_rows c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set (rpder_strong_rows c rs)) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss (rpder_strong_rows c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes (rpder_strong_rows c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_generated_budget)
+  show "length (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set (rpder_strong_rows c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes (rpder_strong_rows c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_le_generated_rsizes:
+  "rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+      rsizes (rpder_strong_rows_clean c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_clean_generated_budget:
+  shows "length (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows_clean c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_strong_rows_clean_le_generated_rsizes)
+  show "card (set (rpder_strong_rows_clean c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_strong_rows_clean_le_generated_rsizes)
+  show "rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_strong_rows_clean_le_generated_rsizes)
+  show "rsizes (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_le)
+qed
+
+lemma rpder_strong_rows_clean_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows_clean c rs)) =
+      Der c (RLS (set rs)) \<and>
+    length (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows_clean c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_rows_clean c rs)) =
+      Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean[OF legacy])
+  have budget:
+    "length (rpder_strong_rows_clean c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set (rpder_strong_rows_clean c rs)) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes (rpder_strong_rows_clean c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_clean_generated_budget)
+  show "length (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set (rpder_strong_rows_clean c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes (rpder_strong_rows_clean c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule length_rpder_strong_rows_clean_absorbed_le_generated_rsizes
+      [OF rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF assms]])
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule length_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes
+      [OF rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned
+        [OF assms]])
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule card_set_rpder_strong_rows_clean_absorbed_le_generated_rsizes
+      [OF rpder_strong_rows_clean_terms_absorbed_imp_absorbed[OF assms]])
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes:
+  assumes "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  by (rule card_set_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes
+      [OF rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned
+        [OF assms]])
+
+lemma rpder_strong_rows_clean_terms_absorbed_generated_budget:
+  assumes absorbed: "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  show "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  show "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  show "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_terms_absorbed_le[OF absorbed])
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget:
+  assumes pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule
+        length_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  show "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule
+        card_set_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  show "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule
+        rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  show "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_clean_terms_absorbed_pruned_le
+        [OF pruned])
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs)) \<and>
+    length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean_terms_absorbed
+        [OF legacy absorbed])
+  have budget:
+    "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_clean_terms_absorbed_generated_budget
+        [OF absorbed])
+  show "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs)) \<and>
+    length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean_terms_absorbed_pruned
+        [OF legacy pruned])
+  have budget:
+    "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget
+        [OF pruned])
+  show "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_choice_generated_budget:
+  assumes choice: "rpder_strong_rows_clean_terms_choice c rs rows"
+  shows "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+  using choice
+  unfolding rpder_strong_rows_clean_terms_choice_def
+proof
+  assume rows: "rows = rpder_strong_rows_clean c rs"
+  show ?thesis
+    using rows rpder_strong_rows_clean_generated_budget[of c rs]
+    by simp
+next
+  assume pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c rs rows"
+  show ?thesis
+    by (rule rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget
+        [OF pruned])
+qed
+
+lemma rpder_strong_rows_clean_terms_choice_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+    and choice: "rpder_strong_rows_clean_terms_choice c rs rows"
+  shows "RLS (set rows) = Der c (RLS (set rs)) \<and>
+    length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_clean_terms_choice[OF legacy choice])
+  have budget:
+    "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_clean_terms_choice_generated_budget[OF choice])
+  show "length rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_choice_single_cubic_budget_contract:
+  assumes legacy: "legacy_rrexp r"
+    and choice: "rpder_strong_rows_clean_terms_choice c [r] rows"
+  shows "RLS (set rows) = Der c (RL r) \<and>
+    length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RL r)"
+    using RLS_rpder_strong_rows_clean_terms_choice
+        [of "[r]" c rows, OF _ choice] legacy
+    by (simp add: RLS_def)
+  have budget:
+    "length rows \<le> rsizes (concat (map (rpder_norm_list c) [r])) \<and>
+      card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) [r])) \<and>
+      rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) [r])) \<and>
+      rsizes rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rpder_strong_rows_clean_terms_choice_generated_budget
+        [OF choice])
+  have cubic:
+    "rsizes (concat (map (rpder_norm_list c) [r])) \<le>
+      2 * (rsize r + 3) ^ 3"
+    using rsizes_rpder_norm_list_cubic[OF legacy] by simp
+  show "length rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget cubic by linarith
+  show "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget cubic by linarith
+  show "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget cubic by linarith
+  show "rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget cubic by linarith
+qed
+
+lemma length_rpder_strong_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length (rpder_strong_rows c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "rlinear_termss (rpder_strong_rows c [r]) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss (rpder_strong_rows c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rlinear_termss_rpder_strong_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_strong_rows_clean c [r]) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "length (rpder_strong_rows_clean c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_clean_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_absorbed c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_clean_absorbed_le_generated_rsizes[OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_absorbed_pruned c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes[OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "length rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_absorbed c [r] rows"
+  shows "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rlinear_termss_rpder_strong_rows_clean_absorbed_le_generated_rsizes[OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_absorbed_pruned c [r] rows"
+  shows "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes[OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss rows \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule
+        rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_strong_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set (rpder_strong_rows c [r])) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rrexp r"
+  shows "length (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  let ?G = "rsizes (concat (map (rpder_norm_list c) [r]))"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have gen:
+    "length (rpder_strong_rows c [r]) \<le> ?G \<and>
+      card (set (rpder_strong_rows c [r])) \<le> ?G \<and>
+      rlinear_termss (rpder_strong_rows c [r]) \<le> ?G \<and>
+      rsizes (rpder_strong_rows c [r]) \<le> ?G"
+    by (rule rpder_strong_rows_generated_budget)
+  have G: "?G \<le> ?B"
+    by (simp add: rsizes_rpder_norm_list_cubic[OF legacy])
+  show ?thesis
+    using gen G by linarith
+qed
+
+lemma rpder_strong_rows_single_cubic_budget_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows c [r])) = Der c (RL r) \<and>
+    length (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_rows c [r])) = Der c (RL r)"
+    using RLS_rpder_strong_rows[of "[r]" c] legacy
+    by (simp add: RLS_def)
+  have budget:
+    "length (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      card (set (rpder_strong_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rsizes (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rpder_strong_rows_single_cubic_budget_bounds[OF legacy])
+  show "length (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set (rpder_strong_rows c [r])) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes (rpder_strong_rows c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_absorbed c [r] rows"
+  shows "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_clean_absorbed_le_generated_rsizes[OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_absorbed_pruned c [r] rows"
+  shows "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes[OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes
+        [OF absorbed])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set rows) \<le> rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule
+        card_set_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes
+        [OF pruned])
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_single_cubic_bounds:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+  using length_rpder_strong_rows_clean_terms_absorbed_single_cubic
+      [OF legacy absorbed]
+    card_set_rpder_strong_rows_clean_terms_absorbed_single_cubic
+      [OF legacy absorbed]
+    rlinear_termss_rpder_strong_rows_clean_terms_absorbed_single_cubic
+      [OF legacy absorbed]
+  by blast
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_bounds:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+  using length_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+      [OF legacy pruned]
+    card_set_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+      [OF legacy pruned]
+    rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic
+      [OF legacy pruned]
+  by blast
+
+lemma rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  let ?G = "rsizes (concat (map (rpder_norm_list c) [r]))"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have gen: "length rows \<le> ?G \<and>
+    card (set rows) \<le> ?G \<and>
+    rlinear_termss rows \<le> ?G \<and>
+    rsizes rows \<le> ?G"
+    by (rule rpder_strong_rows_clean_terms_absorbed_generated_budget
+        [OF absorbed])
+  have G: "?G \<le> ?B"
+    by (simp add: rsizes_rpder_norm_list_cubic[OF legacy])
+  show ?thesis
+    using gen G by linarith
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  let ?G = "rsizes (concat (map (rpder_norm_list c) [r]))"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have gen: "length rows \<le> ?G \<and>
+    card (set rows) \<le> ?G \<and>
+    rlinear_termss rows \<le> ?G \<and>
+    rsizes rows \<le> ?G"
+    by (rule rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget
+        [OF pruned])
+  have G: "?G \<le> ?B"
+    by (simp add: rsizes_rpder_norm_list_cubic[OF legacy])
+  show ?thesis
+    using gen G by linarith
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_contract:
+  assumes legacy: "legacy_rrexp r"
+    and absorbed: "rpder_strong_rows_clean_terms_absorbed c [r] rows"
+  shows "RLS (set rows) = Der c (RL r) \<and>
+    length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RL r)"
+    using RLS_rpder_strong_rows_clean_terms_absorbed
+        [of "[r]" c rows, OF _ absorbed] legacy
+    by (simp add: RLS_def)
+  have budget:
+    "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_bounds
+        [OF legacy absorbed])
+  show "length rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_contract:
+  assumes legacy: "legacy_rrexp r"
+    and pruned: "rpder_strong_rows_clean_terms_absorbed_pruned c [r] rows"
+  shows "RLS (set rows) = Der c (RL r) \<and>
+    length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set rows) = Der c (RL r)"
+    using RLS_rpder_strong_rows_clean_terms_absorbed_pruned
+        [of "[r]" c rows, OF _ pruned] legacy
+    by (simp add: RLS_def)
+  have budget:
+    "length rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      card (set rows) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule
+        rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_bounds
+        [OF legacy pruned])
+  show "length rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set rows) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes rows \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+qed
+
+lemma card_set_rpder_strong_rows_clean_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_strong_rows_clean c [r])) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set (rpder_strong_rows_clean c [r])) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_clean_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_list_raw_le:
+  "rsizes (rpder_strong_list_raw c r) \<le> rsizes (rpder_norm_list c r)"
+  unfolding rpder_strong_list_raw_def
+  using rsize_rsimpStrong_raw_le by (simp add: sum_list_mono)
+
+lemma rsizes_concat_rpder_strong_list_raw_le:
+  "rsizes (concat (map (rpder_strong_list_raw c) rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons r rs)
+  have head:
+    "rsizes (rpder_strong_list_raw c r) \<le> rsizes (rpder_norm_list c r)"
+    by (rule rsizes_rpder_strong_list_raw_le)
+  have tail:
+    "rsizes (concat (map (rpder_strong_list_raw c) rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule Cons.hyps)
+  show ?case
+    using head tail by simp
+qed
+
+lemma rsizes_rpder_strong_rows_raw_le:
+  "rsizes (rpder_strong_rows_raw c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rsizes (rpder_strong_rows_raw c rs) \<le>
+      rsizes (rflts
+        (rsimpStrong_prune_rows_raw
+          (rflts (concat (map (rpder_strong_list_raw c) rs)))))"
+    unfolding rpder_strong_rows_raw_def
+    using rdistinct_smaller[of
+      "rflts (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))" "{}"]
+    by simp
+  also have "... \<le> rsizes
+      (rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs))))"
+    using rflts_mono[of
+      "rsimpStrong_prune_rows_raw
+        (rflts (concat (map (rpder_strong_list_raw c) rs)))"] by simp
+  also have "... \<le> rsizes
+      (rflts (concat (map (rpder_strong_list_raw c) rs)))"
+    by (rule rsizes_rsimpStrong_prune_rows_raw_le)
+  also have "... \<le> rsizes (concat (map (rpder_strong_list_raw c) rs))"
+    using rflts_mono[of "concat (map (rpder_strong_list_raw c) rs)"] by simp
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_concat_rpder_strong_list_raw_le)
+  finally show ?thesis .
+qed
+
+lemma length_rpder_strong_rows_raw_le_generated_rsizes:
+  "length (rpder_strong_rows_raw c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "length (rpder_strong_rows_raw c rs) \<le>
+      rsizes (rpder_strong_rows_raw c rs)"
+    by (rule length_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_raw_le_generated_rsizes:
+  "card (set (rpder_strong_rows_raw c rs)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "card (set (rpder_strong_rows_raw c rs)) \<le>
+      rsizes (rpder_strong_rows_raw c rs)"
+    by (rule card_set_le_rsizes_early)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_raw_le_generated_rsizes:
+  "rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+    rsizes (concat (map (rpder_norm_list c) rs))"
+proof -
+  have "rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+      rsizes (rpder_strong_rows_raw c rs)"
+    by (rule rlinear_termss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_raw_generated_budget:
+  shows "length (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows_raw c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "length (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule length_rpder_strong_rows_raw_le_generated_rsizes)
+  show "card (set (rpder_strong_rows_raw c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule card_set_rpder_strong_rows_raw_le_generated_rsizes)
+  show "rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rlinear_termss_rpder_strong_rows_raw_le_generated_rsizes)
+  show "rsizes (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+qed
+
+lemma rpder_strong_rows_raw_generated_budget_contract:
+  assumes legacy: "\<forall>r \<in> set rs. legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows_raw c rs)) = Der c (RLS (set rs)) \<and>
+    length (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    card (set (rpder_strong_rows_raw c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+    rsizes (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_rows_raw c rs)) = Der c (RLS (set rs))"
+    by (rule RLS_rpder_strong_rows_raw[OF legacy])
+  have budget:
+    "length (rpder_strong_rows_raw c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      card (set (rpder_strong_rows_raw c rs)) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs)) \<and>
+      rsizes (rpder_strong_rows_raw c rs) \<le>
+        rsizes (concat (map (rpder_norm_list c) rs))"
+    by (rule rpder_strong_rows_raw_generated_budget)
+  show "length (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "card (set (rpder_strong_rows_raw c rs)) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rlinear_termss (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+  show "rsizes (rpder_strong_rows_raw c rs) \<le>
+      rsizes (concat (map (rpder_norm_list c) rs))"
+    using budget by simp
+qed
+
+lemma length_rpder_strong_rows_raw_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "length (rpder_strong_rows_raw c [r]) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "length (rpder_strong_rows_raw c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule length_rpder_strong_rows_raw_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma card_set_rpder_strong_rows_raw_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "card (set (rpder_strong_rows_raw c [r])) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "card (set (rpder_strong_rows_raw c [r])) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule card_set_rpder_strong_rows_raw_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rlinear_termss_rpder_strong_rows_raw_single_cubic:
+  assumes "legacy_rrexp r"
+  shows "rlinear_termss (rpder_strong_rows_raw c [r]) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have "rlinear_termss (rpder_strong_rows_raw c [r]) \<le>
+      rsizes (concat (map (rpder_norm_list c) [r]))"
+    by (rule rlinear_termss_rpder_strong_rows_raw_le_generated_rsizes)
+  also have "... = rsizes (rpder_norm_list c r)"
+    by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_rpder_norm_list_cubic[OF assms])
+  finally show ?thesis .
+qed
+
+lemma rpder_strong_rows_raw_single_cubic_budget_bounds:
+  assumes legacy: "legacy_rrexp r"
+  shows "length (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows_raw c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  let ?G = "rsizes (concat (map (rpder_norm_list c) [r]))"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have gen:
+    "length (rpder_strong_rows_raw c [r]) \<le> ?G \<and>
+      card (set (rpder_strong_rows_raw c [r])) \<le> ?G \<and>
+      rlinear_termss (rpder_strong_rows_raw c [r]) \<le> ?G \<and>
+      rsizes (rpder_strong_rows_raw c [r]) \<le> ?G"
+    by (rule rpder_strong_rows_raw_generated_budget)
+  have G: "?G \<le> ?B"
+    by (simp add: rsizes_rpder_norm_list_cubic[OF legacy])
+  show ?thesis
+    using gen G by linarith
+qed
+
+lemma rpder_strong_rows_raw_single_cubic_budget_contract:
+  assumes legacy: "legacy_rrexp r"
+  shows "RLS (set (rpder_strong_rows_raw c [r])) = Der c (RL r) \<and>
+    length (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    card (set (rpder_strong_rows_raw c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+    rsizes (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  show "RLS (set (rpder_strong_rows_raw c [r])) = Der c (RL r)"
+    using RLS_rpder_strong_rows_raw[of "[r]" c] legacy
+    by (simp add: RLS_def)
+  have budget:
+    "length (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      card (set (rpder_strong_rows_raw c [r])) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rlinear_termss (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3 \<and>
+      rsizes (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rpder_strong_rows_raw_single_cubic_budget_bounds[OF legacy])
+  show "length (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "card (set (rpder_strong_rows_raw c [r])) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rlinear_termss (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
+  show "rsizes (rpder_strong_rows_raw c [r]) \<le> 2 * (rsize r + 3) ^ 3"
+    using budget by simp
 qed
 
 lemma rsize_rpd_der_strong_le_rsizes:
@@ -24446,6 +26680,65 @@ proof -
   also have "... \<le> B"
     by (rule cubic)
   finally show ?thesis .
+qed
+
+lemma rpders_strong1_rows_raw_budget_from_rsizes_bound:
+  assumes bound: "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+  shows "length (rpders_strong1_rows_raw r s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le> B"
+proof (intro conjI)
+  show "length (rpders_strong1_rows_raw r s) \<le> B"
+  proof -
+    have "length (rpders_strong1_rows_raw r s) \<le>
+        rsizes (rpders_strong1_rows_raw r s)"
+      by (rule length_le_rsizes)
+    also have "... \<le> B"
+      by (rule bound)
+    finally show ?thesis .
+  qed
+  show "card (set (rpders_strong1_rows_raw r s)) \<le> B"
+  proof -
+    have "card (set (rpders_strong1_rows_raw r s)) \<le>
+        rsizes (rpders_strong1_rows_raw r s)"
+      by (rule card_set_le_rsizes_early)
+    also have "... \<le> B"
+      by (rule bound)
+    finally show ?thesis .
+  qed
+  show "rlinear_termss (rpders_strong1_rows_raw r s) \<le> B"
+  proof -
+    have "rlinear_termss (rpders_strong1_rows_raw r s) \<le>
+        rsizes (rpders_strong1_rows_raw r s)"
+      by (rule rlinear_termss_le_rsizes)
+    also have "... \<le> B"
+      by (rule bound)
+    finally show ?thesis .
+  qed
+  show "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+    by (rule bound)
+qed
+
+lemma rpders_strong1_rows_raw_cubic_universe_budget_contractI:
+  assumes init: "r \<in> U"
+      and step: "\<And>xs c. set xs \<subseteq> U \<Longrightarrow>
+        set (rpder_strong_rows_raw c xs) \<subseteq> U"
+      and finite: "finite U"
+      and card_bound: "card U \<le> C"
+      and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
+      and cubic: "C * M \<le> B"
+  shows "length (rpders_strong1_rows_raw r s) \<le> B \<and>
+    card (set (rpders_strong1_rows_raw r s)) \<le> B \<and>
+    rlinear_termss (rpders_strong1_rows_raw r s) \<le> B \<and>
+    rsizes (rpders_strong1_rows_raw r s) \<le> B"
+proof -
+  have raw_bound:
+    "rsizes (rpders_strong1_rows_raw r s) \<le> B"
+    by (rule rsizes_rpders_strong1_rows_raw_cubic_universe_boundI
+        [OF init step finite card_bound member_size cubic])
+  show ?thesis
+    by (rule rpders_strong1_rows_raw_budget_from_rsizes_bound[OF raw_bound])
 qed
 
 lemma rsizes_rpders_strong1_rows_raw_norm_later_shared_finite_universe_boundI:

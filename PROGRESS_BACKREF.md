@@ -1,6 +1,812 @@
 # POSIX Backreference Progress
 
-Last updated: 2026-06-04 (strong-memo route is default)
+Last updated: 2026-06-07 (corrected Antimirov frontier route is default)
+
+## Corrected Antimirov Frontier Budget Update (2026-06-08)
+
+- The corrected stage-one theorem now has a checked size/cardinality budget.
+  The theorem is still about the normal derivative first, then the normal
+  Antimirov frontier splitter:
+
+  ```text
+  rfrontier (rders_pder_norm r s) subset apder_frontier r
+  rsize_set (rfrontier (rders_pder_norm r s))
+    <= (apder_awidth r + rsize r + 3)^3
+  card (rfrontier (rders_pder_norm r s))
+    <= (apder_awidth r + rsize r + 3)^3
+  ```
+
+  Checked theorem names:
+  `rfrontier_rders_pder_norm_subset_apder_frontier`,
+  `rfrontier_rders_pder_norm_expanded_cubic_size_bound`, and
+  `rfrontier_rders_pder_norm_expanded_cubic_card_bound`.
+- `apder_awidth` is an expanded alphabetic width: counted repetition
+  contributes `n * apder_awidth body`.  This is deliberate.  Empirical
+  checks found nested `RNTIMES` can make the whole-residual frontier grow
+  exponentially relative to the current compressed `rsize` if the counted
+  repetitions are not first normalized/flattened.  Do not claim a cubic
+  theorem in the compressed `rsize` metric from this stage-one result alone.
+- Guard examples remain checked:
+  `apder_frontier_keeps_whole_residuals_a_aa` keeps `a(aa)`, `aa`, `a`,
+  and `1`; `apder_frontier_keeps_whole_residuals_a_alt_tail` keeps the whole
+  `a(b+b+b)` residual and `b`, and does not pretend that `a` is a frontier
+  residual.
+- The next stage is not `row_dlforms subset apder_frontier`.  That inclusion
+  is false in general: `row_dlforms`/linear forms may split `(a+b)c` into
+  forms such as `ac` and `bc`, while the stage-one whole-residual frontier
+  stores `(a+b)c` and `c`.  The second-stage route must use a same-front
+  linear-form universe or a generated linear-form closure with its own cubic
+  budget, then apply `row_dlform_canonical_rows`/strong-row canonicalization.
+- Added the first checked second-stage scaffold:
+  `apder_lfrontier r = Union q in apder_rows r. row_lforms q`.
+  The checked inclusion is
+
+  ```text
+  alform_front r s subset apder_lfrontier r
+  ```
+
+  under `apder_nf r`, with theorem
+  `alform_front_subset_apder_lfrontier`.  This deliberately counts linear
+  forms in their own generated universe instead of forcing them into
+  `apder_frontier`.
+- Added the support budget
+  `rsize_set_row_lforms_le_square` and the coarse universe bound
+  `rsize_set_apder_lfrontier_le_square_rows`:
+
+  ```text
+  rsize_set (row_lforms q) <= (rsize q)^2
+  rsize_set (apder_lfrontier r) <= (rsize_set (apder_rows r))^2
+  ```
+
+  This is only scaffolding.  It is not the final same-front cubic bound; the
+  next proof step should avoid mixing all derivative fronts into one global
+  square bound.
+- `AntimirovNormalFrontier.thy` now records the corrected stage-one theorem in
+  a dedicated file and has checked guard examples in that same file:
+  `normal_derivative_frontier_subset`,
+  `normal_derivative_frontier_cubic_size`,
+  `normal_factored_rows_contract`,
+  `normal_frontier_keeps_whole_residuals_a_aa`, and
+  `normal_frontier_keeps_whole_residuals_a_alt_tail`.
+- 2026-06-08 checked update: the pure normal/factored derivative route now has
+  a regex-level cubic theorem.  The new definition is
+
+  ```text
+  normal_canonical_derivative r s =
+    rsimp_ALTs
+      (normal_frontier_canonical_rows (afactored1 r s))
+  ```
+
+  The theorem `normal_canonical_derivative_cubic_contract` proves
+
+  ```text
+  RL (normal_canonical_derivative r s) = Ders s (RL r)
+  rfrontier (normal_canonical_derivative r s)
+    subset normal_antimirov_frontier r
+  rsize (normal_canonical_derivative r s)
+    <= Suc ((apder_awidth r + rsize r + 3)^3)
+  ```
+
+  under `legacy_rrexp r` and `apder_nf r`.  The theorem
+  `normal_canonical_derivative_exact_frontier_contract` proves the exact
+  canonical/no-duplicate statement:
+
+  ```text
+  rfrontier (normal_canonical_derivative r s)
+    = set (normal_frontier_canonical_rows (afactored1 r s))
+  distinct (normal_frontier_canonical_rows (afactored1 r s))
+  card (rfrontier (normal_canonical_derivative r s))
+    <= (apder_awidth r + rsize r + 3)^3
+  ```
+
+  This completes the pure Antimirov/factored canonical derivative theorem; it
+  is separate from the still-open final strong/memo POSIX route.
+- 2026-06-08 follow-up: the same-front part is now explicit, not just
+  implicit in the set inclusion.  Checked theorem names:
+
+  ```text
+  normal_canonical_derivative_frontier_eq_ader_front
+  normal_frontier_canonical_rows_same_front
+  normal_canonical_derivative_same_front_row
+  normal_canonical_derivative_equiv_rders_pder_norm
+  normal_canonical_derivative_main_cubic_bound
+  rsimpStrong_raw_normal_canonical_derivative_cubic_contract
+  ```
+
+  In formulas, the key new equality is
+
+  ```text
+  rfrontier (normal_canonical_derivative r s) = ader_front r s
+  ```
+
+  so the canonical rows are exactly the normal Antimirov frontier for the
+  current derivative string `s`.  This records the intended "same derivative
+  front" invariant and avoids the earlier invalid split-atom interpretation.
+- 2026-06-08 checked wrapper: applying the strong raw simplifier after the
+  normal canonical derivative preserves the same cubic regex-size bound:
+
+  ```text
+  RL (rsimpStrong_raw (normal_canonical_derivative r s))
+    = RL (rders_pder_norm r s)
+  RL (rsimpStrong_raw (normal_canonical_derivative r s))
+    = Ders s (RL r)
+  rsize (rsimpStrong_raw (normal_canonical_derivative r s))
+    <= Suc ((apder_awidth r + rsize r + 3)^3)
+  ```
+
+  The checked theorem is
+  `normal_canonical_then_strong_main_cubic_bound`.  This closes the clean
+  normal-canonical-then-strong-simplify regex route; it is still separate from
+  the old raw/memo row pipeline.
+- The first strong-row bridge is checked without using the old split-atom
+  shortcut:
+
+  ```text
+  set (rpder_strong_rows_raw c (afactored1 r s))
+    subset normal_strong_scan_owner r
+
+  forall x in that set.
+    rsize x <= 2 * (apder_awidth r + rsize r + 3)^3
+  ```
+
+  The theorem names are
+  `rpder_strong_rows_raw_afactored1_subset_normal_strong_scan_owner`,
+  `rpder_strong_rows_raw_afactored1_member_cubic`, and
+  `rpder_strong_rows_raw_afactored1_normal_owner_contract`.
+- A parameterized total-budget bridge is checked:
+  `rpder_strong_rows_raw_afactored1_owner_card_budget_contract`.  It proves
+  language correctness plus `length`, `card`, `rlinear_termss`, and `rsizes`
+  bounds for raw one-step strong rows from `afactored1 r s`, assuming a
+  cardinality bound
+
+  ```text
+  card (normal_strong_scan_owner r) <= C
+  ```
+
+  This isolates the remaining raw-row counting gap.  Do not replace this
+  assumption with `sizeNregex`; that would be finite but far too large.
+- The canonical second-stage interface is now checked.  The theorem
+  `rpder_strong_dcanon_afactored1_same_front_contract` proves that
+  canonical/deep-linear-form strong rows stay in the same derivative front:
+
+  ```text
+  same_strong_aseq_front_rows r (s @ [c])
+    (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+
+  aseq_termss (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+    subset strong_derivative_front_terms r (s @ [c])
+  ```
+
+  The same theorem also gives cubic `card` and `rsize_set` bounds for
+  `strong_derivative_front_terms r (s @ [c])`.
+- The checked conditional cubic theorem for the canonical rows is
+  `rpder_strong_dcanon_afactored1_dlform_cubic_interface`.  If
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  then the canonical rows
+  `rpder_strong_dcanon_rows_raw c (afactored1 r s)` are language-correct,
+  `row_dlformss_disjoint`, live, size-paid, preserve the raw rows'
+  `row_dlformss`, and satisfy cubic `length`, `card`, `rlinear_termss`, and
+  `rsizes` budgets.
+- 2026-06-08 checked strengthening of the second-stage inclusion: before
+  falling back to the global `apder_strong_dlfrontier`, the one-step raw
+  strong rows now have an explicit step-local universe inclusion:
+
+  ```text
+  row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+    subset afactored1_strong_dlform_universe r s c
+  ```
+
+  The theorem is
+  `row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe`.
+  It has no `apder_nf r` premise.  The older theorem into
+  `apder_strong_dlfrontier r` now factors through this stronger local result.
+- 2026-06-08 follow-up: the same local-universe inclusion is now checked for
+  the canonicalized strong rows too:
+
+  ```text
+  row_dlformss (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+    subset afactored1_strong_dlform_universe r s c
+  ```
+
+  The theorem is
+  `row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_strong_dlform_universe`.
+  This confirms that canonicalization itself is not the source of any
+  off-front residuals; the remaining issue is purely the size/counting bound
+  for the local universe.
+- 2026-06-08 stronger same-front bridge: the local strong universe is now
+  checked to sit inside the strong closure of the next normal factored rows:
+
+  ```text
+  afactored1_strong_dlform_universe r s c
+    subset rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))
+  ```
+
+  The theorems are
+  `afactored1_strong_dlform_universe_subset_next_rows_closure`,
+  `rsize_set_afactored1_strong_dlform_universe_le_next_rows_closure`, and
+  `row_dlformss_rpder_strong_dcanon_rows_raw_afactored1_subset_next_rows_closure`.
+  This is the whole-residual/same-front formulation of the second-stage
+  target: first keep the normal Antimirov rows for the derivative front
+  `s @ [c]`, then allow strong simplification closure over those rows.
+- The checked conditional theorem
+  `rpder_strong_dcanon_rows_raw_afactored1_next_rows_closure_cubic_contractI`
+  now says that if
+
+  ```text
+  rsize_set
+    (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  then the old raw strong/dcanon step has the same cubic contract as before.
+  Thus the remaining old/raw proof obligation can be stated as a cubic
+  total-size bound for a single same-front rows closure, not as an atomized
+  `aseq_terms` inclusion.
+- 2026-06-08 negative checkpoint: the tempting local monotonicity route is
+  formally false.  The checked counterexample
+  `rsimpStrong_raw_row_dlforms_cost_not_monotone` has
+
+  ```text
+  rsize_set (row_dlforms (rsimpStrong_raw p)) = 12
+  rsize_set (row_dlforms p) = 10
+  row_dlforms_list_size p = 10
+  ```
+
+  and therefore refutes both
+  `rsize_set (row_dlforms (rsimpStrong_raw p))
+    <= rsize_set (row_dlforms p)` and
+  `rsize_set (row_dlforms (rsimpStrong_raw p))
+    <= row_dlforms_list_size p`.
+  Do not try to close the old/raw route by proving one-step
+  `row_dlforms` cost nonincrease; the proof must use global same-front
+  structure or a stronger whole-residual universe.
+- Current remaining second-stage gap: prove the above
+  `afactored1_strong_dlform_universe` cubic `rsize_set` estimate from the
+  same-front/frontier structure.  Direct subset into `apder_frontier` or
+  `partial_derivative_frontier_universe` is false; the checked counterexample
+  `afactored1_strong_dlform_universe_not_frontier_subset` must stay visible.
+  The right route is a same-front combination/counting argument, not arbitrary
+  split-atom closure.
+- 2026-06-08 continuation: added checked deep-row accumulator scaffolding for
+  that route.  The new increment lemmas
+  `rsize_set_row_dlforms_rsimp4_SEQ_atom_diff_le`,
+  `rsize_set_row_dlforms_rsimp4_SEQ_atom_le`, and
+  `rsize_set_row_dlforms_rsimp4_SEQ_atom_square_le` formalize shared-suffix
+  accounting:
+
+  ```text
+  rsize_set (row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k)
+    <= rsize p * Suc (rsize p + rsize k)
+
+  rsize_set (row_dlforms (rsimp4_SEQ_atom p k))
+    <= rsize_set (row_dlforms k)
+       + (rsize p)^2 * Suc (rsize k) + (rsize p + 2)^2
+  ```
+
+  Also added `apder_dfrontier_acc_size_budget`, whose equations mirror the
+  Antimirov recursion for `apder_terms`, and the checked theorem
+  `rsize_set_apder_dfrontier_acc_le_budget`.  This is still scaffolding, not
+  the final cubic theorem: the next step is to bound that recursive budget by
+  preserving same-front/shared-suffix classes, not by independently squaring
+  every generated term.
+- 2026-06-08 later continuation: the direct accumulator sum above is now
+  superseded by a checked delta scaffold that avoids charging the same suffix
+  frontier repeatedly.  New definitions and theorems:
+
+  ```text
+  apder_dfrontier_delta_acc r k =
+    apder_dfrontier_acc r k - row_dlforms k
+
+  rsize_set (apder_dfrontier_delta_acc r k)
+    <= apder_dfrontier_delta_budget r k
+
+  rsize_set (apder_dfrontier_acc r k)
+    <= rsize_set (row_dlforms k)
+       + apder_dfrontier_delta_budget r k
+
+  rsize_set (apder_deep_frontier r)
+    <= rsize_set (row_dlforms r)
+       + rsize_set (row_dlforms RONE)
+       + apder_dfrontier_delta_budget r RONE
+  ```
+
+  This is the preferred route for the final total-size cubic theorem.  Do not
+  try to prove cubic by summing `row_dlforms k` at every recursive leaf; that
+  loses the shared suffix structure and creates avoidable star/sequence
+  over-counting.
+- Verification after these additions: Isabelle `Posix` passed, followed by
+  `scripts\codex-proof-workers.ps1 -Action Check` reporting no matching
+  residual proof-worker processes.
+
+## Correction: Old Split-Atom "Stage One" Is Retracted (2026-06-07)
+
+- The previously recorded first-step claim based on `aseq_terms` is not the
+  user's requested Antimirov/linear-form decomposition.  `aseq_terms` opens
+  every `RSEQ`, so it over-splits product structure: for example it treats
+  `a(aa)` as only the atom `{a}`, whereas the Antimirov derivative frontier
+  must keep whole residual terms such as `a(aa)`, `aa`, and `a`.
+- The checked `aseq_terms` lemmas remain valid only as auxiliary split-atom
+  inclusions.  They must not be described as completing stage one, and they
+  are not enough to prove a regex-size cubic bound.
+- The corrected stage-one target is now checked: after computing the normal
+  partial derivative first, decomposing it by the normal Antimirov frontier
+  splitter (not by `aseq_terms`) stays inside the root-owned Antimirov residual
+  frontier:
+
+  ```text
+  rfrontier (rders_pder_norm r s) subset apder_frontier r
+  ```
+
+  The theorem is `rfrontier_rders_pder_norm_subset_apder_frontier`, under the
+  proof-local normal-form assumption `apder_nf r`.  Its row-level core is
+  `afactored1_apder_rows_subset`; the bridge to the existing normal derivative
+  remains `rfrontier (rders_pder_norm r s) = ader_front r s`.
+- Do not use `row_dlforms` as the stage-one splitter either.  `row_dlforms`
+  recursively opens rows such as `RSEQ (RALTS ps) k`; that is useful later for
+  canonical/prune accounting, but it is already too fine for the normal
+  Antimirov derivative frontier.  The current checked guard examples are
+  `apder_frontier_keeps_whole_residuals_a_aa` and
+  `apder_frontier_keeps_whole_residuals_a_alt_tail`; they ensure examples like
+  `a(aa)` and `a(b+b+b)` keep whole residuals rather than collapsing to atoms.
+- The proof must preserve the same-front restriction; plain closure for every
+  `q` in a coarse universe is too strong and admits impossible combinations.
+  The remaining route is to prove a polynomial budget for this whole-residual
+  frontier/canonical row representation, then connect it to the strong
+  simplifier rows.
+
+## Cubic Route Checked Update: Deep Rows And Deep Frontier Closure (2026-06-07)
+
+- Added proof-local deep derivative rows:
+  `rpder_deep_list`, `rpder_deep_rows`, `rpders_deep_rows`, and
+  `rpders_deep1_rows`.  These use the Antimirov one-step generator
+  `rpder_norm_list`, then normalize each generated row with `rsimpDeep_raw`,
+  filter dead rows, and remove duplicates.
+- Checked their core row facts: language correctness
+  (`RLS_rpder_deep_rows`, `RLS_rpders_deep_rows`,
+  `RLS_rpders_deep1_rows`), legacy preservation, tail normal form,
+  distinctness, and `row_group_deep_nf`.
+- Checked the generated one-step budgets:
+  `rpder_deep_rows_generated_budget` and
+  `rpder_deep_rows_generated_budget_contract`.  In particular, for a singleton
+  start row,
+
+  ```text
+  length (rpder_deep_rows c [r]) <= 2 * (rsize r + 3)^3
+  card (set (rpder_deep_rows c [r])) <= 2 * (rsize r + 3)^3
+  ```
+
+  This is a one-step generated-front budget, not the final arbitrary-input
+  row-level cubic theorem.
+- Retracted old first-step target.  The theorem
+  `rders_pder_norm_split_aseq_termss_frontier_universe_subset` proves that we
+  first compute the completed normal derivative `rders_pder_norm r s`, then
+  open it with `row_dlforms`, and only then split products with `aseq_terms`:
+
+  ```text
+  (Union x in row_dlforms (rders_pder_norm r s). aseq_terms x)
+    subset partial_derivative_frontier_universe r
+  ```
+
+  This statement is checked, but it is now classified as an auxiliary
+  split-atom fact, not as the completed Antimirov stage-one theorem.
+
+- Added the deep simplifier split-term closure
+  `deep_simp_frontier_aseq_universe r =
+   rsimpDeep_aseq_closure (partial_derivative_frontier_universe r)`.
+  It is finite, has cubic cardinality and cubic `rsize_set` bounds, and every
+  member has the same linear size bound as the original frontier terms.
+- Added the checked derivative-fuel layer.  The generic
+  `rderiv_fuel_closure U` closes a split-term universe under subterms and
+  linear continuations.  Checked facts include subterm closure,
+  star-body closure, `RNTIMES` body closure, `RNTIMES` predecessor closure,
+  member-size preservation, and
+
+  ```text
+  card (rderiv_fuel_closure U) <= 2 * rsize_set U
+  ```
+
+  This is the key accounting improvement: fuel closure is charged to
+  `rsize_set`, not to `card U * max_size`.
+- Added the concrete cubic fuel universes
+  `deep_simp_frontier_subterm_universe r` and
+  `deep_simp_frontier_fuel_universe r`.  In particular,
+  `card_deep_simp_frontier_fuel_universe_cubic` proves:
+
+  ```text
+  card (deep_simp_frontier_fuel_universe r) <=
+    4 * (rsize r + 2)^3
+  ```
+
+  It also has checked zero/one, subterm, star-body, `RNTIMES` body,
+  `RNTIMES` predecessor, and linear member-size facts.
+- Added the fuel-style derivative induction interface:
+  `rpder_norm_list_aseq_terms_fuel_subsetI`,
+  `aseq_termss_rpders_deep_rows_fuel_closed_subsetI`, and
+  `aseq_termss_rpders_deep1_rows_fuel_closed_subsetI`.  These prove arbitrary
+  many deep-row steps stay in a chosen `U` once `U` has fuel closure and
+  `rsimpDeep_raw` maps split terms back into `U`.
+- Instantiated the raw-generation half for the concrete deep fuel universe:
+  `aseq_termss_concat_map_rpder_norm_list_deep_fuel_subsetI` proves that the
+  unsimplified `rpder_norm_list` frontier stays inside
+  `deep_simp_frontier_fuel_universe r`; and
+  `aseq_termss_rpder_deep_rows_deep_fuel_closureI` proves one full
+  `rpder_deep_rows` step lands in
+  `rsimpDeep_aseq_closure (deep_simp_frontier_fuel_universe r)`.
+- Added the idempotent-return interface:
+  `rsimpDeep_aseq_closure_subset_idemI`,
+  `aseq_terms_rsimpDeep_raw_idem_closed_subsetI`, and
+  `aseq_termss_rpders_deep_rows_deep_fuel_idem_subsetI`.  These show that if
+  every member of `deep_simp_frontier_fuel_universe r` is already an
+  `rsimpDeep_raw` fixed point, then arbitrary many `rpders_deep_rows` steps
+  stay inside that same cubic fuel universe.
+- Checked the normal-derivative/deep-simplifier bridge:
+  after computing `rders_pder_norm r s`, applying `rsimpDeep_raw`, opening by
+  `row_dlforms`, and splitting by `aseq_terms`, all split atoms land in
+  `deep_simp_frontier_aseq_universe r`.
+- The deep simplifier-return step is now checked.  The theorem
+  `rsimpDeep_raw_deep_simp_frontier_fuel_universe_idem` proves, for legacy
+  roots, that every member of `deep_simp_frontier_fuel_universe r` is already
+  an `rsimpDeep_raw` fixed point:
+
+  ```text
+  p in deep_simp_frontier_fuel_universe r
+  ==> rsimpDeep_raw p = p
+  ```
+
+- Consequently the arbitrary non-empty deep-row split-term bound is checked:
+  `card_aseq_termss_rpders_deep1_rows_nonempty_cubic` proves
+
+  ```text
+  card (aseq_termss (rpders_deep1_rows r (c # s))) <=
+    4 * (rsize r + 2)^3
+  ```
+
+  This is still a split-term theorem, not the final concrete row/DAG theorem.
+- The analogous raw-strong fixed-point route is false for the current
+  simplifier.  The diagnostic `rsimpStrong_raw_not_idempotent` proves a small
+  checked counterexample where
+  `rsimpStrong_raw (rsimpStrong_raw t) != rsimpStrong_raw t`.  Therefore the
+  second stage must not try to discharge the strong fuel theorem by proving
+  `rsimpStrong_raw` fixed on the whole fuel universe.
+- Verification: Isabelle `Posix` passed after these changes.
+
+## Cubic Route Checked Update: Deep Canonical Sequence Probe (2026-06-07)
+
+- Added checked diagnostics showing why the current second-stage proof cannot
+  simply assert pure-front closure for `rsimpStrong_raw`:
+  `pure_adlform_front_not_closed_under_rsimpStrong_raw` proves that
+  `a.(0)*` has pure next-front row `(0)*`, while `rsimpStrong_raw ((0)*) = 1`,
+  so the pure `adlform_front` is not closed under strong simplification.
+- Added `rsimpStrong_dlform_closure` plus basic finite/card lemmas, then
+  checked a stronger negative diagnostic:
+  `rsimpStrong_raw_seq_alt_dlform_closure_counterexample`.  The current
+  `rsimpStrong_raw` can produce the deep row form `a.(a*.a*)` from a case where
+  the old row-form strong closure only contains `a.a*`.  This exposes the
+  exact sequence-recursion gap: `rsimpStrong_raw` calls `rsimp7_SEQ_atom` once,
+  but the recursive reassociation inside `rsimp4_SEQ_atom` does not preserve
+  star-aware absorption.
+- Added a local canonical probe:
+  `rsimpDeep_SEQ_atom`, which recursively reassociates sequence products while
+  keeping the `rsimp7` star-absorption rules active at every join.  Checked
+  facts now include `RL_rsimpDeep_SEQ_atom`,
+  `rsize_rsimpDeep_SEQ_atom_le`, and
+  `aseq_terms_rsimpDeep_SEQ_atom_subset`.
+- Added `rsimpDeep_raw`, a proof-local normalizer using
+  `rsimpDeep_SEQ_atom` for sequence and ordinary distinct/flatten cleanup for
+  alternatives.  Checked facts:
+  `RL_rsimpDeep_raw`, `rsize_rsimpDeep_raw_le`, and the sanity theorem
+  `rsimpDeep_raw_repairs_seq_alt_dlform_counterexample`, which confirms that
+  the old `a.(a*.a*)` counterexample normalizes back to `a.a*`.
+- This is not the final theorem.  It establishes that the old
+  `rsimpStrong_raw` canonicality route has a real checked obstruction, and
+  that the deep-sequence canonicalizer repairs that obstruction while
+  preserving language and size.  The remaining work is to connect this
+  normalizer, or an equivalent strengthening of `rsimpStrong_raw`, to the
+  front-indexed derivative-row induction and row-prune/cubic accounting.
+- Verification: Isabelle `Posix` and `BackRefPilot` passed with
+  `-SkipScala -SessionTimeoutSeconds 240` after these changes.
+
+## Cubic Route Checked Update: Deep Row Split-Atom Closure (2026-06-07)
+
+- Added checked deep-row splitter support in `AntimirovFactoredTransition.thy`:
+  `row_dlforms_aseq_terms_subset` and `row_dlformss_aseq_terms_subset`.
+  These prove that after a row is opened by `row_dlforms`, splitting any
+  resulting deep linear form with `aseq_terms` does not introduce atoms outside
+  the original row/row-list split atoms.
+- Added the checked deep same-front scaffold requested by the user:
+  `adlform_front`, `same_dlfront_row`, and `same_dlfront_rows`.  The key
+  one-step Antimirov-front theorem is
+  `row_dlforms_rpder_norm_list_afactored1_subset`: if
+  `q in afactored1 root front` and
+  `p in rpder_norm_list c q`, then
+  `row_dlforms p subset adlform_front root (front @ [c])`.
+  This pins the "same derivative front" invariant to a concrete Isabelle
+  definition for deep linear forms.
+- Added checked deep-front cleanup preservation:
+  `same_dlfront_rows_rflts`, `same_dlfront_rows_rdistinct`,
+  `same_dlfront_rows_rprune_eq_against`, and
+  `same_dlfront_row_rsimp_ALTs`.  These are the deep analogues of the earlier
+  shallow `same_lfront_*` transport lemmas and will be used to connect the
+  front invariant through scan/prune cleanup.
+- Connected that support to the completed normal derivative:
+  `row_dlforms_rders_pder_norm_split_terms_frontier_universe_subset` and
+  `row_dlforms_rders_pder_norm_split_terms_frontier_universe_contract` prove
+  that if `x` is obtained by first computing `rders_pder_norm r s` and only
+  then opening it with `row_dlforms`, then
+
+  ```text
+  aseq_terms x subset partial_derivative_frontier_universe r
+  ```
+
+  with the same quadratic card bound and linear member-size bound for those
+  split atoms.
+- Connected the same interface to raw strong multi-step rows:
+  `row_dlformss_rpders_strong1_rows_raw_split_terms_frontier_universe_subsetI`
+  and
+  `row_dlformss_rpders_strong1_rows_raw_split_terms_frontier_universe_contractI`.
+  These are conditional on the existing `rsimpStrong_raw` frontier-preserving
+  norm premise and prove the same atom-level frontier contract for every
+  `x in row_dlformss (rpders_strong1_rows_raw r s)`.
+- Important limitation: these theorems prove
+  `aseq_terms x subset partial_derivative_frontier_universe r`, not
+  `x in partial_derivative_frontier_universe r`.  For product rows
+  `x = RSEQ p k`, the latter is strictly stronger and requires the
+  front-indexed/same-front combination invariant from the user's sketch.
+  Existing diagnostics already show that whole residual rows may need
+  path/carry continuations rather than the smaller frontier universe.
+- Verification: Isabelle `Posix` and `BackRefPilot` passed with
+  `-SkipScala -SessionTimeoutSeconds 240` after these changes.
+
+## Cubic Route Checked Update: Linear-Form Accounting and Payload Stability (2026-06-07)
+
+- Added raw multi-step language correctness for raw strong rows:
+  `RLS_rpders_strong_rows_raw` and `RLS_rpders_strong1_rows_raw`.
+- Added the conditional row-level cubic bridge:
+  `rpders_strong1_rows_raw_canonical_lforms_cubic_contractI`.  It proves the
+  raw multi-step correctness plus all four row budgets from these explicit
+  canonical hypotheses on `rpders_strong1_rows_raw r s`:
+  `row_lformss_disjoint`, all rows live, all rows are size-paid by their
+  linear forms, and all row linear forms lie in the chosen cubic lform
+  universe.
+- Added checked linear-form accounting lemmas:
+  `rsizes_rows_canonical_strong_simp_lforms_cubic` and
+  `rsizes_row_nf_distinct_strong_simp_lforms_cubic`.  These reduce row-size
+  cubicity to `rsize_set` cubicity of the row linear-form universe.
+- Added checked raw-prune lform monotonicity under the new payload canonical
+  condition:
+
+  ```text
+  row_payload_lform_stable p =
+    row_lforms_tail_stable p and
+    (forall k. row_lforms_suffix_stable p k)
+  ```
+
+  Main bridge lemmas:
+  `row_lforms_rsimpStrong_prune_pair_raw_subset_later_payload_stableI`,
+  `row_lformss_rsimpStrong_prune_rows_raw_subset_pairI`, and
+  `row_lformss_rpder_strong_rows_raw_subset_generated_payload_stableI`.
+  In words: if the payloads of a shared-suffix later row are stable, raw
+  scan/prune deletes linear forms but does not create new ones.
+- Added diagnostics showing why weaker normal forms are insufficient:
+  `row_nf_does_not_imply_tail_stable` and
+  `rtail_nf_does_not_imply_tail_stable`.  The first catches left-nested
+  sequence reassociation; the second catches nested group rows used as
+  payloads.
+- Current remaining blocker: prove that actual generated group payloads are
+  `row_payload_lform_stable`, or strengthen the simplifier so that generated
+  payloads satisfy this condition.  This is now the named second-stage
+  canonical gap.
+- Verification: Isabelle `Posix` and `BackRefPilot` passed with
+  `-SkipScala -SessionTimeoutSeconds 240` after these changes.  Scala smoke
+  was not rerun for this proof-only update.
+
+## Cubic Route Checked Update: Second-Stage Strong Simplifier Closure (2026-06-07)
+
+- Added the checked simplifier-side split-term closure
+  `strong_simp_frontier_aseq_universe r`, defined as
+  `rsimpStrong_aseq_closure (partial_derivative_frontier_universe r)`.
+  It is finite, every member has size at most `Suc (rsize r + rsize r)`,
+  and its cardinality is bounded by:
+
+  ```text
+  card (strong_simp_frontier_aseq_universe r) <=
+    2 * (rsize r + 2)^3
+  ```
+
+- Proved the corrected normal-derivative-to-strong-simplifier bridge:
+
+  ```text
+  aseq_terms (rsimpStrong_raw (rders_pder_norm r s)) subset
+    strong_simp_frontier_aseq_universe r
+  ```
+
+  The package theorem
+  `rsimpStrong_raw_rders_pder_norm_frontier_closure_nf_contract` also gives
+  the cubic cardinality bound, the linear member-size bound, and
+  `row_group_deep_nf` for the simplified normal derivative.
+- Proved one-step raw-strong row bridges from bounded Antimirov states:
+  `rpder_strong_rows_raw_rders_pder_norm_frontier_closure_nf_contract` and
+  `rpder_strong_rows_raw_afactored1_frontier_closure_nf_contract`.  These show
+  that one raw-strong step from either the completed normal derivative row or
+  the factored Antimirov rows lands in the same
+  `strong_simp_frontier_aseq_universe`, with the same cubic card bound,
+  linear member-size bound, and `row_group_deep_nf` rows.
+- Added raw strong-row normal-form preservation lemmas:
+  `row_group_deep_nf_rpder_strong_list_raw`,
+  `row_group_deep_nf_rpder_strong_list_raw_legacy`,
+  `row_group_deep_nf_rpder_strong_rows_raw`,
+  `row_group_deep_nf_rpder_strong_rows_raw_legacy`,
+  `row_group_deep_nf_rpders_strong_rows_raw`, and the non-empty legacy
+  variant `row_group_deep_nf_rpders_strong_rows_raw_legacy_Cons`.
+- Important limitation: this is still not the final all-input cubic theorem.
+  `strong_simp_frontier_aseq_universe` is a split-term/simplifier closure
+  universe.  The final memo route still needs a concrete row-level universe
+  closed under raw active-suffix/later-shared pruning and subterms, matching
+  the interface of
+  `strong_deferred_original_raw_row_norm_later_shared_memo_cubic_interface`.
+- Verification: full local CI passed after these changes, including Scala
+  strong-memo smoke/fuzz and Isabelle `Posix` plus `BackRefPilot`.
+
+## Cubic Route Checked Update: Normal-Derivative Split Terms (2026-06-06)
+
+- Added `AntimirovFactoredTransition.thy` front-indexed linear-form machinery:
+  `row_lforms`, `row_lformss`, `alform_front`, `same_lfront_row`, and
+  `same_lfront_rows`.
+- Earlier split-atom target: the theorem applies to the completed
+  normal derivative regex, not only to already-factored rows, but it still
+  splits too finely for the user's Antimirov frontier route.  The bridge
+  theorem `anorm_der_eq_rders_pder_norm` proves that collapsing the factored
+  Antimirov rows with `rsimp_ALTs` is exactly the existing normal derivative
+  iterator `rders_pder_norm`.  Therefore
+  `rders_pder_norm_aseq_terms_frontier_universe_contract` proves:
+
+  ```text
+  aseq_terms (rders_pder_norm r s) subset
+    partial_derivative_frontier_universe r
+  ```
+
+  with the quadratic card bound and linear member-size bound.  This remains an
+  auxiliary split-atom theorem; the corrected whole-residual theorem is
+  `rfrontier_rders_pder_norm_subset_apder_frontier`.
+- The front-indexed theorem is still checked, but it is now recorded as
+  supporting structure rather than the first-step endpoint: every residual
+  linear form at a fixed derivative front, when split by `aseq_terms`, lies in
+  the original `partial_derivative_frontier_universe`.
+  Main theorem:
+  `alform_front_aseq_terms_frontier_universe_contract`.
+- Added same-front preservation bridges for row cleanup operations:
+  `same_lfront_rows_rflts`, `same_lfront_rows_rdistinct`,
+  `same_lfront_rows_rprune_eq_against`, and
+  `same_lfront_row_rsimp_ALTs`.
+- Also checked the lifted same-front contract
+  `same_lfront_rows_aseq_terms_frontier_universe_contract`.
+- Second-step scaffold added and checked:
+  `afactored_steps_append`, `afactored1_snoc`,
+  `row_lformss_rflts_eq`, `row_lformss_rdistinct_empty_eq`,
+  `row_lformss_afactored_step_eq_generated`, `alform_front_snoc`, and
+  `row_lforms_rpder_norm_list_afactored1_subset`.  These make the pure
+  Antimirov next-front equality explicit: generating one more derivative from
+  `afactored1 root front` lands in `alform_front root (front @ [c])`.
+- Added checked diagnostics ruling out two naive second-step invariants:
+  `rsimpStrong_raw_aseq_terms_not_monotone` shows strong raw simplification is
+  not monotone on `aseq_terms`; and
+  `row_lforms_rsimpStrong_prune_pair_raw_not_monotone` shows shared-suffix raw
+  pruning is not monotone on `row_lforms`.  The simplifier-side proof must
+  therefore use a front-indexed normal/closure invariant that accounts for
+  dead branches and simplifier-created constants, not a plain subset argument.
+- Current remaining blocker for a final raw strong cubic theorem:
+  prove the simplifier-side/canonical side, i.e. discharge the existing
+  `rsimpStrong_raw` frontier-universe closure premise or replace it with a
+  same-front no-redundancy theorem.  A naive
+  `aseq_terms (rsimpStrong_raw p) subset aseq_terms p` is false because star
+  bodies can simplify to `RONE`; the needed statement must use the
+  front-indexed universe/canonical-normal-form invariant.
+
+## Cubic Route Constraint: Same-Front Antimirov Combinations (2026-06-06)
+
+- User-fixed proof route: do not treat arbitrary subsets of the
+  Antimirov/partial-derivative term universe as valid rows.  The derivative
+  invariant should be front-indexed:
+
+  ```text
+  aseq_terms(row) subset T_r(front)
+  ```
+
+  for some derivative-front/residual-front label `front`, where `T_r(front)` is
+  the block of original Antimirov terms that can share the same predecessor
+  derivative history.
+- Intended split of responsibilities:
+  - Derivative proof: after any number of derivatives, rows split into
+    original Antimirov terms, and each row contains only same-front terms.  This
+    proves "no mixed-front combinations".
+  - Simplifier proof: `simpStrong` / `rsimpStrong_raw` canonicalizes within an
+    already-valid front and removes duplicate/redundant terms.  It should not
+    be responsible for proving the Antimirov inclusion invariant.
+- Examples to preserve:
+  - `(a+b)c` has terms `(a+b)c` and `c`, but they are different-front terms and
+    must not be combined.
+  - `a*b + a*c` allows `b` and `c` to combine because they can share the same
+    consumed-prefix/front history.
+  - `(aa)*b + a*c` keeps the same lesson: admissible grouping is based on
+    compatible front history, not merely syntactic parent equality.
+- This constraint strengthens the already checked plain inclusion theorem
+  `afactored1_aseq_terms_frontier_universe_contract`.  Plain inclusion into
+  `partial_derivative_frontier_universe r` is useful but too weak for the raw
+  regex-size theorem, because it permits arbitrary combinations and loses the
+  front discipline needed to bound concrete rows.
+
+## Cubic Route Checkpoint: Antimirov-Style Row Count Scaffold (2026-06-05)
+
+- Final theorem status: **not complete**. This checkpoint proves a one-step
+  accounting scaffold in the style of Antimirov linear forms; it does not close
+  the all-input memo/DAG bridge theorem.
+- Checked Isabelle additions:
+  - `GeneralRegexBound.thy:length_le_rsizes`
+  - `GeneralRegexBound.thy:card_set_le_rsizes_early`
+  - `GeneralRegexBound.thy:length_rflts_le_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_norm_list_le_rsize`
+  - `GeneralRegexBound.thy:card_set_rpder_norm_list_le_rsize`
+  - `GeneralRegexBound.thy:length_concat_map_rpder_norm_list_le_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_norm_rows_le_generated_rsizes`
+  - `GeneralRegexBound.thy:card_set_rpder_norm_rows_le_generated_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_norm_rows_single_cubic`
+  - `GeneralRegexBound.thy:card_set_rpder_norm_rows_single_cubic`
+  - `GeneralRegexBound.thy:length_rsimpStrong_prune_rows_acc_raw`
+  - `GeneralRegexBound.thy:length_rsimpStrong_prune_rows_raw`
+  - `GeneralRegexBound.thy:rsize_rsimpStrong_prune_against_rows_raw_le`
+  - `GeneralRegexBound.thy:rsizes_rsimpStrong_prune_rows_acc_raw_le`
+  - `GeneralRegexBound.thy:rsizes_rsimpStrong_prune_rows_raw_le`
+  - `GeneralRegexBound.thy:rsize_rsimpStrong_ALTs_raw_le`
+  - `GeneralRegexBound.thy:rsize_rsimpStrong_raw_le`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_le_generated_rsizes`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_le_generated_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_single_cubic`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_single_cubic`
+  - `GeneralRegexBound.thy:rsizes_rpder_strong_list_raw_le`
+  - `GeneralRegexBound.thy:rsizes_concat_rpder_strong_list_raw_le`
+  - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_raw_le`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_raw_le_generated_rsizes`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_raw_le_generated_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_raw_single_cubic`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_raw_single_cubic`
+  - `FBound.thy:length_rpder_norm_rows_rerase_intern_single_cubic`
+  - `FBound.thy:card_set_rpder_norm_rows_rerase_intern_single_cubic`
+  - `FBound.thy:length_rpder_strong_rows_rerase_intern_single_cubic`
+  - `FBound.thy:card_set_rpder_strong_rows_rerase_intern_single_cubic`
+  - `FBound.thy:length_rpder_strong_rows_raw_rerase_intern_single_cubic`
+  - `FBound.thy:card_set_rpder_strong_rows_raw_rerase_intern_single_cubic`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_rows_le_length`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_rows_finite_universe_boundI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_rows_card_boundI`
+  - `FBound.thy:card_strong_deferred_strong_rows_raw_bridge_rows_norm_active_suffix_boundI`
+- Meaning:
+  - The normalized partial-derivative rows now have explicit length/cardinality
+    bounds that factor through the existing cubic total-size theorem for
+    `rpder_norm_list`.
+  - The strong and raw-strong row accumulators now expose the corresponding
+    count metric: pruning preserves raw row-list length, raw simplification is
+    size non-increasing, and both `rpder_strong_rows` and
+    `rpder_strong_rows_raw` have one-step length/cardinality bounds by
+    `2 * (rsize r + 3)^3` for legacy regexes.
+  - This aligns the proof surface with Antimirov's linear-form counting
+    argument before attempting the harder all-input later-shared/factored-row
+    closure proof.
+  - The root-level lifted FBound lemmas expose the same one-step count bounds
+    directly in terms of original-regex `rxsize r`, via `rerase (intern r)`.
+  - The bridge-row set now has a checked multi-step count interface:
+    `card (strong_deferred_strong_rows_raw_bridge_rows r s)` is bounded by
+    the raw strong-row list length, then by any finite universe closed under
+    the raw strong-row step. A norm/active-suffix closure corollary is also
+    available for the current memo bridge route.
+- Verification:
+  - Full local CI PASS:
+    `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline\scripts\isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Bounty status: scaffold only; no final cubic theorem or bounty is claimed.
 
 ## Cubic Route Proof Interface: Strong Row Bridge Owner (2026-06-04)
 
@@ -10046,6 +10852,1671 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty status: no cubic bounty claimed. Smoke and wrapper exposure are
   supporting evidence only.
 
+## Cubic Route Tooling Checkpoint: Antimirov Row Diff Fuzz Fixed Point (2026-06-06)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Final theorem status: **not complete**. This checkpoint is an experimental
+  scan/prune-vs-Antimirov comparison harness plus two Scala-side simplification
+  improvements. It does not construct the missing Isabelle cubic universe.
+- New smoke harness:
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS`.
+  - For each regex/input prefix, it runs scan/prune strong rows against
+    Antimirov strong linear-form rows and records row-count ratio, total row
+    tree-size ratio, max-row-size ratio, and structural coverage gaps.
+  - The Antimirov side is deliberately not row-pruned; it is only strong
+    simplified and fully flattened as linear forms.
+- Fuzz-driven fixes:
+  - First bad random case had equal row count but scan total size `25` vs
+    Antimirov `22`; the scan row retained a duplicated `STAR b` suffix after
+    pruning. Fix: after row pruning, run `bsimpStrong` once more and fully
+    flatten before distincting rows.
+  - Second bad random case had scan row count `5` vs Antimirov `4`; scan had
+    split a standalone suffix row away from `SEQ (ALTs ...) suffix`. Fix:
+    add a guarded `absorbStandaloneSuffixRows` pass that folds a standalone
+    suffix back into an `AONE` branch only when the resulting row list does
+    not increase total row size.
+  - Coverage comparison was strengthened from single-row coverage to
+    row-set coverage via expanded row keys, so factored scan rows can be
+    compared against multiple Antimirov terms.
+- Smoke evidence:
+  - Exhaustive depth `2`, input length `3`: `84300` regex/input pairs checked
+    per run, with no scan/prune row observations worse than Antimirov strong
+    linear-form rows after the fixes.
+  - Random fuzz, seeds `20260607`..`20260611`, depth `8`, input length `12`,
+    `10000` cases per seed: no worse observations after the fixes.
+  - Deeper random fuzz, seeds `20260612`..`20260614`, depth `10`, input length
+    `14`, `20000` cases per seed: no worse observations after the fixes.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Proof follow-up:
+  - Port only the proof-relevant pieces carefully. The Scala absorber is a
+    useful guide for a row-level lemma, but the checked Isabelle route still
+    needs a formal counterpart before it can affect the cubic theorem.
+  - The final non-backref cubic theorem remains open.
+
+## Cubic Route Checkpoint: Checked Clean Strong Rows (2026-06-06)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Final theorem status: **not complete**. This checkpoint ports the first
+  fuzz-driven simplification improvement into Isabelle as a new proof-facing
+  route, but it still does not construct the missing all-input cubic universe.
+- Checked Isabelle additions:
+  - `GeneralRegexBound.thy:rpder_strong_rows_clean`
+  - `GeneralRegexBound.thy:rpd_der_strong_clean`
+  - `GeneralRegexBound.thy:rpders_strong_rows_clean`
+  - `GeneralRegexBound.thy:rpders_strong1_rows_clean`
+  - `GeneralRegexBound.thy:legacy_rpder_strong_rows_clean`
+  - `GeneralRegexBound.thy:legacy_rpders_strong_rows_clean`
+  - `GeneralRegexBound.thy:RLS_set_map_rsimpStrong`
+  - `GeneralRegexBound.thy:RLS_rpder_strong_rows_clean`
+  - `GeneralRegexBound.thy:RL_rpd_der_strong_clean`
+  - `GeneralRegexBound.thy:rsizes_map_rsimpStrong_le`
+  - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_clean_le`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_le_generated_rsizes`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_le_generated_rsizes`
+  - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_single_cubic`
+  - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_single_cubic`
+  - `FBound.thy:length_rpder_strong_rows_clean_rerase_intern_single_cubic`
+  - `FBound.thy:card_set_rpder_strong_rows_clean_rerase_intern_single_cubic`
+- Meaning:
+  - `rpder_strong_rows_clean` matches the fuzz fix that applies `rsimpStrong`
+    once more after active row pruning. Isabelle now checks that this cleaned
+    row route preserves the Antimirov derivative language and keeps the same
+    one-step cubic count scaffold.
+  - This is intentionally added beside the older `rpder_strong_rows` route
+    rather than replacing it, so existing bridge proofs remain stable while
+    the cleaned route is available for the next proof step.
+- Additional smoke evidence after the proof port:
+  - `POSIX_SMOKE_COMPARE_SCAN_ROWS=1`, seeds `20260615` and `20260616`,
+    depth `9`, input length `13`, `15000` random cases per seed, plus the
+    depth `2`/input `3` exhaustive grid on each run: no scan/prune rows worse
+    than Antimirov strong linear-form rows.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+- Remaining proof gap:
+  - The guarded standalone-suffix absorber is still Scala-only. The next
+    useful Isabelle step is to formulate it as a row-factor/coverage lemma
+    before making it part of a checked route.
+
+## Cubic Route Checkpoint: Standalone-Suffix Absorption Lemma (2026-06-06)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Final theorem status: **not complete**. This checkpoint proves the core
+  semantic and size facts behind the Scala standalone-suffix absorber, but it
+  does not yet define a full Isabelle absorber pass.
+- Checked Isabelle additions:
+  - `GeneralRegexBound.thy:RL_RALTS_absorb_standalone_suffix`
+  - `GeneralRegexBound.thy:RL_RALTS_absorb_standalone_suffix_context`
+  - `GeneralRegexBound.thy:rsizes_absorb_standalone_suffix_le`
+- Meaning:
+  - Isabelle now checks the row-factor identity
+    `RALTS [RSEQ (RALTS ps) k, k]` has the same language as
+    `RALTS [RSEQ (RALTS (ps @ [RONE])) k]`.
+  - Isabelle also checks that replacing those two rows by the absorbed one
+    does not increase `rsizes`.
+  - This is exactly the proof-facing kernel of the fuzz-driven Scala
+    `absorbStandaloneSuffixRows` improvement. The remaining work is to lift
+    it from a local two-row identity into a list-level guarded normalization
+    route.
+- Build: full CI PASS via `agent_hunt_pipeline/scripts/isabelle_ci.ps1
+  -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`.
+
+## Cubic Route Checkpoint: Covered-Drop Row Diff Fixed Point (2026-06-06)
+
+- Branch: `codex/backref-values`
+- Agent: Codex
+- Final theorem status: **not complete**. This checkpoint improves the
+  scan/prune-vs-Antimirov row comparison loop and adds proof-facing shrink
+  relations, but it still does not construct the missing all-input cubic
+  universe.
+- Scala row-diff improvements:
+  - Added strict secondary reporting via
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_INCLUDE_MAX_ONLY`, so max-row-only losses
+    are visible even when row count and total row size improve.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_DUMP_CASE` to replay a random witness
+    and print the actual scan rows and Antimirov strong linear-form rows.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_FIXED_POINT`; when enabled,
+    the harness raises an assertion if a run has any `primary` or
+    `unexplained` observations.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_KNOWN_REGRESSIONS` to replay the
+    historical Antimirov row-diff witnesses by seed/case and require the same
+    fixed-point condition.
+  - Wired the known-regression gate into `agent_hunt_pipeline/scripts/isabelle_ci.ps1`:
+    the default Scala CI smoke now runs the 6 replayed row-diff witnesses with
+    `includeMaxOnly=true`, `top=6`, and `maxNormRows=8192`.
+  - Added night-fuzz controls:
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_SKIP_EXHAUSTIVE`,
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_RANDOM_MAX_REGEX_SIZE`, and
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_PROGRESS_EVERY`, so long random sweeps can
+    avoid repeating the same exhaustive grid and can heartbeat/skip oversized
+    generated regexes without changing default behavior.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_SEEDS`; this accepts comma-separated
+    seeds and inclusive ranges such as `20260654..20260658`, so multi-seed
+    Antimirov row-diff fuzz runs in one Scala process instead of recompiling
+    once per seed.
+  - Tightened row-diff observation ranking: a case now reports primary or
+    unexplained observations ahead of explained max-only tradeoffs, so the
+    fixed-point gate cannot hide an actionable prefix behind a larger
+    `absorbedSuffix` score from the same input.
+  - Added scan-row-diff shrinking:
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_CASE` replays a random seed/case,
+    `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MODE` selects
+    `actionable`, `primary`, `unexplained`, or `any`, and the harness dumps the
+    rows before and after greedy regex/input shrinking.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_ON_FAILURE` (default on):
+    fixed-point assertion failures now include an auto-shrunk actionable
+    witness summary, so night fuzz failures immediately carry a smaller
+    regex/input to inspect.
+  - Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE`: the harness now scans
+    one or more random seeds for the first row-diff witness matching
+    `actionable`, `primary`, `unexplained`, or `any`, dumps the original
+    scan rows vs Antimirov rows, and immediately dumps the greedily shrunk
+    witness. This is the forward search loop for comparing where scan/prune
+    still differs from partial derivatives.
+  - Added an explicit linear-term count to row-diff observations. A plain row
+    counts as one term, while a factored row
+    `RSEQ (RALTS ps) k` counts as `|ps|` terms. The fixed-point gate now treats
+    `termRatio > 1` as primary, and summaries report `terms=m/n`,
+    `termRatio`, and `termOnly`, so the accumulator rows can be compared more
+    directly with Antimirov linear-form terms.
+  - Added row-diff classifications:
+    - `absorbedSuffix`: scan folds Antimirov rows
+      `RSEQ (RALTS ps) k` and `k` into `RSEQ (RALTS (ps @ [RONE])) k`.
+    - `coveredDrop`: scan deletes rows covered by the remaining row set.
+  - Strengthened bridge coverage for Antimirov-vs-scan comparison:
+    nested right-associated scan rows are compared against Antimirov key
+    buckets by stripping a matching sequence-factor suffix and checking the
+    remaining prefix payload.
+  - Added guarded `pruneCoveredRows`: repeatedly removes one row only when the
+    remaining rows cover it; this fixed a primary fuzz witness where scan had
+    `8/7` rows and total size `653/573` against Antimirov.
+- Checked Isabelle additions:
+  - Standalone-suffix relation:
+    - `GeneralRegexBound.thy:rlinear_terms`
+    - `GeneralRegexBound.thy:rlinear_termss`
+    - `GeneralRegexBound.thy:rlinear_terms_le_rsize`
+    - `GeneralRegexBound.thy:rlinear_termss_le_rsizes`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix_step`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix_terms_step`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix_terms`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix_terms_step_imp`
+    - `GeneralRegexBound.thy:rabsorb_standalone_suffix_terms_imp`
+    - `GeneralRegexBound.thy:RL_RALTS_rabsorb_standalone_suffix_step`
+    - `GeneralRegexBound.thy:rsizes_rabsorb_standalone_suffix_step_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rabsorb_standalone_suffix_terms_step_le`
+    - `GeneralRegexBound.thy:legacy_rabsorb_standalone_suffix_step`
+    - `GeneralRegexBound.thy:RL_RALTS_rabsorb_standalone_suffix`
+    - `GeneralRegexBound.thy:rsizes_rabsorb_standalone_suffix_le`
+    - `GeneralRegexBound.thy:legacy_rabsorb_standalone_suffix`
+    - `GeneralRegexBound.thy:RL_RALTS_rabsorb_standalone_suffix_terms`
+    - `GeneralRegexBound.thy:rsizes_rabsorb_standalone_suffix_terms_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rabsorb_standalone_suffix_terms_le`
+    - `GeneralRegexBound.thy:legacy_rabsorb_standalone_suffix_terms`
+  - Generic covered-row drop relation:
+    - `GeneralRegexBound.thy:rdrop_covered_step`
+    - `GeneralRegexBound.thy:rdrop_covered`
+    - `GeneralRegexBound.thy:RL_RALTS_rdrop_covered_step`
+    - `GeneralRegexBound.thy:rsizes_rdrop_covered_step_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rdrop_covered_step_le`
+    - `GeneralRegexBound.thy:legacy_rdrop_covered_step`
+    - `GeneralRegexBound.thy:RL_RALTS_rdrop_covered`
+    - `GeneralRegexBound.thy:rsizes_rdrop_covered_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rdrop_covered_le`
+    - `GeneralRegexBound.thy:legacy_rdrop_covered`
+  - Clean absorbed/pruned strong rows:
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_absorbed`
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_absorbed_pruned`
+    - `GeneralRegexBound.thy:legacy_rpder_strong_rows_clean_absorbed`
+    - `GeneralRegexBound.thy:legacy_rpder_strong_rows_clean_absorbed_pruned`
+    - `GeneralRegexBound.thy:RLS_rpder_strong_rows_clean_absorbed`
+    - `GeneralRegexBound.thy:RLS_rpder_strong_rows_clean_absorbed_pruned`
+    - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_clean_absorbed_le`
+    - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_clean_absorbed_pruned_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_absorbed_pruned_single_cubic`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_single_cubic`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_absorbed_pruned_single_cubic`
+    - `FBound.thy:length_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:card_set_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:length_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic`
+    - `FBound.thy:rlinear_termss_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic`
+    - `FBound.thy:card_set_rpder_strong_rows_clean_absorbed_pruned_rerase_intern_single_cubic`
+  - Term-safe clean absorbed/pruned strong rows:
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_terms_absorbed`
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_terms_absorbed_pruned`
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_terms_absorbed_imp_absorbed`
+    - `GeneralRegexBound.thy:rpder_strong_rows_clean_terms_absorbed_pruned_imp_absorbed_pruned`
+    - `GeneralRegexBound.thy:legacy_rpder_strong_rows_clean_terms_absorbed`
+    - `GeneralRegexBound.thy:legacy_rpder_strong_rows_clean_terms_absorbed_pruned`
+    - `GeneralRegexBound.thy:RLS_rpder_strong_rows_clean_terms_absorbed`
+    - `GeneralRegexBound.thy:RLS_rpder_strong_rows_clean_terms_absorbed_pruned`
+    - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_clean_terms_absorbed_le`
+    - `GeneralRegexBound.thy:rsizes_rpder_strong_rows_clean_terms_absorbed_pruned_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_le_generated_rsizes`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_pruned_le_generated_rsizes`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_terms_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:length_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_single_cubic`
+    - `GeneralRegexBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic`
+    - `FBound.thy:length_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic`
+    - `FBound.thy:length_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic`
+    - `FBound.thy:rlinear_termss_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic`
+    - `FBound.thy:card_set_rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic`
+- Smoke/fuzz evidence:
+  - Regression witnesses:
+    - seed `20260623`, case `11701`: before `pruneCoveredRows`, scan had
+      row count/size `8/7` and `653/573`; after the fix, primary observations
+      are `0`.
+    - seeds `20260631` and `20260632`: generalized sequence-factor
+      reassociation removed the remaining coverage-only `scanExtra` witnesses.
+    - seed `20260630`, case `13766`: classified the remaining max-only
+      non-primary witness as `coveredDrop`.
+  - Strict fuzz, seeds `20260636`..`20260640`, depth `11`, input length `15`,
+    `30000` random cases per seed, plus exhaustive depth `2`/input `3` on each
+    run: `primary=0` and `unexplained=0`. Remaining observations are classified
+    as `absorbedSuffix` or `coveredDrop`.
+  - Extended strict fuzz after the CI pass:
+    - seed `20260641`, depth `12`, input length `16`, `5000` random cases,
+      `maxNormRows=8192`: `primary=0`, `unexplained=0`.
+    - seeds `20260642`..`20260646`, depth `12`, input length `16`, `15000`
+      random cases per seed, `maxNormRows=8192`: `primary=0`,
+      `unexplained=0`; remaining observations are `absorbedSuffix`, with one
+      `coveredDrop` on seed `20260645`.
+    - seeds `20260647`..`20260649`, depth `13`, input length `17`, `10000`
+      random cases per seed, `maxNormRows=16384`: `primary=0`,
+      `unexplained=0`; remaining observations are `absorbedSuffix`, with one
+      `coveredDrop` on seed `20260649`.
+    - seed `20260650`, fixed-point gate enabled, depth `10`, input length
+      `14`, `1000` random cases, `maxNormRows=4096`: assertion gate passed
+      with `primary=0`, `unexplained=0`.
+    - known-regression gate, 6 replayed seed/case witnesses, `maxNormRows=4096`
+      and again with `maxNormRows=8192`: assertion gate passed with
+      `primary=0`, `unexplained=0`; the only remaining observations are the
+      expected `coveredDrop`/`absorbedSuffix` max-only cases.
+    - full CI after wiring the gate into `isabelle_ci.ps1`: the Scala smoke
+      log now includes the known row-diff regression replay with
+      `primary=0`, `unexplained=0`, followed by successful Isabelle `Posix`
+      and `BackRefPilot` builds.
+    - capped night-fuzz mode, seeds `20260654`..`20260658`, depth `13`, input
+      length `17`, `3000` generated cases per seed, random regex size cap
+      `220`, `maxNormRows=8192`: assertion gate passed with `primary=0`,
+      `unexplained=0`; remaining observations are all `absorbedSuffix`.
+    - batched multi-seed fuzz in one Scala process:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SEEDS=20260659..20260664`, depth `13`,
+      input length `17`, `2000` generated cases per seed, random regex size
+      cap `220`, `maxNormRows=8192`: assertion gate passed for every seed with
+      `primary=0`, `unexplained=0`; remaining observations are all
+      `absorbedSuffix`.
+    - shrinker smoke: seed `20260657`, case `2169`, depth `13`, input length
+      `17`, `mode=any`, `maxNormRows=8192` shrank an `absorbedSuffix`
+      max-only witness from `rsize=26` to `rsize=7` while preserving the row
+      diff.
+    - first-witness finder calibration:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=any`, seed `20260657`, depth
+      `13`, input length `17`, `2200` generated cases, random regex size cap
+      `220`, `maxNormRows=8192`: found an explained `absorbedSuffix`
+      max-only witness at case `339` and shrank it to
+      `STAR(SEQ(ALT(CH(b),ONE),ALT(CH(a),CH(b))))` with input `b`
+      (`rsize=8`).
+    - first-witness actionable search:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260659,20260660`, depth `13`, input length `17`, `2000` generated
+      cases per seed, random regex size cap `220`, `maxNormRows=8192`:
+      no matching primary/unexplained/actionable witness found across `3832`
+      checked cases.
+    - shrink-on-failure smoke: forcing `maxNormRows=1` on the known-regression
+      gate produced an expected fixed-point assertion and included an
+      auto-shrunk actionable capped witness with `shrunkRsize=4`.
+    - after the actionable-first ranking change, the batched
+      `20260659..20260664` depth-`13` run was repeated with the fixed-point
+      gate and again passed with `primary=0`, `unexplained=0`.
+    - fresh fixed-point fuzz after adding first-witness finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SEEDS=20260665..20260668`, depth `13`,
+      input length `17`, `3000` generated cases per seed, random regex size
+      cap `220`, `maxNormRows=8192`: assertion gate passed for every seed with
+      `primary=0`, `unexplained=0`; all remaining observations were classified
+      as `absorbedSuffix`.
+    - after adding the linear-term metric, the known-regression gate still
+      passed with `primary=0`, `unexplained=0`, and `termOnly=0`. The remaining
+      max-only witnesses had smaller/equal term counts, for example
+      `terms=5/6` on the `coveredDrop` case and `terms=14/20` on the old
+      covered-row primary regression.
+    - term-primary fixed-point fuzz:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SEEDS=20260665..20260668`, depth `13`,
+      input length `17`, `3000` generated cases per seed, random regex size
+      cap `220`, `maxNormRows=8192`: assertion gate passed for every seed with
+      `primary=0`, `unexplained=0`, and `termOnly=0`. The remaining
+      `absorbedSuffix` observations had `termRatio <= 1`, often exactly `1`.
+    - term-primary actionable finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260669..20260672`, depth `13`, input length `17`, `2500` generated
+      cases per seed, random regex size cap `220`, `maxNormRows=8192`:
+      no matching primary/unexplained/actionable witness found across `9575`
+      checked cases.
+    - Isabelle term-metric proof smoke: `isabelle build -D . -o
+      document=false Posix` passed after adding `rlinear_terms`, the
+      term-safe absorbed-suffix relation, `rdrop_covered` term monotonicity,
+      and the absorbed/pruned route `rlinear_termss` cubic lemmas.
+    - full CI after the Isabelle term-metric proof port passed via
+      `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate
+      -Role admin -SessionTimeoutSeconds 240`; the Scala row-diff
+      known-regression replay still reported `primary=0`, `unexplained=0`,
+      and `termOnly=0`, followed by successful Isabelle `Posix` and
+      `BackRefPilot` builds.
+    - failed local-improvement attempt: making `bpderStrongRows` accept an
+      absorbed/pruned row set only when row count, total size, and max row size
+      all do not increase against the pre-absorption base removed the max-only
+      tradeoff but reintroduced the seed `20260623`, case `11701` primary
+      regression. The failure auto-shrank to
+      `STAR(ALT(SEQ(CH(b),ALT(CH(b),STAR(CH(a)))),
+                SEQ(CH(b),ALT(ALT(ONE,CH(b)),CH(a)))))`
+      with input `bb`, where scan had `4/3` rows and `67/52` total size.
+      Conclusion: the standalone-suffix absorption is sometimes necessary to
+      remove true row-count/total-size losses, so the remaining max-row `+1`
+      tradeoff should be treated as a secondary/shareable-size issue rather
+      than eliminated by a blind local guard.
+    - targeted Isabelle build after exposing the term-safe absorbed/pruned
+      route passed: `isabelle build -D . -o document=false Posix`.
+    - row-diff finder now accepts `termOnly` and `maxOnly` modes, so the fuzz
+      loop can search directly for the Antimirov-linear-term metric rather than
+      only the coarser actionable/primary modes.
+    - actionable finder, seeds `20260640..20260642`, depth `11`, input length
+      `15`, `12000` generated cases per seed, random regex size cap `140`,
+      `maxNormRows=8192`: no actionable witness across `34070` checked cases.
+    - term-only finder, seeds `20260643..20260645`, same depth/input/cap:
+      no `termOnly` witness across `34070` checked cases.
+    - wider actionable finder, seeds `20260646..20260650`, depth `12`, input
+      length `16`, `20000` generated cases per seed, random regex size cap
+      `180`, `maxNormRows=8192`: no actionable witness across `95467` checked
+      cases.
+    - wider term-only finder, seeds `20260651..20260655`, same depth/input/cap:
+      no `termOnly` witness across `95457` checked cases.
+    - max-only finder calibration, seed `20260657`, depth `13`, input length
+      `17`, `2500` generated cases, random regex size cap `220`,
+      `maxNormRows=8192`: found the expected secondary `absorbedSuffix`
+      witness and shrank it to
+      `STAR(SEQ(ALT(CH(b),ONE),ALT(CH(a),CH(b))))` with input `b`. Scan has
+      rows `1/2`, terms `3/3`, total size `13/20`, and max row `13/12`, so
+      the only remaining loss is one constructor in one merged row.
+    - added row-diff DAG diagnostics:
+      `dag`, `maxDag`, bit-insensitive `shapeDag`, and `maxShapeDag`, plus
+      finder modes `dagOnly`, `shapeDagOnly`, `maxDagOnly`, and
+      `maxShapeDagOnly`. These are reported as secondary diagnostics; the
+      fixed-point gate still treats rows, linear terms, total tree size, caps,
+      and uncovered row relations as the actionable criteria.
+    - raw `dagOnly` calibration, seed `20260656`, case `74`, shrank to
+      `SEQ(SEQ(ALT(CH(a),CH(b)),CH(b)),CH(b))` with input `a`. The raw DAG
+      ratio was `3/2`, but `shapeDag=2/2`; the loss is only POSIX bit
+      placement, not constructor shape.
+    - `shapeDagOnly` calibration, seed `20260656`, case `247`, shrank to
+      `STAR(ALT(SEQ(CH(a),ALT(CH(b),CH(a))),CH(a)))` with input `a`. Scan has
+      rows `1/2`, terms `3/3`, total size `13/20`, raw DAG `10/10`, but
+      `shapeDag=9/7`; this is an `absorbedSuffix` tradeoff where merging a
+      suffix row into the prefix accumulator reduces rows/size while adding a
+      larger factored-row shape.
+    - failed local-improvement attempt: guarding `bpderStrongRows` so
+      absorption/pruning is accepted only when local `shapeDag` does not
+      increase preserved `primary=0` but created `5` unexplained known
+      row-diff witnesses. The guard was reverted; the better treatment is to
+      keep `shapeDagOnly` as a secondary diagnostic, not as the production
+      acceptance rule.
+    - bridge coverage improvement: `rowKeyCoveredBy` now also compares the
+      `bsimpStrong`-normalized key and uses `expandedRowSubsetCoveredBy` as a
+      final coverage check. This removed a newly surfaced actionable
+      `normExtra` witness that shrank to
+      `SEQ(STAR(SEQ(CH(b),ALT(SEQ(CH(b),ALT(CH(a),ONE)),ONE))),
+           ALT(CH(a),CH(b)))`
+      with input `bb`.
+    - post-bridge actionable finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260659..20260661`, depth `12`, input length `16`, `12000` generated
+      cases per seed, random regex size cap `180`, `maxNormRows=8192`:
+      no actionable witness across `34419` checked cases.
+    - post-bridge term-only finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=termOnly`, seeds
+      `20260662..20260664`, same depth/input/cap: no `termOnly` witness across
+      `34387` checked cases.
+    - full CI after the DAG/shape diagnostics and bridge coverage improvement
+      passed. The known row-diff replay now reports `termOnly=0`, `maxOnly=2`,
+      `dagOnly=1`, `maxDagOnly=1`, `shapeDagOnly=3`,
+      `maxShapeDagOnly=3`, `primary=0`, and `unexplained=0`, followed by
+      successful Isabelle `Posix` and `BackRefPilot` builds.
+    - mirrored the bridge coverage improvement into the DAG/id-side
+      comparator: `rowKeyCoveredById` now also compares the
+      `bsimpStrongId`-normalized key and uses `expandedRowSubsetCoveredById`
+      as a final coverage check, matching the tree-side `rowKeyCoveredBy`.
+    - DAG bridge-specific smoke:
+      `scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic
+      -CheckStrongRowsBridge -RequireStrongRowsBridgeCoverage
+      -StrongRowsBridgeDag`, depth `2`, input length `3`, plus `1000` random
+      cases at depth `8`/input length `12`, seed `20260665`: exhaustive
+      final-active coverage `832/832`; random coverage `184/184`. A larger
+      depth-`10`/`3000` random run exhausted the Java heap after the exhaustive
+      bridge phase had already passed, so the checked evidence uses the
+      smaller random bridge run.
+    - DAG Chapter 7 bridge smoke:
+      `scala_cubic_smoke.ps1 -Route custom -SkipLegacyCubic
+      -CheckStrongRowsBridgeCh7 -RequireStrongRowsBridgeCoverage
+      -StrongRowsBridgeDag -StrongRowsBridgeOnlyCh7`, `k=5`,
+      lengths `4,8,12,16,20`: passed without coverage failure.
+    - fresh post-id-bridge actionable finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260666..20260668`, depth `12`, input length `16`, `12000` generated
+      cases per seed, random regex size cap `180`, `maxNormRows=8192`:
+      no actionable witness across `34347` checked cases.
+    - fresh post-id-bridge term-only finder:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=termOnly`, seeds
+      `20260669..20260671`, same depth/input/cap: no `termOnly` witness across
+      `34342` checked cases.
+    - next fixed-point loop found a new actionable bridge-only witness:
+      seed `20260674`, case `256`, depth `12`, input length `16`, shrank to
+      `SEQ(STAR(SEQ(CH(b),ALT(SEQ(CH(b),ALT(ONE,CH(a))),ONE))),
+           ALT(CH(a),SEQ(CH(a),ALT(ONE,CH(a)))))`
+      with input `bb`. Scan still had no primary loss (`rows=2/2`,
+      `terms=3/4`, `size=46/48`), but the comparator reported a `normExtra`
+      row because top-level key expansion did not recursively split an
+      alternative branch containing another sequence/alternative. This is
+      exactly a linear-forms correspondence gap, not a scan simplification
+      regression.
+    - bridge coverage improvement: added deep sequence-key expansion for both
+      the tree and DAG/id comparators. `expandedSeqKeysDeep` /
+      `expandedSeqKeysDeepId` recursively expand alternatives that occur inside
+      a chosen branch, and `rowKeyCoveredBy` / `rowKeyCoveredById` use the
+      resulting deep row-key subset check as a bridge-only explanation rule.
+      The production `bpderStrongRows` simplifier is unchanged by this rule.
+    - added the seed `20260674`, case `256` witness to the known row-diff
+      regression replay as "nested alternative branch deep linear coverage".
+      The replay now checks `7` cases and reports `scanExtra=0`, `normExtra=0`,
+      `termOnly=0`, `primary=0`, and `unexplained=0`.
+    - post-deep-bridge actionable finder:
+      seed `20260674`, depth `12`, input length `16`, `12000` generated cases,
+      random regex size cap `190`, `maxNormRows=8192`: no actionable witness
+      across `11574` checked cases.
+    - post-deep-bridge fresh actionable finder:
+      seeds `20260680..20260682`, same depth/input/cap with `12000` generated
+      cases per seed: no actionable witness across `34608` checked cases.
+    - post-deep-bridge fixed-point random comparison:
+      seeds `20260680..20260682`, depth `12`, input length `16`, `6000`
+      generated cases per seed, random regex size cap `190`,
+      `maxNormRows=8192`, `RequireFixedPoint=1`: `primary=0`,
+      `unexplained=0`, and `termOnly=0` across `17308` checked cases.
+    - DAG bridge smoke after the id-side deep expansion:
+      exhaustive final-active coverage `832/832` at depth `2`/input `3`, plus
+      random DAG bridge coverage `189/189` on `1000` cases at depth `8`/input
+      `12`, seed `20260683`. The Chapter 7 DAG bridge smoke with `k=5` and
+      lengths `4,8,12,16,20` also passed without coverage failure.
+    - deeper post-deep-bridge fuzz:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260684..20260686`, depth `13`, input length `17`, random regex size
+      cap `220`, `maxNormRows=10000`: no actionable witness across `28722`
+      checked cases. The matching `primary` finder on seeds
+      `20260687..20260689` found no primary witness across `28749` checked
+      cases.
+    - continued post-deep-bridge fixed-point loop:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=unexplained`, seeds
+      `20260690..20260692`, depth `13`, input length `17`, random regex size
+      cap `220`, `maxNormRows=10000`: no unexplained bridge witness across
+      `34572` checked cases.
+    - continued post-deep-bridge term metric loop:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=termOnly`, seeds
+      `20260693..20260695`, same depth/input/cap: no linear-term regression
+      witness across `34439` checked cases.
+    - deeper post-deep-bridge actionable loop:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260696..20260698`, depth `14`, input length `18`, random regex size
+      cap `260`, `maxNormRows=12000`: no actionable witness across `25870`
+      checked cases.
+    - cap-pressure primary probe:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=primary`, seed `20260699`,
+      depth `14`, input length `18`, random regex size cap `280`,
+      deliberately lower `maxNormRows=2048`: no primary/capped witness across
+      `7731` checked cases. The same probe on seed `20260700` with `5000`
+      generated cases found no primary/capped witness across `4842` checked
+      cases.
+    - high-cap actionable probe:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260702..20260703`, depth `14`, input length `18`, random regex size
+      cap `280`, `maxNormRows=14000`: no actionable witness across `13487`
+      checked cases.
+    - high-cap fixed-point random comparison:
+      seeds `20260702..20260703`, depth `14`, input length `18`, `4000`
+      generated cases per seed, random regex size cap `280`,
+      `maxNormRows=14000`, `RequireFixedPoint=1`: both seeds report
+      `capped=0`, `termOnly=0`, `primary=0`, and `unexplained=0` across
+      `7704` checked cases. The remaining observations are secondary
+      `absorbedSuffix`/max-row/DAG-shape tradeoffs where scan has no worse
+      row/term/total-size metric.
+    - proof-facing cubic interface cleanup:
+      added combined term-safe cubic bounds
+      `rpder_strong_rows_clean_terms_absorbed_single_cubic_bounds` and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_bounds`,
+      plus the `rerase (intern r)` wrappers in `FBound.thy`. These package the
+      three Antimirov-aligned metrics together:
+      `length rows`, `card (set rows)`, and `rlinear_termss rows` are all
+      bounded by `2 * (|r| + 3)^3` for the term-safe absorbed/pruned route.
+      `isabelle build -D . Posix` passed after this proof-facing addition.
+    - post-interface focused fuzz:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=unexplained`, seeds
+      `20260704..20260705`, depth `14`, input length `18`, random regex size
+      cap `280`, `maxNormRows=14000`: no unexplained bridge witness across
+      `13520` checked cases. The matching `termOnly` finder on seeds
+      `20260706..20260707` found no linear-term regression across `13539`
+      checked cases.
+    - deep linear-term diagnostic:
+      added `rowDeepLinearTermCount` / `rowsDeepLinearTermCount` to the Scala
+      row-diff harness. This diagnostic counts the recursive deep row-key
+      expansion used by the deep bridge coverage check, filtering out zero
+      rows, so the harness can now look for nested-alternative branch-count
+      regressions that the shallow `rlinear_terms`-style metric could miss.
+      It is reported as `deepTerms=scan/norm` with `deepTermRatio`, and has a
+      dedicated finder mode `deepTermOnly`; it remains a diagnostic/fuzz mode,
+      not a new Isabelle theorem assumption.
+    - known row-diff replay with deep term diagnostics:
+      the `7` known cases still report `termOnly=0`, `deepTermOnly=0`,
+      `primary=0`, and `unexplained=0`. The nested alternative regression now
+      shows `deepTerms=19/23`, confirming that scan is also no worse under the
+      deeper branch-count metric.
+    - deep-term focused fuzz:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=deepTermOnly`, seeds
+      `20260708..20260710`, depth `14`, input length `18`, random regex size
+      cap `280`, `maxNormRows=14000`: no deep-term regression witness across
+      `28961` checked cases.
+    - fixed-point random comparison with deep term diagnostics:
+      seeds `20260708..20260709`, depth `14`, input length `18`, `4000`
+      generated cases per seed, random regex size cap `280`,
+      `maxNormRows=14000`, `RequireFixedPoint=1`: both seeds report
+      `termOnly=0`, `deepTermOnly=0`, `primary=0`, and `unexplained=0` across
+      `7737` checked cases.
+    - deep-term fallback visibility:
+      the deep linear-term diagnostic now records whether recursive key
+      expansion exceeded `deepLinearTermCountMaxKeys=65536` and had to fall
+      back to the shallow term count. The row-diff output reports
+      `deepTermCapped=scan/norm`, aggregate comparisons count
+      `deepTermCapped`, and the finder accepts `deepTermCapped` /
+      `deep-term-capped` mode. This prevents a silent fallback from being
+      mistaken for complete deep-term evidence.
+    - known row-diff replay after exposing deep-term caps:
+      the `7` known cases still report `termOnly=0`, `deepTermOnly=0`,
+      `deepTermCapped=0`, `primary=0`, and `unexplained=0`.
+    - deep-term cap probe:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=deepTermCapped`, seed
+      `20260711`, depth `14`, input length `18`, random regex size cap `280`,
+      `maxNormRows=14000`: no deep-term cap witness across `7734` checked
+      cases. A split rerun on seed `20260712` found no deep-term cap witness
+      across `4839` checked cases.
+    - deeper deep-term-only probe:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=deepTermOnly`, seeds
+      `20260713..20260714`, depth `15`, input length `18`, random regex size
+      cap `320`, `maxNormRows=16000`: no deep-term regression witness across
+      `15415` checked cases.
+    - fixed-point random comparison with deep-term cap counts:
+      seeds `20260711..20260712`, depth `14`, input length `18`, `3000`
+      generated cases per seed, random regex size cap `280`,
+      `maxNormRows=14000`, `RequireFixedPoint=1`: both seeds report
+      `deepTermCapped=0`, `termOnly=0`, `deepTermOnly=0`, `primary=0`, and
+      `unexplained=0` across `5818` checked cases.
+    - deeper fixed-point finder loop:
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=actionable`, seeds
+      `20260715..20260716`, depth `15`, input length `18`, random regex size
+      cap `320`, `maxNormRows=16000`: no actionable witness across `11567`
+      checked cases. The matching `deepTermCapped` probe on seeds
+      `20260717..20260718` found no capped deep-term witness across `11542`
+      checked cases. The matching `deepTermOnly` probe on seeds
+      `20260721..20260722` found no deep-term regression witness across
+      `11550` checked cases; seed `20260722` was rerun standalone after a
+      wall-clock timeout interrupted the first combined sweep.
+    - deeper fixed-point random comparison:
+      seeds `20260719..20260720`, depth `15`, input length `18`, `4000`
+      generated cases per seed, random regex size cap `320`,
+      `maxNormRows=16000`, `RequireFixedPoint=1`: both seeds report
+      `capped=0`, `termOnly=0`, `deepTermOnly=0`, `deepTermCapped=0`,
+      `primary=0`, and `unexplained=0` across `7713` checked cases. The
+      remaining `210` observations are explained secondary
+      absorbed-suffix/covered-row or max/DAG/shape tradeoffs; `scanExtra=0`
+      throughout this run.
+    - secondary max-only shrink:
+      replaying seed `20260719`, case `3403`, with
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MODE=maxOnly` shrinks the local
+      max-row tradeoff to
+      `STAR(ALT(SEQ(CH(a),ALT(CH(a),CH(b))),CH(a)))` on input `a`. Scan
+      absorbs Antimirov's standalone suffix row into one row, giving
+      `rows=1/2`, `terms=3/3`, `deepTerms=3/3`, and `size=13/20`, but the
+      largest single row grows from `12` to `13` (`maxDag=11/10`,
+      `maxShapeDag=9/7`). This confirms the remaining max-only differences
+      are a deliberate total-size/row-count win versus local-peak tradeoff,
+      not a row-count or linear-term regression.
+    - same-budget DAG-sharing diagnostic:
+      a `dagOnly` probe on seed `20260726` found a secondary-only difference
+      at case `12`; shrinking gives
+      `STAR(ALT(SEQ(STAR(CH(a)),STAR(ZERO)),SEQ(CH(a),CH(b))))` on input
+      `a`. Scan and Antimirov have identical rows/terms/deepTerms/total-size
+      budgets (`2/2`, `2/2`, `2/2`, `19/19`) and mutually cover each other,
+      but scan uses one more cross-row DAG node (`11/10`). The harness now
+      classifies this exact pattern as `sameBudgetCover`, requiring equal
+      row count, shallow terms, uncapped deep terms, total tree size, and
+      bidirectional bridge coverage.
+    - known row-diff replay after adding same-budget coverage:
+      the known replay now has `8` cases, including the same-budget DAG
+      sharing tradeoff. It reports `sameBudgetCover=1`, `scanExtra=0`,
+      `normExtra=0`, `termOnly=0`, `deepTermOnly=0`, `deepTermCapped=0`,
+      `primary=0`, and `unexplained=0`.
+    - post-classification fixed-point fuzz:
+      seed `20260727`, depth `15`, input length `18`, `2500` generated cases,
+      random regex size cap `320`, `maxNormRows=16000`,
+      `RequireFixedPoint=1`: `2411` checked cases with `primary=0`,
+      `unexplained=0`, `termOnly=0`, `deepTermOnly=0`, `deepTermCapped=0`,
+      and `sameBudgetCover=35`. Follow-up finders found no `actionable`
+      witness on seed `20260728` across `4812` checked cases and no
+      `deepTermOnly` witness on seed `20260729` across `4810` checked cases.
+    - budget-nonworse coverage diagnostic:
+      added `budgetNonworseCover` as a row-diff explanation and finder/shrink
+      mode. It requires `scanRows <= normRows`, shallow linear terms
+      nonincreasing, uncapped deep linear terms nonincreasing, total tree size
+      nonincreasing, and bidirectional bridge coverage. This is the diagnostic
+      that directly matches the current Antimirov-facing proof budget.
+    - known row-diff replay after budget-nonworse coverage:
+      the `8` known cases now split as `absorbedSuffix=1`, `coveredDrop=1`,
+      `sameBudgetCover=1`, and `budgetNonworseCover=5`, with `scanExtra=0`,
+      `normExtra=0`, `termOnly=0`, `deepTermOnly=0`, `deepTermCapped=0`,
+      `primary=0`, and `unexplained=0`.
+    - budget-nonworse shrink:
+      replaying seed `20260631`, case `21040`, with
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MODE=budgetNonworseCover` shrinks
+      the known sequence-factor case to
+      `STAR(SEQ(CH(b),ALT(SEQ(CH(b),ALT(ONE,CH(b))),ONE)))` on input `bb`.
+      The shrunk budgets are rows `2/2`, shallow terms `3/4`, deep terms
+      `4/5`, and total size `30/32`, while secondary DAG/max-shape tradeoffs
+      remain (`dag=13/12`, `maxShapeDag=9/8`).
+    - post-budget fixed-point fuzz:
+      seed `20260730`, depth `15`, input length `18`, `3500` generated cases,
+      random regex size cap `320`, `maxNormRows=16000`,
+      `RequireFixedPoint=1`: `3362` checked cases with `primary=0`,
+      `unexplained=0`, `termOnly=0`, `deepTermOnly=0`, and
+      `deepTermCapped=0`. Follow-up finders found no `actionable` witness on
+      seed `20260731` across `4812` checked cases and no `deepTermCapped`
+      witness on seed `20260732` across `4818` checked cases.
+    - proof-facing budget interface:
+      added generated-budget lemmas
+      `rpder_strong_rows_clean_terms_absorbed_generated_budget` and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget`.
+      These package the four Antimirov-facing budget metrics together:
+      `length rows`, `card (set rows)`, `rlinear_termss rows`, and
+      `rsizes rows` are all bounded by
+      `rsizes (concat (map (rpder_norm_list c) rs))`.
+    - proof-facing single-step cubic budget interface:
+      added
+      `rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_bounds` and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_bounds`,
+      plus the `rerase (intern r)` wrappers in `FBound.thy`. These extend the
+      previous cubic bundle by adding the total-size budget `rsizes rows`.
+      `isabelle build -D . Posix` passed after the Isabelle additions.
+    - post-interface targeted checks:
+      known row-diff replay still reports `absorbedSuffix=1`, `coveredDrop=1`,
+      `sameBudgetCover=1`, `budgetNonworseCover=5`, `primary=0`, and
+      `unexplained=0`. A `budgetNonworseCover` finder on seed `20260733`,
+      depth `15`, input length `18`, random regex size cap `320`,
+      `maxNormRows=16000`, found no fresh witness across `3384` checked cases.
+    - proof-facing semantics+budget contracts:
+      added generated contracts
+      `rpder_strong_rows_clean_terms_absorbed_generated_budget_contract` and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_generated_budget_contract`.
+      They combine `RLS (set rows) = Der c (RLS (set rs))` with the four
+      generated-budget bounds. Added single-step cubic contracts
+      `rpder_strong_rows_clean_terms_absorbed_single_cubic_budget_contract`
+      and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_single_cubic_budget_contract`,
+      whose semantic conclusion is `RLS (set rows) = Der c (RL r)`.
+    - original-regex semantics+budget wrappers:
+      added `rerase (intern r)` wrappers in `FBound.thy`:
+      `rpder_strong_rows_clean_terms_absorbed_rerase_intern_single_cubic_budget_contract`
+      and
+      `rpder_strong_rows_clean_terms_absorbed_pruned_rerase_intern_single_cubic_budget_contract`.
+      Their semantic conclusion is
+      `RLS (set rows) = Der c (RL (rerase (intern r)))`, and all four budget
+      metrics are bounded by `2 * (rxsize r + 3)^3`.
+    - post-contract targeted checks:
+      `isabelle build -D . Posix` passed after adding the contracts. Known
+      row-diff replay still reports `absorbedSuffix=1`, `coveredDrop=1`,
+      `sameBudgetCover=1`, `budgetNonworseCover=5`, `primary=0`, and
+      `unexplained=0`. An `actionable` finder on seed `20260734`, depth `15`,
+      input length `18`, random regex size cap `320`, `maxNormRows=16000`,
+      found no witness across `4357` checked cases.
+    - one-way budget-cover fixed-point refinement:
+      a wider `actionable` finder on seed `20260735`, depth `15`, input
+      length `18`, random regex size cap `320`, `maxNormRows=16000`, found a
+      case at generated case `6959` (`6728` checked) whose scan/prune rows had
+      strictly no worse proof-facing budgets than Antimirov: rows `7/9`,
+      shallow terms `8/11`, deep terms `67/79`, total size `2403/3036`, DAG
+      `110/115`, and shape-DAG `80/80`. The only local regression was
+      max-row DAG `98/97`, plus an unclassified `normExtra`; this is not scan
+      losing to Antimirov, but Antimirov retaining an extra generated row while
+      scan rows are covered by the Antimirov rows and the four proof budgets
+      are nonworse. Added the `budgetNonworseOneWayCover` explanation and
+      finder/shrink mode for this case class.
+    - post-one-way-cover checks:
+      known row-diff replay remains `primary=0` and `unexplained=0`, with
+      `budgetNonworseOneWayCover=0` on the 8 old regressions. Re-running
+      seed `20260735` through generated case `7000` found no `actionable`
+      witness across `6766` checked cases; the matching random summary had
+      `observations=185`, `normExtra=1`, `budgetNonworseOneWayCover=1`,
+      `primary=0`, and `unexplained=0`. Follow-up `actionable` finders on
+      seeds `20260736..20260737` found no witness across `13483` checked
+      cases, and a `deepTermCapped` finder on seed `20260738` found no witness
+      across `2387` checked cases.
+    - one-way cover regression replay:
+      added seed `20260735`, generated case `6959`, to the known row-diff
+      replay. The replay now has 9 cases and reports `scanExtra=0`,
+      `normExtra=1`, `capped=0`, `termOnly=0`, `deepTermOnly=0`,
+      `deepTermCapped=0`, `absorbedSuffix=1`, `coveredDrop=1`,
+      `sameBudgetCover=1`, `budgetNonworseCover=5`,
+      `budgetNonworseOneWayCover=1`, `primary=0`, and `unexplained=0`.
+    - post-regression-list fuzz:
+      `actionable` finders on seeds `20260738..20260739`, depth `15`, input
+      length `18`, random regex size cap `320`, `maxNormRows=16000`, found no
+      witness across `9597` checked cases. A `deepTermOnly` finder completed
+      seed `20260739` with no witness across `3369` checked cases; the same
+      two-seed run timed out after entering seed `20260740`, so a shorter
+      seed `20260740` slice was replayed and found no witness across `1165`
+      checked cases.
+    - continued post-regression-list fuzz:
+      further `actionable` finders on seeds `20260740..20260741`, depth `15`,
+      input length `18`, random regex size cap `320`, `maxNormRows=16000`,
+      found no witness across `7709` checked cases. A `deepTermCapped` finder
+      on seeds `20260741..20260742` found no witness across `4825` checked
+      cases.
+    - bounded row-diff shrink probes:
+      the unbounded shrink of the one-way budget-cover witness
+      `20260735/6959` produced the before-shrink dump but did not finish
+      promptly, so the Java process was stopped. Added
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MAX_PROBES`, default `0` for the
+      old unlimited behavior. With a `200`-probe cap, the same witness shrinks
+      from `rsize=300` to `rsize=198` while preserving
+      `budgetNonworseOneWayCover`; the post-shrink metrics are rows `4/7`,
+      shallow terms `5/9`, deep terms `32/49`, total size `879/1588`, DAG
+      `82/86`, and max-row DAG `74/73`, with
+      `probes=200, exhausted=true`. The finder path was also exercised with a
+      `50`-probe cap: it automatically rediscovered seed `20260735`, generated
+      case `6959` after `6728` checked cases and stopped with
+      `probes=50, exhausted=true`.
+    - post-probe fixed-point fuzz:
+      random fixed-point comparison on seeds `20260743..20260744`, depth `15`,
+      input length `18`, random regex size cap `320`, `maxNormRows=16000`,
+      checked `2903 + 2896` cases. Both seeds had `scanExtra=0`,
+      `normExtra=0`, `termOnly=0`, `deepTermOnly=0`, `deepTermCapped=0`,
+      `primary=0`, and `unexplained=0`.
+    - fixed-point shrink guard coverage:
+      threaded `POSIX_SMOKE_COMPARE_SCAN_ROWS_SHRINK_MAX_PROBES` through the
+      fixed-point failure-summary path as well, so exhaustive/random/known
+      row-diff gates use the same bounded auto-shrink behavior when an
+      actionable witness is found. A known-regression replay with
+      `SHRINK_MAX_PROBES=100` still reports the 9-case split with
+      `primary=0` and `unexplained=0`.
+    - further targeted finders:
+      `actionable` finder on seeds `20260745..20260746`, depth `15`, input
+      length `18`, random regex size cap `320`, `maxNormRows=16000`,
+      found no witness across `6725` checked cases. `deepTermOnly` finder on
+      the same seeds found no witness across `4801` checked cases.
+      `deepTermCapped` finder on the same seeds found no witness across
+      `3845` checked cases.
+    - consolidated budget and directed coverage finders:
+      added finder/shrink modes `proofBudgetWorse`, `budgetWorse`,
+      `scanCoverageGap`, and `normCoverageGap`. `proofBudgetWorse` searches
+      for the Isabelle-facing row/term/total-size budget dimensions;
+      `budgetWorse` additionally includes deep expanded term counts and
+      capping; the coverage modes separate dangerous scan-only rows from the
+      one-way Antimirov-extra-row situation. A `budgetWorse` finder on seed
+      `20260747`, depth `15`, input length `18`, size cap `320`,
+      `maxNormRows=16000`, found no witness across `3387` checked cases. The
+      same two-seed run timed out while processing seed `20260748`, so seed
+      `20260748` was replayed as a shorter complete slice and found no
+      `budgetWorse` witness across `1634` checked cases. A
+      `scanCoverageGap` finder on seed `20260749` found no witness across
+      `2406` checked cases. The `normCoverageGap` mode was checked on the
+      known one-way witness `20260735/6959`, where it correctly reports
+      `scanExtra=<none>`, a `normExtra`, and
+      `budgetNonworseOneWayCover`.
+    - summary budget/coverage counters:
+      exhaustive/random/known row-diff summaries now print
+      `proofBudgetWorse`, `budgetWorse`, `scanCoverageGap`, and
+      `normCoverageGap` counts directly. Known replay with these counters
+      reports `proofBudgetWorse=0`, `budgetWorse=0`, `scanCoverageGap=0`,
+      and `normCoverageGap=1`, matching the single one-way Antimirov-extra
+      witness. A random fixed-point summary on seed `20260750`, depth `15`,
+      input length `18`, size cap `320`, `maxNormRows=16000`, checked `2120`
+      cases and reported all four new counters as `0`, with `primary=0` and
+      `unexplained=0`.
+    - hard fixed-point gates:
+      added optional row-diff gates
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_PROOF_BUDGET`,
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_BUDGET`,
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_SCAN_COVERAGE`, and
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_NORM_COVERAGE`. These gates now
+      fail the comparison run, choose the matching shrink mode, and use the
+      bounded shrink probe cap when the requested fixed-point property is
+      violated. Known replay with proof-budget, budget, and scan-coverage
+      gates enabled passed on all 9 cases: `proofBudgetWorse=0`,
+      `budgetWorse=0`, `scanCoverageGap=0`, `normCoverageGap=1`,
+      `primary=0`, `unexplained=0`. The norm-coverage gate is intentionally
+      left off for known replay because the one-way budget-cover witness is
+      Antimirov-extra, not scan-extra.
+    - nonworse fixed-point gate:
+      added `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_NONWORSE`, a composite
+      gate for the iterative scan-vs-Antimirov loop. It expands to the
+      proof-budget, stronger-budget, and scan-coverage gates, so a single
+      switch now checks that scan/prune rows are not worse than the
+      Antimirov linear-form rows in the proof-facing budgets and do not
+      contain an uncovered scan-only row. Explained Antimirov-only rows remain
+      allowed; those are tracked separately by `normCoverageGap`.
+      New-switch checks passed on known replay (`9` cases, with the known
+      `normCoverageGap=1` left as explained one-way cover), on seed
+      `20260775` (`2500` random cases, depth `5`, input length `14`), and on
+      the small exhaustive depth `2`/input `3` grid (`84300` pairs).
+      Added `POSIX_SMOKE_COMPARE_SCAN_ROWS_FIND_MODE=nonworse` as the matching
+      targeted finder/shrinker mode; it searches for any stronger-budget
+      regression or uncovered scan-only row. Full local CI now runs both the
+      known row-diff replay and the small exhaustive row-diff grid with
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS=1` and
+      `POSIX_SMOKE_COMPARE_SCAN_ROWS_REQUIRE_NONWORSE=1`.
+    - hard-gate fuzz/fixed point:
+      random fixed-point gate on seed `20260751`, depth `5`, input length
+      `14`, checked `2000` cases and reported `proofBudgetWorse=0`,
+      `budgetWorse=0`, `scanCoverageGap=0`, `normCoverageGap=0`,
+      `primary=0`, and `unexplained=0`. A three-seed run
+      `20260752..20260754` checked `9000` more cases under the same hard
+      gates; all three seeds again had the four budget/coverage counters at
+      `0`, with only explained `absorbedSuffix`/`sameBudgetCover` secondary
+      tradeoffs. Targeted `budgetWorse` finder on seeds
+      `20260755..20260758` found no witness across `20000` checked cases, and
+      targeted `scanCoverageGap` finder on seeds `20260759..20260762` found
+      no witness across another `20000` checked cases. A small exhaustive
+      hard-gate run over depth `2`, input length `3` checked `84300`
+      regex/input pairs with `observations=0`.
+    - proof-facing Antimirov budget contracts:
+      added compact semantic+budget contracts for both
+      `rpder_strong_rows` and `rpder_strong_rows_raw`. The new contracts
+      package the Antimirov-style one-step facts into one theorem:
+      `RLS` equals the derivative language, and `length`, `card (set ...)`,
+      `rlinear_termss`, and `rsizes` are all bounded by the generated
+      `rpder_norm_list` size. Single-root cubic versions are now available
+      as `rpder_strong_rows_single_cubic_budget_contract` and
+      `rpder_strong_rows_raw_single_cubic_budget_contract`; the
+      `rerase (intern r)` wrappers in `FBound.thy` rewrite the bound to
+      `2 * (rxsize r + 3) ^ 3`. This makes the row-count/linear-form-count
+      correspondence explicit enough to cite as the current Antimirov
+      scaffold for scan/prune rows.
+    - post-contract verification:
+      `isabelle build -D . Posix` passed after the new contracts. Known
+      row-diff replay with proof-budget, budget, and scan-coverage hard gates
+      still passed on all 9 known cases (`proofBudgetWorse=0`,
+      `budgetWorse=0`, `scanCoverageGap=0`, `normCoverageGap=1`,
+      `primary=0`, `unexplained=0`). A fresh random hard-gate run on seed
+      `20260763`, depth `5`, input length `14`, checked `3000` cases with
+      `proofBudgetWorse=0`, `budgetWorse=0`, `scanCoverageGap=0`,
+      `normCoverageGap=0`, `primary=0`, and `unexplained=0`.
+    - multi-step accumulator budget contracts:
+      added `rpders_strong1_rows_raw_budget_from_rsizes_bound`, which turns
+      any proved final `rsizes` bound for
+      `rpders_strong1_rows_raw r s` into simultaneous bounds for final
+      accumulator `length`, `card (set ...)`, `rlinear_termss`, and `rsizes`.
+      The generic finite-universe wrapper is
+      `rpders_strong1_rows_raw_cubic_universe_budget_contractI`. `FBound.thy`
+      now also has later-shared and active-suffix companion contracts for the
+      original `rerase (intern r)` route:
+      `strong_deferred_original_raw_row_norm_later_shared_accumulator_budget_contract`
+      and
+      `strong_deferred_original_raw_row_norm_active_suffix_accumulator_budget_contract`.
+      These are companion theorems, so they do not change the result order of
+      the existing memo cubic interfaces.
+      A later pass added the remaining same-shape companion contracts in
+      `FBound.thy`:
+      `strong_deferred_original_raw_row_accumulator_budget_contract`,
+      `strong_deferred_original_raw_row_norm_closed_accumulator_budget_contract`,
+      and
+      `strong_deferred_original_raw_row_norm_same_suffix_accumulator_budget_contract`.
+      These give the same final raw-accumulator package for the generic raw,
+      norm-closed, and same-suffix routes:
+      `length`, `card (set ...)`, `rlinear_termss`, and `rsizes` are all
+      bounded by the same finite-universe budget `B`.
+    - post-accumulator-contract checks:
+      `isabelle build -D . Posix` passed. A fresh random hard-gate run on seed
+      `20260764`, depth `5`, input length `14`, checked `3000` cases and
+      again reported `proofBudgetWorse=0`, `budgetWorse=0`,
+      `scanCoverageGap=0`, `normCoverageGap=0`, `primary=0`, and
+      `unexplained=0`.
+    - post-nonworse-gate fuzz:
+      seed `20260765`, depth `5`, input length `14`, checked `3000` cases
+      under the hard nonworse conditions with
+      `proofBudgetWorse=0`, `budgetWorse=0`, `scanCoverageGap=0`,
+      `normCoverageGap=0`, `primary=0`, and `unexplained=0`. Seeds
+      `20260766..20260768`, depth `6`, input length `16`, checked another
+      `12000` cases with the same nonworse counters at `0`. A targeted
+      `budgetWorse` finder on seeds `20260769..20260770`, depth `7`, input
+      length `18`, found no witness across `14000` checked cases; a targeted
+      `scanCoverageGap` finder on seeds `20260771..20260772` found no witness
+      across another `14000`; and a targeted `normCoverageGap` finder on
+      seeds `20260773..20260774` also found no new witness across `14000`.
+      The composite `nonworse` finder on seeds `20260776..20260777`, depth
+      `7`, input length `18`, found no witness across `12000` checked cases.
+      A deeper composite `nonworse` finder on seeds `20260778..20260779`,
+      depth `8`, input length `20`, found no witness across another `10000`
+      checked cases. Full local CI passed again after wiring the nonworse
+      gate into both default known replay and default exhaustive row-diff
+      comparison; the default exhaustive comparison checked `84300`
+      regex/input pairs with `observations=0`.
+      After the extra `FBound.thy` accumulator contracts,
+      `isabelle build -D . Posix` passed again. A further composite
+      `nonworse` finder on seeds `20260780..20260781`, depth `8`, input
+      length `20`, checked `8000` cases and found no nonworse witness:
+      `proofBudgetWorse=0`, `budgetWorse=0`, and `scanCoverageGap=0` on both
+      seeds. Seed `20260781` did expose one harmless `normCoverageGap`, so the
+      targeted `normCoverageGap` shrinker was run on that seed and reduced it
+      to
+      `STAR(ALT(CH(a),SEQ(CH(a),SEQ(ALT(CH(a),CH(b)),ALT(CH(a),CH(b))))))`
+      on input `aa`. Scan is strictly smaller on the main budgets
+      (`rows 1/3`, `terms 3/5`, `deepTerms 6/7`, `size 21/48`) and has no
+      scan-only row; the harness classifies the Antimirov-only extra as
+      `absorbedSuffix`.
+      A still deeper composite `nonworse` finder on seeds
+      `20260782..20260785`, depth `9`, input length `22`, checked another
+      `20000` random cases and again found no nonworse witness. Per-seed
+      summaries had `proofBudgetWorse=0`, `budgetWorse=0`,
+      `scanCoverageGap=0`, `normCoverageGap=0`, `primary=0`, and
+      `unexplained=0`; the remaining observations were secondary
+      `absorbedSuffix`/`sameBudgetCover`/rare `coveredDrop` or
+      `budgetNonworseCover` tradeoffs where scan stayed no worse on the main
+      row/term/size budgets.
+    - final size-universe POSIX accumulator contract:
+      added
+      `strong_deferred_original_sizeNregex_memo_POSIX_accumulator_budget_contract`
+      in `FBound.thy`. This is the current one-stop final interface for the
+      `sizeNregex N` route: it includes POSIX correctness/flatness, legacy
+      preservation, the row-to-memo gate, the raw/annotated row bridge, the
+      span-state probe bounds, and the Antimirov-facing final raw accumulator
+      budgets
+      `length`, `card (set ...)`, `rlinear_termss`, and `rsizes`, all bounded
+      by the same `B`. This does not change the existing
+      `strong_deferred_original_sizeNregex_memo_cubic_interface`; it is a
+      companion theorem with the extra accumulator metrics exposed.
+      `isabelle build -D . Posix` passed after adding it.
+    - secondary-tradeoff check after the final contract:
+      targeted `maxShapeDagOnly` search on seed `20260782`, depth `7`, input
+      length `16`, checked `3000` cases and found no pure max-shape-only
+      witness. The top observations were still `absorbedSuffix`: scan merged
+      rows and improved total rows/size while a single max row/shape metric
+      increased by one constructor. This argues against a simple max-size
+      guard on `rsimpStrong_prune_pair(_raw)`, because that guard would throw
+      away the main Antimirov-budget improvement.
+      A fresh composite `nonworse` finder on seeds `20260786..20260787`,
+      depth `8`, input length `20`, checked `8000` cases and again found no
+      nonworse witness; per-seed summaries had `proofBudgetWorse=0`,
+      `budgetWorse=0`, `scanCoverageGap=0`, `normCoverageGap=0`,
+      `primary=0`, and `unexplained=0`.
+    - active-suffix POSIX accumulator contract:
+      added
+      `strong_deferred_original_raw_row_norm_active_suffix_memo_POSIX_accumulator_budget_contract`
+      in `FBound.thy`. This is the active-suffix analogue of the final
+      `sizeNregex` POSIX accumulator theorem: it preserves the old memo/POSIX
+      interface shape as a companion theorem while exposing the raw
+      accumulator budgets `length`, `card (set ...)`, `rlinear_termss`, and
+      `rsizes` under the same finite-universe `B`. This keeps the actual
+      scan/prune path aligned with the Antimirov-style row/linear-term
+      metrics, not just the final closed size universe. `isabelle build -D .
+      Posix` passed after adding it.
+    - post-active-suffix-contract fuzz:
+      composite `nonworse` finder on seeds `20260788..20260789`, depth `9`,
+      input length `22`, checked `10000` random cases and found no nonworse
+      witness. Per-seed summaries had `proofBudgetWorse=0`, `budgetWorse=0`,
+      `scanCoverageGap=0`, `normCoverageGap=0`, `primary=0`, and
+      `unexplained=0`. The strongest secondary examples were again
+      `absorbedSuffix`: scan reduced rows and total size, while a single
+      max/DAG/shape metric could grow locally.
+    - sizeNregex active-suffix POSIX accumulator route:
+      added
+      `strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_budget_contract`
+      in `FBound.thy`. It has the same final POSIX/legacy/bridge/span-state
+      and raw accumulator-budget conclusions as the existing
+      `strong_deferred_original_sizeNregex_memo_POSIX_accumulator_budget_contract`,
+      but the proof explicitly instantiates the active-suffix closure route
+      using `raw_shared_prune_active_suffix_closure_sizeNregex_subset`.
+      This makes the final size-bounded universe scaffold line up with the
+      actual active-suffix scan/prune path rather than only the closed-route
+      wrapper. `isabelle build -D . Posix` passed after adding it.
+    - post-sizeNregex-active-suffix fuzz:
+      composite `nonworse` finder on seeds `20260790..20260791`, depth `9`,
+      input length `22`, checked `10000` random cases and found no nonworse
+      witness. Per-seed summaries again had `proofBudgetWorse=0`,
+      `budgetWorse=0`, `scanCoverageGap=0`, `normCoverageGap=0`,
+      `primary=0`, and `unexplained=0`; the strongest secondary examples
+      remained `absorbedSuffix`.
+    - exact active-suffix sizeNregex budget:
+      added
+      `strong_deferred_original_sizeNregex_active_suffix_memo_POSIX_accumulator_exact_budget_contract`
+      in `FBound.thy`. It removes the explicit `card_bound`/`cubic`
+      parameters from the active-suffix `sizeNregex` POSIX accumulator route
+      by instantiating the natural budget
+      `card (sizeNregex N) * N`. The remaining assumptions are exactly the
+      regex legacy/init-size assumptions plus the `rpder_norm_list` closure
+      assumption for `sizeNregex N`; the conclusion still exposes POSIX
+      correctness/flatness, the memo gate, the raw/annotated row bridge,
+      span-state probe bounds, and the final raw accumulator budgets.
+      `isabelle build -D . Posix` passed after adding it.
+    - post-exact-budget fuzz and shrink:
+      composite `nonworse` finder on seeds `20260792..20260793`, depth `9`,
+      input length `22`, checked `10000` random cases and found no scan-worse
+      witness. Seed `20260792` had one harmless `normCoverageGap`, so the
+      targeted shrinker reduced it to
+      `STAR(SEQ(ALT(SEQ(ALT(CH(b),ONE),ALT(CH(a),CH(b))),ONE),ALT(CH(a),CH(b))))`
+      on input `b`. Scan is strictly smaller on the main budgets
+      (`rows 1/3`, `terms 3/5`, `deepTerms 6/7`, `size 23/54`) and has no
+      scan-only row; the Antimirov-only extra is classified as
+      `absorbedSuffix`.
+    - least-owner DAG accumulator bridge:
+      added
+      `rpders_strong1_rows_raw_intern_least_owner_dag_budget_boundI`,
+      `strong_deferred_row_gate_least_owner_dag_accumulator_POSIX_contract`,
+      and
+      `strong_deferred_row_gate_norm_active_suffix_universe_accumulator_POSIX_contract`
+      in `FBound.thy`. These expose the final raw accumulator metrics
+      `length`, `card (set ...)`, `rlinear_termss`, and `rsizes` directly
+      through the smaller least-owner active-suffix DAG budget
+      `card (strong_deferred_strong_rows_raw_least_owner_dag r s) * M`, and
+      then through any active-suffix universe `U` whose cardinality/member-size
+      bounds are known. This is the closest current Isabelle scaffold to the
+      Antimirov linear-form accounting.
+    - scan-vs-Antimirov fixed-point refinement:
+      the Scala row comparator now uses a structural-safe scan step. Each
+      step computes the Antimirov-style linear rows as a fallback, adopts
+      pruned/absorbed rows only when total tree/DAG/shape-DAG and max
+      tree/DAG/shape-DAG budgets do not increase, canonicalizes harmless bit
+      placement before annotated-DAG counting, and suppresses already covered
+      budget-nonworse DAG-only noise. The motivating shrinks were
+      `STAR(ALT(CH(b),SEQ(CH(b),ALT(CH(a),CH(b)))))` on input `b`
+      (`maxOnly` from absorbed suffix, now gone), and
+      `STAR(SEQ(ALT(CH(a),STAR(CH(a))),ALT(NTIMES(ONE,0),CH(a))))`
+      on input `a` (`shapeDagOnly` from absorbed suffix, now gone).
+    - latest fixed-point fuzz:
+      after the structural-safe scan refinement, targeted `dagOnly` on seed
+      `20260794` and targeted `dagOnly` on seed `20260796` each checked
+      `5000` random cases with no witness and `observations=0`. Composite
+      `nonworse` fuzz on seeds `20260794..20260795` checked `10000` random
+      cases with all hard and soft row-diff counters at `0`; composite
+      `nonworse` fuzz on seeds `20260796..20260799` checked another `20000`
+      random cases with `observations=0` for every seed. No
+      `proofBudgetWorse`, `budgetWorse`, `scanCoverageGap`, primary, or
+      unexplained case is currently known.
+    - proof-facing choice contract:
+      added `rpder_strong_rows_clean_terms_choice` in `GeneralRegexBound.thy`,
+      a one-step relation that is either the clean Antimirov-style fallback
+      rows or the safe term-absorbed/pruned scan rows. The new contracts
+      `rpder_strong_rows_clean_terms_choice_generated_budget_contract` and
+      `rpder_strong_rows_clean_terms_choice_single_cubic_budget_contract`
+      expose the same correctness, `length`, `card (set ...)`,
+      `rlinear_termss`, and `rsizes` budgets as the generated
+      `rpder_norm_list` linear-form rows, and hence the same
+      `2 * (rsize r + 3)^3` single-step cubic bound. `FBound.thy` also has
+      `rpder_strong_rows_clean_terms_choice_rerase_intern_single_cubic_budget_contract`
+      for the POSIX `rerase (intern r)` surface with `rxsize`.
+    - deeper fixed-point confirmation:
+      depth-10/input-24 random row-diff fuzz found no new actionable witness.
+      Seed `20260800` checked `2000` cases with `FIND_MODE=any`; seeds
+      `20260801..20260804` checked another `8000` cases, all with
+      `observations=0`. After the choice-contract Isabelle edits,
+      `isabelle build -D . Posix` passed, and full
+      `agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate
+      -Role admin -SessionTimeoutSeconds 240` passed: known row-diff
+      regressions `9` cases `observations=0`, exhaustive depth-2/input-3
+      row comparison `84300` pairs `observations=0`, plus `Posix` and
+      `BackRefPilot`.
+    - proof write-up:
+      added `CUBIC_BOUND_PROOF_WRITEUP_2026_06_06.md`, which states the
+      checked one-step cubic theorem, the POSIX lift, the finite-universe
+      accumulator main interface, the exact `sizeNregex` contract, and the
+      remaining universe-cardinality obligation needed for a standalone
+      all-input cubic theorem.
+    - pure Antimirov/factored transition file:
+      added `AntimirovFactoredTransition.thy` and included it in `ROOT`.
+      The file defines only the scan-free factored row transition
+      `afactored_step`, its multi-step driver `afactored_steps`, and the
+      singleton driver `afactored1`. It proves language correctness,
+      distinctness, the induction principle
+      `afactored_steps_subterm_closed_universe_subsetI`, finite-universe
+      accumulator budgets, and the conditional cubic contract
+      `afactored1_cubic_universe_contractI`. This separates the Antimirov
+      proof object from `rsimpStrong_prune_rows`; the remaining target is now
+      exactly the root-derived universe closure assumption in that contract.
+    - product-term split closure:
+      the same file now defines `aseq_terms` / `aseq_termss`, which split
+      top-level alternatives and `RSEQ` products into Antimirov-style terms.
+      Checked lemmas include `rpder_norm_list_aseq_terms_subsetI`,
+      `afactored_steps_aseq_terms_closed_legacy_subsetI`, and
+      `afactored1_aseq_terms_frontier_universe_contract`. The new
+      unconditional row-frontier theorem proves that for arbitrary many pure
+      Antimirov factored rows from a legacy root `r`, every product-split term
+      is in `partial_derivative_frontier_universe r`; the split-term set has
+      cardinality at most `(rsize r + 2)^2`, and every split term has size at
+      most `Suc (rsize r + rsize r)`. The key closure lemma is
+      `partial_derivative_frontier_universe_ntimes_predecessor`, which handles
+      the counted-repeat predecessor step `RNTIMES q (Suc n) -> RNTIMES q n`.
+      The lemma
+      `nested_star_row_not_cubic_but_terms_are_cubic` records the important
+      distinction: a whole row can leave the coarse cubic universe while its
+      split terms still remain inside the bounded frontier universe. The
+      older split-atom normal-derivative endpoint is also checked:
+      `anorm_der_eq_rders_pder_norm` and
+      `rders_pder_norm_aseq_terms_frontier_universe_contract` prove that after
+      computing the ordinary `rders_pder_norm r s` regex and then splitting it,
+      all split terms are still in the original frontier universe with the same
+      quadratic/linear budgets.  This is auxiliary only. The corrected
+      whole-residual normal-frontier endpoint is
+      `rfrontier_rders_pder_norm_subset_apder_frontier`, and the remaining
+      bridge is to budget that residual frontier and connect it to the concrete
+      raw rows produced
+      by the strong scanner/pruner, controlling product chains/owners well
+      enough to discharge the existing `U`-based accumulator interfaces.
+- Meaning:
+  - The current row-diff loop has reached a fixed point for the tested metrics:
+    no scan/prune row-count, linear-term-count, total-size, or coverage loss
+    is currently known against Antimirov strong linear forms.
+  - The only strict secondary differences found are explained tradeoffs where
+    scan uses a smaller row set/total size and no more linear terms, at the
+    cost of a single row growing by one constructor.
+  - The Isabelle route now has generic relation scaffolding for both classes:
+    absorbed-suffix replacement and covered-row deletion both preserve language,
+    preserve legacy, and do not increase `rsizes`, so the one-step cubic count
+    scaffold inherits through them. The new term-safe absorbed-suffix relation
+    also proves that the accumulator-term count does not increase when the
+    absorbed suffix contributes at least one linear term, matching the Scala
+    row-diff metric used to compare against Antimirov linear forms.
+
+## Cubic Bound Research: wide row pruning scaffold (2026-06-07)
+
+- Process hygiene:
+  - Added a standing rule in `AGENTS.md`: long-running proof/search/fuzz
+    commands must use explicit timeouts and then check for leftover
+    `python`, `poly`, `polyml`, `isabelle`, and Java worker processes.
+  - After each bounded Isabelle build in this slice, `tasklist` checks for
+    `python.exe`, `poly.exe`, `polyml.exe`, and `java.exe` reported no matching
+    residual tasks.
+- Checked obstruction:
+  - Added `deep_fixed_rows_do_not_force_dlform_disjoint`, showing that
+    `distinct + rsimpDeep_fuel_fixed + nonalt + nonzero` is not enough to imply
+    `row_dlformss_disjoint`. This confirms that the second-stage proof really
+    needs an explicit canonical/prune argument, not only a fixed-point
+    simplifier invariant.
+- Checked deep-row invariants:
+  - Added `rsimpDeep_fuel_fixed_rpder_deep_list`,
+    `rsimpDeep_fuel_fixed_rpder_deep_rows`,
+    `rsimpDeep_fuel_fixed_rpders_deep_rows`, and
+    `rsimpDeep_fuel_fixed_rpders_deep1_rows_nonempty`. Nonempty deep-row
+    derivative states now expose rows that are deep-fuel fixed, non-alt, and
+    nonzero.
+- New proof-local wide-prune scaffold:
+  - Added `row_cover_prefixes`, which treats an earlier row with suffix `k` as
+    a set of prefixes covering later rows with the same suffix. It includes the
+    important case `earlier = k`, represented by prefix `RONE`, and the
+    singleton-prefix case `RSEQ p k`.
+  - Added `rsimpWide_prune_pair_raw`,
+    `rsimpWide_prune_against_rows_raw`, `rsimpWide_prune_rows_acc_raw`, and
+    `rsimpWide_prune_rows_raw`.
+  - Design choice: grouped later rows `RSEQ (RALTS rrs) k` still rebuild with
+    `rsimp7_SEQ_atom`, matching the existing `row_dlforms` definition. Singleton
+    later rows do not rebuild; they become `RZERO` if covered, otherwise remain
+    `RSEQ p k`. This avoids letting accumulator history create fresh singleton
+    row shapes.
+- Checked wide-prune facts:
+  - Language preservation:
+    `RL_rsimpWide_prune_pair_raw_with_earlier`,
+    `RL_rsimpWide_prune_against_rows_raw`, and
+    `RL_rsimpWide_prune_rows_raw`.
+  - Length preservation:
+    `length_rsimpWide_prune_rows_acc_raw` and
+    `length_rsimpWide_prune_rows_raw`.
+  - Normal-form preservation:
+    `rtail_nf_rsimpWide_prune_pair_raw`,
+    `rtail_nf_rsimpWide_prune_against_rows_raw`,
+    `rtail_nf_rsimpWide_prune_rows_acc_raw`, and
+    `rtail_nf_rsimpWide_prune_rows_raw`.
+  - Split-term monotonicity:
+    `row_dlforms_rsimpWide_prune_pair_raw_subset_later_rtail_nf`,
+    `row_dlforms_rsimpWide_prune_against_rows_raw_subset_later_rtail_nf`,
+    `row_dlformss_rsimpWide_prune_rows_acc_raw_subset_rtail_nf`, and
+    `row_dlformss_rsimpWide_prune_rows_raw_subset_rtail_nf`.
+- Current meaning:
+  - The proof now has a checked candidate for a safer scanner/pruner layer:
+    it preserves row language and provably does not increase the
+    `row_dlforms` vocabulary under `rtail_nf`.
+  - This is not yet the final cubic theorem. The remaining second-stage
+    obligation is to connect this monotone pruning scaffold to a genuine
+    canonical/disjoint row invariant, or to replace the production
+    `rsimpStrong_prune_rows_raw` path with a checked fixed-point/canonical pass
+    that proves `row_dlformss_disjoint`.
+
+## Cubic Bound Research: canonical dlform projection (2026-06-07)
+
+- New checked list interface:
+  - Added `row_dlforms_list`, a constructive list version of `row_dlforms`,
+    with `set_row_dlforms_list`.
+  - Added `row_dlformss_list`, with `set_row_dlformss_list`.
+  - Proved language preservation:
+    `RL_row_dlforms_UN`, `RL_RALTS_row_dlforms_list`, and
+    `RL_RALTS_row_dlformss_list`.  Thus expanding rows into their deep linear
+    forms preserves the represented row language.
+- New canonical projection:
+  - Added `row_dlform_canonical_rows rs =
+    rdistinct (row_dlformss_list rs) {}`.
+  - Checked `distinct_row_dlform_canonical_rows`,
+    `set_row_dlform_canonical_rows`, and
+    `RL_RALTS_row_dlform_canonical_rows`.
+- Atomicity and disjointness:
+  - Proved `row_dlforms_member_atomic_rtail_nf`:
+    `rtail_nf r` and `x in row_dlforms r` imply `row_dlforms x = {x}`.
+  - Lifted this to row lists with
+    `row_dlforms_atomic_row_dlformss_rtail_nf`.
+  - Proved `row_dlformss_atomic_eq_set` and
+    `row_dlformss_disjoint_atomic_distinct`.
+  - Therefore `row_dlformss_disjoint_row_dlform_canonical_rows`:
+    if all source rows are `rtail_nf`, the canonical projection is
+    row-dlform disjoint.
+  - Also proved `row_dlformss_row_dlform_canonical_rows_eq`, so the canonical
+    projection preserves exactly the same dlform vocabulary under `rtail_nf`.
+- Cubic package theorem:
+  - Added `rsizes_row_dlform_canonical_rows_cubic`:
+    if all source rows are `rtail_nf` and their `row_dlformss` are included in
+    `partial_derivative_frontier_universe root`, then
+    `rsizes (row_dlform_canonical_rows rows) <= 6 * (rsize root + 2)^3`.
+  - Added `row_dlform_canonical_rows_cubic_contractI`, which packages the
+    same assumptions into four checked conclusions: language equivalence,
+    `row_dlformss_disjoint`, exact `row_dlformss` preservation, and the cubic
+    `rsizes` bound.
+- Strong-row normal-form bridge:
+  - Added `rtail_nf_rpder_strong_rows_raw`.
+  - Added `rtail_nf_rpders_strong_rows_raw`, conditional on the initial row
+    list being `rtail_nf`.
+  - Added `rtail_nf_rpders_strong1_rows_raw`, conditional on the root itself
+    being `rtail_nf`.
+  - Added the important nonempty-input variant
+    `rtail_nf_rpders_strong1_rows_raw_nonempty`, which is unconditional because
+    the first strong step normalizes rows with `rsimpStrong_raw`.
+  - Added `RL_RALTS_row_dlform_canonical_rpders_strong1_rows_raw`: wrapping the
+    strong raw rows in the canonical dlform projection preserves the derivative
+    language `Ders s (RL r)` for legacy roots.
+- Current meaning:
+  - This formalizes the user's proposed second phase as a proof-level
+    canonical target: first show derivatives split into the bounded frontier
+    terms, then canonicalize by expanding to dlforms and removing duplicates.
+  - It still does not say the production `rsimpStrong` regex simplifier
+    computes this canonical projection. The remaining bridge is either to
+    connect production rows to this projection, or to introduce a checked
+    simplifier/canonical pass that implements it.
+- Checked failed shortcut:
+  - Added `atomic_rtail_nf_aseq_terms_payment_false`.  Even an atomic
+    `rtail_nf` row can hide repeated alternatives inside its right continuation,
+    so `aseq_terms` may be too small to pay for the whole row's size.  Therefore
+    the canonical cubic proof cannot simply replace direct `row_dlformss`
+    universe inclusion with per-dlform `aseq_terms` inclusion unless a stronger
+    continuation canonicalization invariant is added.
+
+## Cubic Bound Research: parameterized canonical-row interface (2026-06-07)
+
+- Generalized the canonical projection budget away from the old fixed frontier:
+  - `rsizes_rows_canonical_dlforms_rsize_set_boundI` proves that any disjoint,
+    live, paid row list whose deep linear forms are contained in a finite
+    universe `U` satisfies `rsizes rows <= 3 * rsize_set U`.
+  - `rsizes_row_dlform_canonical_rows_rsize_set_boundI` specializes this to the
+    canonical projection: if source rows are `rtail_nf` and
+    `row_dlformss rows subset U`, then
+    `rsizes (row_dlform_canonical_rows rows) <= 3 * rsize_set U`.
+  - `rsizes_row_dlform_canonical_rows_self_bound` is the self-paying form:
+    `rsizes (row_dlform_canonical_rows rows) <=
+    3 * rsize_set (row_dlformss rows)` under `rtail_nf`.
+- Connected this parameterized interface to production strong raw rows:
+  - `row_dlform_canonical_rpders_strong1_rows_raw_universe_contractI` packages
+    language preservation, disjointness, exact `row_dlformss` preservation, and
+    the `3 * rsize_set U` bound for
+    `row_dlform_canonical_rows (rpders_strong1_rows_raw r s)`, conditional on
+    `rtail_nf` rows and `row_dlformss ... subset U`.
+  - `row_dlform_canonical_rpders_strong1_rows_raw_nonempty_universe_contractI`
+    removes the explicit `rtail_nf` assumption for nonempty inputs using
+    `rtail_nf_rpders_strong1_rows_raw_nonempty`.
+  - `row_dlform_canonical_rpders_strong1_rows_raw_nonempty_self_contract`
+    gives the unconditional nonempty self-paying contract for legacy roots.
+  - `Ders_snoc` supplies the right-append derivative identity
+    `Ders (s @ [c]) A = Der c (Ders s A)`.
+  - `row_dlform_canonical_rpder_strong_rows_raw_self_contract` gives the
+    one-step strong raw-row canonical projection contract for an arbitrary
+    legacy row list, with exact language `Der c (RLS (set rows))` and
+    self budget `3 * rsize_set (row_dlformss (rpder_strong_rows_raw c rows))`.
+  - `row_dlform_canonical_rpder_strong_rows_raw_afactored1_self_contract`
+    specializes the previous theorem to the Antimirov front `afactored1 r s`,
+    yielding exact language `Ders (s @ [c]) (RL r)`, disjoint canonical
+    dlforms, exact `row_dlformss` preservation, and the same self budget.
+  - `same_dlfront_rows_row_dlform_canonical_rows` proves that the canonical
+    dlform projection itself preserves the same-front invariant whenever the
+    source rows are `rtail_nf`.
+  - `row_dlform_canonical_rpders_strong1_rows_raw_nonempty_same_dlfront_self_contractI`
+    packages the nonempty strong-row path with the intended responsibility
+    split: assuming only a one-step same-front closure condition for
+    `rsimpStrong_raw`, the canonical projection denotes `Ders (c # s) (RL r)`,
+    remains in the same deep front `(c # s)`, is dlform-disjoint, preserves the
+    raw rows' exact `row_dlformss`, and self-pays by `3 * rsize_set` of that
+    exact dlform vocabulary.
+  - `row_dlform_canonical_rpder_strong_rows_raw_generated_dlforms_contract`
+    strengthens the one-step payment interface: the canonical projection over
+    `rpder_strong_rows_raw c rows` is paid not just by its own dlforms but by
+    the explicit generated universe
+    `row_dlformss (concat (map (rpder_strong_list_raw c) rows))`.
+  - `row_dlform_canonical_rpder_strong_rows_raw_afactored1_generated_dlforms_contract`
+    specializes that generated-universe payment to the Antimirov front
+    `afactored1 r s`, with exact language `Ders (s @ [c]) (RL r)`.
+- Meaning:
+  - The canonical/no-duplicate side is now isolated as a checked reusable
+    theorem.  The remaining mathematical obligation is to construct the right
+    original-regex-owned same-front / later-shared universe `U` and prove a
+    cubic `rsize_set U` bound plus `row_dlformss` inclusion for the actual
+    strong scan/prune rows.
+  - After the latest bridge, the proof split is sharper: canonical projection
+    preserves same-front, so the remaining hard step is not deduplication but
+    the relaxed same-front universe/closure theorem for the actual strong
+    simplifier outputs.
+  - The new generated-dlform contract gives a concrete intermediate target for
+    the next proof step: bound the generated dlform vocabulary by a cubic
+    original-regex-owned universe, rather than paying only by the already
+    cleaned rows.
+  - The latest checked refinement introduces
+    `afactored1_strong_dlform_universe`, defined as the
+    `rsimpStrong_dlform_closure` of the one-step Antimirov generated normal
+    rows
+    `set (concat (map (rpder_norm_list c) (afactored1 r s)))`.
+    New checked lemmas:
+    `row_dlformss_concat_rpder_strong_list_raw_subset_dlform_closure`,
+    `row_dlformss_concat_rpder_strong_list_raw_afactored1_subset_universe`,
+    `afactored1_strong_dlform_universe_aseq_subset`, and
+    `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_contract`.
+    The packaged contract pays the canonicalized one-step strong rows by
+    `3 * rsize_set (afactored1_strong_dlform_universe r s c)`, while also
+    recording that every deep form in this universe has `aseq_terms` contained
+    in `strong_simp_frontier_aseq_universe r`.
+    The follow-on skeleton
+    `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_cubic_contractI`
+    proves that a future
+    `rsize_set (afactored1_strong_dlform_universe r s c) <=
+    2 * (rsize r + 3)^3` lemma immediately yields the one-step canonical
+    strong-row size bound `6 * (rsize r + 3)^3`.
+  - This makes the remaining second-stage obligation sharper:
+    prove a cubic `rsize_set` bound for
+    `afactored1_strong_dlform_universe r s c`, or replace it by an even
+    smaller same-front/later-shared universe with the same inclusion property.
+  - New checked size-payment refinement:
+    `rsize_set_rsimpStrong_dlform_closure_le_sum` and
+    `rsize_set_afactored1_strong_dlform_universe_le_sum` show that the
+    simplifier-closure universe can be paid by the sum of
+    `rsize_set (row_dlforms (rsimpStrong_raw p))` over the generated normal
+    rows `p`.  The wrapper
+    `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_sum_cubic_contractI`
+    proves that the one-step canonical strong-row cubic bound follows from
+    this exact sum being at most `2 * (rsize r + 3)^3`.
+  - New checked executable-cost refinement:
+    `row_dlforms_list_size r = sum_list (map rsize (row_dlforms_list r))`
+    records the full list-expanded cost of opening a row into dlforms, before
+    duplicate elimination.  The lemmas
+    `rsize_set_row_dlforms_le_row_dlforms_list_size`,
+    `sum_rsize_set_row_dlforms_rsimpStrong_raw_le_list_size`, and
+    `rsize_set_afactored1_strong_dlform_universe_le_list_size` prove that this
+    executable cost pays the previous set-sum obligation.  The wrapper
+    `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_list_cubic_contractI`
+    now states the next proof target in the most concrete form:
+    if the list-expanded cost over generated normal rows is at most
+    `2 * (rsize r + 3)^3`, then the same one-step canonical strong-row cubic
+    conclusion follows.
+    This target is also named by
+    `afactored1_strong_dlform_list_cost`; the checked wrapper
+    `row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_named_list_cubic_contractI`
+    says that
+    `afactored1_strong_dlform_list_cost r s c <= 2 * (rsize r + 3)^3`
+    is sufficient.
+    The supporting simp equations for `row_dlforms_list_size` expose the exact
+    recursion through `RZERO`, `RALTS`, and `RSEQ (RALTS ps) k`, so future
+    same-front accounting can work directly over the suffix-copying cases.
+  - New checked obstruction:
+    `row_dlforms_suffix_copy_rsize_set_not_paid_by_row_size` shows why the
+    next step cannot simply claim
+    `rsize_set (row_dlforms row) <= rsize row`: splitting an
+    `RSEQ (RALTS [...]) k` copies the suffix into multiple dlforms.  The
+    remaining proof therefore has to use the user's same-front/later-shared
+    accounting, not a naive per-row-size payment.
+  - This is still not the final cubic theorem for production `rsimpStrong`.
+- Verification:
+  - Full `Posix` Isabelle build passed after the new lemmas, including the
+    `afactored1_strong_dlform_universe` contract, the new sum-cubic wrapper,
+    and the list-expanded cost wrappers/simp equations.
+  - Post-build residual process checks reported no `python.exe`, `poly.exe`,
+    `polyml.exe`, or `java.exe` tasks.
+
+## Cubic Route Checked Update: Same-Front Strong Closure (2026-06-07)
+
+- Process hygiene was tightened in `AGENTS.md`: use stable proof wrappers and
+  bounded commands, then check for leftover proof/search/fuzz workers.
+- Terminology correction:
+  - The split-atom theorem is not the first-stage theorem requested by the
+    user.  The corrected first-stage theorem is
+    `rfrontier_rders_pder_norm_subset_apder_frontier`: compute the normal
+    derivative first, then split only by the normal Antimirov frontier
+    `rfrontier`; the resulting whole residual frontier is contained in
+    `apder_frontier r`, assuming `apder_nf r`.
+  - The old facts based on `row_dlforms`/`aseq_terms` remain useful auxiliary
+    split-atom inclusions, but they must not be used to claim that normal
+    Antimirov residuals have been bounded.
+  - The still-missing `U` is a second-stage row/dlform payment universe,
+    written here as `U_row`, whose job is to contain whole `row_dlformss`
+    combinations for the concrete strong scan/prune or dcanon rows and to have
+    a cubic size/cardinality bound.  A separate polynomial budget for
+    `apder_frontier r` or an equivalent path-frontier universe is the next
+    natural first-stage budget task.
+- Added an explicit front-term block:
+  `derivative_front_terms r s = aseq_termss (afactored1 r s)`.
+  This names the user's "same predecessor/front derivative string" term block.
+- Checked normal-derivative bridge:
+  `row_dlforms_rders_pder_norm_same_frontier_contract` proves that after
+  computing `rders_pder_norm r s` and only then opening/splitting a deep form
+  `x`, the split atoms are not merely in the global original universe; they
+  are contained in the concrete front block `derivative_front_terms r s`, and
+  that block is contained in `partial_derivative_frontier_universe r`.
+- Added cleanup support for the front block:
+  `aseq_termss_rdistinct_empty_eq`,
+  `aseq_termss_rflts_insert_zero_superset`,
+  `aseq_termss_generated_subset_afactored_step_insert_zero`, and
+  `derivative_front_terms_snoc_generated_insert_zero`.  These record that the
+  pure Antimirov row cleanup can only lose split atom `RZERO`.
+- Added the strong same-front block:
+  `strong_derivative_front_terms r s =
+   rsimpStrong_aseq_closure (insert RZERO (derivative_front_terms r s))`.
+  The inserted `RZERO` is needed because `rsimpStrong_raw` can create/drop dead
+  branches while simplifying inside a front.
+- Checked same-front strong-generation bridges:
+  `row_dlforms_rsimpStrong_raw_rpder_norm_list_afactored1_same_strong_front`,
+  `row_dlformss_concat_rpder_strong_list_raw_afactored1_same_strong_front`,
+  `row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_front`, and
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front`.
+  These prove that generated, cleaned, and canonicalized one-step strong rows
+  do not mix derivative fronts at the split-atom level:
+
+  ```text
+  x in row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+  ==> aseq_terms x subset strong_derivative_front_terms r (s @ [c])
+  ```
+
+- Also checked
+  `strong_derivative_front_terms_subset_strong_simp_frontier`, so for legacy
+  roots each same-front strong block remains inside the old global
+  `strong_simp_frontier_aseq_universe r`.  The proof has therefore strengthened
+  the inclusion invariant from "global universe" to "current-front strong
+  closure".
+- Added per-front budget wrappers:
+  `card_strong_derivative_front_terms_cubic`,
+  `rsize_set_strong_derivative_front_terms_cubic`,
+  `strong_derivative_front_terms_member_size_linear`, and
+  `row_dlformss_rpder_strong_rows_raw_afactored1_same_strong_budget_contract`.
+  Thus each current strong-front block has the same checked cubic card and
+  `rsize_set` budgets as the global strong frontier, while preserving the
+  front-indexed/no-mixed-front statement for actual strong rows.
+- Lifted the bridge from individual deep forms to the canonical row list:
+  `same_strong_aseq_front_rows`,
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_front_rows`,
+  and
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_budget_contract`.
+  The canonical rows for one actual strong step now carry a checked list-level
+  invariant:
+
+  ```text
+  aseq_termss (row_dlform_canonical_rows
+    (rpder_strong_rows_raw c (afactored1 r s)))
+    subset strong_derivative_front_terms r (s @ [c])
+  ```
+
+  plus cubic budgets for that same front block.
+- Added the front-specific split-payment conditional theorem:
+  `rsizes_aseq_terms_paid_strong_derivative_front_cubic` and the packaged
+  one-step contract
+  `row_dlform_canonical_rpder_strong_rows_raw_afactored1_same_strong_aseq_paid_cubic_contractI`.
+  This says that if the canonical rows for
+  `rpder_strong_rows_raw c (afactored1 r s)` satisfy the second-stage
+  disjoint/live/paid obligations inside their current
+  `strong_derivative_front_terms r (s @ [c])` block, then their `rsizes` are
+  bounded by `6 * (rsize r + 2)^3` while preserving the derivative language and
+  exact `row_dlformss`.
+- Added checked boundary lemma `rtail_nf_does_not_atomize_row_lforms`.
+  Even an `rtail_nf` row of the form `RSEQ (RALTS [a,b]) c` opens under
+  `row_lforms` to rows such as `RSEQ a c`, so `row_lforms row <> {row}`.
+  Therefore the lform canonical-row contracts cannot drop their explicit
+  atomic premise.  The second-stage proof should keep using the checked
+  `row_dlform_canonical_rows` projection, or introduce a stronger same-front
+  representation that proves the needed atomic/no-redundant payment property.
+- Added a multi-step deep-canonical strong scaffold for
+  `rpders_strong_dcanon_rows_raw`.  New checked lemmas:
+  `legacy_rpders_strong_dcanon_rows_raw`,
+  `row_dlformss_disjoint_rpders_strong_dcanon_rows_raw_nonempty`,
+  `row_dlforms_live_paid_rpders_strong_dcanon_rows_raw_nonempty`,
+  `rsizes_rpders_strong_dcanon_rows_raw_nonempty_rsize_set_boundI`, and
+  `rpders_strong_dcanon_rows_raw_nonempty_rsize_set_budgetsI`.
+  The singleton-root packaged interfaces
+  `rpders_strong_dcanon1_rows_raw_nonempty_universe_contractI` and
+  `rpders_strong_dcanon1_rows_raw_nonempty_universe_cubic_contractI` add
+  derivative-language correctness and turn the finite `U` premise into the
+  final nonempty dcanon row budgets.
+  The generic bridge `rsize_set_le_card_times_bound` /
+  `rsize_set_le_card_member_budgetI`, plus
+  `rpders_strong_dcanon1_rows_raw_nonempty_card_member_cubic_contractI`, lets
+  active-suffix-style `card U` and member-size bounds feed the same dcanon
+  cubic conclusion without first proving a bespoke `rsize_set U` theorem.
+  For any nonempty input, the dcanon transition output is already
+  `row_dlformss_disjoint`, live, and paid by its own deep linear forms; if its
+  `row_dlformss` are included in any finite universe `U`, all four row budgets
+  are bounded by `3 * rsize_set U`.  This isolates the remaining obligation to
+  constructing a cubic original-regex-owned `U`.
+- Added a checked list-cost payment wrapper for the current one-step
+  `U_row` candidate `afactored1_strong_dlform_universe`:
+  `row_dlforms_member_size_le_list_size`,
+  `rsimpStrong_dlform_closure_member_list_size_bound`,
+  `afactored1_strong_dlform_universe_member_size_le_list_cost`, and
+  `afactored1_strong_dlform_universe_list_cost_budget`.  Thus the same named
+  cost `afactored1_strong_dlform_list_cost r s c` pays both
+  `rsize_set (afactored1_strong_dlform_universe r s c)` and every member size
+  of that universe.  This is a verified scaffold for the second-stage
+  accounting target; it is not yet a proof that the named list cost is cubic.
+- Added a checked card/generated-size payment interface for the same
+  `U_row` candidate:
+  `rsize_set_afactored1_strong_dlform_universe_card_generated_boundI`,
+  `rsize_set_afactored1_strong_dlform_universe_card_generated_cubicI`,
+  `rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_contractI`,
+  and
+  `rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_card_generated_cubic_budgetsI`.
+  This packages the next target exactly: prove
+  `card U_row <= C`,
+  `rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) <= M`, and
+  `C * M <= 2 * (rsize r + 3)^3`; then the one-step dcanon transition gets
+  derivative-language correctness, exact `row_dlformss` preservation,
+  disjoint/live/paid rows, and all four cubic row budgets.  This is the
+  current clean second-stage interface after the completed first-stage
+  `U_term` theorem.
+- Attempted but did not keep a shrink of the `aseq_terms_live` assumption in
+  the existing split-payment contract.  The naive proof route
+  `row_dlforms_live -> aseq_terms_live` is too broad for the generalized
+  datatype and a later `legacy + rtail_nf` variant must be split into small
+  constructor lemmas rather than discharged by broad `fastforce`.
+- Remaining theorem gap: this still does not prove the final regex-size cubic
+  bound.  The next obligation is the user's second-stage canonical/payment
+  side: show that the simplifier/canonical representation does not keep
+  redundant combinations inside one allowed same-front block, or define a
+  checked canonical pass with that property.  Existing obstructions still show
+  that plain `aseq_terms` payment is too fine for row size.
+- Verification: bounded `Posix` Isabelle builds passed after the new front-block
+  and strong-front lemmas, and after the
+  `rtail_nf_does_not_atomize_row_lforms` boundary lemma; another bounded build
+  passed after the nonempty dcanon budget scaffold and packaged universe
+  contracts; another bounded build passed after the card/member-size bridge.
+  Another bounded build passed after the list-cost member-size/budget wrapper,
+  and another passed after the card/generated-size dcanon wrappers.
+  During the discarded live-assumption shrink attempt, one timed-out build left
+  two PolyML proof workers from this run, which were terminated by PID.  The
+  final bounded build passed and the final proof-worker check found no
+  matching residual processes.
+- Added the corrected deep same-front Antimirov frontier object
+  `apder_dlfrontier`:
+
+  ```text
+  apder_dlfrontier r = UNION q in apder_rows r. row_dlforms q
+  ```
+
+  Checked lemmas:
+  `finite_apder_dlfrontier`,
+  `adlform_front_subset_apder_dlfrontier`,
+  `row_dlforms_rders_pder_norm_subset_apder_dlfrontier`, and
+  `rsize_set_row_dlforms_rders_pder_norm_le_apder_dlfrontier`.
+  This is the precise first-stage version of the user's "same derivative
+  front" plan: compute the normal Antimirov derivative first, then fully open
+  only grouped rows of the form `RSEQ (RALTS ps) k` along that same front.
+  It does not replace the whole-residual `rfrontier` theorem, and it does not
+  use `aseq_terms` as the counted row vocabulary.  The new checked statement is:
+
+  ```text
+  row_dlforms (rders_pder_norm r s) subset apder_dlfrontier r
+  ```
+
+  under `apder_nf r`.
+- Current next proof target after `apder_dlfrontier`: prove a closure/budget
+  lemma for this same-front universe, ideally
+  `apder_dlfrontier r subset partial_derivative_frontier_universe r` or a
+  direct `rsize_set (apder_dlfrontier r)` cubic bound.  The key subgoal is:
+  if `q` is a front-owned `rtail_nf` row, then `row_dlforms q` stays in the
+  original-root front universe.  This requires continuation closure; do not
+  shortcut it by counting `aseq_terms`.
+- Worker hygiene checkpoint after this update: bounded `Posix` build passed,
+  and `scripts\codex-proof-workers.ps1 -Action Check` reported no residual
+  proof-worker processes.
+
 ## Open Design Questions
 
 - Whether `rep` should remain pure reconstruction metadata in values, or later
@@ -10057,3 +12528,121 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `backref_lang A B cs` to the generalized four-language
   `backref_lang4 L1 L2 L3 L4 cs`. The old definition is now checked as the
   special case `backref_lang4 {[]} A B {[]} cs`.
+
+## 2026-06-08 Normal Antimirov Checkpoint
+
+- Added `AntimirovNormalFrontier.thy` and included it in `ROOT`.  This is now
+  the dedicated first-stage file.  It records the normal Antimirov objects:
+  `normal_antimirov_frontier r = apder_frontier r` and
+  `normal_antimirov_rows r = apder_rows r`.
+- Checked first-stage theorem package:
+  `normal_derivative_frontier_subset`,
+  `normal_derivative_frontier_cubic_size`,
+  `normal_factored_rows_subset`,
+  `normal_factored_rows_cubic_budget`, and
+  `normal_factored_rows_contract`.
+  These are the non-atomizing statements: products such as `a(aa)` and
+  `a(b+b+b)` are kept as whole residuals at the appropriate fronts.
+- Added `normal_frontier_canonical_rows`, which opens only `rfrontier` and
+  deduplicates.  Checked `normal_canonical_factored_rows_contract`: language is
+  preserved, the canonical set is inside `normal_antimirov_frontier r`, and
+  length/cardinality/linear terms/total regex size are bounded by
+  `(apder_awidth r + rsize r + 3)^3`.
+- Added the second-stage boundary:
+  `normal_antimirov_frontier_not_raw_shared_prune_closed`.  This formally
+  shows why the strong-prune stage cannot be proved by claiming the normal
+  frontier is closed under shared-suffix pruning.  The missing object is a
+  same-front combination.
+- Added `normal_same_front_prune_closure` as the next-stage candidate:
+  `raw_shared_prune_same_suffix_closure (normal_antimirov_frontier r)`.
+  Checked `normal_same_front_prune_closure_member_cubic_size`: every member of
+  this closure has size bounded by the original normal-frontier cubic.  Also
+  checked that the shared-prune counterexample result lies in this closure.
+- Added the stronger actual-scan candidate `normal_strong_scan_owner`:
+  `raw_shared_prune_active_suffix_owner (apder_strong_frontier r)`.  This
+  seeds the scan owner with the normal frontier after applying `rsimpStrong_raw`
+  once to every Antimirov residual, so cases like `(0)* -> 1` are included.
+  Checked `normal_strong_scan_owner_member_expanded_cubic_size`: every member
+  has size bounded by `2 * (apder_awidth r + rsize r + 3)^3`.
+- Remaining second-stage gap is now sharper: prove a cubic count/total-size
+  bound for the actual scan-generated same-front combinations, not for all
+  arbitrary pairs in the closure and not via atomized `aseq_terms`.
+- Verification: bounded `Posix` build passed after these additions, and
+  `scripts\codex-proof-workers.ps1 -Action Check` reported no residual
+  proof-worker processes.
+
+## 2026-06-08 Deep-Row Cubic Accounting Checkpoint
+
+- Continued the user's non-atomizing Antimirov route for the second-stage
+  row split.  The current object is still `adlform_front r s`, defined by
+  first computing the normal Antimirov/factored derivative rows and only then
+  opening grouped rows with `row_dlforms`.  Do not replace this by
+  `aseq_terms`.
+- Checked tight delta accounting infrastructure:
+  `apder_dfrontier_delta_budget_tight`,
+  `rsize_set_apder_dfrontier_delta_acc_le_tight_budget`,
+  `rsize_set_apder_dfrontier_acc_le_tight_delta_budget`,
+  `rsize_set_apder_deep_frontier_le_tight_delta_budget`, and
+  `rsize_set_adlform_front_le_tight_delta_budget`.
+  This packages the idea that suffix rows should be counted by differences
+  from the current continuation, not by repeatedly re-counting the whole
+  continuation.
+- Added two checked linear suffix facts for star and bounded repetition:
+  `rsize_set_row_dlforms_rsimp4_SEQ_atom_RSTAR_linear` and
+  `rsize_set_row_dlforms_rsimp4_SEQ_atom_RNTIMES_linear`.
+- Added the list-cost bridge
+  `rsize_set_adlform_front_le_afactored1_row_dlforms_list_size`.  This is only
+  a diagnostic upper bound; it can over-count repeated suffixes and is not the
+  final cubic argument.
+- Added the checked member-size half of the intended final accounting:
+  `apder_deep_frontier_member_expanded_square_size`.  For every
+  `x in apder_deep_frontier r`,
+
+  ```text
+  rsize x <= (apder_awidth r + rsize r + 3)^2
+  ```
+
+  under `apder_nf r`.
+- Added the conditional cubic interface
+  `rsize_set_adlform_front_cubic_from_deep_linear_card`: if
+
+  ```text
+  card (apder_deep_frontier r) <= apder_awidth r + rsize r + 3
+  ```
+
+  then `rsize_set (adlform_front r s)` is cubic.  Thus the remaining theorem
+  has been narrowed to a linear cardinality bound for the distinct deep
+  row-forms, plus the already checked subset chain from `adlform_front` to
+  `apder_deep_frontier`.
+- Added the checked conditional canonical-row main wrapper
+  `row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract`.
+  Under the same linear-cardinality premise for `apder_deep_frontier r`, the
+  canonical rows for `afactored1 r s` preserve language, stay in the same
+  dlfront, are disjoint, have exact `row_dlformss = adlform_front r s`, and
+  satisfy
+
+  ```text
+  rsizes rows <= 3 * (apder_awidth r + rsize r + 3)^3
+  ```
+
+  This is the current best "almost main theorem"; its only nontrivial missing
+  premise is the linear cardinality bound above.
+- Important failed/redirected idea: a generic potential depending on raw
+  `rsize k` for arbitrary continuations is too crude for nested `RSTAR`.
+  In the star case the recursive continuation syntactically contains another
+  copy of the body, so a fixed `|r| * |k| + |r|^2` style potential repeatedly
+  charges the same context.  The next viable route is to count compressed
+  same-front/continuation keys or prove the linear card bound for
+  `apder_deep_frontier` directly.
+- Added closure infrastructure for a continuation-key route:
+  `rderiv_fuel_closure_mono`,
+  `rlinear_continuations_continuation_subset_fuel`,
+  `rderiv_fuel_closure_continuation_closed`, and
+  `rderiv_fuel_closure_idempotent_subset`.  The simple
+  subterm/continuation closure alone is not enough for rows like `(a+b)c`,
+  because the exposed rows `ac` and `bc` are pair combinations of a payload
+  and a continuation.  The next closure must preserve this pair structure
+  without allowing arbitrary all-pairs explosion.
+- Verification: bounded `Posix` builds passed after each checked block, and
+  `scripts\codex-proof-workers.ps1 -Action Check` reported no residual
+  proof-worker processes.

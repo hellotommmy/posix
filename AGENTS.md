@@ -21,6 +21,17 @@ Short version:
   if it visibly hangs, abandon that tactic and split the proof. A small pilot
   check should usually finish in 5-10 seconds, and a 200 second command is never
   normal.
+- Long-running proof/search/fuzz commands must be bounded and cleaned up. Use
+  explicit timeouts for Isabelle/Scala/Python experiments, and after any
+  interrupted or overnight run check for leftover `python`, `poly`, `polyml`,
+  `isabelle`, and related Java worker processes. Terminate only stale processes
+  that this agent run started or clearly owns; do not blanket-kill unrelated
+  user sessions. Record unusual cleanup in `PROGRESS_BACKREF.md` or the handoff.
+- For this repo, prefer the stable wrappers in `scripts/` for bounded proof
+  runs and cleanup: `codex-isabelle-build-posix.ps1` runs the bounded Posix
+  Isabelle build, and `codex-proof-workers.ps1` checks or kills only stale
+  proof-worker processes whose command line or executable path is tied to this
+  repo or the local Isabelle installation.
 - Preserve proof shape before using automation: split by datatype constructor
   or inductive case first, expose the relevant assumptions, and move complex
   branches into named helper lemmas. Do not fire broad `auto` at an undigested
