@@ -13294,6 +13294,18 @@ proof -
       (use live_paid in auto)
 qed
 
+lemma rsizes_row_lform_canonical_rows_tight_rsize_set_boundI:
+  assumes finite: "finite U"
+    and lforms: "row_lformss rs \<subseteq> U"
+  shows "rsizes (row_lform_canonical_rows rs) \<le> rsize_set U"
+proof -
+  have rows: "set (row_lform_canonical_rows rs) \<subseteq> U"
+    using lforms by simp
+  show ?thesis
+    by (rule rsizes_distinct_subset_rsize_set
+        [OF distinct_row_lform_canonical_rows rows finite])
+qed
+
 lemma row_nf_row_lforms_singleton:
   assumes "row_nf r"
   shows "row_lforms r = {r}"
@@ -21821,6 +21833,59 @@ proof (intro conjI)
   also have "... = 6 * (rsize r + 3) ^ 3"
     by simp
   finally show "rsizes ?canon \<le> 6 * (rsize r + 3) ^ 3" .
+qed
+
+lemma row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and atomic:
+      "\<forall>x \<in> row_lformss
+        (rpder_strong_rows_raw c (afactored1 r s)).
+        row_lforms x = {x}"
+    and lforms:
+      "row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+    and cubic:
+      "rsize_set (afactored1_strong_lform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RL (RALTS
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s)))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_lformss_disjoint
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<and>
+    row_lformss
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) =
+      row_lformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (row_lform_canonical_rows
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?canon = "row_lform_canonical_rows ?raw"
+  let ?U = "afactored1_strong_lform_universe r s c"
+  have contract:
+      "RL (RALTS ?canon) = Ders (s @ [c]) (RL r) \<and>
+      row_lformss_disjoint ?canon \<and>
+      row_lformss ?canon = row_lformss ?raw \<and>
+      rsizes ?canon \<le> 3 * rsize_set ?U"
+    by (rule
+        row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_contractI
+        [OF legacy atomic lforms])
+  show "RL (RALTS ?canon) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_lformss_disjoint ?canon"
+    using contract by blast
+  show "row_lformss ?canon = row_lformss ?raw"
+    using contract by blast
+  have "rsizes ?canon \<le> rsize_set ?U"
+    by (rule rsizes_row_lform_canonical_rows_tight_rsize_set_boundI)
+      (use lforms in auto)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule cubic)
+  finally show "rsizes ?canon \<le> 2 * (rsize r + 3) ^ 3" .
 qed
 
 lemma rpder_strong_rows_raw_afactored1_lform_universe_cubic_contractI:

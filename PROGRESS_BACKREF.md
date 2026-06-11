@@ -14620,6 +14620,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   cubic `rsize_set` bound for `afactored1_strong_dlform_universe`.
 - Verification: full `Posix` build passed at 2026-06-12 06:27:14 local time.
 
+## 2026-06-12 Supervisor: tight lform canonical budget brick
+
+- New checked lemmas:
+
+  ```text
+  rsizes_row_lform_canonical_rows_tight_rsize_set_boundI
+  row_lform_canonical_rpder_strong_rows_raw_afactored1_lform_universe_tight_cubic_contractI
+  ```
+
+- Plain meaning: `row_lform_canonical_rows` is also a duplicate-free list whose
+  set is exactly `row_lformss`.  Once its lforms lie in a universe `U`, its
+  `rsizes` is paid directly by `rsize_set U`; it does not need the older
+  live/paid estimate `3 * rsize_set U`.
+- Concrete payoff: the canonical lform route now has a checked
+  `2 * (rsize r + 3)^3` size contract from the same lform-universe cubic
+  premise where the older interface exposed `6 * (rsize r + 3)^3`.
+- Verification: full `Posix` build passed at 2026-06-12 06:30:40 local time.
+
 ## 2026-06-12 Fable: the remaining premise lacks awidth - suspect, needs one probe
 
 - Target premise: rsize_set (afactored1_strong_dlform_universe r s c)
