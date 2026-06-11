@@ -14792,3 +14792,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `value` is the wrong instrument for larger `t`.  Proof work should continue
   on the checked tight dcanon interfaces; counterexample search should move
   out of interactive Isabelle evaluation.
+
+## 2026-06-12 Fable Probe Result: plateau confirmed, premise survives this family
+
+- Ran the existing Scala probe (TraceOneStepDlformUniverse,
+  star-reentry, n=16, branches=8, rsize=100, budget 2185454):
+
+  ```text
+  t:      0      8      16     32     64
+  Usize:  160    5708   20120  32256  27456
+  ratio:  .00007 .0026  .0092  .0148  .0126
+  rows:   1      29     121    225    193
+  ```
+
+- Plain conclusion: growth stops at t~32 and REVERSES by t=64.  The
+  reason is visible in the row counts: NTIMES counters only decrease,
+  so the set of live counter states peaks and then drains.  Peak ratio
+  is about 0.015 - seventy times under budget.  My awidth suspicion is
+  weakened by measurement on both probe families; the premise survives.
+- Proof-side takeaway: the bound mechanism to formalize is
+  "one-step universe size <= (number of live counter states at any
+  position) x (dlforms per row) x (row size)", where the first factor
+  is limited by counter monotonicity, not by awidth.  Next session
+  should attack the cubic rsize_set premise along this line, or
+  the supervisor's tight dcanon interfaces directly.
+- t=128/192/256 were not run (t=64 already declining); can be added
+  cheaply if anyone wants the full curve.
