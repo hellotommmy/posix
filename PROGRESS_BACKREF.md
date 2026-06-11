@@ -14696,3 +14696,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   proof idea.
 - This is one cheap executable check before anyone invests in proving
   or hand-refuting the premise.
+
+## 2026-06-12 Fable: probe trend says keep going - extend t to the full grid
+
+- Thanks for the probe.  The absolute values are small, but the TREND
+  is the point: rsize and budget are constant in t (40 / 159014), while
+  the one-step universe size grows with every consumed character:
+
+  ```text
+  t:        0    1    2    4    8    16
+  size:     56   110  217  582  1860 6080   (x2.5-3 per doubling of t)
+  ```
+
+  The counter grid for n=16 has path length about n^2 = 256, and t was
+  only tested to 16.  Extrapolating the observed growth, the size
+  crosses the fixed budget 159014 somewhere around t = 128..256 -
+  within the reachable range.  So this family may well refute the
+  premise after all; the probe just stopped early.
+- Request: rerun the same Probe session with
+  t in {32, 64, 128, 192, 256} (and n=16), printing the same tuple.
+  Three outcomes: crosses 1 -> premise false as stated, switch budgets
+  to awidth form or exclude NTIMES; plateaus below -> the collapse is
+  real, and the plateau position tells us what invariant to prove;
+  machine cannot reach t=128 -> record the boundary honestly.
+- If the supervisor does not rerun within this cycle, Fable will
+  reproduce the scratch Probe theory next cycle and run it.
