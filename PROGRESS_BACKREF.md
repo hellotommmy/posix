@@ -13697,3 +13697,88 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   passed at 2026-06-12 02:13:07 (`Finished Posix`; `AntimirovFactoredTransition`
   52.017s cumulated, whole wrapper 0:01:08).
+
+## 2026-06-12 Supervisor Checkpoint: active closure key-DAG size packaged
+
+- Added checked key-DAG size lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_generated_rsizes
+  afactored1_strong_dlform_universe_active_suffix_closure_key_dag_member_size_le_list_cost
+  rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_generated_boundI
+  rsize_set_afactored1_strong_dlform_universe_active_suffix_closure_key_dag_list_boundI
+  ```
+
+- Meaning in simple terms: the key-DAG universe contains subterms of suffix
+  keys exposed after active-suffix closure.  Do not claim every key-DAG subterm
+  has its split atoms in the current front; that is too strong for star/ntimes
+  wrappers.  The checked safe fact is size-based: every member of the
+  step-local closure key-DAG is no larger than the generated-row `rsizes`
+  budget, and no larger than the named
+  `afactored1_strong_dlform_list_cost` budget.  Consequently, a cardinality
+  bound for this key-DAG immediately gives an `rsize_set` bound by multiplication.
+- This packages the size side of fresh-key/key-DAG accounting.  The remaining
+  hard work is still to prove a strong enough cardinality/owner bound for the
+  key-DAG or for the surrounding active-suffix owner universe.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 02:18:16 (`Finished Posix`; `AntimirovFactoredTransition`
+  61.239s cumulated, whole wrapper 0:01:09).
+
+## 2026-06-12 Fable Analysis: nested NTIMES threatens rsize-only cubic step-local targets
+
+- Hand analysis (NOT checked; recorded before proof work per the
+  pre-edit rule).  Combine the two checked counterexample mechanisms:
+  star re-entry (`adlform_front_linear_card_false`) and counted
+  repetition multiplicity (`apder_deep_frontier_linear_card_false`),
+  with NESTED `RNTIMES`:
+
+  ```text
+  r = RSEQ (RSTAR (RCHAR a))
+        (RNTIMES (RNTIMES (RNTIMES X k) m) n)
+  X = RSEQ (RCHAR a) (RALTS SS)    (eight zero-awidth branches)
+  input: replicate J a
+  ```
+
+  Each step the star prefix injects a fresh chain into the triple
+  repetition; each existing chain advances one deterministic step along
+  the counter grid, whose path length is about `k * m * n`.  So at
+  `J ~ k * m * n` the current front holds about `k * m * n` DISTINCT
+  rows of size about `k + m + n + c`.  At `k = m = n` this is
+  `~ n^4` total front size against any `2 * (rsize r + 3)^3 ~ 54 n^3`
+  budget, with crossover around `n > 54` (rsize ~ 190, input ~ 157k
+  characters).
+- Consequence if confirmed: the rsize-only cubic forms of ALL current
+  step-local route-2 targets (`afactored1_strong_dlform_list_cost <=
+  2*(rsize+3)^3`, `card U * M <= 2*(rsize+3)^3`, and any pair-budget
+  route whose final budget is `2*(rsize+3)^3`) are FALSE on the full
+  fragment with nested `RNTIMES`, because already the PLAIN generated
+  rows exceed the budget.  Note `apder_awidth` is not in these budgets,
+  and `apder_awidth (RNTIMES (RNTIMES a k) m) = k * m` can be
+  quadratic in `rsize`; the older `(apder_awidth + rsize + 3)^3`
+  budgets are NOT threatened by this family.
+- The crossover size makes a direct Isabelle counterexample infeasible
+  (about 157k input characters), so per the smoke-first rule this needs
+  an executable probe, not a proof attempt:
+  request to supervisor: extend the earlier `isabelle process` scratch
+  probe (or a `PosixCubicSmoke.scala` metric) to the two-level family
+  `RSEQ (RSTAR (RCHAR a)) (RNTIMES (RNTIMES X m) n)` and report whether
+  step-local `afactored1_strong_dlform_list_cost` growth tracks
+  `m * n * (m + n)`.  If it does, the three-level family settles the
+  asymptotics and the rsize-only targets should be re-scoped.
+- Proposed re-scoping if confirmed (citing the admin's own directive
+  that excluding bounded repetitions is acceptable for the cubic
+  theorem): keep all the new active-suffix/carrier machinery (it is
+  budget-agnostic), and prove the route-2 cubic on the
+  `rntimes_free` fragment, where the deep-frontier linear card
+  `card_apder_deep_frontier_rntimes_free_linear` is already checked and
+  gives linear bucket/key counts for the PLAIN side.  Alternatively
+  switch the step-local budgets to `(apder_awidth + rsize + 3)^3`
+  shaped forms, which my family does not refute.
+- No Isabelle edit this cycle pending the smoke verdict; this avoids
+  proving against a possibly-false statement and avoids colliding with
+  the supervisor's active packaging pipeline.
