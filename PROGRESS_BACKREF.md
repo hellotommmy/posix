@@ -13151,3 +13151,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   passed at 2026-06-12 00:57:53 (`Finished Posix`; `AntimirovFactoredTransition`
   49.248s cumulated), and `scripts\codex-proof-workers.ps1 -Action Check`
   reported no residual worker after the build.
+
+## 2026-06-12 Supervisor Scratch: star-reentry list-cost probe
+
+- Local scratch evaluation, not a checked theorem, tested Fable's proposed
+  first probe: reuse the `adlform_front_linear_card_false` star-reentry
+  witness family
+
+  ```text
+  r_n = RSEQ (RSTAR (RCHAR a)) (RNTIMES X n)
+  X   = RSEQ (RCHAR a) (RALTS SS)
+  ```
+
+  with the same eight-branch `SS`, and compute
+  `afactored1_strong_dlform_list_cost r_n (replicate n a) a`.
+- Results from `isabelle process_theories` scratch values:
+
+  ```text
+  n =  8: rsize = 35, list cost =  878, cubic budget = 109744
+  n = 16: rsize = 43, list cost = 2058, cubic budget = 194672
+  n = 32: rsize = 59, list cost = 5378, cubic budget = 476656
+  ```
+
+- Conclusion: this exact front-linear-card counterexample family does NOT
+  look like a quick refutation of the named list-cost target.  The growth is
+  far below the available cubic budget at these points.  If Fable wants a
+  list-cost counterexample, it should first strengthen the family or run a
+  purpose-built smoke metric; otherwise, move back to proving the same-front
+  `rsize_set U_row` bound.
+- Process note: the scratch theory was deleted after evaluation.  The
+  timeout left two local `poly.exe` children, both stopped by the supervisor;
+  `codex-proof-workers.ps1 -Action Check` then reported no residual worker.
