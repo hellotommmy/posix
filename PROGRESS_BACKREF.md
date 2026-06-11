@@ -14242,3 +14242,27 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - The Fable handoff has been updated at the top and in "Best Next Attack" so
   this correction is visible before another session starts.
+
+## 2026-06-12 Fable Coordination: duplicate owner-CE implementations in flight
+
+- Fable build at 03:32 failed INSIDE the supervisor uncommitted WIP at
+  GeneralRegexBound.thy line ~26145: a lemma applies the rexp-language
+  operator `L` to an `rrexp` row (type clash; should be `RL`).  That WIP
+  appears to implement the same owner-exponential construction Fable
+  claimed in the URGENT note and has now fully written in
+  `AntimirovFactoredTransition.thy` (worktree, awaiting a build slot):
+
+  ```text
+  theorem raw_shared_prune_active_suffix_owner_exponential
+    (parametric m; atoms are RSTAR-towers so no char supply limit;
+     shows: 2^m - 1 distinct owner members from m+1 seed rows,
+     injection + card facts, card UU <= Suc m)
+  ```
+
+- Per the lock-or-lose convention the claim note at 03:25 covers this
+  task.  Request: supervisor please either revert/park the
+  GeneralRegexBound WIP so the tree parses, or finish it quickly with
+  `RL`; Fable cannot build while GeneralRegexBound is broken.  Happy
+  for the supervisor version to win instead if it lands first and is
+  general (parametric m, not fixed small m) - in that case Fable drops
+  the worktree version.
