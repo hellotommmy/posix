@@ -12702,3 +12702,65 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   same-front counting) or route 3 (canonical projection via
   `row_dlform_canonical_rows`).
 - Blockers: none.
+
+## 2026-06-12 NTIMES-Free Deep-Frontier Linear Card Checkpoint
+
+- Branch: `codex/backref-values`.
+- File changed: `AntimirovFactoredTransition.thy` (new definitions and
+  lemmas only; no statement changes, file only grew).
+- Following the admin direction to mirror the Antimirov partial-derivative
+  paper counting and lower difficulty by excluding bounded repetitions,
+  the route 1 linear cardinality bound is now checked on the
+  `RNTIMES`-free fragment.  This is the positive complement of the
+  2026-06-11 refutation `apder_deep_frontier_linear_card_false`, whose
+  counterexample essentially requires `RNTIMES`.
+- New fragment predicate `rntimes_free` (backreference constructors are
+  opaque: their `apder_terms` are empty, so no recursion into them) and
+  new measure `apder_star_weight` with checked
+  `apder_star_weight_le_rsize`.
+- New helper lemmas: `rsimp7_SEQ_atom_nonstar`,
+  `apder_deep_frontier_delta_acc_RZERO_empty`,
+  `apder_deep_frontier_delta_acc_RONE_empty`,
+  `card_apder_deep_frontier_delta_acc_RCHAR_le_one`,
+  `card_apder_deep_frontier_delta_acc_RBACKREF4_le_one`,
+  `card_apder_deep_frontier_delta_acc_RHALF_le_one`,
+  `card_apder_deep_frontier_delta_acc_RRESIDUE_le_one`,
+  `apder_dfrontier_delta_acc_subset_deep`.
+- Main induction (structural, arbitrary accumulator, using the existing
+  checked per-constructor delta-accumulator card lemmas as the
+  `RALTS`/`RSEQ`/`RSTAR` steps):
+  `card_apder_deep_frontier_delta_acc_rntimes_free_le`:
+
+  ```text
+  apder_nf r ==> apder_nf k ==> rntimes_free r ==>
+  card (apder_deep_frontier_delta_acc r k)
+    <= apder_awidth r + apder_star_weight r
+  ```
+
+- Headline checked theorem
+  `card_apder_deep_frontier_rntimes_free_linear`:
+
+  ```text
+  apder_nf r ==> rntimes_free r ==>
+  card (apder_deep_frontier r) <= apder_awidth r + rsize r + 3
+  ```
+
+- This discharges the named missing premise of the two conditional
+  interfaces, giving the new unconditional fragment theorems
+  `rsize_set_adlform_front_cubic_rntimes_free` and
+  `row_dlform_canonical_afactored1_rntimes_free_cubic_contract`
+  (language equality with `Ders`, same-dlfront rows, disjoint canonical
+  rows, exact `row_dlformss = adlform_front`, and
+  `rsizes <= 3 * (apder_awidth r + rsize r + 3)^3`) under only
+  `legacy_rrexp r`, `apder_nf r`, `rntimes_free r`.
+- Verification: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds
+  300` passed (`Finished Posix`; `AntimirovFactoredTransition` 62.7s
+  cumulated), and `scripts\codex-proof-workers.ps1 -Action Check`
+  reported no residual proof-worker processes before and after.
+- Next smallest safe step: connect the fragment contract forward (the
+  canonical-row cubic rows now exist unconditionally on the fragment;
+  the open work is the strong-row/dcanon route on top of them), or
+  check the front-variant `RNTIMES` counterexample for
+  `card (adlform_front r s)` to decide whether the full-language route
+  must go through a per-front or quadratic-count argument.
+- Blockers: none.

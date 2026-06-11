@@ -8958,6 +8958,355 @@ proof -
     by (simp add: card_deep aw_cex rsize_cex)
 qed
 
+text \<open>
+  The refutation above relies essentially on \<open>RNTIMES\<close>: a counted
+  repetition multiplies continuations through \<open>apder_awidth\<close> while
+  paying its repetition count only additively in \<open>rsize\<close>.  On the
+  bounded-repetition-free fragment the classical Antimirov counting
+  argument goes through: every remaining constructor case of the
+  checked delta-accumulator card recursion is linear, so the deep
+  frontier is linearly bounded and the conditional cubic interfaces
+  above become unconditional on this fragment.  Backreference
+  constructors are opaque to the Antimirov frontier machinery (their
+  \<open>apder_terms\<close> are empty), so the fragment predicate does not need to
+  recurse into them.
+\<close>
+
+fun rntimes_free :: "rrexp \<Rightarrow> bool" where
+  "rntimes_free RZERO = True"
+| "rntimes_free RONE = True"
+| "rntimes_free (RCHAR c) = True"
+| "rntimes_free (RALTS rs) = (\<forall>q \<in> set rs. rntimes_free q)"
+| "rntimes_free (RSEQ r1 r2) =
+    (rntimes_free r1 \<and> rntimes_free r2)"
+| "rntimes_free (RSTAR r) = rntimes_free r"
+| "rntimes_free (RNTIMES r n) = False"
+| "rntimes_free (RBACKREF4 r1 r2 r3 r4 cs) = True"
+| "rntimes_free (RHALF r cs rep) = True"
+| "rntimes_free (RRESIDUE cs rep) = True"
+
+fun apder_star_weight :: "rrexp \<Rightarrow> nat" where
+  "apder_star_weight RZERO = 0"
+| "apder_star_weight RONE = 0"
+| "apder_star_weight (RCHAR c) = 0"
+| "apder_star_weight (RALTS rs) =
+    sum_list (map apder_star_weight rs)"
+| "apder_star_weight (RSEQ r1 r2) =
+    apder_star_weight r1 + apder_star_weight r2"
+| "apder_star_weight (RSTAR r) = Suc (apder_star_weight r)"
+| "apder_star_weight (RNTIMES r n) = Suc (apder_star_weight r)"
+| "apder_star_weight (RBACKREF4 r1 r2 r3 r4 cs) = 1"
+| "apder_star_weight (RHALF r cs rep) = 1"
+| "apder_star_weight (RRESIDUE cs rep) = 1"
+
+lemma apder_star_weight_le_rsize:
+  "apder_star_weight r \<le> rsize r"
+proof (induct r)
+  case (RALTS rs)
+  have "sum_list (map apder_star_weight rs) \<le>
+      sum_list (map rsize rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  then show ?case
+    by simp
+qed (auto intro: le_SucI add_le_mono trans_le_add1)
+
+lemma rsimp7_SEQ_atom_nonstar:
+  assumes "\<And>q. r \<noteq> RSTAR q"
+  shows "rsimp7_SEQ_atom r k = rsimp4_SEQ_atom r k"
+  using assms
+  by (cases r) (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma apder_deep_frontier_delta_acc_RZERO_empty:
+  "apder_deep_frontier_delta_acc RZERO k = {}"
+  by (auto simp add: apder_deep_frontier_delta_acc_def
+      apder_deep_frontier_acc_def apder_dfrontier_acc_def
+      rsimp7_SEQ_atom_def)
+
+lemma apder_deep_frontier_delta_acc_RONE_empty:
+  "apder_deep_frontier_delta_acc RONE k = {}"
+  by (auto simp add: apder_deep_frontier_delta_acc_def
+      apder_deep_frontier_acc_def apder_dfrontier_acc_def
+      rsimp7_SEQ_atom_def)
+
+lemma card_apder_deep_frontier_delta_acc_RCHAR_le_one:
+  "card (apder_deep_frontier_delta_acc (RCHAR c) k) \<le> 1"
+proof -
+  have seven: "rsimp7_SEQ_atom (RCHAR c) k =
+      rsimp4_SEQ_atom (RCHAR c) k"
+    by (rule rsimp7_SEQ_atom_nonstar) simp
+  have sub: "apder_deep_frontier_delta_acc (RCHAR c) k \<subseteq>
+      row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) - row_dlforms k"
+    by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def apder_dfrontier_acc_def seven)
+  have "card (apder_deep_frontier_delta_acc (RCHAR c) k) \<le>
+      card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+        row_dlforms k)"
+    by (rule card_mono[OF _ sub]) simp
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp4_SEQ_atom_RCHAR_diff_le_one)
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RBACKREF4_le_one:
+  "card (apder_deep_frontier_delta_acc
+    (RBACKREF4 r1 r2 r3 r4 cs) k) \<le> 1"
+proof -
+  have seven: "rsimp7_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k =
+      rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k"
+    by (rule rsimp7_SEQ_atom_nonstar) simp
+  have sub: "apder_deep_frontier_delta_acc
+      (RBACKREF4 r1 r2 r3 r4 cs) k \<subseteq>
+      row_dlforms (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+        row_dlforms k"
+    by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def apder_dfrontier_acc_def seven)
+  have "card (apder_deep_frontier_delta_acc
+      (RBACKREF4 r1 r2 r3 r4 cs) k) \<le>
+      card (row_dlforms
+        (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+        row_dlforms k)"
+    by (rule card_mono[OF _ sub]) simp
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp4_SEQ_atom_RBACKREF4_diff_le_one)
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RHALF_le_one:
+  "card (apder_deep_frontier_delta_acc (RHALF r cs rep) k) \<le> 1"
+proof -
+  have seven: "rsimp7_SEQ_atom (RHALF r cs rep) k =
+      rsimp4_SEQ_atom (RHALF r cs rep) k"
+    by (rule rsimp7_SEQ_atom_nonstar) simp
+  have sub: "apder_deep_frontier_delta_acc (RHALF r cs rep) k \<subseteq>
+      row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+        row_dlforms k"
+    by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def apder_dfrontier_acc_def seven)
+  have "card (apder_deep_frontier_delta_acc (RHALF r cs rep) k) \<le>
+      card (row_dlforms (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+        row_dlforms k)"
+    by (rule card_mono[OF _ sub]) simp
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp4_SEQ_atom_RHALF_diff_le_one)
+  finally show ?thesis .
+qed
+
+lemma card_apder_deep_frontier_delta_acc_RRESIDUE_le_one:
+  "card (apder_deep_frontier_delta_acc (RRESIDUE cs rep) k) \<le> 1"
+proof -
+  have seven: "rsimp7_SEQ_atom (RRESIDUE cs rep) k =
+      rsimp4_SEQ_atom (RRESIDUE cs rep) k"
+    by (rule rsimp7_SEQ_atom_nonstar) simp
+  have sub: "apder_deep_frontier_delta_acc (RRESIDUE cs rep) k \<subseteq>
+      row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+        row_dlforms k"
+    by (auto simp add: apder_deep_frontier_delta_acc_def
+        apder_deep_frontier_acc_def apder_dfrontier_acc_def seven)
+  have "card (apder_deep_frontier_delta_acc (RRESIDUE cs rep) k) \<le>
+      card (row_dlforms (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+        row_dlforms k)"
+    by (rule card_mono[OF _ sub]) simp
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp4_SEQ_atom_RRESIDUE_diff_le_one)
+  finally show ?thesis .
+qed
+
+lemma apder_dfrontier_delta_acc_subset_deep:
+  "apder_dfrontier_delta_acc r k \<subseteq>
+    apder_deep_frontier_delta_acc r k"
+  by (auto simp add: apder_dfrontier_delta_acc_def
+      apder_deep_frontier_delta_acc_def
+      apder_deep_frontier_acc_def)
+
+lemma card_apder_deep_frontier_delta_acc_rntimes_free_le:
+  assumes "apder_nf r"
+    and "apder_nf k"
+    and "rntimes_free r"
+  shows "card (apder_deep_frontier_delta_acc r k) \<le>
+    apder_awidth r + apder_star_weight r"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_deep_frontier_delta_acc_RZERO_empty)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_deep_frontier_delta_acc_RONE_empty)
+next
+  case (RCHAR c)
+  then show ?case
+    using card_apder_deep_frontier_delta_acc_RCHAR_le_one[of c k]
+    by simp
+next
+  case (RALTS rs)
+  have point: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_deep_frontier_delta_acc q k) \<le>
+      apder_awidth q + apder_star_weight q"
+  proof -
+    fix q
+    assume q: "q \<in> set rs"
+    have q_nf: "apder_nf q"
+      using RALTS.prems(1) q by simp
+    have q_free: "rntimes_free q"
+      using RALTS.prems(3) q by simp
+    show "card (apder_deep_frontier_delta_acc q k) \<le>
+        apder_awidth q + apder_star_weight q"
+      by (rule RALTS.hyps[OF q q_nf RALTS.prems(2) q_free])
+  qed
+  have "card (apder_deep_frontier_delta_acc (RALTS rs) k) \<le>
+      sum_list
+        (map (\<lambda>q. card (apder_deep_frontier_delta_acc q k)) rs)"
+    by (rule card_apder_deep_frontier_delta_acc_RALTS_le
+        [OF RALTS.prems(1) RALTS.prems(2)])
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>q. apder_awidth q + apder_star_weight q) rs)"
+    by (rule sum_list_mono) (rule point)
+  also have "... =
+      sum_list (map apder_awidth rs) +
+      sum_list (map apder_star_weight rs)"
+    by (simp add: sum_list_addf)
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  have r1_nf: "apder_nf r1" and r2_nf: "apder_nf r2"
+    using RSEQ.prems(1) by simp_all
+  have r1_free: "rntimes_free r1" and r2_free: "rntimes_free r2"
+    using RSEQ.prems(3) by simp_all
+  have k'_nf: "apder_nf (rsimp4_SEQ_atom r2 k)"
+    by (rule apder_nf_rsimp4_SEQ_atom[OF r2_nf RSEQ.prems(2)])
+  have "card (apder_deep_frontier_delta_acc (RSEQ r1 r2) k) \<le>
+      card (apder_deep_frontier_delta_acc r1
+        (rsimp4_SEQ_atom r2 k)) +
+      card (apder_deep_frontier_delta_acc r2 k)"
+    by (rule card_apder_deep_frontier_delta_acc_RSEQ_le)
+  also have "... \<le>
+      (apder_awidth r1 + apder_star_weight r1) +
+      (apder_awidth r2 + apder_star_weight r2)"
+    using RSEQ.hyps(1)[OF r1_nf k'_nf r1_free]
+      RSEQ.hyps(2)[OF r2_nf RSEQ.prems(2) r2_free]
+    by (rule add_le_mono)
+  finally show ?case
+    by simp
+next
+  case (RSTAR r)
+  have r_nf: "apder_nf r"
+    using RSTAR.prems(1) by simp
+  have r_free: "rntimes_free r"
+    using RSTAR.prems(3) by simp
+  have k''_nf: "apder_nf (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule apder_nf_rsimp4_SEQ_atom
+        [OF RSTAR.prems(1) RSTAR.prems(2)])
+  have shallow_le:
+      "card (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RSTAR r) k)) \<le>
+      apder_awidth r + apder_star_weight r"
+  proof -
+    have "card (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RSTAR r) k)) \<le>
+        card (apder_deep_frontier_delta_acc r
+          (rsimp4_SEQ_atom (RSTAR r) k))"
+      by (rule card_mono[OF finite_apder_deep_frontier_delta_acc
+          apder_dfrontier_delta_acc_subset_deep])
+    also have "... \<le> apder_awidth r + apder_star_weight r"
+      by (rule RSTAR.hyps[OF r_nf k''_nf r_free])
+    finally show ?thesis .
+  qed
+  have "card (apder_deep_frontier_delta_acc (RSTAR r) k) \<le>
+      card (apder_dfrontier_delta_acc r
+        (rsimp4_SEQ_atom (RSTAR r) k)) + 1"
+    by (rule card_apder_deep_frontier_delta_acc_RSTAR_le)
+  also have "... \<le> (apder_awidth r + apder_star_weight r) + 1"
+    using shallow_le by simp
+  finally show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    using card_apder_deep_frontier_delta_acc_RBACKREF4_le_one
+      [of r1 r2 r3 r4 cs k]
+    by simp
+next
+  case (RHALF r cs rep)
+  then show ?case
+    using card_apder_deep_frontier_delta_acc_RHALF_le_one
+      [of r cs rep k]
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    using card_apder_deep_frontier_delta_acc_RRESIDUE_le_one
+      [of cs rep k]
+    by simp
+qed
+
+theorem card_apder_deep_frontier_rntimes_free_linear:
+  assumes nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "card (apder_deep_frontier r) \<le>
+    apder_awidth r + rsize r + 3"
+proof -
+  have sub: "apder_deep_frontier_acc r RONE \<subseteq>
+      row_dlforms RONE \<union> apder_deep_frontier_delta_acc r RONE"
+    by (auto simp add: apder_deep_frontier_delta_acc_def)
+  have fin: "finite (row_dlforms RONE \<union>
+      apder_deep_frontier_delta_acc r RONE)"
+    by simp
+  have delta_le: "card (apder_deep_frontier_delta_acc r RONE) \<le>
+      apder_awidth r + apder_star_weight r"
+    by (rule card_apder_deep_frontier_delta_acc_rntimes_free_le
+        [OF nf _ free]) simp
+  have "card (apder_deep_frontier r) =
+      card (apder_deep_frontier_acc r RONE)"
+    by (simp add: apder_deep_frontier_eq_acc_RONE[OF nf])
+  also have "... \<le> card (row_dlforms RONE \<union>
+      apder_deep_frontier_delta_acc r RONE)"
+    by (rule card_mono[OF fin sub])
+  also have "... \<le> card (row_dlforms RONE) +
+      card (apder_deep_frontier_delta_acc r RONE)"
+    by (rule card_Un_le)
+  also have "... \<le> Suc (apder_awidth r + apder_star_weight r)"
+    using delta_le by simp
+  also have "... \<le> apder_awidth r + rsize r + 3"
+    using apder_star_weight_le_rsize[of r] by simp
+  finally show ?thesis .
+qed
+
+theorem rsize_set_adlform_front_cubic_rntimes_free:
+  assumes nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "rsize_set (adlform_front r s) \<le>
+    (apder_awidth r + rsize r + 3) ^ 3"
+  by (rule rsize_set_adlform_front_cubic_from_deep_linear_card
+      [OF nf card_apder_deep_frontier_rntimes_free_linear
+        [OF nf free]])
+
+theorem row_dlform_canonical_afactored1_rntimes_free_cubic_contract:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "RLS (set (row_dlform_canonical_rows (afactored1 r s))) =
+      Ders s (RL r) \<and>
+    same_dlfront_rows r s
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss_disjoint
+      (row_dlform_canonical_rows (afactored1 r s)) \<and>
+    row_dlformss
+      (row_dlform_canonical_rows (afactored1 r s)) =
+      adlform_front r s \<and>
+    rsizes (row_dlform_canonical_rows (afactored1 r s)) \<le>
+      3 * (apder_awidth r + rsize r + 3) ^ 3"
+  by (rule
+      row_dlform_canonical_afactored1_same_dlfront_linear_card_cubic_contract
+      [OF legacy nf card_apder_deep_frontier_rntimes_free_linear
+        [OF nf free]])
+
 lemma same_dlfront_rows_rprune_eq_against:
   assumes "same_dlfront_rows root front rows"
   shows "same_dlfront_rows root front (rprune_eq_against covered rows)"
