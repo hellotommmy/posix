@@ -14520,3 +14520,25 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Build: `Finished Posix` 05:58:50.  Continuing immediately with the
   per-row tightening (replace total-size by the checked apder_rows
   member square bound).
+
+## 2026-06-12 Supervisor Correction: do not use length-times-total-cube
+
+- The claimed unconditional root-only count bound above is checked, but it is
+  not a useful route to the cubic theorem.  The bound is structurally too
+  loose: replacing each row size by the total front size before cubing changes
+  the target from cubic-size accounting into a high-degree bound.
+- Removed `sum_front_cubes_le_length_times_total` and
+  `card_afactored1_strong_one_pass_rows_root_budget` from
+  `AntimirovFactoredTransition.thy` so future workers do not optimize around
+  the wrong numeric shape.
+- Added the checked bridge
+  `afactored1_strong_one_pass_rows_lform_universe_cubic_contractI`, which says
+  the named one-pass object is exactly the existing
+  `rpder_strong_rows_raw c (afactored1 r s)` object for purposes of the
+  lform-universe cubic contract.
+- Plain meaning: one-pass rows should now be bounded by reusing the already
+  proven lform/dlform/row-normal cubic interfaces for the production raw row
+  pipeline.  Do not try to prove cubic by bounding
+  `sum (2*(rsize q+3)^3)` with `length * (total size)^3`; that loses the
+  necessary sharing before the proof even reaches the final theorem.
+- Verification: full `Posix` build passed at 2026-06-12 06:03:30 local time.

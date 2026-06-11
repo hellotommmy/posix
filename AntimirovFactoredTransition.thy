@@ -19834,72 +19834,6 @@ proof -
     by (rule order_trans[OF flts chain])
 qed
 
-lemma sum_front_cubes_le_length_times_total:
-  "sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s)) \<le>
-    length (afactored1 r s) *
-      (2 * (rsizes (afactored1 r s) + 3) ^ 3)"
-proof -
-  let ?front = "afactored1 r s"
-  let ?B = "2 * (rsizes ?front + 3) ^ 3"
-  have each: "\<And>q. q \<in> set ?front \<Longrightarrow>
-      2 * (rsize q + 3) ^ 3 \<le> ?B"
-  proof -
-    fix q
-    assume "q \<in> set ?front"
-    then have "rsize q \<le> rsizes ?front"
-      by (rule elem_size_le_rsizes)
-    then have "(rsize q + 3) ^ 3 \<le> (rsizes ?front + 3) ^ 3"
-      by (intro power_mono) simp_all
-    then show "2 * (rsize q + 3) ^ 3 \<le> ?B"
-      by simp
-  qed
-  have "sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front) \<le>
-      sum_list (map (\<lambda>q. ?B) ?front)"
-    by (rule sum_list_mono) (rule each)
-  also have "... = length ?front * ?B"
-    by (simp add: sum_list_triv)
-  finally show ?thesis .
-qed
-
-lemma card_afactored1_strong_one_pass_rows_root_budget:
-  assumes legacy: "legacy_rrexp r"
-    and nf: "apder_nf r"
-  shows "card (set (afactored1_strong_one_pass_rows r s c)) \<le>
-    2 * (apder_awidth r + rsize r + 3) ^ 3 *
-      (2 * (2 * (apder_awidth r + rsize r + 3) ^ 3 + 3) ^ 3)"
-proof -
-  let ?front = "afactored1 r s"
-  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
-  have budget:
-      "set ?front \<subseteq> apder_rows r \<and>
-        length ?front \<le> 2 * ?B \<and>
-        card (set ?front) \<le> 2 * ?B \<and>
-        rlinear_termss ?front \<le> 2 * ?B \<and>
-        rsizes ?front \<le> 2 * ?B"
-    by (rule afactored1_apder_rows_expanded_cubic_budget[OF nf])
-  have len: "length ?front \<le> 2 * ?B"
-    using budget by blast
-  have tot: "rsizes ?front \<le> 2 * ?B"
-    using budget by blast
-  have "card (set (afactored1_strong_one_pass_rows r s c)) \<le>
-      rsizes (afactored1_strong_generated_rows r s c)"
-    by (rule card_afactored1_strong_one_pass_rows_le_generated_rsizes)
-  also have "... \<le>
-      sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front)"
-    by (rule rsizes_afactored1_strong_generated_rows_le_front_cubic_sum
-        [OF legacy])
-  also have "... \<le> length ?front * (2 * (rsizes ?front + 3) ^ 3)"
-    by (rule sum_front_cubes_le_length_times_total)
-  also have "... \<le> 2 * ?B * (2 * (2 * ?B + 3) ^ 3)"
-  proof -
-    have inner: "(rsizes ?front + 3) ^ 3 \<le> (2 * ?B + 3) ^ 3"
-      using tot by (intro power_mono) simp_all
-    show ?thesis
-      using len inner by (intro mult_le_mono) simp_all
-  qed
-  finally show ?thesis .
-qed
-
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
@@ -21883,6 +21817,37 @@ proof (intro conjI)
   show "rsizes ?raw \<le> ?B"
     by (rule size_bound)
 qed
+
+lemma afactored1_strong_one_pass_rows_lform_universe_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and disjoint:
+      "row_lformss_disjoint
+        (afactored1_strong_one_pass_rows r s c)"
+    and live:
+      "\<forall>q \<in> set (afactored1_strong_one_pass_rows r s c).
+        row_lforms_live q"
+    and paid:
+      "\<forall>q \<in> set (afactored1_strong_one_pass_rows r s c).
+        row_lforms_size_paid q"
+    and lforms:
+      "row_lformss (afactored1_strong_one_pass_rows r s c) \<subseteq>
+        afactored1_strong_lform_universe r s c"
+    and cubic:
+      "rsize_set (afactored1_strong_lform_universe r s c) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set (afactored1_strong_one_pass_rows r s c)) =
+      Ders (s @ [c]) (RL r) \<and>
+    length (afactored1_strong_one_pass_rows r s c) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    card (set (afactored1_strong_one_pass_rows r s c)) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss (afactored1_strong_one_pass_rows r s c) \<le>
+      6 * (rsize r + 3) ^ 3 \<and>
+    rsizes (afactored1_strong_one_pass_rows r s c) \<le>
+      6 * (rsize r + 3) ^ 3"
+  using assms
+  unfolding afactored1_strong_one_pass_rows_def
+  by (rule rpder_strong_rows_raw_afactored1_lform_universe_cubic_contractI)
 
 lemma row_dlform_canonical_rpder_strong_rows_raw_afactored1_dlform_universe_cubic_contractI:
   assumes legacy: "legacy_rrexp r"
