@@ -15,6 +15,9 @@ git pull --ff-only
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
 ```
 
+After syncing, read this file from the current `origin/codex/backref-values`
+tip.  Doc-only handoff commits may appear after the last proof-changing commit.
+
 Current proof-checked theory head:
 
 ```text
@@ -22,8 +25,8 @@ cd1afcc Check abstract owner closure exponential witness
 ```
 
 Do not restart from the older `54ddcda` checkpoint.  The current remote branch
-already contains the checked owner-closure exponential witness and the handoff
-guidance below assumes that commit.
+already contains both the checked owner-closure exponential witness and this
+handoff correction.
 
 Latest checked direction warning:
 
