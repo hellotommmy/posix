@@ -26142,6 +26142,113 @@ proof
   qed
 qed
 
+lemma raw_shared_prune_active_suffix_owner_filtered_subsets_3:
+  fixes a1 a2 a3 b c1 c2 z :: char
+  assumes distinct: "distinct [a1, a2, a3, b, c1, c2, z]"
+  defines "k \<equiv> RCHAR z"
+  defines "lrow \<equiv>
+    RSEQ (RALTS [RCHAR a1, RCHAR a2, RCHAR a3, RCHAR c1, RCHAR c2,
+      RCHAR b]) k"
+  defines "e1 \<equiv> RSEQ (RALTS [RCHAR a1, RCHAR b]) k"
+  defines "e2 \<equiv> RSEQ (RALTS [RCHAR a2, RCHAR b]) k"
+  defines "e3 \<equiv> RSEQ (RALTS [RCHAR a3, RCHAR b]) k"
+  defines "v1 \<equiv>
+    RSEQ (RALTS [RCHAR a2, RCHAR a3, RCHAR c1, RCHAR c2]) k"
+  defines "v2 \<equiv>
+    RSEQ (RALTS [RCHAR a1, RCHAR a3, RCHAR c1, RCHAR c2]) k"
+  defines "v3 \<equiv>
+    RSEQ (RALTS [RCHAR a1, RCHAR a2, RCHAR c1, RCHAR c2]) k"
+  defines "v12 \<equiv> RSEQ (RALTS [RCHAR a3, RCHAR c1, RCHAR c2]) k"
+  defines "v13 \<equiv> RSEQ (RALTS [RCHAR a2, RCHAR c1, RCHAR c2]) k"
+  defines "v23 \<equiv> RSEQ (RALTS [RCHAR a1, RCHAR c1, RCHAR c2]) k"
+  defines "v123 \<equiv> RSEQ (RALTS [RCHAR c1, RCHAR c2]) k"
+  defines "u \<equiv> {lrow, e1, e2, e3}"
+  defines "w \<equiv> {v1, v2, v3, v12, v13, v23, v123}"
+  shows "w \<subseteq> raw_shared_prune_active_suffix_owner u"
+    and "card w = 7"
+proof -
+  let ?Owner = "raw_shared_prune_active_suffix_owner u"
+  have lrow_owner: "lrow \<in> ?Owner"
+    by (auto simp add: u_def)
+  have e1_owner: "e1 \<in> ?Owner"
+    by (auto simp add: u_def)
+  have e2_owner: "e2 \<in> ?Owner"
+    by (auto simp add: u_def)
+  have e3_owner: "e3 \<in> ?Owner"
+    by (auto simp add: u_def)
+  have lrow_key: "raw_shared_prune_suffix_key lrow = Some k"
+    by (simp add: lrow_def raw_shared_prune_suffix_key_def)
+  have e1_key: "raw_shared_prune_suffix_key e1 = Some k"
+    by (simp add: e1_def raw_shared_prune_suffix_key_def)
+  have e2_key: "raw_shared_prune_suffix_key e2 = Some k"
+    by (simp add: e2_def raw_shared_prune_suffix_key_def)
+  have e3_key: "raw_shared_prune_suffix_key e3 = Some k"
+    by (simp add: e3_def raw_shared_prune_suffix_key_def)
+  have v1_out: "v1 \<in> raw_shared_prune_pair_outputs e1 lrow"
+    using distinct
+    by (auto simp add: v1_def e1_def lrow_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v2_out: "v2 \<in> raw_shared_prune_pair_outputs e2 lrow"
+    using distinct
+    by (auto simp add: v2_def e2_def lrow_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v3_out: "v3 \<in> raw_shared_prune_pair_outputs e3 lrow"
+    using distinct
+    by (auto simp add: v3_def e3_def lrow_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v1_owner: "v1 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e1_owner lrow_owner e1_key lrow_key v1_out])
+  have v2_owner: "v2 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e2_owner lrow_owner e2_key lrow_key v2_out])
+  have v3_owner: "v3 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e3_owner lrow_owner e3_key lrow_key v3_out])
+  have v1_key: "raw_shared_prune_suffix_key v1 = Some k"
+    by (simp add: v1_def raw_shared_prune_suffix_key_def)
+  have v2_key: "raw_shared_prune_suffix_key v2 = Some k"
+    by (simp add: v2_def raw_shared_prune_suffix_key_def)
+  have v12_out: "v12 \<in> raw_shared_prune_pair_outputs e2 v1"
+    using distinct
+    by (auto simp add: v12_def e2_def v1_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v13_out: "v13 \<in> raw_shared_prune_pair_outputs e3 v1"
+    using distinct
+    by (auto simp add: v13_def e3_def v1_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v23_out: "v23 \<in> raw_shared_prune_pair_outputs e3 v2"
+    using distinct
+    by (auto simp add: v23_def e3_def v2_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v12_owner: "v12 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e2_owner v1_owner e2_key v1_key v12_out])
+  have v13_owner: "v13 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e3_owner v1_owner e3_key v1_key v13_out])
+  have v23_owner: "v23 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e3_owner v2_owner e3_key v2_key v23_out])
+  have v12_key: "raw_shared_prune_suffix_key v12 = Some k"
+    by (simp add: v12_def raw_shared_prune_suffix_key_def)
+  have v123_out: "v123 \<in> raw_shared_prune_pair_outputs e3 v12"
+    using distinct
+    by (auto simp add: v123_def e3_def v12_def raw_shared_prune_pair_outputs_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def k_def eq_commute)
+  have v123_owner: "v123 \<in> ?Owner"
+    by (rule raw_shared_prune_active_suffix_owner.step
+        [OF e3_owner v12_owner e3_key v12_key v123_out])
+  show "w \<subseteq> ?Owner"
+    using v1_owner v2_owner v3_owner v12_owner v13_owner v23_owner
+      v123_owner
+    by (auto simp add: w_def)
+  show "card w = 7"
+    using distinct
+    by (simp add: w_def v1_def v2_def v3_def v12_def v13_def v23_def
+        v123_def k_def eq_commute)
+qed
+
 lemma raw_shared_prune_active_suffix_closure_subset_owner:
   "raw_shared_prune_active_suffix_closure U \<subseteq>
     raw_shared_prune_active_suffix_owner U"

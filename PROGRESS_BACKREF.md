@@ -14280,3 +14280,42 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   2-cons form (hence the reserved cc1/cc2), and the membership
   induction is finite_ne_induct with EE j as the earlier row at every
   step.
+
+## 2026-06-12 Supervisor Checkpoint: abstract owner exponential CE checked
+
+- Finished and checked Fable's parametric theorem:
+
+  ```text
+  raw_shared_prune_active_suffix_owner_exponential
+  ```
+
+- Plain meaning: for every `m`, there is a seed set `UU` with
+  `card UU <= Suc m` whose abstract active-suffix owner closure contains
+  `2^m - 1` distinct filtered rows.  The construction uses RSTAR-tower atoms,
+  so it is not limited by the finite `char` supply.
+- Also added a small fixed witness in `GeneralRegexBound.thy`:
+
+  ```text
+  raw_shared_prune_active_suffix_owner_filtered_subsets_3
+  ```
+
+  It shows the same mechanism concretely: four same-key seed rows generate
+  seven filtered variants inside the abstract owner closure.
+- Consequence: the generic target "prove a cubic/polynomial cardinality bound
+  for `raw_shared_prune_active_suffix_owner U`" is dead unless restricted by a
+  strong step-local invariant.  The productive route now is either:
+
+  ```text
+  1. prove afactored1_strong_dlform_universe cannot realize this same-key
+     filtered-subset pattern; or
+  2. replace the abstract all-pairs owner closure with a one-pass accumulated
+     pruning universe matching rsimpStrong_prune_rows_acc_raw.
+  ```
+
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed, finishing `Posix` at 2026-06-12 04:07:52 local time.

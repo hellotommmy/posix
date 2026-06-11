@@ -19202,6 +19202,368 @@ proof -
   finally show ?thesis .
 qed
 
+text \<open>
+  The abstract least-owner closure is exponentially larger than its
+  seed in general: from \<open>m + 1\<close> same-key rows, iterated pair pruning
+  reaches one distinct row for every nonempty subset of the prunable
+  alternatives.  Any owner/DAG cardinality bound that is polynomial in
+  \<open>card U\<close> and member sizes alone is therefore false; a cubic owner
+  bound must use step-local provenance, or the closure must be replaced
+  by the order-respecting one-pass pruning object.
+\<close>
+
+theorem raw_shared_prune_active_suffix_owner_exponential:
+  fixes m :: nat
+  defines "atomf \<equiv> \<lambda>i. (RSTAR ^^ Suc i) RONE"
+  defines "ras \<equiv> map atomf [0..<m]"
+  defines "cc1 \<equiv> atomf m"
+  defines "cc2 \<equiv> atomf (Suc m)"
+  defines "bb \<equiv> atomf (Suc (Suc m))"
+  defines "kk \<equiv> atomf (Suc (Suc (Suc m)))"
+  defines "LL \<equiv> RSEQ (RALTS (ras @ [cc1, cc2, bb])) kk"
+  defines "EE \<equiv> \<lambda>i. RSEQ (RALTS [atomf i, bb]) kk"
+  defines "UU \<equiv> insert LL (EE ` {..<m})"
+  defines "rowf \<equiv> \<lambda>S. RSEQ (RALTS
+    (filter (\<lambda>x. x \<notin> atomf ` S) ras @ [cc1, cc2])) kk"
+  shows "rowf ` {S. S \<subseteq> {..<m} \<and> S \<noteq> {}} \<subseteq>
+      raw_shared_prune_active_suffix_owner UU"
+    and "inj_on rowf {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}"
+    and "card (rowf ` {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}) = 2 ^ m - 1"
+    and "card UU \<le> Suc m"
+proof -
+  have atom_unfold: "atomf i = RSTAR ((RSTAR ^^ i) RONE)" for i
+    by (simp add: atomf_def)
+  have atom_size: "rsize (atomf i) = Suc (Suc i)" for i
+    by (induct i) (simp_all add: atomf_def)
+  have atom_iff: "(atomf i = atomf j) = (i = j)" for i j
+  proof
+    assume eq: "atomf i = atomf j"
+    have "rsize (atomf i) = rsize (atomf j)"
+      using eq by simp
+    then show "i = j"
+      by (simp add: atom_size)
+  qed simp
+  have prune_filter:
+      "rprune_eq_against cov rs = filter (\<lambda>r. r \<notin> set cov) rs"
+    for cov rs
+    by (induct rs) simp_all
+  have alts_ge2: "rsimp_ALTs ys = RALTS ys"
+    if len: "2 \<le> length ys" for ys
+  proof -
+    obtain y1 y2 rest where "ys = y1 # y2 # rest"
+      using len by (cases ys; cases "tl ys") auto
+    then show ?thesis by simp
+  qed
+  have ras_nth: "x \<in> set ras \<longleftrightarrow> (\<exists>i < m. x = atomf i)" for x
+    by (auto simp add: ras_def)
+  have prune_core:
+      "rsimpStrong_prune_pair_raw (EE j) (RSEQ (RALTS ys) kk) =
+        RSEQ (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+    if len: "2 \<le> length (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)"
+    for j ys
+  proof -
+    have pruned: "rprune_eq_against [atomf j, bb] ys =
+        filter (\<lambda>r. r \<notin> {atomf j, bb}) ys"
+      by (simp add: prune_filter)
+    have alts: "rsimp_ALTs (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys) =
+        RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)"
+      by (rule alts_ge2[OF len])
+    have seven: "rsimp7_SEQ_atom
+        (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk =
+        RSEQ (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+    proof -
+      have kk_shape: "kk = RSTAR ((RSTAR ^^ Suc (Suc (Suc m))) RONE)"
+        by (simp add: kk_def atom_unfold)
+      show ?thesis
+        by (simp add: rsimp7_SEQ_atom_def kk_shape)
+    qed
+    have pruned_simp: "rsimp7_SEQ_atom
+        (rsimp_ALTs (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk =
+        RSEQ (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+    proof -
+      let ?P = "\<lambda>r. r \<noteq> atomf j \<and> r \<noteq> bb"
+      have filt_eq:
+          "filter (\<lambda>r. r \<notin> {atomf j, bb}) ys = filter ?P ys"
+        by simp
+      have lenP: "2 \<le> length (filter ?P ys)"
+        using len filt_eq by simp
+      have alt': "rsimp_ALTs (filter ?P ys) = RALTS (filter ?P ys)"
+        by (rule alts_ge2[OF lenP])
+      have seven': "rsimp7_SEQ_atom (RALTS (filter ?P ys)) kk =
+          RSEQ (RALTS (filter ?P ys)) kk"
+      proof -
+        have kk_shape: "kk = RSTAR ((RSTAR ^^ Suc (Suc (Suc m))) RONE)"
+          by (simp add: kk_def atom_unfold)
+        show ?thesis
+          by (simp add: rsimp7_SEQ_atom_def kk_shape)
+      qed
+      have "rsimp7_SEQ_atom
+          (rsimp_ALTs (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk =
+          rsimp7_SEQ_atom (rsimp_ALTs (filter ?P ys)) kk"
+        by (simp add: filt_eq)
+      also have "... = rsimp7_SEQ_atom (RALTS (filter ?P ys)) kk"
+        by (simp add: alt')
+      also have "... = RSEQ (RALTS (filter ?P ys)) kk"
+        by (rule seven')
+      also have "... =
+          RSEQ (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+        by (simp add: filt_eq)
+      finally show ?thesis .
+    qed
+    have "rsimpStrong_prune_pair_raw (EE j) (RSEQ (RALTS ys) kk) =
+        rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against [atomf j, bb] ys)) kk"
+      by (simp add: rsimpStrong_prune_pair_raw_def EE_def)
+    also have "... =
+        rsimp7_SEQ_atom
+          (rsimp_ALTs (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+      by (simp add: pruned)
+    also have "... =
+        RSEQ (RALTS (filter (\<lambda>r. r \<notin> {atomf j, bb}) ys)) kk"
+      by (rule pruned_simp)
+    finally show ?thesis .
+  qed
+  have filter_keep_cc:
+      "filter (\<lambda>r. r \<notin> {atomf j, bb}) (zs @ [cc1, cc2]) =
+        filter (\<lambda>r. r \<notin> {atomf j, bb}) zs @ [cc1, cc2]"
+    if "j < m" for j zs
+    using that
+    by (simp add: cc1_def cc2_def bb_def atom_iff)
+  have filter_ras_step:
+      "filter (\<lambda>r. r \<notin> {atomf j, bb})
+        (filter (\<lambda>x. x \<notin> atomf ` T) ras) =
+        filter (\<lambda>x. x \<notin> atomf ` insert j T) ras"
+    for j T
+  proof -
+    have "filter (\<lambda>r. r \<notin> {atomf j, bb})
+        (filter (\<lambda>x. x \<notin> atomf ` T) ras) =
+        filter (\<lambda>x. x \<notin> atomf ` T \<and> x \<notin> {atomf j, bb}) ras"
+      by (simp add: filter_filter)
+    also have "... = filter (\<lambda>x. x \<notin> atomf ` insert j T) ras"
+    proof (rule filter_cong)
+      show "ras = ras"
+        by simp
+    next
+      fix x
+      assume "x \<in> set ras"
+      then obtain i where i: "i < m" "x = atomf i"
+        using ras_nth by blast
+      have "x \<noteq> bb"
+        using i by (simp add: bb_def atom_iff)
+      then show "(x \<notin> atomf ` T \<and> x \<notin> {atomf j, bb}) =
+          (x \<notin> atomf ` insert j T)"
+        using i by (auto simp add: atom_iff)
+    qed
+    finally show ?thesis .
+  qed
+  have filter_ras_base:
+      "filter (\<lambda>r. r \<notin> {atomf j, bb}) ras =
+        filter (\<lambda>x. x \<notin> atomf ` {j}) ras"
+    for j
+  proof (rule filter_cong)
+    show "ras = ras"
+      by simp
+  next
+    fix x
+    assume "x \<in> set ras"
+    then obtain i where i: "i < m" "x = atomf i"
+      using ras_nth by blast
+    have "x \<noteq> bb"
+      using i by (simp add: bb_def atom_iff)
+    then show "(x \<notin> {atomf j, bb}) = (x \<notin> atomf ` {j})"
+      using i by (auto simp add: atom_iff)
+  qed
+  have len_ge2: "2 \<le> length (filter P ras @ [cc1, cc2])" for P
+    by simp
+  have rowf_flat: "set (rflts [rowf S]) = {rowf S}" for S
+    by (simp add: rowf_def)
+  have calc_base:
+      "raw_shared_prune_pair_outputs (EE j) LL = {rowf {j}}"
+    if j: "j < m" for j
+  proof -
+    have "filter (\<lambda>r. r \<notin> {atomf j, bb}) (ras @ [cc1, cc2, bb]) =
+        filter (\<lambda>r. r \<notin> {atomf j, bb}) (ras @ [cc1, cc2])"
+      by simp
+    also have "... =
+        filter (\<lambda>r. r \<notin> {atomf j, bb}) ras @ [cc1, cc2]"
+      by (rule filter_keep_cc[OF j])
+    also have "... = filter (\<lambda>x. x \<notin> atomf ` {j}) ras @ [cc1, cc2]"
+      using filter_ras_base[of j] by simp
+    finally have target:
+        "filter (\<lambda>r. r \<notin> {atomf j, bb}) (ras @ [cc1, cc2, bb]) =
+          filter (\<lambda>x. x \<notin> atomf ` {j}) ras @ [cc1, cc2]" .
+    have len_base: "2 \<le> length
+        (filter (\<lambda>r. r \<notin> {atomf j, bb}) (ras @ [cc1, cc2, bb]))"
+      using target by simp
+    have prune: "rsimpStrong_prune_pair_raw (EE j) LL = rowf {j}"
+    proof -
+      have "rsimpStrong_prune_pair_raw (EE j) LL =
+          RSEQ (RALTS
+            (filter (\<lambda>r. r \<notin> {atomf j, bb})
+              (ras @ [cc1, cc2, bb]))) kk"
+        unfolding LL_def
+        by (rule prune_core[OF len_base])
+      also have "... = rowf {j}"
+        using target by (simp add: rowf_def)
+      finally show ?thesis .
+    qed
+    show ?thesis
+      by (simp add: raw_shared_prune_pair_outputs_def prune rowf_flat)
+  qed
+  have calc_step:
+      "raw_shared_prune_pair_outputs (EE j) (rowf T) =
+        {rowf (insert j T)}"
+    if j: "j < m" for j T
+  proof -
+    have "filter (\<lambda>r. r \<notin> {atomf j, bb})
+        (filter (\<lambda>x. x \<notin> atomf ` T) ras @ [cc1, cc2]) =
+        filter (\<lambda>r. r \<notin> {atomf j, bb})
+          (filter (\<lambda>x. x \<notin> atomf ` T) ras) @ [cc1, cc2]"
+      by (rule filter_keep_cc[OF j])
+    also have "... =
+        filter (\<lambda>x. x \<notin> atomf ` insert j T) ras @ [cc1, cc2]"
+      using filter_ras_step[of j T] by simp
+    finally have target:
+        "filter (\<lambda>r. r \<notin> {atomf j, bb})
+          (filter (\<lambda>x. x \<notin> atomf ` T) ras @ [cc1, cc2]) =
+          filter (\<lambda>x. x \<notin> atomf ` insert j T) ras @ [cc1, cc2]" .
+    have len_step: "2 \<le> length
+        (filter (\<lambda>r. r \<notin> {atomf j, bb})
+          (filter (\<lambda>x. x \<notin> atomf ` T) ras @ [cc1, cc2]))"
+      using target by simp
+    have prune: "rsimpStrong_prune_pair_raw (EE j) (rowf T) =
+        rowf (insert j T)"
+    proof -
+      have "rsimpStrong_prune_pair_raw (EE j) (rowf T) =
+          RSEQ (RALTS
+            (filter (\<lambda>r. r \<notin> {atomf j, bb})
+              (filter (\<lambda>x. x \<notin> atomf ` T) ras @ [cc1, cc2]))) kk"
+        unfolding rowf_def
+        by (rule prune_core[OF len_step])
+      also have "... = rowf (insert j T)"
+        using target by (simp add: rowf_def)
+      finally show ?thesis .
+    qed
+    show ?thesis
+      by (simp add: raw_shared_prune_pair_outputs_def prune rowf_flat)
+  qed
+  have key_EE: "raw_shared_prune_suffix_key (EE j) = Some kk" for j
+    by (simp add: EE_def raw_shared_prune_suffix_key_def)
+  have key_LL: "raw_shared_prune_suffix_key LL = Some kk"
+    by (simp add: LL_def raw_shared_prune_suffix_key_def)
+  have key_rowf: "raw_shared_prune_suffix_key (rowf S) = Some kk" for S
+    by (simp add: rowf_def raw_shared_prune_suffix_key_def)
+  have EE_owner: "EE j \<in> raw_shared_prune_active_suffix_owner UU"
+    if "j < m" for j
+    using that by (auto simp add: UU_def)
+  have LL_owner: "LL \<in> raw_shared_prune_active_suffix_owner UU"
+    by (auto simp add: UU_def)
+  have row_mem: "rowf S \<in> raw_shared_prune_active_suffix_owner UU"
+    if S_sub: "S \<subseteq> {..<m}" and S_ne: "S \<noteq> {}" for S
+  proof -
+    have S_fin: "finite S"
+      using S_sub by (rule finite_subset) simp
+    have "S \<subseteq> {..<m} \<longrightarrow>
+        rowf S \<in> raw_shared_prune_active_suffix_owner UU"
+      using S_fin S_ne
+    proof (induct rule: finite_ne_induct)
+      case (singleton j)
+      show ?case
+      proof
+        assume "{j} \<subseteq> {..<m}"
+        then have j: "j < m" by simp
+        show "rowf {j} \<in> raw_shared_prune_active_suffix_owner UU"
+          by (rule raw_shared_prune_active_suffix_owner.step
+              [OF EE_owner[OF j] LL_owner key_EE key_LL])
+            (simp add: calc_base[OF j])
+      qed
+    next
+      case (insert j S')
+      show ?case
+      proof
+        assume sub: "insert j S' \<subseteq> {..<m}"
+        then have j: "j < m" and S'_sub: "S' \<subseteq> {..<m}"
+          by auto
+        have prev: "rowf S' \<in> raw_shared_prune_active_suffix_owner UU"
+          using insert.hyps(4) S'_sub by blast
+        show "rowf (insert j S') \<in>
+            raw_shared_prune_active_suffix_owner UU"
+          by (rule raw_shared_prune_active_suffix_owner.step
+              [OF EE_owner[OF j] prev key_EE key_rowf])
+            (simp add: calc_step[OF j])
+      qed
+    qed
+    then show ?thesis
+      using S_sub by blast
+  qed
+  show "rowf ` {S. S \<subseteq> {..<m} \<and> S \<noteq> {}} \<subseteq>
+      raw_shared_prune_active_suffix_owner UU"
+    using row_mem by auto
+  have row_sets: "atomf i \<in> set (filter (\<lambda>x. x \<notin> atomf ` S) ras)
+      \<longleftrightarrow> (i < m \<and> i \<notin> S)"
+    if "S \<subseteq> {..<m}" for i S
+    using that by (auto simp add: ras_nth atom_iff)
+  show inj: "inj_on rowf {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}"
+  proof (rule inj_onI)
+    fix S S'
+    assume S: "S \<in> {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}"
+      and S': "S' \<in> {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}"
+      and eq: "rowf S = rowf S'"
+    have lists_eq: "filter (\<lambda>x. x \<notin> atomf ` S) ras =
+        filter (\<lambda>x. x \<notin> atomf ` S') ras"
+      using eq by (simp add: rowf_def)
+    show "S = S'"
+    proof (rule set_eqI)
+      fix i
+      show "(i \<in> S) = (i \<in> S')"
+      proof (cases "i < m")
+        case True
+        have S_sub: "S \<subseteq> {..<m}"
+          using S by simp
+        have S'_sub: "S' \<subseteq> {..<m}"
+          using S' by simp
+        have "atomf i \<in> set (filter (\<lambda>x. x \<notin> atomf ` S) ras)
+            \<longleftrightarrow> atomf i \<in> set (filter (\<lambda>x. x \<notin> atomf ` S') ras)"
+          using lists_eq by simp
+        moreover have "atomf i \<in> set
+            (filter (\<lambda>x. x \<notin> atomf ` S) ras) \<longleftrightarrow> i \<notin> S"
+          using row_sets[OF S_sub, of i] True by simp
+        moreover have "atomf i \<in> set
+            (filter (\<lambda>x. x \<notin> atomf ` S') ras) \<longleftrightarrow> i \<notin> S'"
+          using row_sets[OF S'_sub, of i] True by simp
+        then show ?thesis
+          using calculation by blast
+      next
+        case False
+        then show ?thesis
+          using S S' by auto
+      qed
+    qed
+  qed
+  have fam_eq: "{S. S \<subseteq> {..<m} \<and> S \<noteq> {}} = Pow {..<m} - {{}}"
+    by auto
+  show "card (rowf ` {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}) = 2 ^ m - 1"
+  proof -
+    have "card (rowf ` {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}) =
+        card {S. S \<subseteq> {..<m} \<and> S \<noteq> {}}"
+      by (rule card_image[OF inj])
+    also have "... = card (Pow {..<m} - {{}})"
+      by (simp add: fam_eq)
+    also have "... = 2 ^ m - 1"
+      by (simp add: card_Pow)
+    finally show ?thesis .
+  qed
+  show "card UU \<le> Suc m"
+  proof -
+    have "card UU \<le> Suc (card (EE ` {..<m}))"
+      by (simp add: UU_def card_insert_if)
+    also have "... \<le> Suc (card {..<m})"
+      using card_image_le[of "{..<m}" EE] by simp
+    finally show ?thesis
+      by simp
+  qed
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

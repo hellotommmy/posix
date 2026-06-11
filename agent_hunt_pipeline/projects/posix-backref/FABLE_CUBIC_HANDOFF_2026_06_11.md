@@ -21,10 +21,11 @@ Current proof-checked theory head:
 54ddcda Package owner DAG finite sizeNregex bridge
 ```
 
-Latest direction warning:
+Latest checked direction warning:
 
 ```text
-5f24941 Flag exponential owner closure cardinality construction
+raw_shared_prune_active_suffix_owner_exponential
+raw_shared_prune_active_suffix_owner_filtered_subsets_3
 ```
 
 Do not spend another session proving that the owner DAG is finite.  That is now
@@ -40,20 +41,18 @@ checked.  In simple terms:
   `card (sizeNregex N)` is not the desired `O(|r|^3)` budget.
 
 Do not try to prove a generic polynomial bound for the abstract owner closure
-`raw_shared_prune_active_suffix_owner U`.  The 2026-06-12 Fable construction
-shows a plausible exponential family for the abstract closure: repeated
-same-key pruning can generate many filtered variants from a small starting
-bucket.  Treat that route as suspect unless you first prove a step-local
-invariant that excludes the construction.
+`raw_shared_prune_active_suffix_owner U`.  The 2026-06-12 Fable construction is
+now checked: repeated same-key pruning can generate `2^m - 1` filtered rows
+from a seed set of size at most `m + 1`.  Treat generic owner-cardinality as a
+dead route unless you first prove a step-local invariant that excludes the
+construction.
 
 The next useful proof should therefore be one of these:
 
-1. a checked counterexample formalizing the exponential abstract-owner
-   construction, then stop;
-2. a step-local invariant showing `afactored1_strong_dlform_universe r s c`
+1. a step-local invariant showing `afactored1_strong_dlform_universe r s c`
    cannot realize that construction, followed by a sharp same-key bucket
    bound;
-3. a replacement of the abstract all-pairs owner closure by the actual
+2. a replacement of the abstract all-pairs owner closure by the actual
    one-pass accumulated pruning object matching `rsimpStrong_prune_rows_acc_raw`,
    where output count is tied to the input pass rather than to the transitive
    all-pairs closure.
