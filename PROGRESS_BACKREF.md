@@ -13390,3 +13390,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   proof search on an unsplit goal.  A useful checkpoint should either close a
   bridge to active-suffix closure/owner accounting, or record a precise false
   subclaim with a small checked counterexample.
+
+## 2026-06-12 Supervisor Checkpoint: suffix-key split atoms are paid
+
+- Fable status at this checkpoint: no new remote commit after `8accef8`, no
+  new Claude task output after the old repeated `529 Overloaded` files, and
+  no owned Isabelle proof-worker according to
+  `scripts\codex-proof-workers.ps1 -Action Check`.
+- Added checked bridge lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  afactored1_strong_dlform_universe_suffix_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_key_aseq_subset_same_strong_front
+  afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same_strong_front
+  ```
+
+- Meaning in simple terms: if a step-local route-2 row has shape
+  `RSEQ (RALTS rows) k`, then the split atoms inside the suffix key `k` are
+  already contained in the current strong front
+  `strong_derivative_front_terms root (front @ [c])`.  The same holds for the
+  union of all active suffix keys of
+  `afactored1_strong_dlform_universe root front c`.
+- This deliberately does not claim the final row-size bound.  It pays for the
+  suffix key's split atoms, not yet for the whole suffix-key DAG/tree copied
+  into rows.  The remaining useful bridge is still to control fresh keys and
+  key subterms through the existing active-suffix closure/owner machinery.
+- Verification:
+
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  passed at 2026-06-12 01:26:28 (`Finished Posix`; `AntimirovFactoredTransition`
+  57.944s cumulated, whole wrapper 0:01:11).

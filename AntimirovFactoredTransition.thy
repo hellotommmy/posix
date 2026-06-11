@@ -17850,6 +17850,54 @@ proof (intro conjI)
       (rule strong_derivative_front_terms_member_size_linear[OF legacy])
 qed
 
+lemma afactored1_strong_dlform_universe_suffix_key_aseq_subset_same_strong_front:
+  assumes x: "x \<in> afactored1_strong_dlform_universe root front c"
+    and key: "raw_shared_prune_suffix_key x = Some k"
+  shows "aseq_terms k \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+proof -
+  obtain rows where x_def: "x = RSEQ (RALTS rows) k"
+    using key
+    by (cases x) (auto simp add: raw_shared_prune_suffix_key_def
+        split: rrexp.splits)
+  have key_terms: "aseq_terms k \<subseteq> aseq_terms x"
+    by (simp add: x_def)
+  have x_terms:
+      "aseq_terms x \<subseteq>
+        strong_derivative_front_terms root (front @ [c])"
+    by (rule afactored1_strong_dlform_universe_aseq_subset_same_strong_front
+        [OF x])
+  show ?thesis
+    by (rule subset_trans[OF key_terms x_terms])
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_key_aseq_subset_same_strong_front:
+  assumes key:
+    "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe root front c)"
+  shows "aseq_terms k \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+proof -
+  obtain x where x:
+      "x \<in> afactored1_strong_dlform_universe root front c"
+      "raw_shared_prune_suffix_key x = Some k"
+    using key
+    by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+  show ?thesis
+    by (rule
+        afactored1_strong_dlform_universe_suffix_key_aseq_subset_same_strong_front
+        [OF x])
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_key_aseq_union_subset_same_strong_front:
+  "(\<Union>k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe root front c).
+      aseq_terms k) \<subseteq>
+    strong_derivative_front_terms root (front @ [c])"
+  using
+    afactored1_strong_dlform_universe_active_suffix_key_aseq_subset_same_strong_front
+  by blast
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
