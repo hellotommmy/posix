@@ -18,8 +18,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-worker
 Current proof-checked theory head:
 
 ```text
-54ddcda Package owner DAG finite sizeNregex bridge
+cd1afcc Check abstract owner closure exponential witness
 ```
+
+Do not restart from the older `54ddcda` checkpoint.  The current remote branch
+already contains the checked owner-closure exponential witness and the handoff
+guidance below assumes that commit.
 
 Latest checked direction warning:
 
@@ -80,6 +84,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-proof-workers.
 ```
 
 The build passed and there were no matching residual proof-worker processes.
+This was last rechecked at `cd1afcc` after the owner-closure exponential witness
+landed.
 
 ## Task
 
