@@ -135,6 +135,17 @@ Vocabulary (fixed, do not rename):
 If a plan needs one of these, stop and write the blocker in
 `PROGRESS_BACKREF.md` instead of working around it silently.
 
+**Companion-deliverable rule (admin, 2026-06-13).** Every entry in this §4,
+and every counterexample that kills a conjecture/inequality/strengthening, is
+ALSO a fuzzer-corpus deliverable. When you refute something, append the
+concrete regex family (rrexp notation + parameterization + any fixed input),
+what it killed, and the DECEPTION datum (how many samples / what depth it
+passed before being caught) to `EVIL_PATTERNS.md` at the repo root — in the
+same cycle you record it here. Never prune a CE because its conjecture is
+dead; the deader the conjecture, the better the fuzzer input. This is additive
+bookkeeping and must not slow the cubic proof. See the 2026-06-13 admin
+directive in the PROGRESS tail.
+
 ## 5. Settled and Frozen (cite freely, do not re-derive, do not extend)
 
 - **Backreference pilot chain — COMPLETE.** `BackRefLang.thy`

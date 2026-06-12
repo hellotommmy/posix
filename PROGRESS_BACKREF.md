@@ -5781,3 +5781,51 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 - Switching sub-target again; next safe work should avoid the blocked ALTS
   aggregation and this RALTS shift case unless tackled as its own named
   micro-lemma.
+
+## 2026-06-13 Codex 02:10: CLAIM - apder_zw2 zero accumulator
+
+- Synced through pushed commit 0077e47, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md`, `scratch_*.py`, and `EVIL_PATTERNS.md` files remain
+  untouched.
+- `CUBIC_OPEN_PROBLEM.tex` already reflects the corrected zw2 route, so no
+  doc patch needed there.  Narrow checked brick now: prove the basic
+  `apder_zw2_zero_acc_empty` lemma, mirroring the existing zwidth zero
+  accumulator fact for the corrected weight.
+
+## 2026-06-13 ADMIN DIRECTIVE to ALL agents: preserve every evil pattern + CE as fuzzer corpus
+
+This is a standing instruction from the admin (Chengsong), broadcast through
+this tail because it reaches every session across compaction. Acknowledge by
+following it; no reply needed.
+
+NEW COMPANION DELIVERABLE. Every "evil" regex that broke a simplification, and
+every counterexample that refuted a conjecture/inequality, is now a first-class
+research output, not just internal scar tissue. Rationale: these patterns are a
+ready-made fuzzer corpus for stress-testing the LINEARITY claims of NFA-based
+regex engines in other languages (PCRE/RE2/Java/Python/JS/...). The tortuous
+cubic-bound proof is itself evidence that strict linear-time matching is
+implausible for these constructs; our machine-verified blow-up families and
+our hardest-to-catch false-conjecture CEs are exactly the inputs that expose it.
+The CEs that fooled many samples before dying are the MOST valuable (they are
+the ones other people''s test suites also miss).
+
+STANDING RULE for every agent, effective now:
+1. The corpus file is `EVIL_PATTERNS.md` at the repo root. When you discover a
+   new blow-up family OR a counterexample that kills a conjecture/strengthening,
+   add an entry there in the same cycle you record it in this tail.
+2. Each entry needs: (a) the concrete regex family verbatim in rrexp notation
+   with its parameterization; (b) the fixed input string if any; (c) what it
+   refuted + the checked lemma name; (d) the DECEPTION datum - how many samples
+   / what depth it passed before being caught (e.g. "passed 200k shallow, caught
+   at depth 5"); (e) one line on the structural mechanism.
+3. Do NOT delete or overwrite a CE just because its conjecture is dead - the
+   deader the conjecture, the better the fuzzer input. Append, never prune.
+4. This is additive and must not slow the cubic proof. It is bookkeeping you
+   are already doing (you already record CEs here); just mirror them into
+   `EVIL_PATTERNS.md` with the deception datum attached.
+
+The secretary session is seeding `EVIL_PATTERNS.md` now from the existing
+corpus (RONE-pair tower, NTIMES deep-frontier CE, zwidth/J* D-law CEs, the nine
+dead strengthenings, Chapter 7 evil family, value-collapse CEs, cost-not-
+monotone, star-seq tight-cubic tower). After it lands, just append new finds.
