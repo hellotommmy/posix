@@ -29142,6 +29142,43 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_carry_measure_UN_set_le_sum_list:
+  assumes finA: "\<And>x. x \<in> set xs \<Longrightarrow> finite (A x)"
+    and finG: "\<And>x. x \<in> set xs \<Longrightarrow> finite (G x)"
+  shows "card ((\<Union>x \<in> set xs. A x) - K) +
+    card ((\<Union>x \<in> set xs. G x) - K - (\<Union>x \<in> set xs. A x)) \<le>
+    sum_list (map (\<lambda>x. card (A x - K) + card (G x - K - A x)) xs)"
+  using finA finG
+proof (induct xs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?Axs = "\<Union>y \<in> set xs. A y"
+  let ?Gxs = "\<Union>y \<in> set xs. G y"
+  have tail: "card (?Axs - K) + card (?Gxs - K - ?Axs) \<le>
+      sum_list (map (\<lambda>x. card (A x - K) + card (G x - K - A x)) xs)"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  have split: "card ((A x \<union> ?Axs) - K) +
+      card ((G x \<union> ?Gxs) - K - (A x \<union> ?Axs)) \<le>
+      card (A x - K) + card (G x - K - A x) +
+      card (?Axs - K) + card (?Gxs - K - ?Axs)"
+    by (rule card_carry_measure_Un_le) (use Cons.prems in auto)
+  have "card ((\<Union>y \<in> set (x # xs). A y) - K) +
+      card ((\<Union>y \<in> set (x # xs). G y) - K -
+        (\<Union>y \<in> set (x # xs). A y)) \<le>
+      card (A x - K) + card (G x - K - A x) +
+      card (?Axs - K) + card (?Gxs - K - ?Axs)"
+    using split by simp
+  also have "... \<le>
+      card (A x - K) + card (G x - K - A x) +
+      sum_list (map (\<lambda>x. card (A x - K) + card (G x - K - A x)) xs)"
+    using tail by linarith
+  finally show ?case
+    by simp
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_diff_le_Suc:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -

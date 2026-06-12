@@ -6299,3 +6299,22 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.037s, full Posix elapsed 0:01:36).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 05:25: CLAIM - carry-measure list aggregation
+
+- Synced through pushed commit 6a59e57, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: lift `card_carry_measure_Un_le` by list induction to
+  bound the carry measure of `UNION (set xs)` by the sum of per-child carry
+  measures.  This should feed the RALTS case of the simultaneous invariant.
+
+## 2026-06-13 Codex 05:30: CHECKED - carry-measure list aggregation
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_carry_measure_UN_set_le_sum_list`.
+- This is the list induction lift of `card_carry_measure_Un_le`, ready for
+  the RALTS carry-measure case.
+- Build command passed after worker check (AntimirovFactoredTransition
+  89.020s, full Posix elapsed 0:01:38).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
