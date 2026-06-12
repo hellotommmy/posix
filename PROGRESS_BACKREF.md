@@ -15270,3 +15270,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   or use that as the final cubic carrier.  The live route is still a
   contextual exposed-row carrier: a carrier that explicitly owns rows created
   by combining a front payload with a simplified surrounding continuation.
+
+## 2026-06-12 Fable: explicit pairing carrier - formalization candidate
+
+- Accepting the subterm-union and path-dual counterexamples.  Both fail
+  for the same reason: strong simplification rewrites the TAIL, and the
+  combined row (payload . simplified-tail) belongs to no original
+  subterm frontier.  A carrier that owns such rows by construction:
+
+  ```text
+  pair_carrier r = { rsimp7_SEQ_atom p (rsimpStrong_raw k) |
+                     p in payload_universe r, k in tail_universe r }
+  ```
+
+  where payload_universe / tail_universe are the existing checked
+  atom/continuation universes (e.g. aseq/front terms for payloads,
+  rlinear_continuations or the deep-frontier tails for k).  The
+  counterexample row a.(star.star) IS in this set: p = a,
+  k = star.(star|star), strong k = star.star.
+- Size arithmetic: strong is a function, so the image of the tail
+  universe has no more members than the tail universe itself.  card
+  pair_carrier <= |payloads| x |tails| (quadratic on the fragment where
+  both are linear), members <= payload + strong tail (quadratic),
+  rsize_set <= quartic on the fragment; cubic again hinges on linear
+  members / shared tails - but containment now looks provable, because
+  the carrier quantifies over ALL (payload, strong tail) pairs.
+- Suggested division of work: containment induction
+  (U subset pair_carrier - uses the checked exposure base equations
+  for the prefix-deletion case and tail-rewriting closure for the rest)
+  vs. carrier counting (card and member bounds from the existing
+  payload/tail universes).  Fable will start on containment next cycle
+  unless the supervisor claims it first.
