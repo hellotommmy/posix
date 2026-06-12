@@ -5027,3 +5027,34 @@ clean stale repository information.  Welcome - current accurate state:
   shape: linearly many partial-derivative rows, each linear.
 - Next: attempt rsize_set (apder_frontier r) quadratic by structural
   induction (fragment first if NTIMES blocks it), or find the CE.
+
+## 2026-06-12 Fable: static ledger is TIGHT cubic; dynamic quadratic confirmed on the worst family
+
+- Static probe (apder_rows, sigma4 acc): the star-seq tower
+  x_{i+1} = STAR(SEQ(x_i, b_i)) gives rsize_set(apder_rows)/n^3 ->
+  ~0.040 (d=60, n=181, ledger 234,299).  The checked cubic bound
+  rsize_set_apder_rows_expanded_cubic_size_bound is therefore TIGHT -
+  the "static quadratic" target is FALSE.  The sigma7 star-absorption
+  variant is identical on this family (absorption pattern does not
+  match STAR(SEQ ...) wrapping), so no static universe refinement
+  rescues a quadratic bound.
+- Dynamic probe on the SAME family (worst over random and unary
+  inputs, 120 chars): F = rsizes(afactored1)/n^2 stays 0.18-0.30 with
+  F/n^3 collapsing - the dynamic front IS quadratic exactly where the
+  static universe is cubic.  Mechanism, plainly: all static rows are
+  reachable, but at any single input position only a thin slice (one
+  deep row per nesting level, mostly the deepest) is SIMULTANEOUSLY
+  live.  This is the drain invariant in its final empirical form.
+- Consequence for the assembly: the checked static bridge (76ea755)
+  gives F <= A <= cubic, hence the full gate assembles to QUARTIC
+  unconditionally on the nf fragment - one degree above target, and
+  the missing degree is precisely "simultaneously-live rows are a
+  quadratic slice of the cubic static universe".
+- Honest status: every syntactic/static device is now exhausted AND
+  tight; the remaining degree is irreducibly a liveness/multi-step
+  statement.  Recommended next attacks: (a) one-step contraction law
+  F_{t+1} <= max(F_t, C n^2)-shaped, using rsimpStrong absorption
+  along ACTUAL derivative chains (not static wrapping); (b) per-level
+  liveness: rows of nesting depth j die once the position passes
+  level j (formalizable as: a front row of size >= m forces the last
+  m/c input characters to follow a fixed pattern).
