@@ -6,9 +6,10 @@ Status: OPEN, CORRECTED TWICE 2026-06-13.  The original max-1
 repetitions are allowed in continuations: a checked 04:00 CE uses
 `RNTIMES _ 0` alternatives with zero budget but non-`RONE` frontier rows.
 The live salvage target for the current cubic chain is therefore the
-`rntimes_free` instance of the `apder_zw2` law, or a future zero-count-aware
-weight/premise if the admin chooses to reopen the general NTIMES statement.
-Do not try to prove the raw unrestricted `zw2` law.
+legacy/non-backref, `rntimes_free` instance of the `apder_zw2` law, or a
+future zero-count-aware weight/premise if the admin chooses to reopen the
+general NTIMES statement.  Do not try to prove the raw unrestricted `zw2`
+law.
 
 ## Definitions (all in AntimirovFactoredTransition.thy)
 
@@ -40,6 +41,7 @@ This unrestricted form is now checked false.  The current proof-useful target
 is the rntimes-free form:
 
 ```
+legacy_rrexp r ==> legacy_rrexp k ==>
 apder_nf r ==> apder_nf k ==> rntimes_free r ==> rntimes_free k ==>
 card (acc r k - rfrontier k) <= apder_zw2 r
 ```
@@ -190,6 +192,6 @@ Notes for the prover:
   accumulator, but its syntactic frontier is still the atom
   `RNTIMES x 0`; an alternation of two such atoms imports two rows through
   one preceding character slot.
-- The rntimes-free payoff route remains viable and is now the narrow live
-  target.  Do not attempt the unrestricted raw `zw2` law unless the weight
-  or premises are repaired first.
+- The legacy/non-backref, rntimes-free payoff route remains viable and is now
+  the narrow live target.  Do not attempt the unrestricted raw `zw2` law
+  unless the weight or premises are repaired first.

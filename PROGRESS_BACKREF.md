@@ -6156,3 +6156,15 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - This is now available for the rntimes-free zw2 D-law induction at SEQ and
   STAR shifted continuations.  No new CE/blow-up family discovered in this
   preservation step; `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 04:20: SUPERVISOR NOTE - D target is legacy and rntimes-free
+
+- Re-read the newest tail after pushing 402b3c6; no proof workers live.
+- Tightened `MAINLINE.md` and `MATHPROBLEM_ROWCOUNT.md` to state the live
+  salvage target as the legacy/non-backref, rntimes-free zw2 D law:
+  `legacy_rrexp r`, `legacy_rrexp k`, `rntimes_free r`, and
+  `rntimes_free k` are all intended premises.
+- Reason: the project target is the non-backref POSIX cubic bound, and the
+  backref pilot constructors are deliberately zero-budget/opaque for this
+  frontier machinery.  Do not let Fable chase a pilot-constructor variant of
+  the D law.

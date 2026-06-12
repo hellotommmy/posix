@@ -76,14 +76,16 @@ Vocabulary (fixed, do not rename):
      `apder_zw2_D_law_rntimes_zero_alt_false` has
      `RSEQ (RCHAR c) (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])`
      with row count 2 and budget 1. The current proof-useful target is the
-     rntimes-free instance of the zw2 D law, matching the checked payoff
-     `apder_zw2_rntimes_free_le_rsize` (commit 8a7a370), unless the admin
-     explicitly reopens a zero-count-aware NTIMES weight/premise. Full
-     statement, dead-ends and attacks: `MATHPROBLEM_ROWCOUNT.md` (repo root).
+     legacy/non-backref, rntimes-free instance of the zw2 D law, matching the
+     checked payoff `apder_zw2_rntimes_free_le_rsize` (commit 8a7a370),
+     unless the admin explicitly reopens a zero-count-aware NTIMES
+     weight/premise. Full statement, dead-ends and attacks:
+     `MATHPROBLEM_ROWCOUNT.md` (repo root).
   2. **The liveness slice:** fronts above `C * n^2` only shrink (zero
      violations empirically; needs a saturation predicate).
-- **Current narrow instruction:** attack the rntimes-free zw2 D law via the
-  list-version/duplicate-accounting or k-chain-fragment routes in
+- **Current narrow instruction:** attack the legacy/non-backref,
+  rntimes-free zw2 D law via the list-version/duplicate-accounting or
+  k-chain-fragment routes in
   `MATHPROBLEM_ROWCOUNT.md` — NOT via the falsified unary/potential
   strengthenings, the old zwidth law, the first J* numeric invariant, or the
   unrestricted raw zw2 statement. Do not fall back to
