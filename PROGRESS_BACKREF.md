@@ -17133,3 +17133,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty note: claiming overlay category 2 (major checked bridge:
   replaces the refuted list account with a provable set account at the
   per-row layer).  Admin to assess.
+
+## 2026-06-12 Supervisor: CHECKED - actual output set ledger reduced to row-square sum
+
+- Full Posix build GREEN at 2026-06-12 19:26 local
+  (AntimirovFactoredTransition 104.718s, full Posix elapsed 0:01:58).
+- Added a small bridge from Fable's per-row set theorem to the actual
+  one-step output:
+
+  ```text
+  rsize_set_row_dlformss_le_sum_rsize_sq
+  rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_sum_rsize_sq
+  ```
+
+- Plain meaning: for a list of rows, first open each row, deduplicate the
+  union, and sum the sizes of the distinct opened rows.  That set ledger is
+  at most the sum of `rsize q * rsize q` over the original rows.  Instantiated
+  to `rpder_strong_rows_raw c (afactored1 r s)`, this directly names the
+  active actual-output gate object.
+- This is not the final cubic theorem.  The remaining hard step is to prove a
+  cubic bound for the actual-row square sum, using the strong scan/prune
+  sharing structure rather than a duplicated opened-list count.

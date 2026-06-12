@@ -53,6 +53,18 @@ Do not spend another cycle repairing or restating the generic theorem
 `card (row_dlforms q) <= rsize q`: it is now checked.  The next useful target
 is not another per-row theorem; it is the actual generator gate:
 
+Supervisor micro-bridge checked at 19:26:
+
+```text
+rsize_set_row_dlformss_le_sum_rsize_sq
+rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_sum_rsize_sq
+```
+
+This says the actual deduplicated output is bounded by
+`sum_list (map (%q. rsize q * rsize q) actual_rows)`.  This is not the final
+cubic theorem; the remaining hard work is to bound that actual-row square-sum
+using the strong scan/prune sharing structure.
+
 ```text
 rsize_set
   (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))

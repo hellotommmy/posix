@@ -28250,5 +28250,42 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_row_dlformss_le_sum_rsize_sq:
+  "rsize_set (row_dlformss rs) \<le>
+    sum_list (map (\<lambda>q. rsize q * rsize q) rs)"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def rsize_set_def)
+next
+  case (Cons r rs)
+  have split:
+      "row_dlformss (r # rs) = row_dlforms r \<union> row_dlformss rs"
+    by (simp add: row_dlformss_def)
+  have fin_r: "finite (row_dlforms r)"
+    by (metis finite_set set_row_dlforms_list)
+  have fin_rs: "finite (row_dlformss rs)"
+    by (metis finite_set set_row_dlformss_list)
+  have "rsize_set (row_dlformss (r # rs)) \<le>
+      rsize_set (row_dlforms r) + rsize_set (row_dlformss rs)"
+    unfolding split
+    by (rule rsize_set_Un_le[OF fin_r fin_rs])
+  also have "... \<le>
+      rsize r * rsize r +
+        sum_list (map (\<lambda>q. rsize q * rsize q) rs)"
+    using Cons.hyps rsize_set_row_dlforms_le_rsize_sq[of r]
+    by linarith
+  finally show ?case
+    by simp
+qed
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_sum_rsize_sq:
+  "rsize_set
+     (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+   sum_list
+     (map (\<lambda>q. rsize q * rsize q)
+       (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule rsize_set_row_dlformss_le_sum_rsize_sq)
+
 
 end
