@@ -5,6 +5,69 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 10:46 GMT+8
+
+Current checked remote/head after sync should include:
+
+```text
+Relate active suffix tail sum to pair budget
+```
+
+After syncing, read the newest `PROGRESS_BACKREF.md` section:
+`2026-06-12 Supervisor: active-suffix weighted tails are paid by pair budget`.
+
+New checked bridge in `AntimirovFactoredTransition.thy`:
+
+```text
+raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget
+```
+
+Plain definitions:
+
+- `actual output` = `rpder_strong_rows_raw c (afactored1 r s)`, the rows
+  really produced by one strong derivative step.
+- `tail t` = the right side of a top-level sequence row `RSEQ h t` after
+  opening the actual output with `row_dlformss`.
+- `active-suffix bucket(t)` = the step-local rows shaped
+  `RSEQ (RALTS rows) t`; these are the rows that copy the same continuation
+  `t`.
+- `pair_budget(U)` = the sum of `bucket_size(k)^2` over active suffix keys.
+  This is the existing same-key sharing budget.
+
+The current checked decomposition leaves this active weighted term:
+
+```text
+sum over actual tails t of
+  card active_suffix_bucket(t) * (Suc H + rsize t)
+```
+
+The new bridge pays it as:
+
+```text
+if every actual tail t satisfies Suc H + rsize t <= M
+then active weighted term
+  <= raw_shared_prune_active_suffix_pair_budget
+       (afactored1_strong_dlform_universe r s c) * M
+```
+
+Important correction: the remaining problem is not merely
+`rsize_set (rseq_tails ...)`.  A distinct tail can be copied by several
+same-key rows, so multiplicity must be paid by `pair_budget` or by an even
+sharper same-key bucket theorem.
+
+Best immediate target:
+
+```text
+bound raw_shared_prune_active_suffix_pair_budget
+  (afactored1_strong_dlform_universe r s c)
+
+and prove a usable M for actual tails:
+  Suc H + rsize t <= M
+```
+
+Do not continue the older "only distinct tail count remains" claim unless it
+is restated through this pair-budget bridge.
+
 ## Urgent Supervisor Update, 2026-06-12 09:08 GMT+8
 
 After syncing, read the last 250 lines of `PROGRESS_BACKREF.md`.  The latest
@@ -618,13 +681,25 @@ The next session should not continue broad counterexample hunting.  Treat
 counterexamples as a tool only when they answer a named theorem subclaim.  The
 most useful routes are now:
 
-1. Prove a sharper cubic/cardinality bound for the actual step-local universe
-   `afactored1_strong_dlform_universe r s c`, using same-front/shared-suffix
-   buckets rather than arbitrary all-pairs closure.  The immediate missing
-   object is: bound the number of active suffix keys in `U`, then bound the
-   size of each same-key bucket.  Feed those two bounds to the new
-   `...closure_bucket...` and `...key_dag_bucket...` lemmas.
-2. Use the existing owner/DAG machinery only with care.  The owner-set
+1. Prove a sharper bound for the actual step-local active sharing budget
+   `raw_shared_prune_active_suffix_pair_budget
+   (afactored1_strong_dlform_universe r s c)`.  This is the immediate object
+   that now plugs into the checked weighted-tail lemma.  Bounding key count
+   and same-key bucket size is still useful, but only because it bounds this
+   `pair_budget`; do not stop at a statement that cannot feed the weighted
+   interface.
+2. Prove a usable bound for actual tail weight:
+
+   ```text
+   t in rseq_tails (row_dlformss actual_output)
+   ==> Suc H + rsize t <= M
+   ```
+
+   Then combine it with
+   `raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget`.
+   A distinct-tail count or `rsize_set (rseq_tails ...)` bound is helpful only
+   insofar as it gives this `M` or another checked premise.
+3. Use the existing owner/DAG machinery only with care.  The owner-set
    `RSEQ h t` decomposition is already packaged; it can still help charge
    nonalt heads to the current strong-front carrier and suffix/key pieces to
    active key accounting.  Owner active-key atoms, key sizes, key-DAG
@@ -649,11 +724,11 @@ most useful routes are now:
    invariant that excludes that construction, or by replacing the abstract
    closure with the one-pass accumulated pruning object used by
    `rsimpStrong_prune_rows_acc_raw`.
-3. If a proposed step-local subclaim looks false, make the falsification exact
+4. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete
    counterexample to a named route-2 statement.
-4. As a fallback, replace the raw strong-row representation by a checked
+5. As a fallback, replace the raw strong-row representation by a checked
    canonical projection via `row_dlform_canonical_rows`, then prove the
    production route computes or soundly refines that projection while
    preserving POSIX values.

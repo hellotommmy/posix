@@ -20912,6 +20912,153 @@ proof -
     using split add_mono[OF nonalt alt] by linarith
 qed
 
+lemma raw_shared_prune_active_suffix_bucket_empty_if_not_key:
+  assumes "k \<notin> raw_shared_prune_active_suffix_keys U"
+  shows "raw_shared_prune_active_suffix_bucket U k = {}"
+proof -
+  have "\<And>x. x \<in> raw_shared_prune_active_suffix_bucket U k \<Longrightarrow> False"
+  proof -
+    fix x
+    assume x: "x \<in> raw_shared_prune_active_suffix_bucket U k"
+    then obtain rows where "RSEQ (RALTS rows) k \<in> U"
+      by (auto simp add: raw_shared_prune_active_suffix_bucket_iff)
+    then have "k \<in> raw_shared_prune_active_suffix_keys U"
+      by (auto simp add: raw_shared_prune_active_suffix_keys_iff)
+    then show False
+      using assms by simp
+  qed
+  then show ?thesis
+    by blast
+qed
+
+lemma card_raw_shared_prune_active_suffix_bucket_ge_1:
+  assumes finite: "finite U"
+    and key: "k \<in> raw_shared_prune_active_suffix_keys U"
+  shows "1 \<le> card (raw_shared_prune_active_suffix_bucket U k)"
+proof -
+  obtain rows where row: "RSEQ (RALTS rows) k \<in> U"
+    using key by (auto simp add: raw_shared_prune_active_suffix_keys_iff)
+  have mem:
+      "RSEQ (RALTS rows) k \<in> raw_shared_prune_active_suffix_bucket U k"
+    using row by (simp add: raw_shared_prune_active_suffix_bucket_iff)
+  have fin: "finite (raw_shared_prune_active_suffix_bucket U k)"
+    using finite by simp
+  have nonempty: "raw_shared_prune_active_suffix_bucket U k \<noteq> {}"
+    using mem by blast
+  have "0 < card (raw_shared_prune_active_suffix_bucket U k)"
+    using fin nonempty by (simp add: card_gt_0_iff)
+  then show ?thesis
+    by simp
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_sum_le_pair_budget:
+  assumes finite_U: "finite U"
+    and finite_T: "finite T"
+    and weight_bound: "\<And>k. k \<in> T \<Longrightarrow> Suc H + rsize k \<le> M"
+  shows "(\<Sum>k \<in> T.
+      card (raw_shared_prune_active_suffix_bucket U k) *
+        (Suc H + rsize k)) \<le>
+    raw_shared_prune_active_suffix_pair_budget U * M"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  let ?c = "\<lambda>k. card (raw_shared_prune_active_suffix_bucket U k)"
+  let ?f = "\<lambda>k. ?c k * ?c k * M"
+  have finite_keys: "finite ?keys"
+    using finite_U by simp
+  have each: "\<And>k. k \<in> T \<Longrightarrow>
+      ?c k * (Suc H + rsize k) \<le> ?f k"
+  proof -
+    fix k
+    assume kT: "k \<in> T"
+    show "?c k * (Suc H + rsize k) \<le> ?f k"
+    proof (cases "k \<in> ?keys")
+      case True
+      have c1: "1 \<le> ?c k"
+        by (rule card_raw_shared_prune_active_suffix_bucket_ge_1
+            [OF finite_U True])
+      have "?c k * (Suc H + rsize k) \<le> ?c k * M"
+        by (rule mult_left_mono[OF weight_bound[OF kT]]) simp
+      also have "... \<le> (?c k * ?c k) * M"
+      proof -
+        have "?c k * 1 \<le> ?c k * ?c k"
+          by (rule mult_left_mono[OF c1]) simp
+        then have c_le_sq: "?c k \<le> ?c k * ?c k"
+          by simp
+        show ?thesis
+          by (rule mult_right_mono[OF c_le_sq]) simp
+      qed
+      finally show ?thesis
+        by (simp add: mult.assoc)
+    next
+      case False
+      then have "raw_shared_prune_active_suffix_bucket U k = {}"
+        by (rule raw_shared_prune_active_suffix_bucket_empty_if_not_key)
+      then show ?thesis
+        by simp
+    qed
+  qed
+  have restrict:
+      "(\<Sum>k \<in> T. ?f k) = (\<Sum>k \<in> T \<inter> ?keys. ?f k)"
+    using finite_T
+  proof (induct T rule: finite_induct)
+    case empty
+    then show ?case by simp
+  next
+    case (insert k F)
+    show ?case
+    proof (cases "k \<in> ?keys")
+      case True
+      then show ?thesis
+        using insert by (simp add: Int_insert_left)
+    next
+      case False
+      then have empty_bucket:
+          "raw_shared_prune_active_suffix_bucket U k = {}"
+        by (rule raw_shared_prune_active_suffix_bucket_empty_if_not_key)
+      have "insert k F \<inter> ?keys = F \<inter> ?keys"
+        using False by auto
+      then show ?thesis
+        using insert empty_bucket by simp
+    qed
+  qed
+  have "(\<Sum>k \<in> T. ?c k * (Suc H + rsize k)) \<le>
+      (\<Sum>k \<in> T. ?f k)"
+    by (rule sum_mono) (rule each)
+  also have "... = (\<Sum>k \<in> T \<inter> ?keys. ?f k)"
+    by (rule restrict)
+  also have "... \<le> (\<Sum>k \<in> ?keys. ?f k)"
+    by (rule sum_mono2[OF finite_keys]) auto
+  also have "... = raw_shared_prune_active_suffix_pair_budget U * M"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def
+        sum_distrib_right mult.assoc)
+  finally show ?thesis .
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget:
+  assumes weight_bound:
+    "\<And>t. t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<Longrightarrow>
+      Suc H + rsize t \<le> M"
+  shows "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t)) \<le>
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) * M"
+proof (rule raw_shared_prune_active_suffix_weighted_sum_le_pair_budget)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "finite (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))))"
+    by simp
+  fix t
+  assume t: "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  show "Suc H + rsize t \<le> M"
+    by (rule weight_bound[OF t])
+qed
+
 lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI:
   assumes head_bound:
     "\<And>h t. RSEQ h t \<in>

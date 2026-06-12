@@ -15696,6 +15696,62 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 10:34 local time.
 
+## 2026-06-12 Supervisor: active-suffix weighted tails are paid by pair budget
+
+- New checked lemmas:
+
+  ```text
+  raw_shared_prune_active_suffix_bucket_empty_if_not_key
+  card_raw_shared_prune_active_suffix_bucket_ge_1
+  raw_shared_prune_active_suffix_weighted_sum_le_pair_budget
+  raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget
+  ```
+
+- Plain definitions for this brick:
+
+  ```text
+  tail t
+    = the right side of a top-level sequence row RSEQ h t in the actual
+      one-step dlform output.
+
+  active-suffix bucket(t)
+    = rows of the step-local universe whose shape is RSEQ (RALTS rows) t.
+      These are exactly the keyed rows that can copy the same continuation t.
+
+  pair_budget(U)
+    = sum over active suffix keys k of bucket_size(k)^2.
+      It is the existing same-key sharing budget, not a new global
+      heads-times-tails bound.
+  ```
+
+- Checked consequence for the actual output:
+
+  ```text
+  if every actual tail t satisfies Suc H + rsize t <= M
+  then
+    sum over actual tails t of
+      card active_suffix_bucket(t) * (Suc H + rsize t)
+    <=
+      raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) * M
+  ```
+
+- Why this matters: the previous per-tail decomposition left a weighted
+  active-suffix term, not just a distinct-tail count.  So the live proof
+  target is now sharper and cleaner:
+
+  ```text
+  bound pair_budget(afactored1_strong_dlform_universe r s c)
+  and bound the maximum actual tail weight M.
+  ```
+
+  A proof that only bounds `rsize_set (rseq_tails ...)` does not by itself
+  discharge the current checked interface.  It may still help with `M`, but
+  the bucket multiplicity must be paid through `pair_budget`.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 10:46 local time.
+
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
 - Building on the supervisor rseq_tails bricks and the checked row
@@ -15724,6 +15780,11 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   grammar + rseq_tails + counting, no membership transfer through the
   refuted carriers).
 
+- Superseded by the checked supervisor brick above: the current checked
+  decomposition has a weighted active-suffix bucket term.  Do not use this
+  claim as the main route unless it is restated with `pair_budget` or a
+  stronger same-key bucket bound.
+
 ## 2026-06-12 Fable claim: bucket cardinality, nonalt-head half
 
 - The supervisor bucket split leaves one premise per tail bucket:
@@ -15750,7 +15811,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 ## 2026-06-12 Fable: the last number, stated as a drain invariant
 
-- After the bucket bricks, one number remains:
+- This note is now only a possible helper for bounding the maximum tail
+  weight `M`.  It is not the whole remaining theorem.
+
+- After the bucket bricks, the simple distinct-tail number is:
   `rsize_set (rseq_tails (row_dlformss out))` - the total size of the
   distinct continuation tails of one step.
 - Its mathematical content, stated plainly: every tail is the strong
