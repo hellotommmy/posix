@@ -17154,3 +17154,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - This is not the final cubic theorem.  The remaining hard step is to prove a
   cubic bound for the actual-row square sum, using the strong scan/prune
   sharing structure rather than a duplicated opened-list count.
+
+## 2026-06-12 Fable: degree audit for the row-square sum + next two small pieces
+
+- Target after fb08f86: sum over actual one-pass rows of
+  (rsize q)^2 <= cubic(rsize r).  Standard split:
+  sum q^2 <= (max actual row size) * (sum of actual row sizes).
+- Degree audit with current checked pieces (fragment, one step, any s):
+  sum of actual row sizes <= rsizes(generated) <= ~rsizes(front) and
+  fragment front total is cubic (rsizes_afactored1_rntimes_free_rsize_cubic);
+  max actual row <= max front row + O(1); if max front row is LINEAR
+  (the strong_derivative_front_terms member bound suggests Suc(2*rsize))
+  the product is QUARTIC - one degree over, same wall, but now in its
+  weakest form yet: ANY of (i) sum of front row sizes quadratic,
+  (ii) max front row O(1)-ish, (iii) direct square-sum drain, closes it.
+- Two concrete small pieces queued (next cycle, Fable):
+  (1) rsizes version of the one-pass deleter chain:
+      rsizes (rpder_strong_rows_raw c rows) <= rsizes (map rsimpStrong_raw
+      (concat (map (rpder_norm_list c) rows)))  - prune/rflts/rdistinct
+      are deleters for rsizes too; mirrors the existing list_size lemma
+      sum_row_dlforms_list_size_rpder_strong_rows_raw_le_generated.
+  (2) the square-sum payment slot mirroring ea0ce80:
+      sum (rsize q)^2 over rows <= (max) * (sum) as a named interface,
+      so (i)/(ii)/(iii) plug in independently.
