@@ -17322,3 +17322,34 @@ clean stale repository information.  Welcome - current accurate state:
   ledger along s on the star re-entry family - if rsize_set of the
   step union stays ~quadratic in rsize r for long s, the gate object
   is empirically safe and the proof hunt has a confirmed target shape.
+
+## 2026-06-12 Fable: multi-step union ledger probe - gate object empirically quadratic
+
+- Extended the python mirror with afactored_step and measured the
+  per-step deduplicated opened-union ledger along real inputs:
+
+  ```text
+  family           rsize_r  worst rsize_set  /n^2   /cubic-budget
+  ch7 evil k=4        23         310         0.586    0.0088
+  bridge CE regex     11          53         0.438    0.0097
+  rone-star mix       24          59         0.102    0.0015
+  unary mix           31         381         0.396    0.0049
+  ```
+
+- Plain meaning: across multi-step fronts (48-64 chars) the SIZE half
+  of the set gate stays ~quadratic in rsize r - two orders of
+  magnitude under the cubic budget at these sizes.  Combined with the
+  checked card half (1a924c3) and per-row quadratic (db1091d), the
+  gate target is empirically safe; what is missing is purely the
+  proof of the size half for arbitrary fronts.
+- Known-too-weak formal route: carrier counting via
+  strong_derivative_front_terms gives card cubic x member linear =
+  quartic.  The true law is quadratic, so the carrier over-counts by
+  two degrees; the proof needs the union-difference structure (shared
+  tails collapse) rather than a member-wise carrier sum.
+- Next concrete piece: lift the checked one-row difference triangle
+  (card_row_dlforms_rsimp4_diff_le) to a LIST difference ledger:
+  rsize_set (row_dlformss (q # rows)) <= rsize_set (row_dlformss rows)
+  + (new-members-of-q ledger), where the new-member ledger is paid by
+  q alone.  That is the set-level analogue of the per-front-row
+  payment slot and composes with afactored1 steps.
