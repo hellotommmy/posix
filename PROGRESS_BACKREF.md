@@ -17202,3 +17202,20 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   (2) the square-sum payment slot mirroring ea0ce80:
       sum (rsize q)^2 over rows <= (max) * (sum) as a named interface,
       so (i)/(ii)/(iii) plug in independently.
+
+## 2026-06-12 Supervisor correction: queued rsizes piece already exists
+
+- The first queued Fable item above is already essentially checked in
+  `GeneralRegexBound.thy`:
+
+  ```text
+  rsizes_rpder_strong_rows_raw_le
+  rpder_strong_rows_raw_generated_budget
+  ```
+
+- Do not reprove the one-pass rsizes deleter chain.  Reuse those facts if they
+  discharge a real premise.
+- The remaining useful square-sum work must keep actual strong scan/prune
+  sharing.  A generic wrapper such as `sum q^2 <= rsizes rows * rsizes rows`
+  is mathematically true but probably loses a degree and does not move the
+  final cubic gate.

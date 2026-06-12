@@ -56,6 +56,18 @@ Plain target definitions:
 rsize_set (row_dlformss actual_rows) <= 2 * (rsize r + 3)^3
 ```
 
+Correction to the latest `PROGRESS_BACKREF.md` tail: the queued "rsizes
+deleter chain" is already checked in `GeneralRegexBound.thy`:
+
+```text
+rsizes_rpder_strong_rows_raw_le
+rpder_strong_rows_raw_generated_budget
+```
+
+Use these facts; do not spend a proof cycle reproving them.  The still-useful
+next square-sum interface is only the part that preserves enough sharing to
+avoid `rsizes rows ^ 2` / quartic loss.
+
 ## Supervisor Override, 2026-06-12 19:25 GMT+8
 
 Current red `Background shell failed` entries are still proof failures, not an
