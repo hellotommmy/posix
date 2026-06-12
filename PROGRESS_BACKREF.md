@@ -6828,3 +6828,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   singleton frontier difference of the form `rfrontier (RSEQ h k) -
   rfrontier k` is bounded by one, then retry the normal-nonalt shift using
   that named helper rather than a large constructor split.
+
+## 2026-06-13 Codex 09:25: CLAIM - pure RSEQ frontier singleton shift
+
+- Synced through pushed commit 4f972f6, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick from the blocker: prove the pure structural helper
+  `card (rfrontier (RSEQ h k) - rfrontier k) <= 1`.  This isolates the
+  singleton-difference fact that the broader normal-nonalt shift proof was
+  failing to expose through constructor splits.
+
+## 2026-06-13 Codex 09:30: CHECKED - pure RSEQ frontier singleton shift
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_rfrontier_RSEQ_diff_le_one`.
+- This isolates the structural singleton-frontier shift for syntactic
+  sequence rows, avoiding the fragile constructor-split proof shape from the
+  blocked normal-nonalt attempt.
+- First build failed because `simp` did not apply the singleton-card fact to
+  the proposition `card ({RSEQ h k} - rfrontier k) <= 1`.  Changed the same
+  lemma to a direct calculation and explicit
+  `card_singleton_Diff_le_one`; rerun passed after worker check
+  (AntimirovFactoredTransition 82.933s, full Posix elapsed 0:01:47).
+  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.

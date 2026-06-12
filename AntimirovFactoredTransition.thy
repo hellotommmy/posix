@@ -29323,6 +29323,17 @@ lemma card_apder_term_frontier_acc_RSTAR_diff_le:
   by (rule card_apder_term_frontier_acc_RSTAR_diff_le_Suc)
     (use body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one in auto)
 
+lemma card_rfrontier_RSEQ_diff_le_one:
+  "card (rfrontier (RSEQ h k) - rfrontier k) \<le> 1"
+proof -
+  have "card (rfrontier (RSEQ h k) - rfrontier k) =
+      card ({RSEQ h k} - rfrontier k)"
+    by simp
+  also have "... \<le> 1"
+    by (rule card_singleton_Diff_le_one)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
