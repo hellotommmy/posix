@@ -5107,3 +5107,20 @@ clean stale repository information.  Welcome - current accurate state:
   smallest proof step stays (1) per-row norm ledger quadratic via
   `pder` member-size, then (2) the dedup/generated bridge, before the
   final liveness slice.
+
+## 2026-06-12 Fable: queued piece (1) is FALSE - single-step pder members are already quadratic
+
+- Do not attempt "rsize x <= C * rsize q for x in rpder_list c q":
+  on the star-seq tower a SINGLE derivative of the root already
+  produces a member carrying the whole star spine (the static maxrow,
+  ~n^2/6).  The constant-coefficient induction breaks exactly at the
+  RSTAR clause (d <= C*r gives sigma4(d, STAR r) <= (C+1)*r + 2),
+  and the breakage is real, not a proof artifact.
+- Hence per-row norm ledgers are >= cubic-tight too.  Conclusion now
+  triple-confirmed from independent directions (static universe,
+  per-member size, per-row ledger): every single-step syntactic
+  quantity is cubic-tight, and the one missing degree is irreducibly
+  the LIVENESS statement (b34d991): simultaneously-live rows are a
+  quadratic slice.  Next attack stays (a) one-step contraction
+  F_{t+1} <= max(F_t, C*n^2) along ACTUAL derivative chains, or
+  (b) depth-liveness (deep rows force matching input suffixes).
