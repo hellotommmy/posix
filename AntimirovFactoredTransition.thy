@@ -29680,6 +29680,27 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_RCHAR_diff_le_if_right_carry_Suc:
+  assumes right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> Suc (apder_zw2 r2)"
+  shows "card (apder_term_frontier_acc (RSEQ (RCHAR c) r2) k -
+    rfrontier k) \<le> apder_zw2 (RSEQ (RCHAR c) r2)"
+proof -
+  let ?F = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  let ?B = "apder_term_frontier_acc r2 k"
+  have "card (apder_term_frontier_acc (RSEQ (RCHAR c) r2) k -
+      rfrontier k) = card ((?F \<union> ?B) - rfrontier k)"
+    by simp
+  also have "... \<le> card (?B - rfrontier k) + card (?F - rfrontier k - ?B)"
+    by (rule card_frontier_acc_union_diff_le_carry_measure) simp_all
+  also have "... \<le> Suc (apder_zw2 r2)"
+    using right by linarith
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_carry_measure_le_if_children:
   assumes left:
     "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -

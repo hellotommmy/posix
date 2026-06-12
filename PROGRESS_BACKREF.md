@@ -6547,3 +6547,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   88.985s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:15: CLAIM - RCHAR-left SEQ D bridge
+
+- Synced through pushed commit f91be45, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: instantiate the new union splitter for
+  `RSEQ (RCHAR c) r2`.  Since `acc (RCHAR c) (sigma r2 k)` is exactly the
+  middle frontier, a `Suc` carry bound for the right child should pay the
+  whole SEQ accumulator D count exactly (`1 + apder_zw2 r2`).
+
+## 2026-06-13 Codex 07:20: CHECKED - RCHAR-left SEQ D bridge
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_RCHAR_diff_le_if_right_carry_Suc`.
+- This proves the character-left SEQ D case from a right-child `Suc` carry
+  bound using `card_frontier_acc_union_diff_le_carry_measure`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  98.855s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
