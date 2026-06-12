@@ -74,6 +74,27 @@ def rand_re(depth, rng):
     if t == 4: return STAR(O)
     return C(rng.choice('ab'))
 
+
+def jstar_check(samples=100000, seed=137):
+    rng = random.Random(seed)
+    v = 0; tested = 0; nz = 0
+    for _ in range(samples):
+        r1 = rand_re(rng.randrange(0, 4), rng)
+        r2 = rand_re(rng.randrange(0, 4), rng)
+        k = rand_re(rng.randrange(0, 3), rng)
+        if not (nf(r1) and nf(r2) and nf(k)): continue
+        if r1 in (Z, O) or r2 in (Z, O) or r1[0] == 'SEQ': continue
+        tested += 1
+        s4 = rsimp4(r2, k)
+        A1 = acc(r1, s4); A2 = acc(r2, k)
+        Fs = rfrontier(s4); Fk = rfrontier(k)
+        t2 = len((A1 & Fs) - Fk - A2)
+        if t2 > 0: nz += 1
+        if len(A1 - Fs) + t2 + len(A2 - Fk) > zwidth(r1) + zwidth(r2):
+            v += 1
+            print("J* VIOLATION:", r1, r2, k)
+    print(f"J*: tested={tested} nontrivial={nz} violations={v}")
+    return v == 0
 def main():
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
     rng = random.Random(101)
@@ -108,6 +129,7 @@ def main():
     d2 = len(acc(ce2, O) - rfrontier(O))
     assert d2 > awidth(ce2), "awidth CE changed"
     print("awidth-law CE intact:", d2, ">", awidth(ce2))
+    jstar_check(60000)
 
 if __name__ == "__main__":
     main()
