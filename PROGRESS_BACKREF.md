@@ -5755,3 +5755,29 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   85.465s, full Posix elapsed 0:01:34).  This does not prove D-zw2, but it
   isolates the STAR/k-chain accounting point: one changed frontier point is
   exactly paid by the `Suc` in `apder_zw2 (RSTAR r)`.
+
+## 2026-06-13 Codex 02:00: CLAIM - discharge STAR frontier shift
+
+- Synced through pushed commit ab2ea88, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: prove the missing shift premise
+  `card (rfrontier (rsimp4_SEQ_atom (RSTAR r) k) - rfrontier k) <= 1`
+  by constructor cases on `k`, then package the STAR branch corollary that
+  only needs the child D-zw2 obligation at the shifted continuation.
+
+## 2026-06-13 Codex 02:05: BLOCKED - STAR shift discharge RALTS case
+
+- Attempted `card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one` by cases on
+  `k` (first with `auto`, then with `simp_all add:
+  card_singleton_Diff_le_one`).  Both builds failed on the same first goal:
+  the `k = RALTS rs` subgoal
+  `card ({RSEQ (RSTAR r) (RALTS rs)} - rfrontiers rs) <= 1`.
+- Per the same-failure-twice rule, I removed the unbuilt discharge and the
+  unbuilt no-extra-assumption STAR corollary.  The checked conditional STAR
+  brick from ab2ea88 remains.  Future fix should isolate the RALTS case as a
+  named singleton-difference proof rather than asking the datatype case split
+  to solve it inline.
+- Switching sub-target again; next safe work should avoid the blocked ALTS
+  aggregation and this RALTS shift case unless tackled as its own named
+  micro-lemma.
