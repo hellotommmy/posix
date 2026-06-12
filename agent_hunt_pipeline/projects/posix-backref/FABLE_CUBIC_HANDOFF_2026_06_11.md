@@ -38,6 +38,11 @@ another full background build until that goal has changed.  The final repair
 needed exact folded-shape lemmas for `ronepair_payload`; unfolding
 `ronepair_payload_def` in the wrong simp set reintroduced the failing goal.
 
+The older 13:24-14:33 weighted/list-cost notes below are now historical route
+evidence only.  They still name useful helper lemmas, but their polynomial
+target was superseded by the checked RONE-pair counterexample.  The current
+next target is the set/canonical gate in "Best Next Attack".
+
 ## Urgent Supervisor Update, 2026-06-12 13:24 GMT+8
 
 The ordinary sequence-tail size branch now has a checked weighted-row
