@@ -28486,4 +28486,42 @@ proof -
 qed
 
 
+text \<open>
+  The pair-budget gate, instantiated: on the legacy fragment the
+  abstract premises H and M are discharged by the checked head/weight
+  bounds, leaving only three concrete summands to bound cubically.
+\<close>
+
+lemma actual_union_pair_budget_gate_instance:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        Suc (Suc (rsize r + rsize r)) + rsize t) +
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) *
+      (Suc (Suc (rsize r + rsize r)) +
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof (rule rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_pair_budget_key_boundI)
+  fix h t
+  assume "RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  then show "rsize h \<le> Suc (rsize r + rsize r)"
+    by (rule actual_union_seq_head_size_linear[OF legacy])
+next
+  fix t
+  assume t: "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  show "Suc (Suc (rsize r + rsize r)) + rsize t \<le>
+      Suc (Suc (rsize r + rsize r)) +
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    using rseq_tails_row_dlformss_rpder_strong_weight_le_generated[OF t]
+    by simp
+qed
+
+
 end
