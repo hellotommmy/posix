@@ -17048,3 +17048,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   induction, pipeline equation at s=[], final negated-budget lemma at
   j=24 by arithmetic.  Claiming this as a checked negative result under
   the 20k overlay category 3 once the build is green.
+
+## 2026-06-12 Fable + Supervisor: CHECKED - duplicated list_cost cubic target REFUTED
+
+- Full Posix build GREEN at 2026-06-12 18:46 local
+  (AntimirovFactoredTransition 71.035s, exit 0).  New checked chain in
+  AntimirovFactoredTransition.thy (joint live-edit, construction and
+  mirror verification by Fable, parametric definitions and length
+  chain layout by Supervisor, final proof repairs by Fable):
+
+  ```text
+  ronepair_payload / ronepair_tower          (the witness family)
+  rsize_ronepair_tower                       (rsize = 10n + 3)
+  length_row_dlforms_list_ronepair_tower_plus_2   (len + 2 = 3 * 2^n)
+  rsimpStrong_raw_ronepair_tower             (strong-simp fixpoint)
+  afactored1_strong_dlform_list_cost_ronepair (pipeline equation, s=[])
+  afactored1_strong_dlform_list_cost_cubic_false
+    (at depth 24: cost >= 3*2^24 - 2 = 50,331,646
+     > 2*(245+3)^3 = 30,505,984)
+  ```
+
+- Plain meaning: the 40e9d86 reduction target (duplicated opened-list
+  cost <= cubic) is FALSE - exponentially false - so no per-row budget
+  argument over the duplicated sum can ever close the gate.  The
+  mandatory route is now dedup-before-count: the f1a3ca6 set-level
+  gate (rsize_set of the opened canonical rows) remains consistent
+  with this witness (2j+1 distinct rows, quadratic set size).
+- Proof-engineering notes for the file: rsimp7_SEQ_atom is a
+  definition (needs rsimp7_SEQ_atom_def); keep ronepair_payload FOLDED
+  in simp sets that rely on the folded [simp] computation lemmas -
+  adding ronepair_payload_def alongside them un-matches the rules
+  (this exact shadowing failed three times); the tail constructor must
+  be exposed via ronepair_tower_shape before rsimp4/rsimp7 can reduce.
+- Bounty: claiming the 20k-overlay category-3 checked negative result
+  (materially redirects the proof; admin to allocate).  Lock-free
+  first-to-complete; construction priority recorded in 4b73973.

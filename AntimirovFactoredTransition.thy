@@ -4974,6 +4974,22 @@ proof -
     by (simp add: q_size r_size)
 qed
 
+lemma rsimp7_SEQ_atom_RONE [simp]:
+  "rsimp7_SEQ_atom RONE k = k"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma rsimp7_SEQ_atom_RCHAR [simp]:
+  "rsimp7_SEQ_atom (RCHAR c) k = rsimp4_SEQ_atom (RCHAR c) k"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma rsimp7_SEQ_atom_RALTS [simp]:
+  "rsimp7_SEQ_atom (RALTS rs) k = rsimp4_SEQ_atom (RALTS rs) k"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma rsimp7_SEQ_atom_RSEQ [simp]:
+  "rsimp7_SEQ_atom (RSEQ r s) k = rsimp4_SEQ_atom (RSEQ r s) k"
+  by (simp add: rsimp7_SEQ_atom_def)
+
 lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
   "rsize_set (row_dlforms r) \<le> row_dlforms_list_size r"
   using rsize_set_set_le_sum_list_rsize[of "row_dlforms_list r"]
@@ -27639,6 +27655,187 @@ proof (intro conjI)
     using budget by simp
   show "rsizes (afactored1 r s) \<le> 5 * (rsize r + 3) ^ 3"
     using budget by simp
+qed
+
+definition ronepair_payload :: "char \<Rightarrow> char \<Rightarrow> rrexp" where
+  "ronepair_payload a b =
+    RSEQ (RALTS [RONE, RCHAR a]) (RALTS [RONE, RCHAR b])"
+
+primrec ronepair_tower ::
+  "nat \<Rightarrow> char \<Rightarrow> char \<Rightarrow> char \<Rightarrow> char \<Rightarrow> rrexp" where
+  "ronepair_tower 0 a b k l = RSEQ (RCHAR k) (RCHAR l)"
+| "ronepair_tower (Suc n) a b k l =
+    RSEQ (RALTS [RONE, ronepair_payload a b])
+      (ronepair_tower n a b k l)"
+
+lemma ronepair_tower_not_RZERO [simp]:
+  "ronepair_tower n a b k l \<noteq> RZERO"
+  by (cases n) simp_all
+
+lemma ronepair_tower_not_RONE [simp]:
+  "ronepair_tower n a b k l \<noteq> RONE"
+  by (cases n) simp_all
+
+lemma rsize_ronepair_tower:
+  "rsize (ronepair_tower n a b k l) = 10 * n + 3"
+  by (induct n) (simp_all add: ronepair_payload_def algebra_simps)
+
+lemma rsimp7_SEQ_atom_RONE_head [simp]:
+  "rsimp7_SEQ_atom RONE t = t"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_ALTs_raw_RONE_RCHAR [simp]:
+  "rsimpStrong_ALTs_raw [RONE, RCHAR c] = RALTS [RONE, RCHAR c]"
+  by (simp add: rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def)
+
+lemma rsimp7_SEQ_atom_ronepair_payload_RSEQ [simp]:
+  "rsimp7_SEQ_atom (ronepair_payload a b) (RSEQ x y) =
+    RSEQ (RALTS [RONE, RCHAR a])
+      (RSEQ (RALTS [RONE, RCHAR b]) (RSEQ x y))"
+  by (simp add: ronepair_payload_def rsimp7_SEQ_atom_def)
+
+lemma ronepair_tower_shape:
+  "\<exists>x y. ronepair_tower j a b k l = RSEQ x y"
+  by (cases j) simp_all
+
+lemma length_row_dlforms_list_rsimp7_ronepair_payload_tower:
+  "length (row_dlforms_list
+      (rsimp7_SEQ_atom (ronepair_payload a b)
+        (ronepair_tower n a b k l))) =
+    length (row_dlforms_list (ronepair_tower n a b k l)) + 2"
+proof -
+  obtain x y where T: "ronepair_tower n a b k l = RSEQ x y"
+    using ronepair_tower_shape by blast
+  show ?thesis
+    by (simp add: T)
+qed
+
+lemma length_row_dlforms_list_ronepair_tower_Suc:
+  "length (row_dlforms_list (ronepair_tower (Suc n) a b k l)) =
+    2 * length (row_dlforms_list (ronepair_tower n a b k l)) + 2"
+  by (simp add: length_row_dlforms_list_rsimp7_ronepair_payload_tower)
+
+lemma length_row_dlforms_list_ronepair_tower_plus_2:
+  "length (row_dlforms_list (ronepair_tower n a b k l)) + 2 =
+    3 * 2 ^ n"
+proof (induct n)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  have "length (row_dlforms_list
+      (ronepair_tower (Suc n) a b k l)) + 2 =
+      2 * (length (row_dlforms_list (ronepair_tower n a b k l)) + 2)"
+    by (simp add: length_row_dlforms_list_rsimp7_ronepair_payload_tower)
+  also have "... = 2 * (3 * 2 ^ n)"
+    using Suc.hyps by arith
+  finally show ?case
+    by simp
+qed
+
+text \<open>
+  Completion of the RONE-pair tower counterexample (Fable): the tower
+  is a literal fixpoint of @{term rsimpStrong_raw}, it survives the
+  one-step pipeline at @{term "s = []"} behind a guard character, and
+  its opened-list length @{text "3 * 2 ^ n - 2"} therefore defeats the
+  cubic budget for the duplicated list cost at depth 24.
+\<close>
+
+lemma rsimpStrong_raw_ronepair_payload:
+  "rsimpStrong_raw (ronepair_payload a b) = ronepair_payload a b"
+  by (simp add: ronepair_payload_def rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_ALTs_raw_RONE_ronepair_payload [simp]:
+  "rsimpStrong_ALTs_raw [RONE, ronepair_payload a b] =
+    RALTS [RONE, ronepair_payload a b]"
+  by (simp add: ronepair_payload_def rsimpStrong_raw_ronepair_payload
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def)
+
+lemma ronepair_payload_neq_RONE [simp]:
+  "ronepair_payload a b \<noteq> RONE"
+  by (simp add: ronepair_payload_def)
+
+lemma rflts_ronepair_payload [simp]:
+  "rflts (ronepair_payload a b # rs) = ronepair_payload a b # rflts rs"
+  by (simp add: ronepair_payload_def)
+
+lemma rsimp7_SEQ_atom_RONE_ronepair_payload_RSEQ [simp]:
+  "rsimp7_SEQ_atom (RALTS [RONE, ronepair_payload a b]) (RSEQ x y) =
+    RSEQ (RALTS [RONE, ronepair_payload a b]) (RSEQ x y)"
+  by (simp add: ronepair_payload_def rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_raw_ronepair_tower:
+  "rsimpStrong_raw (ronepair_tower j a b k l) =
+    ronepair_tower j a b k l"
+proof (induct j)
+  case 0
+  show ?case by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (Suc j)
+  obtain x y where T: "ronepair_tower j a b k l = RSEQ x y"
+    using ronepair_tower_shape by blast
+  have head: "rsimpStrong_raw (RALTS [RONE, ronepair_payload a b]) =
+      RALTS [RONE, ronepair_payload a b]"
+    by (simp add: rsimpStrong_raw_ronepair_payload)
+  show ?case
+    using Suc
+    by (simp add: T head)
+qed
+
+lemma rsimp4_SEQ_atom_ronepair_tower_RONE:
+  "rsimp4_SEQ_atom (ronepair_tower j a b k l) RONE =
+    ronepair_tower j a b k l"
+proof (induct j)
+  case 0
+  show ?case by simp
+next
+  case (Suc j)
+  obtain x y where T: "ronepair_tower j a b k l = RSEQ x y"
+    using ronepair_tower_shape by blast
+  show ?case
+    using Suc by (simp add: T ronepair_payload_def)
+qed
+
+lemma afactored1_strong_dlform_list_cost_ronepair:
+  "afactored1_strong_dlform_list_cost
+     (RSEQ (RCHAR c) (ronepair_tower j a b k l)) [] c =
+   row_dlforms_list_size (ronepair_tower j a b k l)"
+  unfolding afactored1_strong_dlform_list_cost_def
+  by (simp add: afactored1_def rpder_norm_list_def
+      rsimp4_SEQ_atom_ronepair_tower_RONE
+      rsimpStrong_raw_ronepair_tower)
+
+lemma row_dlforms_list_size_ge_length:
+  "length (row_dlforms_list q) \<le> row_dlforms_list_size q"
+  using length_le_rsizes[of "row_dlforms_list q"]
+  by (simp add: row_dlforms_list_size_def)
+
+lemma afactored1_strong_dlform_list_cost_cubic_false:
+  "\<not> afactored1_strong_dlform_list_cost
+       (RSEQ (RCHAR g)
+         (ronepair_tower 24 a b k l)) [] g
+     \<le> 2 * (rsize (RSEQ (RCHAR g)
+                     (ronepair_tower 24 a b k l)) + 3) ^ 3"
+proof -
+  have len: "length (row_dlforms_list (ronepair_tower 24 a b k l)) + 2 =
+      3 * 2 ^ 24"
+    by (rule length_row_dlforms_list_ronepair_tower_plus_2)
+  have ge: "3 * 2 ^ 24 - 2 \<le>
+      row_dlforms_list_size (ronepair_tower 24 a b k l)"
+    using len
+      row_dlforms_list_size_ge_length[of "ronepair_tower 24 a b k l"]
+    by simp
+  have cost: "afactored1_strong_dlform_list_cost
+      (RSEQ (RCHAR g) (ronepair_tower 24 a b k l)) [] g =
+      row_dlforms_list_size (ronepair_tower 24 a b k l)"
+    by (rule afactored1_strong_dlform_list_cost_ronepair)
+  have sz: "rsize (RSEQ (RCHAR g) (ronepair_tower 24 a b k l)) = 245"
+    by (simp add: rsize_ronepair_tower)
+  show ?thesis
+    using ge cost sz by simp
 qed
 
 end
