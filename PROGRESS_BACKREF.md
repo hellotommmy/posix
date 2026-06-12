@@ -6588,3 +6588,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.519s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:35: CLAIM - zero-left SEQ D bridge
+
+- Synced through pushed commit f53bc70, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the SEQ D case where `apder_zw2 r1 = 0`.
+  The checked fact `apder_zw2_zero_acc_empty` makes the left accumulator empty,
+  so the parent D count reduces to the right child D bound.  This handles
+  zero-budget left shapes such as empty alternatives without trying to spend
+  singleton slack.
+
+## 2026-06-13 Codex 07:40: CHECKED - zero-left SEQ D bridge
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_left_zw2_zero_diff_le_if_right`.
+- This packages the zero-budget-left SEQ branch using
+  `apder_zw2_zero_acc_empty`; the parent D count becomes the right child D
+  count.
+- Build command passed after worker check (AntimirovFactoredTransition
+  90.320s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

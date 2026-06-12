@@ -29734,6 +29734,20 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_left_zw2_zero_diff_le_if_right:
+  assumes left_zero: "apder_zw2 r1 = 0"
+    and right: "card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof -
+  have left_empty:
+    "apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) = {}"
+    by (rule apder_zw2_zero_acc_empty[OF left_zero])
+  show ?thesis
+    using left_zero right by (simp add: left_empty)
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_carry_measure_le_if_children:
   assumes left:
     "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
