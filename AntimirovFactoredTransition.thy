@@ -29356,6 +29356,32 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_carry_shift_le:
+  assumes finA: "finite A"
+    and finF: "finite F"
+  shows "card (A - K) + card (F - K - A) \<le>
+    card (A - F) + card (F - K)"
+proof -
+  let ?S1 = "A - K"
+  let ?S2 = "F - K - A"
+  have finS1: "finite ?S1"
+    using finA by simp
+  have finS2: "finite ?S2"
+    using finF by simp
+  have disj: "?S1 \<inter> ?S2 = {}"
+    by blast
+  have cover: "?S1 \<union> ?S2 \<subseteq> (A - F) \<union> (F - K)"
+    by blast
+  have "card ?S1 + card ?S2 = card (?S1 \<union> ?S2)"
+    using card_Un_disjoint[OF finS1 finS2 disj] by simp
+  also have "... \<le> card ((A - F) \<union> (F - K))"
+    by (rule card_mono)
+      (use finA finF cover in auto)
+  also have "... \<le> card (A - F) + card (F - K)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms:
   "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
     card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -

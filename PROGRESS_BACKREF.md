@@ -6234,3 +6234,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `card_singleton_Diff_le_one`.  Rerun build passed after worker check
   (AntimirovFactoredTransition 88.845s, full Posix elapsed 0:01:36).
 - No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 04:55: CLAIM - carry shift splitter
+
+- Synced through pushed commit 8db57e8, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure set lemma
+  `card (A - K) + card (F - K - A) <= card (A - F) + card (F - K)`.
+  This is the accounting needed when STAR/RNTIMES move a child accumulator
+  bound from its own shifted frontier back to the parent continuation
+  frontier.
+
+## 2026-06-13 Codex 05:00: CHECKED - carry shift splitter
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_carry_shift_le`.
+- This pure set lemma will support STAR/RNTIMES carry-measure packaging:
+  child accumulator outside shifted frontier plus the one-point shifted
+  frontier pays the parent accumulator/carry measure.
+- Build command passed after worker check (AntimirovFactoredTransition
+  78.522s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
