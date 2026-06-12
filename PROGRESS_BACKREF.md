@@ -5612,3 +5612,18 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 - If that bridge is already present or blocks twice on the same first
   goal, switch to the k-chain-fragment route or supervisor audit and
   record the blocker here before moving.
+
+## 2026-06-13 Fable 01:10: FINAL - D law corrected (zw2), deep-sampling lesson
+
+- Deep sampling killed both J* AND the zwidth-D law itself (CE in
+  MATHPROBLEM_ROWCOUNT.md CORRECTION section): nested zero-consuming
+  stars need one slot PER LAYER.  Corrected weight zw2 (STAR adds 1
+  per layer; still <= rsize) passes 295,551 deep samples with zero
+  violations.  Row-count-linear payoff intact under zw2.
+- Hard lesson recorded for all future probes in this project: shallow
+  random sampling (depth<=4) validated two false statements at 95k-200k
+  samples each.  Minimum standard from now on: depth>=5 plus directed
+  nested-star/zero-width families before claiming a law.
+- 01:10, end of the 5-hour continuous run.  Tomorrow opener: re-run
+  equality anatomy under zw2, then the (D-zw2, J*-zw2) simultaneous
+  induction in Isabelle with scratch_rowcount_check.py as the gate.

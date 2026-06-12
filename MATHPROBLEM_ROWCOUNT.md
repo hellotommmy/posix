@@ -105,3 +105,29 @@ Notes for the prover:
   composite collapses).
 - Checker: extend scratch_rowcount_check.py with the J* block (code
   in PROGRESS 2026-06-13 00:35 entry).
+
+## CORRECTION (2026-06-13 01:05): zwidth insufficient, use zw2; J* false at depth
+
+- DEEP sampling (285k, depth<=5/4) produced a CE against BOTH the J*
+  candidate AND the original D law with the max-1 zwidth:
+
+  ```
+  r = SEQ b (ALTS [STAR(STAR a), STAR(STAR b), b]), k = RONE
+  card(acc - {RONE}) = 5  >  zwidth = 4
+  ```
+
+  Mechanism: a nested zero-consuming star contributes BOTH itself as a
+  frontier point AND its unrolled row - each star LAYER needs a slot.
+- CORRECTED weight (validated 295,551 deep samples, zero violations):
+
+  ```
+  zw2: C=1, ALTS/SEQ=sum, STAR x = 1 + zw2 x, Z=O=0
+  card (acc r k - rfrontier k) <= zw2 r        [nf r, nf k]
+  ```
+
+  zw2 <= rsize still, so the linear-row-count payoff is unchanged.
+- LESSON: shallow sampling (depth<=4) validated false statements
+  (zwidth-D at 200k, J* at 95k).  ALWAYS validate at depth>=5 with
+  directed nested-star families before proving.  The J* shape may
+  still be the right INDUCTION SKELETON over zw2 - re-derive its
+  equality anatomy under zw2 before the Isabelle attempt.
