@@ -15113,6 +15113,43 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   one-pass pruning itself preserves the generated-row size budget.
 - Verification: full `Posix` build passed at 2026-06-12 08:18 local time.
 
+## 2026-06-12 Supervisor: subterm-deep carrier has a checked quartic budget
+
+- New checked carrier and budget lemmas:
+
+  ```text
+  apder_subterm_deep_frontier
+  card_apder_subterm_deep_frontier_rntimes_free_quadratic
+  apder_subterm_deep_frontier_member_rntimes_free_square
+  rsize_set_apder_subterm_deep_frontier_rntimes_free_quartic
+  rsize_set_afactored1_strong_dlform_universe_subterm_deep_quarticI
+  ```
+
+- Plain meaning: for legacy, normal-form, rntimes-free roots, the carrier
+
+  ```text
+  union over q in rsubterms r of apder_deep_frontier q
+  ```
+
+  has quadratic cardinality and square-size members, hence a quartic
+  `rsize_set` bound.  Therefore any proof of
+
+  ```text
+  afactored1_strong_dlform_universe r s c
+    subset apder_subterm_deep_frontier r
+  ```
+
+  immediately gives a checked quartic one-step universe bound.
+- Important caveat: the carrier lemmas are intentionally restricted to
+  `legacy_rrexp r`.  Without that, subterm inheritance for `apder_nf` and
+  `rntimes_free` is false for the backref-like constructors, because those
+  constructors return True at the wrapper while their children may not.
+- This is a checkpoint interface, not the target cubic theorem.  Cubic still
+  needs one more saving: either the carrier/cardinality must be effectively
+  linear after sharing, or the member square bound must be replaced by a
+  shared-tail/linear-member accounting.
+- Verification: full `Posix` build passed at 2026-06-12 08:34 local time.
+
 ## 2026-06-12 Fable: exposed-rows carrier candidate and its honest gap
 
 - Accepting both new counterexamples: the carrier must own rows exposed

@@ -9544,6 +9544,386 @@ theorem rsize_set_adlform_front_cubic_rntimes_free:
       [OF nf card_apder_deep_frontier_rntimes_free_linear
         [OF nf free]])
 
+lemma apder_nf_legacy_rsubterms:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and q: "q \<in> rsubterms r"
+  shows "apder_nf q"
+  using legacy nf q
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case False
+    then obtain p where p: "p \<in> set rs" "q \<in> rsubterms p"
+      using RALTS.prems by auto
+    have p_legacy: "legacy_rrexp p"
+      using RALTS.prems p(1) by simp
+    have p_nf: "apder_nf p"
+      using RALTS.prems p(1) by simp
+    show ?thesis
+      by (rule RALTS.hyps[OF p(1) p_legacy p_nf p(2)])
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis
+      using RSEQ.prems by simp
+  next
+    case False
+    then have q_cases: "q \<in> rsubterms r1 \<or> q \<in> rsubterms r2"
+      using RSEQ.prems by simp
+    show ?thesis
+    proof (rule disjE[OF q_cases])
+      assume q1: "q \<in> rsubterms r1"
+      show ?thesis
+        by (rule RSEQ.hyps(1)[OF _ _ q1])
+          (use RSEQ.prems in simp_all)
+    next
+      assume q2: "q \<in> rsubterms r2"
+      show ?thesis
+        by (rule RSEQ.hyps(2)[OF _ _ q2])
+          (use RSEQ.prems in simp_all)
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis
+      using RSTAR.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RSTAR.prems by simp
+    show ?thesis
+      by (rule RSTAR.hyps[OF _ _ q_sub])
+        (use RSTAR.prems in simp_all)
+  qed
+next
+  case (RNTIMES r n)
+  show ?case
+  proof (cases "q = RNTIMES r n")
+    case True
+    then show ?thesis
+      using RNTIMES.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RNTIMES.prems by simp
+    show ?thesis
+      by (rule RNTIMES.hyps[OF _ _ q_sub])
+        (use RNTIMES.prems in simp_all)
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rntimes_free_legacy_rsubterms:
+  assumes legacy: "legacy_rrexp r"
+    and free: "rntimes_free r"
+    and q: "q \<in> rsubterms r"
+  shows "rntimes_free q"
+  using legacy free q
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis
+      using RALTS.prems by simp
+  next
+    case False
+    then obtain p where p: "p \<in> set rs" "q \<in> rsubterms p"
+      using RALTS.prems by auto
+    have p_legacy: "legacy_rrexp p"
+      using RALTS.prems p(1) by simp
+    have p_free: "rntimes_free p"
+      using RALTS.prems p(1) by simp
+    show ?thesis
+      by (rule RALTS.hyps[OF p(1) p_legacy p_free p(2)])
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis
+      using RSEQ.prems by simp
+  next
+    case False
+    then have q_cases: "q \<in> rsubterms r1 \<or> q \<in> rsubterms r2"
+      using RSEQ.prems by simp
+    show ?thesis
+    proof (rule disjE[OF q_cases])
+      assume q1: "q \<in> rsubterms r1"
+      show ?thesis
+        by (rule RSEQ.hyps(1)[OF _ _ q1])
+          (use RSEQ.prems in simp_all)
+    next
+      assume q2: "q \<in> rsubterms r2"
+      show ?thesis
+        by (rule RSEQ.hyps(2)[OF _ _ q2])
+          (use RSEQ.prems in simp_all)
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis
+      using RSTAR.prems by simp
+  next
+    case False
+    then have q_sub: "q \<in> rsubterms r"
+      using RSTAR.prems by simp
+    show ?thesis
+      by (rule RSTAR.hyps[OF _ _ q_sub])
+        (use RSTAR.prems in simp_all)
+  qed
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma apder_awidth_rntimes_free_le_rsize:
+  assumes free: "rntimes_free r"
+  shows "apder_awidth r \<le> rsize r"
+  using free
+proof (induct r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have "sum_list (map apder_awidth rs) \<le> sum_list (map rsize rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  also have "... \<le> Suc (sum_list (map rsize rs))"
+    by simp
+  finally show ?case
+    by simp
+next
+  case (RSEQ r1 r2)
+  then show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by simp
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by simp
+qed
+
+definition apder_subterm_deep_frontier :: "rrexp \<Rightarrow> rrexp set" where
+  "apder_subterm_deep_frontier r =
+    (\<Union>q \<in> rsubterms r. apder_deep_frontier q)"
+
+lemma finite_apder_subterm_deep_frontier [simp]:
+  "finite (apder_subterm_deep_frontier r)"
+  by (simp add: apder_subterm_deep_frontier_def)
+
+lemma card_apder_subterm_deep_frontier_rntimes_free_quadratic:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "card (apder_subterm_deep_frontier r) \<le>
+    2 * (apder_awidth r + rsize r + 3) ^ 2"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  have each: "\<And>q. q \<in> rsubterms r \<Longrightarrow>
+      card (apder_deep_frontier q) \<le> 2 * ?B"
+  proof -
+    fix q
+    assume q: "q \<in> rsubterms r"
+    have q_nf: "apder_nf q"
+      by (rule apder_nf_legacy_rsubterms[OF legacy nf q])
+    have q_free: "rntimes_free q"
+      by (rule rntimes_free_legacy_rsubterms[OF legacy free q])
+    have aw_q: "apder_awidth q \<le> rsize q"
+      by (rule apder_awidth_rntimes_free_le_rsize[OF q_free])
+    have size_q: "rsize q \<le> rsize r"
+      by (rule rsubterms_member_size_le_rsize[OF q])
+    have "card (apder_deep_frontier q) \<le>
+        apder_awidth q + rsize q + 3"
+      by (rule card_apder_deep_frontier_rntimes_free_linear
+          [OF q_nf q_free])
+    also have "... \<le> 2 * ?B"
+    proof -
+      have "apder_awidth q + rsize q + 3 \<le>
+          rsize q + rsize q + 3"
+        using aw_q by linarith
+      also have "... \<le> rsize r + rsize r + 3"
+        using size_q by linarith
+      also have "... \<le> 2 * ?B"
+        by simp
+      finally show ?thesis .
+    qed
+    finally show "card (apder_deep_frontier q) \<le> 2 * ?B" .
+  qed
+  have "card (apder_subterm_deep_frontier r) \<le>
+      (\<Sum>q \<in> rsubterms r. card (apder_deep_frontier q))"
+    unfolding apder_subterm_deep_frontier_def
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>q \<in> rsubterms r. 2 * ?B)"
+    by (rule sum_mono) (rule each)
+  also have "... = card (rsubterms r) * (2 * ?B)"
+    by simp
+  also have "... \<le> rsize r * (2 * ?B)"
+    by (rule mult_right_mono[OF card_rsubterms_le_rsize]) simp
+  also have "... \<le> ?B * (2 * ?B)"
+    by (rule mult_right_mono) simp_all
+  also have "... = 2 * ?B ^ 2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma apder_subterm_deep_frontier_member_rntimes_free_square:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and free: "rntimes_free r"
+    and x: "x \<in> apder_subterm_deep_frontier r"
+  shows "rsize x \<le> (2 * (apder_awidth r + rsize r + 3)) ^ 2"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  obtain q where q:
+      "q \<in> rsubterms r" "x \<in> apder_deep_frontier q"
+    using x by (auto simp add: apder_subterm_deep_frontier_def)
+  have q_nf: "apder_nf q"
+    by (rule apder_nf_legacy_rsubterms[OF legacy nf q(1)])
+  have q_free: "rntimes_free q"
+    by (rule rntimes_free_legacy_rsubterms[OF legacy free q(1)])
+  have aw_q: "apder_awidth q \<le> rsize q"
+    by (rule apder_awidth_rntimes_free_le_rsize[OF q_free])
+  have size_q: "rsize q \<le> rsize r"
+    by (rule rsubterms_member_size_le_rsize[OF q(1)])
+  have budget_q:
+      "apder_awidth q + rsize q + 3 \<le> 2 * ?B"
+  proof -
+    have "apder_awidth q + rsize q + 3 \<le>
+        rsize q + rsize q + 3"
+      using aw_q by linarith
+    also have "... \<le> rsize r + rsize r + 3"
+      using size_q by linarith
+    also have "... \<le> 2 * ?B"
+      by simp
+    finally show ?thesis .
+  qed
+  have "rsize x \<le> (apder_awidth q + rsize q + 3) ^ 2"
+    by (rule apder_deep_frontier_member_expanded_square_size
+        [OF q_nf q(2)])
+  also have "... \<le> (2 * ?B) ^ 2"
+    by (rule power_mono[OF budget_q]) simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_apder_subterm_deep_frontier_rntimes_free_quartic:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "rsize_set (apder_subterm_deep_frontier r) \<le>
+    (2 * (apder_awidth r + rsize r + 3) ^ 2) *
+      ((2 * (apder_awidth r + rsize r + 3)) ^ 2)"
+proof -
+  let ?B = "apder_awidth r + rsize r + 3"
+  show ?thesis
+  proof (rule rsize_set_le_card_member_budgetI)
+    show "finite (apder_subterm_deep_frontier r)"
+      by simp
+    show "card (apder_subterm_deep_frontier r) \<le> 2 * ?B ^ 2"
+      by (rule card_apder_subterm_deep_frontier_rntimes_free_quadratic
+          [OF legacy nf free])
+    show "\<And>q. q \<in> apder_subterm_deep_frontier r \<Longrightarrow>
+        rsize q \<le> (2 * ?B) ^ 2"
+      by (rule apder_subterm_deep_frontier_member_rntimes_free_square
+          [OF legacy nf free])
+    show "(2 * ?B ^ 2) * ((2 * ?B) ^ 2) \<le>
+        (2 * ?B ^ 2) * ((2 * ?B) ^ 2)"
+      by simp
+  qed
+qed
+
+lemma rsize_set_afactored1_strong_dlform_universe_subterm_deep_quarticI:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and free: "rntimes_free r"
+    and sub: "afactored1_strong_dlform_universe r s c \<subseteq>
+      apder_subterm_deep_frontier r"
+  shows "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+    (2 * (apder_awidth r + rsize r + 3) ^ 2) *
+      ((2 * (apder_awidth r + rsize r + 3)) ^ 2)"
+proof -
+  have "rsize_set (afactored1_strong_dlform_universe r s c) \<le>
+      rsize_set (apder_subterm_deep_frontier r)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      (2 * (apder_awidth r + rsize r + 3) ^ 2) *
+        ((2 * (apder_awidth r + rsize r + 3)) ^ 2)"
+    by (rule rsize_set_apder_subterm_deep_frontier_rntimes_free_quartic
+        [OF legacy nf free])
+  finally show ?thesis .
+qed
+
 theorem row_dlform_canonical_afactored1_rntimes_free_cubic_contract:
   assumes legacy: "legacy_rrexp r"
     and nf: "apder_nf r"
