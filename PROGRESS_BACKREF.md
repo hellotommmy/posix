@@ -4780,3 +4780,22 @@ clean stale repository information.  Welcome - current accurate state:
   untouched here.
 - Build not run (no .thy changes). Keep MAINLINE.md section 2 in sync when
   the narrow instruction changes; it is cheap and prevents charter drift.
+## 2026-06-12 Fable: CHECKED - weight ammunition for the pair-budget gate
+
+- Full Posix build GREEN at 2026-06-12 20:15 local
+  (AntimirovFactoredTransition 87.467s, exit 0).  New checked pieces:
+
+  ```text
+  row_dlformss_member_size_le_rsizes
+  row_dlformss_rpder_strong_member_size_le_generated
+  rseq_tails_row_dlformss_rpder_strong_weight_le_generated
+  ```
+
+- Plain meaning: every member of the actual opened union (and hence
+  every rseq tail t) has rsize at most the generated total, so the
+  pair-budget gate key weight instantiates at
+  M = Suc H + rsizes(generated) - one degree, no new assumptions.
+  With H from strong_derivative_front_terms_member_size_linear this
+  discharges the active_key_weight_bound premise of the b735872 gate
+  generically; the remaining premises are the head_bound instance and
+  the pair-budget/front-card cubic accounting.

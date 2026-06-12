@@ -28378,4 +28378,53 @@ proof -
 qed
 
 
+text \<open>
+  Concrete weight bounds for the pair-budget gate: every member of the
+  actual opened union is at most the generated total size, so both the
+  rseq tail weights and the active-suffix key weight M instantiate at
+  one degree (generated rsizes), with the head bound H supplied by the
+  front-terms carrier.
+\<close>
+
+lemma row_dlformss_member_size_le_rsizes:
+  assumes "x \<in> row_dlformss rows"
+  shows "rsize x \<le> rsizes rows"
+proof -
+  obtain q where q: "q \<in> set rows" "x \<in> row_dlforms q"
+    using assms by (auto simp add: row_dlformss_def)
+  have "rsize x \<le> rsize q"
+    by (rule row_dlforms_member_size_le_rsize[OF q(2)])
+  also have "... \<le> rsizes rows"
+    by (rule elem_size_le_rsizes[OF q(1)])
+  finally show ?thesis .
+qed
+
+lemma row_dlformss_rpder_strong_member_size_le_generated:
+  assumes "x \<in> row_dlformss (rpder_strong_rows_raw c rows)"
+  shows "rsize x \<le> rsizes (concat (map (rpder_norm_list c) rows))"
+proof -
+  have "rsize x \<le> rsizes (rpder_strong_rows_raw c rows)"
+    by (rule row_dlformss_member_size_le_rsizes[OF assms])
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rows))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+  finally show ?thesis .
+qed
+
+lemma rseq_tails_row_dlformss_rpder_strong_weight_le_generated:
+  assumes "t \<in> rseq_tails (row_dlformss (rpder_strong_rows_raw c rows))"
+  shows "Suc H + rsize t \<le>
+    Suc H + rsizes (concat (map (rpder_norm_list c) rows))"
+proof -
+  obtain h where h:
+      "RSEQ h t \<in> row_dlformss (rpder_strong_rows_raw c rows)"
+    using assms by (auto simp add: rseq_tails_def)
+  have "rsize t \<le> rsize (RSEQ h t)"
+    by simp
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rows))"
+    by (rule row_dlformss_rpder_strong_member_size_le_generated[OF h])
+  finally show ?thesis
+    by simp
+qed
+
+
 end
