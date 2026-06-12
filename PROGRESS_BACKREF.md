@@ -4823,3 +4823,26 @@ clean stale repository information.  Welcome - current accurate state:
 - Next: instantiate the gate with these and reduce the cubic question
   to the three remaining summands (nonseq members ledger, front-card x
   tail weights, pair_budget x M).
+
+## 2026-06-12 Fable: gate instance landed; degree audit of the three summands
+
+- 908542b: actual_union_pair_budget_gate_instance is checked - the
+  b735872 gate with H = Suc(2*rsize r) (legacy) and
+  M = Suc H + rsizes(generated) fully discharged, no abstract premises
+  left.  The set gate is now <= three CONCRETE summands.
+- Summand audit against existing checked facts:
+  (1) rsize_set(rnonseq_members(union)): DONE cubic -
+      rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic
+      (already in tree, uses rsize_set_strong_derivative_front_terms_cubic).
+  (2) card(front_terms) * sum of tail weights: card(front_terms) is
+      cubic and the tail-weight sum is at least one degree, so AS
+      STATED this summand is super-cubic; it needs the finer bucket
+      split (card_rseq_tail_nonalt_head_rows_..._le_front et al.) or a
+      tails-count/tails-size invariant before it closes.  This is now
+      THE precise remaining shape on the front/tail side.
+  (3) pair_budget * M: M is one degree; needs pair_budget at two
+      degrees.  Open.
+- Net: the cubic gate is reduced to two named numeric obligations
+  ((2) tail-weight sum vs front card, (3) pair budget quadratic).
+  All my queued ammunition is in; supervisor''s bucket interfaces are
+  the natural next consumers.
