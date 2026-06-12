@@ -5842,3 +5842,36 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Read the new admin directive on `EVIL_PATTERNS.md`.  This cycle produced
   no new regex counterexample or blow-up family, so I did not touch the
   untracked corpus seed.
+
+## 2026-06-13 Codex 02:20: CLAIM - awidth covered by zw2
+
+- Synced through pushed commit c45fc94, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `EVIL_PATTERNS.md`, `fable_partial.md`, and `scratch_*.py` files remain
+  untouched.
+- Search found no existing `apder_awidth <= apder_zw2` fact.  Narrow
+  checked brick now: prove `apder_awidth_le_apder_zw2`, a basic sanity fact
+  that the corrected row-count weight covers ordinary Antimirov leaf width
+  while adding the needed STAR-layer slots.
+
+## 2026-06-13 Secretary: EVIL_PATTERNS.md seeded (12 families harvested + verified)
+
+- Corpus body written to EVIL_PATTERNS.md (repo root). Harvested via a
+  5-agent extraction pass over the .thy/scala/archive sources; every regex
+  is verbatim rrexp with a checked-lemma citation and (where applicable) the
+  deception datum.
+- Part A (provable blow-up): A1 RONE-pair tower (exp list, depth-24 crossover,
+  afactored1_strong_dlform_list_cost_cubic_false); A2 dup-RONE 4-group tower
+  (list ledger not even quadratic, 1024>31^2); A3 NTIMES deep-frontier
+  alt-spread (apder_deep_frontier_linear_card_false, 49>39); A4 NTIMES
+  star-reentry front (adlform_front_linear_card_false, 64>47); A5 Chapter-7
+  three-layer evil star.
+- Part B (deceptive conjecture-killers, with sample-survival counts): B1
+  depth-5 nested-zero-width-star (killed zwidth-D AND J*, fooled ~200k + 95k
+  samples); B2 equality-tight char-over-double-star (killed 3 discounts, 113k
+  samples); B3 bare zero-width star families (membership companions, awidth);
+  B4 potential/reserve forms 9a/9b (the 9th dead strengthening); B5 value CEs
+  (B5a STAR(STAR a) on "a"; B5b reassoc bug, seed 20260602 case 99).
+- Standing rule already broadcast (2026-06-13 directive): append new CEs here
+  AND in EVIL_PATTERNS.md in the same cycle; never prune a dead CE.
+- No .thy changes; cubic proof unaffected.
