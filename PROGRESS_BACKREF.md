@@ -6439,3 +6439,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Next safe brick: check the pure helper
   `card A <= N ==> card A + card ({x} - B - C) <= Suc N`; then retry the
   RALTS constructor lemma using that named theorem.
+
+## 2026-06-13 Codex 06:25: CLAIM - two-set singleton plus-card arithmetic
+
+- Synced through pushed commit 6dea83d, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure two-set singleton arithmetic lemma
+  exposed by the RALTS retry:
+  `card A <= N ==> card A + card ({x} - B - C) <= Suc N`.  Prove it by an
+  explicit split on membership in `B union C`, avoiding the fragile local
+  rewrite that blocked the constructor proof.
+
+## 2026-06-13 Codex 06:30: CHECKED - two-set singleton plus-card arithmetic
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_add_singleton_Diff_Diff_le_Suc`.
+- The proof is the explicit `x in B union C` split; it gives the exact
+  arithmetic shape needed by the RALTS-continuation singleton
+  `{RSEQ (RALTS rs) (RALTS ks)} - rfrontiers ks - A`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  87.819s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

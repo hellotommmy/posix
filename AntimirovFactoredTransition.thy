@@ -29223,6 +29223,31 @@ next
   finally show ?thesis .
 qed
 
+lemma card_add_singleton_Diff_Diff_le_Suc:
+  assumes "card A \<le> N"
+  shows "card A + card ({x} - B - C) \<le> Suc N"
+proof (cases "x \<in> B \<union> C")
+  case True
+  have empty: "{x} - B - C = {}"
+    using True by blast
+  have "card A + card ({x} - B - C) = card A"
+    by (simp add: empty)
+  also have "... \<le> N"
+    by (rule assms)
+  also have "... \<le> Suc N"
+    by simp
+  finally show ?thesis .
+next
+  case False
+  have singleton: "{x} - B - C = {x}"
+    using False by blast
+  have "card A + card ({x} - B - C) = Suc (card A)"
+    by (simp add: singleton)
+  also have "... \<le> Suc N"
+    using assms by simp
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_diff_le_Suc:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
