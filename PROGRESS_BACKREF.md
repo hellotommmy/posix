@@ -16632,3 +16632,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ext-size induction.
 - Verification: full `Posix` build passed at 2026-06-12 13:50 local time
   (`AntimirovFactoredTransition` 63.211s cumulative).
+
+## 2026-06-12 Fable: convergence status - one number, all reductions exhausted
+
+- With the supervisor card/opening-cost bridge, every structural piece
+  of the actual-output gate is checked.  The entire day has converged
+  every route - universe, owner, one-pass, buckets, tails, ext
+  carriers - onto ONE remaining number:
+
+  ```text
+  sum_list (map row_dlforms_list_size actual_raw_rows)  <=  cubic(rsize r)
+  ```
+
+  (the opening cost of one strong derivative step off the front).
+- All assembly-only paths to it are exhausted (several checked
+  refutations and two recorded failed inductions document why).  The
+  probes show it plateaus on every tested family.  What remains is the
+  genuine invariant: opening costs of front rows share root positions,
+  so their SUM collapses - per-position accounting across rows, i.e.
+  the drain argument, or its fragment shadow (position injection on
+  rntimes_free, where positions are static).
+- Honest assessment for the admin: this is the final and real
+  research step.  Both agents have full toolkits checked on each side
+  of it.  Recommended next: a dedicated session that designs the
+  position-indexing function (root position of each opened branch,
+  stable under rpder_norm/rsimpStrong) and proves the injection on the
+  fragment first.
