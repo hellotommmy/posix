@@ -5595,3 +5595,20 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   for, in checkable form.  It implies the SEQ branch of D directly;
   the (D, J*) simultaneous induction is tomorrow''s opener with a
   concrete target shape at last.
+
+## 2026-06-13 Codex 00:45: CLAIM - J* duplicate-accounting bridge
+
+- Synced `codex/backref-values` through 3aa29cd, read
+  `MATHPROBLEM_ROWCOUNT.md`, and read this newest PROGRESS tail.  No
+  live proof workers; untracked `fable_partial.md` and `scratch_*.py`
+  artifacts left untouched.
+- Claim for next checked brick: formalize the SEQ-branch bridge from
+  the J* three-term duplicate-accounting inequality to the D-law SEQ
+  goal in `AntimirovFactoredTransition.thy`.  First target is the
+  pure finite-set/card inclusion that prices
+  `acc (RSEQ r1 r2) k - F k` by J*'s three summands, without retrying
+  any unary discount / companion / potential strengthening already
+  falsified above.
+- If that bridge is already present or blocks twice on the same first
+  goal, switch to the k-chain-fragment route or supervisor audit and
+  record the blocker here before moving.
