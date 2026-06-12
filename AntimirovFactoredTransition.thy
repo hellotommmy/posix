@@ -28603,4 +28603,72 @@ proof -
 qed
 
 
+text \<open>
+  Obligation (3) vanishes: the dlform universe contains only OPENED
+  rows, whose SEQ heads are nonalt (row_dlforms_seq_member_head_nonalt),
+  so no member matches the keyed shape RSEQ (RALTS rows) k.  Hence the
+  active suffix key set of the universe is empty and the pair budget
+  is zero - the gate loses its third summand entirely.
+\<close>
+
+lemma afactored1_strong_dlform_universe_no_keyed_member:
+  "RSEQ (RALTS rows) k \<notin> afactored1_strong_dlform_universe r s c"
+proof
+  assume "RSEQ (RALTS rows) k \<in>
+      afactored1_strong_dlform_universe r s c"
+  then have "RSEQ (RALTS rows) k \<in> row_dlformss
+      (concat (map (rpder_strong_list_raw c) (afactored1 r s)))"
+    by (simp add: afactored1_strong_dlform_universe_eq_row_dlformss_generated)
+  then have "nonalt (RALTS rows)"
+    by (rule row_dlformss_seq_member_head_nonalt)
+  then show False by simp
+qed
+
+lemma active_suffix_keys_afactored1_strong_dlform_universe_empty:
+  "raw_shared_prune_active_suffix_keys
+    (afactored1_strong_dlform_universe r s c) = {}"
+proof -
+  have "\<And>q. q \<in> afactored1_strong_dlform_universe r s c \<Longrightarrow>
+      raw_shared_prune_suffix_key q = None"
+  proof -
+    fix q
+    assume q: "q \<in> afactored1_strong_dlform_universe r s c"
+    show "raw_shared_prune_suffix_key q = None"
+    proof (cases "\<exists>rows k. q = RSEQ (RALTS rows) k")
+      case True
+      then obtain rows k where "q = RSEQ (RALTS rows) k" by blast
+      then show ?thesis
+        using q afactored1_strong_dlform_universe_no_keyed_member
+        by blast
+    next
+      case False
+      then show ?thesis
+        by (auto simp add: raw_shared_prune_suffix_key_def
+            split: rrexp.splits)
+    qed
+  qed
+  then show ?thesis
+    by (auto simp add: raw_shared_prune_active_suffix_keys_def)
+qed
+
+lemma pair_budget_afactored1_strong_dlform_universe_zero:
+  "raw_shared_prune_active_suffix_pair_budget
+    (afactored1_strong_dlform_universe r s c) = 0"
+  by (simp add: raw_shared_prune_active_suffix_pair_budget_def
+      active_suffix_keys_afactored1_strong_dlform_universe_empty)
+
+lemma actual_union_gate_two_summands:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        Suc (Suc (rsize r + rsize r)) + rsize t)"
+  using actual_union_pair_budget_gate_instance[OF legacy]
+  by (simp add: pair_budget_afactored1_strong_dlform_universe_zero)
+
+
 end

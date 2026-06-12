@@ -4878,3 +4878,34 @@ clean stale repository information.  Welcome - current accurate state:
   step are tails of the SAME front row family, pinned by the
   rpder_norm chain - or find the CE).  Bucket linear second
   (vs the checked cubic card_rseq_tail_nonalt_head_rows_..._le_front).
+
+## 2026-06-12 Fable: CHECKED - obligation (3) is ZERO; gate reduced to TWO summands
+
+- Full Posix build GREEN at 2026-06-12 20:44 local
+  (AntimirovFactoredTransition 77.821s, exit 0).  New checked chain:
+
+  ```text
+  afactored1_strong_dlform_universe_no_keyed_member
+  active_suffix_keys_afactored1_strong_dlform_universe_empty
+  pair_budget_afactored1_strong_dlform_universe_zero
+  actual_union_gate_two_summands
+  ```
+
+- Plain meaning: the dlform universe contains only OPENED rows; opened
+  SEQ heads are always nonalt (checked earlier today), so NO universe
+  member has the keyed shape RSEQ (RALTS rows) k.  Therefore the
+  active suffix key set is EMPTY and the pair budget is ZERO.  The
+  pair-budget summand of the gate instance vanishes identically.
+- Structural finding for the supervisor: the active-suffix machinery
+  is DEGENERATE on the dlform universe (it was designed for ROW sets,
+  where keyed rows live, not for opened dlform sets).  Either the gate
+  interface should target the row set for that summand, or - as now
+  checked - the summand is simply free and all remaining content sits
+  in summand (2).
+- Remaining single obligation, exact decomposition identified (next):
+  rsize_set(U) = nonseq part (cubic, checked) + SEQ part, and the SEQ
+  part splits exactly as card(SEQ)*(heads linear) + sum over tails t
+  of bucket(t)*rsize(t).  The two load-bearing numbers are now
+  card(union) (empirically linear, checked bound only one-degree-in-G)
+  and bucket(t) (empirically linear, checked bound cubic).  No
+  self-reference remains in this decomposition.
