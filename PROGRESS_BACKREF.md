@@ -16161,3 +16161,35 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 11:43 local time.
+
+## 2026-06-12 Fable: the two remaining gate terms share one core
+
+- Audited both remaining terms against every checked piece.  Both
+  reduce to the same product: (number of distinct tails) x (tail
+  sizes).  Tail count is on the ledger (checked, fragment-cubic);
+  tail SIZES are suffix chains, quadratic each, and no checked piece
+  makes the product cubic.  Exposed-row tails are sub-chains of
+  original tails, so even the fragment tail set is the suffix-closure
+  of linearly many chains - quadratically many members.  Every
+  composition of current pieces gives degree >= 4 for these two terms.
+- Conclusion, stated plainly: there is no assembly-only path left.
+  The drain/shared-suffix fact must be proved as a NEW invariant:
+  within one front, the distinct tails form a CHAIN-NESTED family
+  (each tail is a suffix of the longest tail at its position), so
+  their total size is (longest chain) + (increments), i.e. linear
+  per position, not quadratic.  That nesting is the precise
+  formalization of the probe plateau and is the last theorem.
+- Proposed statement to attack next (fragment first):
+
+  ```text
+  rntimes_free r ==> apder_nf r ==>
+  rsize_set (rseq_tails (adlform-or-universe of one step))
+    <= c * rsize r ^ 2
+  ```
+
+  via: tails at one position are nested suffixes; sum of nested
+  suffixes <= longest + sum of head increments <= rsize of the chain;
+  sum over linearly many positions <= quadratic.  With this, the two
+  open gate terms close at cubic and the fragment gate is complete.
+- Fable starts the nesting lemma next cycle (suffix-of relation on
+  tails of a single row first, then across the front).
