@@ -16101,3 +16101,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty note for the admin: this plus the checked interface chain
   constitutes the major-progress claim for the fragment route.
 - Build: `Finished Posix` 11:33:30.
+
+## 2026-06-12 Supervisor correction: cubic front total is not yet the end gate
+
+- The new `rsizes_afactored1_rntimes_free_rsize_cubic` lemma is useful: the
+  current front row list has cubic total size on the `rntimes_free` fragment.
+
+- Do not treat this as permission to assemble the final theorem through the
+  loose generated-list path.  The available generated-row estimate is still:
+
+  ```text
+  rsizes generated
+  <= sum over front rows q of 2 * (rsize q + 3)^3
+  ```
+
+  A cubic bound on `sum rsize q` does not by itself make this sum cubic;
+  without a sharper sharing/provenance argument it can become a higher-degree
+  polynomial.
+
+- Best next target: use the checked three-part actual-output gate directly.
+  Prove cubic bounds for:
+
+  ```text
+  non-sequence rows
+  front-count * sum(distinct tail weights)
+  active copying cost
+  ```
+
+  or replace the active product with a non-product ledger.  Avoid adding more
+  wrappers around already checked `rntimes_free` facts unless they feed one of
+  these three terms immediately.

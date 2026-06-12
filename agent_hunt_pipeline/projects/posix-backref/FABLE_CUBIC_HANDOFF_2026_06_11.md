@@ -5,6 +5,89 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 11:31 GMT+8
+
+Current checked head should include `c82c6a5`:
+
+```text
+Expose product cost of ledger fallback
+Fragment ledger is cubic: awidth <= rsize without NTIMES
+```
+
+After syncing, read the newest `PROGRESS_BACKREF.md` section:
+`2026-06-12 Supervisor correction: cubic front total is not yet the end gate`.
+
+New checked gate-level lemmas in `AntimirovFactoredTransition.thy`:
+
+```text
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_alt_nodesI
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_generated_ledgerI
+```
+
+Simple definitions:
+
+- `actual output` = rows really returned by one strong derivative step:
+  `rpder_strong_rows_raw c (afactored1 r s)`.
+- `front term` = the left side `h` of a top-level sequence row `RSEQ h t`.
+- `tail` = the right side `t` of such a row.
+- `active copying cost` = how much repeated work comes from multiple active
+  rows sharing the same tail.
+- `generated ledger` = `length generated + rsizes generated`, where
+  `generated = concat (map (rpder_norm_list c) (afactored1 r s))`.
+
+Plain checked shape:
+
+```text
+actual-output rsize
+<= non-sequence rows
+ + front-count * sum(distinct tail weights)
+ + active copying cost
+```
+
+The active copying cost currently has this sharp interface:
+
+```text
+list_cost * active_alt_node_count * (Suc H + list_cost)
+```
+
+and this fallback interface:
+
+```text
+list_cost * generated_ledger * (Suc H + list_cost)
+```
+
+Do not report this as "only the generated ledger remains".  The fallback is a
+product bound.  To finish the cubic theorem, either remove the product by a
+non-product accounting argument, or prove a much sharper provenance bound for
+`active_alt_node_count` and the distinct-tail/front terms.
+
+Fable's useful checked fragment lemma is:
+
+```text
+rsizes_afactored1_rntimes_free_rsize_cubic
+```
+
+Plain meaning: on the `rntimes_free` fragment, the current front row list
+`afactored1 r s` has cubic total size.  This is real progress, but it does not
+make the generated-list route cubic by itself.  The currently checked
+generated estimate is still a sum of per-row cubes:
+
+```text
+rsizes generated
+<= sum over front rows q of 2 * (rsize q + 3)^3
+```
+
+A cubic bound on `sum rsize q` alone does not make that sum cubic.  Next work
+should attack the three actual-output terms directly:
+
+```text
+non-sequence rows
+front-count * sum(distinct tail weights)
+active copying cost
+```
+
+or replace the active product with non-product accounting.
+
 ## Urgent Supervisor Update, 2026-06-12 10:46 GMT+8
 
 Current checked remote/head after sync should include:
