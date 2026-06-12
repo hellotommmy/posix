@@ -6976,3 +6976,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   97.474s, full Posix elapsed 0:01:47).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 10:35: CLAIM - SEQ left-slack with right nonalt D
+
+- Synced through pushed commit 39a219d, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow SEQ/k-chain package: combine the checked left-slack SEQ D bridge
+  with the new normal-nonalt D-to-carry bridge.  A left outside-middle slack
+  slot plus an ordinary D bound for an `apder_nf` non-alt right child should
+  imply the exact SEQ D bound.
+
+## 2026-06-13 Codex 10:40: CHECKED - SEQ left-slack with right nonalt D
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_left_slack_right_nonalt_diff`.
+- This packages the k-chain/non-alt-right SEQ branch: one left slack slot
+  plus ordinary D for an `apder_nf` non-alt right child yields the exact
+  parent SEQ D bound, via the normal-nonalt D-to-carry bridge.
+- Build command passed after worker check (AntimirovFactoredTransition
+  92.435s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
