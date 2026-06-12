@@ -16343,3 +16343,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   (c) size account for rseq_suffixes_ext; (d) cross-row: distinct
   tails of the actual step inject into the union over front rows,
   where the fragment linearity collapses positions.
+
+## 2026-06-12 Supervisor: extended suffix ownership checked
+
+- New checked carrier and ownership lemma:
+
+  ```text
+  rseq_suffixes_ext
+  finite_rseq_suffixes_ext
+  rseq_tails_row_dlforms_subset_rseq_suffixes_ext
+  ```
+
+- Plain meaning: `rseq_suffixes` was the ordinary "keep taking the right side
+  of RSEQ" chain.  That was too small for a row like
+  `RSEQ (RALTS ps) k`, because opening a nested branch can create tails of the
+  form `branch_tail . k`.  The new `rseq_suffixes_ext q` follows exactly that
+  opening step: when a keyed alternation row is opened, it recurses into each
+  `rsimp7_SEQ_atom p k`.
+- The checked theorem says: every sequence tail produced by `row_dlforms q`
+  is inside this extended carrier.  This turns Fable's hand boundary analysis
+  into an Isabelle fact.
+- This still does not prove the final cubic bound.  The next useful theorem is
+  a size account for `rseq_suffixes_ext` that avoids multiplying "number of
+  branches" by the same shared tail at every nesting level.
+- Verification: full `Posix` build passed at 2026-06-12 12:36 local time
+  (`AntimirovFactoredTransition` 64.651s cumulative).

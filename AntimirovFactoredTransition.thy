@@ -22433,6 +22433,47 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rseq_suffixes_self [simp]:
+  "q \<in> rseq_suffixes q"
+  by (induct q) simp_all
+
+function (sequential) rseq_suffixes_ext :: "rrexp \<Rightarrow> rrexp set" where
+  "rseq_suffixes_ext RZERO = {}"
+| "rseq_suffixes_ext (RALTS rs) =
+    (\<Union>q \<in> set rs. rseq_suffixes_ext q)"
+| "rseq_suffixes_ext (RSEQ (RALTS ps) k) =
+    rseq_suffixes (RSEQ (RALTS ps) k) \<union>
+      (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
+| "rseq_suffixes_ext r = rseq_suffixes r"
+  by pat_completeness auto
+termination
+proof (relation "measure rsize")
+  show "wf (measure rsize)"
+    by simp
+next
+  fix rs :: "rrexp list" and q :: rrexp
+  assume q: "q \<in> set rs"
+  have "rsize q \<le> rsizes rs"
+    by (rule elem_size_le_rsizes[OF q])
+  then show "(q, RALTS rs) \<in> measure rsize"
+    by simp
+next
+  fix ps :: "rrexp list" and k :: rrexp and p :: rrexp
+  assume p: "p \<in> set ps"
+  show "(rsimp7_SEQ_atom p k, RSEQ (RALTS ps) k) \<in> measure rsize"
+    using rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p]
+    by simp
+qed
+
+lemma finite_rseq_suffixes_ext [simp]:
+  "finite (rseq_suffixes_ext q)"
+  by (induct q rule: rseq_suffixes_ext.induct) auto
+
+lemma rseq_tails_row_dlforms_subset_rseq_suffixes_ext:
+  "rseq_tails (row_dlforms q) \<subseteq> rseq_suffixes_ext q"
+  by (induct q rule: rseq_suffixes_ext.induct)
+    (auto simp add: rseq_tails_def split: rrexp.splits)
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

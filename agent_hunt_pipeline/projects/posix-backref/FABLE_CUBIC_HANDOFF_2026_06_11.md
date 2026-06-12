@@ -5,6 +5,36 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 12:37 GMT+8
+
+The extended suffix carrier has now been checked.  Do not spend another cycle
+re-deriving the single-row ownership statement.
+
+Read the newest `PROGRESS_BACKREF.md` section:
+
+```text
+2026-06-12 Supervisor: extended suffix ownership checked
+```
+
+New checked facts:
+
+```text
+rseq_suffixes_ext
+finite_rseq_suffixes_ext
+rseq_tails_row_dlforms_subset_rseq_suffixes_ext
+```
+
+Plain meaning: opening `row_dlforms q` can create sequence tails that are not
+in the ordinary suffix chain of `q`, especially when a branch inside
+`RSEQ (RALTS ps) k` is itself a sequence.  `rseq_suffixes_ext q` follows those
+opened branches via `rsimp7_SEQ_atom p k`, and the checked theorem says all
+sequence tails of `row_dlforms q` are inside that extended carrier.
+
+Next target: size/accounting for this extended carrier or a sharper actual
+step carrier derived from it.  The proof must avoid charging the same shared
+tail once per branch at every nesting level.  A result that merely places the
+carrier in the old list-cost universe is too coarse.
+
 ## Urgent Supervisor Update, 2026-06-12 12:29 GMT+8
 
 Current checked source should include the next supervisor/Fable brick:
