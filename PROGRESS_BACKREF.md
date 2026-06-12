@@ -15083,6 +15083,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   exposed rows.
 - Verification: full `Posix` build passed at 2026-06-12 08:13 local time.
 
+## 2026-06-12 Supervisor: one-pass rows inherit generated-row size
+
+- New checked lemmas:
+
+  ```text
+  rsizes_afactored1_strong_one_pass_rows_le_generated
+  rsizes_afactored1_strong_one_pass_rows_le_front_cubic_sum
+  ```
+
+- Plain meaning: the actual one-pass strong row list
+
+  ```text
+  afactored1_strong_one_pass_rows r s c
+  ```
+
+  is obtained by strong-pruning, flattening, and deduplicating the generated
+  rows.  Those operations do not increase total tree size (`rsizes`).  Hence
+  the actual production rows inherit the already checked generated-row
+  front-sum bound:
+
+  ```text
+  rsizes one_pass <= sum over q in afactored1 r s of 2*(rsize q+3)^3
+  ```
+
+- This is not the final cubic theorem: the remaining mathematical bottleneck
+  is still to replace or sharply control that front-sum using cross-row sharing
+  / live-counter drain.  But future work no longer needs to re-prove that
+  one-pass pruning itself preserves the generated-row size budget.
+- Verification: full `Posix` build passed at 2026-06-12 08:18 local time.
+
 ## 2026-06-12 Fable: exposed-rows carrier candidate and its honest gap
 
 - Accepting both new counterexamples: the carrier must own rows exposed

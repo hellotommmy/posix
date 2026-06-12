@@ -19929,6 +19929,24 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsizes_afactored1_strong_one_pass_rows_le_generated:
+  "rsizes (afactored1_strong_one_pass_rows r s c) \<le>
+    rsizes (afactored1_strong_generated_rows r s c)"
+proof -
+  let ?gen = "afactored1_strong_generated_rows r s c"
+  let ?clean = "rsimpStrong_prune_rows_raw ?gen"
+  have "rsizes (afactored1_strong_one_pass_rows r s c) =
+      rsizes (rdistinct (rflts ?clean) {})"
+    by (simp add: afactored1_strong_one_pass_rows_eq)
+  also have "... \<le> rsizes (rflts ?clean)"
+    using rdistinct_smaller[of "rflts ?clean" "{}"] by simp
+  also have "... \<le> rsizes ?clean"
+    by (rule rflts_mono)
+  also have "... \<le> rsizes ?gen"
+    by (rule rsizes_rsimpStrong_prune_rows_raw_le)
+  finally show ?thesis .
+qed
+
 lemma legacy_afactored1_rows:
   assumes legacy: "legacy_rrexp r"
     and q: "q \<in> set (afactored1 r s)"
@@ -19982,6 +20000,21 @@ proof -
         sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) ?front)" .
   show ?thesis
     by (rule order_trans[OF flts chain])
+qed
+
+lemma rsizes_afactored1_strong_one_pass_rows_le_front_cubic_sum:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsizes (afactored1_strong_one_pass_rows r s c) \<le>
+    sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+proof -
+  have "rsizes (afactored1_strong_one_pass_rows r s c) \<le>
+      rsizes (afactored1_strong_generated_rows r s c)"
+    by (rule rsizes_afactored1_strong_one_pass_rows_le_generated)
+  also have "... \<le>
+      sum_list (map (\<lambda>q. 2 * (rsize q + 3) ^ 3) (afactored1 r s))"
+    by (rule rsizes_afactored1_strong_generated_rows_le_front_cubic_sum
+        [OF legacy])
+  finally show ?thesis .
 qed
 
 lemma rsizes_afactored1_generated_rows_le_front_cubic_sum:
