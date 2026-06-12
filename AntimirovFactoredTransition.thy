@@ -29456,6 +29456,20 @@ proof -
   qed
 qed
 
+lemma card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_diff_le_one:
+  assumes nf: "apder_nf p"
+    and nonalt: "nonalt p"
+  shows "card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k - A) \<le> 1"
+proof -
+  have "card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k - A) \<le>
+      card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k)"
+    by (rule card_mono) simp_all
+  also have "... \<le> 1"
+    by (rule card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_le_one
+        [OF nf nonalt])
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -

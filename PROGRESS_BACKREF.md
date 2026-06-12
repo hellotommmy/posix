@@ -6936,3 +6936,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   87.673s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 10:15: CLAIM - normal nonalt carry-bucket shift
+
+- Synced through pushed commit 8c89286, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow k-chain/carry corollary: prove the same one-row frontier shift after
+  subtracting an arbitrary accumulator set as well:
+  `card (F(sigma4 p k) - F(k) - A) <= 1` for `apder_nf` non-alt `p`.
+
+## 2026-06-13 Codex 10:20: CHECKED - normal nonalt carry-bucket shift
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_diff_le_one`.
+- This is the carry-bucket form of the normal non-alt one-step shift: after
+  subtracting both the continuation frontier and any accumulator set, the
+  remaining newly carried frontier rows are still bounded by one.
+- Build command passed after worker check (AntimirovFactoredTransition
+  86.857s, full Posix elapsed 0:01:44).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
