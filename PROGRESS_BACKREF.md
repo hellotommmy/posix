@@ -15570,19 +15570,25 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   ```text
   rseq_tails
+  rseq_heads
   rseq_rows
   rnonseq_members
   rseq_tail_rows
   finite_rseq_tails
+  finite_rseq_heads
   finite_rseq_rows
   finite_rnonseq_members
   finite_rseq_tail_rows
   rseq_rows_eq_UN_tail_rows
   rnonseq_members_union_rseq_rows
   rseq_tails_aseq_terms_subsetI
+  rseq_heads_aseq_terms_subsetI
   rseq_tails_row_dlformss_aseq_terms_subset
+  rseq_heads_row_dlformss_aseq_terms_subset
   rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
+  rseq_heads_row_dlformss_afactored1_strong_one_pass_rows_subset_front
   rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
+  rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
   rsize_set_rseq_tail_rows_bucket_boundI
   rsize_set_rseq_rows_bucket_boundI
   rsize_set_split_rseq_tails_bucket_boundI
@@ -15593,6 +15599,8 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `row_dlformss`, and collect every top-level sequence tail `t` from a member
   `RSEQ h t`.  Every atom inside those tails still belongs to the same
   current strong front carrier `strong_derivative_front_terms r (s @ [c])`.
+  The same is now checked for the corresponding sequence heads via
+  `rseq_heads`.
 
 - Why this matters: the final cubic gate is on the deduplicated set
   `rsize_set (row_dlformss (actual output))`.  To avoid charging the same
@@ -15620,7 +15628,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `rseq_tail_rows (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:12 local time.
+  `Posix` green at 2026-06-12 10:17 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 

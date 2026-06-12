@@ -6489,6 +6489,9 @@ qed
 definition rseq_tails :: "rrexp set \<Rightarrow> rrexp set" where
   "rseq_tails U = {t. \<exists>h. RSEQ h t \<in> U}"
 
+definition rseq_heads :: "rrexp set \<Rightarrow> rrexp set" where
+  "rseq_heads U = {h. \<exists>t. RSEQ h t \<in> U}"
+
 definition rseq_rows :: "rrexp set \<Rightarrow> rrexp set" where
   "rseq_rows U = {q \<in> U. \<exists>h t. q = RSEQ h t}"
 
@@ -6505,6 +6508,17 @@ proof -
   let ?tail_of = "\<lambda>x. case x of RSEQ h t \<Rightarrow> t | _ \<Rightarrow> RZERO"
   have "rseq_tails U \<subseteq> ?tail_of ` U"
     by (auto simp add: rseq_tails_def split: rrexp.splits)
+  then show ?thesis
+    by (rule finite_subset) (use assms in simp)
+qed
+
+lemma finite_rseq_heads [simp]:
+  assumes "finite U"
+  shows "finite (rseq_heads U)"
+proof -
+  let ?head_of = "\<lambda>x. case x of RSEQ h t \<Rightarrow> h | _ \<Rightarrow> RZERO"
+  have "rseq_heads U \<subseteq> ?head_of ` U"
+    by (auto simp add: rseq_heads_def split: rrexp.splits)
   then show ?thesis
     by (rule finite_subset) (use assms in simp)
 qed
@@ -6551,10 +6565,34 @@ proof
     using t(2) by blast
 qed
 
+lemma rseq_heads_aseq_terms_subsetI:
+  assumes "\<And>x. x \<in> U \<Longrightarrow> aseq_terms x \<subseteq> A"
+  shows "(\<Union>h \<in> rseq_heads U. aseq_terms h) \<subseteq> A"
+proof
+  fix x
+  assume x: "x \<in> (\<Union>h \<in> rseq_heads U. aseq_terms h)"
+  obtain h t where h:
+      "RSEQ h t \<in> U"
+      "x \<in> aseq_terms h"
+    using x by (auto simp add: rseq_heads_def)
+  have "aseq_terms (RSEQ h t) \<subseteq> A"
+    by (rule assms[OF h(1)])
+  then have head: "aseq_terms h \<subseteq> A"
+    by simp
+  then show "x \<in> A"
+    using h(2) by blast
+qed
+
 lemma rseq_tails_row_dlformss_aseq_terms_subset:
   "(\<Union>t \<in> rseq_tails (row_dlformss rs). aseq_terms t) \<subseteq>
     aseq_termss rs"
   by (rule rseq_tails_aseq_terms_subsetI)
+    (rule row_dlformss_aseq_terms_subset)
+
+lemma rseq_heads_row_dlformss_aseq_terms_subset:
+  "(\<Union>h \<in> rseq_heads (row_dlformss rs). aseq_terms h) \<subseteq>
+    aseq_termss rs"
+  by (rule rseq_heads_aseq_terms_subsetI)
     (rule row_dlformss_aseq_terms_subset)
 
 lemma rsize_set_rseq_tail_rows_bucket_boundI:
@@ -20595,12 +20633,35 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rseq_heads_row_dlformss_afactored1_strong_one_pass_rows_subset_front:
+  "(\<Union>h \<in> rseq_heads (row_dlformss
+      (afactored1_strong_one_pass_rows r s c)). aseq_terms h) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+proof -
+  have "(\<Union>h \<in> rseq_heads (row_dlformss
+        (afactored1_strong_one_pass_rows r s c)). aseq_terms h) \<subseteq>
+      aseq_termss (afactored1_strong_one_pass_rows r s c)"
+    by (rule rseq_heads_row_dlformss_aseq_terms_subset)
+  also have "... \<subseteq> strong_derivative_front_terms r (s @ [c])"
+    by (rule aseq_termss_afactored1_strong_one_pass_rows_subset_front)
+  finally show ?thesis .
+qed
+
 lemma rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
   "(\<Union>t \<in> rseq_tails (row_dlformss
       (rpder_strong_rows_raw c (afactored1 r s))). aseq_terms t) \<subseteq>
     strong_derivative_front_terms r (s @ [c])"
   using
     rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
+      [of r s c]
+  by (simp add: afactored1_strong_one_pass_rows_def)
+
+lemma rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
+  "(\<Union>h \<in> rseq_heads (row_dlformss
+      (rpder_strong_rows_raw c (afactored1 r s))). aseq_terms h) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+  using
+    rseq_heads_row_dlformss_afactored1_strong_one_pass_rows_subset_front
       [of r s c]
   by (simp add: afactored1_strong_one_pass_rows_def)
 

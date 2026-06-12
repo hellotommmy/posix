@@ -91,9 +91,11 @@ Checked bridge for the deduplicated actual-output route:
 `rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front` says
 that every atom inside every top-level sequence tail `t` from an actual
 dlform member `RSEQ h t` is still in
-`strong_derivative_front_terms r (s @ [c])`.  Use `rseq_tails` for actual
-dlform tails; `raw_shared_prune_suffix_key` only sees `RSEQ (RALTS rows) k`
-buckets and misses ordinary `RSEQ h t` members.
+`strong_derivative_front_terms r (s @ [c])`; the matching checked head bridge
+is `rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front`.
+Use `rseq_tails`/`rseq_heads` for actual dlform parts; `raw_shared_prune_suffix_key`
+only sees `RSEQ (RALTS rows) k` buckets and misses ordinary `RSEQ h t`
+members.
 
 Checked size split: `rsize_set_split_rseq_tails_bucket_boundI` is the safe
 form of the deduplicated accounting.  It does NOT charge each distinct tail
