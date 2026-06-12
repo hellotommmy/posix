@@ -29105,6 +29105,60 @@ proof -
     by simp
 qed
 
+lemma card_RSEQ_RNTIMES_RALTS_diff_rfrontiers_le_one:
+  "card ({RSEQ (RNTIMES r n) (RALTS rs)} - rfrontiers rs) \<le> 1"
+  by (rule card_singleton_Diff_le_one)
+
+lemma card_rfrontier_rsimp4_SEQ_atom_RNTIMES_diff_le_one:
+  "card (rfrontier (rsimp4_SEQ_atom (RNTIMES r n) k) - rfrontier k) \<le> 1"
+proof (cases k)
+  case (RALTS rs)
+  then show ?thesis
+    using card_RSEQ_RNTIMES_RALTS_diff_rfrontiers_le_one[of r n rs]
+    by simp
+qed (simp_all add: card_singleton_Diff_le_one)
+
+lemma card_apder_term_frontier_acc_RNTIMES_child_diff_le_Suc:
+  assumes body: "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) -
+      rfrontier (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le> apder_zw2 r"
+  shows "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) - rfrontier k) \<le>
+    Suc (apder_zw2 r)"
+proof -
+  let ?A = "apder_term_frontier_acc r
+    (rsimp4_SEQ_atom (RNTIMES r m) k)"
+  let ?F = "rfrontier (rsimp4_SEQ_atom (RNTIMES r m) k)"
+  have finA: "finite ?A"
+    by simp
+  have finF: "finite ?F"
+    by simp
+  have shift: "card (?F - rfrontier k) \<le> 1"
+    by (rule card_rfrontier_rsimp4_SEQ_atom_RNTIMES_diff_le_one)
+  have "card (?A - rfrontier k) \<le> Suc (card (?A - ?F))"
+    by (rule card_diff_le_Suc_card_diff_if_small_middle[OF finA finF shift])
+  also have "... \<le> Suc (apder_zw2 r)"
+    using body by simp
+  finally show ?thesis .
+qed
+
+lemma card_apder_term_frontier_acc_RNTIMES_diff_le_if_children:
+  assumes each: "\<And>m. m < n \<Longrightarrow>
+    card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) -
+      rfrontier (rsimp4_SEQ_atom (RNTIMES r m) k)) \<le> apder_zw2 r"
+  shows "card (apder_term_frontier_acc (RNTIMES r n) k - rfrontier k) \<le>
+    apder_zw2 (RNTIMES r n)"
+proof (rule card_apder_term_frontier_acc_RNTIMES_diff_le)
+  fix m
+  assume m: "m < n"
+  show "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) - rfrontier k) \<le>
+      Suc (apder_zw2 r)"
+    by (rule card_apder_term_frontier_acc_RNTIMES_child_diff_le_Suc)
+      (rule each[OF m])
+qed
+
 lemma card_UN_set_diff_le_sum_list:
   "card ((\<Union>x \<in> set xs. A x) - K) \<le>
     sum_list (map (\<lambda>x. card (A x - K)) xs)"

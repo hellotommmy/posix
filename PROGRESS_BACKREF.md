@@ -6012,3 +6012,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.335s, full Posix elapsed 0:01:31).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:20: CLAIM - RNTIMES one-point frontier shift
+
+- Synced through pushed commit c92b313, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: mirror the checked STAR shift for `RNTIMES`.
+  Prove `card (rfrontier (rsimp4_SEQ_atom (RNTIMES r m) k) - rfrontier k)
+  <= 1`, then package a child-obligation version of the RNTIMES aggregation
+  where each child is bounded against its own shifted frontier.
+
+## 2026-06-13 Codex 03:25: CHECKED - RNTIMES one-point frontier shift
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_RSEQ_RNTIMES_RALTS_diff_rfrontiers_le_one`,
+  `card_rfrontier_rsimp4_SEQ_atom_RNTIMES_diff_le_one`,
+  `card_apder_term_frontier_acc_RNTIMES_child_diff_le_Suc`, and
+  `card_apder_term_frontier_acc_RNTIMES_diff_le_if_children`.
+- This mirrors the checked STAR one-point frontier shift and feeds it into
+  the existing range aggregation, so each RNTIMES child obligation may now be
+  stated against its own shifted accumulator frontier.
+- Build command passed after worker check (AntimirovFactoredTransition
+  85.875s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
