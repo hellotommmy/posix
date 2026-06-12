@@ -5540,3 +5540,16 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   dead strengthenings documented - the next attempt should start from
   the list-version/duplicate-accounting or k-chain-fragment routes in
   the problem file, not from unary discounts.
+
+## 2026-06-13 Fable 00:00: list-length route dead; checker tool landed
+
+- The list-length route (length of the undeduplicated accumulator
+  <= zwidth * W(k)) dies immediately: at k = RONE the RCHAR leaves see
+  W(continuation r2) inside, not W(k) - the known CE gives length 4 >
+  zwidth 3 at the top level.  Counting without dedup CANNOT be linear;
+  the union-merge is essential (consistent with everything else today).
+  Recorded as falsified strengthening #7.
+- Landed scratch_rowcount_check.py at repo root: self-contained D-law
+  random checker + assertions that all recorded CEs keep falsifying
+  the dead strengthenings.  Run: python scratch_rowcount_check.py
+  [samples].  For the next attacker.
