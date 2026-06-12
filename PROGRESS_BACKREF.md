@@ -6651,3 +6651,22 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.923s, full Posix elapsed 0:01:46).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:05: CLAIM - exact carry implies D
+
+- Synced through pushed commit 0f8beb5, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the direct bridge from an exact carry-measure
+  bound to the D bound.  This will let later constructor/induction steps use
+  exact carry facts without restating the first-summand arithmetic.
+
+## 2026-06-13 Codex 08:10: CHECKED - exact carry implies D
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_diff_le_if_carry_measure`.
+- This is the direct first-summand bridge from exact carry measure to the D
+  bound.
+- Build command passed after worker check (AntimirovFactoredTransition
+  88.887s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

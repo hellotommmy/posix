@@ -29593,6 +29593,13 @@ next
     by (rule each_diff)
 qed
 
+lemma card_apder_term_frontier_acc_diff_le_if_carry_measure:
+  assumes carry: "card (apder_term_frontier_acc r k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r k) - rfrontier k -
+      apder_term_frontier_acc r k) \<le> apder_zw2 r"
+  shows "card (apder_term_frontier_acc r k - rfrontier k) \<le> apder_zw2 r"
+  using carry by linarith
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"
