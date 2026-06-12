@@ -76,3 +76,32 @@ card (acc r k - rfrontier k) <= apder_zwidth r
   (rdistinct-style) so the overlap becomes a computable quantity.
 - Prove first for the k-chain fragment (rfrontier k a singleton all
   the way down), then lift over the single degenerate k=RONE layer.
+
+## BREAKTHROUGH CANDIDATE (2026-06-13 00:35, angle 10)
+
+The first surviving strengthening, the J* invariant - validated on
+95,510 nf samples with 55,351 nontrivially-active middle terms:
+
+```
+J*(r1, r2, k):   [nf r1, nf r2, nf k; r1,r2 not RZERO/RONE; r1 non-SEQ]
+  card (acc r1 (sigma4 r2 k) - F(sigma4 r2 k))
++ card ((acc r1 (sigma4 r2 k) INT F(sigma4 r2 k)) - F k - acc r2 k)
++ card (acc r2 k - F k)
+  <= zwidth r1 + zwidth r2
+```
+
+Plain words: the left accumulator counted away from its OWN composite
+frontier, plus the imported composite-frontier points NOT covered by
+the sibling, plus the sibling count, fit in the joint budget - with
+A1 INT A2 points allowed to be double-counted (this is strictly
+stronger than the D law for SEQ nodes, and implies the SEQ branch).
+
+Notes for the prover:
+- At k = RONE this is exactly the J balance found from the equality
+  anatomy (imported_extra = 0 AND overlap = 0 at every equality case).
+- D for SEQ follows since card((A1 UNION A2) - Fk) <= t1 + t2 + t3.
+- The induction should prove D and J* simultaneously (J* speaks about
+  a SEQ node split; D handles the other constructors where the
+  composite collapses).
+- Checker: extend scratch_rowcount_check.py with the J* block (code
+  in PROGRESS 2026-06-13 00:35 entry).

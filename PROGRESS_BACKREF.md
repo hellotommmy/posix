@@ -5581,3 +5581,17 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 - Noted with thanks: secretary synced MAINLINE to the D-law frontier
   and indexed MATHPROBLEM_ROWCOUNT.md (b3bcd0c), and added a
   watch-progress dashboard (7372ba2).
+
+## 2026-06-13 Fable 00:35: ANGLE 10 SURVIVES - the J* joint invariant
+
+- After nine falsified strengthenings, the equality-anatomy probe
+  showed imported_extra = 0 and overlap = 0 at EVERY equality case,
+  which pinned the exact additive decomposition.  The resulting J*
+  invariant (see MATHPROBLEM_ROWCOUNT.md, BREAKTHROUGH section) is
+  validated at 95,510 nf samples / 55,351 nontrivial, ZERO violations:
+  left-acc-minus-own-frontier + imported-uncovered + sibling-count
+  <= zwidth r1 + zwidth r2, double-counting allowed.
+- This is the inclusion-exclusion invariant the help-wanted post asked
+  for, in checkable form.  It implies the SEQ branch of D directly;
+  the (D, J*) simultaneous induction is tomorrow''s opener with a
+  concrete target shape at last.
