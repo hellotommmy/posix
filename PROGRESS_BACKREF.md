@@ -5553,3 +5553,18 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   random checker + assertions that all recorded CEs keep falsifying
   the dead strengthenings.  Run: python scratch_rowcount_check.py
   [samples].  For the next attacker.
+
+## 2026-06-13 Fable 00:05: angle 8 (subterm/composite split) - shared budget confirmed
+
+- Classified acc-points into subterm-of-r points vs composite rows:
+  both classes are individually <= zwidth (50k samples), but equality
+  cases mix them (z=3 splits as 1+2 or 2+1) - the budget is SHARED,
+  so no independent two-lemma decomposition exists.  Consistent with
+  the inclusion-exclusion diagnosis; the joint invariant must price
+  subterm-points and composite-points from one account.
+- Perspective note after re-reading the chain: the D law upgrades
+  constants/degree of the STATIC ledger (and the front-quadratic
+  conjecture), but the gate''s hard blocker remains the LIVENESS
+  slice; both are documented to spec.  Remaining relay cycles tonight:
+  poll for supervisor responses and keep the ledger clean; full-window
+  attacks resume next session.
