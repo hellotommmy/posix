@@ -6734,3 +6734,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   prove the equality by explicit list induction; rerun passed after worker
   check (AntimirovFactoredTransition 95.885s, full Posix elapsed 0:01:36).
   No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:45: CLAIM - generic SEQ left-two-bucket interface
+
+- Synced through pushed commit 23e4a92, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: name the generic duplicate-accounting interface
+  exposed by the three-bucket splitter.  A left child bound consisting of
+  outside-middle plus middle-overlap buckets, together with the ordinary
+  right-child D bound, should imply the exact SEQ D bound.
+
+## 2026-06-13 Codex 08:50: CHECKED - generic SEQ left-two-bucket interface
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_left_two_buckets`.
+- This names the generic duplicate-accounting boundary for SEQ: a
+  left-child outside-middle bucket plus middle-overlap bucket, combined with
+  the ordinary right D bound, implies the exact parent D bound.
+- Build command passed after worker check (AntimirovFactoredTransition
+  85.067s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

@@ -29753,6 +29753,28 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_left_two_buckets:
+  assumes left:
+    "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 r1"
+    and right: "card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof (rule card_apder_term_frontier_acc_RSEQ_diff_le_if_three_buckets)
+  show "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r1 + apder_zw2 r2"
+    using left right by linarith
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_middle_carried:
   assumes left: "card (apder_term_frontier_acc r1
       (rsimp4_SEQ_atom r2 k) -
