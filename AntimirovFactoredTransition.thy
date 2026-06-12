@@ -6501,6 +6501,11 @@ definition rnonseq_members :: "rrexp set \<Rightarrow> rrexp set" where
 definition rseq_tail_rows :: "rrexp set \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "rseq_tail_rows U t = {q \<in> U. \<exists>h. q = RSEQ h t}"
 
+definition rseq_tail_nonalt_head_rows ::
+  "rrexp set \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rseq_tail_nonalt_head_rows U t =
+    {q \<in> rseq_tail_rows U t. \<exists>h. q = RSEQ h t \<and> nonalt h}"
+
 lemma finite_rseq_tails [simp]:
   assumes "finite U"
   shows "finite (rseq_tails U)"
@@ -6537,6 +6542,11 @@ lemma finite_rseq_tail_rows [simp]:
   assumes "finite U"
   shows "finite (rseq_tail_rows U t)"
   using assms by (auto simp add: rseq_tail_rows_def)
+
+lemma finite_rseq_tail_nonalt_head_rows [simp]:
+  assumes "finite U"
+  shows "finite (rseq_tail_nonalt_head_rows U t)"
+  using assms by (auto simp add: rseq_tail_nonalt_head_rows_def)
 
 lemma rseq_rows_eq_UN_tail_rows:
   "rseq_rows U = (\<Union>t \<in> rseq_tails U. rseq_tail_rows U t)"
@@ -6638,6 +6648,38 @@ proof -
   also have "... \<le> card (rseq_heads U)"
     by (rule card_mono)
       (use finite image_subset in auto)
+  finally show ?thesis .
+qed
+
+lemma card_rseq_tail_nonalt_head_rows_le:
+  assumes finite_U: "finite U"
+    and finite_A: "finite A"
+    and head_in:
+      "\<And>h. RSEQ h t \<in> U \<Longrightarrow> nonalt h \<Longrightarrow> h \<in> A"
+  shows "card (rseq_tail_nonalt_head_rows U t) \<le> card A"
+proof -
+  let ?head_of = "\<lambda>x. case x of RSEQ h k \<Rightarrow> h | _ \<Rightarrow> RZERO"
+  have inj: "inj_on ?head_of (rseq_tail_nonalt_head_rows U t)"
+  proof (rule inj_onI)
+    fix x y
+    assume x: "x \<in> rseq_tail_nonalt_head_rows U t"
+      and y: "y \<in> rseq_tail_nonalt_head_rows U t"
+      and same: "?head_of x = ?head_of y"
+    show "x = y"
+      using x y same
+      by (auto simp add: rseq_tail_nonalt_head_rows_def
+          rseq_tail_rows_def split: rrexp.splits)
+  qed
+  have image_subset:
+      "?head_of ` rseq_tail_nonalt_head_rows U t \<subseteq> A"
+    using head_in
+    by (auto simp add: rseq_tail_nonalt_head_rows_def
+        rseq_tail_rows_def split: rrexp.splits)
+  have "card (rseq_tail_nonalt_head_rows U t) =
+      card (?head_of ` rseq_tail_nonalt_head_rows U t)"
+    by (rule card_image[OF inj, symmetric])
+  also have "... \<le> card A"
+    by (rule card_mono[OF finite_A image_subset])
   finally show ?thesis .
 qed
 
@@ -20702,6 +20744,29 @@ lemma rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
     rseq_heads_row_dlformss_afactored1_strong_one_pass_rows_subset_front
       [of r s c]
   by (simp add: afactored1_strong_one_pass_rows_def)
+
+lemma card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front:
+  "card (rseq_tail_nonalt_head_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
+    card (strong_derivative_front_terms r (s @ [c]))"
+proof (rule card_rseq_tail_nonalt_head_rows_le)
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  show "finite ?U"
+    by simp
+  show "finite ?F"
+    by simp
+  fix h
+  assume row: "RSEQ h t \<in> ?U"
+    and nonalt: "nonalt h"
+  have in_universe: "RSEQ h t \<in> afactored1_strong_dlform_universe r s c"
+    using row
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe
+    by blast
+  show "h \<in> ?F"
+    by (rule afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms
+        [OF in_universe nonalt])
+qed
 
 lemma rflts_singleton_member_rtail_nf_props:
   assumes q: "rtail_nf q"

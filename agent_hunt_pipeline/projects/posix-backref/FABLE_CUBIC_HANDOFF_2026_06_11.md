@@ -113,6 +113,12 @@ The generic bound `card_rseq_tail_rows_le_rseq_heads` is checked, and the
 derived split `rsize_set_split_rseq_tails_head_count_boundI` lets you take
 `B = card (rseq_heads U)`.
 
+The nonalt-head half of the bucket bound is also checked as
+`card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front`:
+for actual output, fixed-tail rows with a nonalt head inject into
+`strong_derivative_front_terms r (s @ [c])`.  The remaining bucket-count work
+is the keyed-head/RALTS part.
+
 Next high-value concrete target: instantiate this with
 `U = row_dlformss (rpder_strong_rows_raw c (afactored1 r s))` and prove a
 useful actual-output bound for `card (rseq_heads U)` and the distinct tail

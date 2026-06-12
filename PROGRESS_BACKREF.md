@@ -15574,11 +15574,13 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rseq_rows
   rnonseq_members
   rseq_tail_rows
+  rseq_tail_nonalt_head_rows
   finite_rseq_tails
   finite_rseq_heads
   finite_rseq_rows
   finite_rnonseq_members
   finite_rseq_tail_rows
+  finite_rseq_tail_nonalt_head_rows
   rseq_rows_eq_UN_tail_rows
   rnonseq_members_union_rseq_rows
   rseq_tails_aseq_terms_subsetI
@@ -15591,9 +15593,11 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
   rsize_set_rseq_tail_rows_bucket_boundI
   card_rseq_tail_rows_le_rseq_heads
+  card_rseq_tail_nonalt_head_rows_le
   rsize_set_rseq_rows_bucket_boundI
   rsize_set_split_rseq_tails_bucket_boundI
   rsize_set_split_rseq_tails_head_count_boundI
+  card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front
   ```
 
 - Plain meaning: take the actual one-pass output
@@ -15632,8 +15636,20 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `card_rseq_tail_rows_le_rseq_heads`, so one safe default is
   `B = card (rseq_heads U)`.
 
+- Fable's nonalt-head bucket claim is now checked:
+  for the actual output, the rows in a fixed-tail bucket whose head is
+  `nonalt` inject into the strong front carrier:
+
+  ```text
+  card (rseq_tail_nonalt_head_rows
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    <= card (strong_derivative_front_terms r (s @ [c]))
+  ```
+
+  This leaves the keyed-head/RALTS part as the live bucket-count problem.
+
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:20 local time.
+  `Posix` green at 2026-06-12 10:24 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
