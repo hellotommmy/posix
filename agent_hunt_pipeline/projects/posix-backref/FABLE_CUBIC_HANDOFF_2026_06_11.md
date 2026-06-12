@@ -56,6 +56,17 @@ rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_
 
 This still does not finish cubic; it exposes the remaining exact target.
 
+Follow-up checked at 13:36: `weighted_raw_rows` is factorized as
+`rsizes(actual_raw_rows) * sum_list(map row_dlforms_list_size actual_raw_rows)`.
+Use:
+
+```text
+row_dlforms_list_size_weighted_rpder_strong_rows_raw_afactored1_le_rsizes_times_open_sum
+```
+
+The next narrow target is the actual opening-cost total.  Do not assume
+`rtail_nf` implies opening cost nonincrease; this is already false in the repo.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix

@@ -22849,6 +22849,38 @@ proof -
     by linarith
 qed
 
+lemma row_dlforms_list_size_weighted_le_rsizes_times_open_sum:
+  "sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows) \<le>
+    rsizes rows * sum_list (map row_dlforms_list_size rows)"
+proof -
+  have "sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows) \<le>
+      sum_list (map (\<lambda>q. row_dlforms_list_size q * rsizes rows) rows)"
+  proof (rule sum_list_mono)
+    fix q
+    assume q: "q \<in> set rows"
+    have "rsize q \<le> rsizes rows"
+      by (rule elem_size_le_rsizes[OF q])
+    then show "row_dlforms_list_size q * rsize q \<le>
+        row_dlforms_list_size q * rsizes rows"
+      by (rule mult_left_mono) simp
+  qed
+  also have "... = sum_list (map row_dlforms_list_size rows) * rsizes rows"
+    by (rule sum_list_map_mult_right_nat)
+  also have "... = rsizes rows * sum_list (map row_dlforms_list_size rows)"
+    by (simp add: mult.commute)
+  finally show ?thesis .
+qed
+
+lemma row_dlforms_list_size_weighted_rpder_strong_rows_raw_afactored1_le_rsizes_times_open_sum:
+  "sum_list
+      (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsizes (rpder_strong_rows_raw c (afactored1 r s)) *
+      sum_list
+        (map row_dlforms_list_size
+          (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule row_dlforms_list_size_weighted_le_rsizes_times_open_sum)
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

@@ -16544,3 +16544,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   generated ledger is not overcharged.
 - Verification: full `Posix` build passed at 2026-06-12 13:32 local time
   (`AntimirovFactoredTransition` 66.676s cumulative).
+
+## 2026-06-12 Supervisor: weighted raw rows factorized
+
+- New checked lemmas:
+
+  ```text
+  row_dlforms_list_size_weighted_le_rsizes_times_open_sum
+  row_dlforms_list_size_weighted_rpder_strong_rows_raw_afactored1_le_rsizes_times_open_sum
+  ```
+
+- Plain meaning:
+
+  ```text
+  weighted_raw_rows
+    <= rsizes(actual_raw_rows)
+       * sum_list(map row_dlforms_list_size actual_raw_rows)
+  ```
+
+  where `weighted_raw_rows` is
+  `sum_list(map (%q. row_dlforms_list_size q * rsize q) actual_raw_rows)`.
+- This is deliberately only a factorization, not a final cubic proof.  It
+  isolates the next exact subproblem: bound the actual opening-cost total
+  `sum_list(map row_dlforms_list_size actual_raw_rows)` without relying on the
+  false generic claim that `rtail_nf` alone makes row opening cost monotone.
+- Verification: full `Posix` build passed at 2026-06-12 13:36 local time
+  (`AntimirovFactoredTransition` 58.563s cumulative).
