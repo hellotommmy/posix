@@ -41,7 +41,7 @@
 \title{\textbf{The POSIX Lexer Cubic Bound:\\ the Set-Ledger Gate (Open Problem)}}
 \author{POSIX backref/cubic project --- secretary session\\
 \small repository \texttt{github.com/hellotommmy/posix}, branch \texttt{codex/backref-values}}
-\date{2026-06-12}
+\date{2026-06-12, rev.~23:45 (commit \texttt{7372ba2})}
 
 \begin{document}
 \maketitle
@@ -323,24 +323,66 @@ $(\Sigma\,rows)\cdot k$; hence the active-suffix key set is empty and
 $\pb(r,s,c)=0$ identically.  The gate instance has exactly two summands.\\
 \mbox{}\hfill(\thy{pair\_budget\_afactored1\_strong\_dlform\_universe\_zero},
 \thy{actual\_union\_gate\_two\_summands})
+\item \emph{Front total staticized (2026-06-12, 21:17).}  For normal-form
+$r$ (\thy{apder\_nf}) and \emph{every} string $s$:
+$\rss{\Fact(r,s)}\le\rss{\mathsf{apder\_rows}(r)}$ --- the dependence on $s$
+is gone; $\mathsf{apder\_rows}(r)$ is a static, one-regex row universe.\\
+\mbox{}\hfill(\thy{rsizes\_afactored1\_le\_rsize\_set\_apder\_rows})
+\item \emph{Static universe: members quadratic, ledger tightly cubic.}
+Every member of $\mathsf{apder\_rows}(r)$ has size
+$\le 1+(\rs{r}+2)^{2}$ (\thy{apder\_rows\_member\_size\_quadratic});
+the total ledger is cubic
+(\thy{rsize\_set\_apder\_rows\_expanded\_cubic\_size\_bound}), and that
+cubic bound is \emph{tight} (Section~\ref{sec:refuted}, item 6).
 \end{enumerate}
 
 \noindent
-\textbf{Current reduction (as of 2026-06-12, commit \texttt{cfe3636}).}
-By items 6--9 the conjecture reduces to a \emph{single} numeric obligation:
-summand (2), the tail-weight side, must be cubic.  The exact decomposition
-on record is
+\textbf{Current reduction (as of 2026-06-12 23:45, commit \texttt{7372ba2}).}
+The exact decomposition of the gate object is checked
+(\thy{actual\_union\_two\_number\_decomposition}):
 \[
 \rss{U}\;=\;\underbrace{\rss{\nonseq(U)}}_{\text{cubic, checked}}
 \;+\;\underbrace{\#\{\text{sequence members}\}\cdot O(\rs{r})}_{\text{heads linear, checked}}
 \;+\;\sum_{t\in\tails(U)}\mathsf{bucket}(t)\cdot\rs{t},
 \]
 where $\mathsf{bucket}(t)$ counts the sequence members sharing tail $t$.
-The two load-bearing quantities are $\#U$ (empirically linear; best checked
-bound one degree in $\rss{\gen}$) and $\mathsf{bucket}(t)$ (empirically
-linear; best checked bound cubic).  Any other route to
-Conjecture~\ref{conj:gate} is equally acceptable, but must not pass through
-the refuted quantities below.
+By items 10--11 everything is charged to the \emph{static} universe
+$\mathsf{apder\_rows}(r)$, and on the normal-form fragment the conjecture
+closes by assembly once \emph{either} of two named laws lands:
+
+\begin{itemize}
+\item[\textbf{(A)}] \emph{The D law (row-count linearity).}  For normal-form
+$r,k$:
+\[
+\#\bigl(\mathsf{acc}(r,k)\,\setminus\,\mathsf{ftr}(k)\bigr)
+  \;\le\;\mathsf{zwidth}(r),
+\]
+where $\mathsf{acc}$ is the frontier accumulator
+(\thy{apder\_term\_frontier\_acc}), $\mathsf{ftr}$ the frontier
+(\thy{rfrontier}: $\emptyset$ on $\ZERO$, union over $\Sigma$-members,
+singleton otherwise), and $\mathsf{zwidth}$ counts letters with stars
+floored at one: $\mathsf{zwidth}(c)=1$, sums over ${\cdot}$ and $\Sigma$,
+$\mathsf{zwidth}(p^{*})=\max(1,\mathsf{zwidth}(p))$,
+$\mathsf{zwidth}(p^{\{n\}})=n\cdot\max(1,\mathsf{zwidth}(p))$, zero on
+$\ZERO,\ONE$.  With (A), $\#\mathsf{apder\_rows}(r)$ is linear and members
+are quadratic (item 11), so the gate ledger is at most
+linear${}\times{}$quadratic ${}={}$ cubic, fully statically.  Status: exact
+on $>$200{,}000 normal-form samples (equality attained in every root
+constructor); \emph{six} inductive strengthenings falsified with recorded
+counterexamples.  Self-contained problem file:
+\texttt{MATHPROBLEM\_ROWCOUNT.md} (repository root) --- do not retry the
+falsified strengthenings.
+\item[\textbf{(B)}] \emph{The liveness/drain law.}  The dynamic front stays
+quadratic, $\rss{\Fact(r,s)}\le C\,\rs{r}^{2}$, even on families where the
+static ledger is genuinely cubic: empirically $0.2$--$1.1\cdot\rs{r}^{2}$
+across all adversarial families with zero violations (only a thin slice of
+the static rows is simultaneously live at any input position).  Reduced to
+three single-step obligations (cap law); needs a saturation invariant.
+With (B) the decomposition above makes every gate summand cubic.
+\end{itemize}
+
+Any other route to Conjecture~\ref{conj:gate} is equally acceptable, but
+must not pass through the refuted quantities below.
 
 \section{What is refuted (do not attempt)}\label{sec:refuted}
 
@@ -396,6 +438,13 @@ checked $p$ with
 $\rss{\open(\Sstrong(p))} = 12 > 10 = \rss{\open(p)}$
 (\thy{rsimpStrong\_raw\_row\_dlforms\_cost\_not\_monotone}).  Do not assume
 simplification shrinks the ledger row by row.
+\item A \emph{quadratic} static ledger is false: on the star--seq tower
+$x_{0}=a$, $x_{i+1}=(x_{i}\cdot b_{i})^{*}$ the checked cubic bound
+\thy{rsize\_set\_apder\_rows\_expanded\_cubic\_size\_bound} is tight
+(ledger $\approx 0.04\,\rs{r}^{3}$ at depth 60; the $\seqstar$
+star-absorption variant changes nothing on this family).  Cubicness of the
+gate cannot come from shrinking the static universe; it must come from the
+count side (the D law) or the dynamic slice (liveness).
 \end{enumerate}
 
 \section{Acceptance criteria}\label{sec:accept}
@@ -408,16 +457,21 @@ statement guards passing, building via the repository wrapper
 overlay (simulated USD): 12{,}000 for the final checked theorem (or a checked
 equivalent contract) preserving exact POSIX value behaviour; 5{,}000 for a
 major checked bridge that reduces it to a clearly smaller, non-false local
-obligation (the single remaining tail-weight obligation above is the current
-such target); 3{,}000
+obligation (laws (A)/(B) above are the current such targets); 3{,}000
 for a checked negative result that materially redirects the search.
 Fragment results ($r^{\{n\}}$-free) and constant-relaxed versions count as
 bridges, per Remark~\ref{rem:constant}.
 
+{\sloppy
+Live status, checked-facts table and dead-route list: \texttt{MAINLINE.md};
+document catalog: \texttt{DOC\_INDEX.md}; day-by-day state: tail of
+\texttt{PROGRESS\_BACKREF.md}; the D law as a standalone problem:
+\texttt{MATHPROBLEM\_ROWCOUNT.md} (all at the repository root).\par}
+
 \section{Notation--Isabelle dictionary}\label{sec:names}
 
 \begin{center}
-\small
+\scriptsize
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{7.4cm}l@{}}
 \toprule
 here & Isabelle name & file \\
@@ -434,20 +488,17 @@ $\Dstep_c$ & \thy{rpder\_strong\_rows\_raw} & GRB \\
 $\open$ & \thy{row\_dlforms}, \thy{row\_dlformss} & AFT \\
 $\Dlist,\ \listcost$ & \thy{row\_dlforms\_list}, \thy{afactored1\_strong\_dlform\_list\_cost} & AFT \\
 $\fronts,\ \pb$ & \thy{strong\_derivative\_front\_terms}, \thy{raw\_shared\_prune\_active\_suffix\_pair\_budget} & AFT / GRB \\
+$\mathsf{apder\_rows},\ \mathsf{ftr}$ & \thy{apder\_rows}, \thy{rfrontier} & AFT / GRB \\
+$\mathsf{acc},\ \mathsf{zwidth}$ & \thy{apder\_term\_frontier\_acc}, \thy{apder\_zwidth} & AFT \\
 target gate & assumption \thy{actual\_cubic} of \thy{\dots\_tight\_cubic\_contractI} & AFT \\
 \bottomrule
 \end{tabular}
 
-\medskip
-\small AFT $=$ \texttt{AntimirovFactoredTransition.thy};\;
+\smallskip
+AFT $=$ \texttt{AntimirovFactoredTransition.thy};\;
 GRB $=$ \texttt{GeneralRegexBound.thy};\;
 BI $=$ \texttt{BasicIdentities.thy}.
 \end{center}
 
-\noindent
-{\sloppy
-Live status, checked-facts table and dead-route list: \texttt{MAINLINE.md};
-document catalog: \texttt{DOC\_INDEX.md}; day-by-day state: tail of
-\texttt{PROGRESS\_BACKREF.md} (all at the repository root).\par}
 
 \end{document}
