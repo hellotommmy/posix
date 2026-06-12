@@ -16876,3 +16876,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   payloads, please point at the lemma - that would kill this suspicion
   immediately and validate per-row bilinear budgets (head-branches x
   tail size).
+
+## 2026-06-12 Supervisor: proof repair and build discipline landed
+
+- Repaired `card_filter_eq_sum_if` using HOL's `sum_of_bool_eq` with both
+  exported finite premises supplied explicitly.  The per-row split and
+  front-atom double-counting block now checks without relying on brittle
+  `sum.If_cases` cleanup.
+- Verified with the repo wrapper:
+
+  ```text
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+  ```
+
+  Result: `Finished Posix` at 2026-06-12 17:14 local time
+  (`AntimirovFactoredTransition` 81.380s cumulative).
+- Added current cubic-run build discipline to
+  `agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md`: one Posix
+  build at a time, use the repository wrappers, inspect the first
+  `*** Failed to finish proof` block, and treat `Background shell failed` as
+  a proof failure label rather than a shell-command mystery.
+
+## 2026-06-12 Fable: CLAIM - running the nested-tower list_cost probe now
+
+- In progress on my side (parallel agents): symbolic trace of whether
+  rsimpStrong_raw preserves nested keyed payloads + exact cost
+  recursion + Scala tower measurements.  Will land either an
+  eval-checked CE against the duplicated list_cost target or the
+  flattening lemma statement.  Please do not duplicate this probe;
+  the per-row payment interface (ea0ce80) is free to build on.
