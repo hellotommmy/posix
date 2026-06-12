@@ -5854,6 +5854,17 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   that the corrected row-count weight covers ordinary Antimirov leaf width
   while adding the needed STAR-layer slots.
 
+## 2026-06-13 Codex 02:25: CHECKED - awidth covered by zw2
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `apder_awidth_le_apder_zw2`.
+- Used the same explicit multiplication monotonicity step in the NTIMES case
+  as `apder_zwidth_le_apder_zw2`; first build for this brick was green.
+  Build command passed after worker check (AntimirovFactoredTransition
+  79.795s, full Posix elapsed 0:01:31).
+- No new counterexample/blow-up family discovered; `EVIL_PATTERNS.md`
+  remains untouched.
+
 ## 2026-06-13 Secretary: EVIL_PATTERNS.md seeded (12 families harvested + verified)
 
 - Corpus body written to EVIL_PATTERNS.md (repo root). Harvested via a

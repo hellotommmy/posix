@@ -28946,6 +28946,29 @@ next
     by simp
 qed auto
 
+lemma apder_awidth_le_apder_zw2:
+  "apder_awidth r \<le> apder_zw2 r"
+proof (induct r)
+  case (RALTS rs)
+  have "sum_list (map apder_awidth rs) \<le>
+      sum_list (map apder_zw2 rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  then show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  have "apder_awidth r \<le> Suc (apder_zw2 r)"
+    using RNTIMES by simp
+  then have "n * apder_awidth r \<le> n * Suc (apder_zw2 r)"
+    by (rule mult_left_mono) simp
+  then show ?case
+    by simp
+qed auto
+
 lemma apder_zw2_rntimes_free_le_rsize:
   assumes "rntimes_free r"
   shows "apder_zw2 r \<le> rsize r"
