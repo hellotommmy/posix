@@ -5112,9 +5112,34 @@ object PosixCubicSmoke {
       case "star-prefix-zero-branches" | "starPrefixZeroBranches" =>
         val x = SEQ(CH('a'), altList(zeroWidthBranches))
         SEQ(STAR(CH('a')), NTIMES(NTIMES(x, safeN), safeN))
+      case "nested-tower" | "nestedTower" | "nested-tower-double" | "nestedTowerDouble" |
+          "nested-tower-der" | "nestedTowerDer" =>
+        // Nested keyed-payload towers: depth = `branches`, tail chain length = `n`.
+        // nested-tower-der (prompt candidate, nesting via derivatives):
+        //   T0 = (ab|ac); T_{i+1} = (T_i e_i | a f_i); root = SEQ(T_depth, z^n).
+        // nested-tower (static nested payload behind guard char 'a'):
+        //   P0 = (b|c); P_{i+1} = (SEQ(P_i, e_i) | f_i); root = SEQ(SEQ(a, P_depth), z^n).
+        // nested-tower-double: P_{i+1} = (SEQ(P_i, e_i) | SEQ(P_i, f_i)).
+        val depth = math.max(0, branches)
+        val der = family == "nested-tower-der" || family == "nestedTowerDer"
+        val both = family == "nested-tower-double" || family == "nestedTowerDouble"
+        def chain(len: Int): Rexp =
+          (1 until math.max(1, len)).foldLeft(CH('z'): Rexp)((acc, _) => SEQ(CH('z'), acc))
+        var t: Rexp =
+          if (der) ALT(SEQ(CH('a'), CH('b')), SEQ(CH('a'), CH('c')))
+          else ALT(CH('b'), CH('c'))
+        for (i <- 0 until depth) {
+          val e = CH(('d' + (i % 11)).toChar)
+          val f = CH(('o' + (i % 11)).toChar)
+          t =
+            if (der) ALT(SEQ(t, e), SEQ(CH('a'), f))
+            else ALT(SEQ(t, e), if (both) SEQ(t, f) else f)
+        }
+        if (der) SEQ(t, chain(safeN)) else SEQ(SEQ(CH('a'), t), chain(safeN))
       case other =>
         throw new IllegalArgumentException(
-          s"unknown one-step dlform family '$other'; expected star-reentry, zero-branches, or star-prefix-zero-branches"
+          s"unknown one-step dlform family '$other'; expected star-reentry, zero-branches, " +
+            "star-prefix-zero-branches, nested-tower, nested-tower-der, or nested-tower-double"
         )
     }
   }

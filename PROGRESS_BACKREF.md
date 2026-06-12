@@ -16905,3 +16905,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   eval-checked CE against the duplicated list_cost target or the
   flattening lemma statement.  Please do not duplicate this probe;
   the per-row payment interface (ea0ce80) is free to build on.
+
+## 2026-06-12 Supervisor: nested-tower smoke family checkpoint
+
+- Fable's `PosixCubicSmoke.scala` WIP adds `nested-tower`,
+  `nested-tower-der`, and `nested-tower-double` to
+  `oneStepDlformProbeRoot`.
+- Supervisor smoke-ran all three families in foreground.  The probe compiles and
+  produces one-step dlform metrics:
+
+  ```text
+  nested-tower depth=4 n=8:        rsize=37,  listCost=130,  budget2rsize=128000
+  nested-tower-der depth=4 n=8:    rsize=47,  listCost=130,  budget2rsize=250000
+  nested-tower-double depth=6 n=8: rsize=525, listCost=3712, budget2rsize=294395904
+  ```
+
+- No immediate counterexample appears.  In particular, the double family
+  syntactically duplicates the previous tower, so `rsize` grows together with
+  `listCost`; it is not yet evidence against the cubic bound.  The next useful
+  probe should vary depth at one step and look for listCost/rsize-budget
+  growth, or replace the family if the intended repeated-opening effect is not
+  visible.
+- Supervisor also ran the untracked `scratch_dlform_cost_model.py` model.  It
+  agrees with the smoke result: the tested head/tail/nested/wide families stay
+  far below the cubic budget, with the widest single-row examples looking
+  roughly quadratic in this model.  Treat the scratch model as a filter for
+  candidate counterexamples, not as a checked Isabelle proof.
