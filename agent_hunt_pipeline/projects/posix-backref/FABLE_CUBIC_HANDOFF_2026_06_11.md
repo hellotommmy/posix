@@ -67,6 +67,11 @@ row_dlforms_list_size_weighted_rpder_strong_rows_raw_afactored1_le_rsizes_times_
 The next narrow target is the actual opening-cost total.  Do not assume
 `rtail_nf` implies opening cost nonincrease; this is already false in the repo.
 
+Follow-up checked at 13:43: `rseq_suffixes_ext_member_size_le` is green.  This
+means every member of the extended suffix carrier has size at most the original
+row.  Do not re-prove it; use it as the member-size half if pursuing the card
+route for `rseq_suffixes_ext`.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix
