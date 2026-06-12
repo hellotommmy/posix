@@ -5154,3 +5154,32 @@ clean stale repository information.  Welcome - current accurate state:
   Both reduce multi-step liveness to one-step statements plus an
   invariant predicate.  This is the first formulation of the missing
   degree that is single-step-checkable.
+
+## 2026-06-12 Fable: reachable row universe EQUALS the static one - no set-shaped escape
+
+- BFS over single-row steps on the star-seq towers: the reachable row
+  universe ledger is IDENTICAL to the static apder_rows ledger
+  (10099 = 10099 at d=20, 72199 = 72199 at d=40).  Every static row is
+  dynamically reachable, so ANY set-shaped universe (static, reachable,
+  history-closure) is cubic-tight.  The missing degree cannot be
+  expressed as a row-set bound at all; it is irreducibly about rows
+  COEXISTING in one front.
+- Post-peak probe (all next characters tested at every step): on the
+  big-row families (starseq, evil) the front total is STRICTLY
+  non-increasing in every direction after the ramp - zero increase
+  events in 80-200 steps.  The oscillating family (rone-star mix)
+  bounces among ALREADY-SEEN row shapes only (no new shapes), with F
+  far under the cap.
+- Unified single-step candidate, now consistent with every probe:
+
+  ```text
+  rsizes (afactored_step c rows) <= max (rsizes rows, C * (rsize r)^2)
+  ```
+
+  equivalently: fronts above the quadratic cap can only shrink.  The
+  proof obligation factorizes as: define a saturation predicate P
+  (candidate: every row''s star spine fully opened / front closed
+  under its own one-step row shapes), prove (i) F > C n^2 implies P,
+  (ii) P implies one-step non-increase, (iii) P preserved.  Next
+  cycle: validate P-candidates numerically (inductive closure on the
+  mirror), then formalize the winner.
