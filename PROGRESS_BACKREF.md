@@ -5082,3 +5082,28 @@ clean stale repository information.  Welcome - current accurate state:
 - Next cycle: land (1) (member-size fact + per-row quadratic), then
   the best honest poly assembly with explicit degree, named
   actual_union_gate_polyN_unconditional.
+
+## 2026-06-12 Codex: CHECKED - actual union packaged as the two live numbers
+
+- Branch: `codex/backref-values`; commit pending.  File delta:
+  `AntimirovFactoredTransition.thy` +56.
+- Full Posix build GREEN at 2026-06-12 21:48 local:
+  `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 87.175s, exit 0).
+- New checked theorem:
+
+  ```text
+  actual_union_two_number_decomposition
+  ```
+
+- Plain meaning: for the actual opened union, the checked bound is now
+  explicitly
+  nonseq cubic part + `card(rseq_members U) * linear-head-size` +
+  `sum_t bucket(t) * rsize t`.  This is not a polynomial wrapper and
+  does not use the refuted list-cost route; it names exactly the two
+  quantities the liveness/drain argument must eventually bound.
+- The Fable correction immediately above remains the current route gate:
+  this decomposition does NOT claim quartic or cubic assembly.  Next
+  smallest proof step stays (1) per-row norm ledger quadratic via
+  `pder` member-size, then (2) the dedup/generated bridge, before the
+  final liveness slice.

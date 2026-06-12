@@ -28792,6 +28792,62 @@ proof -
   finally show ?thesis .
 qed
 
+lemma actual_union_two_number_decomposition:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (rseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) *
+      Suc (Suc (rsize r + rsize r)) +
+    (\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (rseq_tail_rows
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) *
+        rsize t)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  have fin: "finite ?U"
+    by simp
+  have members:
+      "\<And>q. q \<in> ?U \<Longrightarrow> rnonseq q \<or> (\<exists>h t. q = RSEQ h t)"
+    by (case_tac q) auto
+  have head_bound:
+      "\<And>h t. RSEQ h t \<in> ?U \<Longrightarrow>
+        rsize h \<le> Suc (rsize r + rsize r)"
+    by (rule actual_union_seq_head_size_linear[OF legacy])
+  have seq_bound: "rsize_set (rseq_members ?U) \<le>
+      card (rseq_members ?U) * Suc (Suc (rsize r + rsize r)) +
+      (\<Sum>t \<in> rseq_tails ?U.
+        card (rseq_tail_rows ?U t) * rsize t)"
+  proof -
+    have "rsize_set (rseq_members ?U) \<le>
+        card (rseq_members ?U) * Suc (Suc (rsize r + rsize r)) +
+        (\<Sum>q \<in> rseq_members ?U.
+          rsize (case q of RSEQ h t \<Rightarrow> t))"
+      by (rule rsize_set_rseq_members_le_heads_tails
+          [OF fin head_bound])
+    also have "... =
+        card (rseq_members ?U) * Suc (Suc (rsize r + rsize r)) +
+        (\<Sum>t \<in> rseq_tails ?U.
+          card (rseq_tail_rows ?U t) * rsize t)"
+      by (simp add: sum_rseq_member_tails_regroup[OF fin])
+    finally show ?thesis .
+  qed
+  have "rsize_set ?U =
+      rsize_set (rnonseq_members ?U) + rsize_set (rseq_members ?U)"
+    by (rule rsize_set_split_rnonseq_rseq[OF fin members])
+  also have "... \<le>
+      rsize_set (rnonseq_members ?U) +
+      (card (rseq_members ?U) * Suc (Suc (rsize r + rsize r)) +
+        (\<Sum>t \<in> rseq_tails ?U.
+          card (rseq_tail_rows ?U t) * rsize t))"
+    using seq_bound by simp
+  finally show ?thesis
+    by simp
+qed
+
 
 text \<open>
   The front total collapses to a STATIC quantity: afactored1 rows are
