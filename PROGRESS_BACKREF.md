@@ -5270,3 +5270,35 @@ clean stale repository information.  Welcome - current accurate state:
   and with maxrow <= quadratic (static, provable) gives F <= cubic
   WITHOUT the ledger detour, plus it is the row-count half of the
   classical quadratic conjecture for the dynamic front.
+
+## 2026-06-12 Fable: row-count law pinned exactly - card(acc r k) <= awidth r + W(k)
+
+- Random nf testing (47,298 samples, depth <= 5):
+
+  ```text
+  card(acc r k) <= apder_awidth r                    : 13 violations
+    (CE: r = SEQ(b, ALTS[STAR(STAR c), b]), card 4 > awidth 3)
+  card(acc r k) <= apder_awidth r + card(rfrontier k): ZERO violations
+  ```
+
+- So the true row-count law is the ADDITIVE form (B); at k = RONE it
+  gives card(apder_rows r) <= awidth r + 2 - the classical Antimirov
+  count, constant exactly right.
+- Proof obstacle for B, mapped: naive induction over-counts because
+  (RALTS) each of m branches re-adds the shared W(k) - the union
+  shares ONE copy; (SEQ) the singleton frontier of the composed
+  continuation costs +1 that is absorbed by overlap in reality.  A
+  difference-shaped strengthening (card(acc - rfrontier(k)) <= awidth)
+  is FALSE (same CE).  The correct inductive invariant must subtract
+  the frontier of the FULLY-CONSUMED continuation (sigma4-composite of
+  the whole spine), not of k itself.  Candidate:
+
+  ```text
+  card (acc r k - rfrontier (rsimp4_SEQ_atom r k)) <= awidth-ish?
+  ```
+
+  (untested; next session should mirror-test this exact difference
+  form first, then do the Isabelle induction.)
+- Payoff unchanged: B + static maxrow quadratic gives F <= cubic
+  directly and is the row-count half of the front-quadratic
+  conjecture.
