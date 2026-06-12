@@ -6755,3 +6755,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   85.067s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:55: CLAIM - SEQ left-slack absorbs right carry
+
+- Synced through pushed commit 5b28a3f, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add a generic SEQ D bridge where one unused slot in
+  the left outside-middle bucket absorbs the right child's checked `Suc`
+  carry allowance.  This generalizes the character-left pattern without
+  requiring the false arbitrary exact-carry invariant.
+
+## 2026-06-13 Codex 09:00: CHECKED - SEQ left-slack absorbs right carry
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_left_slack_right_carry_Suc`.
+- This generic SEQ D bridge uses `card_union_diff_le_middle_split` and the
+  frontier/acc carry splitter: if the left outside-middle bucket has one
+  unused `apder_zw2` slot, that slot absorbs a right-child `Suc` carry
+  allowance and yields the exact parent D bound.
+- Build command passed after worker check (AntimirovFactoredTransition
+  103.922s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

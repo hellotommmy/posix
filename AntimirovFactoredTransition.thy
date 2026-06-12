@@ -29798,6 +29798,38 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_left_slack_right_carry_Suc:
+  assumes left_slack:
+    "Suc (card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k))) \<le> apder_zw2 r1"
+    and right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> Suc (apder_zw2 r2)"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof -
+  let ?A = "apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?B = "apder_term_frontier_acc r2 k"
+  let ?F = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  have middle:
+    "card ((?F \<union> ?B) - rfrontier k) \<le>
+      card (?B - rfrontier k) + card (?F - rfrontier k - ?B)"
+    by (rule card_frontier_acc_union_diff_le_carry_measure) simp_all
+  have "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) =
+      card ((?A \<union> ?B) - rfrontier k)"
+    by simp
+  also have "... \<le> card (?A - ?F) + card ((?F \<union> ?B) - rfrontier k)"
+    by (rule card_union_diff_le_middle_split) simp_all
+  also have "... \<le> card (?A - ?F) +
+      (card (?B - rfrontier k) + card (?F - rfrontier k - ?B))"
+    using middle by linarith
+  also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+    using left_slack right by linarith
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_right_carry:
   assumes left: "card (apder_term_frontier_acc r1
       (rsimp4_SEQ_atom r2 k) -
