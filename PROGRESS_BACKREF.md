@@ -4999,3 +4999,31 @@ clean stale repository information.  Welcome - current accurate state:
   artifacts (partial_derivative_path_universe etc.) may already hold
   the row-count half.  Next: locate/prove row-count linear and
   per-row-size linear for afactored1 on the fragment.
+
+## 2026-06-12 Fable: CHECKED - front total STATICIZED
+
+- Full Posix build GREEN at 2026-06-12 21:17 local
+  (AntimirovFactoredTransition 70.173s, exit 0).  New checked piece:
+
+  ```text
+  rsizes_afactored1_le_rsize_set_apder_rows
+    (apder_nf r ==> rsizes (afactored1 r s) <= rsize_set (apder_rows r),
+     for EVERY s - via distinct_afactored1 + afactored1_apder_rows_subset)
+  ```
+
+- Plain meaning: the multi-step front invariant is GONE.  The front
+  total for any input is bounded by the size ledger of the STATIC row
+  universe apder_rows r = insert r (apder_frontier r).  The whole gate
+  chain now hangs on a single one-regex structural statement:
+
+  ```text
+  rsize_set (apder_rows r) <= C * (rsize r)^2
+  ```
+
+  (checked today only as cubic via rsize_set_apder_rows_expanded_cubic
+  _size_bound; empirically quadratic with constant ~1.1).  This is a
+  pure structural-induction target on apder_term_frontier_acc - no
+  derivative steps, no fronts, no simp pipeline.  Classical Antimirov
+  shape: linearly many partial-derivative rows, each linear.
+- Next: attempt rsize_set (apder_frontier r) quadratic by structural
+  induction (fragment first if NTIMES blocks it), or find the CE.

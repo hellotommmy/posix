@@ -28793,4 +28793,29 @@ proof -
 qed
 
 
+text \<open>
+  The front total collapses to a STATIC quantity: afactored1 rows are
+  distinct and live inside the static row universe apder_rows r, so
+  rsizes (afactored1 r s) is bounded by rsize_set (apder_rows r) for
+  EVERY input s.  The multi-step front invariant thereby becomes a
+  one-regex structural statement.
+\<close>
+
+lemma rsizes_afactored1_le_rsize_set_apder_rows:
+  assumes nf: "apder_nf r"
+  shows "rsizes (afactored1 r s) \<le> rsize_set (apder_rows r)"
+proof -
+  have dis: "distinct (afactored1 r s)"
+    by (rule distinct_afactored1)
+  have "rsizes (afactored1 r s) =
+      (\<Sum>q \<in> set (afactored1 r s). rsize q)"
+    using dis by (simp add: sum.distinct_set_conv_list)
+  also have "... \<le> rsize_set (apder_rows r)"
+    unfolding rsize_set_def
+    by (rule sum_mono2)
+      (use afactored1_apder_rows_subset[OF nf] in simp_all)
+  finally show ?thesis .
+qed
+
+
 end
