@@ -20,6 +20,7 @@ New checked bridge in `AntimirovFactoredTransition.thy`:
 
 ```text
 raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget
+raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
 ```
 
 Plain definitions:
@@ -50,6 +51,18 @@ then active weighted term
        (afactored1_strong_dlform_universe r s c) * M
 ```
 
+Stronger checked instance: for this active weighted term, the size bound is
+only needed when `active_suffix_bucket(t)` is nonempty.  Such a `t` is an
+active suffix key, and active suffix keys are already bounded by
+`afactored1_strong_dlform_list_cost r s c`.  Therefore:
+
+```text
+active weighted term
+  <= raw_shared_prune_active_suffix_pair_budget
+       (afactored1_strong_dlform_universe r s c)
+     * (Suc H + afactored1_strong_dlform_list_cost r s c)
+```
+
 Important correction: the remaining problem is not merely
 `rsize_set (rseq_tails ...)`.  A distinct tail can be copied by several
 same-key rows, so multiplicity must be paid by `pair_budget` or by an even
@@ -60,9 +73,6 @@ Best immediate target:
 ```text
 bound raw_shared_prune_active_suffix_pair_budget
   (afactored1_strong_dlform_universe r s c)
-
-and prove a usable M for actual tails:
-  Suc H + rsize t <= M
 ```
 
 Do not continue the older "only distinct tail count remains" claim unless it
@@ -688,17 +698,15 @@ most useful routes are now:
    and same-key bucket size is still useful, but only because it bounds this
    `pair_budget`; do not stop at a statement that cannot feed the weighted
    interface.
-2. Prove a usable bound for actual tail weight:
+2. Use the checked list-cost weighted bridge for the active term:
 
    ```text
-   t in rseq_tails (row_dlformss actual_output)
-   ==> Suc H + rsize t <= M
+   raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
    ```
 
-   Then combine it with
-   `raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget`.
-   A distinct-tail count or `rsize_set (rseq_tails ...)` bound is helpful only
-   insofar as it gives this `M` or another checked premise.
+   The active weighted bucket term no longer needs a separate all-tail size
+   theorem.  Distinct-tail or tail-size work may still help the ordinary
+   front/tail summand, but it is not the blocker for the active bucket term.
 3. Use the existing owner/DAG machinery only with care.  The owner-set
    `RSEQ h t` decomposition is already packaged; it can still help charge
    nonalt heads to the current strong-front carrier and suffix/key pieces to

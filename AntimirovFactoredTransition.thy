@@ -21059,6 +21059,115 @@ proof (rule raw_shared_prune_active_suffix_weighted_sum_le_pair_budget)
     by (rule weight_bound[OF t])
 qed
 
+lemma raw_shared_prune_active_suffix_weighted_sum_le_pair_budget_key_bound:
+  assumes finite_U: "finite U"
+    and finite_T: "finite T"
+    and weight_bound: "\<And>k. k \<in> T \<Longrightarrow>
+      k \<in> raw_shared_prune_active_suffix_keys U \<Longrightarrow>
+      Suc H + rsize k \<le> M"
+  shows "(\<Sum>k \<in> T.
+      card (raw_shared_prune_active_suffix_bucket U k) *
+        (Suc H + rsize k)) \<le>
+    raw_shared_prune_active_suffix_pair_budget U * M"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  let ?c = "\<lambda>k. card (raw_shared_prune_active_suffix_bucket U k)"
+  let ?w = "\<lambda>k. Suc H + rsize k"
+  have restrict:
+      "(\<Sum>k \<in> T. ?c k * ?w k) =
+       (\<Sum>k \<in> T \<inter> ?keys. ?c k * ?w k)"
+    using finite_T
+  proof (induct T rule: finite_induct)
+    case empty
+    then show ?case by simp
+  next
+    case (insert k F)
+    show ?case
+    proof (cases "k \<in> ?keys")
+      case True
+      then show ?thesis
+        using insert by (simp add: Int_insert_left)
+    next
+      case False
+      then have empty_bucket:
+          "raw_shared_prune_active_suffix_bucket U k = {}"
+        by (rule raw_shared_prune_active_suffix_bucket_empty_if_not_key)
+      have "insert k F \<inter> ?keys = F \<inter> ?keys"
+        using False by auto
+      then show ?thesis
+        using insert empty_bucket by simp
+    qed
+  qed
+  have "(\<Sum>k \<in> T \<inter> ?keys. ?c k * ?w k) \<le>
+      raw_shared_prune_active_suffix_pair_budget U * M"
+  proof (rule raw_shared_prune_active_suffix_weighted_sum_le_pair_budget)
+    show "finite U"
+      by (rule finite_U)
+    show "finite (T \<inter> ?keys)"
+      using finite_T by simp
+    fix k
+    assume k: "k \<in> T \<inter> ?keys"
+    show "Suc H + rsize k \<le> M"
+      by (rule weight_bound) (use k in auto)
+  qed
+  then show ?thesis
+    using restrict by simp
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_key_bound:
+  assumes weight_bound:
+    "\<And>t. t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<Longrightarrow>
+      t \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+      Suc H + rsize t \<le> M"
+  shows "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t)) \<le>
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) * M"
+proof (rule raw_shared_prune_active_suffix_weighted_sum_le_pair_budget_key_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "finite (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))))"
+    by simp
+  fix t
+  assume t: "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  assume key: "t \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  show "Suc H + rsize t \<le> M"
+    by (rule weight_bound[OF t key])
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t)) \<le>
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof (rule
+    raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_key_bound)
+  fix t
+  assume "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  assume key: "t \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  have "rsize t \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule
+        afactored1_strong_dlform_universe_active_suffix_key_size_le_list_cost
+        [OF key])
+  then show "Suc H + rsize t \<le>
+      Suc H + afactored1_strong_dlform_list_cost r s c"
+    by simp
+qed
+
 lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI:
   assumes head_bound:
     "\<And>h t. RSEQ h t \<in>
@@ -21447,6 +21556,50 @@ lemma rsimpStrong_raw_RSEQ_left_zero:
   assumes "rsimpStrong_raw p1 = RZERO"
   shows "rsimpStrong_raw (RSEQ p1 p2) = RZERO"
   using assms by (simp add: rsimp7_SEQ_atom_RZERO_left)
+
+lemma card_rseq_tails_le_card:
+  assumes fin: "finite U"
+  shows "card (rseq_tails U) \<le> card U"
+proof -
+  have eq: "rseq_tails U =
+      (\<lambda>x. case x of RSEQ h t \<Rightarrow> t | _ \<Rightarrow> x) `
+        {x \<in> U. \<exists>h t. x = RSEQ h t}"
+    by (auto simp add: rseq_tails_def image_iff) force
+  have "card ((\<lambda>x. case x of RSEQ h t \<Rightarrow> t | _ \<Rightarrow> x) `
+      {x \<in> U. \<exists>h t. x = RSEQ h t}) \<le>
+      card {x \<in> U. \<exists>h t. x = RSEQ h t}"
+    by (rule card_image_le) (use fin in simp)
+  also have "... \<le> card U"
+    by (rule card_mono[OF fin]) auto
+  finally show ?thesis
+    using eq by simp
+qed
+
+lemma card_rseq_tails_row_dlforms_le:
+  assumes nf: "rtail_nf q"
+  shows "card (rseq_tails (row_dlforms q)) \<le> Suc (rsize q)"
+proof -
+  have "card (rseq_tails (row_dlforms q)) \<le> card (row_dlforms q)"
+    by (rule card_rseq_tails_le_card) simp
+  also have "... \<le> Suc (rsize q)"
+    by (rule card_row_dlforms_rtail_nf_le_Suc_rsize[OF nf])
+  finally show ?thesis .
+qed
+
+lemma card_rseq_tails_afactored1_strong_dlform_universe_le_generated:
+  "card (rseq_tails (afactored1_strong_dlform_universe r s c)) \<le>
+    length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  have "card (rseq_tails (afactored1_strong_dlform_universe r s c)) \<le>
+      card (afactored1_strong_dlform_universe r s c)"
+    by (rule card_rseq_tails_le_card) simp
+  also have "... \<le>
+      length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule card_afactored1_strong_dlform_universe_le_generated)
+  finally show ?thesis .
+qed
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>

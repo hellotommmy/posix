@@ -15705,6 +15705,9 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   card_raw_shared_prune_active_suffix_bucket_ge_1
   raw_shared_prune_active_suffix_weighted_sum_le_pair_budget
   raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget
+  raw_shared_prune_active_suffix_weighted_sum_le_pair_budget_key_bound
+  raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_key_bound
+  raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
   ```
 
 - Plain definitions for this brick:
@@ -15736,21 +15739,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
         (afactored1_strong_dlform_universe r s c) * M
   ```
 
+- Stronger checked consequence: the size bound is only needed for tails whose
+  active bucket is nonempty.  Those tails are active suffix keys, and existing
+  checked code already bounds every active suffix key by
+  `afactored1_strong_dlform_list_cost r s c`.  Therefore the active weighted
+  term is now directly bounded as:
+
+  ```text
+  sum over actual tails t of
+    card active_suffix_bucket(t) * (Suc H + rsize t)
+  <=
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c)
+    * (Suc H + afactored1_strong_dlform_list_cost r s c)
+  ```
+
 - Why this matters: the previous per-tail decomposition left a weighted
   active-suffix term, not just a distinct-tail count.  So the live proof
   target is now sharper and cleaner:
 
   ```text
   bound pair_budget(afactored1_strong_dlform_universe r s c)
-  and bound the maximum actual tail weight M.
+  and then combine it with the checked list-cost weighted bridge.
   ```
 
   A proof that only bounds `rsize_set (rseq_tails ...)` does not by itself
-  discharge the current checked interface.  It may still help with `M`, but
-  the bucket multiplicity must be paid through `pair_budget`.
+  discharge the current checked interface.  The active bucket multiplicity must
+  be paid through `pair_budget`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:46 local time.
+  `Posix` green at 2026-06-12 10:53 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
