@@ -11,6 +11,30 @@ old BackRefPilot task list below as the active task.  Instead read:
 - `agent_hunt_pipeline/projects/posix-backref/FABLE_CUBIC_HANDOFF_2026_06_11.md`
 - the last 200 lines of `PROGRESS_BACKREF.md`
 
+### Cubic/Fable Build Discipline
+
+For the current `Posix` cubic-bound run, use the repository wrappers from the
+repo root. Do not use the old `BackRefPilot` command in the Build section for
+this task.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+```
+
+Run only one Isabelle build at a time. If `codex-proof-workers.ps1 -Action
+Check` reports a worker, wait for it or read its output; do not start another
+build. Prefer foreground builds for local proof fixes so the first failing
+Isabelle line is visible. If the UI requires a background build, immediately
+read the generated `.output` file and fix the exact first failing proof; do not
+launch another background build until that worker has finished.
+
+Treat every `Background shell failed` label as a proof obligation to inspect,
+not as a command problem. The important line is usually the first
+`*** Failed to finish proof` block in the task output. Avoid broad
+`simp add: card_eq_sum`, `auto`, or `blast` on large goals; use `simp only:`
+or a named helper lemma and keep each proof step small.
+
 The active branch is still `codex/backref-values`, but the current work is the
 POSIX cubic-bound route around `afactored1_strong_dlform_universe`,
 active-suffix buckets, pair budgets, and owner/DAG accounting.  The old pilot

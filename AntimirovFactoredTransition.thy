@@ -23473,17 +23473,17 @@ qed
 lemma card_filter_eq_sum_if:
   assumes "finite A"
   shows "card {x \<in> A. P x} = (\<Sum>x \<in> A. if P x then 1 else 0)"
-  using assms
-proof (induct A rule: finite_induct)
-  case empty
-  then show ?case by simp
-next
-  case (insert x F)
-  have split: "{y \<in> insert x F. P y} =
-      (if P x then insert x {y \<in> F. P y} else {y \<in> F. P y})"
-    by auto
-  from insert show ?case
-    by (cases "P x") (simp_all add: split)
+proof -
+  have bool_sum: "(\<Sum>x \<in> A. (of_bool (P x) :: nat)) =
+      of_nat (card (A \<inter> {x. P x}))"
+    using assms assms by (rule sum_of_bool_eq)
+  have "(\<Sum>x \<in> A. if P x then 1 else 0) =
+      card (A \<inter> {x. P x})"
+    using bool_sum by (simp add: of_bool_def)
+  also have "... = card {x \<in> A. P x}"
+    by (rule arg_cong[where f = card]) auto
+  finally show ?thesis
+    by simp
 qed
 
 lemma sum_front_atom_mult_double_count:
