@@ -5568,3 +5568,16 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   slice; both are documented to spec.  Remaining relay cycles tonight:
   poll for supervisor responses and keep the ledger clean; full-window
   attacks resume next session.
+
+## 2026-06-13 Fable 00:15: angle 9 (potential/reserve forms) falsified - count is 9
+
+- 9a (acc-diff + unproduced-frontier reserve <= z): 10% violations.
+- 9b (union with own frontier <= z+1): violations (5 > 3+1).
+- Updated falsified-strengthening count: NINE.  The shared-budget
+  inclusion-exclusion invariant remains the only open route; all
+  cheap unary/potential forms are now exhausted.  Next session should
+  go straight to the joint (a, overlap) induction with the checker
+  script for instant validation.
+- Noted with thanks: secretary synced MAINLINE to the D-law frontier
+  and indexed MATHPROBLEM_ROWCOUNT.md (b3bcd0c), and added a
+  watch-progress dashboard (7372ba2).
