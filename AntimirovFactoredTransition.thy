@@ -6506,6 +6506,11 @@ definition rseq_tail_nonalt_head_rows ::
   "rseq_tail_nonalt_head_rows U t =
     {q \<in> rseq_tail_rows U t. \<exists>h. q = RSEQ h t \<and> nonalt h}"
 
+definition rseq_tail_alt_head_rows ::
+  "rrexp set \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rseq_tail_alt_head_rows U t =
+    {q \<in> rseq_tail_rows U t. \<exists>ps. q = RSEQ (RALTS ps) t}"
+
 lemma finite_rseq_tails [simp]:
   assumes "finite U"
   shows "finite (rseq_tails U)"
@@ -6547,6 +6552,11 @@ lemma finite_rseq_tail_nonalt_head_rows [simp]:
   assumes "finite U"
   shows "finite (rseq_tail_nonalt_head_rows U t)"
   using assms by (auto simp add: rseq_tail_nonalt_head_rows_def)
+
+lemma finite_rseq_tail_alt_head_rows [simp]:
+  assumes "finite U"
+  shows "finite (rseq_tail_alt_head_rows U t)"
+  using assms by (auto simp add: rseq_tail_alt_head_rows_def)
 
 lemma rseq_rows_eq_UN_tail_rows:
   "rseq_rows U = (\<Union>t \<in> rseq_tails U. rseq_tail_rows U t)"
@@ -6604,6 +6614,51 @@ lemma rseq_heads_row_dlformss_aseq_terms_subset:
     aseq_termss rs"
   by (rule rseq_heads_aseq_terms_subsetI)
     (rule row_dlformss_aseq_terms_subset)
+
+lemma rseq_tail_rows_split_head_kind:
+  "rseq_tail_rows U t =
+    rseq_tail_nonalt_head_rows U t \<union> rseq_tail_alt_head_rows U t"
+  by (auto simp add: rseq_tail_rows_def
+      rseq_tail_nonalt_head_rows_def rseq_tail_alt_head_rows_def)
+    (case_tac h; auto)
+
+lemma card_rseq_tail_rows_le_nonalt_plus_alt:
+  assumes finite: "finite U"
+  shows "card (rseq_tail_rows U t) \<le>
+    card (rseq_tail_nonalt_head_rows U t) +
+    card (rseq_tail_alt_head_rows U t)"
+proof -
+  have "card (rseq_tail_rows U t) =
+      card (rseq_tail_nonalt_head_rows U t \<union>
+        rseq_tail_alt_head_rows U t)"
+    by (simp add: rseq_tail_rows_split_head_kind)
+  also have "... \<le>
+      card (rseq_tail_nonalt_head_rows U t) +
+      card (rseq_tail_alt_head_rows U t)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma rseq_tail_alt_head_rows_subset_active_suffix_bucket:
+  assumes sub: "U \<subseteq> V"
+  shows "rseq_tail_alt_head_rows U t \<subseteq>
+    raw_shared_prune_active_suffix_bucket V t"
+  using sub
+  by (auto simp add: rseq_tail_alt_head_rows_def rseq_tail_rows_def
+      raw_shared_prune_active_suffix_bucket_iff)
+
+lemma card_rseq_tail_alt_head_rows_le_active_suffix_bucket:
+  assumes finite: "finite V"
+    and sub: "U \<subseteq> V"
+  shows "card (rseq_tail_alt_head_rows U t) \<le>
+    card (raw_shared_prune_active_suffix_bucket V t)"
+proof -
+  have subset: "rseq_tail_alt_head_rows U t \<subseteq>
+      raw_shared_prune_active_suffix_bucket V t"
+    by (rule rseq_tail_alt_head_rows_subset_active_suffix_bucket[OF sub])
+  show ?thesis
+    by (rule card_mono) (use finite subset in auto)
+qed
 
 lemma rsize_set_rseq_tail_rows_bucket_boundI:
   assumes finite: "finite U"
@@ -20766,6 +20821,40 @@ proof (rule card_rseq_tail_nonalt_head_rows_le)
   show "h \<in> ?F"
     by (rule afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms
         [OF in_universe nonalt])
+qed
+
+lemma card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket:
+  "card (rseq_tail_alt_head_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
+    card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) t)"
+  by (rule card_rseq_tail_alt_head_rows_le_active_suffix_bucket)
+    (simp_all add:
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
+
+lemma card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket:
+  "card (rseq_tail_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
+    card (strong_derivative_front_terms r (s @ [c])) +
+    card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) t)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  let ?B = "raw_shared_prune_active_suffix_bucket
+    (afactored1_strong_dlform_universe r s c) t"
+  have split: "card (rseq_tail_rows ?U t) \<le>
+      card (rseq_tail_nonalt_head_rows ?U t) +
+      card (rseq_tail_alt_head_rows ?U t)"
+    by (rule card_rseq_tail_rows_le_nonalt_plus_alt) simp
+  have nonalt: "card (rseq_tail_nonalt_head_rows ?U t) \<le> card ?F"
+    by (rule
+        card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front)
+  have alt: "card (rseq_tail_alt_head_rows ?U t) \<le> card ?B"
+    by (rule
+        card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket)
+  show ?thesis
+    using split add_mono[OF nonalt alt] by linarith
 qed
 
 lemma rflts_singleton_member_rtail_nf_props:

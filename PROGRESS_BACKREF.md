@@ -15575,18 +15575,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rnonseq_members
   rseq_tail_rows
   rseq_tail_nonalt_head_rows
+  rseq_tail_alt_head_rows
   finite_rseq_tails
   finite_rseq_heads
   finite_rseq_rows
   finite_rnonseq_members
   finite_rseq_tail_rows
   finite_rseq_tail_nonalt_head_rows
+  finite_rseq_tail_alt_head_rows
   rseq_rows_eq_UN_tail_rows
   rnonseq_members_union_rseq_rows
   rseq_tails_aseq_terms_subsetI
   rseq_heads_aseq_terms_subsetI
   rseq_tails_row_dlformss_aseq_terms_subset
   rseq_heads_row_dlformss_aseq_terms_subset
+  rseq_tail_rows_split_head_kind
+  card_rseq_tail_rows_le_nonalt_plus_alt
+  rseq_tail_alt_head_rows_subset_active_suffix_bucket
+  card_rseq_tail_alt_head_rows_le_active_suffix_bucket
   rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
   rseq_heads_row_dlformss_afactored1_strong_one_pass_rows_subset_front
   rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
@@ -15598,6 +15604,8 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rsize_set_split_rseq_tails_bucket_boundI
   rsize_set_split_rseq_tails_head_count_boundI
   card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front
+  card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket
+  card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket
   ```
 
 - Plain meaning: take the actual one-pass output
@@ -15648,8 +15656,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   This leaves the keyed-head/RALTS part as the live bucket-count problem.
 
+- The keyed-head/RALTS bridge is now checked too.  A fixed-tail bucket splits
+  into nonalt-head rows and RALTS-head rows.  The RALTS-head rows are exactly
+  the shape recognized by `raw_shared_prune_active_suffix_bucket`, so for the
+  actual output:
+
+  ```text
+  card (rseq_tail_rows
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    <= card (strong_derivative_front_terms r (s @ [c]))
+       + card (raw_shared_prune_active_suffix_bucket
+           (afactored1_strong_dlform_universe r s c) t)
+  ```
+
+  This does not yet bound the active-suffix bucket; it reduces the remaining
+  bucket-count problem to that existing mechanism.
+
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:24 local time.
+  `Posix` green at 2026-06-12 10:30 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
