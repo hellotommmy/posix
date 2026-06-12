@@ -6613,6 +6613,34 @@ proof (rule rsize_set_le_card_member_budgetI)
     by simp
 qed
 
+lemma card_rseq_tail_rows_le_rseq_heads:
+  assumes finite: "finite U"
+  shows "card (rseq_tail_rows U t) \<le> card (rseq_heads U)"
+proof -
+  let ?head_of = "\<lambda>x. case x of RSEQ h k \<Rightarrow> h | _ \<Rightarrow> RZERO"
+  have inj: "inj_on ?head_of (rseq_tail_rows U t)"
+  proof (rule inj_onI)
+    fix x y
+    assume x: "x \<in> rseq_tail_rows U t"
+      and y: "y \<in> rseq_tail_rows U t"
+      and same: "?head_of x = ?head_of y"
+    show "x = y"
+      using x y same
+      by (auto simp add: rseq_tail_rows_def split: rrexp.splits)
+  qed
+  have image_subset:
+      "?head_of ` rseq_tail_rows U t \<subseteq> rseq_heads U"
+    by (auto simp add: rseq_heads_def rseq_tail_rows_def
+        split: rrexp.splits)
+  have "card (rseq_tail_rows U t) =
+      card (?head_of ` rseq_tail_rows U t)"
+    by (rule card_image[OF inj, symmetric])
+  also have "... \<le> card (rseq_heads U)"
+    by (rule card_mono)
+      (use finite image_subset in auto)
+  finally show ?thesis .
+qed
+
 lemma rsize_set_rseq_rows_bucket_boundI:
   assumes finite: "finite U"
     and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
@@ -6667,6 +6695,16 @@ proof -
   finally show ?thesis
     by simp
 qed
+
+lemma rsize_set_split_rseq_tails_head_count_boundI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+  shows "rsize_set U \<le>
+    rsize_set (rnonseq_members U) +
+    (\<Sum>t \<in> rseq_tails U.
+      card (rseq_heads U) * (Suc H + rsize t))"
+  by (rule rsize_set_split_rseq_tails_bucket_boundI)
+    (use finite head_bound card_rseq_tail_rows_le_rseq_heads in auto)
 
 lemma row_dlformss_afactored_step_eq_generated:
   "row_dlformss (afactored_step c rs) =

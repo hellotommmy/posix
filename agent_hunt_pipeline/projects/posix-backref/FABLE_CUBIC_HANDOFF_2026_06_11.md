@@ -109,9 +109,14 @@ rsize_set U <= rsize_set (rnonseq_members U)
   + sum over distinct tails t of B * (Suc H + rsize t)
 ```
 
+The generic bound `card_rseq_tail_rows_le_rseq_heads` is checked, and the
+derived split `rsize_set_split_rseq_tails_head_count_boundI` lets you take
+`B = card (rseq_heads U)`.
+
 Next high-value concrete target: instantiate this with
 `U = row_dlformss (rpder_strong_rows_raw c (afactored1 r s))` and prove a
-useful actual-output bucket-width bound for `rseq_tail_rows U t`.
+useful actual-output bound for `card (rseq_heads U)` and the distinct tail
+sum.
 
 High-value next moves:
 

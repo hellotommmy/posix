@@ -15590,8 +15590,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
   rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
   rsize_set_rseq_tail_rows_bucket_boundI
+  card_rseq_tail_rows_le_rseq_heads
   rsize_set_rseq_rows_bucket_boundI
   rsize_set_split_rseq_tails_bucket_boundI
+  rsize_set_split_rseq_tails_head_count_boundI
   ```
 
 - Plain meaning: take the actual one-pass output
@@ -15626,9 +15628,12 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   The next useful target is therefore not "distinct tails are paid once"; it is
   to prove a good actual-output bucket-width bound for
   `rseq_tail_rows (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t`.
+  A generic bucket-width bound is now checked:
+  `card_rseq_tail_rows_le_rseq_heads`, so one safe default is
+  `B = card (rseq_heads U)`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:17 local time.
+  `Posix` green at 2026-06-12 10:20 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
