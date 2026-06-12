@@ -9810,6 +9810,35 @@ lemma finite_apder_strong_dlfrontier [simp]:
   "finite (apder_strong_dlfrontier r)"
   by (simp add: apder_strong_dlfrontier_def)
 
+lemma apder_strong_dlfrontier_not_deep_frontier_subset:
+  fixes a :: char
+  defines "r \<equiv> RSEQ (RCHAR a) (RSTAR RZERO)"
+  shows "legacy_rrexp r"
+    and "apder_nf r"
+    and "RONE \<in> apder_strong_dlfrontier r"
+    and "RONE \<notin> apder_deep_frontier r"
+    and "\<not> apder_strong_dlfrontier r \<subseteq> apder_deep_frontier r"
+proof -
+  show "legacy_rrexp r"
+    by (simp add: r_def)
+  show "apder_nf r"
+    by (simp add: r_def)
+  have star_row: "RSTAR RZERO \<in> apder_rows r"
+    by (simp add: r_def apder_rows_def apder_frontier_def)
+  have one_dlform:
+      "RONE \<in> row_dlforms (rsimpStrong_raw (RSTAR RZERO))"
+    by simp
+  show RONE_in: "RONE \<in> apder_strong_dlfrontier r"
+    unfolding apder_strong_dlfrontier_def
+      rsimpStrong_dlform_closure_def
+    using star_row one_dlform by blast
+  show RONE_notin: "RONE \<notin> apder_deep_frontier r"
+    by (simp add: r_def apder_deep_frontier_def
+        apder_dfrontier_acc_def)
+  show "\<not> apder_strong_dlfrontier r \<subseteq> apder_deep_frontier r"
+    using RONE_in RONE_notin by blast
+qed
+
 definition rsimpStrong_frontier_closure :: "rrexp set \<Rightarrow> rrexp set" where
   "rsimpStrong_frontier_closure U =
     (\<Union>p \<in> U. rfrontier (rsimpStrong_raw p))"
