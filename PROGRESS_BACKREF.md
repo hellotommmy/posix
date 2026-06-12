@@ -16414,3 +16414,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   is the final step, where the fragment linear-position argument
   applies.
 - Fable implements (c) next cycle unless taken.
+
+## 2026-06-12 Fable Correction: ext size induction needs two parameters
+
+- My sketch step "sum n_i <= n - 1" was wrong: the recursion arguments
+  are rsimp7 p k, whose sizes each include a COPY of rsize k, so their
+  sum is about |ps| * n, not n - 1.  Naive strong induction on rsize
+  alone does not close.
+- Working invariant, checked by hand: define head_aleaves q = number
+  of alternation leaves in the HEAD spine (keyed row: sum over
+  branches; RALTS: sum; otherwise 1).  Key facts:
+  (i) head_aleaves (rsimp7 p k) = head_aleaves p for non-RONE branches
+  (dlform splitting follows the head only; the copied tail adds no
+  head leaves); (ii) a RONE branch collapses to k and its account is
+  ext(k), handled by the induction at rsize k < rsize q.
+  Invariant: rsize_set (rseq_suffixes_ext q)
+    <= Suc (head_aleaves q + tail_collapses q) * Suc (rsize q) ^ 2,
+  where the second summand counts RONE-collapse contributions
+  (bounded by rsize).  Both factors <= Suc(rsize), so the cubic
+  corollary follows.
+- Next implementer: define head_aleaves (fun, mirror ext recursion),
+  prove (i) as an equation, then the invariant by measure induction
+  with the RONE case routed through ext(k).  All support lemmas
+  (chain quadratic, strict size decrease) are checked.
