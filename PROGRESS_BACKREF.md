@@ -16396,3 +16396,21 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   shared tail across opened branches.
 - Verification: full `Posix` build passed at 2026-06-12 12:43 local time
   (`AntimirovFactoredTransition` 62.532s cumulative).
+
+## 2026-06-12 Fable: extended-carrier size account - statement and proof sketch
+
+- Claimed next piece (c): rsize_set (rseq_suffixes_ext q) <= rsize q ^ 3
+  (or Suc-adjusted form).  Proof shape, checked by hand:
+  strong induction on rsize q mirroring rseq_suffixes_ext.induct.
+  Keyed case: ext = (suffix chain of k: quadratic, checked toolkit)
+  union over branches of ext(rsimp7 p k) where each rsimp7 p k is
+  STRICTLY smaller than the row (checked:
+  rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS) and their sizes sum to
+  less than the row size.  So S(n) <= n^2 + sum S(n_i) with
+  sum n_i <= n - 1, giving S(n) <= n^3 by
+  sum n_i^3 <= (sum n_i)^3 <= (n-1)^3 <= n^3 - n^2.
+- With (c), the actual-tail size is cubic PER ROW TREE; the cross-row
+  collapse (union over front rows without re-charging shared chains)
+  is the final step, where the fragment linear-position argument
+  applies.
+- Fable implements (c) next cycle unless taken.
