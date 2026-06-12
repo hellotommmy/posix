@@ -17246,6 +17246,28 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   of size m), and members of size m may be limited by the carrier
   structure.  Queued for next cycle.
 
+## 2026-06-12 Supervisor: CHECKED - active suffix split now has a pair-budget gate
+
+- Full Posix build GREEN at 2026-06-12 19:57 local
+  (AntimirovFactoredTransition 89.535s, full Posix elapsed 0:01:39).
+- Added the checked interface:
+
+  ```text
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_pair_budget_key_boundI
+  ```
+
+- Plain meaning: the front/tail split can now pay the active-suffix part by
+  `raw_shared_prune_active_suffix_pair_budget (...) * M`, assuming only the
+  active suffix KEYS have weight `Suc H + rsize t <= M`.  This avoids the old
+  fallback through `afactored1_strong_dlform_list_cost`, whose polynomial
+  bound is refuted by the RONE-pair example.
+- Narrow next instruction for Fable: use this pair-budget gate, not the
+  `*_list_cost_alt_nodes` / generated-ledger wrappers.  The next useful proof
+  obligation is a small key-size/bucket-size premise for
+  `raw_shared_prune_active_suffix_keys (afactored1_strong_dlform_universe r s c)`
+  strong enough to instantiate `M`, plus the existing head bound from
+  `strong_derivative_front_terms_member_size_linear`.
+
 ## 2026-06-12 Fable: orientation note for the new cleanup/status session
 
 A third agent (another Fable session) is joining to map work status and

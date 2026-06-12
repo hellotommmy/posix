@@ -21869,6 +21869,60 @@ proof (rule rsize_set_split_rseq_tails_bucket_funI)
         card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket)
 qed
 
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_pair_budget_key_boundI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+    and active_key_weight_bound:
+    "\<And>t. t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<Longrightarrow>
+      t \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+      Suc H + rsize t \<le> M"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        Suc H + rsize t) +
+    raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) * M"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?B = "\<lambda>t. card (raw_shared_prune_active_suffix_bucket
+    (afactored1_strong_dlform_universe r s c) t)"
+  let ?W = "\<lambda>t. Suc H + rsize t"
+  let ?P = "raw_shared_prune_active_suffix_pair_budget
+    (afactored1_strong_dlform_universe r s c)"
+  let ?Active = "(\<Sum>t \<in> ?T. ?B t * ?W t)"
+  have base: "rsize_set ?U \<le>
+      ?N + (\<Sum>t \<in> ?T. (?F + ?B t) * ?W t)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI
+        [OF head_bound])
+  have sum_split:
+      "(\<Sum>t \<in> ?T. (?F + ?B t) * ?W t) =
+       ?F * (\<Sum>t \<in> ?T. ?W t) + ?Active"
+    by (simp add: sum.distrib sum_distrib_left algebra_simps)
+  have active: "?Active \<le> ?P * M"
+    by (rule
+        raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_key_bound)
+      (rule active_key_weight_bound)
+  have "rsize_set ?U \<le>
+      ?N + (?F * (\<Sum>t \<in> ?T. ?W t) + ?Active)"
+    using base sum_split by linarith
+  also have "... \<le> ?N + (?F * (\<Sum>t \<in> ?T. ?W t) + ?P * M)"
+    using active by simp
+  finally show ?thesis
+    by (simp add: add.assoc)
+qed
+
 lemma rflts_singleton_member_rtail_nf_props:
   assumes q: "rtail_nf q"
     and x: "x \<in> set (rflts [q])"
