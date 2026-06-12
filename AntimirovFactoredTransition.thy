@@ -4810,6 +4810,33 @@ lemma set_row_dlformss_list [simp]:
   "set (row_dlformss_list rs) = row_dlformss rs"
   by (auto simp add: row_dlformss_list_def row_dlformss_def)
 
+lemma rsize_set_row_dlformss_le_sum_list_size:
+  "rsize_set (row_dlformss rs) \<le>
+    sum_list (map row_dlforms_list_size rs)"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: row_dlformss_def rsize_set_def)
+next
+  case (Cons r rs)
+  have split:
+      "row_dlformss (r # rs) = row_dlforms r \<union> row_dlformss rs"
+    by (simp add: row_dlformss_def)
+  have fin_r: "finite (row_dlforms r)"
+    by (metis finite_set set_row_dlforms_list)
+  have fin_rs: "finite (row_dlformss rs)"
+    by (metis finite_set set_row_dlformss_list)
+  have "rsize_set (row_dlformss (r # rs)) \<le>
+      rsize_set (row_dlforms r) + rsize_set (row_dlformss rs)"
+    unfolding split
+    by (rule rsize_set_Un_le[OF fin_r fin_rs])
+  also have "... \<le>
+      row_dlforms_list_size r + sum_list (map row_dlforms_list_size rs)"
+    using Cons.hyps rsize_set_row_dlforms_le_row_dlforms_list_size[of r]
+    by linarith
+  finally show ?case by simp
+qed
+
 lemma RL_row_dlforms_UN:
   "(\<Union>x \<in> row_dlforms r. RL x) = RL r"
   by (induct r rule: row_dlforms.induct)
@@ -23030,6 +23057,190 @@ proof (intro conjI)
     using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
   show "rsizes ?rows \<le> ?B"
     by (rule size_bound)
+qed
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated:
+  "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set
+      (row_dlformss
+        (concat (map (rpder_strong_list_raw c) (afactored1 r s))))"
+  by (rule rsize_set_mono)
+    (simp_all add: row_dlformss_rpder_strong_rows_raw_subset_generated)
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_list_cost:
+  "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+        (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?gen =
+    "concat (map (rpder_strong_list_raw c) (afactored1 r s))"
+  let ?norm =
+    "concat (map (rpder_norm_list c) (afactored1 r s))"
+  have "rsize_set (row_dlformss ?raw) \<le>
+      rsize_set (row_dlformss ?gen)"
+    by (rule
+        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated)
+  also have "... \<le> sum_list (map row_dlforms_list_size ?gen)"
+    by (rule rsize_set_row_dlformss_le_sum_list_size)
+  also have "... =
+      sum_list (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p)) ?norm)"
+    by (simp add: rpder_strong_list_raw_def map_concat_map o_def)
+  finally show ?thesis .
+qed
+
+lemma rsizes_rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight:
+  "rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+    rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule rsizes_rpder_strong_dcanon_rows_raw_tight_rsize_set_boundI)
+    simp_all
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and actual_cubic:
+      "rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  have contract:
+      "RLS (set ?rows) = Ders (s @ [c]) (RL r) \<and>
+      row_dlformss_disjoint ?rows \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_live q) \<and>
+      (\<forall>q \<in> set ?rows. row_dlforms_size_paid q) \<and>
+      row_dlformss ?rows =
+        row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+    using rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_contract
+      [OF legacy] by blast
+  show "RLS (set ?rows) = Ders (s @ [c]) (RL r)"
+    using contract by blast
+  show "row_dlformss_disjoint ?rows"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_live q"
+    using contract by blast
+  show "\<forall>q \<in> set ?rows. row_dlforms_size_paid q"
+    using contract by blast
+  show "row_dlformss ?rows =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+    using contract by blast
+  have "rsizes ?rows \<le>
+      rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+    by (rule
+        rsizes_rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule actual_cubic)
+  finally show "rsizes ?rows \<le> 2 * (rsize r + 3) ^ 3" .
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_budgetsI:
+  assumes actual_cubic:
+      "rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "length
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    card (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rlinear_termss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3 \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof (intro conjI)
+  let ?rows = "rpder_strong_dcanon_rows_raw c (afactored1 r s)"
+  let ?B = "2 * (rsize r + 3) ^ 3"
+  have size_bound: "rsizes ?rows \<le> ?B"
+  proof -
+    have "rsizes ?rows \<le>
+        rsize_set
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+      by (rule
+          rsizes_rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight)
+    also have "... \<le> ?B"
+      by (rule actual_cubic)
+    finally show ?thesis .
+  qed
+  show "length ?rows \<le> ?B"
+    using length_le_rsizes[of ?rows] size_bound by linarith
+  show "card (set ?rows) \<le> ?B"
+    using card_set_le_rsizes_early[of ?rows] size_bound by linarith
+  show "rlinear_termss ?rows \<le> ?B"
+    using rlinear_termss_le_rsizes[of ?rows] size_bound by linarith
+  show "rsizes ?rows \<le> ?B"
+    by (rule size_bound)
+qed
+
+lemma rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_list_tight_cubic_contractI:
+  assumes legacy: "legacy_rrexp r"
+    and list_cubic:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+          (concat (map (rpder_norm_list c) (afactored1 r s)))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "RLS (set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s))) =
+      Ders (s @ [c]) (RL r) \<and>
+    row_dlformss_disjoint
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_live q) \<and>
+    (\<forall>q \<in> set
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)).
+      row_dlforms_size_paid q) \<and>
+    row_dlformss
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) =
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<and>
+    rsizes
+      (rpder_strong_dcanon_rows_raw c (afactored1 r s)) \<le>
+      2 * (rsize r + 3) ^ 3"
+proof -
+  have actual_cubic:
+      "rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        2 * (rsize r + 3) ^ 3"
+  proof -
+    have "rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+            (concat (map (rpder_norm_list c) (afactored1 r s))))"
+      by (rule
+          rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_list_cost)
+    also have "... \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule list_cubic)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    by (rule
+        rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI
+        [OF legacy actual_cubic])
 qed
 
 lemma rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_list_tight_cubic_contractI:

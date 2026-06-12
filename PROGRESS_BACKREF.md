@@ -15301,3 +15301,64 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   vs. carrier counting (card and member bounds from the existing
   payload/tail universes).  Fable will start on containment next cycle
   unless the supervisor claims it first.
+
+## 2026-06-12 Supervisor: actual-output dlform gate checked
+
+- New checked lemmas in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated
+  rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_list_cost
+  rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI
+  rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_budgetsI
+  rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_list_tight_cubic_contractI
+  ```
+
+- Plain definitions:
+  `generated universe` means all rows produced before the one-pass strong
+  pruning/distinct pass has removed duplicates and dead candidates.
+  `actual output` means the rows that really remain in
+  `rpder_strong_rows_raw c (afactored1 r s)`.
+  `dlform set` means the deep-linear pieces obtained by opening those rows
+  with `row_dlformss`.
+
+- Why this matters: the older gate
+
+  ```text
+  rsize_set (afactored1_strong_dlform_universe r s c)
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  asks for a cubic bound on a broad candidate universe.  The new checked
+  contract only asks for a cubic bound on the deep-linear pieces of the
+  actual one-pass output:
+
+  ```text
+  rsize_set
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  This is enough to recover the same language, disjointness, liveness,
+  paid-size property, and cubic `rsizes` bound for
+  `rpder_strong_dcanon_rows_raw c (afactored1 r s)`.
+
+- A second checked bridge reduces that actual-output gate to a list-cost
+  target over the generated rows:
+
+  ```text
+  sum_list
+    (map (%p. row_dlforms_list_size (rsimpStrong_raw p))
+      (concat (map (rpder_norm_list c) (afactored1 r s))))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+- Guidance: do not spend another long cycle proving that the explicit
+  `pair_carrier` is cubic by raw product arithmetic.  Its containment may be
+  useful, but payloads x tails x member-size is at best quartic unless a
+  sharing/tail-ledger argument is added.  The next high-value target is either
+  the actual-output gate above or a shared-tail ledger that proves the
+  generated list-cost target without charging repeated suffixes every time.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 09:08 local time.

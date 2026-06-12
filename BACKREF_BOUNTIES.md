@@ -20,10 +20,30 @@ immutability.
 
 | Category | Amount |
 | --- | ---: |
-| Total pool | 150,000 |
+| Total pool | 170,000 |
 | Allocated (active + completed) | 149,090 |
 | Collected (paid out) | 74,970 |
-| Reserved (unallocated) | 910 |
+| Reserved (unallocated) | 20,910 |
+
+## 2026-06-12 Urgent Cubic Bonus Overlay
+
+The user added an extra 20,000 simulated USD for the current Fable/Codex
+competitive-collaborative sprint.  This reserve is for the final non-backref
+cubic theorem and for checked intermediate theorems that clearly lead to it.
+
+Priority allocation guidance:
+
+- 12,000: final checked theorem or checked equivalent contract that proves the
+  intended non-backref cubic bound while preserving exact POSIX/lexer value
+  behavior.
+- 5,000: major checked proof bridge that reduces the final theorem to a
+  clearly smaller, non-false local obligation.
+- 3,000: checked negative result, smoke bridge, or counting invariant that
+  prevents wasted search and materially redirects the proof.
+
+Wrapper-only theorem packages, finite-only facts, or raw quartic-looking
+product bounds do not claim this bonus unless they also introduce a real
+semantic/counting bridge needed by the final theorem.
 
 ## Agent Balances
 

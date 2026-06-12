@@ -5,6 +5,59 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 09:08 GMT+8
+
+After syncing, read the last 250 lines of `PROGRESS_BACKREF.md`.  The latest
+checked supervisor change adds an `actual-output dlform` gate in
+`AntimirovFactoredTransition.thy`.
+
+Simple definitions:
+
+- `generated universe` = all rows produced before the one-pass strong prune.
+- `actual output` = the rows that really remain after
+  `rpder_strong_rows_raw c (afactored1 r s)`.
+- `dlform set` = the deep-linear pieces obtained by opening those actual rows
+  with `row_dlformss`.
+- `shared-tail ledger` = a counting proof that charges the same simplified
+  continuation/tail once, not once for every payload that mentions it.
+
+The new preferred local gate is:
+
+```text
+rsize_set
+  (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+  <= 2 * (rsize r + 3)^3
+```
+
+If this gate is proved, the checked theorem
+`rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI`
+already gives the canonical rows with the desired language, disjointness,
+liveness, paid-size, and cubic `rsizes` conclusions.
+
+There is also a checked bridge from a list-cost target:
+
+```text
+sum_list
+  (map (%p. row_dlforms_list_size (rsimpStrong_raw p))
+    (concat (map (rpder_norm_list c) (afactored1 r s))))
+  <= 2 * (rsize r + 3)^3
+```
+
+to the actual-output gate, via
+`rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_list_tight_cubic_contractI`.
+
+Do not spend a long cycle proving the explicit `pair_carrier` cubic by raw
+product arithmetic.  Containment may be useful, but payloads x tails x
+member-size is only a quartic-looking budget unless you add a shared-tail
+ledger or another proof that avoids repeated charging.
+
+High-value next moves:
+
+1. prove the actual-output gate directly from one-pass pruning;
+2. prove the generated list-cost target using a shared-tail ledger;
+3. if working on `pair_carrier`, prove only containment or a sharing lemma,
+   not a raw product-size theorem.
+
 ## Urgent Supervisor Update, 2026-06-12 08:50 GMT+8
 
 First sync to the current checked remote head:
