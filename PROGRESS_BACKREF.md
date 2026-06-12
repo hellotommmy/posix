@@ -15888,3 +15888,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   the distinct-tail TOTAL SIZE, which the supervisor pair-budget /
   fragment-linear work addresses.
 - Build: `Finished Posix` 10:55:52.
+
+## 2026-06-12 Supervisor correction after pair-budget interfaces
+
+- The distinct-tail count lemma above is useful checked progress, but it is
+  not the final remaining obstacle.  The current checked decomposition still
+  has an active same-key bucket multiplicity term.
+
+- The latest checked pair-budget bridge says:
+
+  ```text
+  active weighted bucket term
+  <= pair_budget(afactored1_strong_dlform_universe r s c)
+     * (Suc H + afactored1_strong_dlform_list_cost r s c)
+  ```
+
+  and the latest checked budget-width bridge says:
+
+  ```text
+  if every active suffix bucket has size <= K
+  then pair_budget(afactored1_strong_dlform_universe r s c)
+       <= afactored1_strong_dlform_list_cost r s c * K
+  ```
+
+- So the best next theorem is a real bound on the maximum same-key active
+  bucket width `K`.  Distinct-tail total size may still help the ordinary
+  non-active tail summand, but it does not replace the active bucket-width
+  proof.
