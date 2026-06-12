@@ -6278,3 +6278,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - This packages the STAR carry-measure case from a child D-bound plus the
   checked one-point STAR shift.  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 05:15: CLAIM - carry-measure union splitter
+
+- Synced through pushed commit 695f100, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure two-way union splitter for carry
+  measures:
+  `measure(A1 union A2, G1 union G2) <= measure(A1,G1)+measure(A2,G2)`,
+  where `measure(A,G)=card(A-K)+card(G-K-A)`.  This is the list aggregation
+  shape needed for RALTS.
+
+## 2026-06-13 Codex 05:20: CHECKED - carry-measure union splitter
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_carry_measure_Un_le`.
+- This gives the two-way union accounting for carry measures and is ready to
+  lift to a list induction for the RALTS case.
+- Build command passed after worker check (AntimirovFactoredTransition
+  89.037s, full Posix elapsed 0:01:36).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

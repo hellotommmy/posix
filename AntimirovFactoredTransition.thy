@@ -29108,6 +29108,40 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_carry_measure_Un_le:
+  assumes finA1: "finite A1"
+    and finA2: "finite A2"
+    and finG1: "finite G1"
+    and finG2: "finite G2"
+  shows "card ((A1 \<union> A2) - K) +
+    card ((G1 \<union> G2) - K - (A1 \<union> A2)) \<le>
+    card (A1 - K) + card (G1 - K - A1) +
+    card (A2 - K) + card (G2 - K - A2)"
+proof -
+  let ?S1 = "(A1 \<union> A2) - K"
+  let ?S2 = "(G1 \<union> G2) - K - (A1 \<union> A2)"
+  let ?R1 = "A1 - K"
+  let ?R2 = "G1 - K - A1"
+  let ?R3 = "A2 - K"
+  let ?R4 = "G2 - K - A2"
+  have finS1: "finite ?S1"
+    using finA1 finA2 by simp
+  have finS2: "finite ?S2"
+    using finG1 finG2 by simp
+  have disj: "?S1 \<inter> ?S2 = {}"
+    by blast
+  have cover: "?S1 \<union> ?S2 \<subseteq> ?R1 \<union> ?R2 \<union> ?R3 \<union> ?R4"
+    by blast
+  have "card ?S1 + card ?S2 = card (?S1 \<union> ?S2)"
+    using card_Un_disjoint[OF finS1 finS2 disj] by simp
+  also have "... \<le> card (?R1 \<union> ?R2 \<union> ?R3 \<union> ?R4)"
+    by (rule card_mono)
+      (use finA1 finA2 finG1 finG2 cover in auto)
+  also have "... \<le> card ?R1 + card ?R2 + card ?R3 + card ?R4"
+    by (rule card_Un4_le)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_diff_le_Suc:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
