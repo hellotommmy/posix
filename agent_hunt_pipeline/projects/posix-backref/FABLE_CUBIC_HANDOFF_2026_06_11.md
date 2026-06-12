@@ -5,6 +5,65 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Supervisor Override, 2026-06-12 19:25 GMT+8
+
+Current red `Background shell failed` entries are still proof failures, not an
+Isabelle-command problem.  The wrapper is correct:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+```
+
+Important chronology: the 19:10 and 19:13 background builds failed on proof
+holes inside the new block beginning with `Set-level per-row bound`, but the
+later 19:15 build `b6wrwpz7s` finished green:
+
+```text
+AntimirovFactoredTransition 100% (82.594s)
+Finished Posix (0:01:26 elapsed time)
+```
+
+So if the UI still shows older red background shells, do not infer that current
+`HEAD` is broken.  `db1091d` is the checked source state for this block.
+
+Use, do not reprove, the checked facts now present in
+`AntimirovFactoredTransition.thy`:
+
+```text
+card_row_dlforms_rsimp4_SEQ_atom_diff_le
+card_row_dlforms_rsimp7_SEQ_atom_diff_le
+card_row_dlforms_rtail_nf_le_Suc_rsize
+row_dlforms_member_size_le_rsize
+rsize_set_row_dlforms_rtail_nf_quadratic
+card_row_dlforms_le_rsize
+rsize_set_row_dlforms_le_rsize_sq
+```
+
+Plain definitions:
+
+- `row_dlforms_list_size` counts duplicates.  It is false to bound this
+  polynomially in general; the RONE-pair tower refutes it.
+- `row_dlforms` and `row_dlformss` are sets.  Repeated opened rows are merged
+  before counting.
+- `rsize_set U` means the sum of `rsize` over the distinct rows in set `U`.
+  This is the live quantity for the actual cubic gate.
+
+Do not spend another cycle repairing or restating the generic theorem
+`card (row_dlforms q) <= rsize q`: it is now checked.  The next useful target
+is not another per-row theorem; it is the actual generator gate:
+
+```text
+rsize_set
+  (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+  <= 2 * (rsize r + 3)^3
+```
+
+or the equivalent `afactored1_strong_dlform_universe` gate below.  After a
+failed build, read the first `*** Failed to finish proof` block and change one
+small lemma before rebuilding; do not queue multiple background builds with the
+same first failing goal.
+
 ## Supervisor Update, 2026-06-12 18:51 GMT+8
 
 The RONE-pair tower counterexample is now actually checked by a foreground
