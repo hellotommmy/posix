@@ -291,6 +291,29 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   `sigma4 (RALTS []) k` at a non-`RONE` continuation is a syntactic sequence
   row with a singleton frontier outside `F(k)`.
 
+## B8. Character over two-character alternation — killed global left-two-bucket
+
+- **rrexp**:
+  ```
+  left = RCHAR c
+  r2 = RALTS [RCHAR a, RCHAR b]
+  k = RONE
+  ```
+- **PCRE**: `c(?:a|b)` as the surrounding SEQ shape.
+- **killed**: treating the new SEQ left-two-bucket premise as a global
+  induction invariant for the left child alone,
+  `card(acc left (sigma4 r2 k) - F(sigma4 r2 k)) +
+   card((acc left (sigma4 r2 k) INT F(sigma4 r2 k)) - F(k) - acc r2 k)
+   <= zw2 left`.
+  Checked lemma:
+  `apder_zw2_left_two_bucket_RCHAR_alt_false`
+  (`AntimirovFactoredTransition.thy`), with outside-middle count `0`,
+  middle-overlap count `2`, and left budget `1`.
+- **mechanism**: a character-left SEQ imports the entire right alternation
+  frontier.  The live D law is still balanced by the right alternation budget,
+  but charging that middle-overlap bucket only to the left character overdraws
+  immediately.
+
 ---
 
 # Suggested fuzzer use

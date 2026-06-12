@@ -29091,6 +29091,37 @@ lemma apder_zw2_global_carry_empty_alt_false:
       apder_zw2 cex_r"
   by (simp_all add: cex_r_def cex_k_def)
 
+lemma apder_zw2_left_two_bucket_RCHAR_alt_false:
+  defines "cex_left \<equiv> RCHAR (CHR ''c'')"
+  defines "cex_r2 \<equiv> RALTS [RCHAR (CHR ''a''), RCHAR (CHR ''b'')]"
+  defines "cex_k \<equiv> RONE"
+  shows "legacy_rrexp cex_left"
+    and "legacy_rrexp cex_r2"
+    and "legacy_rrexp cex_k"
+    and "apder_nf cex_left"
+    and "apder_nf cex_r2"
+    and "apder_nf cex_k"
+    and "rntimes_free cex_left"
+    and "rntimes_free cex_r2"
+    and "rntimes_free cex_k"
+    and "card (apder_term_frontier_acc cex_left
+      (rsimp4_SEQ_atom cex_r2 cex_k) -
+      rfrontier (rsimp4_SEQ_atom cex_r2 cex_k)) = 0"
+    and "card ((apder_term_frontier_acc cex_left
+      (rsimp4_SEQ_atom cex_r2 cex_k) \<inter>
+      rfrontier (rsimp4_SEQ_atom cex_r2 cex_k)) -
+      rfrontier cex_k - apder_term_frontier_acc cex_r2 cex_k) = 2"
+    and "apder_zw2 cex_left = 1"
+    and "\<not> card (apder_term_frontier_acc cex_left
+      (rsimp4_SEQ_atom cex_r2 cex_k) -
+      rfrontier (rsimp4_SEQ_atom cex_r2 cex_k)) +
+      card ((apder_term_frontier_acc cex_left
+        (rsimp4_SEQ_atom cex_r2 cex_k) \<inter>
+        rfrontier (rsimp4_SEQ_atom cex_r2 cex_k)) -
+        rfrontier cex_k - apder_term_frontier_acc cex_r2 cex_k) \<le>
+      apder_zw2 cex_left"
+  by (simp_all add: cex_left_def cex_r2_def cex_k_def)
+
 lemma card_diff_le_Suc_card_diff_if_small_middle:
   assumes finA: "finite A"
     and finB: "finite B"

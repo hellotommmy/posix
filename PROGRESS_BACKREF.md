@@ -6777,3 +6777,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   103.922s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 09:05: CLAIM - audit global left-two-bucket invariant
+
+- Synced through pushed commit 3daaca5, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Supervisor/pruning brick: check the small suspected CE showing that the new
+  `left-two-bucket` SEQ interface is not itself a global induction invariant.
+  Candidate: left `RCHAR c`, right `RALTS [RCHAR a, RCHAR b]`, `k = RONE`;
+  the middle-overlap bucket has two rows while the left `RCHAR` budget is one.
+
+## 2026-06-13 Codex 09:10: CHECKED/BLOCKER - global left-two-bucket invariant false
+
+- New checked counterexample in `AntimirovFactoredTransition.thy`:
+  `apder_zw2_left_two_bucket_RCHAR_alt_false`.
+- Shape: left `RCHAR c`, right `RALTS [RCHAR a, RCHAR b]`, `k = RONE`.
+  It is legacy, `apder_nf`, and `rntimes_free`; the outside-middle count is
+  `0`, the middle-overlap bucket is `2`, and the left budget is `1`.
+- Meaning: `card_apder_term_frontier_acc_RSEQ_diff_le_if_left_two_buckets`
+  is a useful SEQ interface, not a standalone global invariant for the left
+  child.  The middle-overlap bucket sometimes must be paid by the right
+  alternation budget or by a more joint/list-aware invariant.  Added B8 to
+  `EVIL_PATTERNS.md`.  Build command passed after worker check
+  (AntimirovFactoredTransition 86.237s, full Posix elapsed 0:01:40).
