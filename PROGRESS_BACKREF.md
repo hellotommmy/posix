@@ -6689,3 +6689,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.457s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:25: CLAIM - RSTAR-left SEQ D bridge
+
+- Synced through pushed commit 88aaa79, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the SEQ case with a left `RSTAR r`: a body D
+  bound at the star/middle continuation plus exact right carry should imply
+  the exact D bound for `RSEQ (RSTAR r) r2`.
+
+## 2026-06-13 Codex 08:30: CHECKED - RSTAR-left SEQ D bridge
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_RSTAR_diff_le_if_body_right_carry`.
+- This packages the left-RSTAR SEQ D case using the existing RSTAR body D
+  bound at `rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom r2 k)` plus exact
+  right carry.
+- Build command passed after worker check (AntimirovFactoredTransition
+  82.269s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
