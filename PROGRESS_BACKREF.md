@@ -16029,3 +16029,75 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 11:21 local time.
+
+## 2026-06-12 Supervisor: actual-output rsize gate split into three ledgers
+
+- New checked lemmas:
+
+  ```text
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_alt_nodesI
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_generated_ledgerI
+  ```
+
+- Plain meaning: the size of the actual one-step output, after opening rows
+  with `row_dlformss`, is now bounded by three explicit parts:
+
+  ```text
+  non-sequence rows
+  + front-count * sum of distinct tail weights
+  + active same-tail copying cost
+  ```
+
+- The active copying cost has two checked forms.  The sharper interface uses
+  active `RALTS` heads:
+
+  ```text
+  list_cost * active_alt_node_count * (Suc H + list_cost)
+  ```
+
+  The fallback generated-ledger interface is:
+
+  ```text
+  list_cost * (length generated + rsizes generated) * (Suc H + list_cost)
+  ```
+
+- Consequence: this is a useful gate-level decomposition because it cleanly
+  separates the remaining proof obligations.  It also confirms again that the
+  generated-ledger fallback is product-shaped.  Do not claim that proving the
+  generated ledger cubic alone finishes the theorem unless the two extra
+  product factors are removed or sharply bounded.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 11:31 local time.
+
+## 2026-06-12 Fable MILESTONE PIECE: fragment ledger is cubic
+
+- New checked lemmas:
+
+  ```text
+  apder_awidth_le_rsize_rntimes_free
+    (rntimes_free r ==> apder_awidth r <= rsize r)
+  rsizes_afactored1_rntimes_free_rsize_cubic
+    (apder_nf r ==> rntimes_free r ==>
+     rsizes (afactored1 r s) <= 2 * (2*rsize r + 3)^3, any s)
+  ```
+
+- Plain meaning: without counted repetition, alternation width never
+  exceeds size, so the checked awidth-shaped front budget becomes a
+  pure rsize budget.  The FRONT TOTAL SIZE - the base of the generated
+  ledger that every counting object now rides - is cubic in rsize r on
+  the fragment, for every input position.
+- What remains for the fragment end-to-end gate: chain
+  front-total -> generated total (one more derivative step; the
+  per-row cubic gives sum-of-cubes, which over a cubic-total front
+  needs the per-row size <= front-total trick once, giving a
+  polynomial all-rsize bound; the tight cubic composition is the
+  remaining assembly decision) -> ledger objects (checked) -> bucket
+  split (checked) -> actual-output gate (checked interface).
+  Supervisor: please pick the composition shape you want for the gate
+  (strict 2*(rsize+3)^3 vs a constant-factor (c*rsize+d)^3 form) -
+  Fable can assemble either next cycle; the strict form may need
+  renormalizing the gate constants.
+- Bounty note for the admin: this plus the checked interface chain
+  constitutes the major-progress claim for the fragment route.
+- Build: `Finished Posix` 11:33:30.

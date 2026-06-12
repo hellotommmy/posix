@@ -21789,6 +21789,134 @@ proof -
     by linarith
 qed
 
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_alt_nodesI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        Suc H + rsize t) +
+    (afactored1_strong_dlform_list_cost r s c *
+      card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?B = "\<lambda>t. card (raw_shared_prune_active_suffix_bucket
+    (afactored1_strong_dlform_universe r s c) t)"
+  let ?W = "\<lambda>t. Suc H + rsize t"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?Active = "(\<Sum>t \<in> ?T. ?B t * ?W t)"
+  have base: "rsize_set ?U \<le>
+      ?N + (\<Sum>t \<in> ?T. (?F + ?B t) * ?W t)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI
+        [OF head_bound])
+  have sum_split:
+      "(\<Sum>t \<in> ?T. (?F + ?B t) * ?W t) =
+       ?F * (\<Sum>t \<in> ?T. ?W t) + ?Active"
+    by (simp add: sum.distrib sum_distrib_left algebra_simps)
+  have active: "?Active \<le> (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost_alt_nodes)
+  have "rsize_set ?U \<le> ?N + (?F * (\<Sum>t \<in> ?T. ?W t) + ?Active)"
+    using base sum_split by linarith
+  also have "... \<le> ?N + (?F * (\<Sum>t \<in> ?T. ?W t) +
+      (?L * ?A) * (Suc H + ?L))"
+    using active by simp
+  finally show ?thesis
+    by (simp add: add.assoc)
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_generated_ledgerI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        Suc H + rsize t) +
+    (afactored1_strong_dlform_list_cost r s c *
+      (length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+       rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?G = "length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  let ?Tail = "(\<Sum>t \<in> ?T. Suc H + rsize t)"
+  have base: "rsize_set ?U \<le>
+      ?N + ?F * ?Tail + (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_alt_nodesI
+        [OF head_bound])
+  have alt: "?A \<le> ?G"
+    by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
+  have "?L * ?A \<le> ?L * ?G"
+    by (rule mult_left_mono[OF alt]) simp
+  then have "(?L * ?A) * (Suc H + ?L) \<le>
+      (?L * ?G) * (Suc H + ?L)"
+    by (rule mult_right_mono) simp
+  with base show ?thesis
+    by linarith
+qed
+
+lemma apder_awidth_le_rsize_rntimes_free:
+  assumes "rntimes_free r"
+  shows "apder_awidth r \<le> rsize r"
+  using assms
+proof (induct r)
+  case (RALTS rs)
+  have "sum_list (map apder_awidth rs) \<le> sum_list (map rsize rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  then show ?case
+    by simp
+qed (auto intro: le_SucI add_le_mono)
+
+lemma rsizes_afactored1_rntimes_free_rsize_cubic:
+  assumes nf: "apder_nf r"
+    and free: "rntimes_free r"
+  shows "rsizes (afactored1 r s) \<le> 2 * (2 * rsize r + 3) ^ 3"
+proof -
+  let ?B = "(apder_awidth r + rsize r + 3) ^ 3"
+  have budget:
+      "set (afactored1 r s) \<subseteq> apder_rows r \<and>
+        length (afactored1 r s) \<le> 2 * ?B \<and>
+        card (set (afactored1 r s)) \<le> 2 * ?B \<and>
+        rlinear_termss (afactored1 r s) \<le> 2 * ?B \<and>
+        rsizes (afactored1 r s) \<le> 2 * ?B"
+    by (rule afactored1_apder_rows_expanded_cubic_budget[OF nf])
+  have aw: "apder_awidth r \<le> rsize r"
+    by (rule apder_awidth_le_rsize_rntimes_free[OF free])
+  have "rsizes (afactored1 r s) \<le> 2 * ?B"
+    using budget by blast
+  also have "... \<le> 2 * (2 * rsize r + 3) ^ 3"
+    using aw by (intro mult_le_mono2 power_mono) simp_all
+  finally show ?thesis .
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
