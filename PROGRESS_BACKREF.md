@@ -6894,3 +6894,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.761s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 09:55: CLAIM - normal nonalt rsimp4 frontier shape
+
+- Synced through pushed commit d78e7ca, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow k-chain brick: prove that for an `apder_nf` non-alt head, the
+  sequenced atom is either the original continuation or has frontier cardinal
+  at most one.  This should turn the blocked one-step frontier shift into a
+  card-mono corollary instead of another fragile constructor split.
+
+## 2026-06-13 Codex 10:00: CHECKED - normal nonalt rsimp4 frontier shape
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `rsimp4_SEQ_atom_apder_nf_nonalt_eq_cont_or_card_rfrontier_le_one`.
+- This gives the k-chain shape split needed by the blocked frontier-shift
+  proof: an `apder_nf` non-alt head either leaves the continuation unchanged
+  (`p = RONE`) or produces a row whose frontier has cardinal at most one.
+- Build command passed after worker check (AntimirovFactoredTransition
+  83.488s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

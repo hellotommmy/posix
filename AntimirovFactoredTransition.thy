@@ -29386,6 +29386,52 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsimp4_SEQ_atom_apder_nf_nonalt_eq_cont_or_card_rfrontier_le_one:
+  assumes nf: "apder_nf p"
+    and nonalt: "nonalt p"
+  shows "rsimp4_SEQ_atom p k = k \<or>
+    card (rfrontier (rsimp4_SEQ_atom p k)) \<le> 1"
+  using nf nonalt
+proof (cases p)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis by simp
+next
+  case (RCHAR c)
+  then show ?thesis by (cases k) auto
+next
+  case (RALTS rs)
+  then show ?thesis using nonalt by simp
+next
+  case (RSEQ p1 p2)
+  have p2_nf: "apder_nf p2"
+    using nf RSEQ by simp
+  have p2_not_one: "p2 \<noteq> RONE"
+    using nf RSEQ by simp
+  have cont_not_one: "rsimp4_SEQ_atom p2 k \<noteq> RONE"
+    by (rule rsimp4_SEQ_atom_apder_nf_not_RONE[OF p2_nf p2_not_one])
+  show ?thesis
+    using nf RSEQ cont_not_one
+    by (cases "rsimp4_SEQ_atom p2 k"; cases p1) auto
+next
+  case (RSTAR p)
+  then show ?thesis by (cases k) auto
+next
+  case (RNTIMES p n)
+  then show ?thesis by (cases k) auto
+next
+  case (RBACKREF4 p1 p2 p3 p4 cs)
+  then show ?thesis by (cases k) auto
+next
+  case (RHALF p cs rep)
+  then show ?thesis by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis by (cases k) auto
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
