@@ -6567,3 +6567,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   98.855s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:25: CLAIM - RALTS carry nf packaging
+
+- Synced through pushed commit 4f38f31, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package
+  `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children` with
+  `apder_nf (RALTS rs)`, deriving each child's `rsimp4_SEQ_atom q RONE = q`
+  from `apder_nf_imp_rtail_nf` and `rtail_nf_RONE_stable`.
+
+## 2026-06-13 Codex 07:30: CHECKED - RALTS carry nf packaging
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children_nf`.
+- This packages the scoped RALTS arbitrary-continuation `Suc` carry lemma
+  behind the normal-form premise, so future induction steps do not need to
+  restate child `RONE` stability manually.
+- Build command passed after worker check (AntimirovFactoredTransition
+  89.519s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

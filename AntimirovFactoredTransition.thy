@@ -29533,6 +29533,39 @@ proof -
     card_add_singleton_Diff_Diff_le_Suc\<close>)
 qed
 
+lemma card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children_nf:
+  assumes nf: "apder_nf (RALTS rs)"
+    and each_carry_RONE: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+      card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+        apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+    and each_diff: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k -
+      apder_term_frontier_acc (RALTS rs) k) \<le>
+      Suc (apder_zw2 (RALTS rs))"
+proof (rule card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children)
+  fix q
+  assume q: "q \<in> set rs"
+  have "apder_nf q"
+    using nf q by simp
+  then have "rtail_nf q"
+    by (rule apder_nf_imp_rtail_nf)
+  then show "rsimp4_SEQ_atom q RONE = q"
+    by (rule rtail_nf_RONE_stable)
+next
+  show "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+    card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+      apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+    by (rule each_carry_RONE)
+next
+  show "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+    by (rule each_diff)
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"
