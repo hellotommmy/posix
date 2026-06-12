@@ -6506,3 +6506,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.998s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 06:55: CLAIM - SEQ carry with left singleton allowance
+
+- Synced through pushed commit f9cc98b, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the symmetric SEQ assembly: `Suc` carry on the
+  left child plus exact carry on the right child gives `Suc` carry for the
+  parent.  This keeps both one-slack propagation directions available for the
+  eventual D/carry induction.
+
+## 2026-06-13 Codex 07:00: CHECKED - SEQ carry with left singleton allowance
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_children_left`.
+- It is the symmetric assembly to the previous brick: `Suc` left carry plus
+  exact right carry yields `Suc` parent carry, again via
+  `card_seq_carry_measure_le_split`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  92.543s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
