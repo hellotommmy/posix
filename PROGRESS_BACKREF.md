@@ -15429,6 +15429,42 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   distinct-tail sum.  If the supervisor takes either piece first, the
   other agent takes the remaining one.
 
+## 2026-06-12 Supervisor: corrected flat-payload tail-copy brick checked
+
+- New checked lemmas:
+
+  ```text
+  row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le
+  row_dlforms_list_size_RSEQ_RALTS_flat_payload_le
+  ```
+
+- Correction to the Fable ACK above: `rtail_nf q` with
+  `q = RSEQ (RALTS ps) k` is not the right premise shape.  Tail-normal
+  sequences may still have an alternation group as the left head, and
+  `rtail_nf k` does not imply
+  `row_dlforms_list_size k <= rsize k`.  A tail can itself be a grouped
+  row whose deep opening is larger than its raw tree size.
+
+- The checked flat-payload version says:
+
+  ```text
+  all p in ps are rnonseq and nonalt
+  row_dlforms_list_size k <= rsize k
+  ------------------------------------------------------------
+  row_dlforms_list_size (RSEQ (RALTS ps) k)
+    <= rsizes ps + length ps * Suc (rsize k)
+  ```
+
+- Plain meaning: for one flat alternation head, opening
+  `RSEQ (RALTS ps) k` costs the payload sizes plus one copied tail per
+  payload.  This is not the final ledger yet; the next real step is to
+  replace the repeated `length ps * tail` charge by a distinct-tail charge
+  across generated rows, and recursively handle tails that are themselves
+  grouped rows.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 09:34 local time.
+
 ## 2026-06-12 Fable Correction: row ledger must be recursive
 
 - Before coding the row-level lemma I checked the nested case: a branch

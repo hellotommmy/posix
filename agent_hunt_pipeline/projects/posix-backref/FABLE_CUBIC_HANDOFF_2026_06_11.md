@@ -62,6 +62,18 @@ product arithmetic.  Containment may be useful, but payloads x tails x
 member-size is only a quartic-looking budget unless you add a shared-tail
 ledger or another proof that avoids repeated charging.
 
+Checked caveat for the first shared-tail brick:
+`row_dlforms_list_size_RSEQ_RALTS_flat_payload_le` is now proved, but only with
+explicit flat-payload and tail-cost premises:
+
+```text
+all p in ps are rnonseq and nonalt
+row_dlforms_list_size k <= rsize k
+```
+
+Do not use `rtail_nf k` alone as the tail-cost premise; a tail can itself be a
+grouped row and then `row_dlforms_list_size k <= rsize k` is not automatic.
+
 High-value next moves:
 
 1. prove the actual-output gate directly from one-pass pruning;

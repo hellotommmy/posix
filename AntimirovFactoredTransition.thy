@@ -4820,6 +4820,43 @@ lemma row_dlforms_list_size_RSEQ_RALTS [simp]:
       (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
   by (induct ps) (simp_all add: row_dlforms_list_size_def)
 
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le:
+  assumes payload: "rnonseq p" "nonalt p"
+    and tail_cost: "row_dlforms_list_size k \<le> rsize k"
+  shows "row_dlforms_list_size (rsimp7_SEQ_atom p k) \<le>
+    rsize p + Suc (rsize k)"
+  using payload tail_cost
+  by (cases p; cases k)
+    (auto simp add: rsimp7_SEQ_atom_def row_dlforms_list_size_def
+      split: rrexp.splits)
+
+lemma row_dlforms_list_size_RSEQ_RALTS_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+    and tail_cost: "row_dlforms_list_size k \<le> rsize k"
+  shows "row_dlforms_list_size (RSEQ (RALTS ps) k) \<le>
+    rsizes ps + length ps * Suc (rsize k)"
+proof -
+  let ?T = "Suc (rsize k)"
+  have each: "\<And>p. p \<in> set ps \<Longrightarrow>
+      row_dlforms_list_size (rsimp7_SEQ_atom p k) \<le>
+        rsize p + ?T"
+    by (rule row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le)
+      (use payloads tail_cost in auto)
+  have split:
+      "sum_list (map (\<lambda>p. rsize p + ?T) ps) =
+        rsizes ps + length ps * ?T"
+    by (induct ps) (simp_all add: algebra_simps)
+  have "row_dlforms_list_size (RSEQ (RALTS ps) k) =
+      sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
+    by simp
+  also have "... \<le> sum_list (map (\<lambda>p. rsize p + ?T) ps)"
+    by (rule sum_list_mono) (rule each)
+  also have "... = rsizes ps + length ps * ?T"
+    by (rule split)
+  finally show ?thesis .
+qed
+
 lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
   "rsize_set (row_dlforms r) \<le> row_dlforms_list_size r"
   using rsize_set_set_le_sum_list_rsize[of "row_dlforms_list r"]
