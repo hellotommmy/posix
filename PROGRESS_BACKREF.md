@@ -6214,3 +6214,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - This packages the SEQ case for the simultaneous carry invariant.  No new
   CE/blow-up family discovered in this proof step; `EVIL_PATTERNS.md`
   unchanged.
+
+## 2026-06-13 Codex 04:45: CLAIM - RCHAR carry-measure base
+
+- Synced through pushed commit aa64430, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: prove the exact simultaneous carry-measure bound for
+  the `RCHAR` base case:
+  accumulator outside the old frontier plus newly carried frontier outside
+  the accumulator is bounded by `apder_zw2 (RCHAR c) = 1`.
+
+## 2026-06-13 Codex 04:50: CHECKED - RCHAR carry-measure base
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RCHAR_carry_measure_le`.
+- First build exposed the RALTS-continuation singleton-difference subgoal;
+  changed the same lemma to spell out that case with
+  `card_singleton_Diff_le_one`.  Rerun build passed after worker check
+  (AntimirovFactoredTransition 88.845s, full Posix elapsed 0:01:36).
+- No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.

@@ -29456,6 +29456,18 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RCHAR_carry_measure_le:
+  "card (apder_term_frontier_acc (RCHAR c) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RCHAR c) k) - rfrontier k -
+      apder_term_frontier_acc (RCHAR c) k) \<le> apder_zw2 (RCHAR c)"
+proof (cases k)
+  case (RALTS rs)
+  then show ?thesis
+    using card_singleton_Diff_le_one[of "RSEQ (RCHAR c) (RALTS rs)"
+        "rfrontiers rs"]
+    by simp
+qed (simp_all add: card_singleton_Diff_le_one)
+
 
 text \<open>
   Static row size law: every member of the apder accumulator is at
