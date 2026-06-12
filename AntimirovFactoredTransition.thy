@@ -21126,6 +21126,48 @@ lemma card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_su
     (simp_all add:
       row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
 
+lemma rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_subset_universe:
+  "(\<Union>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      rseq_tail_nonalt_head_rows
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    \<subseteq> afactored1_strong_dlform_universe r s c"
+  using row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe
+  by (auto simp add: rseq_tail_nonalt_head_rows_def
+      rseq_tail_rows_def)
+
+lemma rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_universe:
+  "rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    \<le> rsize_set (afactored1_strong_dlform_universe r s c)"
+  by (rule rsize_set_mono)
+    (simp_all add:
+      rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_subset_universe)
+
+lemma rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_list_cost:
+  "rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    \<le> afactored1_strong_dlform_list_cost r s c"
+proof -
+  have "rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t)
+    \<le> rsize_set (afactored1_strong_dlform_universe r s c)"
+    by (rule
+        rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_universe)
+  also have "... \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_list_cost)
+  finally show ?thesis .
+qed
+
 lemma card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket:
   "card (rseq_tail_rows
       (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>

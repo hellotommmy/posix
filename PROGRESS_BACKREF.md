@@ -16237,3 +16237,37 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   open gate terms close at cubic and the fragment gate is complete.
 - Fable starts the nesting lemma next cycle (suffix-of relation on
   tails of a single row first, then across the front).
+
+## 2026-06-12 Supervisor: nonalt sequence rows are universe-paid, not closed
+
+- New checked lemmas:
+
+  ```text
+  rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_subset_universe
+  rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_universe
+  rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_list_cost
+  ```
+
+- Plain meaning: the second actual-gate block, "actual sequence rows whose
+  head is not a top-level RALTS", is genuinely part of the current
+  `afactored1_strong_dlform_universe`.  Therefore its total row size is paid
+  by the current universe/list-cost ledger.
+
+- This is only a guardrail, not the final cubic proof.  The list-cost ledger is
+  still the old generated-list fallback and can become too coarse if used as
+  the main route.  Do not report this as closing the second block.
+
+- The useful next theorem still needs a non-product proof of one of:
+
+  ```text
+  rsize_set (actual sequence rows with non-RALTS heads) <= O(rsize r^3)
+  active RALTS-head copying cost <= O(rsize r^3)
+  ```
+
+  A tail-nesting/drain invariant is plausible only if it is stated against this
+  sharper actual gate.  It should define the concrete tail set being drained
+  and prove why repeated shared suffixes are charged once, rather than using
+  `front-count * tail-sum`.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 12:04 local time.

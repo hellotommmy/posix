@@ -7,15 +7,22 @@ specific theorem name or design question requires it.
 
 ## Urgent Supervisor Update, 2026-06-12 11:53 GMT+8
 
-Current checked head should include `ef2097b`:
+Current checked head should include `94ab885` and the next supervisor
+checkpoint after it:
 
 ```text
 Bound nonsequence actual gate by front terms
 Split actual gate by nonalt rows
+Point Fable at sharper actual gate
+nonalt sequence rows are universe/list-cost paid
 ```
 
-Read the newest `PROGRESS_BACKREF.md` section:
-`2026-06-12 Supervisor: replace front-count tail product by actual nonalt rows`.
+Read the newest `PROGRESS_BACKREF.md` sections:
+
+```text
+2026-06-12 Supervisor: replace front-count tail product by actual nonalt rows
+2026-06-12 Supervisor: nonalt sequence rows are universe-paid, not closed
+```
 
 Important correction to the gate shape: do not keep working against the older
 coarse term
@@ -40,6 +47,17 @@ The first term is already checked cubic:
 rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic
 ```
 
+The second term now has a checked guard:
+
+```text
+rsize_set_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_list_cost
+```
+
+Plain meaning: these rows are inside the one-step strong dlform universe and
+are paid by the current generated/list-cost ledger.  This is not the final
+cubic theorem, because the generated/list-cost ledger is still too coarse as a
+main route.
+
 The next useful theorem should attack one of these directly:
 
 ```text
@@ -49,6 +67,12 @@ active RALTS-head copying cost
 
 Tail-nesting/drain ideas should be stated against this sharper gate, not the
 older `front-count * tail-sum` formula.
+
+Coordination rule: if `codex-proof-workers.ps1 -Action Check` says no worker is
+running and there are no uncommitted theory edits from another agent, do not
+wait for the supervisor.  Work on one of the two gate terms above.  If you
+touch a theory, run the wrapper build command shown below and report the exact
+failing Isabelle line if it fails.
 
 ## Urgent Supervisor Update, 2026-06-12 11:31 GMT+8
 
