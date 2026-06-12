@@ -29500,6 +29500,39 @@ proof -
     using fronts by simp
 qed
 
+lemma card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children:
+  assumes stable: "\<And>q. q \<in> set rs \<Longrightarrow> rsimp4_SEQ_atom q RONE = q"
+    and each_carry_RONE: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+      card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+        apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+    and each_diff: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k -
+      apder_term_frontier_acc (RALTS rs) k) \<le>
+      Suc (apder_zw2 (RALTS rs))"
+proof -
+  have diff: "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) \<le>
+      apder_zw2 (RALTS rs)"
+    by (rule card_apder_term_frontier_acc_RALTS_diff_le_if_children)
+      (use each_diff in auto)
+  show ?thesis
+  proof (cases k)
+    case RONE
+    have exact: "card (apder_term_frontier_acc (RALTS rs) RONE -
+        rfrontier RONE) +
+      card (rfrontier (rsimp4_SEQ_atom (RALTS rs) RONE) -
+        rfrontier RONE - apder_term_frontier_acc (RALTS rs) RONE) \<le>
+        apder_zw2 (RALTS rs)"
+      by (rule card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children)
+        (use stable each_carry_RONE in auto)
+    then show ?thesis
+      using RONE by simp
+  qed (use diff in \<open>auto intro!: card_add_singleton_Diff_le_Suc
+    card_add_singleton_Diff_Diff_le_Suc\<close>)
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"

@@ -6461,3 +6461,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   87.819s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 06:35: CLAIM - RALTS carry with two-set singleton allowance
+
+- Synced through pushed commit c632da0, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: retry
+  `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children`,
+  now using `card_add_singleton_Diff_Diff_le_Suc` for the RALTS-continuation
+  singleton and the exact checked RONE carry lemma for the stable RONE case.
+
+## 2026-06-13 Codex 06:40: CHECKED - RALTS carry with two-set singleton allowance
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children`.
+- First build with only the two-set helper solved the RALTS-continuation shape
+  but left non-RALTS continuations in the one-set singleton shape.  Changed the
+  same lemma's final method to offer both checked singleton helpers:
+  `card_add_singleton_Diff_le_Suc` and
+  `card_add_singleton_Diff_Diff_le_Suc`.
+- Build command then passed after worker check (AntimirovFactoredTransition
+  85.765s, full Posix elapsed 0:01:39).  This gives the scoped positive
+  arbitrary-continuation RALTS carry repair: exact at `RONE`, D plus one
+  singleton elsewhere.  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
