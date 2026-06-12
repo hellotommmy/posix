@@ -29034,6 +29034,27 @@ proof -
     by simp
 qed
 
+lemma card_RSEQ_RSTAR_RALTS_diff_rfrontiers_le_one:
+  "card ({RSEQ (RSTAR r) (RALTS rs)} - rfrontiers rs) \<le> 1"
+  by (rule card_singleton_Diff_le_one)
+
+lemma card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one:
+  "card (rfrontier (rsimp4_SEQ_atom (RSTAR r) k) - rfrontier k) \<le> 1"
+proof (cases k)
+  case (RALTS rs)
+  then show ?thesis
+    using card_RSEQ_RSTAR_RALTS_diff_rfrontiers_le_one[of r rs] by simp
+qed (simp_all add: card_singleton_Diff_le_one)
+
+lemma card_apder_term_frontier_acc_RSTAR_diff_le:
+  assumes body: "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RSTAR r) k) -
+      rfrontier (rsimp4_SEQ_atom (RSTAR r) k)) \<le> apder_zw2 r"
+  shows "card (apder_term_frontier_acc (RSTAR r) k - rfrontier k) \<le>
+    apder_zw2 (RSTAR r)"
+  by (rule card_apder_term_frontier_acc_RSTAR_diff_le_Suc)
+    (use body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one in auto)
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"

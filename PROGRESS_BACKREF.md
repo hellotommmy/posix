@@ -5886,3 +5886,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Standing rule already broadcast (2026-06-13 directive): append new CEs here
   AND in EVIL_PATTERNS.md in the same cycle; never prune a dead CE.
 - No .thy changes; cubic proof unaffected.
+
+## 2026-06-13 Codex 02:30: CLAIM - named RALTS singleton shift micro-lemma
+
+- Synced through pushed commit 390e750 and read the newest PROGRESS tail,
+  including the seeded `EVIL_PATTERNS.md` directive.  No proof workers live;
+  known untracked `fable_partial.md` and `scratch_*.py` files remain
+  untouched.
+- Returning to the STAR shift blocker only in the form suggested by the
+  blocker note: first prove the exact RALTS singleton-difference subgoal as
+  its own named micro-lemma, then use it to discharge
+  `card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one`.
+
+## 2026-06-13 Codex 02:35: CHECKED - STAR shift fully discharged
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_RSEQ_RSTAR_RALTS_diff_rfrontiers_le_one`,
+  `card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one`, and
+  `card_apder_term_frontier_acc_RSTAR_diff_le`.
+- First build proved the named RALTS micro-lemma but still failed because the
+  outer `cases k` proof did not use it under the generated RALTS premise.
+  Changed that one named lemma to spell out the RALTS case explicitly.
+- Rerun build passed after worker check (AntimirovFactoredTransition
+  80.090s, full Posix elapsed 0:01:35).  STAR branch now needs only the
+  child D-zw2 obligation at `rsimp4_SEQ_atom (RSTAR r) k`; the one-point
+  frontier shift is checked unconditionally.
