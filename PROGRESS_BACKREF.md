@@ -6527,3 +6527,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   92.543s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:05: CLAIM - frontier-plus-acc union splitter
+
+- Synced through pushed commit eea6346, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure duplicate-accounting splitter
+  `card ((F union B) - K) <= card (B - K) + card (F - K - B)`.  This is the
+  set form needed to turn a right-child `Suc` carry bound into an exact D bound
+  when a character-left SEQ imports exactly the middle frontier.
+
+## 2026-06-13 Codex 07:10: CHECKED - frontier-plus-acc union splitter
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_frontier_acc_union_diff_le_carry_measure`.
+- This is the exact duplicate-accounting split
+  `(F union B) - K = (B - K) union (F - K - B)` with disjoint buckets.
+- Build command passed after worker check (AntimirovFactoredTransition
+  88.985s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

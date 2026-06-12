@@ -29570,6 +29570,25 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_frontier_acc_union_diff_le_carry_measure:
+  assumes finF: "finite F"
+    and finB: "finite B"
+  shows "card ((F \<union> B) - K) \<le>
+    card (B - K) + card (F - K - B)"
+proof -
+  have split: "(F \<union> B) - K = (B - K) \<union> (F - K - B)"
+    by blast
+  have disj: "(B - K) \<inter> (F - K - B) = {}"
+    by blast
+  have "card ((F \<union> B) - K) =
+      card ((B - K) \<union> (F - K - B))"
+    by (simp add: split)
+  also have "... = card (B - K) + card (F - K - B)"
+    using card_Un_disjoint[OF _ _ disj] finF finB by simp
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_seq_carry_measure_le_split:
   assumes finA: "finite A"
     and finB: "finite B"
