@@ -6801,3 +6801,30 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   alternation budget or by a more joint/list-aware invariant.  Added B8 to
   `EVIL_PATTERNS.md`.  Build command passed after worker check
   (AntimirovFactoredTransition 86.237s, full Posix elapsed 0:01:40).
+
+## 2026-06-13 Codex 09:15: CLAIM - normal nonalt one-step frontier shift
+
+- Synced through pushed commit b02fdb6, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow k-chain brick: prove that sequencing an `apder_nf` non-alt head with
+  any continuation adds at most one new frontier row over that continuation.
+  This generalizes the STAR/RNTIMES one-point shift facts toward the
+  singleton-continuation/k-chain route.
+
+## 2026-06-13 Codex 09:20: BLOCKED - normal nonalt shift needs split helper
+
+- Attempted lemma:
+  `card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_le_one`, with helper
+  `rsimp4_SEQ_atom_apder_nf_not_RONE`.
+- First build failed because the broad induction left multiple constructor
+  frontier-shift goals unresolved.  Changed only that proof to add an explicit
+  non-`RONE` helper and constructor cases.
+- The next builds still failed in the same singleton-difference shape,
+  e.g. `card ({RSEQ (RSTAR p) (RALTS xs)} - rfrontiers xs) <= 1`, even after
+  exposing `card_singleton_Diff_le_one` as an intro rule.  Per discipline,
+  removed the unchecked theory edits and switched sub-target.
+- Safer next brick: first prove a pure/structural lemma that any syntactic
+  singleton frontier difference of the form `rfrontier (RSEQ h k) -
+  rfrontier k` is bounded by one, then retry the normal-nonalt shift using
+  that named helper rather than a large constructor split.
