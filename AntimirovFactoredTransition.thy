@@ -29713,6 +29713,33 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_right_carry:
+  assumes left: "card (apder_term_frontier_acc r1
+      (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    and right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof (rule card_apder_term_frontier_acc_RSEQ_diff_le_if_middle_carried)
+  show "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    by (rule left)
+next
+  have "card ((rfrontier (rsimp4_SEQ_atom r2 k) \<union>
+      apder_term_frontier_acc r2 k) - rfrontier k) \<le>
+      card (apder_term_frontier_acc r2 k - rfrontier k) +
+      card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+        apder_term_frontier_acc r2 k)"
+    by (rule card_frontier_acc_union_diff_le_carry_measure) simp_all
+  also have "... \<le> apder_zw2 r2"
+    by (rule right)
+  finally show "card ((rfrontier (rsimp4_SEQ_atom r2 k) \<union>
+      apder_term_frontier_acc r2 k) - rfrontier k) \<le> apder_zw2 r2" .
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_RCHAR_diff_le_if_right_carry_Suc:
   assumes right:
     "card (apder_term_frontier_acc r2 k - rfrontier k) +

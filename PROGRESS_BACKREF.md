@@ -6610,3 +6610,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   90.320s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:45: CLAIM - SEQ D from right exact carry
+
+- Synced through pushed commit 7bd1e39, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the existing SEQ D assembly with the new
+  frontier-plus-acc splitter.  A left-child D bound plus exact right-child
+  carry should imply the exact parent D bound.
+
+## 2026-06-13 Codex 07:50: CHECKED - SEQ D from right exact carry
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_right_carry`.
+- This converts exact right carry into the middle-carried premise using
+  `card_frontier_acc_union_diff_le_carry_measure`, then reuses the existing
+  SEQ D assembly.
+- Build command passed after worker check (AntimirovFactoredTransition
+  94.197s, full Posix elapsed 0:01:41).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
