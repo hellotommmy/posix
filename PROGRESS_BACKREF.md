@@ -16162,6 +16162,50 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 11:43 local time.
 
+## 2026-06-12 Supervisor: replace front-count tail product by actual nonalt rows
+
+- New checked generic split lemmas:
+
+  ```text
+  rseq_rows_eq_UN_tail_head_kind
+  rsize_set_split_rseq_tails_nonalt_rows_plus_alt_bucket_funI
+  ```
+
+- New checked actual-output lemmas:
+
+  ```text
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_suffix_bucketI
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_alt_nodesI
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_generated_ledgerI
+  ```
+
+- Plain meaning: the older split used a coarse term
+  `front-count * sum(distinct tail weights)`.  That is dangerous because it
+  multiplies two large ledgers.  The new checked split keeps the actual rows
+  whose head is non-`RALTS` as their own row set, and sends only rows whose
+  head is `RALTS` to the active-suffix bucket ledger.
+
+- New gate shape:
+
+  ```text
+  actual-output rsize
+  <= non-sequence rows
+   + actual sequence rows with non-RALTS heads
+   + active RALTS-head copying cost
+  ```
+
+- Consequence: the remaining non-product target is now explicit:
+
+  ```text
+  rsize_set (actual sequence rows with non-RALTS heads)
+  ```
+
+  The active copying term is still product-shaped unless a sharper
+  active-alt/provenance argument or non-product ledger replaces it.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 11:53 local time.
+
 ## 2026-06-12 Fable: the two remaining gate terms share one core
 
 - Audited both remaining terms against every checked piece.  Both

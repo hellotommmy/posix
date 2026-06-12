@@ -6848,6 +6848,115 @@ proof -
     by simp
 qed
 
+lemma rseq_rows_eq_UN_tail_head_kind:
+  "rseq_rows U =
+    (\<Union>t \<in> rseq_tails U. rseq_tail_nonalt_head_rows U t) \<union>
+    (\<Union>t \<in> rseq_tails U. rseq_tail_alt_head_rows U t)"
+  by (auto simp add: rseq_rows_def rseq_tails_def
+      rseq_tail_rows_def rseq_tail_nonalt_head_rows_def
+      rseq_tail_alt_head_rows_def; metis bbbbs1)
+
+lemma rsize_set_rseq_tail_alt_head_rows_bucket_boundI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound: "card (rseq_tail_alt_head_rows U t) \<le> B"
+  shows "rsize_set (rseq_tail_alt_head_rows U t) \<le>
+    B * (Suc H + rsize t)"
+proof (rule rsize_set_le_card_member_budgetI)
+  show "finite (rseq_tail_alt_head_rows U t)"
+    by (rule finite_rseq_tail_alt_head_rows[OF finite])
+  show "card (rseq_tail_alt_head_rows U t) \<le> B"
+    by (rule bucket_bound)
+  show "\<And>q. q \<in> rseq_tail_alt_head_rows U t \<Longrightarrow>
+      rsize q \<le> Suc H + rsize t"
+  proof -
+    fix q
+    assume q: "q \<in> rseq_tail_alt_head_rows U t"
+    then obtain ps where row: "q = RSEQ (RALTS ps) t"
+        "RSEQ (RALTS ps) t \<in> U"
+      by (auto simp add: rseq_tail_alt_head_rows_def rseq_tail_rows_def)
+    have "rsize (RALTS ps) \<le> H"
+      by (rule head_bound[OF row(2)])
+    then show "rsize q \<le> Suc H + rsize t"
+      using row(1) by simp
+  qed
+  show "B * (Suc H + rsize t) \<le> B * (Suc H + rsize t)"
+    by simp
+qed
+
+lemma rsize_set_rseq_tail_alt_head_rows_bucket_bound_funI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow>
+        card (rseq_tail_alt_head_rows U t) \<le> B t"
+  shows "rsize_set
+      (\<Union>t \<in> rseq_tails U. rseq_tail_alt_head_rows U t) \<le>
+    (\<Sum>t \<in> rseq_tails U. B t * (Suc H + rsize t))"
+proof -
+  let ?T = "rseq_tails U"
+  have "rsize_set
+      (\<Union>t \<in> ?T. rseq_tail_alt_head_rows U t) \<le>
+    (\<Sum>t \<in> ?T. rsize_set (rseq_tail_alt_head_rows U t))"
+    by (rule rsize_set_UN_le) (use finite in auto)
+  also have "... \<le> (\<Sum>t \<in> ?T. B t * (Suc H + rsize t))"
+  proof (rule sum_mono)
+    fix t
+    assume t: "t \<in> ?T"
+    show "rsize_set (rseq_tail_alt_head_rows U t) \<le>
+      B t * (Suc H + rsize t)"
+      by (rule rsize_set_rseq_tail_alt_head_rows_bucket_boundI
+          [OF finite head_bound bucket_bound[OF t]])
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsize_set_split_rseq_tails_nonalt_rows_plus_alt_bucket_funI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and alt_bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow>
+        card (rseq_tail_alt_head_rows U t) \<le> B t"
+  shows "rsize_set U \<le>
+    rsize_set (rnonseq_members U) +
+    rsize_set
+      (\<Union>t \<in> rseq_tails U. rseq_tail_nonalt_head_rows U t) +
+    (\<Sum>t \<in> rseq_tails U. B t * (Suc H + rsize t))"
+proof -
+  let ?T = "rseq_tails U"
+  let ?N = "rnonseq_members U"
+  let ?Seq = "rseq_rows U"
+  let ?NonAlt = "(\<Union>t \<in> ?T. rseq_tail_nonalt_head_rows U t)"
+  let ?Alt = "(\<Union>t \<in> ?T. rseq_tail_alt_head_rows U t)"
+  have U_eq: "U = ?N \<union> ?Seq"
+    by (simp add: rnonseq_members_union_rseq_rows)
+  have seq_eq: "?Seq = ?NonAlt \<union> ?Alt"
+    by (rule rseq_rows_eq_UN_tail_head_kind)
+  have alt_bound: "rsize_set ?Alt \<le>
+      (\<Sum>t \<in> ?T. B t * (Suc H + rsize t))"
+    by (rule rsize_set_rseq_tail_alt_head_rows_bucket_bound_funI
+        [OF finite head_bound alt_bucket_bound])
+  have "rsize_set U =
+      rsize_set (?N \<union> ?Seq)"
+    by (rule arg_cong[OF U_eq])
+  also have "... \<le> rsize_set ?N + rsize_set ?Seq"
+    by (rule rsize_set_Un_le) (use finite in auto)
+  also have "... \<le> rsize_set ?N + (rsize_set ?NonAlt + rsize_set ?Alt)"
+  proof -
+    have "rsize_set ?Seq = rsize_set (?NonAlt \<union> ?Alt)"
+      by (rule arg_cong[OF seq_eq])
+    also have "... \<le> rsize_set ?NonAlt + rsize_set ?Alt"
+      by (rule rsize_set_Un_le) (use finite in auto)
+    finally show ?thesis
+      by simp
+  qed
+  also have "... \<le> rsize_set ?N + (rsize_set ?NonAlt +
+      (\<Sum>t \<in> ?T. B t * (Suc H + rsize t)))"
+    using alt_bound by simp
+  finally show ?thesis
+    by (simp add: add.assoc)
+qed
+
 lemma rsize_set_split_rseq_tails_head_count_boundI:
   assumes finite: "finite U"
     and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
@@ -21042,6 +21151,44 @@ proof -
     using split add_mono[OF nonalt alt] by linarith
 qed
 
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_suffix_bucketI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) +
+    (\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t))"
+proof (rule rsize_set_split_rseq_tails_nonalt_rows_plus_alt_bucket_funI)
+  show "finite
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+    by simp
+  show "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+    by (rule head_bound)
+  fix t
+  assume "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  show "card (rseq_tail_alt_head_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
+    card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) t)"
+    by (rule
+        card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket)
+qed
+
 lemma raw_shared_prune_active_suffix_bucket_empty_if_not_key:
   assumes "k \<notin> raw_shared_prune_active_suffix_keys U"
   shows "raw_shared_prune_active_suffix_bucket U k = {}"
@@ -21840,6 +21987,95 @@ proof -
   then have "(?L * ?A) * ?M \<le> (?L * ?G) * ?M"
     by (rule mult_right_mono) simp
   with weighted show ?thesis
+    by linarith
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_alt_nodesI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) +
+    (afactored1_strong_dlform_list_cost r s c *
+      card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?NonAlt =
+    "rsize_set
+      (\<Union>t \<in> ?T. rseq_tail_nonalt_head_rows ?U t)"
+  let ?B = "\<lambda>t. card (raw_shared_prune_active_suffix_bucket
+    (afactored1_strong_dlform_universe r s c) t)"
+  let ?W = "\<lambda>t. Suc H + rsize t"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?Active = "(\<Sum>t \<in> ?T. ?B t * ?W t)"
+  have base: "rsize_set ?U \<le> ?N + ?NonAlt + ?Active"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_suffix_bucketI
+        [OF head_bound])
+  have active: "?Active \<le> (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost_alt_nodes)
+  show ?thesis
+    using base active by linarith
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_generated_ledgerI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    rsize_set
+      (\<Union>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        rseq_tail_nonalt_head_rows
+          (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) +
+    (afactored1_strong_dlform_list_cost r s c *
+      (length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+       rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?NonAlt =
+    "rsize_set
+      (\<Union>t \<in> ?T. rseq_tail_nonalt_head_rows ?U t)"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?G = "length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  have base: "rsize_set ?U \<le>
+      ?N + ?NonAlt + (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_nonalt_rows_plus_active_alt_nodesI
+        [OF head_bound])
+  have alt: "?A \<le> ?G"
+    by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
+  have "?L * ?A \<le> ?L * ?G"
+    by (rule mult_left_mono[OF alt]) simp
+  then have "(?L * ?A) * (Suc H + ?L) \<le>
+      (?L * ?G) * (Suc H + ?L)"
+    by (rule mult_right_mono) simp
+  with base show ?thesis
     by linarith
 qed
 
