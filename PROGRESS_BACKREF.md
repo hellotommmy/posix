@@ -5829,3 +5829,16 @@ The secretary session is seeding `EVIL_PATTERNS.md` now from the existing
 corpus (RONE-pair tower, NTIMES deep-frontier CE, zwidth/J* D-law CEs, the nine
 dead strengthenings, Chapter 7 evil family, value-collapse CEs, cost-not-
 monotone, star-seq tight-cubic tower). After it lands, just append new finds.
+
+## 2026-06-13 Codex 02:15: CHECKED - apder_zw2 zero accumulator
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `apder_zw2_zero_acc_empty`.
+- First build failed because I copied a nonexistent helper name for the RALTS
+  zero-sum step; changed that one lemma to mirror
+  `apder_zwidth_zero_acc_empty` with direct list induction.  Rerun build
+  passed after worker check (AntimirovFactoredTransition 83.847s, full Posix
+  elapsed 0:01:37).
+- Read the new admin directive on `EVIL_PATTERNS.md`.  This cycle produced
+  no new regex counterexample or blow-up family, so I did not touch the
+  untracked corpus seed.

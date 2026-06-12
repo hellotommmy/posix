@@ -28959,6 +28959,23 @@ proof (induct r)
     by simp
 qed (auto intro: le_SucI add_le_mono)
 
+lemma apder_zw2_zero_acc_empty:
+  assumes "apder_zw2 r = 0"
+  shows "apder_term_frontier_acc r k = {}"
+  using assms
+proof (induct r arbitrary: k)
+  case (RALTS rs)
+  have members: "\<And>q. q \<in> set rs \<Longrightarrow> apder_zw2 q = 0"
+    using RALTS.prems
+    by (induct rs) auto
+  then show ?case
+    using RALTS.hyps by auto
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases n) auto
+qed auto
+
 lemma card_diff_le_Suc_card_diff_if_small_middle:
   assumes finA: "finite A"
     and finB: "finite B"
