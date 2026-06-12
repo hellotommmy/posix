@@ -28524,4 +28524,83 @@ next
 qed
 
 
+text \<open>
+  Tail-weight sum pieces: the tail sum over the deduplicated tail set
+  is dominated by the size ledger of the union itself (tails are
+  images of SEQ members), and the constant part is paid by the tail
+  count.  This pins the inner sum of gate summand (2) to
+  card(tails) * Suc H + rsize_set(union).
+\<close>
+
+lemma sum_image_le_nat:
+  fixes g :: "'b \<Rightarrow> nat"
+  assumes "finite S"
+  shows "sum g (f ` S) \<le> (\<Sum>x \<in> S. g (f x))"
+  using assms
+proof (induct S)
+  case empty
+  show ?case by simp
+next
+  case (insert x S)
+  show ?case
+  proof (cases "f x \<in> f ` S")
+    case True
+    then have "sum g (f ` insert x S) = sum g (f ` S)"
+      by (simp add: insert_absorb)
+    also have "... \<le> (\<Sum>y \<in> S. g (f y))"
+      by (rule insert.hyps)
+    finally show ?thesis
+      using insert.hyps by simp
+  next
+    case False
+    then have "sum g (f ` insert x S) = g (f x) + sum g (f ` S)"
+      using insert.hyps by simp
+    also have "... \<le> g (f x) + (\<Sum>y \<in> S. g (f y))"
+      using insert.hyps by simp
+    finally show ?thesis
+      using insert.hyps by simp
+  qed
+qed
+
+lemma rseq_tails_eq_image:
+  "rseq_tails U =
+    (\<lambda>q. case q of RSEQ h t \<Rightarrow> t)
+      ` {q \<in> U. \<exists>h t. q = RSEQ h t}"
+  by (auto simp add: rseq_tails_def image_iff split: rrexp.splits)
+
+lemma sum_rsize_rseq_tails_le_rsize_set:
+  assumes fin: "finite U"
+  shows "(\<Sum>t \<in> rseq_tails U. rsize t) \<le> rsize_set U"
+proof -
+  let ?S = "{q \<in> U. \<exists>h t. q = RSEQ h t}"
+  let ?f = "\<lambda>q. case q of RSEQ h t \<Rightarrow> t"
+  have finS: "finite ?S"
+    using fin by simp
+  have "(\<Sum>t \<in> rseq_tails U. rsize t) =
+      (\<Sum>t \<in> ?f ` ?S. rsize t)"
+    by (simp add: rseq_tails_eq_image)
+  also have "... \<le> (\<Sum>q \<in> ?S. rsize (?f q))"
+    by (rule sum_image_le_nat[OF finS])
+  also have "... \<le> (\<Sum>q \<in> ?S. rsize q)"
+    by (rule sum_mono) (auto split: rrexp.splits)
+  also have "... \<le> rsize_set U"
+    unfolding rsize_set_def
+    by (rule sum_mono2[OF fin]) auto
+  finally show ?thesis .
+qed
+
+lemma sum_rseq_tail_weights_le:
+  assumes fin: "finite U"
+  shows "(\<Sum>t \<in> rseq_tails U. W + rsize t) \<le>
+    card (rseq_tails U) * W + rsize_set U"
+proof -
+  have "(\<Sum>t \<in> rseq_tails U. W + rsize t) =
+      card (rseq_tails U) * W + (\<Sum>t \<in> rseq_tails U. rsize t)"
+    by (simp add: sum.distrib mult.commute)
+  also have "... \<le> card (rseq_tails U) * W + rsize_set U"
+    using sum_rsize_rseq_tails_le_rsize_set[OF fin] by simp
+  finally show ?thesis .
+qed
+
+
 end
