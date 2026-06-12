@@ -1183,17 +1183,38 @@ The next session should not continue broad counterexample hunting.  Treat
 counterexamples as a tool only when they answer a named theorem subclaim.  The
 most useful routes are now:
 
-1. First try to close the new ordinary sequence-tail weighted ledger:
+1. Do not continue the ordinary sequence-tail weighted/list ledger as a
+   polynomial target.  The checked RONE-pair theorem shows that duplicated
+   opened-list cost can be exponential.  The correct first target is the
+   duplicate-free set/canonical gate:
 
    ```text
-   sum_list (map (%q. row_dlforms_list_size q * rsize q)
-     (rpder_strong_rows_raw c (afactored1 r s)))
-     <= cubic polynomial in rsize r
+   rsize_set
+     (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+     <= 2 * (rsize r + 3)^3
    ```
 
-   This would finish the ordinary sequence-tail size branch produced by
-   `row_dlformss`.  Use the actual raw-row generator; do not prove a generic
-   theorem over arbitrary row lists.
+   This unlocks the already checked interface:
+
+   ```text
+   rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI
+   ```
+
+   A slightly more abstract but equivalent useful target is:
+
+   ```text
+   rsize_set (afactored1_strong_dlform_universe r s c)
+     <= 2 * (rsize r + 3)^3
+   ```
+
+   which unlocks:
+
+   ```text
+   rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_tight_cubic_contractI
+   ```
+
+   Use the actual raw-row generator or the exact universe.  Do not prove a
+   generic theorem over arbitrary row lists.
 2. Prove a sharper bound for the actual step-local active sharing budget by
    bounding
    `raw_shared_prune_active_suffix_alt_nodes
