@@ -16470,3 +16470,47 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   (2) card (ext q) <= aseq-positions(q) * Suc (rsize q) by measure
   induction (card_Un_le is safe: positions add exactly);
   (3) multiply.  This is the cubic per-row account, then cross-row.
+
+## 2026-06-12 Supervisor: weighted extended-suffix tail bound checked
+
+- New checked lemmas:
+
+  ```text
+  card_rseq_suffixes_le_rsize
+  rsize_set_rseq_suffixes_square
+  rsize_set_rseq_suffixes_ext_le_row_dlforms_list_size_times_rsize
+  rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted
+  rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext_weighted
+  ```
+
+- Plain definitions:
+  `rsize_set S` is the total syntax size of all regexes in the finite set
+  `S`.  `row_dlforms_list_size q` is the total syntax size of the rows produced
+  by opening one row `q`.  `rseq_suffixes_ext q` is the extended carrier of
+  right-hand sequence tails that can appear after opening `q`.
+- Important correction: for `RSEQ (RALTS ps) k`, `rseq_suffixes_ext` now follows
+  only the opened branches `rsimp7_SEQ_atom p k`.  It no longer charges the
+  root suffix chain of `RSEQ (RALTS ps) k`, because that chain is not produced
+  by `row_dlforms` in this case and it breaks the sharp empty/lean cases.
+- Checked bound:
+
+  ```text
+  rsize_set (rseq_suffixes_ext q)
+    <= row_dlforms_list_size q * rsize q
+  ```
+
+  Therefore, for the actual one-step strong raw rows:
+
+  ```text
+  rsize_set (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))))
+    <= sum_list (map (%q. row_dlforms_list_size q * rsize q)
+         (rpder_strong_rows_raw c (afactored1 r s)))
+  ```
+
+- Why this matters: the ordinary sequence-tail problem is now a weighted-row
+  ledger problem.  The next useful theorem is not another generic suffix
+  wrapper; it is a cubic bound on the right-hand weighted sum for the actual
+  pruned strong rows.
+- Verification: full `Posix` build passed at 2026-06-12 13:24 local time
+  (`AntimirovFactoredTransition` 60.862s cumulative).

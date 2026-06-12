@@ -5,6 +5,44 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 13:24 GMT+8
+
+The ordinary sequence-tail size branch now has a checked weighted-row
+reduction.  Read:
+
+```text
+2026-06-12 Supervisor: weighted extended-suffix tail bound checked
+```
+
+Plain definitions:
+
+- `rsize_set S` means the total syntax size of all regexes in finite set `S`.
+- `row_dlforms_list_size q` means the total syntax size of the rows obtained by
+  opening one row `q`.
+- `rseq_suffixes_ext q` means the extended carrier of right-hand sequence tails
+  that can appear after opening `q`.
+
+Checked facts:
+
+```text
+rsize_set (rseq_suffixes_ext q)
+  <= row_dlforms_list_size q * rsize q
+
+rsize_set (rseq_tails
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))))
+  <= sum_list (map (%q. row_dlforms_list_size q * rsize q)
+       (rpder_strong_rows_raw c (afactored1 r s)))
+```
+
+Important correction: for `RSEQ (RALTS ps) k`, the extended carrier now follows
+only the opened branches `rsimp7_SEQ_atom p k`.  It no longer charges the root
+suffix chain of `RSEQ (RALTS ps) k`, because that chain is not produced by
+`row_dlforms` in this case.
+
+Next target: prove the displayed weighted sum is cubic for the actual pruned
+strong rows.  Do not add more generic suffix-carrier wrappers unless they
+discharge that exact weighted-sum target.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix
@@ -993,14 +1031,25 @@ The next session should not continue broad counterexample hunting.  Treat
 counterexamples as a tool only when they answer a named theorem subclaim.  The
 most useful routes are now:
 
-1. Prove a sharper bound for the actual step-local active sharing budget by
+1. First try to close the new ordinary sequence-tail weighted ledger:
+
+   ```text
+   sum_list (map (%q. row_dlforms_list_size q * rsize q)
+     (rpder_strong_rows_raw c (afactored1 r s)))
+     <= cubic polynomial in rsize r
+   ```
+
+   This would finish the ordinary sequence-tail size branch produced by
+   `row_dlformss`.  Use the actual raw-row generator; do not prove a generic
+   theorem over arbitrary row lists.
+2. Prove a sharper bound for the actual step-local active sharing budget by
    bounding
    `raw_shared_prune_active_suffix_alt_nodes
    (afactored1_strong_dlform_universe r s c)`.  The checked interface
    `afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound`
    then gives `pair_budget <= list_cost * card(active_alt_nodes)`.  This is
    the concrete form of the old same-key bucket-width target.
-2. Use the checked list-cost weighted bridge for the active term:
+3. Use the checked list-cost weighted bridge for the active term:
 
    ```text
    raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
@@ -1009,7 +1058,7 @@ most useful routes are now:
    The active weighted bucket term no longer needs a separate all-tail size
    theorem.  Distinct-tail or tail-size work may still help the ordinary
    front/tail summand, but it is not the blocker for the active bucket term.
-3. Use the existing owner/DAG machinery only with care.  The owner-set
+4. Use the existing owner/DAG machinery only with care.  The owner-set
    `RSEQ h t` decomposition is already packaged; it can still help charge
    nonalt heads to the current strong-front carrier and suffix/key pieces to
    active key accounting.  Owner active-key atoms, key sizes, key-DAG
@@ -1034,11 +1083,11 @@ most useful routes are now:
    invariant that excludes that construction, or by replacing the abstract
    closure with the one-pass accumulated pruning object used by
    `rsimpStrong_prune_rows_acc_raw`.
-4. If a proposed step-local subclaim looks false, make the falsification exact
+5. If a proposed step-local subclaim looks false, make the falsification exact
    and executable/checked, then stop.  Do not use the nested-`RNTIMES` smoke
    note as a reason to re-scope the whole theorem unless it becomes a concrete
    counterexample to a named route-2 statement.
-5. As a fallback, replace the raw strong-row representation by a checked
+6. As a fallback, replace the raw strong-row representation by a checked
    canonical projection via `row_dlform_canonical_rows`, then prove the
    production route computes or soundly refines that projection while
    preserving POSIX values.

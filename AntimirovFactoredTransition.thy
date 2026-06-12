@@ -22421,6 +22421,20 @@ proof (induct q)
   finally show ?case .
 qed simp_all
 
+lemma card_rseq_suffixes_le_rsize:
+  "card (rseq_suffixes q) \<le> rsize q"
+proof (induct q)
+  case (RSEQ h t)
+  have "card (rseq_suffixes (RSEQ h t)) \<le>
+      Suc (card (rseq_suffixes t))"
+    by (simp add: card_insert_if)
+  also have "... \<le> Suc (rsize t)"
+    using RSEQ.hyps(2) by simp
+  also have "... \<le> rsize (RSEQ h t)"
+    by simp
+  finally show ?case .
+qed simp_all
+
 lemma rsize_set_rseq_suffixes_quadratic:
   "rsize_set (rseq_suffixes q) \<le> Suc (rsize q) * rsize q"
 proof -
@@ -22433,6 +22447,19 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_rseq_suffixes_square:
+  "rsize_set (rseq_suffixes q) \<le> (rsize q)\<^sup>2"
+proof -
+  have "rsize_set (rseq_suffixes q) \<le>
+      card (rseq_suffixes q) * rsize q"
+    by (rule rsize_set_le_card_times_bound)
+      (simp_all add: rseq_suffixes_member_size_le)
+  also have "... \<le> rsize q * rsize q"
+    by (rule mult_right_mono[OF card_rseq_suffixes_le_rsize]) simp
+  finally show ?thesis
+    by (simp add: power2_eq_square)
+qed
+
 lemma rseq_suffixes_self [simp]:
   "q \<in> rseq_suffixes q"
   by (induct q) simp_all
@@ -22442,8 +22469,7 @@ function (sequential) rseq_suffixes_ext :: "rrexp \<Rightarrow> rrexp set" where
 | "rseq_suffixes_ext (RALTS rs) =
     (\<Union>q \<in> set rs. rseq_suffixes_ext q)"
 | "rseq_suffixes_ext (RSEQ (RALTS ps) k) =
-    rseq_suffixes (RSEQ (RALTS ps) k) \<union>
-      (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
+    (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
 | "rseq_suffixes_ext r = rseq_suffixes r"
   by pat_completeness auto
 termination
@@ -22473,6 +22499,143 @@ lemma rseq_tails_row_dlforms_subset_rseq_suffixes_ext:
   "rseq_tails (row_dlforms q) \<subseteq> rseq_suffixes_ext q"
   by (induct q rule: rseq_suffixes_ext.induct)
     (auto simp add: rseq_tails_def split: rrexp.splits)
+
+lemma rsize_set_rseq_suffixes_ext_default_le:
+  assumes nonzero: "q \<noteq> RZERO"
+    and nonalt: "\<And>rs. q \<noteq> RALTS rs"
+    and nonseq_alt: "\<And>ps k. q \<noteq> RSEQ (RALTS ps) k"
+  shows "rsize_set (rseq_suffixes_ext q) \<le>
+    row_dlforms_list_size q * rsize q"
+proof -
+  have ext_eq: "rseq_suffixes_ext q = rseq_suffixes q"
+  proof (cases q)
+    case (RSEQ q1 q2)
+    then show ?thesis
+    proof (cases q1)
+      case (RALTS ps)
+      then have False
+        using RSEQ nonseq_alt[of ps q2] by simp
+      then show ?thesis by blast
+    qed (simp_all add: RSEQ)
+  qed (use assms in auto)
+  have row_size: "row_dlforms_list_size q = rsize q"
+  proof (cases q)
+    case (RSEQ q1 q2)
+    then show ?thesis
+    proof (cases q1)
+      case (RALTS ps)
+      then have False
+        using RSEQ nonseq_alt[of ps q2] by simp
+      then show ?thesis by blast
+    qed (simp_all add: RSEQ row_dlforms_list_size_def)
+  qed (use assms in \<open>auto simp add: row_dlforms_list_size_def\<close>)
+  have "rsize_set (rseq_suffixes_ext q) =
+      rsize_set (rseq_suffixes q)"
+    by (simp add: ext_eq)
+  also have "... \<le> (rsize q)\<^sup>2"
+    by (rule rsize_set_rseq_suffixes_square)
+  also have "... = row_dlforms_list_size q * rsize q"
+    by (simp add: row_size power2_eq_square)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_rseq_suffixes_ext_le_row_dlforms_list_size_times_rsize:
+  "rsize_set (rseq_suffixes_ext q) \<le>
+    row_dlforms_list_size q * rsize q"
+proof (induct q rule: rseq_suffixes_ext.induct)
+  case 1
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (2 rs)
+  have ext_eq:
+      "rseq_suffixes_ext (RALTS rs) =
+        (\<Union>q \<in> set rs. rseq_suffixes_ext q)"
+    by simp
+  have "rsize_set (rseq_suffixes_ext (RALTS rs)) =
+      rsize_set (\<Union>q \<in> set rs. rseq_suffixes_ext q)"
+    by (simp add: ext_eq)
+  also have "... \<le>
+      sum_list (map (\<lambda>q. rsize_set (rseq_suffixes_ext q)) rs)"
+    by (rule rsize_set_UN_set_le_sum_list
+        [where A="\<lambda>q. rseq_suffixes_ext q" and
+          B="\<lambda>q. rsize_set (rseq_suffixes_ext q)"])
+      simp_all
+  also have "... \<le>
+      sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rs)"
+    by (rule sum_list_mono) (use 2 in auto)
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>q. row_dlforms_list_size q * rsize (RALTS rs)) rs)"
+  proof (rule sum_list_mono)
+    fix q
+    assume q: "q \<in> set rs"
+    have "rsize q \<le> rsize (RALTS rs)"
+      using elem_size_le_rsizes[OF q] by simp
+    then show "row_dlforms_list_size q * rsize q \<le>
+        row_dlforms_list_size q * rsize (RALTS rs)"
+      by (rule mult_left_mono) simp
+  qed
+  also have "... =
+      sum_list (map row_dlforms_list_size rs) * rsize (RALTS rs)"
+    by (rule sum_list_map_mult_right_nat)
+  also have "... =
+      row_dlforms_list_size (RALTS rs) * rsize (RALTS rs)"
+    by simp
+  finally show ?case .
+next
+  case (3 ps k)
+  let ?q = "RSEQ (RALTS ps) k"
+  have ext_eq:
+      "rseq_suffixes_ext ?q =
+        (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
+    by simp
+  have "rsize_set (rseq_suffixes_ext ?q) =
+      rsize_set
+        (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
+    by (simp add: ext_eq)
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>p. rsize_set
+          (rseq_suffixes_ext (rsimp7_SEQ_atom p k))) ps)"
+    by (rule rsize_set_UN_set_le_sum_list
+        [where A="\<lambda>p. rseq_suffixes_ext (rsimp7_SEQ_atom p k)" and
+          B="\<lambda>p. rsize_set
+            (rseq_suffixes_ext (rsimp7_SEQ_atom p k))"])
+      simp_all
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>p.
+          row_dlforms_list_size (rsimp7_SEQ_atom p k) *
+          rsize (rsimp7_SEQ_atom p k)) ps)"
+    by (rule sum_list_mono) (use 3 in auto)
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>p.
+          row_dlforms_list_size (rsimp7_SEQ_atom p k) *
+          rsize ?q) ps)"
+  proof (rule sum_list_mono)
+    fix p
+    assume p: "p \<in> set ps"
+    have lt: "rsize (rsimp7_SEQ_atom p k) < rsize ?q"
+      by (rule rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF p])
+    have "rsize (rsimp7_SEQ_atom p k) \<le> rsize ?q"
+      using lt by linarith
+    then show
+      "row_dlforms_list_size (rsimp7_SEQ_atom p k) *
+        rsize (rsimp7_SEQ_atom p k) \<le>
+       row_dlforms_list_size (rsimp7_SEQ_atom p k) * rsize ?q"
+      by (rule mult_left_mono) simp
+  qed
+  also have "... =
+      sum_list
+        (map (\<lambda>p. row_dlforms_list_size
+          (rsimp7_SEQ_atom p k)) ps) * rsize ?q"
+    by (rule sum_list_map_mult_right_nat)
+  also have "... = row_dlforms_list_size ?q * rsize ?q"
+    by simp
+  finally show ?case .
+qed ((rule rsize_set_rseq_suffixes_ext_default_le; simp)+)
 
 lemma rseq_tails_row_dlformss_subset_rseq_suffixes_ext:
   "rseq_tails (row_dlformss rows) \<subseteq>
@@ -22513,6 +22676,32 @@ lemma rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suff
       (\<Union>q \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
         rseq_suffixes_ext q)"
   by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext)
+
+lemma rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted:
+  "rsize_set (rseq_tails (row_dlformss rows)) \<le>
+    sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows)"
+proof -
+  have "rsize_set (rseq_tails (row_dlformss rows)) \<le>
+      rsize_set (\<Union>q \<in> set rows. rseq_suffixes_ext q)"
+    by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext)
+  also have "... \<le>
+      sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows)"
+    by (rule rsize_set_UN_set_le_sum_list
+        [where A="\<lambda>q. rseq_suffixes_ext q" and
+          B="\<lambda>q. row_dlforms_list_size q * rsize q"])
+      (simp_all add:
+        rsize_set_rseq_suffixes_ext_le_row_dlforms_list_size_times_rsize)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext_weighted:
+  "rsize_set
+      (rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    sum_list
+      (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+        (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted)
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
