@@ -6339,3 +6339,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   92.602s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 05:45: CLAIM - audit global carry invariant
+
+- Synced through pushed commit fa01757, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Blocker/audit brick: record a checked empty-alt counterexample to the
+  *global* simultaneous carry invariant at arbitrary continuations.  The D law
+  itself still holds on this shape, but `RALTS []` with a non-`RONE`
+  continuation creates a one-row carry term with zero `apder_zw2` budget, so
+  subsequent proof work must keep the carry lemma scoped (for example at
+  `RONE`) or use smarter SEQ duplicate accounting.
+
+## 2026-06-13 Codex 05:50: CHECKED/BLOCKER - global carry invariant false
+
+- New checked counterexample in `AntimirovFactoredTransition.thy`:
+  `apder_zw2_global_carry_empty_alt_false`.
+- Shape: `r = RALTS []`, `k = RCHAR a`.  It is legacy, `apder_nf`, and
+  `rntimes_free`; the D-count is `0`, but the extra carry term is `1` while
+  `apder_zw2 r = 0`.
+- Meaning: the simultaneous carry-measure scaffold is usable only in scoped
+  situations (such as the checked `RONE` RALTS case) and cannot be the global
+  induction invariant for arbitrary continuations.  Added B7 to
+  `EVIL_PATTERNS.md`.  Build command passed after worker check
+  (AntimirovFactoredTransition 93.009s, full Posix elapsed 0:01:36).

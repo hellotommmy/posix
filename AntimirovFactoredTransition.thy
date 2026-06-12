@@ -29070,6 +29070,27 @@ lemma apder_zw2_D_law_rntimes_zero_alt_false:
       apder_zw2 cex"
   by (simp_all add: cex_def zalt_def)
 
+lemma apder_zw2_global_carry_empty_alt_false:
+  defines "cex_r \<equiv> RALTS []"
+  defines "cex_k \<equiv> RCHAR (CHR ''a'')"
+  shows "legacy_rrexp cex_r"
+    and "legacy_rrexp cex_k"
+    and "apder_nf cex_r"
+    and "apder_nf cex_k"
+    and "rntimes_free cex_r"
+    and "rntimes_free cex_k"
+    and "card (apder_term_frontier_acc cex_r cex_k -
+      rfrontier cex_k) = 0"
+    and "card (rfrontier (rsimp4_SEQ_atom cex_r cex_k) -
+      rfrontier cex_k - apder_term_frontier_acc cex_r cex_k) = 1"
+    and "apder_zw2 cex_r = 0"
+    and "\<not> card (apder_term_frontier_acc cex_r cex_k -
+      rfrontier cex_k) +
+      card (rfrontier (rsimp4_SEQ_atom cex_r cex_k) -
+        rfrontier cex_k - apder_term_frontier_acc cex_r cex_k) \<le>
+      apder_zw2 cex_r"
+  by (simp_all add: cex_r_def cex_k_def)
+
 lemma card_diff_le_Suc_card_diff_if_small_middle:
   assumes finA: "finite A"
     and finB: "finite B"

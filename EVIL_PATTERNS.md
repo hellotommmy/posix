@@ -267,6 +267,30 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   character imports every zero-count alternative through a single character
   slot, so two `{0}` alternatives already overdraw the unrestricted budget.
 
+## B7. Empty alternative continuation — killed global carry-measure strengthening
+
+- **rrexp**:
+  ```
+  r = RALTS []
+  k = RCHAR a
+  ```
+- **PCRE**: the empty alternative block represents the empty language; as a
+  fuzz seed, keep an explicit unsatisfiable alternation node before sequencing
+  it with a non-empty continuation.
+- **killed**: the global simultaneous carry invariant at arbitrary
+  continuations,
+  `card(acc r k - F(k)) + card(F(sigma4 r k) - F(k) - acc r k) <= zw2 r`.
+  Checked lemma:
+  `apder_zw2_global_carry_empty_alt_false`
+  (`AntimirovFactoredTransition.thy`), with D-count `0`, carry-count `1`,
+  and budget `0`.
+- **deception**: the original D law is not refuted by this shape; only the
+  stronger carry-measure scaffold fails.  That makes it easy to overfit a SEQ
+  proof skeleton to a false helper while the live D samples stay green.
+- **mechanism**: `RALTS []` has no accumulator rows and zero `zw2`, but
+  `sigma4 (RALTS []) k` at a non-`RONE` continuation is a syntactic sequence
+  row with a singleton frontier outside `F(k)`.
+
 ---
 
 # Suggested fuzzer use
