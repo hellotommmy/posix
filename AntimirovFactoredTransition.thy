@@ -10576,6 +10576,46 @@ lemma rsimpStrong_raw_seq_alt_dlform_closure_counterexample:
       rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def
       rsimp7_SEQ_atom_def Let_def)
 
+lemma apder_strong_dlfrontier_not_subterm_deep_frontier_subset:
+  fixes a :: char
+  defines "star \<equiv> RSTAR (RCHAR a)"
+  defines "p \<equiv> RSEQ (RCHAR a) star"
+  defines "k \<equiv> RALTS [star, star]"
+  defines "r \<equiv> RSEQ (RALTS [p]) k"
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ star star)"
+  shows "legacy_rrexp r"
+    and "apder_nf r"
+    and "rntimes_free r"
+    and "x \<in> apder_strong_dlfrontier r"
+    and "x \<notin> apder_subterm_deep_frontier r"
+    and "\<not> apder_strong_dlfrontier r \<subseteq>
+      apder_subterm_deep_frontier r"
+proof -
+  show "legacy_rrexp r"
+    by (simp add: star_def p_def k_def r_def)
+  show "apder_nf r"
+    by (simp add: star_def p_def k_def r_def)
+  show "rntimes_free r"
+    by (simp add: star_def p_def k_def r_def)
+  have root_row: "r \<in> apder_rows r"
+    by (simp add: apder_rows_def)
+  have x_dlform: "x \<in> row_dlforms (rsimpStrong_raw r)"
+    by (simp add: star_def p_def k_def r_def x_def
+        rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def Let_def)
+  show x_in: "x \<in> apder_strong_dlfrontier r"
+    unfolding apder_strong_dlfrontier_def
+      rsimpStrong_dlform_closure_def
+    using root_row x_dlform by blast
+  show x_notin: "x \<notin> apder_subterm_deep_frontier r"
+    by (simp add: star_def p_def k_def r_def x_def
+        apder_subterm_deep_frontier_def apder_deep_frontier_def
+        apder_dfrontier_acc_def rsimp7_SEQ_atom_def)
+  show "\<not> apder_strong_dlfrontier r \<subseteq>
+      apder_subterm_deep_frontier r"
+    using x_in x_notin by blast
+qed
+
 function (sequential) rsimpDeep_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp"
 where
   "rsimpDeep_SEQ_atom RZERO k = RZERO"
@@ -20546,6 +20586,32 @@ proof -
     by simp
   finally show ?thesis .
 qed
+
+text \<open>
+  Row-level exposure mechanism: when strong simplification collapses
+  the left factor of a sequence to one (resp. zero), the whole row
+  becomes its strong right factor (resp. zero).  These two equations
+  are the base case of any carrier that owns prefix-deletion-exposed
+  rows.
+\<close>
+
+lemma rsimp7_SEQ_atom_RONE_left:
+  "rsimp7_SEQ_atom RONE k = k"
+  by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+
+lemma rsimp7_SEQ_atom_RZERO_left:
+  "rsimp7_SEQ_atom RZERO k = RZERO"
+  by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_raw_RSEQ_left_one:
+  assumes "rsimpStrong_raw p1 = RONE"
+  shows "rsimpStrong_raw (RSEQ p1 p2) = rsimpStrong_raw p2"
+  using assms by (simp add: rsimp7_SEQ_atom_RONE_left)
+
+lemma rsimpStrong_raw_RSEQ_left_zero:
+  assumes "rsimpStrong_raw p1 = RZERO"
+  shows "rsimpStrong_raw (RSEQ p1 p2) = RZERO"
+  using assms by (simp add: rsimp7_SEQ_atom_RZERO_left)
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>

@@ -15177,3 +15177,17 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   suggests (i) as a checkpoint theorem plus continuing (ii), since the
   quartic chain exercises every interface end to end and any later
   member-bound improvement drops in multiplicatively.
+
+## 2026-06-12 Fable: exposure mechanism base equations checked
+
+- New checked lemmas: rsimp7_SEQ_atom_RONE_left / _RZERO_left,
+  rsimpStrong_raw_RSEQ_left_one / _left_zero.
+- Plain meaning: when strong simplification turns the left factor of a
+  sequence into 1 (or 0), the whole row equals its strong right factor
+  (or 0).  These four equations are the base case for any carrier that
+  owns prefix-deletion-exposed rows (both for my subterm-union carrier
+  candidate and for any supervisor alternative).
+- Build: `Finished Posix` 08:37:06.  Next: the carrier containment
+  induction itself (one new delta-acc case per exposure), unless the
+  supervisor has picked a different carrier by then - the base
+  equations serve either.
