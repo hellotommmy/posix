@@ -15747,3 +15747,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   B = card carrier + keyed-bucket bound, then
   rsize_set_rseq_rows_bucket_boundI closes the seq part of the gate,
   and the distinct-tail rsize_set is the last number standing.
+
+## 2026-06-12 Fable: the last number, stated as a drain invariant
+
+- After the bucket bricks, one number remains:
+  `rsize_set (rseq_tails (row_dlformss out))` - the total size of the
+  distinct continuation tails of one step.
+- Its mathematical content, stated plainly: every tail is the strong
+  image of a suffix chain of the root; suffix chains are indexed by a
+  position in r plus an NTIMES counter vector; counters only decrease
+  along derivatives (epsilon absorption, checked in the rpder_list
+  shape).  So the DISTINCT tails reachable in ONE front form an
+  antichain-bounded set: at most one live counter vector per (position,
+  consumed-prefix) pair, and the probe plateau (rows 225 max at n=16,
+  then draining) is this invariant showing in numbers.
+- Workable formal targets, in increasing strength:
+  1. fragment (rntimes_free): tails are position-indexed only, count
+     <= rsize r, sizes <= quadratic -> tail rsize_set cubic; assembles
+     the FULL fragment gate with the bucket bricks.  All ingredients
+     checked except the tail-count lemma itself (deep-frontier tails
+     projection of the linear-card argument).
+  2. full fragment: tail count <= number of live counter vectors at
+     position t, bounded by path-monotonicity - needs a new multi-step
+     invariant (real research, the last one).
+- Suggested split: Fable takes 1 (fragment tail-count via the existing
+  rntimes_free delta machinery, same style as the checked linear-card
+  theorem); supervisor continues bucket/keyed engineering.  Target
+  after 1: the first complete checked cubic gate on the NTIMES-free
+  fragment - a bounty-grade milestone and the template for 2.
