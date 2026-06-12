@@ -26,6 +26,7 @@ afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_bou
 raw_shared_prune_active_suffix_alt_nodes
 card_raw_shared_prune_active_suffix_bucket_le_alt_nodes
 afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound
+card_afactored1_strong_dlform_universe_alt_nodes_le_generated
 ```
 
 Plain definitions:
@@ -92,6 +93,16 @@ bound the active RALTS-head count:
 card (raw_shared_prune_active_suffix_alt_nodes
         (afactored1_strong_dlform_universe r s c)) <= A
 ```
+
+Fallback already checked:
+
+```text
+A = length generated + rsizes generated
+```
+
+where `generated = concat (map (rpder_norm_list c) (afactored1 r s))`.  This
+is useful as a ledger bridge, but probably too loose as the final cubic count;
+look for a sharper step-local/provenance argument before declaring victory.
 
 Then the checked interface gives:
 

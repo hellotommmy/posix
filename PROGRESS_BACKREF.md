@@ -15956,6 +15956,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 11:11 local time.
 
+## 2026-06-12 Fable/Supervisor: active alt-node count on generated ledger
+
+- New checked lemma:
+
+  ```text
+  card_afactored1_strong_dlform_universe_alt_nodes_le_generated
+  ```
+
+- Plain meaning: the number of active `RALTS` heads in the step-local universe
+  is at most the same generated ledger bound already used for distinct tails:
+
+  ```text
+  card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))
+  <= length generated + rsizes generated
+  ```
+
+- This is a useful fallback, not the final sharp count.  The best next proof is
+  still to exploit step-local provenance to get a sharper active-alt-node
+  bound, because combining this fallback with the current pair-budget bridge
+  can still be too loose.
+
+- Verification: the first build reached all theories at 100% and then hit the
+  known concurrent Isabelle DB collision
+  `SQLITE_CONSTRAINT_PRIMARYKEY`; after workers cleared,
+  `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished green from
+  cache at 2026-06-12 11:16 local time.
+
 ## 2026-06-12 Fable: alt-node count rides the ledger too
 
 - New checked lemma
