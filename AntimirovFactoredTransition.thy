@@ -22637,6 +22637,88 @@ next
   finally show ?case .
 qed ((rule rsize_set_rseq_suffixes_ext_default_le; simp)+)
 
+lemma card_rseq_suffixes_ext_default_le:
+  assumes nonzero: "q \<noteq> RZERO"
+    and nonalt: "\<And>rs. q \<noteq> RALTS rs"
+    and nonseq_alt: "\<And>ps k. q \<noteq> RSEQ (RALTS ps) k"
+  shows "card (rseq_suffixes_ext q) \<le> row_dlforms_list_size q"
+proof -
+  have ext_eq: "rseq_suffixes_ext q = rseq_suffixes q"
+  proof (cases q)
+    case (RSEQ q1 q2)
+    then show ?thesis
+    proof (cases q1)
+      case (RALTS ps)
+      then have False
+        using RSEQ nonseq_alt[of ps q2] by simp
+      then show ?thesis by blast
+    qed (simp_all add: RSEQ)
+  qed (use assms in auto)
+  have row_size: "row_dlforms_list_size q = rsize q"
+  proof (cases q)
+    case (RSEQ q1 q2)
+    then show ?thesis
+    proof (cases q1)
+      case (RALTS ps)
+      then have False
+        using RSEQ nonseq_alt[of ps q2] by simp
+      then show ?thesis by blast
+    qed (simp_all add: RSEQ row_dlforms_list_size_def)
+  qed (use assms in \<open>auto simp add: row_dlforms_list_size_def\<close>)
+  have "card (rseq_suffixes_ext q) = card (rseq_suffixes q)"
+    by (simp add: ext_eq)
+  also have "... \<le> rsize q"
+    by (rule card_rseq_suffixes_le_rsize)
+  also have "... = row_dlforms_list_size q"
+    by (simp add: row_size)
+  finally show ?thesis .
+qed
+
+lemma card_rseq_suffixes_ext_le_row_dlforms_list_size:
+  "card (rseq_suffixes_ext q) \<le> row_dlforms_list_size q"
+proof (induct q rule: rseq_suffixes_ext.induct)
+  case 1
+  then show ?case
+    by simp
+next
+  case (2 rs)
+  have "card (rseq_suffixes_ext (RALTS rs)) =
+      card (\<Union>q \<in> set rs. rseq_suffixes_ext q)"
+    by simp
+  also have "... \<le>
+      (\<Sum>q \<in> set rs. card (rseq_suffixes_ext q))"
+    by (rule card_UN_le) simp
+  also have "... \<le> (\<Sum>q \<in> set rs. row_dlforms_list_size q)"
+    by (rule sum_mono) (use 2 in auto)
+  also have "... \<le> sum_list (map row_dlforms_list_size rs)"
+    by (rule sum_set_le_sum_list_nat)
+  also have "... = row_dlforms_list_size (RALTS rs)"
+    by simp
+  finally show ?case .
+next
+  case (3 ps k)
+  let ?q = "RSEQ (RALTS ps) k"
+  have "card (rseq_suffixes_ext ?q) =
+      card (\<Union>p \<in> set ps. rseq_suffixes_ext (rsimp7_SEQ_atom p k))"
+    by simp
+  also have "... \<le>
+      (\<Sum>p \<in> set ps. card
+        (rseq_suffixes_ext (rsimp7_SEQ_atom p k)))"
+    by (rule card_UN_le) simp
+  also have "... \<le>
+      (\<Sum>p \<in> set ps.
+        row_dlforms_list_size (rsimp7_SEQ_atom p k))"
+    by (rule sum_mono) (use 3 in auto)
+  also have "... \<le>
+      sum_list
+        (map (\<lambda>p. row_dlforms_list_size
+          (rsimp7_SEQ_atom p k)) ps)"
+    by (rule sum_set_le_sum_list_nat)
+  also have "... = row_dlforms_list_size ?q"
+    by simp
+  finally show ?case .
+qed ((rule card_rseq_suffixes_ext_default_le; simp)+)
+
 lemma rseq_tails_row_dlformss_subset_rseq_suffixes_ext:
   "rseq_tails (row_dlformss rows) \<subseteq>
     (\<Union>q \<in> set rows. rseq_suffixes_ext q)"

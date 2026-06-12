@@ -75,6 +75,11 @@ route for `rseq_suffixes_ext`.
 Follow-up checked at 13:47: `rsize_set_rseq_suffixes_ext_le_card_times_rsize`
 is green.  The remaining card-route target is now only the cardinality bound.
 
+Follow-up checked at 13:50: `card_rseq_suffixes_ext_le_row_dlforms_list_size`
+is green.  The single-row ext carrier is now accounted for.  The remaining
+work is cross-row: bound the actual `weighted_raw_rows`/opening-cost ledger for
+`rpder_strong_rows_raw c (afactored1 r s)`.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix

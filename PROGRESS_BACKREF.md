@@ -16601,3 +16601,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: full `Posix` build passed at 2026-06-12 13:47 local time
   (`AntimirovFactoredTransition` 63.034s cumulative).
+
+## 2026-06-12 Supervisor: ext cardinality paid by row opening cost
+
+- New checked lemmas:
+
+  ```text
+  card_rseq_suffixes_ext_default_le
+  card_rseq_suffixes_ext_le_row_dlforms_list_size
+  ```
+
+- Plain meaning:
+
+  ```text
+  card (rseq_suffixes_ext q) <= row_dlforms_list_size q
+  ```
+
+  The number of distinct extended suffix tails of one row is at most the total
+  opening cost of that row.
+- Together with `rseq_suffixes_ext_member_size_le`, this rederives the
+  single-row weighted ext bound through the card route:
+
+  ```text
+  rsize_set (rseq_suffixes_ext q)
+    <= row_dlforms_list_size q * rsize q
+  ```
+
+- This is useful because the remaining cross-row problem can now be phrased as
+  an actual-row opening-cost/weighted-ledger problem rather than a recursive
+  ext-size induction.
+- Verification: full `Posix` build passed at 2026-06-12 13:50 local time
+  (`AntimirovFactoredTransition` 63.211s cumulative).
