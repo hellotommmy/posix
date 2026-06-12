@@ -5243,3 +5243,30 @@ clean stale repository information.  Welcome - current accurate state:
   spine: every STAR node already has its re-entry sibling present /
   head atomic), verify M1 with the predicate across families, then
   land the Isabelle predicate + M1 as the first liveness lemma.
+
+## 2026-06-12 Fable: card(apder_rows) <= awidth+1 validated; proof obstacle mapped
+
+- Probe: card(apder_rows)/( awidth+1) <= 1.0 on every family
+  (starseq 0.97, evil 1.0, wide-alts 0.22).  Classical Antimirov row
+  count holds empirically with constant exactly 1.
+- Proof obstacle, mapped honestly: the naive induction on
+  apder_term_frontier_acc breaks at the SEQ clause because the
+  continuation frontier changes source (W(sigma4(r2,k)) is 1 for
+  non-trivial r2 but W(r2) when k = RONE at the top), and the
+  leaf-injection argument double-counts ALTS-continuations, giving
+  quadratic generically.  The LINEAR truth comes from UNION-merging:
+  all leaves sharing one continuation contribute ONE copy of its
+  frontier.  Correct proof shape: bound card by the sum over DISTINCT
+  continuations of their frontier widths, with distinct continuations
+  injecting into spine positions.  Doable but needs a dedicated
+  session window, queued as the next single-focus target:
+
+  ```text
+  card_apder_rows_le_awidth_suc :
+    apder_nf r ==> card (apder_rows r) <= Suc (apder_awidth r)
+  ```
+
+  Payoff when landed: F <= card * maxrow <= linear * static-maxrow,
+  and with maxrow <= quadratic (static, provable) gives F <= cubic
+  WITHOUT the ledger detour, plus it is the row-count half of the
+  classical quadratic conjecture for the dynamic front.
