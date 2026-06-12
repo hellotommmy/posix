@@ -5369,3 +5369,28 @@ clean stale repository information.  Welcome - current accurate state:
   induction balances exactly.  Next session: land zwidth (fun),
   zero-zwidth-empty, rightmost-leaf companion, helper, main, corollary
   card(apder_rows) <= zwidth + 2 - five pieces, each small.
+
+## 2026-06-12 Fable: companion mechanism falsified twice; row-count law true but proof open
+
+- Both companion candidates are FALSE:
+  zwidth r >= 1 ==> F t SUBSET acc r t   (43% violations; STAR(O) has
+    z=1 but empty acc);
+  awidth r >= 1 ==> F t SUBSET acc r t   (22% violations; STAR(a)
+    REWRITES the continuation: acc(STAR a, t) = {RSEQ (STAR a) t},
+    which does not contain F t).
+- So the "+1 absorbed because the composite row is already in acc"
+  story is wrong - star wrapping changes every leaf continuation, and
+  the balance in the (still unrefuted, 85k-sample) main law
+
+  ```text
+  card (acc r k - rfrontier k) <= zwidth r     [nf r, nf k]
+  ```
+
+  comes from something subtler (plausibly: each occurrence of a
+  SEQ/STAR node retires one frontier-slot as it composes, a
+  conservation argument over spine positions rather than membership).
+  The equality cases should be enumerated first (mirror: dump all
+  (r,k) with card = zwidth at small depth) to read off the true
+  bijection before the next Isabelle attempt.
+- Honest state at 23:05: law true and pinned, proof design needs one
+  more idea.  This is tomorrow''s single-focus opener.
