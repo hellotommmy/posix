@@ -29105,6 +29105,62 @@ proof -
     by simp
 qed
 
+lemma card_UN_set_diff_le_sum_list:
+  "card ((\<Union>x \<in> set xs. A x) - K) \<le>
+    sum_list (map (\<lambda>x. card (A x - K)) xs)"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs)
+  let ?U = "\<Union>y \<in> set xs. A y"
+  have diff_split: "(A x \<union> ?U) - K = (A x - K) \<union> (?U - K)"
+    by blast
+  have "card ((\<Union>y \<in> set (x # xs). A y) - K) =
+      card ((A x \<union> ?U) - K)"
+    by simp
+  also have "... = card ((A x - K) \<union> (?U - K))"
+    using diff_split by simp
+  also have "... \<le> card (A x - K) + card (?U - K)"
+    by (rule card_Un_le)
+  also have "... \<le> card (A x - K) +
+      sum_list (map (\<lambda>x. card (A x - K)) xs)"
+    using Cons.hyps by linarith
+  finally show ?case
+    by simp
+qed
+
+lemma card_apder_term_frontier_acc_RALTS_diff_le_sum:
+  "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) \<le>
+    sum_list
+      (map (\<lambda>q. card (apder_term_frontier_acc q k - rfrontier k)) rs)"
+proof -
+  have "card ((\<Union>q \<in> set rs. apder_term_frontier_acc q k) -
+      rfrontier k) \<le>
+      sum_list
+        (map (\<lambda>q. card (apder_term_frontier_acc q k - rfrontier k)) rs)"
+    by (rule card_UN_set_diff_le_sum_list)
+  then show ?thesis
+    by simp
+qed
+
+lemma card_apder_term_frontier_acc_RALTS_diff_le_if_children:
+  assumes each: "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) \<le>
+    apder_zw2 (RALTS rs)"
+proof -
+  have "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) \<le>
+      sum_list
+        (map (\<lambda>q. card (apder_term_frontier_acc q k - rfrontier k)) rs)"
+    by (rule card_apder_term_frontier_acc_RALTS_diff_le_sum)
+  also have "... \<le> sum_list (map apder_zw2 rs)"
+    by (rule sum_list_mono) (use each in auto)
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"

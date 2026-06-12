@@ -5987,3 +5987,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   81.868s, full Posix elapsed 0:01:33).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:10: CLAIM - ALTS aggregation by list induction
+
+- Synced through pushed commit 359bcd3, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: retry the previously blocked ALTS aggregation
+  with the safer proof shape from its blocker note: plain list induction and
+  `card_Un_le`, not `card_UN_le` over a schematic family.  Target is the
+  generic `card_UN_set_diff_le_sum_list` plus the
+  `apder_term_frontier_acc (RALTS rs)` specialization.
+
+## 2026-06-13 Codex 03:15: CHECKED - ALTS aggregation by list induction
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_UN_set_diff_le_sum_list`,
+  `card_apder_term_frontier_acc_RALTS_diff_le_sum`, and
+  `card_apder_term_frontier_acc_RALTS_diff_le_if_children`.
+- This closes the earlier ALTS aggregation blocker by changing proof shape:
+  list induction plus `card_Un_le`, no `card_UN_le` over a schematic family.
+  First build exposed only a local Cons-case set-difference equality; split
+  it into explicit `A x UNION U` and difference-distribution equalities.
+- Build command passed after worker check (AntimirovFactoredTransition
+  84.335s, full Posix elapsed 0:01:31).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
