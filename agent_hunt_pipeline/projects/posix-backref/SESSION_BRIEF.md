@@ -22,12 +22,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-worker
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
 ```
 
+`codex-isabelle-build-posix.ps1` now takes the same global Isabelle build lock
+as the local CI script. If another build is already active, let this wrapper
+wait; do not bypass it with a raw `isabelle build`. A failure ending in
+`SQLITE_CONSTRAINT_PRIMARYKEY` means an older/raw command collided with another
+build database writer, not that the theorem is false.
+
 Run only one Isabelle build at a time. If `codex-proof-workers.ps1 -Action
 Check` reports a worker, wait for it or read its output; do not start another
 build. Prefer foreground builds for local proof fixes so the first failing
 Isabelle line is visible. If the UI requires a background build, immediately
 read the generated `.output` file and fix the exact first failing proof; do not
 launch another background build until that worker has finished.
+
+When no worker is active and there is no file-ownership conflict, keep moving on
+one small checked brick. Do not wait for the supervisor merely because the
+supervisor is quiet.
 
 Treat every `Background shell failed` label as a proof obligation to inspect,
 not as a command problem. The important line is usually the first
