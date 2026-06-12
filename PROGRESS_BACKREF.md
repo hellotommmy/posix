@@ -16437,3 +16437,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   prove (i) as an equation, then the invariant by measure induction
   with the RONE case routed through ext(k).  All support lemmas
   (chain quadratic, strict size decrease) are checked.
+
+## 2026-06-12 Fable: additive inductions fail twice; use the card route
+
+- Honest record: both the single-parameter and the two-parameter
+  ADDITIVE inductions for rsize_set(ext q) fail to close.  Reason: in
+  the keyed case the bound must ADD the accounts of all branches plus
+  the RONE-collapse account, but set union shares members that
+  addition double-charges; the slack compounds one factor of n.
+- The route that avoids addition entirely: bound the CARD first.
+  Every ext member is (by the ownership construction) a suffix of an
+  accumulated tail at some atom position of q, so
+
+  ```text
+  card (rseq_suffixes_ext q) <= (number of aseq atom positions of q)
+                                 * Suc (rsize q)          [chain length]
+  ```
+
+  and every member has rsize <= rsize q (members are built from q
+  pieces - needs the member-size lemma for ext, analogous to the
+  checked chain one).  Then
+  rsize_set(ext) <= card * max-member <= positions * Suc(n) * n ~ n^3
+  with NO additive recursion: card of a UNION is bounded by the sum of
+  cards, and cards do not carry the copied-tail weight - each branch
+  contributes its OWN positions only, summing to the row positions
+  (head_aleaves-style), and the RONE collapse contributes k positions
+  which are also q positions.  The card induction closes where the
+  size induction could not.
+- Next implementer: (1) ext member size <= rsize q (measure induction,
+  easy - members are suffixes of subterm-built tails... verify the
+  reassociated tails: m_p < n so member <= m_p <= n holds by IH);
+  (2) card (ext q) <= aseq-positions(q) * Suc (rsize q) by measure
+  induction (card_Un_le is safe: positions add exactly);
+  (3) multiply.  This is the cubic per-row account, then cross-row.
