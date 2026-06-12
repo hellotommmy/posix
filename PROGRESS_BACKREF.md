@@ -6318,3 +6318,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.020s, full Posix elapsed 0:01:38).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 05:35: CLAIM - RALTS RONE carry-measure assembly
+
+- Synced through pushed commit 94810e8, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the RALTS carry-measure case only for the
+  stable `RONE` continuation, using the checked list aggregation and per-child
+  carry hypotheses.  This avoids the known empty-alt singleton issue for
+  arbitrary continuations while still feeding the rntimes-free D induction.
+
+## 2026-06-13 Codex 05:40: CHECKED - RALTS RONE carry-measure assembly
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children`.
+- The lemma instantiates the list carry-measure aggregation for `RALTS rs` at
+  the stable `RONE` continuation and keeps the child hypotheses in the same
+  simultaneous-invariant shape (`rfrontier (rsimp4_SEQ_atom q RONE)`).
+- Build command passed after worker check (AntimirovFactoredTransition
+  92.602s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

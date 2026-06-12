@@ -29403,6 +29403,34 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children:
+  assumes stable: "\<And>q. q \<in> set rs \<Longrightarrow> rsimp4_SEQ_atom q RONE = q"
+    and each: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+      card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+        apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS rs) RONE - rfrontier RONE) +
+    card (rfrontier (rsimp4_SEQ_atom (RALTS rs) RONE) - rfrontier RONE -
+      apder_term_frontier_acc (RALTS rs) RONE) \<le>
+      apder_zw2 (RALTS rs)"
+proof -
+  let ?A = "\<lambda>q. apder_term_frontier_acc q RONE"
+  let ?G = "\<lambda>q. rfrontier (rsimp4_SEQ_atom q RONE)"
+  have fronts: "(\<Union>q \<in> set rs. ?G q) = rfrontiers rs"
+    using stable by (auto simp add: rfrontiers_member_iff)
+  have "card ((\<Union>q \<in> set rs. ?A q) - rfrontier RONE) +
+      card ((\<Union>q \<in> set rs. ?G q) - rfrontier RONE -
+        (\<Union>q \<in> set rs. ?A q)) \<le>
+      sum_list
+        (map (\<lambda>q. card (?A q - rfrontier RONE) +
+          card (?G q - rfrontier RONE - ?A q)) rs)"
+    by (rule card_carry_measure_UN_set_le_sum_list) simp_all
+  also have "... \<le> sum_list (map apder_zw2 rs)"
+    by (rule sum_list_mono) (use each in auto)
+  finally show ?thesis
+    using fronts by simp
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"
