@@ -6059,3 +6059,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   82.271s, full Posix elapsed 0:01:34).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:40: CLAIM - SEQ middle-carried duplicate assembly
+
+- Synced through pushed commit a780de0, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: instantiate `card_union_diff_le_middle_split` for the
+  SEQ accumulator.  If the left child is bounded outside
+  `rfrontier (rsimp4_SEQ_atom r2 k)` and the right child carries that frontier
+  together with `apder_term_frontier_acc r2 k`, then the corrected zw2 SEQ
+  bound follows.  This avoids the falsified zwidth/J* discounts.
+
+## 2026-06-13 Codex 03:45: CHECKED - SEQ middle-carried duplicate assembly
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_middle_carried`.
+- This gives an alternate SEQ assembly route from the pure splitter: prove
+  the left child against its shifted frontier and prove the right child
+  together with that shifted frontier; the SEQ D-zw2 conclusion follows.
+- Build command passed after worker check (AntimirovFactoredTransition
+  91.700s, full Posix elapsed 0:01:37).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

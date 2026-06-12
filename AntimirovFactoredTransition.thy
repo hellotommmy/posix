@@ -29287,6 +29287,29 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_middle_carried:
+  assumes left: "card (apder_term_frontier_acc r1
+      (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    and right: "card ((rfrontier (rsimp4_SEQ_atom r2 k) \<union>
+      apder_term_frontier_acc r2 k) - rfrontier k) \<le> apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof -
+  let ?A = "apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?B = "apder_term_frontier_acc r2 k"
+  let ?F = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  have "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) =
+      card ((?A \<union> ?B) - rfrontier k)"
+    by simp
+  also have "... \<le> card (?A - ?F) + card ((?F \<union> ?B) - rfrontier k)"
+    by (rule card_union_diff_le_middle_split) simp_all
+  also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+    using left right by linarith
+  finally show ?thesis
+    by simp
+qed
+
 
 text \<open>
   Static row size law: every member of the apder accumulator is at
