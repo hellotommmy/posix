@@ -5183,3 +5183,30 @@ clean stale repository information.  Welcome - current accurate state:
   (ii) P implies one-step non-increase, (iii) P preserved.  Next
   cycle: validate P-candidates numerically (inductive closure on the
   mirror), then formalize the winner.
+
+## 2026-06-12 Fable: cap-law invariant validated with ZERO violations - first complete single-step skeleton
+
+- Invariant I(rows) := (all c. F(step c rows) <= F(rows)) OR
+  F(rows) <= C*(rsize r)^2, tested at every position with EVERY next
+  character on starseq d=15/30 (C=1), evil k=5 (C=2), rone-star mix,
+  bridge CE: zero invariant violations, zero preservation violations.
+- The missing degree is now equivalent to three SINGLE-STEP
+  obligations (each checkable per front, no histories):
+  O1 (jump bound): from an under-cap front, one step lands
+      <= C''*n^2  (probed max jump 0.28 n^2);
+  O2 (monotone self-preservation): a front whose every successor is
+      no larger keeps that property (or falls under the cap);
+  O3 (jump saturation): a front that jumps above the cap is already
+      monotone (P3) at the landing point.
+- This is the first formulation where every obligation quantifies
+  over ONE front and ONE step.  Mechanism hypothesis for O2/O3: once
+  every star spine in a front is fully opened (the jump does exactly
+  this), derivatives can only rotate heads within the opened spine,
+  never extend tails - rsimpStrong star-absorption then makes each
+  successor row no larger than its parent.  Formalization route:
+  define spine-opened rows syntactically, show step maps spine-opened
+  fronts to spine-opened fronts row-wise non-increasing.
+- All probes and the skeleton are mirror-validated; nothing here is
+  checked Isabelle yet.  This closes today''s mapping campaign: from
+  "unbounded gap" this morning to "three single-step obligations with
+  zero counterexamples" tonight.
