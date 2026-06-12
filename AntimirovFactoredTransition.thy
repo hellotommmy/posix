@@ -28999,6 +28999,10 @@ next
     by (cases n) auto
 qed auto
 
+lemma apder_term_frontier_acc_RZERO_right_empty [simp]:
+  "apder_term_frontier_acc r RZERO = {}"
+  by (induct r) auto
+
 lemma card_diff_le_Suc_card_diff_if_small_middle:
   assumes finA: "finite A"
     and finB: "finite B"

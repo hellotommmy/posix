@@ -6081,3 +6081,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   91.700s, full Posix elapsed 0:01:37).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:50: CLAIM - zero continuation accumulator
+
+- Synced through pushed commit 0ae916a, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: prove `apder_term_frontier_acc r RZERO = {}` for all
+  `r`.  This is a degenerate-continuation fact needed to keep the forthcoming
+  frontier-plus-acc induction split into constructor cases instead of broad
+  automation.
+
+## 2026-06-13 Codex 03:55: CHECKED - zero continuation accumulator
+
+- New checked simp fact in `AntimirovFactoredTransition.thy`:
+  `apder_term_frontier_acc_RZERO_right_empty`.
+- This closes the `k = RZERO` accumulator branch for future D-law and
+  frontier-plus-acc constructor inductions.
+- Build command passed after worker check (AntimirovFactoredTransition
+  79.661s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
