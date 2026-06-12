@@ -5657,3 +5657,34 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   Isabelle surface (`apder_zw2`, `apder_zwidth <= apder_zw2`, and
   `apder_zw2 <= rsize`) or, if Fable has already moved there, switch to
   supervisor audit of duplicate/stale D-law notes in the PROGRESS tail.
+
+## 2026-06-13 Codex 01:25: CLAIM - corrected zw2 weight surface
+
+- Synced through pushed commit ec08e3c, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: after searching for duplicates, add the
+  corrected `apder_zw2` weight and only the basic monotone/size lemmas
+  needed to make the zw2 D-law statement usable (`apder_zwidth <=
+  apder_zw2`, and the `rntimes_free` size payoff).  No attempt yet at
+  the D-zw2 induction or any old zwidth/J* theorem.
+
+## 2026-06-13 Codex 01:30: CHECKED - apder_zw2 surface
+
+- Added `apder_zw2` in `AntimirovFactoredTransition.thy`: same base
+  clauses as the corrected D-law note, with `RSTAR r = Suc (apder_zw2 r)`
+  and the existing repeated-width convention `RNTIMES r n =
+  n * Suc (apder_zw2 r)`.
+- New checked facts: `apder_zwidth_le_apder_zw2` and
+  `apder_zw2_rntimes_free_le_rsize`.
+- Important supervisor note: the global `apder_zw2 <= rsize` payoff is
+  NTIMES-sensitive under Isabelle's compact `rsize (RNTIMES r n) =
+  Suc (rsize r) + n`; the checked size fact is therefore the existing
+  `rntimes_free` fragment version, matching the earlier `apder_awidth`
+  pattern.  Do not cite a global NTIMES-inclusive size payoff without a
+  separate statement/change.
+- Build log: first build failed in the NTIMES arithmetic line of
+  `apder_zwidth_le_apder_zw2`; changed that one named lemma to an
+  explicit multiplication monotonicity step.  Rerun with worker check
+  passed (AntimirovFactoredTransition 75.737s, full Posix elapsed
+  0:01:36).

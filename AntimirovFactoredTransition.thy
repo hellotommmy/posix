@@ -28911,6 +28911,54 @@ next
   then show ?case by (cases n) auto
 qed auto
 
+fun apder_zw2 :: "rrexp \<Rightarrow> nat" where
+  "apder_zw2 RZERO = 0"
+| "apder_zw2 RONE = 0"
+| "apder_zw2 (RCHAR c) = 1"
+| "apder_zw2 (RALTS rs) = sum_list (map apder_zw2 rs)"
+| "apder_zw2 (RSEQ r1 r2) = apder_zw2 r1 + apder_zw2 r2"
+| "apder_zw2 (RSTAR r) = Suc (apder_zw2 r)"
+| "apder_zw2 (RNTIMES r n) = n * Suc (apder_zw2 r)"
+| "apder_zw2 (RBACKREF4 r1 r2 r3 r4 cs) = 0"
+| "apder_zw2 (RHALF r cs rep) = 0"
+| "apder_zw2 (RRESIDUE cs rep) = 0"
+
+lemma apder_zwidth_le_apder_zw2:
+  "apder_zwidth r \<le> apder_zw2 r"
+proof (induct r)
+  case (RALTS rs)
+  have "sum_list (map apder_zwidth rs) \<le>
+      sum_list (map apder_zw2 rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  then show ?case
+    by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by simp
+next
+  case (RNTIMES r n)
+  have "max 1 (apder_zwidth r) \<le> Suc (apder_zw2 r)"
+    using RNTIMES by simp
+  then have "n * max 1 (apder_zwidth r) \<le> n * Suc (apder_zw2 r)"
+    by (rule mult_left_mono) simp
+  then show ?case
+    by simp
+qed auto
+
+lemma apder_zw2_rntimes_free_le_rsize:
+  assumes "rntimes_free r"
+  shows "apder_zw2 r \<le> rsize r"
+  using assms
+proof (induct r)
+  case (RALTS rs)
+  have "sum_list (map apder_zw2 rs) \<le>
+      sum_list (map rsize rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  then show ?case
+    by simp
+qed (auto intro: le_SucI add_le_mono)
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"
