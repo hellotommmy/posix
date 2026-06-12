@@ -15528,3 +15528,38 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   card (tails of generated rows) - via "strong is a function" plus the
   reassociation tail map; then the fragment linear tail count follows
   from the deep-frontier linear card.
+
+## 2026-06-12 Supervisor: nested payload also refutes the flat tail-copy formula
+
+- New checked caveat:
+
+  ```text
+  nested_payload_flat_tail_copy_bound_false
+  ```
+
+- Witness, in plain words:
+
+  ```text
+  p = (a | b).c
+  k = d
+  q = p.d, written as RSEQ (RALTS [p]) k
+  ```
+
+  Here `p` is `rtail_nf` and `nonalt`, and the tail `k` is flat enough that
+  `row_dlforms_list_size k <= rsize k`.  But the simple flat formula
+
+  ```text
+  row_dlforms_list_size q <= rsizes [p] + length [p] * Suc (rsize k)
+  ```
+
+  is false.
+
+- Simple meaning: a payload can be "not a top-level alternation" and still
+  contain an inner grouped row.  When `p.d` is simplified, the inner
+  `(a | b)` opens and copies the accumulated tail `c.d` into both branches.
+  Therefore the row-level tail ledger cannot use `rtail_nf` or `nonalt` as a
+  stand-in for "flat payload".  Either keep the strong leaf premise
+  `rnonseq p` + `nonalt p`, or define a genuinely recursive ledger.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 09:49 local time.

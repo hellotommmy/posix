@@ -79,6 +79,14 @@ The leaf case is checked by `row_dlforms_list_size_nonseq_nonalt_le`, and the
 flat-tail package is
 `row_dlforms_list_size_RSEQ_RALTS_flat_payload_flat_tail_le`.
 
+Second checked caveat: `nested_payload_flat_tail_copy_bound_false` shows that
+even a payload `p` with `rtail_nf p` and `nonalt p` is not enough.  The witness
+is `p = (a | b).c`, `k = d`, `q = p.d`: the tail `k` is flat, but simplifying
+`p.d` opens the inner `(a | b)` and copies the accumulated tail `c.d` into both
+branches.  So the simple flat tail-copy formula is valid only for explicitly
+flat payloads (`rnonseq` and `nonalt`), or it must be replaced by a recursive
+ledger.
+
 High-value next moves:
 
 1. prove the actual-output gate directly from one-pass pruning;
