@@ -6709,3 +6709,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   82.269s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:35: CLAIM - RALTS SEQ middle-bucket aggregation
+
+- Synced through pushed commit 579598d, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick on the list-version/duplicate-accounting route: add a
+  list aggregation for the SEQ middle-overlap bucket and package the
+  `RSEQ (RALTS rs) r2` D case from per-alt two-bucket bounds plus the right
+  child D bound.  This avoids the known false arbitrary exact-carry premise.
+
+## 2026-06-13 Codex 08:40: CHECKED - RALTS SEQ middle-bucket aggregation
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_UN_set_Int_diff_diff_le_sum_list` and
+  `card_apder_term_frontier_acc_RSEQ_RALTS_diff_le_if_children_three_buckets`.
+- This is a list-version duplicate-accounting brick for the RALTS-left SEQ
+  case: aggregate the per-alt middle-overlap bucket and combine it with the
+  ordinary right-child D bound, instead of assuming the false arbitrary exact
+  carry invariant.
+- First build failed only inside the pure list lemma at the final
+  `(K union B)` versus `- K - B` map equality.  Changed that named lemma to
+  prove the equality by explicit list induction; rerun passed after worker
+  check (AntimirovFactoredTransition 95.885s, full Posix elapsed 0:01:36).
+  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.

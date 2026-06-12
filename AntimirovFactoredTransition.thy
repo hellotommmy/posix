@@ -29442,6 +29442,35 @@ next
     by simp
 qed
 
+lemma card_UN_set_Int_diff_diff_le_sum_list:
+  "card (((\<Union>x \<in> set xs. A x) \<inter> F) - K - B) \<le>
+    sum_list (map (\<lambda>x. card ((A x \<inter> F) - K - B)) xs)"
+proof -
+  have split:
+    "((\<Union>x \<in> set xs. A x) \<inter> F) - K - B =
+      ((\<Union>x \<in> set xs. A x \<inter> F) - (K \<union> B))"
+    by blast
+  have "card (((\<Union>x \<in> set xs. A x) \<inter> F) - K - B) =
+      card ((\<Union>x \<in> set xs. A x \<inter> F) - (K \<union> B))"
+    by (simp add: split)
+  also have "... \<le>
+      sum_list (map (\<lambda>x. card ((A x \<inter> F) - (K \<union> B))) xs)"
+    by (rule card_UN_set_diff_le_sum_list)
+  also have "... =
+      sum_list (map (\<lambda>x. card ((A x \<inter> F) - K - B)) xs)"
+  proof (induct xs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons x xs)
+    have "A x \<inter> F - (K \<union> B) = A x \<inter> F - K - B"
+      by blast
+    then show ?case
+      using Cons.hyps by simp
+  qed
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RALTS_diff_le_sum:
   "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k) \<le>
     sum_list
@@ -29794,6 +29823,75 @@ next
     card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
       apder_term_frontier_acc r2 k) \<le> apder_zw2 r2"
     by (rule right)
+qed
+
+lemma card_apder_term_frontier_acc_RSEQ_RALTS_diff_le_if_children_three_buckets:
+  assumes each: "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc q (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 q"
+    and right: "card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ (RALTS rs) r2) k -
+    rfrontier k) \<le> apder_zw2 (RSEQ (RALTS rs) r2)"
+proof (rule card_apder_term_frontier_acc_RSEQ_diff_le_if_three_buckets)
+  let ?M = "rsimp4_SEQ_atom r2 k"
+  let ?F = "rfrontier ?M"
+  let ?B = "apder_term_frontier_acc r2 k"
+  have left_sum:
+    "card (apder_term_frontier_acc (RALTS rs) ?M - ?F) \<le>
+      sum_list
+        (map (\<lambda>q. card (apder_term_frontier_acc q ?M - ?F)) rs)"
+    by (rule card_apder_term_frontier_acc_RALTS_diff_le_sum)
+  have middle_sum:
+    "card (((\<Union>q \<in> set rs. apder_term_frontier_acc q ?M) \<inter> ?F) -
+      rfrontier k - ?B) \<le>
+      sum_list
+        (map (\<lambda>q. card ((apder_term_frontier_acc q ?M \<inter> ?F) -
+          rfrontier k - ?B)) rs)"
+    by (rule card_UN_set_Int_diff_diff_le_sum_list)
+  then have middle_sum':
+    "card ((apder_term_frontier_acc (RALTS rs) ?M \<inter> ?F) -
+      rfrontier k - ?B) \<le>
+      sum_list
+        (map (\<lambda>q. card ((apder_term_frontier_acc q ?M \<inter> ?F) -
+          rfrontier k - ?B)) rs)"
+    by simp
+  have pair_budget:
+    "card (apder_term_frontier_acc (RALTS rs) ?M - ?F) +
+    card ((apder_term_frontier_acc (RALTS rs) ?M \<inter> ?F) -
+      rfrontier k - ?B) \<le> apder_zw2 (RALTS rs)"
+  proof -
+    have "card (apder_term_frontier_acc (RALTS rs) ?M - ?F) +
+        card ((apder_term_frontier_acc (RALTS rs) ?M \<inter> ?F) -
+          rfrontier k - ?B) \<le>
+        sum_list
+          (map (\<lambda>q. card (apder_term_frontier_acc q ?M - ?F)) rs) +
+        sum_list
+          (map (\<lambda>q. card ((apder_term_frontier_acc q ?M \<inter> ?F) -
+            rfrontier k - ?B)) rs)"
+      using left_sum middle_sum' by linarith
+    also have "... =
+        sum_list
+          (map (\<lambda>q. card (apder_term_frontier_acc q ?M - ?F) +
+            card ((apder_term_frontier_acc q ?M \<inter> ?F) -
+              rfrontier k - ?B)) rs)"
+      by (simp add: sum_list_addf)
+    also have "... \<le> sum_list (map apder_zw2 rs)"
+      by (rule sum_list_mono) (use each in auto)
+    finally show ?thesis
+      by simp
+  qed
+  show "card (apder_term_frontier_acc (RALTS rs) (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc (RALTS rs) (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 (RALTS rs) + apder_zw2 r2"
+    using pair_budget right by linarith
 qed
 
 lemma card_apder_term_frontier_acc_RSEQ_RSTAR_diff_le_if_body_right_carry:
