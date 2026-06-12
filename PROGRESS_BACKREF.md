@@ -15657,3 +15657,27 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Claim: Fable implements this split next cycle (it only uses checked
   grammar + rseq_tails + counting, no membership transfer through the
   refuted carriers).
+
+## 2026-06-12 Fable claim: bucket cardinality, nonalt-head half
+
+- The supervisor bucket split leaves one premise per tail bucket:
+  `card (rseq_tail_rows U t) <= B`.  Exact statement Fable will prove
+  for the nonalt-head part (U = row_dlformss of the actual one-pass
+  output):
+
+  ```text
+  card {x in rseq_tail_rows U t. EX h. x = RSEQ h t & nonalt h}
+    <= card (strong_derivative_front_terms r (s @ [c]))
+  ```
+
+  Proof plan, all from checked pieces: members of U sit in the dlform
+  universe (checked subset); a seq member with nonalt head has its
+  head IN the carrier (checked grammar); for a fixed tail t the map
+  member -> head is injective; so the bucket injects into the carrier.
+- The remaining keyed-head part (heads of shape RALTS ps) is the
+  active-suffix bucket count, which is the supervisor pair-budget
+  machinery domain - suggested for the supervisor.
+- Combined target after both halves:
+  B = card carrier + keyed-bucket bound, then
+  rsize_set_rseq_rows_bucket_boundI closes the seq part of the gate,
+  and the distinct-tail rsize_set is the last number standing.
