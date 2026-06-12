@@ -15563,3 +15563,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 09:49 local time.
+
+## 2026-06-12 Supervisor: actual-output sequence tails stay in the strong front carrier
+
+- New checked definitions/lemmas:
+
+  ```text
+  rseq_tails
+  finite_rseq_tails
+  rseq_tails_aseq_terms_subsetI
+  rseq_tails_row_dlformss_aseq_terms_subset
+  rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
+  rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
+  ```
+
+- Plain meaning: take the actual one-pass output
+  `rpder_strong_rows_raw c (afactored1 r s)`, open it with
+  `row_dlformss`, and collect every top-level sequence tail `t` from a member
+  `RSEQ h t`.  Every atom inside those tails still belongs to the same
+  current strong front carrier `strong_derivative_front_terms r (s @ [c])`.
+
+- Why this matters: the final cubic gate is on the deduplicated set
+  `rsize_set (row_dlformss (actual output))`.  To avoid charging the same
+  continuation once per branch, the proof needs to separate head atoms from
+  distinct tails.  This brick proves that the distinct-tail side is still
+  controlled by the current strong front; it is a safe count-only bridge and
+  does not use the false owner/DAG closure.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 09:58 local time.

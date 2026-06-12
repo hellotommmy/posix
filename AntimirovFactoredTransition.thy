@@ -6486,6 +6486,44 @@ proof -
     by (rule subset_trans[OF x_terms q_terms])
 qed
 
+definition rseq_tails :: "rrexp set \<Rightarrow> rrexp set" where
+  "rseq_tails U = {t. \<exists>h. RSEQ h t \<in> U}"
+
+lemma finite_rseq_tails [simp]:
+  assumes "finite U"
+  shows "finite (rseq_tails U)"
+proof -
+  let ?tail_of = "\<lambda>x. case x of RSEQ h t \<Rightarrow> t | _ \<Rightarrow> RZERO"
+  have "rseq_tails U \<subseteq> ?tail_of ` U"
+    by (auto simp add: rseq_tails_def split: rrexp.splits)
+  then show ?thesis
+    by (rule finite_subset) (use assms in simp)
+qed
+
+lemma rseq_tails_aseq_terms_subsetI:
+  assumes "\<And>x. x \<in> U \<Longrightarrow> aseq_terms x \<subseteq> A"
+  shows "(\<Union>t \<in> rseq_tails U. aseq_terms t) \<subseteq> A"
+proof
+  fix x
+  assume x: "x \<in> (\<Union>t \<in> rseq_tails U. aseq_terms t)"
+  obtain h t where t:
+      "RSEQ h t \<in> U"
+      "x \<in> aseq_terms t"
+    using x by (auto simp add: rseq_tails_def)
+  have "aseq_terms (RSEQ h t) \<subseteq> A"
+    by (rule assms[OF t(1)])
+  then have tail: "aseq_terms t \<subseteq> A"
+    by simp
+  then show "x \<in> A"
+    using t(2) by blast
+qed
+
+lemma rseq_tails_row_dlformss_aseq_terms_subset:
+  "(\<Union>t \<in> rseq_tails (row_dlformss rs). aseq_terms t) \<subseteq>
+    aseq_termss rs"
+  by (rule rseq_tails_aseq_terms_subsetI)
+    (rule row_dlformss_aseq_terms_subset)
+
 lemma row_dlformss_afactored_step_eq_generated:
   "row_dlformss (afactored_step c rs) =
     row_dlformss (concat (map (rpder_norm_list c) rs))"
@@ -20436,6 +20474,29 @@ proof -
       using x(2) flts by blast
   qed
 qed
+
+lemma rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front:
+  "(\<Union>t \<in> rseq_tails (row_dlformss
+      (afactored1_strong_one_pass_rows r s c)). aseq_terms t) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+proof -
+  have "(\<Union>t \<in> rseq_tails (row_dlformss
+        (afactored1_strong_one_pass_rows r s c)). aseq_terms t) \<subseteq>
+      aseq_termss (afactored1_strong_one_pass_rows r s c)"
+    by (rule rseq_tails_row_dlformss_aseq_terms_subset)
+  also have "... \<subseteq> strong_derivative_front_terms r (s @ [c])"
+    by (rule aseq_termss_afactored1_strong_one_pass_rows_subset_front)
+  finally show ?thesis .
+qed
+
+lemma rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
+  "(\<Union>t \<in> rseq_tails (row_dlformss
+      (rpder_strong_rows_raw c (afactored1 r s))). aseq_terms t) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+  using
+    rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
+      [of r s c]
+  by (simp add: afactored1_strong_one_pass_rows_def)
 
 lemma rflts_singleton_member_rtail_nf_props:
   assumes q: "rtail_nf q"

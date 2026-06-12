@@ -87,6 +87,14 @@ branches.  So the simple flat tail-copy formula is valid only for explicitly
 flat payloads (`rnonseq` and `nonalt`), or it must be replaced by a recursive
 ledger.
 
+Checked bridge for the deduplicated actual-output route:
+`rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front` says
+that every atom inside every top-level sequence tail `t` from an actual
+dlform member `RSEQ h t` is still in
+`strong_derivative_front_terms r (s @ [c])`.  Use `rseq_tails` for actual
+dlform tails; `raw_shared_prune_suffix_key` only sees `RSEQ (RALTS rows) k`
+buckets and misses ordinary `RSEQ h t` members.
+
 High-value next moves:
 
 1. prove the actual-output gate directly from one-pass pruning;
