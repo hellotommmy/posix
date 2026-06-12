@@ -5058,3 +5058,27 @@ clean stale repository information.  Welcome - current accurate state:
   liveness: rows of nesting depth j die once the position passes
   level j (formalizable as: a front row of size >= m forces the last
   m/c input characters to follow a fixed pattern).
+
+## 2026-06-12 Fable: correction - assembly is NOT yet quartic; missing piece list
+
+- Correcting my earlier optimistic note: with current checked pieces
+  the gate assembles to degree FIVE+ (not four).  Audit:
+  U <= sum q^2 over actual rows needs G = rsizes(generated) at degree
+  <= 2 for cubic, <= 3 for quartic; checked G facts are per-row CUBIC
+  (rsizes_rpder_norm_list_cubic), giving G at degree >= 4 only via
+  F <= A (static cubic, tight).  Missing small pieces, in order:
+  (1) per-row norm ledger QUADRATIC:
+      rsizes (rpder_norm_list c q) <= length (<= rsize q, GRB:974
+      checked) * (max output member size + 1) - needs the classic
+      "pder member size <= rsize q + 1" fact (search/prove);
+  (2) dedup-G: set(generated) SUBSET apder_rows r (step closure,
+      likely provable from afactored1_apder_rows_subset internals) +
+      a duplication factor <= length bound, replacing raw G by A-side
+      quantities.
+  With (1): G <= F * (rsize q_max + 1) - still >= deg 5 overall via
+  static A.  The honest minimum assembled bound today remains
+  unbounded->finite-poly progress pending these two pieces; the
+  missing DEGREE remains the liveness slice (b34d991).
+- Next cycle: land (1) (member-size fact + per-row quadratic), then
+  the best honest poly assembly with explicit degree, named
+  actual_union_gate_polyN_unconditional.
