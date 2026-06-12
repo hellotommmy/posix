@@ -6915,3 +6915,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   83.488s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 10:05: CLAIM - normal nonalt one-step frontier shift retry
+
+- Synced through pushed commit 5e74834, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Retry the earlier blocked k-chain brick, now using the checked shape split:
+  if `rsimp4_SEQ_atom p k = k`, the difference is empty; otherwise the
+  sequenced atom has frontier cardinal at most one, and `card_mono` should
+  bound the difference.
+
+## 2026-06-13 Codex 10:10: CHECKED - normal nonalt one-step frontier shift
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_le_one`.
+- This closes the previously blocked k-chain brick: from the checked shape
+  split, the unchanged-continuation branch is empty, and the one-row branch
+  follows by `card_mono`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  87.673s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

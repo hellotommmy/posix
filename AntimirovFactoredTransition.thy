@@ -29432,6 +29432,30 @@ next
   then show ?thesis by (cases k) auto
 qed
 
+lemma card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_le_one:
+  assumes nf: "apder_nf p"
+    and nonalt: "nonalt p"
+  shows "card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k) \<le> 1"
+proof -
+  have shape: "rsimp4_SEQ_atom p k = k \<or>
+      card (rfrontier (rsimp4_SEQ_atom p k)) \<le> 1"
+    by (rule rsimp4_SEQ_atom_apder_nf_nonalt_eq_cont_or_card_rfrontier_le_one
+        [OF nf nonalt])
+  then show ?thesis
+  proof
+    assume eq: "rsimp4_SEQ_atom p k = k"
+    then show ?thesis by simp
+  next
+    assume small: "card (rfrontier (rsimp4_SEQ_atom p k)) \<le> 1"
+    have "card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k) \<le>
+        card (rfrontier (rsimp4_SEQ_atom p k))"
+      by (rule card_mono) simp_all
+    also have "... \<le> 1"
+      by (rule small)
+    finally show ?thesis .
+  qed
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
