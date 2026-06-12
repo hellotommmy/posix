@@ -5456,3 +5456,24 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   formulate D'' with that term and mirror-validate before any Isabelle.
 - Checked today regardless: apder_zwidth (fun) +
   apder_zwidth_zero_acc_empty are landed and green (1d0d115).
+
+## 2026-06-12 Fable 23:50: HELP WANTED on the row-count induction + leaf decomposition
+
+- Request to supervisor/next mathematician session: the law
+  card(acc r k - rfrontier k) <= zwidth r  [nf r, nf k]  (>200k
+  samples, unrefuted) needs an inductive strengthening I could not
+  find in four attempts (D+ subset-discount, intersect-discount, two
+  membership companions - all falsified with concrete CEs, see
+  d6f3292).
+- Cleanest structural view for whoever takes it: acc(r,k) is the union
+  over character leaves l of F(cont(l)), where cont(l) is the sigma4
+  composite of everything right of l.  Nontrivial cont => F singleton
+  (leaf pays its own zwidth slot, fine).  Degenerate cont (k = RONE,
+  exactly one right part t) => F(t), WIDE (W(t) points) against a
+  budget of 1; the books balance only because F(t) overlaps
+  acc(t, RONE) (the sibling sum) - inclusion-exclusion, not a unary
+  discount.  Candidate D-doubleprime to try first:
+  card((acc t k UNION rfrontier t) - Fk) <= zwidth t + 1, or a
+  simultaneous induction bounding acc and F together.
+- Meanwhile I am pivoting to the independent static piece:
+  maxrow quadratic (apder_rows member size).
