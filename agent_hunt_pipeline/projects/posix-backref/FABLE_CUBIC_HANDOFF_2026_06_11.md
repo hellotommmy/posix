@@ -125,6 +125,43 @@ Do not use this inequality backwards.  The missing theorem must bound the
 duplicated opened-list total, or prove a new invariant showing why duplicates
 are limited for the actual strong step.
 
+Follow-up checked at 14:33: the actual/pruned raw rows are no longer the
+blocker.  New pruning monotonicity lemmas show that `rflts`, `rdistinct`,
+`rprune_eq_against`, and `rsimpStrong_prune_rows_raw` do not increase the
+opened-list cost on tail-normal rows.  The useful endpoint is:
+
+```text
+rsizes (row_dlformss_list
+  (rpder_strong_rows_raw c (afactored1 r s)))
+  <= afactored1_strong_dlform_list_cost r s c
+```
+
+Use:
+
+```text
+sum_row_dlforms_list_size_rpder_strong_rows_raw_afactored1_le_list_cost
+rsizes_row_dlformss_list_rpder_strong_rows_raw_afactored1_le_list_cost
+```
+
+Plain meaning: the cost of opening the actual pruned strong rows is at most the
+cost of opening the generated strong rows before pruning.  Do not spend another
+session proving generic actual-row pruning wrappers.  The next mathematical
+target is now exactly:
+
+```text
+afactored1_strong_dlform_list_cost r s c <= cubic(rsize r)
+```
+
+That is a generated-front cost statement:
+
+```text
+sum over p in concat(map (rpder_norm_list c) (afactored1 r s))
+  of row_dlforms_list_size (rsimpStrong_raw p)
+```
+
+So the proof should charge generated normal derivative rows by shared
+front/position structure, not by properties of the later pruned output list.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix

@@ -16751,3 +16751,48 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   new actual-step invariant limiting those duplicates.
 - Verification: full `Posix` build passed at 2026-06-12 14:20 local time
   (`AntimirovFactoredTransition` 66.749s cumulative).
+
+## 2026-06-12 Supervisor: actual opened-list cost paid by generated list cost
+
+- New checked monotonicity bricks:
+
+  ```text
+  sum_row_dlforms_list_size_rflts
+  sum_row_dlforms_list_size_rdistinct_le
+  sum_list_map_rprune_eq_against_le
+  row_dlforms_list_size_rsimpStrong_prune_pair_raw_le
+  row_dlforms_list_size_rsimpStrong_prune_against_rows_raw_le
+  sum_row_dlforms_list_size_rsimpStrong_prune_rows_raw_le
+  sum_row_dlforms_list_size_rpder_strong_rows_raw_le_generated
+  ```
+
+- Main checked endpoints:
+
+  ```text
+  sum_row_dlforms_list_size_rpder_strong_rows_raw_afactored1_le_list_cost
+  rsizes_row_dlformss_list_rpder_strong_rows_raw_afactored1_le_list_cost
+  ```
+
+- Plain meaning: if rows are tail-normal, the shared-suffix pruning pass cannot
+  increase the total cost of opening rows into `row_dlforms_list`.  Therefore
+  the actual pruned strong rows are paid by the generated strong rows before
+  pruning:
+
+  ```text
+  rsizes (row_dlformss_list
+    (rpder_strong_rows_raw c (afactored1 r s)))
+    <= afactored1_strong_dlform_list_cost r s c
+  ```
+
+- Consequence: the former "actual opening-cost" gap is reduced to the named
+  generated-list cost:
+
+  ```text
+  afactored1_strong_dlform_list_cost r s c <= cubic(rsize r)
+  ```
+
+  This is now the clean next theorem.  Future work should charge generated
+  normal derivative rows by the shared front/position structure, not by adding
+  more wrappers around the later pruned output list.
+- Verification: full `Posix` build passed at 2026-06-12 14:33 local time
+  (`AntimirovFactoredTransition` 70.928s cumulative).

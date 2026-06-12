@@ -18055,6 +18055,250 @@ lemma row_dlformss_rsimpStrong_prune_rows_raw_subset_rtail_nf:
   by (rule row_dlformss_rsimpStrong_prune_rows_acc_raw_subset_rtail_nf
       [OF assms])
 
+lemma sum_row_dlforms_list_size_rflts:
+  "sum_list (map row_dlforms_list_size (rflts rs)) =
+    sum_list (map row_dlforms_list_size rs)"
+  by (induct rs rule: rflts.induct) simp_all
+
+lemma sum_row_dlforms_list_size_rdistinct_le:
+  "sum_list (map row_dlforms_list_size (rdistinct rs acc)) \<le>
+    sum_list (map row_dlforms_list_size rs)"
+proof (induct rs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  show ?case
+  proof (cases "r \<in> acc")
+    case True
+    then show ?thesis
+      using Cons.hyps[of acc] by simp
+  next
+    case False
+    then show ?thesis
+      using Cons.hyps[of "insert r acc"] by simp
+  qed
+qed
+
+lemma sum_list_map_rprune_eq_against_le:
+  "sum_list (map f (rprune_eq_against covered rs)) \<le>
+    sum_list (map (f :: rrexp \<Rightarrow> nat) rs)"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  then show ?case
+    by (cases "r \<in> set covered") simp_all
+qed
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_le_sum:
+  assumes k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+  shows "row_dlforms_list_size (rsimp7_SEQ_atom (rsimp_ALTs ps) k) \<le>
+    sum_list (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (Cons p qs)
+  note ps = Cons
+  show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using ps by simp
+  next
+    case (Cons q qs')
+    then show ?thesis
+      using ps k0 k1 by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+  qed
+qed
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_rprune_eq_against_le:
+  assumes k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+  shows "row_dlforms_list_size
+      (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against covered rs)) k) \<le>
+    row_dlforms_list_size (RSEQ (RALTS rs) k)"
+proof -
+  have "row_dlforms_list_size
+      (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against covered rs)) k) \<le>
+      sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k))
+          (rprune_eq_against covered rs))"
+    by (rule row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_le_sum
+        [OF k0 k1])
+  also have "... \<le>
+      sum_list (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) rs)"
+    by (rule sum_list_map_rprune_eq_against_le)
+  also have "... = row_dlforms_list_size (RSEQ (RALTS rs) k)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma row_dlforms_list_size_rsimpStrong_prune_pair_raw_le:
+  assumes nf: "rtail_nf later"
+  shows "row_dlforms_list_size
+      (rsimpStrong_prune_pair_raw earlier later) \<le>
+    row_dlforms_list_size later"
+proof -
+  consider
+    (shared) lrs rrs k where
+      "earlier = RSEQ (RALTS lrs) k"
+      "later = RSEQ (RALTS rrs) k"
+  | (other) "\<not> (\<exists>lrs rrs k.
+      earlier = RSEQ (RALTS lrs) k \<and>
+      later = RSEQ (RALTS rrs) k)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs k)
+    have k0: "k \<noteq> RZERO"
+      using nf shared by simp
+    have k1: "k \<noteq> RONE"
+      using nf shared by simp
+    have "row_dlforms_list_size
+        (rsimpStrong_prune_pair_raw earlier later) =
+        row_dlforms_list_size
+          (rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k)"
+      using shared by (simp add: rsimpStrong_prune_pair_raw_def)
+    also have "... \<le> row_dlforms_list_size (RSEQ (RALTS rrs) k)"
+      by (rule
+          row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_rprune_eq_against_le
+          [OF k0 k1])
+    also have "... = row_dlforms_list_size later"
+      using shared by simp
+    finally show ?thesis .
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis by simp
+  qed
+qed
+
+lemma row_dlforms_list_size_rsimpStrong_prune_against_rows_raw_le:
+  assumes nf: "rtail_nf r"
+  shows "row_dlforms_list_size
+      (rsimpStrong_prune_against_rows_raw seen r) \<le>
+    row_dlforms_list_size r"
+  using nf
+proof (induct seen arbitrary: r)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?p = "rsimpStrong_prune_pair_raw x r"
+  have first: "row_dlforms_list_size ?p \<le> row_dlforms_list_size r"
+    by (rule row_dlforms_list_size_rsimpStrong_prune_pair_raw_le
+        [OF Cons.prems])
+  have p_nf: "rtail_nf ?p"
+    by (rule rtail_nf_rsimpStrong_prune_pair_raw[OF Cons.prems])
+  have rest:
+      "row_dlforms_list_size (rsimpStrong_prune_against_rows_raw xs ?p) \<le>
+        row_dlforms_list_size ?p"
+    by (rule Cons.hyps[OF p_nf])
+  show ?case
+    using first rest by simp
+qed
+
+lemma sum_row_dlforms_list_size_rsimpStrong_prune_rows_acc_raw_le:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "sum_list
+      (map row_dlforms_list_size (rsimpStrong_prune_rows_acc_raw seen rs)) \<le>
+    sum_list (map row_dlforms_list_size rs)"
+  using nf
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "rsimpStrong_prune_against_rows_raw seen r"
+  have r_nf: "rtail_nf r"
+    using Cons.prems by simp
+  have head: "row_dlforms_list_size ?r' \<le> row_dlforms_list_size r"
+    by (rule row_dlforms_list_size_rsimpStrong_prune_against_rows_raw_le
+        [OF r_nf])
+  have rs_nf: "\<forall>r \<in> set rs. rtail_nf r"
+    using Cons.prems by simp
+  have tail:
+      "sum_list (map row_dlforms_list_size
+        (rsimpStrong_prune_rows_acc_raw (?r' # seen) rs)) \<le>
+       sum_list (map row_dlforms_list_size rs)"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma sum_row_dlforms_list_size_rsimpStrong_prune_rows_raw_le:
+  assumes nf: "\<forall>r \<in> set rs. rtail_nf r"
+  shows "sum_list
+      (map row_dlforms_list_size (rsimpStrong_prune_rows_raw rs)) \<le>
+    sum_list (map row_dlforms_list_size rs)"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule sum_row_dlforms_list_size_rsimpStrong_prune_rows_acc_raw_le
+      [OF nf])
+
+lemma sum_row_dlforms_list_size_rpder_strong_rows_raw_le_generated:
+  "sum_list
+      (map row_dlforms_list_size (rpder_strong_rows_raw c rs)) \<le>
+    sum_list
+      (map row_dlforms_list_size
+        (concat (map (rpder_strong_list_raw c) rs)))"
+proof -
+  let ?gen = "concat (map (rpder_strong_list_raw c) rs)"
+  let ?flat = "rflts ?gen"
+  let ?clean = "rsimpStrong_prune_rows_raw ?flat"
+  have flat_nf: "\<forall>p \<in> set ?flat. rtail_nf p"
+    by (rule rtail_nf_rflts_concat_map_rpder_strong_list_raw)
+  have "sum_list
+      (map row_dlforms_list_size (rpder_strong_rows_raw c rs)) =
+      sum_list
+        (map row_dlforms_list_size (rdistinct (rflts ?clean) {}))"
+    by (simp add: rpder_strong_rows_raw_def)
+  also have "... \<le> sum_list (map row_dlforms_list_size (rflts ?clean))"
+    by (rule sum_row_dlforms_list_size_rdistinct_le)
+  also have "... = sum_list (map row_dlforms_list_size ?clean)"
+    by (rule sum_row_dlforms_list_size_rflts)
+  also have "... \<le> sum_list (map row_dlforms_list_size ?flat)"
+    by (rule sum_row_dlforms_list_size_rsimpStrong_prune_rows_raw_le
+        [OF flat_nf])
+  also have "... = sum_list (map row_dlforms_list_size ?gen)"
+    by (rule sum_row_dlforms_list_size_rflts)
+  finally show ?thesis .
+qed
+
+lemma sum_row_dlforms_list_size_rpder_strong_rows_raw_afactored1_le_list_cost:
+  "sum_list
+      (map row_dlforms_list_size
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    afactored1_strong_dlform_list_cost r s c"
+proof -
+  have "sum_list
+      (map row_dlforms_list_size
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      sum_list
+        (map row_dlforms_list_size
+          (concat (map (rpder_strong_list_raw c) (afactored1 r s))))"
+    by (rule sum_row_dlforms_list_size_rpder_strong_rows_raw_le_generated)
+  also have "... = afactored1_strong_dlform_list_cost r s c"
+    by (simp add: afactored1_strong_dlform_list_cost_def
+        rpder_strong_list_raw_def map_concat_map o_def)
+  finally show ?thesis .
+qed
+
+lemma rsizes_row_dlformss_list_rpder_strong_rows_raw_afactored1_le_list_cost:
+  "rsizes
+      (row_dlformss_list
+        (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    afactored1_strong_dlform_list_cost r s c"
+  by (simp add: rsizes_row_dlformss_list_eq_sum_list_size
+      sum_row_dlforms_list_size_rpder_strong_rows_raw_afactored1_le_list_cost)
+
 lemma row_dlforms_rsimpWide_prune_pair_raw_subset_later_rtail_nf:
   assumes nf: "rtail_nf later"
   shows "row_dlforms (rsimpWide_prune_pair_raw earlier later) \<subseteq>
