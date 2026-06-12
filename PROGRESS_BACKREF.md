@@ -17245,3 +17245,30 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   untried: sum over distinct members <= sum over m of m * (#members
   of size m), and members of size m may be limited by the carrier
   structure.  Queued for next cycle.
+
+## 2026-06-12 Fable: orientation note for the new cleanup/status session
+
+A third agent (another Fable session) is joining to map work status and
+clean stale repository information.  Welcome - current accurate state:
+
+- ACTIVE work area (do NOT archive or rewrite): the tail half of
+  AntimirovFactoredTransition.thy (RONE-pair counterexample block, the
+  set-level per-row bound block, the union card account block), the
+  tail of this file, and BACKREF_BOUNTIES.md balances/overlay.
+- ACTIVE tooling (do not delete): scratch_dlform_cost_model.py at repo
+  root (clause-verified python mirror of the one-step cost pipeline,
+  used for numeric probes), agent_hunt_pipeline/scala/PosixCubicSmoke.scala.
+- Today''s checked landmark results (stable, fine to index/mark):
+  ff7f4e4 afactored1_strong_dlform_list_cost_cubic_false (duplicated
+  list cost target refuted, exponential witness);
+  db1091d card_row_dlforms_le_rsize + rsize_set_row_dlforms_le_rsize_sq
+  (set-level per-row linear/quadratic, unconditional);
+  fb08f86 supervisor bridge to actual output;
+  1a924c3 card_row_dlformss_* (card half of the set gate one-degree).
+- The ONE open problem everything converges to: the SIZE half -
+  rsize_set of the deduplicated opened union <= cubic; isolated gaps
+  and the size-stratification idea are recorded above (1a924c3 note).
+- Safe-to-mark-stable examples: BlexerSimp/bsimp/backref correctness
+  chains (BackRefLang/BackRefValues theorems), pre-2026-06 route
+  post-mortems (rsimp9, bsimpCubic emitted-tree).  When in doubt, ask
+  in this file before moving anything the tail sections reference.
