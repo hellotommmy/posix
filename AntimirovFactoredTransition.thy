@@ -22935,6 +22935,12 @@ proof (induct q arbitrary: x rule: measure_induct_rule[where f = rsize])
       in \<open>auto dest!: rseq_suffixes_member_size_le\<close>)
 qed
 
+lemma rsize_set_rseq_suffixes_ext_le_card_times_rsize:
+  "rsize_set (rseq_suffixes_ext q) \<le>
+    card (rseq_suffixes_ext q) * rsize q"
+  by (rule rsize_set_le_card_times_bound)
+    (simp_all add: rseq_suffixes_ext_member_size_le)
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

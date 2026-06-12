@@ -16581,3 +16581,23 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   card-route step: card (ext q) <= positions x chain length (the card
   induction where union adds positions exactly).  Then cross-row.
 - Build: `Finished Posix` 13:42:42.
+
+## 2026-06-12 Supervisor: ext card-to-size bridge checked
+
+- New checked lemma:
+
+  ```text
+  rsize_set_rseq_suffixes_ext_le_card_times_rsize
+  ```
+
+- Plain meaning: once `card (rseq_suffixes_ext q)` is bounded, the total size
+  of the carrier follows immediately by multiplying that cardinality by
+  `rsize q`.
+- Next exact target for the card route:
+
+  ```text
+  card (rseq_suffixes_ext q) <= useful row-position/chain bound
+  ```
+
+- Verification: full `Posix` build passed at 2026-06-12 13:47 local time
+  (`AntimirovFactoredTransition` 63.034s cumulative).

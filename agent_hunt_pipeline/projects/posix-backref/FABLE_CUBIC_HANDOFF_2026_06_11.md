@@ -72,6 +72,9 @@ means every member of the extended suffix carrier has size at most the original
 row.  Do not re-prove it; use it as the member-size half if pursuing the card
 route for `rseq_suffixes_ext`.
 
+Follow-up checked at 13:47: `rsize_set_rseq_suffixes_ext_le_card_times_rsize`
+is green.  The remaining card-route target is now only the cardinality bound.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix
