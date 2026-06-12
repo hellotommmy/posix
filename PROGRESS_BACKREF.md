@@ -6390,3 +6390,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - The useful lesson remains: the positive RALTS arbitrary-continuation carry
   repair likely needs a separately checked pure nat/card lemma (or a union
   form), not another broad `simp`/`linarith` pass inside the constructor lemma.
+
+## 2026-06-13 Codex 06:05: CLAIM - singleton plus-card arithmetic
+
+- Synced through pushed commit 66c3a48, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure card/nat lemma exposed by the failed
+  RALTS `Suc` attempt: if `card A <= N`, then adding a singleton-difference
+  term still fits under `Suc N`.  Prove it by an explicit membership split,
+  then reuse it later rather than asking a constructor proof to discover this
+  arithmetic inline.
+
+## 2026-06-13 Codex 06:10: CHECKED - singleton plus-card arithmetic
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_add_singleton_Diff_le_Suc`.
+- First build failed because `simp` did not lift `card A <= N` to
+  `card A <= Suc N` in the membership branch.  Changed the same lemma to a
+  calculation.  Second build exposed the non-membership branch needing the set
+  equality `{x} - B = {x}` stated explicitly; changed the same lemma again.
+- Build command then passed after worker check (AntimirovFactoredTransition
+  84.317s, full Posix elapsed 0:01:38).  This supplies the pure arithmetic
+  brick requested by the previous RALTS blocker; no new CE/blow-up family
+  discovered, `EVIL_PATTERNS.md` unchanged.
