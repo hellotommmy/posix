@@ -14994,3 +14994,60 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   with awidth <= rsize).
 - Next cycle: prove (a) first - it is fragment-independent and
   immediately replaces the cube in everyone's front-sum.
+
+## 2026-06-12 Supervisor: strong dlfrontier does not fit old deep frontier
+
+- New checked counterexample:
+
+  ```text
+  apder_strong_dlfrontier_not_deep_frontier_subset
+  ```
+
+- Plain meaning: the tempting transfer
+
+  ```text
+  apder_strong_dlfrontier r subset apder_deep_frontier r
+  ```
+
+  is false.  With `r = (a)(0*)`, the strong simplifier turns the generated
+  row `0*` into `1`; therefore `1` appears in `apder_strong_dlfrontier r`.
+  The old `apder_deep_frontier r` only records the unsimplified row `0*`,
+  so it does not contain `1`.
+- Guidance: do not try to finish the global strong-dlfrontier target by
+  simply reusing the existing deep-frontier cubic/cardinality lemmas.  A
+  successful route needs either a strengthened deep universe that also pays
+  for strong simplification outputs, or direct live-counter accounting for
+  `apder_strong_dlfrontier`.
+
+## 2026-06-12 Fable Correction: gap (a) as stated is unprovable
+
+- Checked the arithmetic before coding: my proposed quadratic per-row
+  bound `rsizes (rpder_norm_list c q) <= rsize q * (rsize q + 2)` is
+  wrong.  Reason in one line: a partial-derivative row carries its
+  whole suffix chain, and under nested stars those chains are
+  quadratic in rsize q per member (member of der of ((a*)*)* is
+  a*.(a*)*.((a*)*)*), so length(linear) x member(quadratic) = cubic.
+  The existing per-row cubic ledger is tight in shape; no per-row
+  refinement can beat it.
+- Standing consequence: the front-sum obligation cannot be met by any
+  per-row ledger at all.  It needs CROSS-ROW sharing: different front
+  rows generate overlapping derivative rows, and the universe is their
+  UNION while the front-sum is their SUM.  That is exactly the
+  same-front sharing the supervisor has been pointing at, now isolated
+  as the unique remaining mathematical step with all reductions
+  checked on both sides of it.
+- Two live concrete attacks on the union-vs-sum step:
+  1. fragment first: on rntimes_free, the deep-frontier linear card
+     (checked) bounds the number of DISTINCT dlforms across the whole
+     step by awidth+rsize+3; with member sizes <= square (checked),
+     rsize_set U <= linear x square = cubic - this assembles NOW from
+     checked pieces via U subset deep-frontier-of-next-front...
+     BUT the strong-vs-deep counterexample (supervisor, today) blocks
+     the naive transfer; the fragment version must add the strong
+     outputs to the carrier as in the rntimes_free deep argument.
+  2. full fragment: live-counter drain invariant (multi-step).
+- Next cycle: attempt attack 1 - fragment rsize_set U cubic by
+  extending the rntimes_free deep-frontier linear-card argument to
+  carry strong-simplified outputs (the delta-acc induction gains one
+  case for rsimpStrong_raw images; rsimpStrong only shrinks or
+  collapses rows, so the linear count should survive).
