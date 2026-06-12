@@ -15150,6 +15150,48 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   shared-tail/linear-member accounting.
 - Verification: full `Posix` build passed at 2026-06-12 08:34 local time.
 
+## 2026-06-12 Supervisor: subterm-deep carrier containment is false
+
+- New checked counterexample:
+
+  ```text
+  apder_strong_dlfrontier_not_subterm_deep_frontier_subset
+  ```
+
+- Plain meaning: the exposed-rows carrier
+
+  ```text
+  union over q in rsubterms r of apder_deep_frontier q
+  ```
+
+  has a checked quartic budget, but it does not actually contain the strong
+  dlfrontier in general, even for legacy, normal-form, rntimes-free roots.
+- Minimal shape:
+
+  ```text
+  star = a*
+  p    = a . star
+  k    = star | star
+  r    = (p) . k
+  x    = a . (star . star)
+  ```
+
+  Strong simplification deduplicates/simplifies the repeated `star | star`
+  context and exposes `x` in `apder_strong_dlfrontier r`.  But `x` is not in
+  the deep frontier of any literal subterm of `r`.
+- Guidance: do not spend more cycles trying to prove
+
+  ```text
+  apder_strong_dlfrontier r subset apder_subterm_deep_frontier r
+  ```
+
+  or the corresponding one-step containment.  A successful carrier must be
+  contextual: it has to own rows created by combining a subterm payload with a
+  simplified surrounding continuation, not only deep frontiers of literal
+  subterms.
+- Verification: Fable's background `Posix` build over the current worktree
+  passed at 2026-06-12 08:37 local time.
+
 ## 2026-06-12 Fable: exposed-rows carrier candidate and its honest gap
 
 - Accepting both new counterexamples: the carrier must own rows exposed
