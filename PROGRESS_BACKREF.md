@@ -16131,3 +16131,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   or replace the active product with a non-product ledger.  Avoid adding more
   wrappers around already checked `rntimes_free` facts unless they feed one of
   these three terms immediately.
+
+## 2026-06-12 Supervisor: non-sequence part of actual gate is cubic
+
+- New checked lemmas:
+
+  ```text
+  rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
+  rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic
+  ```
+
+- Plain meaning: in the three-part actual-output split, the first part is now
+  closed.  Any actual opened row that is not a top-level sequence is an atomic
+  front term, so its total size is paid by `strong_derivative_front_terms`.
+
+- Checked bound:
+
+  ```text
+  rsize_set (rnonseq_members actual_opened_rows)
+  <= 2 * (rsize r + 2)^3
+  ```
+
+- Remaining parts of the actual-output gate are:
+
+  ```text
+  front-count * sum(distinct tail weights)
+  active copying cost
+  ```
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 11:43 local time.

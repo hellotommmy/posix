@@ -20931,6 +20931,60 @@ lemma rseq_heads_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
       [of r s c]
   by (simp add: afactored1_strong_one_pass_rows_def)
 
+lemma rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front:
+  "rnonseq_members (row_dlformss
+      (rpder_strong_rows_raw c (afactored1 r s))) \<subseteq>
+    strong_derivative_front_terms r (s @ [c])"
+proof
+  let ?raw = "rpder_strong_rows_raw c (afactored1 r s)"
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  fix x
+  assume x: "x \<in> rnonseq_members (row_dlformss ?raw)"
+  have x_row: "x \<in> row_dlformss ?raw"
+    using x by (simp add: rnonseq_members_def)
+  have x_nonseq: "rnonseq x"
+    using x by (simp add: rnonseq_members_def)
+  obtain q where q: "q \<in> set ?raw" "x \<in> row_dlforms q"
+    using x_row by (auto simp add: row_dlformss_member_iff)
+  have q_nf: "rtail_nf q"
+    using rtail_nf_rpder_strong_rows_raw q(1) by blast
+  have x_nonalt: "nonalt x"
+    using row_dlforms_member_rtail_nf_props[OF q_nf q(2)] by simp
+  have singleton: "aseq_terms x = {x}"
+    using x_nonseq x_nonalt by (cases x) simp_all
+  have terms: "aseq_terms x \<subseteq> ?F"
+  proof -
+    have "aseq_terms x \<subseteq> aseq_termss ?raw"
+      by (rule row_dlformss_aseq_terms_subset[OF x_row])
+    also have "... \<subseteq> ?F"
+      using aseq_termss_afactored1_strong_one_pass_rows_subset_front
+        [of r s c]
+      by (simp add: afactored1_strong_one_pass_rows_def)
+    finally show ?thesis .
+  qed
+  show "x \<in> ?F"
+    using singleton terms by simp
+qed
+
+lemma rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set (rnonseq_members (row_dlformss
+      (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    2 * (rsize r + 2) ^ 3"
+proof -
+  let ?N = "rnonseq_members (row_dlformss
+    (rpder_strong_rows_raw c (afactored1 r s)))"
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  have sub: "?N \<subseteq> ?F"
+    by (rule
+        rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front)
+  have "rsize_set ?N \<le> rsize_set ?F"
+    by (rule rsize_set_mono[OF _ sub]) simp
+  also have "... \<le> 2 * (rsize r + 2) ^ 3"
+    by (rule rsize_set_strong_derivative_front_terms_cubic[OF legacy])
+  finally show ?thesis .
+qed
+
 lemma card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front:
   "card (rseq_tail_nonalt_head_rows
       (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
