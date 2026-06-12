@@ -5431,3 +5431,28 @@ MAPPED (mirror-verified, recorded, not yet Isabelle):
 Bounty notes: refutation claimed under overlay cat 3; set-level
 bridge under cat 2; admin to assess.  Tomorrow: row-count
 conservation proof, then static maxrow quadratic, then O1-O3.
+
+## 2026-06-12 Fable 23:35: both discount strengthenings FALSE - the precise CE
+
+- After 113,751 samples a single CE kills BOTH passthrough-discount
+  variants (subset version and intersect version):
+
+  ```text
+  r = SEQ a (ALTS [a, STAR (STAR a)]),  k = RONE,  zwidth = 3
+  acc = {a, STAR(STAR a), RONE, RSEQ (STAR a) (STAR(STAR a))}
+  card(acc - {RONE}) = 3 = zwidth (EQUALITY, no discount slack)
+  ```
+
+- Anatomy: at k = RONE the character leaf of r1 pays the WHOLE
+  frontier of r2 (2 points) out of a budget of 1; the balance is saved
+  only by the overlap F(r2) AND acc(r2, RONE) sharing the point a.
+  So the true conservation is an inclusion-exclusion over
+  F(continuation) and the sibling accumulator - not a unary discount.
+- Status: the plain law D (card(acc r k - Fk) <= zwidth r) remains
+  unrefuted (>200k cumulative samples); three strengthenings falsified
+  (D+, intersect, both helper membership forms).  The correct
+  inductive strengthening must track the overlap budget
+  card(F(sigma4-of-suffix) INTERSECT acc(suffix, k)).  Tomorrow:
+  formulate D'' with that term and mirror-validate before any Isabelle.
+- Checked today regardless: apder_zwidth (fun) +
+  apder_zwidth_zero_acc_empty are landed and green (1d0d115).
