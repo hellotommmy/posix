@@ -16514,3 +16514,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   pruned strong rows.
 - Verification: full `Posix` build passed at 2026-06-12 13:24 local time
   (`AntimirovFactoredTransition` 60.862s cumulative).
+
+## 2026-06-12 Supervisor: weighted tails connected to actual gate
+
+- New checked lemmas:
+
+  ```text
+  card_rseq_tails_row_dlformss_le_suffixes_ext_weighted
+  sum_rseq_tails_row_dlformss_le_suffixes_ext_weighted
+  sum_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext_weighted
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_active_alt_nodesI
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_generated_ledgerI
+  ```
+
+- Plain meaning: the old split had a coarse term
+  `card(front) * sum_t (H + size(t))` over actual sequence tails.  Since each
+  tail has size at least 1, that tail sum is now paid by
+  `(H + 1) * weighted_raw_rows`, where
+
+  ```text
+  weighted_raw_rows =
+    sum_list (map (%q. row_dlforms_list_size q * rsize q)
+      (rpder_strong_rows_raw c (afactored1 r s)))
+  ```
+
+- This connects the new extended-suffix accounting to the actual output gate.
+  The next theorem should bound `weighted_raw_rows` for the actual pruned
+  strong rows, or bound the active alt-node term sharply enough that the
+  generated ledger is not overcharged.
+- Verification: full `Posix` build passed at 2026-06-12 13:32 local time
+  (`AntimirovFactoredTransition` 66.676s cumulative).

@@ -43,6 +43,19 @@ Next target: prove the displayed weighted sum is cubic for the actual pruned
 strong rows.  Do not add more generic suffix-carrier wrappers unless they
 discharge that exact weighted-sum target.
 
+Follow-up checked at 13:32: the weighted-row reduction is now connected to the
+actual output gate.  The old coarse gate term
+`card(front) * sum_t (H + size(t))` is replaced by
+`card(front) * ((H + 1) * weighted_raw_rows)`, where `weighted_raw_rows` is the
+displayed sum over `rpder_strong_rows_raw c (afactored1 r s)`.  Use:
+
+```text
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_active_alt_nodesI
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_generated_ledgerI
+```
+
+This still does not finish cubic; it exposes the remaining exact target.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix
