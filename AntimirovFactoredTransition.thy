@@ -406,6 +406,31 @@ lemma rsize_set_mono:
   using assms unfolding rsize_set_def
   by (rule sum_mono2) auto
 
+lemma rsize_set_image_le:
+  assumes finite: "finite A"
+    and size: "\<And>x. x \<in> A \<Longrightarrow> rsize (f x) \<le> rsize x"
+  shows "rsize_set (f ` A) \<le> rsize_set A"
+  using finite
+proof (induct A rule: finite_induct)
+  case empty
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (insert x A)
+  have fin_img: "finite (f ` A)"
+    using insert.hyps by simp
+  have "rsize_set (f ` insert x A) =
+      rsize_set (insert (f x) (f ` A))"
+    by simp
+  also have "... \<le> rsize_set {f x} + rsize_set (f ` A)"
+    by (rule rsize_set_Un_le) (use fin_img in auto)
+  also have "... \<le> rsize x + rsize_set A"
+    using insert.hyps insert.prems size[of x] by (simp add: rsize_set_def)
+  also have "... = rsize_set (insert x A)"
+    using insert.hyps by (simp add: rsize_set_def)
+  finally show ?case .
+qed
+
 lemma rsizes_distinct_subset_rsize_set:
   assumes distinct: "distinct rs"
     and rows: "set rs \<subseteq> U"
@@ -21894,6 +21919,53 @@ proof -
     using eq by simp
 qed
 
+lemma rsize_set_rseq_tails_le:
+  assumes fin: "finite U"
+  shows "rsize_set (rseq_tails U) \<le> rsize_set U"
+proof -
+  let ?seqs = "{x \<in> U. \<exists>h t. x = RSEQ h t}"
+  let ?tail_of = "\<lambda>x. case x of RSEQ h t \<Rightarrow> t | _ \<Rightarrow> x"
+  have eq: "rseq_tails U = ?tail_of ` ?seqs"
+    by (auto simp add: rseq_tails_def image_iff) force
+  have seq_fin: "finite ?seqs"
+    using fin by simp
+  have image_le: "rsize_set (?tail_of ` ?seqs) \<le> rsize_set ?seqs"
+  proof (rule rsize_set_image_le[OF seq_fin])
+    fix x
+    assume "x \<in> ?seqs"
+    then show "rsize (?tail_of x) \<le> rsize x"
+      by (cases x) simp_all
+  qed
+  have seq_le: "rsize_set ?seqs \<le> rsize_set U"
+    by (rule rsize_set_mono[OF fin]) auto
+  show ?thesis
+    using eq image_le seq_le by linarith
+qed
+
+lemma rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual:
+  "rsize_set (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule rsize_set_rseq_tails_le) simp
+
+lemma rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost:
+  "rsize_set (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    afactored1_strong_dlform_list_cost r s c"
+proof -
+  have "rsize_set (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+    by (rule
+        rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual)
+  also have "... \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule
+        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_list_cost)
+  finally show ?thesis .
+qed
+
 lemma card_rseq_tails_row_dlforms_le:
   assumes nf: "rtail_nf q"
   shows "card (rseq_tails (row_dlforms q)) \<le> Suc (rsize q)"
@@ -22246,6 +22318,68 @@ proof -
     using budget by blast
   also have "... \<le> 2 * (2 * rsize r + 3) ^ 3"
     using aw by (intro mult_le_mono2 power_mono) simp_all
+  finally show ?thesis .
+qed
+
+text \<open>
+  Sequence-suffix chains.  The suffixes of one row form a chain of at
+  most \<open>Suc (rsize q)\<close> members, each of size at most \<open>rsize q\<close>, so one
+  chain has quadratic total tree size.  Linearly many root positions
+  times one quadratic chain each is the intended cubic shape for the
+  distinct-tail account.
+\<close>
+
+fun rseq_suffixes :: "rrexp \<Rightarrow> rrexp set" where
+  "rseq_suffixes (RSEQ h t) = insert (RSEQ h t) (rseq_suffixes t)"
+| "rseq_suffixes r = {r}"
+
+lemma finite_rseq_suffixes [simp]:
+  "finite (rseq_suffixes q)"
+  by (induct q) simp_all
+
+lemma rseq_suffixes_member_size_le:
+  assumes "x \<in> rseq_suffixes q"
+  shows "rsize x \<le> rsize q"
+  using assms
+proof (induct q arbitrary: x)
+  case (RSEQ h t)
+  then consider (self) "x = RSEQ h t" | (tail) "x \<in> rseq_suffixes t"
+    by auto
+  then show ?case
+  proof cases
+    case self
+    then show ?thesis by simp
+  next
+    case tail
+    have "rsize x \<le> rsize t"
+      by (rule RSEQ.hyps(2)[OF tail])
+    then show ?thesis by simp
+  qed
+qed simp_all
+
+lemma card_rseq_suffixes_le:
+  "card (rseq_suffixes q) \<le> Suc (rsize q)"
+proof (induct q)
+  case (RSEQ h t)
+  have "card (rseq_suffixes (RSEQ h t)) \<le>
+      Suc (card (rseq_suffixes t))"
+    by (simp add: card_insert_if)
+  also have "... \<le> Suc (Suc (rsize t))"
+    using RSEQ.hyps(2) by simp
+  also have "... \<le> Suc (rsize (RSEQ h t))"
+    using size_geq1[of h] by simp
+  finally show ?case .
+qed simp_all
+
+lemma rsize_set_rseq_suffixes_quadratic:
+  "rsize_set (rseq_suffixes q) \<le> Suc (rsize q) * rsize q"
+proof -
+  have "rsize_set (rseq_suffixes q) \<le>
+      card (rseq_suffixes q) * rsize q"
+    by (rule rsize_set_le_card_times_bound)
+      (simp_all add: rseq_suffixes_member_size_le)
+  also have "... \<le> Suc (rsize q) * rsize q"
+    by (rule mult_le_mono1[OF card_rseq_suffixes_le])
   finally show ?thesis .
 qed
 

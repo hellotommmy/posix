@@ -16271,3 +16271,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 12:04 local time.
+
+## 2026-06-12 Fable: suffix-chain toolkit checked
+
+- New checked pieces: rseq_suffixes (the seq-suffix chain of one row),
+  finiteness, member size <= rsize q, chain length <= Suc (rsize q),
+  and rsize_set (rseq_suffixes q) <= Suc(rsize q) * rsize q.
+- Plain meaning: one suffix chain costs at most quadratic total tree
+  size.  The intended cubic account for distinct tails is
+  (linearly many root positions) x (one quadratic chain each).
+  The open step is showing the actual tails sit inside such chains
+  per position - the nesting/ownership lemma against the sharper
+  actual gate, as the supervisor requested.
+- Build: `Finished Posix` 12:12:35.
