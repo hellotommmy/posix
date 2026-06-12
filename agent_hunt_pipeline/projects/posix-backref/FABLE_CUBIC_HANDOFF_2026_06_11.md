@@ -101,6 +101,30 @@ Do not try to close that remaining target by claiming actual rows satisfy
 actual row shaped like `RSEQ (RALTS ps) k`, whose opening cost must be paid by a
 shared-position/opened-branch account, not by plain row size.
 
+Follow-up checked at 14:20: the remaining opening-cost target has an exact
+list-level form:
+
+```text
+rsizes (row_dlformss_list actual_raw_rows)
+  = sum_list (map row_dlforms_list_size actual_raw_rows)
+```
+
+Use `rsizes_row_dlformss_list_eq_sum_list_size`.  In plain language,
+`row_dlformss_list rows` is the opened row list with duplicates still present.
+By contrast, `row_dlform_canonical_rows rows` runs `rdistinct` over that list,
+so it removes duplicates.  The checked cubic theorem for canonical rows pays
+the duplicate-free list, not the remaining opening-cost list.  The bridge
+`rsizes_row_dlform_canonical_rows_le_sum_list_size` is one-way only:
+
+```text
+rsizes (row_dlform_canonical_rows rows)
+  <= sum_list (map row_dlforms_list_size rows)
+```
+
+Do not use this inequality backwards.  The missing theorem must bound the
+duplicated opened-list total, or prove a new invariant showing why duplicates
+are limited for the actual strong step.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix

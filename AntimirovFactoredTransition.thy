@@ -4954,6 +4954,12 @@ definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
 definition row_dlformss_list :: "rrexp list \<Rightarrow> rrexp list" where
   "row_dlformss_list rs = concat (map row_dlforms_list rs)"
 
+lemma rsizes_row_dlformss_list_eq_sum_list_size:
+  "rsizes (row_dlformss_list rs) =
+    sum_list (map row_dlforms_list_size rs)"
+  by (induct rs)
+    (simp_all add: row_dlformss_list_def row_dlforms_list_size_def)
+
 lemma set_row_dlformss_list [simp]:
   "set (row_dlformss_list rs) = row_dlformss rs"
   by (auto simp add: row_dlformss_list_def row_dlformss_def)
@@ -5800,6 +5806,13 @@ lemma rsizes_row_dlform_canonical_rows_eq_rsize_set:
     rsize_set (row_dlformss rs)"
   by (rule rsizes_distinct_eq_rsize_set)
     (simp_all add: distinct_row_dlform_canonical_rows)
+
+lemma rsizes_row_dlform_canonical_rows_le_sum_list_size:
+  "rsizes (row_dlform_canonical_rows rs) \<le>
+    sum_list (map row_dlforms_list_size rs)"
+  unfolding row_dlform_canonical_rows_def
+  using rdistinct_smaller[of "row_dlformss_list rs" "{}"]
+  by (simp add: rsizes_row_dlformss_list_eq_sum_list_size)
 
 lemma aseq_termss_row_dlform_canonical_rows_subsetI:
   assumes terms:

@@ -16722,3 +16722,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - All current tools (carrier, ledger, buckets, ext carriers, weighted
   splits) compose into the cubic gate the moment this single lemma
   lands.
+
+## 2026-06-12 Supervisor: opening cost is the opened-list size
+
+- New checked lemmas:
+
+  ```text
+  rsizes_row_dlformss_list_eq_sum_list_size
+  rsizes_row_dlform_canonical_rows_le_sum_list_size
+  ```
+
+- Plain meaning:
+
+  ```text
+  rsizes (row_dlformss_list rows)
+    = sum_list (map row_dlforms_list_size rows)
+
+  rsizes (row_dlform_canonical_rows rows)
+    <= sum_list (map row_dlforms_list_size rows)
+  ```
+
+  `row_dlformss_list rows` is the opened list with duplicates still present.
+  `row_dlform_canonical_rows rows` is `rdistinct` applied to that opened list,
+  so it is the duplicate-free projection.
+- Consequence: the existing checked canonical-row cubic facts do not by
+  themselves pay the remaining opening-cost target.  The remaining theorem must
+  bound the duplicated opened-list size for the actual strong step, or prove a
+  new actual-step invariant limiting those duplicates.
+- Verification: full `Posix` build passed at 2026-06-12 14:20 local time
+  (`AntimirovFactoredTransition` 66.749s cumulative).
