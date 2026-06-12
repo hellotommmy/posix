@@ -27676,6 +27676,15 @@ lemma ronepair_tower_not_RONE [simp]:
   "ronepair_tower n a b k l \<noteq> RONE"
   by (cases n) simp_all
 
+lemma ronepair_tower_nonalt [simp]:
+  "nonalt (ronepair_tower n a b k l)"
+  by (cases n) simp_all
+
+lemma rflts_ronepair_tower [simp]:
+  "rflts (ronepair_tower n a b k l # rs) =
+    ronepair_tower n a b k l # rflts rs"
+  by (cases n) simp_all
+
 lemma rsize_ronepair_tower:
   "rsize (ronepair_tower n a b k l) = 10 * n + 3"
   by (induct n) (simp_all add: ronepair_payload_def algebra_simps)
@@ -27816,6 +27825,80 @@ lemma afactored1_strong_dlform_list_cost_ronepair:
       rsimp4_SEQ_atom_ronepair_tower_RONE
       rsimpStrong_raw_ronepair_tower)
 
+lemma rsimpStrong_prune_rows_raw_single_ronepair [simp]:
+  "rsimpStrong_prune_rows_raw [ronepair_tower j a b k l] =
+   [ronepair_tower j a b k l]"
+  by (simp add: rsimpStrong_prune_rows_raw_def)
+
+lemma rpder_strong_rows_raw_ronepair:
+  "rpder_strong_rows_raw c
+     (afactored1 (RSEQ (RCHAR c) (ronepair_tower j a b k l)) []) =
+   [ronepair_tower j a b k l]"
+  unfolding afactored1_def rpder_strong_rows_raw_def
+    rpder_strong_list_raw_def
+  by (simp add: rpder_norm_list_def
+      rsimp4_SEQ_atom_ronepair_tower_RONE
+      rsimpStrong_raw_ronepair_tower)
+
+lemma rtail_nf_ronepair_tower:
+  "rtail_nf (ronepair_tower j a b k l)"
+  using rtail_nf_rsimpStrong_raw[of "ronepair_tower j a b k l"]
+  by (simp add: rsimpStrong_raw_ronepair_tower)
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_ronepair_quadratic:
+  "rsize_set
+     (row_dlformss
+       (rpder_strong_rows_raw c
+         (afactored1 (RSEQ (RCHAR c) (ronepair_tower j a b k l)) [])))
+   \<le> Suc (10 * j + 3) * (10 * j + 3)"
+proof -
+  have "rsize_set
+      (row_dlformss
+        (rpder_strong_rows_raw c
+          (afactored1 (RSEQ (RCHAR c) (ronepair_tower j a b k l)) []))) =
+      rsize_set (row_dlforms (ronepair_tower j a b k l))"
+    by (simp add: rpder_strong_rows_raw_ronepair row_dlformss_def)
+  also have "... \<le>
+      Suc (rsize (ronepair_tower j a b k l)) *
+        rsize (ronepair_tower j a b k l)"
+    by (rule rsize_set_row_dlforms_rtail_nf_quadratic)
+      (rule rtail_nf_ronepair_tower)
+  also have "... = Suc (10 * j + 3) * (10 * j + 3)"
+    by (simp add: rsize_ronepair_tower)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_ronepair_cubic:
+  "rsize_set
+     (row_dlformss
+       (rpder_strong_rows_raw c
+         (afactored1 (RSEQ (RCHAR c) (ronepair_tower j a b k l)) [])))
+   \<le> 2 * (rsize (RSEQ (RCHAR c) (ronepair_tower j a b k l)) + 3) ^ 3"
+proof -
+  have "rsize_set
+      (row_dlformss
+        (rpder_strong_rows_raw c
+          (afactored1 (RSEQ (RCHAR c) (ronepair_tower j a b k l)) [])))
+      \<le> Suc (10 * j + 3) * (10 * j + 3)"
+    by (rule rsize_set_row_dlformss_rpder_strong_rows_raw_ronepair_quadratic)
+  also have "... \<le>
+      2 * (rsize (RSEQ (RCHAR c) (ronepair_tower j a b k l)) + 3) ^ 3"
+  proof -
+    let ?n = "8 + 10 * j"
+    have "Suc (10 * j + 3) * (10 * j + 3) \<le> ?n * ?n"
+      by (intro mult_mono) simp_all
+    also have "... \<le> ?n * (?n * ?n)"
+      by (rule mult_left_mono) simp_all
+    also have "... = ?n ^ 3"
+      by (simp add: power3_eq_cube)
+    also have "... \<le> 2 * ?n ^ 3"
+      by simp
+    finally show ?thesis
+      by (simp add: rsize_ronepair_tower algebra_simps)
+  qed
+  finally show ?thesis .
+qed
+
 lemma row_dlforms_list_size_ge_length:
   "length (row_dlforms_list q) \<le> row_dlforms_list_size q"
   using length_le_rsizes[of "row_dlforms_list q"]
@@ -27845,5 +27928,327 @@ proof -
   show ?thesis
     using ge cost sz by simp
 qed
+
+text \<open>
+  Set-level per-row bound: the DEDUPLICATED opened-row set of any row
+  is at most linear in the row size, hence its total size is at most
+  quadratic.  This replaces the refuted duplicated list cost: all
+  fully-collapsing RONE paths reach the SAME tail row set, so the
+  union merges what the list multiplies.  Core device: the difference
+  bound card (rows (rsimp4_SEQ_atom p k) - rows k) <= rsize p, via a
+  set-difference triangle along the reassociation chain.
+\<close>
+
+lemma card_diff_triangle:
+  assumes "finite A" "finite B"
+  shows "card (A - C) \<le> card (A - B) + card (B - C)"
+proof -
+  have "A - C \<subseteq> (A - B) \<union> (B - C)"
+    by auto
+  then have "card (A - C) \<le> card ((A - B) \<union> (B - C))"
+    using assms by (intro card_mono) auto
+  also have "... \<le> card (A - B) + card (B - C)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma rsimp7_eq_rsimp4_or_small:
+  "rsimp7_SEQ_atom p k = rsimp4_SEQ_atom p k \<or>
+    card (row_dlforms (rsimp7_SEQ_atom p k)) \<le> 1"
+proof (cases p)
+  case (RSTAR r)
+  then show ?thesis
+    by (cases k)
+      (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+qed (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma rsimp4_SEQ_atom_nonseq_shape:
+  assumes "\<And>r1 r2. p \<noteq> RSEQ r1 r2" "p \<noteq> RZERO" "p \<noteq> RONE"
+  shows "rsimp4_SEQ_atom p k = RZERO \<or>
+    rsimp4_SEQ_atom p k = p \<or>
+    rsimp4_SEQ_atom p k = RSEQ p k"
+  using assms by (cases p; cases k) simp_all
+
+lemma row_dlforms_RSEQ_nonalt_nonseq_singleton:
+  assumes "\<And>rs. p \<noteq> RALTS rs" "\<And>r1 r2. p \<noteq> RSEQ r1 r2"
+  shows "card (row_dlforms (RSEQ p k)) \<le> 1"
+  using assms by (cases p) auto
+
+lemma row_dlforms_card_aux:
+  "card (row_dlforms p) \<le> rsize p \<and>
+    (\<forall>k. card (row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k)
+      \<le> rsize p)"
+proof (induct p rule: measure_induct_rule[where f = rsize])
+  case (less p)
+  have IH_B: "\<And>q. rsize q < rsize p \<Longrightarrow>
+      card (row_dlforms q) \<le> rsize q"
+    using less by blast
+  have IH_A: "\<And>q k. rsize q < rsize p \<Longrightarrow>
+      card (row_dlforms (rsimp4_SEQ_atom q k) - row_dlforms k)
+        \<le> rsize q"
+    using less by blast
+  have branchA: "\<And>q k. rsize q < rsize p \<Longrightarrow>
+      card (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k)
+        \<le> rsize q"
+  proof -
+    fix q k
+    assume q: "rsize q < rsize p"
+    show "card (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k)
+        \<le> rsize q"
+      using rsimp7_eq_rsimp4_or_small[of q k]
+    proof
+      assume "rsimp7_SEQ_atom q k = rsimp4_SEQ_atom q k"
+      then show ?thesis
+        using IH_A[OF q] by simp
+    next
+      assume small: "card (row_dlforms (rsimp7_SEQ_atom q k)) \<le> 1"
+      have "card (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k)
+          \<le> card (row_dlforms (rsimp7_SEQ_atom q k))"
+        by (intro card_mono) auto
+      then show ?thesis
+        using small size_geq1[of q] by simp
+    qed
+  qed
+  have keyed_diff: "\<And>ps k. p = RSEQ (RALTS ps) k \<Longrightarrow>
+      card (row_dlforms p - row_dlforms k) \<le> rsizes ps"
+    and keyed_card: "\<And>ps k. p = RSEQ (RALTS ps) k \<Longrightarrow>
+      card (row_dlforms p) \<le> Suc (rsizes ps) + card (row_dlforms k)"
+  proof -
+    fix ps k
+    assume pk: "p = RSEQ (RALTS ps) k"
+    have keyed: "row_dlforms p =
+        (\<Union>q \<in> set ps. row_dlforms (rsimp7_SEQ_atom q k))"
+      using pk by simp
+    have each: "\<And>q. q \<in> set ps \<Longrightarrow>
+        card (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k)
+          \<le> rsize q"
+    proof -
+      fix q
+      assume q: "q \<in> set ps"
+      have "rsize q \<le> rsizes ps"
+        by (rule elem_size_le_rsizes[OF q])
+      then have "rsize q < rsize p"
+        using pk by simp
+      then show "card (row_dlforms (rsimp7_SEQ_atom q k)
+          - row_dlforms k) \<le> rsize q"
+        by (rule branchA)
+    qed
+    have diff_un: "row_dlforms p - row_dlforms k =
+        (\<Union>q \<in> set ps.
+          (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k))"
+      unfolding keyed by auto
+    have "card (row_dlforms p - row_dlforms k) \<le>
+        (\<Sum>q \<in> set ps.
+          card (row_dlforms (rsimp7_SEQ_atom q k) - row_dlforms k))"
+      unfolding diff_un by (rule card_UN_le) simp
+    also have "... \<le> (\<Sum>q \<in> set ps. rsize q)"
+      by (rule sum_mono) (rule each)
+    also have "... \<le> rsizes ps"
+      by (rule sum_set_le_sum_list_nat)
+    finally show "card (row_dlforms p - row_dlforms k) \<le> rsizes ps" .
+    moreover have "card (row_dlforms p) \<le>
+        card (row_dlforms p - row_dlforms k) + card (row_dlforms k)"
+    proof -
+      have "row_dlforms p \<subseteq>
+          (row_dlforms p - row_dlforms k) \<union> row_dlforms k"
+        by auto
+      then have "card (row_dlforms p) \<le>
+          card ((row_dlforms p - row_dlforms k) \<union> row_dlforms k)"
+        by (intro card_mono) auto
+      then show ?thesis
+        by (meson card_Un_le le_trans)
+    qed
+    ultimately show "card (row_dlforms p) \<le>
+        Suc (rsizes ps) + card (row_dlforms k)"
+      by simp
+  qed
+  have B: "card (row_dlforms p) \<le> rsize p"
+  proof (cases p)
+    case RZERO
+    then show ?thesis by simp
+  next
+    case (RALTS rs)
+    have "card (row_dlforms (RALTS rs)) =
+        card (\<Union>q \<in> set rs. row_dlforms q)"
+      by simp
+    also have "... \<le> (\<Sum>q \<in> set rs. card (row_dlforms q))"
+      by (rule card_UN_le) simp
+    also have "... \<le> (\<Sum>q \<in> set rs. rsize q)"
+    proof (rule sum_mono)
+      fix q
+      assume q: "q \<in> set rs"
+      have "rsize q \<le> rsizes rs"
+        by (rule elem_size_le_rsizes[OF q])
+      then have "rsize q < rsize p"
+        using RALTS by simp
+      then show "card (row_dlforms q) \<le> rsize q"
+        by (rule IH_B)
+    qed
+    also have "... \<le> rsizes rs"
+      by (rule sum_set_le_sum_list_nat)
+    finally have "card (row_dlforms (RALTS rs)) \<le> rsizes rs" .
+    then show ?thesis
+      using RALTS by simp
+  next
+    case (RSEQ h k)
+    show ?thesis
+    proof (cases "\<exists>ps. h = RALTS ps")
+      case True
+      then obtain ps where ps: "h = RALTS ps" by blast
+      have tailk: "card (row_dlforms k) \<le> rsize k"
+        using RSEQ by (auto intro!: IH_B)
+      from RSEQ ps have pk: "p = RSEQ (RALTS ps) k"
+        by simp
+      have "card (row_dlforms p) \<le>
+          Suc (rsizes ps) + card (row_dlforms k)"
+        by (rule keyed_card[OF pk])
+      also have "... \<le> Suc (rsizes ps) + rsize k"
+        using tailk by simp
+      also have "... \<le> rsize p"
+        using RSEQ ps by simp
+      finally show ?thesis .
+    next
+      case False
+      then have "card (row_dlforms p) \<le> 1"
+        using RSEQ
+        by (cases h) simp_all
+      then show ?thesis
+        using size_geq1[of p] by simp
+    qed
+  qed (simp_all)
+  have A: "\<And>k. card (row_dlforms (rsimp4_SEQ_atom p k)
+      - row_dlforms k) \<le> rsize p"
+  proof -
+    fix k
+    show "card (row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k)
+        \<le> rsize p"
+    proof (cases "\<exists>r1 r2. p = RSEQ r1 r2")
+      case True
+      then obtain r1 r2 where pseq: "p = RSEQ r1 r2" by blast
+      let ?t = "rsimp4_SEQ_atom r2 k"
+      have chain: "rsimp4_SEQ_atom p k = rsimp4_SEQ_atom r1 ?t"
+        using pseq by simp
+      have "card (row_dlforms (rsimp4_SEQ_atom r1 ?t)
+          - row_dlforms k) \<le>
+          card (row_dlforms (rsimp4_SEQ_atom r1 ?t)
+            - row_dlforms ?t)
+          + card (row_dlforms ?t - row_dlforms k)"
+        by (rule card_diff_triangle) simp_all
+      also have "... \<le> rsize r1 + rsize r2"
+        using pseq by (auto intro!: add_mono IH_A)
+      also have "... \<le> rsize p"
+        using pseq by simp
+      finally show ?thesis
+        using chain by simp
+    next
+      case False
+      note nonseq = False
+      show ?thesis
+      proof (cases "p = RZERO \<or> p = RONE")
+        case True
+        then show ?thesis
+          by (auto intro: le_trans[OF card_mono[OF _ Diff_subset]])
+      next
+        case False
+        have shape: "rsimp4_SEQ_atom p k = RZERO \<or>
+            rsimp4_SEQ_atom p k = p \<or>
+            rsimp4_SEQ_atom p k = RSEQ p k"
+          using nonseq False
+          by (intro rsimp4_SEQ_atom_nonseq_shape) auto
+        from shape show ?thesis
+        proof (elim disjE)
+          assume "rsimp4_SEQ_atom p k = RZERO"
+          then show ?thesis by simp
+        next
+          assume eq: "rsimp4_SEQ_atom p k = p"
+          have "card (row_dlforms p - row_dlforms k)
+              \<le> card (row_dlforms p)"
+            by (intro card_mono) auto
+          then show ?thesis
+            using eq B by simp
+        next
+          assume eq: "rsimp4_SEQ_atom p k = RSEQ p k"
+          show ?thesis
+          proof (cases "\<exists>ps. p = RALTS ps")
+            case True
+            then obtain ps where ps: "p = RALTS ps" by blast
+            have each: "\<And>q. q \<in> set ps \<Longrightarrow>
+                card (row_dlforms (rsimp7_SEQ_atom q k)
+                  - row_dlforms k) \<le> rsize q"
+            proof -
+              fix q
+              assume q: "q \<in> set ps"
+              have "rsize q \<le> rsizes ps"
+                by (rule elem_size_le_rsizes[OF q])
+              then have "rsize q < rsize p"
+                using ps by simp
+              then show "card (row_dlforms (rsimp7_SEQ_atom q k)
+                  - row_dlforms k) \<le> rsize q"
+                by (rule branchA)
+            qed
+            have keyed: "row_dlforms (RSEQ p k) =
+                (\<Union>q \<in> set ps. row_dlforms (rsimp7_SEQ_atom q k))"
+              using ps by simp
+            have diff_un: "row_dlforms (RSEQ p k) - row_dlforms k =
+                (\<Union>q \<in> set ps.
+                  (row_dlforms (rsimp7_SEQ_atom q k)
+                    - row_dlforms k))"
+              unfolding keyed by auto
+            have "card (row_dlforms (RSEQ p k) - row_dlforms k) \<le>
+                (\<Sum>q \<in> set ps.
+                  card (row_dlforms (rsimp7_SEQ_atom q k)
+                    - row_dlforms k))"
+              unfolding diff_un by (rule card_UN_le) simp
+            also have "... \<le> (\<Sum>q \<in> set ps. rsize q)"
+              by (rule sum_mono) (rule each)
+            also have "... \<le> rsizes ps"
+              by (rule sum_set_le_sum_list_nat)
+            also have "... \<le> rsize p"
+              using ps by simp
+            finally show ?thesis
+              using eq by simp
+          next
+            case False
+            have "card (row_dlforms (RSEQ p k)) \<le> 1"
+              using False nonseq
+              by (intro row_dlforms_RSEQ_nonalt_nonseq_singleton)
+                auto
+            then have "card (row_dlforms (RSEQ p k)
+                - row_dlforms k) \<le> 1"
+              by (meson card_mono Diff_subset finite_row_dlforms
+                  le_trans)
+            then show ?thesis
+              using eq size_geq1[of p] by simp
+          qed
+        qed
+      qed
+    qed
+  qed
+  show ?case
+    using A B by blast
+qed
+
+lemma card_row_dlforms_le_rsize:
+  "card (row_dlforms q) \<le> rsize q"
+  using row_dlforms_card_aux by blast
+
+lemma card_row_dlforms_rsimp4_diff_le:
+  "card (row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k)
+    \<le> rsize p"
+  using row_dlforms_card_aux by blast
+
+lemma rsize_set_row_dlforms_le_rsize_sq:
+  "rsize_set (row_dlforms q) \<le> rsize q * rsize q"
+proof -
+  have "rsize_set (row_dlforms q) \<le>
+      card (row_dlforms q) * rsize q"
+    by (rule rsize_set_le_card_times_bound)
+      (simp_all add: row_dlforms_member_size_le_rsize)
+  also have "... \<le> rsize q * rsize q"
+    using card_row_dlforms_le_rsize
+    by (simp add: mult_le_mono1)
+  finally show ?thesis .
+qed
+
 
 end

@@ -17099,3 +17099,37 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   equivalent finite universe).  After any future `Background shell failed`,
   inspect the first `*** Failed to finish proof` block and extract one small
   lemma before launching another full background build.
+
+## 2026-06-12 Fable: CHECKED - set-level per-row bound is unconditionally LINEAR/quadratic
+
+- Full Posix build GREEN at 2026-06-12 19:17 local
+  (AntimirovFactoredTransition 82.594s, exit 0).  New checked chain:
+
+  ```text
+  card_diff_triangle, rsimp7_eq_rsimp4_or_small,
+  rsimp4_SEQ_atom_nonseq_shape,
+  row_dlforms_RSEQ_nonalt_nonseq_singleton
+  row_dlforms_card_aux  (joint induction; core:
+    card (row_dlforms (rsimp4_SEQ_atom p k) - row_dlforms k) <= rsize p)
+  card_row_dlforms_le_rsize          (card (row_dlforms q) <= rsize q)
+  card_row_dlforms_rsimp4_diff_le
+  rsize_set_row_dlforms_le_rsize_sq  (rsize_set <= rsize q * rsize q)
+  ```
+
+- Plain meaning: the DEDUPLICATED opened-row set of ANY row q has at
+  most rsize q members (linear, no side conditions - the RONE-pair
+  blowup is invisible at set level because all fully-collapsing RONE
+  paths land in the SAME tail row set and the union merges them; the
+  proof is a set-difference triangle along the reassociation chain,
+  no extra predicate needed).  Member sizes are <= rsize q (existing),
+  so the per-row set ledger is at most quadratic.
+- Composition state: with the f1a3ca6 set gate this reduces the
+  remaining work to summing per-row set ledgers over the actual rows
+  with sharing (rows share tails, so the union over a row LIST should
+  beat the naive sum) - the right next object is
+  card (row_dlformss rows) and rsize_set (row_dlformss rows) for the
+  one-pass actual row list, paid by the same difference-triangle trick
+  against the shared suffix structure.
+- Bounty note: claiming overlay category 2 (major checked bridge:
+  replaces the refuted list account with a provable set account at the
+  per-row layer).  Admin to assess.
