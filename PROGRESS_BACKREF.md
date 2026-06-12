@@ -5526,3 +5526,17 @@ conservation proof, then static maxrow quadratic, then O1-O3.
     family, needs a saturation predicate.
   Either one landing turns the whole checked chain cubic on the nf
   fragment.
+
+## 2026-06-12 Fable 23:45: standalone problem file for the D law
+
+- Wrote MATHPROBLEM_ROWCOUNT.md at repo root: complete self-contained
+  statement of the row-count law with definitions, validation status,
+  the four falsified strengthenings with CEs, the hard-case anatomy
+  (sibling overlap / inclusion-exclusion), payoff, and suggested
+  attacks.  Ready for a sub-bounty or a fresh single-focus session.
+- Cycle note: two more strengthening ideas tested and discarded by
+  hand tonight (E0 merged-frontier form: direct CE; E+1: fails ALTS
+  additivity).  Per the falsification list this problem now has SIX
+  dead strengthenings documented - the next attempt should start from
+  the list-version/duplicate-accounting or k-chain-fragment routes in
+  the problem file, not from unary discounts.
