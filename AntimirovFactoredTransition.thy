@@ -28959,6 +28959,41 @@ proof (induct r)
     by simp
 qed (auto intro: le_SucI add_le_mono)
 
+lemma card_diff_le_Suc_card_diff_if_small_middle:
+  assumes finA: "finite A"
+    and finB: "finite B"
+    and small: "card (B - C) \<le> 1"
+  shows "card (A - C) \<le> Suc (card (A - B))"
+proof -
+  have "card (A - C) \<le> card (A - B) + card (B - C)"
+    by (rule card_diff_triangle[OF finA finB])
+  then show ?thesis
+    using small by linarith
+qed
+
+lemma card_apder_term_frontier_acc_RSTAR_diff_le_Suc:
+  assumes body: "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RSTAR r) k) -
+      rfrontier (rsimp4_SEQ_atom (RSTAR r) k)) \<le> apder_zw2 r"
+    and shift: "card (rfrontier (rsimp4_SEQ_atom (RSTAR r) k) -
+      rfrontier k) \<le> 1"
+  shows "card (apder_term_frontier_acc (RSTAR r) k - rfrontier k) \<le>
+    apder_zw2 (RSTAR r)"
+proof -
+  let ?A = "apder_term_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+  let ?F = "rfrontier (rsimp4_SEQ_atom (RSTAR r) k)"
+  have finA: "finite ?A"
+    by simp
+  have finF: "finite ?F"
+    by simp
+  have "card (?A - rfrontier k) \<le> Suc (card (?A - ?F))"
+    by (rule card_diff_le_Suc_card_diff_if_small_middle[OF finA finF shift])
+  also have "... \<le> Suc (apder_zw2 r)"
+    using body by simp
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"

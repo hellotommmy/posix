@@ -5730,3 +5730,28 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   `apder_zwidth_le_apder_zw2` and `apder_zw2_rntimes_free_le_rsize`
   (8a7a370), with the NTIMES caveat.  This is a doc/supervisor cleanup
   only; no theory file remains modified after the blocked ALTS attempt.
+
+## 2026-06-13 Codex 01:50: CLAIM - STAR one-point frontier-shift brick
+
+- Synced through pushed commit f02f59f, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Switching away from the blocked ALTS aggregation route.  Search found
+  existing `card_diff_triangle`; narrow checked brick now is the STAR/k-chain
+  support fact: if replacing `rfrontier (rsimp4_SEQ_atom (RSTAR r) k)` by
+  `rfrontier k` costs at most one point, then the STAR branch is paid by the
+  new `Suc` slot in `apder_zw2`.
+
+## 2026-06-13 Codex 01:55: CHECKED - STAR one-point frontier-shift brick
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_diff_le_Suc_card_diff_if_small_middle` and
+  `card_apder_term_frontier_acc_RSTAR_diff_le_Suc`.
+- The first build failed only because the STAR lemma did not pass the
+  `shift` assumption explicitly to the generic set lemma; changed that one
+  named lemma to expose `finA`, `finF`, and apply
+  `card_diff_le_Suc_card_diff_if_small_middle[OF finA finF shift]`.
+- Rerun build passed after worker check (AntimirovFactoredTransition
+  85.465s, full Posix elapsed 0:01:34).  This does not prove D-zw2, but it
+  isolates the STAR/k-chain accounting point: one changed frontier point is
+  exactly paid by the `Suc` in `apder_zw2 (RSTAR r)`.
