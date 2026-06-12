@@ -15857,3 +15857,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   theorem); supervisor continues bucket/keyed engineering.  Target
   after 1: the first complete checked cubic gate on the NTIMES-free
   fragment - a bounty-grade milestone and the template for 2.
+
+## 2026-06-12 Fable: distinct-tail count tied to the generated ledger
+
+- New checked lemmas: card_rseq_tails_le_card (tail projection never
+  increases cardinality), card_rseq_tails_row_dlforms_le (one row has
+  at most Suc(rsize) distinct tails), and
+  card_rseq_tails_afactored1_strong_dlform_universe_le_generated (the
+  step universe has at most length gen + rsizes gen distinct tails).
+- Plain meaning: the distinct-tail COUNT now rides the same generated
+  ledger as everything else; the only number not yet on the ledger is
+  the distinct-tail TOTAL SIZE, which the supervisor pair-budget /
+  fragment-linear work addresses.
+- Build: `Finished Posix` 10:55:52.
