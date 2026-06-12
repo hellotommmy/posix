@@ -16658,3 +16658,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   position-indexing function (root position of each opened branch,
   stable under rpder_norm/rsimpStrong) and proves the injection on the
   fragment first.
+
+## 2026-06-12 Supervisor: tail count split from tail size
+
+- New checked lemmas:
+
+  ```text
+  card_rseq_tails_row_dlformss_le_open_sum
+  sum_rseq_tails_row_dlformss_le_open_sum_plus_suffixes_ext_weighted
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_active_alt_nodesI
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_generated_ledgerI
+  ```
+
+- Plain meaning: the sequence-tail sum is no longer paid only by the coarse
+  weighted suffix ledger.  It is split into two accounts:
+
+  ```text
+  sum_t (Suc H + rsize t)
+    <= Suc H * sum(opening costs of actual raw rows)
+       + weighted_raw_rows
+  ```
+
+  The count of distinct tails is paid by opening cost; the syntax size of those
+  tails is paid by the weighted suffix ledger.
+- This is a strictly better interface than the older
+  `(Suc H + 1) * weighted_raw_rows` gate.  It keeps the final cubic route focused
+  on the one remaining real invariant:
+
+  ```text
+  sum_list (map row_dlforms_list_size actual_raw_rows) <= cubic(rsize r)
+  ```
+
+- Verification: full `Posix` build passed at 2026-06-12 14:03 local time
+  (`AntimirovFactoredTransition` 64.892s cumulative).

@@ -80,6 +80,20 @@ is green.  The single-row ext carrier is now accounted for.  The remaining
 work is cross-row: bound the actual `weighted_raw_rows`/opening-cost ledger for
 `rpder_strong_rows_raw c (afactored1 r s)`.
 
+Follow-up checked at 14:03: tail count and tail size are now separated.  Use:
+
+```text
+card_rseq_tails_row_dlformss_le_open_sum
+sum_rseq_tails_row_dlformss_le_open_sum_plus_suffixes_ext_weighted
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_generated_ledgerI
+```
+
+Plain meaning: the number of distinct sequence tails is paid by
+`sum_list (map row_dlforms_list_size actual_raw_rows)`, while their total syntax
+size is paid by `weighted_raw_rows`.  Prefer this newer split over the older
+`(Suc H + 1) * weighted_raw_rows` gate.  The remaining target is still the
+actual opening-cost total for `rpder_strong_rows_raw c (afactored1 r s)`.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix

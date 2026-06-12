@@ -22785,6 +22785,34 @@ lemma rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suff
         (rpder_strong_rows_raw c (afactored1 r s)))"
   by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted)
 
+lemma card_rseq_tails_row_dlformss_le_open_sum:
+  "card (rseq_tails (row_dlformss rows)) \<le>
+    sum_list (map row_dlforms_list_size rows)"
+proof -
+  have "card (rseq_tails (row_dlformss rows)) \<le>
+      card (\<Union>q \<in> set rows. rseq_suffixes_ext q)"
+    by (rule card_mono)
+      (simp_all add: rseq_tails_row_dlformss_subset_rseq_suffixes_ext)
+  also have "... \<le>
+      (\<Sum>q \<in> set rows. card (rseq_suffixes_ext q))"
+    by (rule card_UN_le) simp
+  also have "... \<le> (\<Sum>q \<in> set rows. row_dlforms_list_size q)"
+    by (rule sum_mono)
+      (rule card_rseq_suffixes_ext_le_row_dlforms_list_size)
+  also have "... \<le> sum_list (map row_dlforms_list_size rows)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma card_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_open_sum:
+  "card
+      (rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    sum_list
+      (map row_dlforms_list_size
+        (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule card_rseq_tails_row_dlformss_le_open_sum)
+
 lemma card_rseq_tails_row_dlformss_le_suffixes_ext_weighted:
   "card (rseq_tails (row_dlformss rows)) \<le>
     sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows)"
@@ -22797,6 +22825,44 @@ proof -
     by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted)
   finally show ?thesis .
 qed
+
+lemma sum_rseq_tails_row_dlformss_le_open_sum_plus_suffixes_ext_weighted:
+  "(\<Sum>t \<in> rseq_tails (row_dlformss rows). Suc H + rsize t) \<le>
+    Suc H * sum_list (map row_dlforms_list_size rows) +
+      sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows)"
+proof -
+  let ?T = "rseq_tails (row_dlformss rows)"
+  let ?O = "sum_list (map row_dlforms_list_size rows)"
+  let ?W = "sum_list (map (\<lambda>q. row_dlforms_list_size q * rsize q) rows)"
+  have card_bound: "card ?T \<le> ?O"
+    by (rule card_rseq_tails_row_dlformss_le_open_sum)
+  have size_bound: "rsize_set ?T \<le> ?W"
+    by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext_weighted)
+  have "(\<Sum>t \<in> ?T. Suc H + rsize t) =
+      (\<Sum>t \<in> ?T. Suc H) + (\<Sum>t \<in> ?T. rsize t)"
+    by (rule sum.distrib)
+  also have "... =
+      card ?T * Suc H + rsize_set ?T"
+    by (simp add: rsize_set_def)
+  also have "... \<le> ?O * Suc H + ?W"
+    by (intro add_mono mult_right_mono card_bound size_bound) simp
+  also have "... = Suc H * ?O + ?W"
+    by (simp add: mult.commute)
+  finally show ?thesis .
+qed
+
+lemma sum_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_open_sum_plus_suffixes_ext_weighted:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      Suc H + rsize t) \<le>
+    Suc H *
+      sum_list
+        (map row_dlforms_list_size
+          (rpder_strong_rows_raw c (afactored1 r s))) +
+    sum_list
+      (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+        (rpder_strong_rows_raw c (afactored1 r s)))"
+  by (rule sum_rseq_tails_row_dlformss_le_open_sum_plus_suffixes_ext_weighted)
 
 lemma sum_rseq_tails_row_dlformss_le_suffixes_ext_weighted:
   "(\<Sum>t \<in> rseq_tails (row_dlformss rows). Suc H + rsize t) \<le>
@@ -22919,6 +22985,108 @@ proof -
       ?N + ?F * ((Suc H + 1) * ?W) + (?L * ?A) * (Suc H + ?L)"
     by (rule
         rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_active_alt_nodesI
+        [OF head_bound])
+  have alt: "?A \<le> ?G"
+    by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
+  have "?L * ?A \<le> ?L * ?G"
+    by (rule mult_left_mono[OF alt]) simp
+  then have "(?L * ?A) * (Suc H + ?L) \<le>
+      (?L * ?G) * (Suc H + ?L)"
+    by (rule mult_right_mono) simp
+  with base show ?thesis
+    by linarith
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_active_alt_nodesI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (Suc H *
+        sum_list
+          (map row_dlforms_list_size
+            (rpder_strong_rows_raw c (afactored1 r s))) +
+       sum_list
+          (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+            (rpder_strong_rows_raw c (afactored1 r s)))) +
+    (afactored1_strong_dlform_list_cost r s c *
+      card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?O = "sum_list
+    (map row_dlforms_list_size
+      (rpder_strong_rows_raw c (afactored1 r s)))"
+  let ?W = "sum_list
+    (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+      (rpder_strong_rows_raw c (afactored1 r s)))"
+  let ?Tail = "(\<Sum>t \<in> ?T. Suc H + rsize t)"
+  have base: "rsize_set ?U \<le>
+      ?N + ?F * ?Tail + (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_alt_nodesI
+        [OF head_bound])
+  have tail: "?Tail \<le> Suc H * ?O + ?W"
+    by (rule
+        sum_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_open_sum_plus_suffixes_ext_weighted)
+  have "?F * ?Tail \<le> ?F * (Suc H * ?O + ?W)"
+    by (rule mult_left_mono[OF tail]) simp
+  with base show ?thesis
+    by linarith
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_generated_ledgerI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (Suc H *
+        sum_list
+          (map row_dlforms_list_size
+            (rpder_strong_rows_raw c (afactored1 r s))) +
+       sum_list
+          (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+            (rpder_strong_rows_raw c (afactored1 r s)))) +
+    (afactored1_strong_dlform_list_cost r s c *
+      (length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+       rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?G = "length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  let ?O = "sum_list
+    (map row_dlforms_list_size
+      (rpder_strong_rows_raw c (afactored1 r s)))"
+  let ?W = "sum_list
+    (map (\<lambda>q. row_dlforms_list_size q * rsize q)
+      (rpder_strong_rows_raw c (afactored1 r s)))"
+  have base: "rsize_set ?U \<le>
+      ?N + ?F * (Suc H * ?O + ?W) + (?L * ?A) * (Suc H + ?L)"
+    by (rule
+        rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_active_alt_nodesI
         [OF head_bound])
   have alt: "?A \<le> ?G"
     by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
