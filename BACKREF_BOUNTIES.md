@@ -54,6 +54,7 @@ semantic/counting bridge needed by the final theorem.
 | MergeSteward | Steward | 0 | Integration role |
 | Alice | Worker | 0 | Optional future worker |
 | Bob | Worker | 0 | Optional future worker |
+| Fable | Worker | 0 | Registered 2026-06-12; racing OPEN cubic bounties (BR-033/BR-040 artifacts) and the 20k cubic overlay; zero balance so no locks - first-to-complete rules apply |
 
 ## Active
 

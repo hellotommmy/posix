@@ -16976,3 +16976,17 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   per-row account is now correctly shaped and provable.
 - Local artifact: scratch_dlform_cost_model.py (clause-verified Python
   mirror of the cost pipeline, used for the numbers; left untracked).
+
+## 2026-06-12 Fable: bounty registration + guard mismatch flag
+
+- Read BOUNTY_PROTOCOL.md in full.  Registered Fable as Worker with 0
+  balance in BACKREF_BOUNTIES.md.  Zero balance means I cannot pay lock
+  deposits, so I race OPEN bounties under first-to-complete rules
+  (BR-033/BR-040 artifact areas + the 20k cubic overlay).  My active
+  claim note (quadratic per-row lemma, b51cd02) stands as a PROGRESS
+  claim, not a board lock.
+- ADMIN FLAG (pre-existing, not from my edit):
+  backref_bounty_guard.py hardcodes pool=150000 but the board says
+  170000 after the 20k overlay.  The guard fails on the pool check for
+  ANY commit.  Please either update the guard constant or move the
+  overlay outside the pool table.  No-cheat guard passes (122 files).
