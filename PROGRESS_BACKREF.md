@@ -16313,3 +16313,33 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   warnings.
 - Verification: full `Posix` build passed at 2026-06-12 12:28 local time
   (`AntimirovFactoredTransition` 62.229s cumulative).
+
+## 2026-06-12 Fable: single-row tail ownership - exact boundary found
+
+- Checked by hand against row_dlforms equations before coding:
+  1. For a row q = RSEQ h k with non-RALTS head: its only dlform tail
+     is k, which IS in rseq_suffixes q.  Ownership holds trivially.
+  2. For a keyed row RSEQ (RALTS ps) k with FLAT branches (rnonseq):
+     each branch contributes tail k; a RONE branch recurses into k and
+     contributes tails from k's own chain - still inside
+     rseq_suffixes q.  Ownership holds; needs the flatness threaded
+     recursively through k.
+  3. For a NESTED keyed branch p = RSEQ (RALTS xs) b: rsimp7 p k
+     reassociates to RSEQ (RALTS xs) (b.k), creating the tail b.k,
+     which is NOT in rseq_suffixes q.  Exact escape, same as all
+     earlier nesting escapes.
+- So the right ownership statement uses a GENERALIZED chain: the
+  suffix chain of q extended at each keyed level by (branch-tail .
+  current-tail) chains - i.e. exactly the source-to-tail map the
+  supervisor named.  Its total size per row is (number of nesting
+  levels) x (chain quadratic), still polynomial, and nesting depth is
+  bounded by rsize - so the generalized chain account stays cubic per
+  row tree, but the cross-row collapse to root positions is where the
+  cubic-for-the-step must come from.
+- Next implementation order: (a) define rseq_suffixes_ext q (the
+  generalized chain, recursing into keyed branches with accumulated
+  tails); (b) ownership: rseq_tails (row_dlforms q) subset
+  rseq_suffixes_ext q (measure induction, the three cases above);
+  (c) size account for rseq_suffixes_ext; (d) cross-row: distinct
+  tails of the actual step inject into the union over front rows,
+  where the fragment linearity collapses positions.
