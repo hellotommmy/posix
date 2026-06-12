@@ -5,6 +5,32 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
+
+The actual-output sequence tails are now bridged to the extended suffix
+carrier.  Read:
+
+```text
+2026-06-12 Supervisor: actual tails bridged to extended suffix carrier
+```
+
+New checked facts:
+
+```text
+rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_suffixes_ext
+rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext
+```
+
+Use this as the next size target:
+
+```text
+rsize_set(actual sequence tails)
+  <= rsize_set(UN q in actual raw rows. rseq_suffixes_ext q)
+```
+
+Do not reopen the `row_dlformss` ownership proof.  The useful work is now a
+non-product size account for this union of extended suffix carriers.
+
 ## Urgent Supervisor Update, 2026-06-12 12:37 GMT+8
 
 The extended suffix carrier has now been checked.  Do not spend another cycle

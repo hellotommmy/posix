@@ -16368,3 +16368,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   branches" by the same shared tail at every nesting level.
 - Verification: full `Posix` build passed at 2026-06-12 12:36 local time
   (`AntimirovFactoredTransition` 64.651s cumulative).
+
+## 2026-06-12 Supervisor: actual tails bridged to extended suffix carrier
+
+- New checked bridge lemmas:
+
+  ```text
+  rseq_tails_row_dlformss_subset_rseq_suffixes_ext
+  rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_suffixes_ext
+  rsize_set_rseq_tails_row_dlformss_le_suffixes_ext
+  rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext
+  ```
+
+- Plain meaning: for a list of rows, every sequence tail produced after
+  `row_dlformss` is contained in the union of `rseq_suffixes_ext` over the
+  original rows.  For the actual one-step strong derivative output, this gives
+  a direct size target:
+
+  ```text
+  rsize_set(actual sequence tails)
+    <= rsize_set(UN q in actual raw rows. rseq_suffixes_ext q)
+  ```
+
+- Why this matters: the next theorem no longer needs to reason directly about
+  the syntax of `row_dlformss`; it can focus on bounding this extended suffix
+  carrier.  The hard part remains avoiding repeated charges for the same
+  shared tail across opened branches.
+- Verification: full `Posix` build passed at 2026-06-12 12:43 local time
+  (`AntimirovFactoredTransition` 62.532s cumulative).

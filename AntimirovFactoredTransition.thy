@@ -22474,6 +22474,46 @@ lemma rseq_tails_row_dlforms_subset_rseq_suffixes_ext:
   by (induct q rule: rseq_suffixes_ext.induct)
     (auto simp add: rseq_tails_def split: rrexp.splits)
 
+lemma rseq_tails_row_dlformss_subset_rseq_suffixes_ext:
+  "rseq_tails (row_dlformss rows) \<subseteq>
+    (\<Union>q \<in> set rows. rseq_suffixes_ext q)"
+proof
+  fix x
+  assume x: "x \<in> rseq_tails (row_dlformss rows)"
+  obtain h where row: "RSEQ h x \<in> row_dlformss rows"
+    using x by (auto simp add: rseq_tails_def)
+  obtain q where q: "q \<in> set rows" "RSEQ h x \<in> row_dlforms q"
+    using row by (auto simp add: row_dlformss_member_iff)
+  have "x \<in> rseq_tails (row_dlforms q)"
+    using q(2) by (auto simp add: rseq_tails_def)
+  then have "x \<in> rseq_suffixes_ext q"
+    using rseq_tails_row_dlforms_subset_rseq_suffixes_ext by blast
+  then show "x \<in> (\<Union>q \<in> set rows. rseq_suffixes_ext q)"
+    using q(1) by blast
+qed
+
+lemma rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_suffixes_ext:
+  "rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<subseteq>
+    (\<Union>q \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+      rseq_suffixes_ext q)"
+  by (rule rseq_tails_row_dlformss_subset_rseq_suffixes_ext)
+
+lemma rsize_set_rseq_tails_row_dlformss_le_suffixes_ext:
+  "rsize_set (rseq_tails (row_dlformss rows)) \<le>
+    rsize_set (\<Union>q \<in> set rows. rseq_suffixes_ext q)"
+  by (rule rsize_set_mono)
+    (simp_all add: rseq_tails_row_dlformss_subset_rseq_suffixes_ext)
+
+lemma rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_suffixes_ext:
+  "rsize_set
+      (rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsize_set
+      (\<Union>q \<in> set (rpder_strong_rows_raw c (afactored1 r s)).
+        rseq_suffixes_ext q)"
+  by (rule rsize_set_rseq_tails_row_dlformss_le_suffixes_ext)
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
