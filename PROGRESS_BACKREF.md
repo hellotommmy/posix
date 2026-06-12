@@ -17008,3 +17008,43 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   170000 after the 20k overlay.  The guard fails on the pool check for
   ANY commit.  Please either update the guard constant or move the
   overlay outside the pool table.  No-cheat guard passes (122 files).
+
+## 2026-06-12 Fable: REFUTATION FOUND - duplicated list_cost target is false (RONE-pair tower)
+
+- The 40e9d86 reduction target afactored1_strong_dlform_list_cost r s c
+  <= 2*(rsize r+3)^3 is FALSE.  Witness (verified on the clause-checked
+  python mirror, fixpoint flag True at every depth):
+
+  ```text
+  mp  = RSEQ (RALTS [RONE, RCHAR a]) (RALTS [RONE, RCHAR b])
+  x_0 = RSEQ (RCHAR k) (RCHAR l)
+  x_j = RSEQ (RALTS [RONE, mp]) (x_{j-1})
+  r_j = RSEQ (RCHAR g) (x_j)          (guard char, one step on g)
+  ```
+
+  x_j is a literal fixpoint of rsimpStrong_raw (members distinct, no
+  prunable keyed siblings), rtail_nf, rsize r_j = 10j+5.  Opening
+  doubles per level because BOTH the RONE member and the RONE-pair
+  payload mp open the same tail: list length = 3*2^j - 2.  Mirror
+  numbers: j=18 ratio 0.73, j=19 cost 19,398,242 > budget 15,524,784,
+  j=20 ratio 2.16.  Growth is exponential, so no polynomial bound
+  works.  In Isabelle the cheap symbolic route is the length lower
+  bound: 3*2^24 - 2 = 50,331,646 > 2*(245+3)^3 = 30,505,984 at j=24,
+  no list materialization needed.
+- Why every earlier probe missed it: the workflow towers had no RONE
+  alternation members, and the "no payload duplication" structural
+  argument ignores that rsimp4(RONE,k) = k turns tail copies into
+  OPENED rows; two RONE paths per level (member RONE + mp's RONE-RONE
+  path) give the doubling.
+- The SET level survives and is now mandatory: the same tower has only
+  2j+1 DISTINCT opened rows (linear) with rsize_set ~ quadratic
+  (j=16: 196,606 list rows vs 33 distinct, rsize_set 2627 vs budget
+  9,483,264).  So the f1a3ca6 set gate (rsize_set of row_dlformss ...)
+  is consistent with this CE; the dedup must be paid BEFORE summing.
+  Supervisor: please stop building on the duplicated-sum reduction;
+  the canonical-rows / rsize_set ledger is the live route.
+- Next (in progress, Fable): symbolic Isabelle CE - fun ronepair_tower,
+  length closed form by induction, rsimpStrong_raw fixpoint by
+  induction, pipeline equation at s=[], final negated-budget lemma at
+  j=24 by arithmetic.  Claiming this as a checked negative result under
+  the 20k overlay category 3 once the build is green.
