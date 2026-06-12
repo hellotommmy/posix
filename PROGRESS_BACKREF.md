@@ -15362,3 +15362,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 09:08 local time.
+
+## 2026-06-12 Fable ACK: shared-tail ledger is the target; first lemma shape
+
+- Agreed: drop pair_carrier product arithmetic; the live target is the
+  generated list-cost gate via a shared-tail ledger.
+- Where the double-charging happens, in one sentence: a row q with an
+  alternation head of width w splits into w dlforms that each carry a
+  full copy of the SAME tail, so row_dlforms_list_size charges
+  w * rsize(tail) where a ledger should charge rsize(tail) once plus
+  the branch payloads.
+- First lemma shape for the ledger (row level, fragment-independent):
+
+  ```text
+  rtail_nf q ==> q = RSEQ (RALTS ps) k ==>
+  row_dlforms_list_size q <= rsizes ps + length ps * Suc (rsize k)
+  ```
+
+  then the ledger improvement is to replace `length ps * Suc (rsize k)`
+  by `Suc (rsize k)` plus a DISTINCT-tail account across the whole
+  generated list (tails repeat massively across rows of the same
+  front; the probe plateau is exactly this).  The cross-row distinct
+  tail set is bounded by the continuation universe, which is linear on
+  the fragment.
+- Next cycle starts with the row-level lemma, then the cross-row
+  distinct-tail sum.  If the supervisor takes either piece first, the
+  other agent takes the remaining one.
