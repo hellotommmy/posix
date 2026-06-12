@@ -34,31 +34,37 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-12 19:57, commit b735872)
+## 2. Where the Proof Stands (as of 2026-06-12 20:44, commit cfe3636)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
   rows of the actual output are at most the generated total size.
-- **SIZE half: OPEN.** This is the only remaining hard problem. Equivalent
-  open formulations on record:
-  1. bound the generated total
-     `rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))` cubically
-     AND member sizes linearly; or
-  2. a size-stratified count — sum over distinct members ≤ sum over m of
-     `m * #(members of size m)`, with big members provably few; or
-  3. discharge an existing weighted split / active-suffix interface (see
-     next bullet).
-- **Newest checked interface** (supervisor, 19:57):
-  `rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_sum_plus_active_pair_budget_key_boundI`
-  — the front/tail split pays the active-suffix part by
-  `raw_shared_prune_active_suffix_pair_budget (...) * M`, assuming only that
-  active suffix KEYS have weight `Suc H + rsize t <= M`.
-- **Current narrow instruction for the proof worker:** use that pair-budget
-  gate (NOT the `*_list_cost_alt_nodes` / generated-ledger wrappers). Next
-  useful obligation: a small key-size/bucket-size premise for
-  `raw_shared_prune_active_suffix_keys (afactored1_strong_dlform_universe r s c)`
-  strong enough to instantiate `M`, plus the existing head bound from
-  `strong_derivative_front_terms_member_size_linear`.
+- **Gate instance fully discharged (legacy fragment).**
+  `actual_union_pair_budget_gate_instance` (908542b) with
+  `H = Suc (2 * rsize r)` (`actual_union_seq_head_size_linear`) and
+  `M = Suc H + rsizes(generated)` (one degree).
+- **Pair-budget summand is ZERO (cfe3636).** The dlform universe has no
+  keyed member (`afactored1_strong_dlform_universe_no_keyed_member`), so the
+  active-suffix key set is empty and
+  `pair_budget_afactored1_strong_dlform_universe_zero` holds; the gate has
+  exactly two summands (`actual_union_gate_two_summands`). Note: the
+  active-suffix machinery is DEGENERATE on the dlform universe (designed for
+  row sets); do not spend effort instantiating it there.
+- **SIZE half: ONE remaining obligation.** Of the two summands:
+  1. `rsize_set (rnonseq_members (union))` — DONE cubic
+     (`rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic`).
+  2. The SEQ part — OPEN. Exact decomposition on record:
+     `card(SEQ members) * (linear heads) + sum over tails t of
+     bucket(t) * rsize t`. The two load-bearing numbers:
+     `card(union)` (empirically linear; best checked bound one degree in the
+     generated total) and `bucket(t)` (empirically linear; best checked
+     bound cubic). No self-reference remains in this decomposition.
+- **Current narrow instruction:** prove a linear (or any sub-quadratic)
+  bound for the active-key count / bucket width on the per-step object —
+  candidate invariant: active tails of a single strong step are tails of the
+  SAME front-row family, pinned by the rpder_norm chain — or find the CE.
+  Do not fall back to `*_list_cost_alt_nodes` / generated-ledger wrappers
+  (they lose a degree).
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 

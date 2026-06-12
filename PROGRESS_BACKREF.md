@@ -4909,3 +4909,32 @@ clean stale repository information.  Welcome - current accurate state:
   card(union) (empirically linear, checked bound only one-degree-in-G)
   and bucket(t) (empirically linear, checked bound cubic).  No
   self-reference remains in this decomposition.
+
+## 2026-06-12 Secretary/Admin: bounty freeze, worktree retirement, open-problem writeup
+
+- Admin-directed actions executed by the secretary session:
+  - BR-039 and BR-040 set to BLOCKED (FROZEN, not dropped) on the bounty
+    board, with an admin rationale note: the strong-memo VALUE side
+    (strong_deferred_memo_lexer_* in FBound.thy) is checked and load-bearing;
+    the SIZE plan is superseded by the set-ledger mainline but kept as
+    fallback/speed-up. Not raceable while frozen. Bounty guard passes
+    (pool unchanged, 149,090/170,000 allocated).
+  - Ledger note: the 1,020 gap between paid (74,970) and balances (73,950)
+    is lock-deposit flow on COLLECTED locks, not missing money; Opus's books
+    reconcile exactly. No board change needed.
+  - Retired worktrees: posix, posix-codex-b, posix-opus and the
+    posix-opus-WIP patch DELETED after salvage verification (orphan commit
+    dc81285 and all patch lemmas confirmed duplicated upstream; only stale
+    May-26 progress-note wording was lost). posix-codex is now the only
+    local clone; project CLAUDE.md identity line updated.
+- NEW: CUBIC_OPEN_PROBLEM.tex / .pdf (repo root) - a 6-page self-contained
+  mathematical statement of the set-ledger cubic gate: full definitions of
+  the pipeline (pder/npder/afactored1/rsimpStrong_raw/rpder_strong_rows_raw/
+  row_dlforms/rsize_set), the boxed conjecture, all checked facts including
+  today's reduction, the RONE-pair tower refutation, acceptance criteria,
+  and a notation-to-Isabelle dictionary. Updated through commit cfe3636
+  (pair-budget summand zero; single remaining tail-weight obligation).
+- MAINLINE.md section 2 synced to cfe3636 (one remaining obligation; exact
+  SEQ-part decomposition; degenerate active-suffix warning).
+- fable_cubic_handoff.txt (parent folder) updated to route the supervisor
+  restart through MAINLINE.md.

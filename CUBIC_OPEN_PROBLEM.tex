@@ -1,0 +1,453 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.6cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs,array}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% notation macros
+\newcommand{\ZERO}{\mathbf{0}}
+\newcommand{\ONE}{\mathbf{1}}
+\newcommand{\rs}[1]{\lvert #1\rvert}                 % rsize
+\newcommand{\rss}[1]{\lVert #1\rVert}                % rsizes / rsize_set
+\newcommand{\rssb}[1]{\bigl\lVert #1\bigr\rVert}      % big version
+\newcommand{\nub}{\mathsf{nub}}
+\newcommand{\flts}{\mathsf{flts}}
+\newcommand{\altsmart}{\oplus}
+\newcommand{\seqnorm}{\sigma}
+\newcommand{\seqstar}{\sigma^{\star}}
+\newcommand{\pder}{\mathsf{pder}}
+\newcommand{\npder}{\mathsf{npder}}
+\newcommand{\Fact}{F}
+\newcommand{\Sstrong}{S}
+\newcommand{\Dstep}{\Delta}
+\newcommand{\open}{D}
+\newcommand{\gen}{\mathsf{gen}}
+\newcommand{\nullable}{\nu}
+\newcommand{\Dlist}{D^{\mathsf{list}}}
+\newcommand{\listcost}{\mathsf{listcost}}
+\newcommand{\fronts}{\mathsf{fronts}}
+\newcommand{\tails}{\mathsf{tails}}
+\newcommand{\nonseq}{\mathsf{nonseq}}
+\newcommand{\pb}{\mathsf{pairbudget}}
+\newcommand{\thy}[1]{\textsf{\small #1}}
+
+\title{\textbf{The POSIX Lexer Cubic Bound:\\ the Set-Ledger Gate (Open Problem)}}
+\author{POSIX backref/cubic project --- secretary session\\
+\small repository \texttt{github.com/hellotommmy/posix}, branch \texttt{codex/backref-values}}
+\date{2026-06-12}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}\noindent
+POSIX lexing by Brzozowski/Antimirov derivatives stays fast only if the
+simplified derivative states stay small.  This note gives a fully
+self-contained statement of the one inequality this project still has to
+prove: after one step of the strongly simplified Antimirov-style row
+transition, the total size of the \emph{deduplicated} set of opened linear
+forms is cubic in the size of the original regular expression.  All
+definitions below are faithful translations of the checked Isabelle/HOL
+definitions in the repository (exact names in the table of
+Section~\ref{sec:names}); every fact labelled ``checked'' is proved in
+Isabelle with no \texttt{sorry}.  Section~\ref{sec:known} records what is
+already proved, Section~\ref{sec:refuted} what is \emph{refuted} and must not
+be attempted again.
+\end{abstract}
+
+\section{Regular expressions and size}\label{sec:rexp}
+
+Regular expressions over an alphabet $\Sigma$ (Isabelle skeleton type
+\thy{rrexp}, restricted to its classical---``legacy''---fragment%
+\footnote{The formal skeleton carries three additional proof-only
+backreference constructors (\thy{RBACKREF4}, \thy{RHALF}, \thy{RRESIDUE}).
+They have no partial derivatives and are excluded here by the predicate
+\thy{legacy\_rrexp}; the open problem lives entirely in the classical
+fragment.}):
+\[
+r \;::=\; \ZERO \;\mid\; \ONE \;\mid\; c
+ \;\mid\; r_1\cdot r_2 \;\mid\; \Sigma[r_1,\dots,r_n]
+ \;\mid\; r^{*} \;\mid\; r^{\{n\}} \qquad (c\in\Sigma,\ n\in\mathbb{N})
+\]
+where $\Sigma[\,\cdot\,]$ is a \emph{list} alternative (ordered, possibly
+with duplicates) and $r^{\{n\}}$ is bounded repetition (\thy{RNTIMES}).
+Size $\rs{\cdot}$ and list size $\rss{\cdot}$ (\thy{rsize}, \thy{rsizes}):
+\[
+\rs{\ZERO}=\rs{\ONE}=\rs{c}=1,\quad
+\rs{r_1\cdot r_2}=1+\rs{r_1}+\rs{r_2},\quad
+\rs{\Sigma rs}=1+\textstyle\sum_{r\in rs}\rs{r},
+\]
+\[
+\rs{r^{*}}=1+\rs{r},\qquad
+\rs{r^{\{n\}}}=1+\rs{r}+n,\qquad
+\rss{rs}=\textstyle\sum_{r\in rs}\rs{r}\ \ (rs\ \text{a list}).
+\]
+Note the repetition counter $n$ itself counts toward size.  Nullability
+$\nullable$ (\thy{rnullable}) is standard; $\nullable(r^{\{0\}})$ holds.
+
+\section{The transition pipeline}\label{sec:pipeline}
+
+\paragraph{List helpers.}
+$\flts$ (\thy{rflts}) deletes $\ZERO$ members and splices one level of nested
+alternatives:
+$\flts(\ZERO\#rs)=\flts\,rs$;\;
+$\flts((\Sigma ts)\#rs)=ts\mathbin{+\!\!+}\flts\,rs$;\;
+otherwise the head is kept.
+$\nub$ (\thy{rdistinct}, with empty accumulator) keeps the first occurrence
+of each member, preserving order.
+The smart alternative constructor $\altsmart$ (\thy{rsimp\_ALTs}) maps
+$[\,]\mapsto\ZERO$, $[r]\mapsto r$, and longer lists $rs\mapsto\Sigma rs$.
+
+\paragraph{Sequence normalizer.}
+$\seqnorm$ (\thy{rsimp4\_SEQ\_atom}) builds a right-associated sequence while
+erasing units:
+\[
+\seqnorm(\ZERO,t)=\ZERO,\quad
+\seqnorm(\ONE,t)=t,\quad
+\seqnorm(p\cdot q,\,t)=\seqnorm(p,\seqnorm(q,t)),
+\]
+and for an atom $a$ (none of $\ZERO,\ONE,{\cdot}$):
+$\seqnorm(a,\ZERO)=\ZERO$, $\seqnorm(a,\ONE)=a$, otherwise
+$\seqnorm(a,t)=a\cdot t$.
+On top of it, $\seqstar$ (\thy{rsimp7\_SEQ\_atom}) absorbs adjacent equal
+stars:
+\[
+\seqstar(p^{*},p^{*})=p^{*},\qquad
+\seqstar(p^{*},\,p^{*}\!\cdot k)=p^{*}\!\cdot k,\qquad
+\seqstar(p,t)=\seqnorm(p,t)\ \text{otherwise}.
+\]
+
+\paragraph{Partial derivatives.}
+The Antimirov partial-derivative list $\pder_c$ (\thy{rpder\_list}):
+\[
+\begin{aligned}
+\pder_c(\ZERO)&=\pder_c(\ONE)=[\,],\qquad
+\pder_c(d)=\text{if } c{=}d \text{ then } [\ONE] \text{ else } [\,],\\
+\pder_c(\Sigma rs)&=\mathsf{concat}(\mathsf{map}\ \pder_c\ rs),\\
+\pder_c(p\cdot q)&=\mathsf{map}\,(\lambda x.\,\seqnorm(x,q))\,(\pder_c\,p)
+  \mathbin{+\!\!+}(\text{if }\nullable(p)\text{ then }\pder_c\,q\text{ else }[\,]),\\
+\pder_c(p^{*})&=\mathsf{map}\,(\lambda x.\,\seqnorm(x,p^{*}))\,(\pder_c\,p),\\
+\pder_c(p^{\{n\}})&=\text{if } n{=}0 \text{ then } [\,] \text{ else }
+  \mathsf{map}\,(\lambda x.\,\seqnorm(x,p^{\{n-1\}}))\,(\pder_c\,p),
+\end{aligned}
+\]
+and its normalized form
+$\npder_c(r)=\mathsf{map}\,(\lambda x.\,\seqnorm(x,\ONE))\,(\pder_c\,r)$
+(\thy{rpder\_norm\_list}).
+
+\paragraph{Multi-step factored states.}
+One factored step on a row list (\thy{afactored\_step} $=$
+\thy{rpder\_norm\_rows}) and its iteration (\thy{afactored1}):
+\[
+\mathsf{step}_c(rs)=\nub\bigl(\flts\bigl(\mathsf{concat}
+   (\mathsf{map}\ \npder_c\ rs)\bigr)\bigr),
+\qquad
+\Fact(r,\varepsilon)=[r],\quad
+\Fact(r,\,s\,c)=\mathsf{step}_c(\Fact(r,s)).
+\]
+Note: \emph{no} strong pruning happens inside $\Fact$; the strong simplifier
+enters only in the single step that the open problem measures.
+
+\paragraph{Strong simplifier.}
+The pairwise shared-suffix pruner (\thy{rsimpStrong\_prune\_pair\_raw}): an
+earlier row $e$ prunes a later row $l$ by
+\[
+P(e,l)=
+\begin{cases}
+\seqstar\bigl(\altsmart(\,ms\setminus ls\,),\,k\bigr)
+  & \text{if } e=(\Sigma ls)\cdot k \text{ and } l=(\Sigma ms)\cdot k,\\
+l & \text{otherwise},
+\end{cases}
+\]
+where $ms\setminus ls$ removes from the list $ms$ every member occurring in
+$ls$ (\thy{rprune\_eq\_against}), keeping order.
+The scan (\thy{rsimpStrong\_prune\_rows\_raw}) folds $P$ over the already
+emitted rows:
+\[
+\mathsf{scan}(seen,[\,])=[\,],\qquad
+\mathsf{scan}(seen,\,r\#rs)=r'\#\,\mathsf{scan}(r'\#seen,\;rs),
+\]
+where $r'=\bigl(\mathrm{fold}_{e\in seen}P(e,\cdot)\bigr)(r)$, and
+$\mathsf{prune}(rs)=\mathsf{scan}([\,],rs)$.
+The strong simplifier $\Sstrong$ (\thy{rsimpStrong\_raw}):
+\[
+\begin{aligned}
+\Sstrong(\ZERO)&=\ZERO,\quad \Sstrong(\ONE)=\ONE,\quad \Sstrong(c)=c,\qquad
+\Sstrong(p\cdot q)=\seqstar(\Sstrong(p),\Sstrong(q)),\\
+\Sstrong(\Sigma rs)&=\altsmart\bigl(\nub\bigl(\flts\bigl(\mathsf{prune}
+  \bigl(\flts(\mathsf{map}\ \Sstrong\ rs)\bigr)\bigr)\bigr)\bigr),\qquad
+\Sstrong(p^{\{n\}})=\Sstrong(p)^{\{n\}},\\
+\Sstrong(p^{*})&=
+\begin{cases}
+\ONE & \text{if }\Sstrong(p)\in\{\ZERO,\ONE\},\\
+q^{*} & \text{if }\Sstrong(p)=q^{*},\\
+\Sstrong(p)^{*} & \text{otherwise}.
+\end{cases}
+\end{aligned}
+\]
+
+\paragraph{The strong one-step row transition.}
+(\thy{rpder\_strong\_rows\_raw}; this is the object the problem measures.)
+\[
+\Dstep_c(rs)\;=\;\nub\Bigl(\flts\Bigl(\mathsf{prune}\Bigl(\flts\bigl(
+  \mathsf{concat}\,(\mathsf{map}\ (\mathsf{map}\ \Sstrong\circ\npder_c)\ rs)
+  \bigr)\Bigr)\Bigr)\Bigr).
+\]
+We also name the \emph{generated} rows before simplification:
+$\gen_c(rs)=\mathsf{concat}(\mathsf{map}\ \npder_c\ rs)$.
+
+\section{The ledger objects}\label{sec:ledger}
+
+The \emph{opener} $\open$ (\thy{row\_dlforms}) unfolds a row into its
+deduplicated linear forms\footnote{Recursion terminates by the size measure:
+when $p \in ps$, $\rs{\seqstar(p,k)} < \rs{(\Sigma ps)\cdot k}$
+(\thy{rsize\_rsimp7\_SEQ\_atom\_member\_lt\_RSEQ\_RALTS}).}:
+\[
+\open(\ZERO)=\emptyset,\qquad
+\open(\Sigma rs)=\bigcup_{q\in rs}\open(q),\qquad
+\open\bigl((\Sigma ps)\cdot k\bigr)=\bigcup_{p\in ps}\open\bigl(\seqstar(p,k)\bigr),
+\]
+and $\open(q)=\{q\}$ for every other shape.  For a row list,
+$\open(rs)=\bigcup_{q\in rs}\open(q)$ (\thy{row\_dlformss}).
+The \emph{set ledger} of a finite set $U$ of regexes
+(\thy{rsize\_set}):
+\[
+\rss{U}\;=\;\sum_{q\in U}\rs{q}.
+\]
+
+\section{The open problem}\label{sec:problem}
+
+\begin{conjecture}[set-ledger cubic gate]\label{conj:gate}
+For every classical (legacy) regular expression $r$, every string
+$s\in\Sigma^{*}$ and every character $c\in\Sigma$:
+\[
+\boxed{\;\rssb{\;\open\bigl(\Dstep_c(\Fact(r,s))\bigr)\;}\;\le\;
+   2\,\bigl(\rs{r}+3\bigr)^{3}.\;}
+\]
+\end{conjecture}
+
+In words: run the normalized Antimirov row automaton from $r$ over $s$, apply
+\emph{one} strongly simplified step for $c$, open every resulting row into
+linear forms, deduplicate \emph{across the whole union}, and sum the sizes of
+the distinct opened rows.  The claim is that this total is cubic in the size
+of the original expression --- uniformly in $s$, whose length does not appear
+on the right-hand side.
+
+\begin{remark}\label{rem:constant}
+The constant $2(\cdot+3)^{3}$ is the project's working target; a checked
+bound $K(\rs{r}+3)^{3}$ for any absolute constant $K$, or for the
+$r^{\{n\}}$-free sub-fragment, is already valuable (see
+Section~\ref{sec:accept}).
+\end{remark}
+
+\begin{remark}
+The inequality is stated for arbitrary $r$ in the consuming contracts; the
+checked supporting facts that feed it (head linearity, the discharged gate
+instance below) carry the hypothesis \thy{legacy\_rrexp}~$r$, so
+Conjecture~\ref{conj:gate} should be read with that hypothesis.  Empirically
+the left-hand side grows only \emph{quadratically} on exhaustive and random
+probes (checkpoint 2026-06-12, ``multi-step union ledger probe'').
+\end{remark}
+
+\begin{remark}[why this matters]
+The conjecture is exactly the missing \emph{size half} of the per-step state
+budget for the strongly simplified POSIX lexer.  The repository already
+contains checked contracts
+(\thy{rpder\_strong\_dcanon\_rows\_raw\_afactored1\_actual\_dlforms\_tight\_cubic\_contractI},
+\thy{\dots\_budgetsI}) that take Conjecture~\ref{conj:gate} as their only
+numeric assumption and return the full canonical-row contract: language
+correctness of the canonical rows together with cubic bounds on their length,
+cardinality, linear-term count, and total size.  The value/POSIX-correctness
+side of the lexer is independently checked and waiting
+(\thy{strong\_deferred\_memo\_lexer\_eq\_lexer} etc.).
+\end{remark}
+
+\section{What is already checked}\label{sec:known}
+
+All of the following are Isabelle-checked, unconditional unless stated.
+
+\begin{enumerate}
+\item \emph{Per-row bounds.}\;
+$\#\open(q)\le\rs{q}$ \hfill(\thy{card\_row\_dlforms\_le\_rsize})\\
+$\rss{\open(q)}\le\rs{q}^{2}$ \hfill(\thy{rsize\_set\_row\_dlforms\_le\_rsize\_sq})
+\item \emph{Union bridges.}\;
+$\rss{\open(rs)}\le\sum_{q\in rs}\rs{q}^{2}$, instantiated to the actual
+one-step output\\
+\mbox{}\hfill(\thy{rsize\_set\_row\_dlformss\_\dots\_le\_sum\_rsize\_sq})
+\item \emph{Card half, one degree.}\;
+$\#\open(\Dstep_c(rs))\le\rss{\gen_c(rs)}$\\
+\mbox{}\hfill(\thy{card\_row\_dlformss\_rpder\_strong\_rows\_raw\_le\_generated})
+\item \emph{Deleter chain.}\;
+$\rss{\Dstep_c(rs)}\le\rss{\gen_c(rs)}$, and the same budget bounds
+$\mathsf{length}$, cardinality and linear-term count of $\Dstep_c(rs)$
+\hfill(\thy{rsizes\_rpder\_strong\_rows\_raw\_le},
+\thy{rpder\_strong\_rows\_raw\_generated\_budget})
+\item \emph{Head linearity (legacy).}\; every sequence head $h$ with
+$h\cdot t\in\open(\Dstep_c(\Fact(r,s)))$ satisfies $\rs{h}\le 1+2\rs{r}$
+\hfill(\thy{actual\_union\_seq\_head\_size\_linear})
+\item \emph{Discharged gate instance (legacy; 2026-06-12).}  With
+$H=1+2\rs{r}$ and $M=1+H+\rss{\gen_c(\Fact(r,s))}$:
+\[
+\begin{aligned}
+\rssb{\open\bigl(\Dstep_c(\Fact(r,s))\bigr)}\;\le\;
+&\underbrace{\rssb{\nonseq(U)}}_{\text{(1)}}
++\underbrace{\#\fronts(r,s c)\cdot{\textstyle\sum_{t\in\tails(U)}}
+   \bigl(1{+}H{+}\rs{t}\bigr)}_{\text{(2)}}\\[2pt]
+&+\underbrace{\pb(r,s,c)\cdot M}_{\text{(3)}}
+\end{aligned}
+\]
+{\sloppy
+where $U=\open(\Dstep_c(\Fact(r,s)))$, $\nonseq(U)$ are its non-sequence
+members, $\tails(U)$ the set of tails of its sequence members,
+$\fronts(r,u)$ a syntactic carrier of front terms
+(\thy{strong\_derivative\_front\_terms}, members linear by item~5), and
+$\pb$ the shared-suffix pair budget of the one-step dlform universe
+(\thy{raw\_shared\_prune\_active\_suffix\_pair\_budget} over
+\thy{afactored1\_strong\_dlform\_universe})\par}
+\mbox{}\hfill(\thy{actual\_union\_pair\_budget\_gate\_instance})
+\item \emph{Summand (1) is cubic.} \hfill
+(\thy{rsize\_set\_rnonseq\_members\_\dots\_afactored1\_cubic})
+\item \emph{Fragment result.}\;If $r$ is $r^{\{n\}}$-free (and
+normal-form), then $\rss{\Fact(r,s)}\le 2(2\rs{r}+3)^{3}$
+\hfill(\thy{rsizes\_afactored1\_rntimes\_free\_rsize\_cubic})
+\item \emph{Summand (3) vanishes (2026-06-12, 20:44).}  The dlform universe
+contains only opened rows, and opened sequence heads are never alternatives
+(item 6's carrier), so no universe member has the keyed shape
+$(\Sigma\,rows)\cdot k$; hence the active-suffix key set is empty and
+$\pb(r,s,c)=0$ identically.  The gate instance has exactly two summands.\\
+\mbox{}\hfill(\thy{pair\_budget\_afactored1\_strong\_dlform\_universe\_zero},
+\thy{actual\_union\_gate\_two\_summands})
+\end{enumerate}
+
+\noindent
+\textbf{Current reduction (as of 2026-06-12, commit \texttt{cfe3636}).}
+By items 6--9 the conjecture reduces to a \emph{single} numeric obligation:
+summand (2), the tail-weight side, must be cubic.  The exact decomposition
+on record is
+\[
+\rss{U}\;=\;\underbrace{\rss{\nonseq(U)}}_{\text{cubic, checked}}
+\;+\;\underbrace{\#\{\text{sequence members}\}\cdot O(\rs{r})}_{\text{heads linear, checked}}
+\;+\;\sum_{t\in\tails(U)}\mathsf{bucket}(t)\cdot\rs{t},
+\]
+where $\mathsf{bucket}(t)$ counts the sequence members sharing tail $t$.
+The two load-bearing quantities are $\#U$ (empirically linear; best checked
+bound one degree in $\rss{\gen}$) and $\mathsf{bucket}(t)$ (empirically
+linear; best checked bound cubic).  Any other route to
+Conjecture~\ref{conj:gate} is equally acceptable, but must not pass through
+the refuted quantities below.
+
+\section{What is refuted (do not attempt)}\label{sec:refuted}
+
+\begin{theorem}[duplicated list cost is not polynomial; checked]\label{thm:listcost}
+Define the \emph{list} opener $\Dlist$ by the same recursion as $\open$ with
+concatenation instead of union (no deduplication), and the pipeline list cost
+\[
+\listcost(r,s,c)=\!\!\sum_{p\,\in\,\gen_c(\Fact(r,s))}\!\!
+  \rssb{\Dlist\bigl(\Sstrong(p)\bigr)} .
+\]
+Let $\pi=(\ONE+a)\cdot(\ONE+b)$ and the tower
+$T_0=k\cdot l$, $T_{n+1}=(\ONE+\pi)\cdot T_n$ (here $\ONE+x$ abbreviates
+$\Sigma[\ONE,x]$; $a,b,k,l$ characters).  Then (all checked):
+\[
+\rs{T_n}=10n+3,\qquad
+\mathsf{len}\,\Dlist(T_n)=3\cdot 2^{\,n}-2,\qquad
+\Sstrong(T_n)=T_n,
+\]
+and behind one guard character $g$,
+$\listcost(g\cdot T_{24},\,\varepsilon,\,g)\ge 3\cdot 2^{24}-2
+ = 50{,}331{,}646 > 2(245+3)^{3}=30{,}505{,}984$,
+refuting the cubic budget for $\listcost$
+\hfill(\thy{afactored1\_strong\_dlform\_list\_cost\_cubic\_false}).
+\end{theorem}
+
+The mechanism: on $(\Sigma[\ONE,\pi])\cdot T$ the list opener recurses into
+\emph{both} branches; the $\ONE$ branch collapses to $T$ and reproduces $T$'s
+entire opened list, the $\pi$ branch walks it once more --- so the length
+doubles per level, while the regex grows linearly.  The tower is a fixpoint
+of $\Sstrong$, so simplification cannot rescue the cost.  Crucially, both
+branches reach the \emph{same} tail rows: the deduplicated union merges what
+the list multiplies, which is why Conjecture~\ref{conj:gate} survives this
+family (quadratically).  Consequences and further checked refutations:
+
+\begin{enumerate}
+\item Any proof route needing a polynomial bound on $\listcost$,
+$\Dlist$-length, or any per-row duplicated multiset is dead
+(Theorem~\ref{thm:listcost}).
+\item Generic square-sum wrappers
+($\sum_q \rs{q}^{2}\le\rss{rs}^{2}$, or $\mathrm{len}\times\max^{3}$
+products) are true but lose a degree: they yield quartic, not cubic, bounds.
+\item The deep-frontier linear-card premise
+$\#(\text{deep frontier})\le \mathrm{awidth}+\rs{r}+3$ is \emph{false} in
+general --- $r^{\{n\}}$ multiplies alternation branches without paying into
+the budget (checked witness with cardinality $49$ against budget $39$;
+\thy{apder\_deep\_frontier\_linear\_card\_false}); only the
+$r^{\{n\}}$-free version survives.  The front-linear variant is likewise
+refuted (checked, 2026-06-12).
+\item Generic owner-closure counting is exponential (checked abstract
+counterexample, 2026-06-12).
+\item $\Sstrong$ is \emph{not} pointwise $\open$-cost monotone: there is a
+checked $p$ with
+$\rss{\open(\Sstrong(p))} = 12 > 10 = \rss{\open(p)}$
+(\thy{rsimpStrong\_raw\_row\_dlforms\_cost\_not\_monotone}).  Do not assume
+simplification shrinks the ledger row by row.
+\end{enumerate}
+
+\section{Acceptance criteria}\label{sec:accept}
+
+A solution is a proof of Conjecture~\ref{conj:gate} checked by Isabelle2025-2
+in session \texttt{Posix} of the repository (branch
+\texttt{codex/backref-values}), with no \texttt{sorry}/\texttt{oops}/axioms,
+statement guards passing, building via the repository wrapper
+(\texttt{scripts/codex-isabelle-build-posix.ps1}).  Per the 2026-06-12 bounty
+overlay (simulated USD): 12{,}000 for the final checked theorem (or a checked
+equivalent contract) preserving exact POSIX value behaviour; 5{,}000 for a
+major checked bridge that reduces it to a clearly smaller, non-false local
+obligation (the single remaining tail-weight obligation above is the current
+such target); 3{,}000
+for a checked negative result that materially redirects the search.
+Fragment results ($r^{\{n\}}$-free) and constant-relaxed versions count as
+bridges, per Remark~\ref{rem:constant}.
+
+\section{Notation--Isabelle dictionary}\label{sec:names}
+
+\begin{center}
+\small
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{7.4cm}l@{}}
+\toprule
+here & Isabelle name & file \\
+\midrule
+$\rs{r},\ \rss{rs}$ & \thy{rsize}, \thy{rsizes} & BI \\
+$\rss{U}$ (set) & \thy{rsize\_set} & AFT \\
+$\flts,\ \nub,\ \altsmart$ & \thy{rflts}, \thy{rdistinct}, \thy{rsimp\_ALTs} & BI \\
+$\seqnorm,\ \seqstar$ & \thy{rsimp4\_SEQ\_atom}, \thy{rsimp7\_SEQ\_atom} & BI \\
+$\pder_c,\ \npder_c$ & \thy{rpder\_list}, \thy{rpder\_norm\_list} & GRB \\
+$\mathsf{step}_c,\ \Fact$ & \thy{afactored\_step}, \thy{afactored1} & AFT \\
+$P,\ \mathsf{prune}$ & \thy{rsimpStrong\_prune\_pair\_raw}, \thy{\dots\_prune\_rows\_raw} & GRB \\
+$\Sstrong$ & \thy{rsimpStrong\_raw} & GRB \\
+$\Dstep_c$ & \thy{rpder\_strong\_rows\_raw} & GRB \\
+$\open$ & \thy{row\_dlforms}, \thy{row\_dlformss} & AFT \\
+$\Dlist,\ \listcost$ & \thy{row\_dlforms\_list}, \thy{afactored1\_strong\_dlform\_list\_cost} & AFT \\
+$\fronts,\ \pb$ & \thy{strong\_derivative\_front\_terms}, \thy{raw\_shared\_prune\_active\_suffix\_pair\_budget} & AFT / GRB \\
+target gate & assumption \thy{actual\_cubic} of \thy{\dots\_tight\_cubic\_contractI} & AFT \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\small AFT $=$ \texttt{AntimirovFactoredTransition.thy};\;
+GRB $=$ \texttt{GeneralRegexBound.thy};\;
+BI $=$ \texttt{BasicIdentities.thy}.
+\end{center}
+
+\noindent
+{\sloppy
+Live status, checked-facts table and dead-route list: \texttt{MAINLINE.md};
+document catalog: \texttt{DOC\_INDEX.md}; day-by-day state: tail of
+\texttt{PROGRESS\_BACKREF.md} (all at the repository root).\par}
+
+\end{document}

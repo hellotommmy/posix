@@ -11,7 +11,9 @@ compacted.
 ## Project Identity
 
 - Project: POSIX regex formalization with a backreference pilot.
-- Repository: `C:\Users\Chengsong\Documents\AIPV2026Notes\posix`.
+- Repository (local clone): `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`.
+  (The old `posix`, `posix-codex-b`, `posix-opus` clones were retired and
+  deleted on 2026-06-12 after a salvage check; this is the only local clone.)
 - Main remote: `https://github.com/hellotommmy/posix`.
 - Isabelle version: `C:\Users\Chengsong\Isabelle2025-2`.
 - Current sessions: `Posix` for the inherited development and `BackRefPilot`
