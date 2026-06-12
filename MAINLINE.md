@@ -67,18 +67,21 @@ Vocabulary (fixed, do not rename):
   EITHER of two named frontiers lands:
   1. **The D law (row-count linear), CORRECTED 2026-06-13 00:13:**
      `apder_nf r ==> apder_nf k ==> card (apder_term_frontier_acc r k -
-     rfrontier k) <= apder_zw2 r` (zw2: star = Suc, not max-1; zw2 <= rsize
-     so the linear payoff is unchanged). The old zwidth weight and the J*
-     joint invariant were BOTH falsified by depth-5 CEs after passing
-     200k/95k shallow samples — empirical validation now requires depth>=5.
-     NINE inductive strengthenings falsified with recorded CEs. Full
-     statement, dead-ends and attacks: `MATHPROBLEM_ROWCOUNT.md` (repo
-     root) — ideal for a fresh single-focus session or sub-bounty.
+     rfrontier k) <= apder_zw2 r` (zw2: star = Suc, not max-1). The old
+     zwidth weight and the first J* joint invariant were BOTH falsified by
+     depth-5 CEs after passing 200k/95k shallow samples — empirical
+     validation now requires depth>=5. Isabelle surface now checked:
+     `apder_zwidth_le_apder_zw2` and `apder_zw2_rntimes_free_le_rsize`
+     (commit 8a7a370). With the current compact `RNTIMES` size measure, do
+     not cite a global NTIMES-inclusive `zw2 <= rsize` payoff without a
+     separate statement/change. Full statement, dead-ends and attacks:
+     `MATHPROBLEM_ROWCOUNT.md` (repo root).
   2. **The liveness slice:** fronts above `C * n^2` only shrink (zero
      violations empirically; needs a saturation predicate).
-- **Current narrow instruction:** attack the D law via the
+- **Current narrow instruction:** attack the corrected zw2 D law via the
   list-version/duplicate-accounting or k-chain-fragment routes in
-  `MATHPROBLEM_ROWCOUNT.md` — NOT via the six falsified strengthenings.
+  `MATHPROBLEM_ROWCOUNT.md` — NOT via the falsified unary/potential
+  strengthenings, the old zwidth law, or the first J* numeric invariant.
   Do not fall back to `*_list_cost_alt_nodes` / generated-ledger wrappers
   (they lose a degree).
 

@@ -1,10 +1,12 @@
 # Open Problem: Antimirov Row-Count Linearity (the D law)
 
-Status: OPEN. Mirror-validated on >200,000 nf samples, unrefuted.
-Four inductive strengthenings falsified with concrete counterexamples.
-Landing this in Isabelle makes the entire checked chain for the POSIX
-set-ledger cubic gate close to cubic on the nf fragment (see
-MAINLINE.md and PROGRESS_BACKREF.md tail of 2026-06-12).
+Status: OPEN, CORRECTED 2026-06-13.  The original max-1 `apder_zwidth`
+D law and the first J* numeric invariant are FALSE at depth 5 (see
+CORRECTION below).  The live target is the corrected `apder_zw2` law;
+do not spend effort on the old zwidth statement except as historical
+counterexample context.  Landing the corrected law in Isabelle makes the
+checked chain for the POSIX set-ledger cubic gate close to cubic on the
+nf/rntimes-free fragment (see MAINLINE.md and PROGRESS_BACKREF.md tail).
 
 ## Definitions (all in AntimirovFactoredTransition.thy)
 
@@ -18,6 +20,10 @@ MAINLINE.md and PROGRESS_BACKREF.md tail of 2026-06-12).
 - `apder_zwidth` (landed 2026-06-12, commit 1d0d115): C=1,
   ALTS/SEQ = sum, STAR x = max 1 (zwidth x), RZERO/RONE = 0,
   NTIMES r n = n * max 1 (zwidth r).
+- `apder_zw2` (landed 2026-06-13, commit 8a7a370): C=1,
+  ALTS/SEQ = sum, STAR x = Suc (zw2 x), RZERO/RONE = 0,
+  NTIMES r n = n * Suc (zw2 r).  Checked surface:
+  `apder_zwidth_le_apder_zw2` and `apder_zw2_rntimes_free_le_rsize`.
 - `apder_nf` (line ~1791): no RZERO/RONE parts in SEQ, nonalt
   alternation members, head of SEQ non-SEQ.
 
@@ -25,15 +31,16 @@ MAINLINE.md and PROGRESS_BACKREF.md tail of 2026-06-12).
 
 ```
 apder_nf r ==> apder_nf k ==>
-card (acc r k - rfrontier k) <= apder_zwidth r
+card (acc r k - rfrontier k) <= apder_zw2 r
 ```
 
 ## What is known
 
-1. TRUE empirically: >200k random nf samples at depth <= 5, plus all
-   directed adversarial families (zero-width star stacks, star-seq
-   towers, wide alternations).  Equality is attained in all root
-   constructors (no slack pattern by shape).
+1. The old zwidth law is FALSE: deep sampling found nested zero-consuming
+   star CEs after shallower runs had passed.  The corrected zw2 law passed
+   295,551 deep samples in the 2026-06-13 correction run.  Future sampling
+   claims must include depth>=5 and directed nested-star/zero-width
+   families.
 2. awidth instead of zwidth is FALSE: zero-width stars (STAR RONE
    stacks) give frontier rows without letters.
    CE: r = SEQ b (ALTS [a, STAR(RONE), STAR(STAR RONE)]), k=RONE.
@@ -62,11 +69,15 @@ card (acc r k - rfrontier k) <= apder_zwidth r
 
 ## Payoff when landed
 
-- card(apder_rows r) <= zwidth r + 2 (k = RONE instance + insert).
+- card(apder_rows r) <= zw2 r + 2 (k = RONE instance + insert), once the
+  corrected D law lands.
 - With apder_rows_member_size_quadratic (checked, ef30819):
-  rsizes(afactored1 r s) <= (zwidth+2) * quadratic = CUBIC static
-  front bound by assembly, replacing the tight-cubic ledger detour,
-  and the row-count half of the dynamic front-quadratic conjecture.
+  rsizes(afactored1 r s) <= (zw2+2) * quadratic = CUBIC static
+  front bound by assembly on the fragment where the zw2 size payoff is
+  available.  With Isabelle's current compact `rsize (RNTIMES r n) =
+  Suc (rsize r) + n`, the checked payoff is
+  `apder_zw2_rntimes_free_le_rsize`; do not cite global
+  NTIMES-inclusive `zw2 <= rsize` without a separate theorem/change.
 
 ## Suggested next attacks
 
@@ -77,10 +88,13 @@ card (acc r k - rfrontier k) <= apder_zwidth r
 - Prove first for the k-chain fragment (rfrontier k a singleton all
   the way down), then lift over the single degenerate k=RONE layer.
 
-## BREAKTHROUGH CANDIDATE (2026-06-13 00:35, angle 10)
+## HISTORICAL BREAKTHROUGH CANDIDATE (REFUTED 2026-06-13 01:05)
 
-The first surviving strengthening, the J* invariant - validated on
-95,510 nf samples with 55,351 nontrivially-active middle terms:
+The first J* invariant below was validated on 95,510 shallow nf samples
+with 55,351 nontrivially-active middle terms, then refuted by the deep
+correction run.  Keep it only as possible induction-shape intuition over
+zw2 after re-running the equality anatomy; do not try to prove it as
+written.
 
 ```
 J*(r1, r2, k):   [nf r1, nf r2, nf k; r1,r2 not RZERO/RONE; r1 non-SEQ]
@@ -125,7 +139,11 @@ Notes for the prover:
   card (acc r k - rfrontier k) <= zw2 r        [nf r, nf k]
   ```
 
-  zw2 <= rsize still, so the linear-row-count payoff is unchanged.
+  In Isabelle, `apder_zw2_rntimes_free_le_rsize` is checked, so the
+  linear-row-count payoff is unchanged on the existing rntimes-free
+  fragment.  A global NTIMES-inclusive `zw2 <= rsize` payoff is not
+  available with the current compact `RNTIMES` size measure unless a
+  separate statement/change lands.
 - LESSON: shallow sampling (depth<=4) validated false statements
   (zwidth-D at 200k, J* at 95k).  ALWAYS validate at depth>=5 with
   directed nested-star families before proving.  The J* shape may

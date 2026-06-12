@@ -5688,3 +5688,45 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   explicit multiplication monotonicity step.  Rerun with worker check
   passed (AntimirovFactoredTransition 75.737s, full Posix elapsed
   0:01:36).
+
+## 2026-06-13 Codex 01:35: CLAIM - ALTS list-union accounting for D-zw2
+
+- Synced through pushed commit 8a7a370, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Search found no dedicated `apder_term_frontier_acc (RALTS rs)` difference
+  bound.  Narrow checked brick now: add a generic
+  `card ((UN x in set xs. A x) - K) <= sum_list ...` lemma and specialize
+  it to the ALTS branch, so a future D-zw2 induction can discharge ALTS by
+  summing child D obligations.
+
+## 2026-06-13 Codex 01:40: BLOCKED - ALTS accounting proof replay timeout
+
+- Tried the generic statement
+  `card ((UN x in set xs. A x) - K) <=
+  sum_list (map (%x. card (A x - K)) xs)` plus the
+  `apder_term_frontier_acc (RALTS rs)` specialization.  First proof used
+  the generic lemma as a simp rule; second proof used an explicit local
+  rule application.  Both full builds hit the 300s wrapper timeout with no
+  printed Isabelle failure block, and both left `poly.exe` workers that I
+  stopped through `scripts\codex-proof-workers.ps1 -Action KillStale`
+  (only matching stale workers, min age 5).
+- Per the same-timeout-twice rule, I removed the unbuilt `.thy` attempt
+  and am switching sub-target.  Salvage note for a future worker: if this
+  ALTS lemma is needed, prove it by plain list induction with no schematic
+  `card_UN_le`/conditional-simp path, or first test it in a tiny scratch
+  theory before touching the shared tail.
+- New supervisor target: prune stale zwidth-D guidance in the root docs so
+  the next worker does not chase the refuted law; PROGRESS 01:10 and
+  `apder_zw2` commit 8a7a370 are now the live route.
+
+## 2026-06-13 Codex 01:45: SUPERVISOR AUDIT - stale zwidth guidance pruned
+
+- Updated `MAINLINE.md` and `MATHPROBLEM_ROWCOUNT.md` so the live row-count
+  target is the corrected `apder_zw2` D law.  The old zwidth-D statement
+  and first J* numeric invariant are now marked false/refuted at the top,
+  not only in the correction tail.
+- Added the checked Isabelle surface to the docs:
+  `apder_zwidth_le_apder_zw2` and `apder_zw2_rntimes_free_le_rsize`
+  (8a7a370), with the NTIMES caveat.  This is a doc/supervisor cleanup
+  only; no theory file remains modified after the blocked ALTS attempt.
