@@ -5,6 +5,94 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 08:50 GMT+8
+
+First sync to the current checked remote head:
+
+```powershell
+git fetch origin
+git pull --ff-only
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+```
+
+Current checked head:
+
+```text
+9e8b091 Refute path-dual as strong carrier
+```
+
+The full `Posix` build passed after that proof-changing commit:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+```
+
+Interpretation in simple terms:
+
+- `carrier` means "the set we hope contains all rows produced by the strong
+  derivative step."
+- `rsize_set U` means "sum of syntax-tree sizes of all distinct rows in `U`."
+- `cubic` means bounded by a fixed constant times `(rsize r + 3)^3`.
+- `strong simplification exposes rows` means it can delete or simplify a
+  prefix/continuation and thereby create a row that is not literally present
+  as an old subterm or old frontier row.
+
+Dead direct-carrier routes, all checked:
+
+```text
+apder_strong_dlfrontier_not_deep_frontier_subset
+apder_strong_dlfrontier_not_insert_RONE_deep_frontier_subset
+apder_strong_dlfrontier_not_subterm_deep_frontier_subset
+apder_strong_dlfrontier_not_path_dual_frontier_universe_subset
+actual_strong_canonical_aseq_payment_false
+raw_shared_prune_active_suffix_owner_exponential
+```
+
+Do not try to prove any of these as positive containment/counting facts:
+
+```text
+apder_strong_dlfrontier r subset apder_deep_frontier r
+apder_strong_dlfrontier r subset insert RONE (apder_deep_frontier r)
+apder_strong_dlfrontier r subset apder_subterm_deep_frontier r
+apder_strong_dlfrontier r subset partial_derivative_path_dual_frontier_universe r
+unconditional aseq_terms_size_paid for actual strong canonical rows
+generic polynomial/cardinality bound for raw_shared_prune_active_suffix_owner U
+```
+
+The current useful target is still this local one-step gate:
+
+```text
+rsize_set (afactored1_strong_dlform_universe r s c)
+  <= 2 * (rsize r + 3)^3
+```
+
+This gate feeds already checked contracts such as
+`rpder_strong_dcanon_rows_raw_afactored1_dlform_universe_cubic_contractI`.
+Equivalently, build a smaller contextual exposed-row carrier `Uctx` with:
+
+```text
+afactored1_strong_dlform_universe r s c subset Uctx
+rsize_set Uctx <= O((rsize r + 3)^3)
+```
+
+The word "contextual" is important: the carrier must own rows formed by
+combining a front payload with a simplified surrounding continuation.  A union
+of literal subterms' deep frontiers and the old path-dual universe both miss
+the same checked witness:
+
+```text
+star = a*
+p    = a . star
+k    = star | star
+r    = (p) . k
+x    = a . (star . star)
+```
+
+If you need to run Isabelle, use only the repository wrappers above.  Check
+the worker slot first.  Do not use `sleep && tail` polling.  Treat background
+shell "failed" after a full Isabelle run as a proof failure until the output
+says otherwise; the command path itself is known-good.
+
 ## Latest Supervisor Note, 2026-06-12
 
 First sync to the current checked branch:
