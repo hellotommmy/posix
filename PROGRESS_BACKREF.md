@@ -6873,3 +6873,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.591s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 09:45: CLAIM - arbitrary-set RSEQ singleton shift
+
+- Synced through pushed commit 0dc662f, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: strengthen the pure RSEQ singleton helper to subtract
+  an arbitrary set `K`, not only the syntactic tail's frontier.  This matches
+  associated SEQ cases where `rsimp4_SEQ_atom p2 k` becomes the syntactic tail
+  but the bound is still against the original `rfrontier k`.
+
+## 2026-06-13 Codex 09:50: CHECKED - arbitrary-set RSEQ singleton shift
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_rfrontier_RSEQ_diff_any_le_one`.
+- This is the arbitrary-set version of the RSEQ singleton-frontier shift:
+  `card (rfrontier (RSEQ h t) - K) <= 1`.  It matches associated SEQ cases
+  where the syntactic tail is not the original continuation.
+- Build command passed after worker check (AntimirovFactoredTransition
+  93.761s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

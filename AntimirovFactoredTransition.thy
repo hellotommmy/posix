@@ -29376,6 +29376,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_rfrontier_RSEQ_diff_any_le_one:
+  "card (rfrontier (RSEQ h t) - K) \<le> 1"
+proof -
+  have "card (rfrontier (RSEQ h t) - K) = card ({RSEQ h t} - K)"
+    by simp
+  also have "... \<le> 1"
+    by (rule card_singleton_Diff_le_one)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
