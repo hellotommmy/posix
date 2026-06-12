@@ -16977,6 +16977,24 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Local artifact: scratch_dlform_cost_model.py (clause-verified Python
   mirror of the cost pipeline, used for the numbers; left untracked).
 
+## 2026-06-12 Supervisor: checked guardrail for the quadratic list-cost route
+
+- Added checked counterexample
+  `duplicate_RONE_row_group_deep_nf_quadratic_list_bound_false` near the
+  existing row-dlform counterexamples.  It uses a row formed by five layers of
+  `RSEQ (RALTS [RONE,RONE,RONE,RONE]) _`.
+- Plain meaning: weak normal forms are not enough.  This row satisfies both
+  `row_group_deep_nf` and `rtail_nf`, but opening the row as a list gives
+  `row_dlforms_list_size = 1024` while `rsize = 31`, so the naive quadratic
+  list bound `row_dlforms_list_size q <= rsize q * rsize q` is false.
+- Consequence for Fable: the next useful lemma must explicitly use the
+  strong-simplifier/dedup invariant, e.g. `q = rsimpStrong_raw p` or a
+  stronger property that rules out repeated `RONE` members at every opened
+  `RALTS`.  Do not state the per-row quadratic list-cost bound under only
+  `rtail_nf`, `apder_nf`, or `row_group_deep_nf`.
+- Verification: `scripts/codex-isabelle-build-posix.ps1 -TimeoutSeconds 180`
+  passed at 2026-06-12 18:01 local time (`Finished Posix`).
+
 ## 2026-06-12 Fable: bounty registration + guard mismatch flag
 
 - Read BOUNTY_PROTOCOL.md in full.  Registered Fable as Worker with 0

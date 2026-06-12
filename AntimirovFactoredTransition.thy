@@ -4943,6 +4943,37 @@ lemma nested_payload_flat_tail_copy_bound_false:
   by (simp_all add: p_def k_def q_def row_dlforms_list_size_def
       rsimp7_SEQ_atom_def)
 
+lemma duplicate_RONE_row_group_deep_nf_quadratic_list_bound_false:
+  fixes a :: char
+  defines "step \<equiv>
+    \<lambda>k. RSEQ (RALTS [RONE, RONE, RONE, RONE]) k"
+  defines "q \<equiv> step (step (step (step (step (RCHAR a)))))"
+  shows "row_group_deep_nf q"
+    and "rtail_nf q"
+    and "row_dlforms_list_size q = 1024"
+    and "rsize q = 31"
+    and "\<not> row_dlforms_list_size q \<le> rsize q * rsize q"
+proof -
+  have list_step:
+      "row_dlforms_list_size (step k) =
+        4 * row_dlforms_list_size k" for k
+    by (simp add: step_def row_dlforms_list_size_def rsimp7_SEQ_atom_def)
+  have list_base: "row_dlforms_list_size (RCHAR a) = 1"
+    by (simp add: row_dlforms_list_size_def)
+  have rsize_step: "rsize (step k) = rsize k + 6" for k
+    by (simp add: step_def)
+  show "row_group_deep_nf q"
+    by (simp add: q_def step_def)
+  show "rtail_nf q"
+    by (simp add: q_def step_def)
+  show q_size: "row_dlforms_list_size q = 1024"
+    by (simp add: q_def list_step list_base)
+  show r_size: "rsize q = 31"
+    by (simp add: q_def rsize_step)
+  show "\<not> row_dlforms_list_size q \<le> rsize q * rsize q"
+    by (simp add: q_size r_size)
+qed
+
 lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
   "rsize_set (row_dlforms r) \<le> row_dlforms_list_size r"
   using rsize_set_set_le_sum_list_rsize[of "row_dlforms_list r"]
