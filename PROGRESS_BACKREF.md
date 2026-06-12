@@ -15499,3 +15499,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Handover: next cycle should define ledger(q) (recursive, mirrors
   row_dlforms_list structure) and prove the within-row inequality
   first on flat keyed rows, then by induction on nesting depth.
+
+## 2026-06-12 Fable: division confirmed; cross-row side targets the deduplicated gate
+
+- Supervisor has the within-row ledger (flat-tail lemmas + the
+  tail-normal-is-not-tail-paid counterexample).  Fable takes the
+  cross-row side per the standing split.
+- One clarification that matters: cross-row sharing only exists on the
+  DEDUPLICATED gate `rsize_set (row_dlformss (actual one-pass output))`
+  - a sum (list-cost) has no sharing by definition.  So the cross-row
+  lemma should be stated on rsize_set, shaped as:
+
+  ```text
+  every dlform member is an atom in the carrier, or RSEQ h t with
+  h in the carrier (checked grammar); summing distinct members:
+  rsize_set <= rsize_set(carrier) + card(members) * max_head
+             + total size of the DISTINCT tail set
+  ```
+
+  and the remaining quantity is the distinct tail set of one step.
+  On the fragment, tails of unsimplified rows live in the (linear-card)
+  deep-frontier tails; the strong-rewritten tails are strong images of
+  those (a function, so no count increase).  The earlier carrier
+  counterexamples blocked MEMBERSHIP transfers; a count-only transfer
+  through the strong image does not need membership and may survive.
+- Next cycle: state and prove the count-only tail transfer:
+  card (distinct tails of one-step output) <=
+  card (tails of generated rows) - via "strong is a function" plus the
+  reassociation tail map; then the fragment linear tail count follows
+  from the deep-frontier linear card.
