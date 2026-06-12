@@ -41,7 +41,7 @@
 \title{\textbf{The POSIX Lexer Cubic Bound:\\ the Set-Ledger Gate (Open Problem)}}
 \author{POSIX backref/cubic project --- secretary session\\
 \small repository \texttt{github.com/hellotommmy/posix}, branch \texttt{codex/backref-values}}
-\date{2026-06-12, rev.~23:45 (commit \texttt{7372ba2})}
+\date{2026-06-13, rev.~00:13 (commit \texttt{8a7a370})}
 
 \begin{document}
 \maketitle
@@ -355,20 +355,25 @@ closes by assembly once \emph{either} of two named laws lands:
 $r,k$:
 \[
 \#\bigl(\mathsf{acc}(r,k)\,\setminus\,\mathsf{ftr}(k)\bigr)
-  \;\le\;\mathsf{zwidth}(r),
+  \;\le\;\mathsf{zw_2}(r),
 \]
 where $\mathsf{acc}$ is the frontier accumulator
 (\thy{apder\_term\_frontier\_acc}), $\mathsf{ftr}$ the frontier
 (\thy{rfrontier}: $\emptyset$ on $\ZERO$, union over $\Sigma$-members,
-singleton otherwise), and $\mathsf{zwidth}$ counts letters with stars
-floored at one: $\mathsf{zwidth}(c)=1$, sums over ${\cdot}$ and $\Sigma$,
-$\mathsf{zwidth}(p^{*})=\max(1,\mathsf{zwidth}(p))$,
-$\mathsf{zwidth}(p^{\{n\}})=n\cdot\max(1,\mathsf{zwidth}(p))$, zero on
-$\ZERO,\ONE$.  With (A), $\#\mathsf{apder\_rows}(r)$ is linear and members
-are quadratic (item 11), so the gate ledger is at most
-linear${}\times{}$quadratic ${}={}$ cubic, fully statically.  Status: exact
-on $>$200{,}000 normal-form samples (equality attained in every root
-constructor); \emph{six} inductive strengthenings falsified with recorded
+singleton otherwise), and the weight $\mathsf{zw_2}$ (\thy{apder\_zw2})
+counts letters with a $+1$ per star: $\mathsf{zw_2}(c)=1$, sums over
+${\cdot}$ and $\Sigma$,
+$\mathsf{zw_2}(p^{*})=1+\mathsf{zw_2}(p)$,
+$\mathsf{zw_2}(p^{\{n\}})=n\cdot(1+\mathsf{zw_2}(p))$, zero on
+$\ZERO,\ONE$.  Since $\mathsf{zw_2}(r)\le\rs{r}$, (A) still makes
+$\#\mathsf{apder\_rows}(r)$ linear, and members are quadratic (item 11), so
+the gate ledger is at most linear${}\times{}$quadratic ${}={}$ cubic, fully
+statically.  Status: validated on 295{,}551 deep samples with zero
+violations.  History to respect: the earlier $\mathsf{zwidth}$ weight
+(stars floored at one) and the J$^{*}$ joint invariant were BOTH falsified
+by depth-$5$ counterexamples after passing 200k/95k shallow samples ---
+empirical claims on this problem now require depth${}\ge 5$ sampling; and
+\emph{nine} inductive strengthenings are falsified with recorded
 counterexamples.  Self-contained problem file:
 \texttt{MATHPROBLEM\_ROWCOUNT.md} (repository root) --- do not retry the
 falsified strengthenings.
@@ -489,7 +494,7 @@ $\open$ & \thy{row\_dlforms}, \thy{row\_dlformss} & AFT \\
 $\Dlist,\ \listcost$ & \thy{row\_dlforms\_list}, \thy{afactored1\_strong\_dlform\_list\_cost} & AFT \\
 $\fronts,\ \pb$ & \thy{strong\_derivative\_front\_terms}, \thy{raw\_shared\_prune\_active\_suffix\_pair\_budget} & AFT / GRB \\
 $\mathsf{apder\_rows},\ \mathsf{ftr}$ & \thy{apder\_rows}, \thy{rfrontier} & AFT / GRB \\
-$\mathsf{acc},\ \mathsf{zwidth}$ & \thy{apder\_term\_frontier\_acc}, \thy{apder\_zwidth} & AFT \\
+$\mathsf{acc},\ \mathsf{zw_2}$ & \thy{apder\_term\_frontier\_acc}, \thy{apder\_zw2} & AFT \\
 target gate & assumption \thy{actual\_cubic} of \thy{\dots\_tight\_cubic\_contractI} & AFT \\
 \bottomrule
 \end{tabular}
