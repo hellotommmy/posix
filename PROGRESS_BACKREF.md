@@ -6191,3 +6191,26 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.984s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 04:35: CLAIM - SEQ carry-measure assembly
+
+- Synced through pushed commit 7159b49, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: instantiate `card_seq_carry_measure_le_split` for
+  `apder_term_frontier_acc (RSEQ r1 r2) k` and
+  `rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k)`.  This should become the SEQ
+  case of the simultaneous carry invariant for the legacy/rntimes-free D law.
+
+## 2026-06-13 Codex 04:40: CHECKED - SEQ carry-measure assembly
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_carry_measure_le_if_children`.
+- First build failed only because the target had
+  `G - K - (A union B)` while the pure splitter exposes `G - K - A - B`.
+  Changed the same lemma by adding the explicit set-difference equality
+  `diff_acc`; rerun build passed after worker check
+  (AntimirovFactoredTransition 85.004s, full Posix elapsed 0:01:37).
+- This packages the SEQ case for the simultaneous carry invariant.  No new
+  CE/blow-up family discovered in this proof step; `EVIL_PATTERNS.md`
+  unchanged.

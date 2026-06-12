@@ -29414,6 +29414,48 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_carry_measure_le_if_children:
+  assumes left:
+    "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card (rfrontier (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)) -
+      rfrontier (rsimp4_SEQ_atom r2 k) -
+      apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    and right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 r2"
+  shows
+    "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k) - rfrontier k -
+      apder_term_frontier_acc (RSEQ r1 r2) k) \<le>
+      apder_zw2 (RSEQ r1 r2)"
+proof -
+  let ?A = "apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?B = "apder_term_frontier_acc r2 k"
+  let ?F = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  let ?G = "rfrontier (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k))"
+  have diff_acc:
+    "?G - rfrontier k - (?A \<union> ?B) = ?G - rfrontier k - ?A - ?B"
+    by blast
+  have split:
+    "card ((?A \<union> ?B) - rfrontier k) +
+      card (?G - rfrontier k - ?A - ?B) \<le>
+      card (?A - ?F) + card (?G - ?F - ?A) +
+      card (?B - rfrontier k) + card (?F - rfrontier k - ?B)"
+    by (rule card_seq_carry_measure_le_split) simp_all
+  have "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) +
+      card (rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k) - rfrontier k -
+        apder_term_frontier_acc (RSEQ r1 r2) k) \<le>
+      card (?A - ?F) + card (?G - ?F - ?A) +
+      card (?B - rfrontier k) + card (?F - rfrontier k - ?B)"
+    using split by (simp add: diff_acc)
+  also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+    using left right by linarith
+  finally show ?thesis
+    by simp
+qed
+
 
 text \<open>
   Static row size law: every member of the apder accumulator is at
