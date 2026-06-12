@@ -10616,6 +10616,48 @@ proof -
     using x_in x_notin by blast
 qed
 
+lemma apder_strong_dlfrontier_not_path_dual_frontier_universe_subset:
+  fixes a :: char
+  defines "star \<equiv> RSTAR (RCHAR a)"
+  defines "p \<equiv> RSEQ (RCHAR a) star"
+  defines "k \<equiv> RALTS [star, star]"
+  defines "r \<equiv> RSEQ (RALTS [p]) k"
+  defines "x \<equiv> RSEQ (RCHAR a) (RSEQ star star)"
+  shows "legacy_rrexp r"
+    and "apder_nf r"
+    and "rntimes_free r"
+    and "x \<in> apder_strong_dlfrontier r"
+    and "x \<notin> partial_derivative_path_dual_frontier_universe r"
+    and "\<not> apder_strong_dlfrontier r \<subseteq>
+      partial_derivative_path_dual_frontier_universe r"
+proof -
+  show "legacy_rrexp r"
+    by (simp add: star_def p_def k_def r_def)
+  show "apder_nf r"
+    by (simp add: star_def p_def k_def r_def)
+  show "rntimes_free r"
+    by (simp add: star_def p_def k_def r_def)
+  have root_row: "r \<in> apder_rows r"
+    by (simp add: apder_rows_def)
+  have x_dlform: "x \<in> row_dlforms (rsimpStrong_raw r)"
+    by (simp add: star_def p_def k_def r_def x_def
+        rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+        rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def Let_def)
+  show x_in: "x \<in> apder_strong_dlfrontier r"
+    unfolding apder_strong_dlfrontier_def
+      rsimpStrong_dlform_closure_def
+    using root_row x_dlform by blast
+  show x_notin: "x \<notin> partial_derivative_path_dual_frontier_universe r"
+    by (simp add: star_def p_def k_def r_def x_def
+        partial_derivative_path_dual_frontier_universe_def
+        rpath_dual_frontiers_def rpath_dual_frontier_acc_def
+        rpath_frontiers_def rpath_atom_frontiers_def
+        rsimp4_SEQ_def)
+  show "\<not> apder_strong_dlfrontier r \<subseteq>
+      partial_derivative_path_dual_frontier_universe r"
+    using x_in x_notin by blast
+qed
+
 function (sequential) rsimpDeep_SEQ_atom :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp"
 where
   "rsimpDeep_SEQ_atom RZERO k = RZERO"

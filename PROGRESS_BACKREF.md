@@ -15233,3 +15233,40 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   induction itself (one new delta-acc case per exposure), unless the
   supervisor has picked a different carrier by then - the base
   equations serve either.
+
+## 2026-06-12 Supervisor: path-dual frontier also misses exposed strong rows
+
+- New checked counterexample:
+
+  ```text
+  apder_strong_dlfrontier_not_path_dual_frontier_universe_subset
+  ```
+
+- Plain meaning: the existing path-dual universe is not a direct carrier for
+  `apder_strong_dlfrontier`.
+
+- Same minimal shape as the subterm-deep counterexample:
+
+  ```text
+  star = a*
+  p    = a . star
+  k    = star | star
+  r    = (p) . k
+  x    = a . (star . star)
+  ```
+
+  The strong simplifier first reduces the repeated continuation `star | star`
+  and then exposes the row `x`.  The path-dual universe records literal
+  subterms plus path/atom continuations, but it does not record this newly
+  combined row.
+
+- Guidance: do not try to prove
+
+  ```text
+  apder_strong_dlfrontier r subset
+    partial_derivative_path_dual_frontier_universe r
+  ```
+
+  or use that as the final cubic carrier.  The live route is still a
+  contextual exposed-row carrier: a carrier that explicitly owns rows created
+  by combining a front payload with a simplified surrounding continuation.
