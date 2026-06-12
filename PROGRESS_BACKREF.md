@@ -16570,3 +16570,14 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   false generic claim that `rtail_nf` alone makes row opening cost monotone.
 - Verification: full `Posix` build passed at 2026-06-12 13:36 local time
   (`AntimirovFactoredTransition` 58.563s cumulative).
+
+## 2026-06-12 Fable: ext member size lemma checked (card route step 1)
+
+- New checked lemma rseq_suffixes_ext_member_size_le: every member of
+  the extended suffix carrier of a row has size at most the row size.
+  Measure induction; the reassociated branches strictly shrink, so the
+  copied tails never push a member above the row size.
+- With this, rsize_set (ext q) <= card (ext q) * rsize q.  Remaining
+  card-route step: card (ext q) <= positions x chain length (the card
+  induction where union adds positions exactly).  Then cross-row.
+- Build: `Finished Posix` 13:42:42.

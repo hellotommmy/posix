@@ -22881,6 +22881,60 @@ lemma row_dlforms_list_size_weighted_rpder_strong_rows_raw_afactored1_le_rsizes_
           (rpder_strong_rows_raw c (afactored1 r s)))"
   by (rule row_dlforms_list_size_weighted_le_rsizes_times_open_sum)
 
+lemma rseq_suffixes_ext_member_size_le:
+  assumes "x \<in> rseq_suffixes_ext q"
+  shows "rsize x \<le> rsize q"
+  using assms
+proof (induct q arbitrary: x rule: measure_induct_rule[where f = rsize])
+  case (less q)
+  show ?case
+  proof (cases q)
+    case RZERO
+    then show ?thesis
+      using less.prems by simp
+  next
+    case (RALTS rs)
+    obtain q' where q': "q' \<in> set rs" "x \<in> rseq_suffixes_ext q'"
+      using less.prems RALTS by auto
+    have "rsize x \<le> rsize q'"
+      using elem_size_le_rsizes[OF q'(1)] RALTS
+      by (intro less.hyps[OF _ q'(2)]) simp
+    also have "... \<le> rsize q"
+      using elem_size_le_rsizes[OF q'(1)] RALTS by simp
+    finally show ?thesis .
+  next
+    case (RSEQ h k)
+    show ?thesis
+    proof (cases h)
+      case (RALTS ps)
+      from less.prems RSEQ RALTS consider
+          (chain) "x \<in> rseq_suffixes q"
+        | (branch) p where "p \<in> set ps"
+            "x \<in> rseq_suffixes_ext (rsimp7_SEQ_atom p k)"
+        by auto
+      then show ?thesis
+      proof cases
+        case chain
+        then show ?thesis
+          by (rule rseq_suffixes_member_size_le)
+      next
+        case (branch p)
+        have lt: "rsize (rsimp7_SEQ_atom p k) < rsize q"
+          using RSEQ RALTS
+            rsize_rsimp7_SEQ_atom_member_lt_RSEQ_RALTS[OF branch(1)]
+          by simp
+        have "rsize x \<le> rsize (rsimp7_SEQ_atom p k)"
+          by (rule less.hyps[OF lt branch(2)])
+        also have "... \<le> rsize q"
+          using lt by simp
+        finally show ?thesis .
+      qed
+    qed (use less.prems RSEQ
+        in \<open>auto dest!: rseq_suffixes_member_size_le\<close>)
+  qed (use less.prems
+      in \<open>auto dest!: rseq_suffixes_member_size_le\<close>)
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>
