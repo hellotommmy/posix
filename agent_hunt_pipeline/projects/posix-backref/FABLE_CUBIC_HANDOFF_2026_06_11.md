@@ -94,6 +94,13 @@ size is paid by `weighted_raw_rows`.  Prefer this newer split over the older
 `(Suc H + 1) * weighted_raw_rows` gate.  The remaining target is still the
 actual opening-cost total for `rpder_strong_rows_raw c (afactored1 r s)`.
 
+Do not try to close that remaining target by claiming actual rows satisfy
+`row_dlforms_list_size q <= rsize q` from `rtail_nf q`, `nonalt q`, and
+`q != RZERO`.  That inference is false; see the checked counterexample
+`rtail_nf_not_enough_for_row_dlforms_list_size`.  The hard case is still an
+actual row shaped like `RSEQ (RALTS ps) k`, whose opening cost must be paid by a
+shared-position/opened-branch account, not by plain row size.
+
 ## Urgent Supervisor Update, 2026-06-12 12:43 GMT+8
 
 The actual-output sequence tails are now bridged to the extended suffix
