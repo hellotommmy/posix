@@ -6670,3 +6670,22 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   88.887s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 08:15: CLAIM - RALTS-left SEQ D bridge
+
+- Synced through pushed commit bf7e559, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the SEQ case with a left `RALTS rs`: per-alt
+  D bounds at the middle continuation plus exact right carry should imply the
+  exact D bound for `RSEQ (RALTS rs) r2`.
+
+## 2026-06-13 Codex 08:20: CHECKED - RALTS-left SEQ D bridge
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_RALTS_diff_le_if_children_right_carry`.
+- This packages the left-RALTS SEQ D case using per-child D bounds at
+  `rsimp4_SEQ_atom r2 k` and exact right carry.
+- Build command passed after worker check (AntimirovFactoredTransition
+  93.457s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

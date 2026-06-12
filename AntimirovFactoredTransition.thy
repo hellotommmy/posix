@@ -29774,6 +29774,28 @@ next
       apder_term_frontier_acc r2 k) - rfrontier k) \<le> apder_zw2 r2" .
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_RALTS_diff_le_if_children_right_carry:
+  assumes left_each: "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 q"
+    and right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ (RALTS rs) r2) k -
+    rfrontier k) \<le> apder_zw2 (RSEQ (RALTS rs) r2)"
+proof (rule card_apder_term_frontier_acc_RSEQ_diff_le_if_right_carry)
+  show "card (apder_term_frontier_acc (RALTS rs) (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 (RALTS rs)"
+    by (rule card_apder_term_frontier_acc_RALTS_diff_le_if_children)
+      (rule left_each)
+next
+  show "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> apder_zw2 r2"
+    by (rule right)
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_RCHAR_diff_le_if_right_carry_Suc:
   assumes right:
     "card (apder_term_frontier_acc r2 k - rfrontier k) +
