@@ -4938,3 +4938,32 @@ clean stale repository information.  Welcome - current accurate state:
   SEQ-part decomposition; degenerate active-suffix warning).
 - fable_cubic_handoff.txt (parent folder) updated to route the supervisor
   restart through MAINLINE.md.
+## 2026-06-12 Fable: CHECKED - exact two-number decomposition of the union ledger
+
+- Full Posix build GREEN at 2026-06-12 21:05 local
+  (AntimirovFactoredTransition 78.661s, exit 0).  New checked pieces:
+
+  ```text
+  rseq_members (def), finite_rseq_members
+  rsize_set_split_rnonseq_rseq
+    (rsize_set U = nonseq part + seq part, exact, for unions whose
+     members are nonseq-or-SEQ)
+  rsize_set_rseq_members_le_heads_tails
+    (seq part <= card(seq members) * Suc H + member-wise tail sum)
+  sum_rseq_member_tails_regroup
+    (member-wise tail sum = sum over distinct tails t of
+     card(rseq_tail_rows U t) * rsize t)
+  ```
+
+- Plain meaning: combined with cfe3636 (pair budget zero) and the
+  checked nonseq-part cubic, the WHOLE set gate now rests on exactly
+  two numbers for U = the actual opened union:
+    (i)  card (rseq_members U)            (empirically linear)
+    (ii) card (rseq_tail_rows U t) per t  (bucket; empirically linear)
+  via: rsize_set U <= cubic + card(seq)*linear + sum_t bucket(t)*rsize t.
+  No self-reference, no list quantities, no active-suffix machinery.
+- Proof-engineering notes: subst with self-referential set equations
+  loops (define abstract names first); a fact of shape rsize q = ...
+  rsize(case q ...) fed to simp recurses to stack overflow (use
+  pointwise obtain inside sum.cong instead); sum.distrib must be
+  applied by rule before nat Suc-normalization merges the summands.

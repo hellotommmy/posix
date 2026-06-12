@@ -28671,4 +28671,126 @@ lemma actual_union_gate_two_summands:
   by (simp add: pair_budget_afactored1_strong_dlform_universe_zero)
 
 
+text \<open>
+  Exact non-self-referential decomposition of the union ledger: split
+  off the nonalt/nonseq part (cubic, checked), then write the SEQ part
+  as member count + head sizes + tail sizes, and regroup the tail sum
+  by distinct tails with bucket multiplicities.  After this, the cubic
+  gate rests on exactly two numbers: card of the union and the bucket
+  multiplicities.
+\<close>
+
+definition rseq_members :: "rrexp set \<Rightarrow> rrexp set" where
+  "rseq_members U = {q \<in> U. \<exists>h t. q = RSEQ h t}"
+
+lemma finite_rseq_members [simp]:
+  "finite U \<Longrightarrow> finite (rseq_members U)"
+  by (simp add: rseq_members_def)
+
+lemma rsize_set_split_rnonseq_rseq:
+  assumes fin: "finite U"
+    and members: "\<And>q. q \<in> U \<Longrightarrow>
+      rnonseq q \<or> (\<exists>h t. q = RSEQ h t)"
+  shows "rsize_set U =
+    rsize_set (rnonseq_members U) + rsize_set (rseq_members U)"
+proof -
+  define A where "A = rnonseq_members U"
+  define B where "B = rseq_members U"
+  have finA: "finite A" and finB: "finite B"
+    using fin by (simp_all add: A_def B_def rnonseq_members_def)
+  have disj: "A \<inter> B = {}"
+    by (auto simp add: A_def B_def rnonseq_members_def
+        rseq_members_def)
+  have un: "U = A \<union> B"
+    using members
+    by (auto simp add: A_def B_def rnonseq_members_def
+        rseq_members_def)
+  have "rsize_set U = rsize_set (A \<union> B)"
+    by (simp only: un[symmetric])
+  also have "... = rsize_set A + rsize_set B"
+    unfolding rsize_set_def
+    by (rule sum.union_disjoint[OF finA finB disj])
+  finally show ?thesis
+    by (simp add: A_def B_def)
+qed
+
+lemma rsize_set_rseq_members_le_heads_tails:
+  assumes fin: "finite U"
+    and heads: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+  shows "rsize_set (rseq_members U) \<le>
+    card (rseq_members U) * Suc H +
+    (\<Sum>q \<in> rseq_members U.
+      rsize (case q of RSEQ h t \<Rightarrow> t))"
+proof -
+  have "rsize_set (rseq_members U) \<le>
+      (\<Sum>q \<in> rseq_members U.
+        Suc H + rsize (case q of RSEQ h t \<Rightarrow> t))"
+    unfolding rsize_set_def
+  proof (rule sum_mono)
+    fix q
+    assume q: "q \<in> rseq_members U"
+    then obtain h t where ht: "q = RSEQ h t"
+      by (auto simp add: rseq_members_def)
+    have "rsize h \<le> H"
+      using q ht heads by (auto simp add: rseq_members_def)
+    then show "rsize q \<le>
+        Suc H + rsize (case q of RSEQ h t \<Rightarrow> t)"
+      using ht by simp
+  qed
+  also have "... =
+      (\<Sum>q \<in> rseq_members U. Suc H) +
+      (\<Sum>q \<in> rseq_members U.
+        rsize (case q of RSEQ h t \<Rightarrow> t))"
+    by (rule sum.distrib)
+  also have "... =
+      card (rseq_members U) * Suc H +
+      (\<Sum>q \<in> rseq_members U.
+        rsize (case q of RSEQ h t \<Rightarrow> t))"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma sum_rseq_member_tails_regroup:
+  assumes fin: "finite U"
+  shows "(\<Sum>q \<in> rseq_members U.
+      rsize (case q of RSEQ h t \<Rightarrow> t)) =
+    (\<Sum>t \<in> rseq_tails U. card (rseq_tail_rows U t) * rsize t)"
+proof -
+  have part: "rseq_members U =
+      (\<Union>t \<in> rseq_tails U. rseq_tail_rows U t)"
+    by (auto simp add: rseq_members_def rseq_tails_def
+        rseq_tail_rows_def)
+  have disj: "\<And>t1 t2. t1 \<in> rseq_tails U \<Longrightarrow>
+      t2 \<in> rseq_tails U \<Longrightarrow> t1 \<noteq> t2 \<Longrightarrow>
+      rseq_tail_rows U t1 \<inter> rseq_tail_rows U t2 = {}"
+    by (auto simp add: rseq_tail_rows_def)
+  have fin_tails: "finite (rseq_tails U)"
+    using fin by (rule finite_rseq_tails)
+  have fin_rows: "\<And>t. finite (rseq_tail_rows U t)"
+    using fin by (auto simp add: rseq_tail_rows_def)
+  have "(\<Sum>q \<in> rseq_members U.
+      rsize (case q of RSEQ h t \<Rightarrow> t)) =
+      (\<Sum>t \<in> rseq_tails U. \<Sum>q \<in> rseq_tail_rows U t.
+        rsize (case q of RSEQ h t' \<Rightarrow> t'))"
+    unfolding part
+  proof (rule sum.UNION_disjoint)
+    show "finite (rseq_tails U)" by (rule fin_tails)
+    show "\<forall>t\<in>rseq_tails U. finite (rseq_tail_rows U t)"
+      using fin_rows by blast
+    show "\<forall>t\<in>rseq_tails U. \<forall>t'\<in>rseq_tails U.
+        t \<noteq> t' \<longrightarrow>
+        rseq_tail_rows U t \<inter> rseq_tail_rows U t' = {}"
+      using disj by blast
+  qed
+  also have "... =
+      (\<Sum>t \<in> rseq_tails U. \<Sum>q \<in> rseq_tail_rows U t. rsize t)"
+    by (rule sum.cong[OF HOL.refl], rule sum.cong[OF HOL.refl])
+      (auto simp add: rseq_tail_rows_def)
+  also have "... =
+      (\<Sum>t \<in> rseq_tails U. card (rseq_tail_rows U t) * rsize t)"
+    by simp
+  finally show ?thesis .
+qed
+
+
 end
