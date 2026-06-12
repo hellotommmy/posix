@@ -29500,6 +29500,33 @@ proof -
     using fronts by simp
 qed
 
+lemma card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children_nf:
+  assumes nf: "apder_nf (RALTS rs)"
+    and each: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+      card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+        apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS rs) RONE - rfrontier RONE) +
+    card (rfrontier (rsimp4_SEQ_atom (RALTS rs) RONE) - rfrontier RONE -
+      apder_term_frontier_acc (RALTS rs) RONE) \<le>
+      apder_zw2 (RALTS rs)"
+proof (rule card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children)
+  fix q
+  assume q: "q \<in> set rs"
+  have "apder_nf q"
+    using nf q by simp
+  then have "rtail_nf q"
+    by (rule apder_nf_imp_rtail_nf)
+  then show "rsimp4_SEQ_atom q RONE = q"
+    by (rule rtail_nf_RONE_stable)
+next
+  show "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_term_frontier_acc q RONE - rfrontier RONE) +
+    card (rfrontier (rsimp4_SEQ_atom q RONE) - rfrontier RONE -
+      apder_term_frontier_acc q RONE) \<le> apder_zw2 q"
+    by (rule each)
+qed
+
 lemma card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children:
   assumes stable: "\<And>q. q \<in> set rs \<Longrightarrow> rsimp4_SEQ_atom q RONE = q"
     and each_carry_RONE: "\<And>q. q \<in> set rs \<Longrightarrow>

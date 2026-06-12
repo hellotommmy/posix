@@ -6630,3 +6630,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   94.197s, full Posix elapsed 0:01:41).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 07:55: CLAIM - RALTS RONE exact carry nf packaging
+
+- Synced through pushed commit f53fd63, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package
+  `card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children` with
+  the `apder_nf (RALTS rs)` premise, deriving child `RONE` stability from
+  `apder_nf_imp_rtail_nf` and `rtail_nf_RONE_stable`.
+
+## 2026-06-13 Codex 08:00: CHECKED - RALTS RONE exact carry nf packaging
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RALTS_RONE_carry_measure_le_if_children_nf`.
+- This packages exact RALTS carry at the stable `RONE` continuation behind
+  `apder_nf (RALTS rs)`, matching the existing arbitrary-continuation `Suc`
+  package.
+- Build command passed after worker check (AntimirovFactoredTransition
+  93.923s, full Posix elapsed 0:01:46).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
