@@ -15436,6 +15436,7 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   ```text
   row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le
   row_dlforms_list_size_RSEQ_RALTS_flat_payload_le
+  rtail_nf_not_enough_for_row_dlforms_list_size
   ```
 
 - Correction to the Fable ACK above: `rtail_nf q` with
@@ -15461,6 +15462,12 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   replace the repeated `length ps * tail` charge by a distinct-tail charge
   across generated rows, and recursively handle tails that are themselves
   grouped rows.
+
+- The checked counterexample
+  `rtail_nf_not_enough_for_row_dlforms_list_size` uses
+  `k = (a | b).c`: `k` is tail-normal, but opening its two alternatives costs
+  more than `rsize k`.  So "tail-normal" must not be used as a synonym for
+  "tail-cost paid".
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 09:34 local time.

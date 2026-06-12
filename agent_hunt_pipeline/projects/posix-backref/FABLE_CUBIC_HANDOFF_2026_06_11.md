@@ -73,6 +73,8 @@ row_dlforms_list_size k <= rsize k
 
 Do not use `rtail_nf k` alone as the tail-cost premise; a tail can itself be a
 grouped row and then `row_dlforms_list_size k <= rsize k` is not automatic.
+This is now checked as `rtail_nf_not_enough_for_row_dlforms_list_size` with
+`k = (a | b).c`.
 
 High-value next moves:
 

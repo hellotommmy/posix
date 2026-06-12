@@ -4857,6 +4857,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rtail_nf_not_enough_for_row_dlforms_list_size:
+  fixes a b c :: char
+  defines "k \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RCHAR c)"
+  shows "rtail_nf k"
+    and "\<not> row_dlforms_list_size k \<le> rsize k"
+  by (simp_all add: k_def row_dlforms_list_size_def
+      rsimp7_SEQ_atom_def)
+
 lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
   "rsize_set (row_dlforms r) \<le> row_dlforms_list_size r"
   using rsize_set_set_le_sum_list_rsize[of "row_dlforms_list r"]
