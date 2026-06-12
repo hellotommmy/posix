@@ -23470,6 +23470,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_filter_eq_sum_if:
+  assumes "finite A"
+  shows "card {x \<in> A. P x} = (\<Sum>x \<in> A. if P x then 1 else 0)"
+  using assms
+proof (induct A rule: finite_induct)
+  case empty
+  then show ?case by simp
+next
+  case (insert x F)
+  have split: "{y \<in> insert x F. P y} =
+      (if P x then insert x {y \<in> F. P y} else {y \<in> F. P y})"
+    by auto
+  from insert show ?case
+    by (cases "P x") (simp_all add: split)
+qed
+
 lemma sum_front_atom_mult_double_count:
   assumes fin: "finite B"
   shows "(\<Sum>a \<in> B. front_atom_mult r s a) =
@@ -23483,16 +23499,13 @@ proof -
   next
     fix a
     assume "a \<in> B"
-    have seteq: "set (afactored1 r s) \<inter> {x. a \<in> aseq_terms x} =
-        {q \<in> set (afactored1 r s). a \<in> aseq_terms q}"
-      by auto
     have "front_atom_mult r s a =
         card {q \<in> set (afactored1 r s). a \<in> aseq_terms q}"
       by (simp add: front_atom_mult_def)
     also have "... =
         (\<Sum>q \<in> set (afactored1 r s).
           (if a \<in> aseq_terms q then 1 else 0))"
-      by (subst sum.If_cases) (simp_all add: seteq)
+      by (rule card_filter_eq_sum_if) simp
     finally show "front_atom_mult r s a =
         (\<Sum>q \<in> set (afactored1 r s).
           (if a \<in> aseq_terms q then 1 else 0))" .
@@ -23505,12 +23518,10 @@ proof -
   next
     fix q
     assume "q \<in> set (afactored1 r s)"
-    have seteq2: "B \<inter> aseq_terms q = {a \<in> B. a \<in> aseq_terms q}"
-      by auto
     have "card (aseq_terms q \<inter> B) = card {a \<in> B. a \<in> aseq_terms q}"
       by (rule arg_cong[where f = card]) auto
     also have "... = (\<Sum>a \<in> B. (if a \<in> aseq_terms q then 1 else 0))"
-      by (subst sum.If_cases[OF fin]) (simp_all add: seteq2)
+      by (rule card_filter_eq_sum_if[OF fin])
     finally show "card (aseq_terms q \<inter> B) =
         (\<Sum>a \<in> B. (if a \<in> aseq_terms q then 1 else 0))" .
   qed
@@ -23518,6 +23529,36 @@ proof -
     unfolding lhs rhs
     by (rule sum.swap)
 qed
+
+lemma sum_list_map_concat_map:
+  "sum_list (map f (concat (map g xs))) =
+    sum_list (map (\<lambda>x. sum_list (map f (g x))) xs)"
+  by (induct xs) simp_all
+
+text \<open>
+  The generated-list cost splits exactly into one payment per front
+  row: each front row pays the opened list sizes of its own normal
+  derivatives.  Any per-row budget therefore bounds the total cost by
+  the budget sum over the front.
+\<close>
+
+lemma afactored1_strong_dlform_list_cost_eq_sum_over_front:
+  "afactored1_strong_dlform_list_cost r s c =
+    sum_list (map (\<lambda>q. sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+        (rpder_norm_list c q)))
+      (afactored1 r s))"
+  unfolding afactored1_strong_dlform_list_cost_def
+  by (rule sum_list_map_concat_map)
+
+lemma afactored1_strong_dlform_list_cost_le_sum_budget:
+  assumes budget: "\<And>q. q \<in> set (afactored1 r s) \<Longrightarrow>
+      sum_list (map (\<lambda>p. row_dlforms_list_size (rsimpStrong_raw p))
+        (rpder_norm_list c q)) \<le> f q"
+  shows "afactored1_strong_dlform_list_cost r s c \<le>
+    sum_list (map f (afactored1 r s))"
+  unfolding afactored1_strong_dlform_list_cost_eq_sum_over_front
+  by (rule sum_list_mono) (rule budget)
 
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>

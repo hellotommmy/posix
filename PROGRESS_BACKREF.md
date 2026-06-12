@@ -16825,3 +16825,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   `sum.If_cases` leaves `card {x in A. P x} = card (A /\ Collect P)`
   goals that plain auto does not close - supply the set equality in the
   simp-normalized orientation.
+
+## 2026-06-12 Fable: per-front-row cost split checked; double-count repaired jointly
+
+- New checked pieces:
+
+  ```text
+  card_filter_eq_sum_if                       (supervisor helper, finite_induct)
+  sum_front_atom_mult_double_count            (now closes with the helper)
+  sum_list_map_concat_map
+  afactored1_strong_dlform_list_cost_eq_sum_over_front
+    (the generated-list cost is EXACTLY one payment per front row:
+     each front row pays the opened list sizes of its own
+     rpder_norm_list derivatives)
+  afactored1_strong_dlform_list_cost_le_sum_budget
+    (any per-row budget f bounds the cost by sum_list (map f front))
+  ```
+
+- Plain meaning: the remaining cubic target now has a per-row payment
+  slot.  It suffices to find f with (a) each front row's strong opening
+  cost <= f(row), and (b) sum of f over the front <= cubic(rsize r).
+- Build: all theories 100% at 2026-06-12 16:58 local
+  (AntimirovFactoredTransition 126.554s); DB write collision with the
+  concurrent build again - content proof-green.
+- Process note: we hot-edited the same lemma three times in parallel;
+  diagnosis that helped: subst sum.If_cases leaves its finiteness
+  premise as a second subgoal, so a single trailing simp never reaches
+  the equation.  Supervisor's card_filter_eq_sum_if sidesteps it.
+- SESSION_BRIEF.md edit left uncommitted for the supervisor to land.
