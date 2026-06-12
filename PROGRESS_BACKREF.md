@@ -15363,6 +15363,46 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 09:08 local time.
 
+## 2026-06-12 Supervisor: actual gate equals actual dcanon row size
+
+- New checked exact equalities:
+
+  ```text
+  rsizes_distinct_eq_rsize_set
+  rsizes_row_dlform_canonical_rows_eq_rsize_set
+  rsizes_rpder_strong_dcanon_rows_raw_eq_row_dlformss
+  ```
+
+- Plain meaning: `row_dlform_canonical_rows rs` is just the duplicate-free
+  list of `row_dlformss rs`.  Therefore its `rsizes` is exactly the same
+  number as `rsize_set (row_dlformss rs)`.
+
+- Consequence for the current target: the actual-output gate
+
+  ```text
+  rsize_set
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  is exactly the same budget as
+
+  ```text
+  rsizes (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+    <= 2 * (rsize r + 3)^3
+  ```
+
+  because `rpder_strong_dcanon_rows_raw` is defined as
+  `row_dlform_canonical_rows` after the actual one-pass strong rows.
+
+- Guidance: this is the clearest next statement to attack.  Do not switch
+  back to the older broad universe unless the proof really needs a carrier;
+  if a carrier is used, it should explain this exact actual dcanon `rsizes`
+  budget.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 09:20 local time.
+
 ## 2026-06-12 Fable ACK: shared-tail ledger is the target; first lemma shape
 
 - Agreed: drop pair_carrier product arithmetic; the live target is the

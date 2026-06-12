@@ -29,6 +29,17 @@ rsize_set
   <= 2 * (rsize r + 3)^3
 ```
 
+Checked equivalence: this gate is exactly the same as bounding the actual
+deep-canonical strong rows:
+
+```text
+rsizes (rpder_strong_dcanon_rows_raw c (afactored1 r s))
+  <= 2 * (rsize r + 3)^3
+```
+
+because `rpder_strong_dcanon_rows_raw` is just the duplicate-free list of the
+actual output's `row_dlformss`.
+
 If this gate is proved, the checked theorem
 `rpder_strong_dcanon_rows_raw_afactored1_actual_dlforms_tight_cubic_contractI`
 already gives the canonical rows with the desired language, disjointness,

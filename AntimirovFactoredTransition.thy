@@ -432,6 +432,31 @@ next
     using tail split by simp
 qed
 
+lemma rsizes_distinct_eq_rsize_set:
+  assumes distinct: "distinct rs"
+    and rows: "set rs = U"
+  shows "rsizes rs = rsize_set U"
+  using assms
+proof (induct rs arbitrary: U)
+  case Nil
+  then show ?case
+    by (simp add: rsize_set_def)
+next
+  case (Cons q rs)
+  have q_in: "q \<in> U"
+    using Cons.prems(2) by auto
+  have tail_set: "set rs = U - {q}"
+    using Cons.prems(1,2) by auto
+  have tail: "rsizes rs = rsize_set (U - {q})"
+    by (rule Cons.hyps) (use Cons.prems tail_set in auto)
+  have fin: "finite U"
+    using Cons.prems(2) by auto
+  have split: "rsize_set U = rsize q + rsize_set (U - {q})"
+    using fin q_in by (simp add: rsize_set_def sum.remove)
+  show ?case
+    using tail split by simp
+qed
+
 lemma rsize_set_le_card_times_bound:
   assumes finite: "finite U"
     and member_size: "\<And>q. q \<in> U \<Longrightarrow> rsize q \<le> M"
@@ -5646,6 +5671,12 @@ lemma set_row_dlform_canonical_rows [simp]:
   "set (row_dlform_canonical_rows rs) = row_dlformss rs"
   by (simp add: row_dlform_canonical_rows_def
       rdistinct_set_equality)
+
+lemma rsizes_row_dlform_canonical_rows_eq_rsize_set:
+  "rsizes (row_dlform_canonical_rows rs) =
+    rsize_set (row_dlformss rs)"
+  by (rule rsizes_distinct_eq_rsize_set)
+    (simp_all add: distinct_row_dlform_canonical_rows)
 
 lemma aseq_termss_row_dlform_canonical_rows_subsetI:
   assumes terms:
@@ -16904,6 +16935,12 @@ definition rpder_strong_dcanon_rows_raw ::
   "char \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
   "rpder_strong_dcanon_rows_raw c rs =
     row_dlform_canonical_rows (rpder_strong_rows_raw c rs)"
+
+lemma rsizes_rpder_strong_dcanon_rows_raw_eq_row_dlformss:
+  "rsizes (rpder_strong_dcanon_rows_raw c rs) =
+    rsize_set (row_dlformss (rpder_strong_rows_raw c rs))"
+  by (simp add: rpder_strong_dcanon_rows_raw_def
+      rsizes_row_dlform_canonical_rows_eq_rsize_set)
 
 fun rpders_strong_dcanon_rows_raw ::
   "rrexp list \<Rightarrow> string \<Rightarrow> rrexp list" where
