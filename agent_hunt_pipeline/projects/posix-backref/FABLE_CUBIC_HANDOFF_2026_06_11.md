@@ -5,6 +5,47 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 12:29 GMT+8
+
+Current checked source should include the next supervisor/Fable brick:
+
+```text
+Fable: suffix-chain toolkit checked
+Supervisor: sequence-tail size ledger checked
+```
+
+Read the newest `PROGRESS_BACKREF.md` section:
+
+```text
+2026-06-12 Supervisor/Fable: sequence-tail size ledger checked
+```
+
+Plain definitions for the next proof attempt:
+
+- "actual output" means the rows produced by one strong derivative step,
+  opened through the current deep-row form pipeline:
+  `row_dlformss (rpder_strong_rows_raw c (afactored1 r s))`.
+- "sequence tail" means the right side `t` of a row shaped `RSEQ h t`.
+- "suffix chain" means repeatedly taking the right side of `RSEQ h t` until a
+  non-sequence expression remains.
+- "drain/nesting theorem" means: prove that the actual tails sit in a
+  controlled family of such suffix chains, so shared tails are charged once,
+  not once per front row.
+
+New checked interfaces:
+
+```text
+rsize_set_rseq_tails_le
+rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual
+rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost
+rsize_set_rseq_suffixes_quadratic
+```
+
+Use these to attack the remaining source-to-tail drain against the sharper
+actual gate.  Do not return to generic owner-DAG cardinality, and do not try to
+close the theorem from the global cubic-universe closure; both directions are
+known bad or too coarse in this repo.
+
 ## Urgent Supervisor Update, 2026-06-12 11:53 GMT+8
 
 Current checked head should include `94ab885` and the next supervisor

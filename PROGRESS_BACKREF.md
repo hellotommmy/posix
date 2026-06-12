@@ -16284,3 +16284,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   per position - the nesting/ownership lemma against the sharper
   actual gate, as the supervisor requested.
 - Build: `Finished Posix` 12:12:35.
+
+## 2026-06-12 Supervisor/Fable: sequence-tail size ledger checked
+
+- New checked supervisor pieces:
+
+  ```text
+  rsize_set_image_le
+  rsize_set_rseq_tails_le
+  rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_universe
+  rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_list_cost_actual
+  rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual
+  rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost
+  ```
+
+- Plain meaning: if `U` is the actual set of rows produced by one strong
+  derivative step, then the set of sequence tails occurring in `U` is no
+  larger in total tree size than `U` itself.  In particular, actual tails are
+  paid by the actual output, and also by the existing list-cost ledger.
+- This combines with Fable's suffix-chain toolkit, but it is still not the
+  final cubic theorem.  It prevents double-charging tails when taking the tail
+  projection; it does not yet prove that the remaining active RALTS-head copy
+  term is cubic.
+- Next target: prove a source-to-tail drain/nesting statement against the
+  sharper actual gate.  Use `rsize_set_rseq_tails_le` plus `rseq_suffixes`.
+  Do not go back to generic owner-DAG cardinality or global cubic-universe
+  closure; those routes already have checked counterexamples or exponential
+  warnings.
+- Verification: full `Posix` build passed at 2026-06-12 12:28 local time
+  (`AntimirovFactoredTransition` 62.229s cumulative).

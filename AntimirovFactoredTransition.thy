@@ -410,7 +410,7 @@ lemma rsize_set_image_le:
   assumes finite: "finite A"
     and size: "\<And>x. x \<in> A \<Longrightarrow> rsize (f x) \<le> rsize x"
   shows "rsize_set (f ` A) \<le> rsize_set A"
-  using finite
+  using finite size
 proof (induct A rule: finite_induct)
   case empty
   then show ?case
@@ -423,9 +423,31 @@ next
       rsize_set (insert (f x) (f ` A))"
     by simp
   also have "... \<le> rsize_set {f x} + rsize_set (f ` A)"
-    by (rule rsize_set_Un_le) (use fin_img in auto)
+  proof (cases "f x \<in> f ` A")
+    case True
+    have insert_eq: "insert (f x) (f ` A) = f ` A"
+      using True by auto
+    have "rsize_set (insert (f x) (f ` A)) =
+        rsize_set (f ` A)"
+      by (simp add: insert_eq)
+    then show ?thesis
+      by (simp add: rsize_set_def)
+  next
+    case False
+    then show ?thesis
+      using fin_img by (simp add: rsize_set_def)
+  qed
   also have "... \<le> rsize x + rsize_set A"
-    using insert.hyps insert.prems size[of x] by (simp add: rsize_set_def)
+  proof -
+    have singleton: "rsize_set {f x} = rsize (f x)"
+      by (simp add: rsize_set_def)
+    have fx_le: "rsize (f x) \<le> rsize x"
+      using insert.prems by simp
+    have img_le: "rsize_set (f ` A) \<le> rsize_set A"
+      by (rule insert.hyps(3)) (use insert.prems in auto)
+    show ?thesis
+      using singleton fx_le img_le by linarith
+  qed
   also have "... = rsize_set (insert x A)"
     using insert.hyps by (simp add: rsize_set_def)
   finally show ?case .
@@ -21938,8 +21960,36 @@ proof -
   qed
   have seq_le: "rsize_set ?seqs \<le> rsize_set U"
     by (rule rsize_set_mono[OF fin]) auto
-  show ?thesis
-    using eq image_le seq_le by linarith
+  have "rsize_set (rseq_tails U) = rsize_set (?tail_of ` ?seqs)"
+    using eq by simp
+  also have "... \<le> rsize_set ?seqs"
+    by (rule image_le)
+  also have "... \<le> rsize_set U"
+    by (rule seq_le)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_universe:
+  "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (afactored1_strong_dlform_universe r s c)"
+  by (rule rsize_set_mono)
+    (simp_all add:
+      row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe)
+
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_list_cost_actual:
+  "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    afactored1_strong_dlform_list_cost r s c"
+proof -
+  have "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (afactored1_strong_dlform_universe r s c)"
+    by (rule
+        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_universe)
+  also have "... \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_list_cost)
+  finally show ?thesis .
 qed
 
 lemma rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual:
@@ -21962,7 +22012,7 @@ proof -
         rsize_set_rseq_tails_rpder_strong_rows_raw_afactored1_le_actual)
   also have "... \<le> afactored1_strong_dlform_list_cost r s c"
     by (rule
-        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_list_cost)
+        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_list_cost_actual)
   finally show ?thesis .
 qed
 
