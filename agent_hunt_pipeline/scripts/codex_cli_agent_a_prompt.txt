@@ -1,3 +1,5 @@
+[HISTORICAL 2026-06-12: pilot-era worker prompt; the backref pilot is COMPLETE and frozen. For any new run, use MAINLINE.md (repo root) + the last 200 lines of PROGRESS_BACKREF.md as the task source instead of the text below.]
+
 This is an autonomous Codex CLI Agent A work iteration, not a read-only setup request.
 Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md first, then read agent_hunt_pipeline/projects/posix-backref/DUAL_AGENT_COORDINATION.md, agent_hunt_pipeline/projects/posix-backref/SESSION_BRIEF.md, PROGRESS_BACKREF.md, and BACKREF_BOUNTIES.md. After the required reading and sync checks, continue the research work.
 

@@ -1,5 +1,9 @@
 # Next Chat Handoff: Fable POSIX Cubic Supervision, 2026-06-12
 
+> See also `MAINLINE.md` (repo root) — the single-source charter; it carries
+> the same live gate plus the full checked-facts and dead-route tables, and is
+> kept current by the secretary session.
+
 Use this file to start a fresh Codex chat with minimal context.  The job is to
 supervise and, when useful, outcompete Fable on the POSIX non-backref cubic
 bound proof.  Keep the context small; open long logs only for exact theorem

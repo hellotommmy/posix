@@ -1,3 +1,7 @@
+> STATUS BANNER 2026-06-12 (secretary): HISTORICAL append-only design log
+> (last entry 2026-06-05; predates the set-ledger mainline). Authoritative
+> record of CE lemma names and dead-route refutations of earlier generations.
+> Do not take next-step instructions from this file. Live route: `MAINLINE.md`.
 # Posix Backref Design Log
 
 This file records semantic design changes that affect later proofs. It is meant

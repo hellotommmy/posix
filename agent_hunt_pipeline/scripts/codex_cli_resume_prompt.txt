@@ -4,168 +4,51 @@ Repository: C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex
 Branch: codex/backref-values
 Role: Codex, admin/worker on the shared branch.
 
-Read these files first, in this order:
-1. agent_hunt_pipeline/projects/posix-backref/CLAUDE.md
-2. agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md
-3. PROGRESS_BACKREF.md
-4. BACKREF_BOUNTIES.md
-5. agent_hunt_pipeline/scala/PosixCubicSmoke.scala
-6. FBound.thy around `strong_deferred_span_value`,
-   `strong_deferred_memo_budget`, and
-   `strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`
-7. agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 and
-   agent_hunt_pipeline/scripts/isabelle_ci.ps1 around `Route strong-memo`
+Read these, in order, and nothing else up front:
+1. MAINLINE.md (repo root) - the single-source charter. It defines the live
+   set-ledger cubic gate, the checked facts to reuse, and the dead routes.
+2. The LAST 200 lines of PROGRESS_BACKREF.md - current state, the other
+   agent's claims, and the newest supervisor instruction.
+3. DOC_INDEX.md - only to look up specifics on demand.
 
-Current override, 2026-06-03:
-- The old BR-036/BR-037 `rsimp9` proof-first route is revoked historical
-  context. Do not pursue it as a bounty or production cubic candidate.
-- The active cubic candidate route is now `StrongDeferredMemo`: keep
-  `bsimpStrong` as the small recognition tree, and reconstruct exact POSIX
-  values from the original regex through span/memo tables.
-- `scala_cubic_smoke.ps1` and `isabelle_ci.ps1` default to route
-  `strong-memo`. This skips the old emitted-tree `bsimpCubic` gate, checks
-  exact POSIX values for `StrongDeferredMemo`, runs the known CE grid, and
-  traces the Chapter 7 memo/tree data.
-- `bsimpCubic` is historical/negative diagnostic evidence only. Do not spend
-  proof effort rescuing its ordinary emitted tree size unless a future variant
-  first beats the thesis Chapter 7 baseline and passes exact POSIX value smoke.
-- The current proof-facing route is
-  `FBound.thy:strong_deferred_original_raw_row_norm_closed_memo_cubic_interface`.
-  It packages raw strong-row cubic-universe premises, POSIX value
-  reconstruction, recognition-state legacy closure, quadratic memo-state
-  budget, cubic split-probe budget, and legacy-subterm closure.
-- The next real proof problem is to instantiate the raw/shared universe `U`
-  with a POSIX-safe quotient that is strong enough for Chapter 7, then prove
-  closure and cubic cardinality/member-size bounds.
-
-Historical negative evidence, 2026-06-02:
-- The known random diagnostic with seed `20260602`, case `99`, exposes a POSIX
-  value mismatch for
-  `STAR (ALT ONE (STAR (STAR (STAR (STAR (STAR (CH a)))))))` on input `aaa`.
-- The value bug is localized to destructive sequence reassociation in
-  `bsimpCubic_ASEQ_atom`: full reassociation controls the Chapter 7 trace, but
-  `no-reassoc` is the mode that preserves tested random values. Unfortunately
-  `no-reassoc` grows too much on Chapter 7, and `keyed-no-reassoc` is not yet
-  strong enough. Even `reassoc-nonnullable-left` fails random value smoke.
-- The newest positive evidence is the DAG/shared-row route plus virtual
-  expanded pruning keys. `no-reassoc` keeps POSIX value smoke green but has high
-  tree size; exact DAG and shape-DAG sizes are much smaller. The diagnostic
-  `expanded-keyed-no-reassoc` additionally indexes virtual rows such as `a.c`
-  and `b.c` from `(a+b).c` while still emitting no-reassoc syntax. It passed
-  current exhaustive/random smoke and improves Chapter 7 k=8 length 128 final
-  tree/exact-DAG/shape-DAG from 48077/1721/718 to 34581/1465/462.
-- Therefore the next useful work is not proving old hooks. The next useful work
-  is to design and test a value-safe pruning route: delayed/indexed linear
-  forms, richer row/continuation keys with reconstruction, or generalized POSIX
-  values with a checked transfer back to the original `val` shape.
-- Measurement caveat: on the thesis Figure 7.6 k=5 family, `bsimpStrong`
-  reproduces the expected hundreds-scale ordinary tree trace (`n=16` is 820).
-  `expanded-keyed-no-reassoc` is not yet a tree-level reproduction: at `n=30`
-  its ordinary tree is 3849, although exact DAG/shape-DAG are 276/132. Do not
-  confuse shared-DAG evidence with a tree-size theorem.
-- POSIX caveat: `scala_cubic_smoke.ps1 -CheckStrong` currently fails for
-  thesis-style `bsimpStrong` on `STAR (STAR (CH a))` with input `a`; nested-star
-  value structure is collapsed. Do not use `bsimpStrong` as a POSIX candidate
-  without either repairing that simplifier or adding a checked generalized-value
-  reconstruction theorem.
-- CE-driven update: `bsimpStrongSafe` disables the value-unsafe strong output
-  rewrites and passes exact-value smoke through random depth 5, input 6, seed
-  20260602, but its Figure 7.6 k=5 tree size at n=30 is 5133. This is a
-  diagnostic baseline, not the desired endpoint. The desired endpoint is small
-  `bsimpStrong`-style regex plus local value transformers/reconstruction.
-- `scala_cubic_smoke.ps1 -TraceStrongRecon` checks the first local
-  reconstruction sketches on the CE witnesses while keeping actual
-  `bsimpStrong` output trees. It is route evidence only; continue toward a
-  compositional derivative-time certificate. The current version also checks
-  annotated-value local certificate laws; add new laws whenever a new strong
-  rewrite is proposed.
-- `scala_cubic_smoke.ps1 -CheckStrongCoreCert` checks the current
-  compositional certificate prototype for the sequence/star core of
-  `bsimpStrong` on derivative-generated epsilon values. It now certifies
-  alternation flatten/distinct, but not shared-suffix row pruning.
-- `scala_cubic_smoke.ps1 -TraceStrongCore` compares certified-core size against
-  thesis `bsimpStrong`; current Chapter 7 evidence says row pruning is the next
-  missing certificate layer.
-- Direct shared-suffix row pruning is now certificate-smoked in the surrounding
-  `AALTs` context. It is not a standalone row equivalence. Current k=5,n=30
-  certified-core size is `678`.
-- `scala_cubic_smoke.ps1 -CheckStrongCoreLoop` now checks that `bder`,
-  `bsimpStrongCoreCert`, `injectA`, and the accumulated continuation reconstruct
-  `baselineValue` across the whole input. This passes the default exhaustive
-  grid and deterministic random smoke; next target is a proof-facing invariant.
-- Read `agent_hunt_pipeline/projects/posix-backref/CERTIFIED_STRONG_CORE.md`
-  before proof work. It names the intended `cert_recon` relation and loop
-  invariant.
+Standing facts (do not re-derive, do not re-litigate):
+- The backref pilot chain is COMPLETE and frozen (BR-001..BR-022 paid).
+- The duplicated opened-list cost target is REFUTED
+  (afactored1_strong_dlform_list_cost_cubic_false). bsimpCubic, strong-memo
+  span tables, and shared-DAG plateau hunting are historical; never revive
+  them as proof targets.
+- The CARD half of the set gate is checked; the SIZE half is the open
+  problem. Follow the newest narrow instruction in the PROGRESS tail.
 
 At the start of each iteration:
-1. Run `git fetch origin codex/backref-values`.
-2. Run `git pull --rebase --autostash origin codex/backref-values`.
-3. Run `git status --short --branch` and inspect recent commits.
-4. Preserve untracked backup files `BackRefLang.thy~`, `BackRefLang4Pilot.thy~`,
-   and `Lexer.thy~`; do not delete or commit them.
+1. git pull --rebase --autostash origin codex/backref-values
+2. git status --short --branch and inspect recent commits.
+3. powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-proof-workers.ps1 -Action Check
+   If a worker is live, read its output instead of starting a build.
 
-Smoke commands:
-- Default gate:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1`
-- Optional deterministic random gate required before BR-039/BR-040 work:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6`
-- Diagnostic sequence modes:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -SeqMode no-reassoc`
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -SeqMode keyed-no-reassoc`
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 2 -InputLength 3 -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -SeqMode expanded-keyed-no-reassoc -Ch7K 8 -Ch7Lengths "4,8,16,32" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 1000 -Ch7ShapeThreshold 500`
-- DAG/shared-row diagnostic:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 2 -RandomCases 1000 -RandomDepth 5 -RandomInputLength 6 -SeqMode expanded-keyed-no-reassoc -SharedNoReassoc -Ch7K 8 -Ch7Lengths "4,8,16,32" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 1000 -Ch7ShapeThreshold 500`
-- Thesis k=5 comparison:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -Depth 1 -InputLength 1 -TraceStrong -SeqMode expanded-keyed-no-reassoc -Ch7K 5 -Ch7Lengths "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30" -Ch7TreeThreshold 1000000 -Ch7DagThreshold 10000 -Ch7ShapeThreshold 5000`
-- Strong POSIX diagnostic, expected to fail until repaired:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -CheckStrong -Ch7TreeThreshold 1000000 -TimeoutSeconds 240`
-- Strong-safe CE diagnostic:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1 -SeqMode expanded-keyed-no-reassoc -CheckStrongSafe -RandomCases 2000 -RandomDepth 5 -RandomInputLength 6 -Ch7TreeThreshold 1000000 -TimeoutSeconds 240`
-- Full verification:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240`
+Build (one at a time, repo wrappers only):
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300
+After a red build: read the first "*** Failed to finish proof" block, change
+ONE small named lemma, rebuild. Never relaunch while the first failing goal
+is unchanged.
 
 Research tactics:
-- Do not start with proof. First make Scala smoke pass for exact POSIX values,
-  shared-suffix pruning `(a+b).c + (a+d).c`, and the thesis Chapter 7
-  three-layer-star family.
-- Do not emit reassociated `ASEQ` syntax from a production simplifier unless a
-  bitcode/value reconstruction theorem is part of the design.
-- It is acceptable to use associativity as a comparison key or proof-only index
-  if the executable output keeps enough structure to decode against the
-  original POSIX value semantics.
-- If a proposed simplifier fails smoke, record the counterexample in
-  `PROGRESS_BACKREF.md`, `BACKREF_BOUNTIES.md`, and
-  `agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md`.
-- Keep Isabelle proof commands under the performance budget: if a line takes
-  more than 1-2 seconds, split it; if it runs past 10 seconds, stop and make a
-  helper lemma.
+- One small checked brick at a time; search before creating; no wrapper-only
+  packages; keep proof commands inside the performance budget (0.5 s broad
+  automation; split anything slower).
+- If a statement looks false, refute it with a checked counterexample or
+  record the blocker - both are paid results; never force a proof.
+- Smoke gates (scala_cubic_smoke.ps1) are required only if the executable
+  algorithm itself changes.
 
-Allowed files for this task:
-- agent_hunt_pipeline/scala/PosixCubicSmoke.scala
-- agent_hunt_pipeline/scripts/scala_cubic_smoke.ps1
-- agent_hunt_pipeline/scripts/isabelle_ci.ps1
-- PROGRESS_BACKREF.md
-- BACKREF_BOUNTIES.md
-- AGENTS.md
-- agent_hunt_pipeline/projects/posix-backref/CLAUDE.md
-- agent_hunt_pipeline/projects/posix-backref/DESIGN_LOG.md
-- BlexerSimp.thy, FBound.thy, and GeneralRegexBound.thy only after the Scala
-  candidate passes the required smoke gates.
-
-Do not:
-- Introduce wrappers, sorry, oops, axiomatization, quick_and_dirty, oracle,
-  admit, or weakened theorem statements.
-- Touch Blexer.thy, Lexer.thy, RegLangs.thy, PosixSpec.thy, or ClosedForms*.thy
-  for this cubic task.
-- Claim BR-039 or BR-040 until the named candidate passes deterministic random
-  smoke and full local CI.
-
-Before committing, run:
+Before committing, run the four guards:
 python agent_hunt_pipeline/scripts/backref_bounty_guard.py
 python agent_hunt_pipeline/scripts/backref_no_cheat_guard.py
 python agent_hunt_pipeline/scripts/backref_statement_guard.py
 python agent_hunt_pipeline/scripts/backref_role_guard.py --role admin
-powershell -NoProfile -ExecutionPolicy Bypass -File agent_hunt_pipeline/scripts/isabelle_ci.ps1 -SkipFetch -NoCertificate -Role admin -SessionTimeoutSeconds 240
 
-Commit small checked steps, then pull/rebase, rerun the relevant guards if
-needed, and push to origin/codex/backref-values.
+Do not: introduce sorry/oops/axioms or weakened statements; touch frozen
+originals without admin approval; revert other agents' work; wait idle when
+no worker is live and no tracked edit conflicts with yours.
+
+Commit small checked steps, update the PROGRESS tail, pull/rebase, push.

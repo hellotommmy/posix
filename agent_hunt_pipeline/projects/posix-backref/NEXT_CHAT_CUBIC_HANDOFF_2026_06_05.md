@@ -1,3 +1,11 @@
+> STATUS BANNER 2026-06-12 (secretary): HISTORICAL (June 5-8 handoff).
+> Both of its recommended next targets were later REFUTED: the opened-list
+> cost route (afactored1_strong_dlform_list_cost_cubic_false, RONE-pair tower)
+> and the deep-frontier linear-card premise
+> (apder_deep_frontier_linear_card_false; only the NTIMES-free fragment
+> survives). Do not take next-step instructions from this file. It remains the
+> best pre-June-9 inventory of frontier-route theorem names and CE witnesses.
+> Live route: `MAINLINE.md`. Content below is unchanged.
 # Next Chat Cubic Handoff, 2026-06-05
 
 This handoff is for a fresh Codex/Cursor/CLI chat taking over the POSIX

@@ -1,3 +1,7 @@
+> STATUS BANNER 2026-06-12 (secretary): HISTORICAL snapshot of the June 6-8
+> proof state. Its theorem statements are settled and citable, but its route
+> spine (choice rows / accumulator contracts / normal-canonical) predates the
+> current set-ledger gate in `MAINLINE.md`. Content below is unchanged.
 # Cubic Bound Proof Write-Up
 
 Date: 2026-06-06

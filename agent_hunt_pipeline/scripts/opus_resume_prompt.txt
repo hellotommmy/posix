@@ -1,1 +1,7 @@
-Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are Opus, a worker on shared branch codex/backref-values in the posix-opus clone. Fetch first, check branch. Your assigned task: work on binjval definition and correctness proofs (BR-005, BR-011, BR-012) in BackRefValues.thy. Study xder in BackRefLang.thy to understand derivative shapes. Define binjval case-by-case. Run Isabelle BackRefPilot build. Update PROGRESS_BACKREF.md. Commit small checked steps. Do not touch Blexer, bounds, or frozen statements. Stop only when blocked or after a useful checked checkpoint.
+[RETIRED 2026-06-12: the Cursor/Opus worker is retired and its old task
+(binjval, BR-005/011/012) is COMPLETE and paid. Do not redo it.]
+If this prompt is ever reused: read MAINLINE.md (repo root) and the last 200
+lines of PROGRESS_BACKREF.md; they define the only active task (the
+set-ledger cubic gate). Continue the smallest safe checked step, build with
+scripts\codex-isabelle-build-posix.ps1, update the PROGRESS tail, commit and
+push.

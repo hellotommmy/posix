@@ -1,3 +1,9 @@
+> STATUS BANNER 2026-06-12 (secretary): HISTORICAL as a session entry point.
+> Start new sessions from `MAINLINE.md` (repo root) +
+> `NEXT_CHAT_FABLE_SUPERVISION_HANDOFF_2026_06_12.md`. The top override blocks
+> below match the live set-ledger gate; the middle layers are a same-day trail
+> of superseded subtargets, kept because they record exact helper-lemma names
+> and counterexamples. Content below is unchanged.
 # Fable Cubic Handoff, 2026-06-11
 
 This is the short handoff for trying Claude Fable on the POSIX non-backref

@@ -8,8 +8,12 @@ full handoff.
 If this session is about the non-backref cubic-bound/Fable run, do not use the
 old BackRefPilot task list below as the active task.  Instead read:
 
-- `agent_hunt_pipeline/projects/posix-backref/FABLE_CUBIC_HANDOFF_2026_06_11.md`
+- `MAINLINE.md` (repository root — the single-source charter; overrides this file)
+- `agent_hunt_pipeline/projects/posix-backref/NEXT_CHAT_FABLE_SUPERVISION_HANDOFF_2026_06_12.md`
 - the last 200 lines of `PROGRESS_BACKREF.md`
+
+Everything below this override is HISTORICAL pilot-era context; the pilot
+chain is complete and frozen (see MAINLINE.md section 5).
 
 ### Cubic/Fable Build Discipline
 

@@ -1,3 +1,7 @@
+> STATUS BANNER 2026-06-12 (secretary): HISTORICAL (2026-06-03 generation).
+> The span/deferred POSIX-value theorems it inventories are checked and remain
+> valid; the size-accounting plan and "next proof tasks" are superseded by the
+> set-ledger mainline in `MAINLINE.md`. Content below is unchanged.
 # Certified Strong-Core Route
 
 Last updated: 2026-06-03

@@ -1,1 +1,11 @@
-Read CLAUDE.md and agent_hunt_pipeline/projects/posix-backref/CLAUDE.md. You are GPT-5.5, a worker on shared branch codex/backref-values. Fetch first, check branch. Your assigned task: define the bitcoded backreference lexer in a new file BackRefBlexer.thy, referencing backRef.sc for the Scala implementation. Extend arexp with ABACKREF/AHALF/ARESIDUE, define fuse/intern/erase/bnullable/bmkeps/bder for new constructors. Create pilot/ROOT entry if needed. Run Isabelle BackRefPilot build. Update PROGRESS_BACKREF.md. Commit small checked steps. Do not modify Blexer.thy, BlexerSimp.thy, bounds, or frozen statements. Stop only when blocked or after a useful checked checkpoint.
+Read MAINLINE.md (repo root) first, then the last 200 lines of
+PROGRESS_BACKREF.md. You are GPT-5.5, supervisor/worker on shared branch
+codex/backref-values in C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex.
+The only open problem is the set-ledger cubic gate (MAINLINE.md section 1-2);
+the backref pilot chain is COMPLETE and frozen - do not redo it. Sync with
+git pull --rebase --autostash, check scripts\codex-proof-workers.ps1 -Action
+Check, then either supervise Fable's current narrow instruction or prove the
+next small checked lemma yourself. Use existing checked facts (MAINLINE.md
+section 3); never chase dead routes (section 4). Update the PROGRESS tail,
+run the guards, commit and push small checked steps. Stop only when blocked
+on the admin.
