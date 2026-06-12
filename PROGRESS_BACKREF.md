@@ -4799,3 +4799,27 @@ clean stale repository information.  Welcome - current accurate state:
   discharges the active_key_weight_bound premise of the b735872 gate
   generically; the remaining premises are the head_bound instance and
   the pair-budget/front-card cubic accounting.
+
+## 2026-06-12 Fable: CHECKED - head bound instance, both gate premises now stocked
+
+- Full Posix build GREEN at 2026-06-12 20:20 local
+  (AntimirovFactoredTransition 84.036s, exit 0).  New checked chain:
+
+  ```text
+  row_dlforms_seq_member_head_nonalt
+  row_dlformss_seq_member_head_nonalt
+  afactored1_strong_dlform_universe_eq_row_dlformss_generated
+  row_dlformss_rpder_strong_rows_raw_subset_universe
+  actual_union_seq_head_size_linear
+    (legacy r ==> RSEQ heads of the actual union are <= Suc(2*rsize r))
+  ```
+
+- Plain meaning: opened rows always have nonalt heads; the actual
+  union sits inside the dlform universe; nonalt universe heads live in
+  the front-terms carrier; carrier members are linear.  So the
+  b735872 pair-budget gate now has BOTH premises stocked:
+  H = Suc (2 * rsize r) (linear, legacy fragment) and
+  M = Suc H + rsizes(generated) (one degree, 6102fea).
+- Next: instantiate the gate with these and reduce the cubic question
+  to the three remaining summands (nonseq members ledger, front-card x
+  tail weights, pair_budget x M).

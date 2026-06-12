@@ -28427,4 +28427,63 @@ proof -
 qed
 
 
+text \<open>
+  Head bound instance for the pair-budget gate: every RSEQ member of
+  the actual opened union has a nonalt head (opening recurses through
+  keyed shapes), the union lies inside the strong dlform universe, the
+  universe places nonalt heads inside the front-terms carrier, and the
+  carrier members are linear in the root size.
+\<close>
+
+lemma row_dlforms_seq_member_head_nonalt:
+  "RSEQ h t \<in> row_dlforms q \<Longrightarrow> nonalt h"
+proof (induct q rule: row_dlforms.induct)
+  case (1)
+  then show ?case by simp
+next
+  case (2 rs)
+  then show ?case by auto
+next
+  case (3 ps k)
+  then show ?case by auto
+qed (auto split: if_splits)
+
+lemma row_dlformss_seq_member_head_nonalt:
+  "RSEQ h t \<in> row_dlformss rows \<Longrightarrow> nonalt h"
+  by (auto simp add: row_dlformss_def
+      intro: row_dlforms_seq_member_head_nonalt)
+
+lemma afactored1_strong_dlform_universe_eq_row_dlformss_generated:
+  "afactored1_strong_dlform_universe r s c =
+    row_dlformss (concat (map (rpder_strong_list_raw c) (afactored1 r s)))"
+  by (auto simp add: afactored1_strong_dlform_universe_def
+      rsimpStrong_dlform_closure_def row_dlformss_def
+      rpder_strong_list_raw_def)
+
+lemma row_dlformss_rpder_strong_rows_raw_subset_universe:
+  "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    afactored1_strong_dlform_universe r s c"
+  unfolding afactored1_strong_dlform_universe_eq_row_dlformss_generated
+  by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+
+lemma actual_union_seq_head_size_linear:
+  assumes legacy: "legacy_rrexp r"
+    and x: "RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  shows "rsize h \<le> Suc (rsize r + rsize r)"
+proof -
+  have inU: "RSEQ h t \<in> afactored1_strong_dlform_universe r s c"
+    using x row_dlformss_rpder_strong_rows_raw_subset_universe
+    by blast
+  have na: "nonalt h"
+    using x by (rule row_dlformss_seq_member_head_nonalt)
+  have front: "h \<in> strong_derivative_front_terms r (s @ [c])"
+    by (rule afactored1_strong_dlform_universe_seq_nonalt_head_in_front_terms
+        [OF inU na])
+  show ?thesis
+    by (rule strong_derivative_front_terms_member_size_linear
+        [OF legacy front])
+qed
+
+
 end
