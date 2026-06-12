@@ -29323,6 +29323,48 @@ lemma card_apder_term_frontier_acc_RSTAR_diff_le:
   by (rule card_apder_term_frontier_acc_RSTAR_diff_le_Suc)
     (use body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one in auto)
 
+lemma rsimp4_SEQ_atom_apder_nf_not_RONE:
+  assumes nf: "apder_nf p"
+    and not_one: "p \<noteq> RONE"
+  shows "rsimp4_SEQ_atom p k \<noteq> RONE"
+  using nf not_one
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by (cases k) simp_all
+next
+  case (RALTS rs)
+  then show ?case by (cases k) simp_all
+next
+  case (RSEQ p1 p2)
+  have p1_nf: "apder_nf p1"
+    using RSEQ.prems by simp
+  have p1_not_one: "p1 \<noteq> RONE"
+    using RSEQ.prems by simp
+  show ?case
+    by simp (rule RSEQ.hyps(1)[OF p1_nf p1_not_one])
+next
+  case (RSTAR p)
+  then show ?case by (cases k) simp_all
+next
+  case (RNTIMES p n)
+  then show ?case by (cases k) simp_all
+next
+  case (RBACKREF4 p1 p2 p3 p4 cs)
+  then show ?case by (cases k) simp_all
+next
+  case (RHALF p cs rep)
+  then show ?case by (cases k) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (cases k) simp_all
+qed
+
 lemma card_rfrontier_RSEQ_diff_le_one:
   "card (rfrontier (RSEQ h k) - rfrontier k) \<le> 1"
 proof -

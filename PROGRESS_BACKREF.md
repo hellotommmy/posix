@@ -6852,3 +6852,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `card_singleton_Diff_le_one`; rerun passed after worker check
   (AntimirovFactoredTransition 82.933s, full Posix elapsed 0:01:47).
   No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 09:35: CLAIM - rsimp4 non-RONE preservation
+
+- Synced through pushed commit d4181cb, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow k-chain brick: prove the helper
+  `rsimp4_SEQ_atom_apder_nf_not_RONE` separately.  The blocked normal-nonalt
+  shift needs this to rule out the lone RALTS/`RONE` continuation branch
+  before applying the new `card_rfrontier_RSEQ_diff_le_one` helper.
+
+## 2026-06-13 Codex 09:40: CHECKED - rsimp4 non-RONE preservation
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `rsimp4_SEQ_atom_apder_nf_not_RONE`.
+- The proof uses explicit constructor cases; in the SEQ case, the induction
+  hypothesis on the left head is enough because `apder_nf (RSEQ p1 p2)`
+  gives `p1 ~= RONE`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  84.591s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
