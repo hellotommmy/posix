@@ -16691,3 +16691,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: full `Posix` build passed at 2026-06-12 14:03 local time
   (`AntimirovFactoredTransition` 64.892s cumulative).
+
+## 2026-06-12 Fable: the drain invariant in its final equivalent form
+
+- Position-injection design audit, all variants traced to one fact.
+  Opening cost of a keyed row ~ (head leaves) x (row size).  Summing
+  over the front:
+
+  ```text
+  sum(opening) <= max_row_size * sum over atoms a of mult(a)
+  ```
+
+  where mult(a) = number of CURRENT front rows whose head contains the
+  atom a.  Atoms live in the carrier (checked, cubic), row size is
+  bounded (checked, quadratic on fragment).  Every route is cubic IF
+  AND ONLY IF the multiplicity mult(a) is O(1)-ish (or its sum is
+  linear-in-carrier): one atom position does not head many distinct
+  live rows at the same input position.
+- That is the drain invariant in its sharpest form: DISTINCT live rows
+  with the same head atom must differ in their counter/suffix state,
+  and counter monotonicity caps how many such states coexist.  The
+  probe numbers (rows 225 max, then draining) are mult-sums in action.
+- This is a multi-step semantic invariant (it constrains the front as
+  a function of the derivation history), not a single-step syntactic
+  fact - which is exactly why every single-step assembly bottomed out
+  at one extra factor.  Proposal: next sessions formalize
+  front-row multiplicity per atom and prove (fragment first)
+  mult(a) <= number of distinct suffix-states per position, with the
+  fragment version mult(a) <= 1 + star-nesting depth.
+- All current tools (carrier, ledger, buckets, ext carriers, weighted
+  splits) compose into the cubic gate the moment this single lemma
+  lands.
