@@ -23448,6 +23448,77 @@ lemma rsize_set_rseq_suffixes_ext_le_card_times_rsize:
   by (rule rsize_set_le_card_times_bound)
     (simp_all add: rseq_suffixes_ext_member_size_le)
 
+text \<open>
+  Front atom multiplicity: how many current front rows mention a given
+  atom.  The remaining opening-cost target is controlled exactly when
+  the multiplicity sum is controlled; the double-counting identity
+  below converts between per-atom and per-row accounting.
+\<close>
+
+definition front_atom_mult :: "rrexp \<Rightarrow> string \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "front_atom_mult r s a =
+    card {q \<in> set (afactored1 r s). a \<in> aseq_terms q}"
+
+lemma front_atom_mult_le_length:
+  "front_atom_mult r s a \<le> length (afactored1 r s)"
+proof -
+  have "front_atom_mult r s a \<le> card (set (afactored1 r s))"
+    unfolding front_atom_mult_def
+    by (rule card_mono) auto
+  also have "... \<le> length (afactored1 r s)"
+    by (rule card_length)
+  finally show ?thesis .
+qed
+
+lemma sum_front_atom_mult_double_count:
+  assumes fin: "finite B"
+  shows "(\<Sum>a \<in> B. front_atom_mult r s a) =
+    (\<Sum>q \<in> set (afactored1 r s). card (aseq_terms q \<inter> B))"
+proof -
+  have lhs: "(\<Sum>a \<in> B. front_atom_mult r s a) =
+      (\<Sum>a \<in> B. \<Sum>q \<in> set (afactored1 r s).
+        (if a \<in> aseq_terms q then 1 else 0))"
+  proof (rule sum.cong)
+    show "B = B" by simp
+  next
+    fix a
+    assume "a \<in> B"
+    have seteq: "set (afactored1 r s) \<inter> {x. a \<in> aseq_terms x} =
+        {q \<in> set (afactored1 r s). a \<in> aseq_terms q}"
+      by auto
+    have "front_atom_mult r s a =
+        card {q \<in> set (afactored1 r s). a \<in> aseq_terms q}"
+      by (simp add: front_atom_mult_def)
+    also have "... =
+        (\<Sum>q \<in> set (afactored1 r s).
+          (if a \<in> aseq_terms q then 1 else 0))"
+      by (subst sum.If_cases) (simp_all add: seteq)
+    finally show "front_atom_mult r s a =
+        (\<Sum>q \<in> set (afactored1 r s).
+          (if a \<in> aseq_terms q then 1 else 0))" .
+  qed
+  have rhs: "(\<Sum>q \<in> set (afactored1 r s). card (aseq_terms q \<inter> B)) =
+      (\<Sum>q \<in> set (afactored1 r s). \<Sum>a \<in> B.
+        (if a \<in> aseq_terms q then 1 else 0))"
+  proof (rule sum.cong)
+    show "set (afactored1 r s) = set (afactored1 r s)" by simp
+  next
+    fix q
+    assume "q \<in> set (afactored1 r s)"
+    have seteq2: "B \<inter> aseq_terms q = {a \<in> B. a \<in> aseq_terms q}"
+      by auto
+    have "card (aseq_terms q \<inter> B) = card {a \<in> B. a \<in> aseq_terms q}"
+      by (rule arg_cong[where f = card]) auto
+    also have "... = (\<Sum>a \<in> B. (if a \<in> aseq_terms q then 1 else 0))"
+      by (subst sum.If_cases[OF fin]) (simp_all add: seteq2)
+    finally show "card (aseq_terms q \<inter> B) =
+        (\<Sum>a \<in> B. (if a \<in> aseq_terms q then 1 else 0))" .
+  qed
+  show ?thesis
+    unfolding lhs rhs
+    by (rule sum.swap)
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

@@ -16796,3 +16796,32 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   more wrappers around the later pruned output list.
 - Verification: full `Posix` build passed at 2026-06-12 14:33 local time
   (`AntimirovFactoredTransition` 70.928s cumulative).
+
+## 2026-06-12 Fable: atom multiplicity defined + double-counting identity (checked)
+
+- New checked pieces in `AntimirovFactoredTransition.thy`:
+
+  ```text
+  front_atom_mult r s a
+    = card {q in set (afactored1 r s). a in aseq_terms q}
+  front_atom_mult_le_length        (mult <= length of the front)
+  sum_front_atom_mult_double_count (finite B ==>
+    sum over a in B of mult = sum over front rows q of card (aseq_terms q /\ B))
+  ```
+
+- Plain meaning: summing "how many rows mention atom a" over any finite
+  atom set B equals summing "how many B-atoms this row mentions" over
+  the front rows.  Instantiating B with the checked cubic carrier turns
+  any per-atom multiplicity bound into a per-row opening budget.
+- Note: this front-level identity is the schema; per supervisor 40e9d86
+  the paying target is now `afactored1_strong_dlform_list_cost r s c
+  <= cubic(rsize r)`, so the useful next instance is the same identity
+  over the GENERATED rows `rpder_norm_list`-image rather than afactored1.
+- Build: all theories 100% at 2026-06-12 14:46 local
+  (AntimirovFactoredTransition 71.482s); DB write collided with the
+  concurrent build (known SQLITE PRIMARYKEY race) - content proof-green.
+- Repair note: `refl` is shadowed in this theory (a covered-rows
+  reflexivity fact), so `sum.cong[OF refl]` picks the wrong fact; and
+  `sum.If_cases` leaves `card {x in A. P x} = card (A /\ Collect P)`
+  goals that plain auto does not close - supply the set equality in the
+  simp-normalized orientation.
