@@ -132,6 +132,20 @@ card strong front carrier
 So the next target is specifically to bound that active-suffix bucket term,
 not to redo the head/tail split.
 
+Per-tail size split is now checked:
+`rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI`.
+Use this instead of forcing a single constant bucket bound.  It reduces the
+actual deduplicated gate to:
+
+```text
+nonseq-member cost
++ sum over distinct tails t of
+    (card strong_front + card active_suffix_bucket(t)) * (Suc H + rsize t)
+```
+
+where `H` bounds actual sequence-head size.  Remaining work: bound the weighted
+active-suffix-bucket/tail sum and the head/tail size terms.
+
 Next high-value concrete target: instantiate this with
 `U = row_dlformss (rpder_strong_rows_raw c (afactored1 r s))` and prove a
 useful actual-output bound for `card (rseq_heads U)` and the distinct tail

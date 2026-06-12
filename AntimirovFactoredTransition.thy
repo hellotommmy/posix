@@ -6765,6 +6765,33 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_rseq_rows_bucket_bound_funI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow> card (rseq_tail_rows U t) \<le> B t"
+  shows "rsize_set (rseq_rows U) \<le>
+    (\<Sum>t \<in> rseq_tails U. B t * (Suc H + rsize t))"
+proof -
+  let ?T = "rseq_tails U"
+  have "rsize_set (rseq_rows U) =
+      rsize_set (\<Union>t \<in> ?T. rseq_tail_rows U t)"
+    by (simp add: rseq_rows_eq_UN_tail_rows)
+  also have "... \<le> (\<Sum>t \<in> ?T. rsize_set (rseq_tail_rows U t))"
+    by (rule rsize_set_UN_le)
+      (use finite in auto)
+  also have "... \<le> (\<Sum>t \<in> ?T. B t * (Suc H + rsize t))"
+  proof (rule sum_mono)
+    fix t
+    assume t: "t \<in> ?T"
+    show "rsize_set (rseq_tail_rows U t) \<le>
+        B t * (Suc H + rsize t)"
+      by (rule rsize_set_rseq_tail_rows_bucket_boundI
+          [OF finite head_bound bucket_bound[OF t]])
+  qed
+  finally show ?thesis .
+qed
+
 lemma rsize_set_split_rseq_tails_bucket_boundI:
   assumes finite: "finite U"
     and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
@@ -6787,6 +6814,34 @@ proof -
       rsize_set (rnonseq_members U) +
       (\<Sum>t \<in> rseq_tails U. B * (Suc H + rsize t))"
     using rsize_set_rseq_rows_bucket_boundI
+      [OF finite head_bound bucket_bound]
+    by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma rsize_set_split_rseq_tails_bucket_funI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow> card (rseq_tail_rows U t) \<le> B t"
+  shows "rsize_set U \<le>
+    rsize_set (rnonseq_members U) +
+    (\<Sum>t \<in> rseq_tails U. B t * (Suc H + rsize t))"
+proof -
+  have U_eq: "U = rnonseq_members U \<union> rseq_rows U"
+    by (simp add: rnonseq_members_union_rseq_rows)
+  have "rsize_set U =
+      rsize_set (rnonseq_members U \<union> rseq_rows U)"
+    by (rule arg_cong[OF U_eq])
+  also have "... \<le>
+      rsize_set (rnonseq_members U) + rsize_set (rseq_rows U)"
+    by (rule rsize_set_Un_le)
+      (use finite in auto)
+  also have "... \<le>
+      rsize_set (rnonseq_members U) +
+      (\<Sum>t \<in> rseq_tails U. B t * (Suc H + rsize t))"
+    using rsize_set_rseq_rows_bucket_bound_funI
       [OF finite head_bound bucket_bound]
     by simp
   finally show ?thesis
@@ -20855,6 +20910,37 @@ proof -
         card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket)
   show ?thesis
     using split add_mono[OF nonalt alt] by linarith
+qed
+
+lemma rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI:
+  assumes head_bound:
+    "\<And>h t. RSEQ h t \<in>
+      row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<Longrightarrow>
+      rsize h \<le> H"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    (\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      (card (strong_derivative_front_terms r (s @ [c])) +
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) t)) *
+      (Suc H + rsize t))"
+proof (rule rsize_set_split_rseq_tails_bucket_funI)
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  show "finite ?U"
+    by simp
+  show "\<And>h t. RSEQ h t \<in> ?U \<Longrightarrow> rsize h \<le> H"
+    by (rule head_bound)
+  fix t
+  assume "t \<in> rseq_tails ?U"
+  show "card (rseq_tail_rows ?U t) \<le>
+      card (strong_derivative_front_terms r (s @ [c])) +
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t)"
+    by (rule
+        card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket)
 qed
 
 lemma rflts_singleton_member_rtail_nf_props:

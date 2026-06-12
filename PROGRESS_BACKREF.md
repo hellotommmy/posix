@@ -15601,11 +15601,14 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   card_rseq_tail_rows_le_rseq_heads
   card_rseq_tail_nonalt_head_rows_le
   rsize_set_rseq_rows_bucket_boundI
+  rsize_set_rseq_rows_bucket_bound_funI
   rsize_set_split_rseq_tails_bucket_boundI
+  rsize_set_split_rseq_tails_bucket_funI
   rsize_set_split_rseq_tails_head_count_boundI
   card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front
   card_rseq_tail_alt_head_rows_rpder_strong_rows_raw_afactored1_le_active_suffix_bucket
   card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front_plus_active_suffix_bucket
+  rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI
   ```
 
 - Plain meaning: take the actual one-pass output
@@ -15672,8 +15675,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   This does not yet bound the active-suffix bucket; it reduces the remaining
   bucket-count problem to that existing mechanism.
 
+- The per-tail size decomposition is now checked as
+  `rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_plus_active_suffix_bucketI`.
+  Unlike the earlier constant-`B` split, it allows the bucket bound to vary
+  with the tail `t`:
+
+  ```text
+  rsize_set (row_dlformss actual_output)
+    <= nonseq-member cost
+       + sum over distinct tails t of
+           (card strong_front + card active_suffix_bucket(t))
+           * (Suc H + rsize t)
+  ```
+
+  Here `H` is any bound on sequence-head size in the actual dlform set.  This
+  is the current clean decomposition of the deduplicated gate; the remaining
+  hard term is the active-suffix-bucket weighted tail sum, plus the separate
+  head/tail size bounds.
+
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:30 local time.
+  `Posix` green at 2026-06-12 10:34 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
