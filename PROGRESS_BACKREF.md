@@ -5124,3 +5124,33 @@ clean stale repository information.  Welcome - current accurate state:
   quadratic slice.  Next attack stays (a) one-step contraction
   F_{t+1} <= max(F_t, C*n^2) along ACTUAL derivative chains, or
   (b) depth-liveness (deep rows force matching input suffixes).
+
+## 2026-06-12 Fable: one-step law probed - increments are quadratic, F is near-unimodal
+
+- Increment probe along actual chains (mirror, worst over run):
+
+  ```text
+  family              n    maxF/n^2  maxInc/n^2  #up-steps/#steps
+  starseq d=20 rand   61     0.103     0.086        1/200
+  starseq d=40 rand  121     0.280     0.271        1/200
+  starseq d=40 adv   121     0.304     0.174        8/164
+  evil k=6            45     1.068     0.283        6/150
+  ```
+
+- Plain reading: the "increment <= C*n" candidate is FALSE (a single
+  step can jump ~0.27 n^2); the true shape is: one (or few) quadratic
+  jumps to a plateau, then F is (almost) non-increasing - starseq
+  random words rise exactly ONCE in 200 steps.  So the right formal
+  candidates are:
+  (a) PEAK ONE-STEPNESS: F_t <= max over q reachable of
+      rsizes(one step from a front containing q) - i.e. the peak is
+      attained immediately after a single opening step, never by
+      accumulation; equivalently F_{t+1} <= max(F_t, peak(r)) with
+      peak(r) <= C n^2 a SINGLE-STEP quantity;
+  (b) NON-INCREASE after peak: rsizes(afactored_step c rows) <=
+      rsizes rows whenever rows is "saturated" (needs the right
+      saturation predicate - candidate: all rows already in
+      apder_rows-normal form with shared spines).
+  Both reduce multi-step liveness to one-step statements plus an
+  invariant predicate.  This is the first formulation of the missing
+  degree that is single-step-checkable.
