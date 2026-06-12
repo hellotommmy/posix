@@ -29082,6 +29082,32 @@ proof -
     using small by linarith
 qed
 
+lemma card_carry_shift_le:
+  assumes finA: "finite A"
+    and finF: "finite F"
+  shows "card (A - K) + card (F - K - A) \<le>
+    card (A - F) + card (F - K)"
+proof -
+  let ?S1 = "A - K"
+  let ?S2 = "F - K - A"
+  have finS1: "finite ?S1"
+    using finA by simp
+  have finS2: "finite ?S2"
+    using finF by simp
+  have disj: "?S1 \<inter> ?S2 = {}"
+    by blast
+  have cover: "?S1 \<union> ?S2 \<subseteq> (A - F) \<union> (F - K)"
+    by blast
+  have "card ?S1 + card ?S2 = card (?S1 \<union> ?S2)"
+    using card_Un_disjoint[OF finS1 finS2 disj] by simp
+  also have "... \<le> card ((A - F) \<union> (F - K))"
+    by (rule card_mono)
+      (use finA finF cover in auto)
+  also have "... \<le> card (A - F) + card (F - K)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_diff_le_Suc:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
@@ -29125,6 +29151,26 @@ lemma card_apder_term_frontier_acc_RSTAR_diff_le:
     apder_zw2 (RSTAR r)"
   by (rule card_apder_term_frontier_acc_RSTAR_diff_le_Suc)
     (use body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one in auto)
+
+lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
+  assumes body: "card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RSTAR r) k) -
+      rfrontier (rsimp4_SEQ_atom (RSTAR r) k)) \<le> apder_zw2 r"
+  shows "card (apder_term_frontier_acc (RSTAR r) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RSTAR r) k) - rfrontier k -
+      apder_term_frontier_acc (RSTAR r) k) \<le> apder_zw2 (RSTAR r)"
+proof -
+  let ?A = "apder_term_frontier_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+  let ?F = "rfrontier (rsimp4_SEQ_atom (RSTAR r) k)"
+  have "card (?A - rfrontier k) + card (?F - rfrontier k - ?A) \<le>
+      card (?A - ?F) + card (?F - rfrontier k)"
+    by (rule card_carry_shift_le) simp_all
+  also have "... \<le> apder_zw2 r + 1"
+    using body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one[of r k]
+    by linarith
+  finally show ?thesis
+    by simp
+qed
 
 lemma card_UN_lessThan_diff_le_mult:
   assumes each: "\<And>m. m < n \<Longrightarrow> card (A m - K) \<le> C"
@@ -29353,32 +29399,6 @@ proof -
       (use finA finB finF finG cover in auto)
   also have "... \<le> card ?R1 + card ?R2 + card ?R3 + card ?R4"
     by (rule card_Un4_le)
-  finally show ?thesis .
-qed
-
-lemma card_carry_shift_le:
-  assumes finA: "finite A"
-    and finF: "finite F"
-  shows "card (A - K) + card (F - K - A) \<le>
-    card (A - F) + card (F - K)"
-proof -
-  let ?S1 = "A - K"
-  let ?S2 = "F - K - A"
-  have finS1: "finite ?S1"
-    using finA by simp
-  have finS2: "finite ?S2"
-    using finF by simp
-  have disj: "?S1 \<inter> ?S2 = {}"
-    by blast
-  have cover: "?S1 \<union> ?S2 \<subseteq> (A - F) \<union> (F - K)"
-    by blast
-  have "card ?S1 + card ?S2 = card (?S1 \<union> ?S2)"
-    using card_Un_disjoint[OF finS1 finS2 disj] by simp
-  also have "... \<le> card ((A - F) \<union> (F - K))"
-    by (rule card_mono)
-      (use finA finF cover in auto)
-  also have "... \<le> card (A - F) + card (F - K)"
-    by (rule card_Un_le)
   finally show ?thesis .
 qed
 

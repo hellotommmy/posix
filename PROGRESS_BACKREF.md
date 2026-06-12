@@ -6256,3 +6256,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   78.522s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 05:05: CLAIM - STAR carry-measure assembly
+
+- Synced through pushed commit c2ded8a, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the STAR case for the carry measure.  Use
+  `card_carry_shift_le` plus the checked one-point STAR frontier shift to
+  turn a child D-bound at `rsimp4_SEQ_atom (RSTAR r) k` into the parent
+  carry-measure bound for `RSTAR r`.
+
+## 2026-06-13 Codex 05:10: CHECKED - STAR carry-measure assembly
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSTAR_carry_measure_le`.
+- First build failed because `card_carry_shift_le` was still ordered after
+  the STAR lemmas.  Moved that helper earlier in the row-count section and
+  reran; build passed after worker check (AntimirovFactoredTransition
+  87.477s, full Posix elapsed 0:01:36).
+- This packages the STAR carry-measure case from a child D-bound plus the
+  checked one-point STAR shift.  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
