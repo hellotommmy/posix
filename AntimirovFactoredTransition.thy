@@ -4820,6 +4820,12 @@ lemma row_dlforms_list_size_RSEQ_RALTS [simp]:
       (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
   by (induct ps) (simp_all add: row_dlforms_list_size_def)
 
+lemma row_dlforms_list_size_nonseq_nonalt_le:
+  assumes "rnonseq r" "nonalt r"
+  shows "row_dlforms_list_size r \<le> rsize r"
+  using assms
+  by (cases r) (simp_all add: row_dlforms_list_size_def)
+
 lemma row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le:
   assumes payload: "rnonseq p" "nonalt p"
     and tail_cost: "row_dlforms_list_size k \<le> rsize k"
@@ -4855,6 +4861,18 @@ proof -
   also have "... = rsizes ps + length ps * ?T"
     by (rule split)
   finally show ?thesis .
+qed
+
+lemma row_dlforms_list_size_RSEQ_RALTS_flat_payload_flat_tail_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+    and tail: "rnonseq k" "nonalt k"
+  shows "row_dlforms_list_size (RSEQ (RALTS ps) k) \<le>
+    rsizes ps + length ps * Suc (rsize k)"
+proof (rule row_dlforms_list_size_RSEQ_RALTS_flat_payload_le)
+  show "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+    by (rule payloads)
+  show "row_dlforms_list_size k \<le> rsize k"
+    by (rule row_dlforms_list_size_nonseq_nonalt_le[OF tail])
 qed
 
 lemma rtail_nf_not_enough_for_row_dlforms_list_size:

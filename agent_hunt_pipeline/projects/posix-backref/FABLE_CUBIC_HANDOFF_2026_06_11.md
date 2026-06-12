@@ -75,6 +75,9 @@ Do not use `rtail_nf k` alone as the tail-cost premise; a tail can itself be a
 grouped row and then `row_dlforms_list_size k <= rsize k` is not automatic.
 This is now checked as `rtail_nf_not_enough_for_row_dlforms_list_size` with
 `k = (a | b).c`.
+The leaf case is checked by `row_dlforms_list_size_nonseq_nonalt_le`, and the
+flat-tail package is
+`row_dlforms_list_size_RSEQ_RALTS_flat_payload_flat_tail_le`.
 
 High-value next moves:
 

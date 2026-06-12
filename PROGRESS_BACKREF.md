@@ -15434,8 +15434,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - New checked lemmas:
 
   ```text
+  row_dlforms_list_size_nonseq_nonalt_le
   row_dlforms_list_size_rsimp7_SEQ_atom_flat_payload_le
   row_dlforms_list_size_RSEQ_RALTS_flat_payload_le
+  row_dlforms_list_size_RSEQ_RALTS_flat_payload_flat_tail_le
   rtail_nf_not_enough_for_row_dlforms_list_size
   ```
 
@@ -15462,6 +15464,10 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   replace the repeated `length ps * tail` charge by a distinct-tail charge
   across generated rows, and recursively handle tails that are themselves
   grouped rows.
+
+- The positive leaf case is also checked: if the tail is flat
+  (`rnonseq k` and `nonalt k`), then the tail-cost premise follows from
+  `row_dlforms_list_size_nonseq_nonalt_le`.
 
 - The checked counterexample
   `rtail_nf_not_enough_for_row_dlforms_list_size` uses
