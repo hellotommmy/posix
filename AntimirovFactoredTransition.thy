@@ -21677,6 +21677,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_afactored1_strong_dlform_universe_alt_nodes_le_generated:
+  "card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c)) \<le>
+    length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  have "card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c)) \<le>
+      card (afactored1_strong_dlform_universe r s c)"
+    by (rule card_raw_shared_prune_active_suffix_alt_nodes_le) simp
+  also have "... \<le>
+      length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule card_afactored1_strong_dlform_universe_le_generated)
+  finally show ?thesis .
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

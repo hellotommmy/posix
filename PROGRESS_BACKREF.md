@@ -15955,3 +15955,16 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 11:11 local time.
+
+## 2026-06-12 Fable: alt-node count rides the ledger too
+
+- New checked lemma
+  card_afactored1_strong_dlform_universe_alt_nodes_le_generated:
+  the active alt-node count of the step universe is at most
+  length gen + rsizes gen (alt-node projection <= card U <= ledger).
+- With the supervisor pair-budget reduction this gives
+  pair_budget <= list_cost x ledger, all on generated-row numbers.
+  Every counting object is now on the ONE ledger; the single remaining
+  mathematical fact is that the ledger itself (equivalently the
+  front-sum) is cubic in rsize r - the drain invariant.
+- Build: `Finished Posix` 11:15:03.
