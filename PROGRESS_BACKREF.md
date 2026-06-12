@@ -15051,3 +15051,34 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   carry strong-simplified outputs (the delta-acc induction gains one
   case for rsimpStrong_raw images; rsimpStrong only shrinks or
   collapses rows, so the linear count should survive).
+
+## 2026-06-12 Supervisor: even deep-frontier-plus-one is not enough
+
+- New checked counterexample:
+
+  ```text
+  apder_strong_dlfrontier_not_insert_RONE_deep_frontier_subset
+  ```
+
+- Plain meaning: after the previous counterexample, one tempting repair was
+  to use `insert RONE (apder_deep_frontier r)` as the carrier.  That is also
+  false.
+- Minimal shape:
+
+  ```text
+  r = (0*) . ((a) . d*)
+  x = a . d*
+  ```
+
+  Strong simplification collapses the left `0*` to `1`, so the right-hand
+  row `a . d*` becomes visible in `apder_strong_dlfrontier r`.  The old deep
+  frontier of `r` contains the blocked root row and the derivative/star rows,
+  but it does not contain this newly exposed right-hand row, and adding only
+  `RONE` does not fix that.
+- Guidance: do not spend more cycles trying to get the strong dlfrontier
+  budget by reusing `apder_deep_frontier r` with a small finite patch such as
+  `{RONE}`.  The carrier must account for rows exposed when strong
+  simplification deletes nullable/zero-star prefixes.  Prefer the checked
+  one-pass/generated-row machinery or a new carrier that explicitly owns these
+  exposed rows.
+- Verification: full `Posix` build passed at 2026-06-12 08:13 local time.

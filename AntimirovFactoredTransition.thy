@@ -9839,6 +9839,39 @@ proof -
     using RONE_in RONE_notin by blast
 qed
 
+lemma apder_strong_dlfrontier_not_insert_RONE_deep_frontier_subset:
+  fixes a d :: char
+  defines "k \<equiv> RSEQ (RALTS [RCHAR a]) (RSTAR (RCHAR d))"
+  defines "r \<equiv> RSEQ (RSTAR RZERO) k"
+  defines "x \<equiv> RSEQ (RCHAR a) (RSTAR (RCHAR d))"
+  shows "legacy_rrexp r"
+    and "apder_nf r"
+    and "x \<in> apder_strong_dlfrontier r"
+    and "x \<notin> insert RONE (apder_deep_frontier r)"
+    and "\<not> apder_strong_dlfrontier r \<subseteq>
+      insert RONE (apder_deep_frontier r)"
+proof -
+  show "legacy_rrexp r"
+    by (simp add: r_def k_def)
+  show "apder_nf r"
+    by (simp add: r_def k_def)
+  have root_row: "r \<in> apder_rows r"
+    by (simp add: apder_rows_def)
+  have x_dlform: "x \<in> row_dlforms (rsimpStrong_raw r)"
+    by (simp add: r_def k_def x_def rsimpStrong_ALTs_raw_def
+        rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  show x_in: "x \<in> apder_strong_dlfrontier r"
+    unfolding apder_strong_dlfrontier_def
+      rsimpStrong_dlform_closure_def
+    using root_row x_dlform by blast
+  show x_notin: "x \<notin> insert RONE (apder_deep_frontier r)"
+    by (simp add: r_def k_def x_def apder_deep_frontier_def
+        apder_dfrontier_acc_def rsimp7_SEQ_atom_def)
+  show "\<not> apder_strong_dlfrontier r \<subseteq>
+      insert RONE (apder_deep_frontier r)"
+    using x_in x_notin by blast
+qed
+
 definition rsimpStrong_frontier_closure :: "rrexp set \<Rightarrow> rrexp set" where
   "rsimpStrong_frontier_closure U =
     (\<Union>p \<in> U. rfrontier (rsimpStrong_raw p))"
