@@ -4967,3 +4967,35 @@ clean stale repository information.  Welcome - current accurate state:
   rsize(case q ...) fed to simp recurses to stack overflow (use
   pointwise obtain inside sum.cong instead); sum.distrib must be
   applied by rule before nat Suc-normalization merges the summands.
+
+## 2026-06-12 Fable: THE invariant pinned - front total size is QUADRATIC
+
+- Multi-step probe of the two remaining quantities (worst over the
+  whole input, python mirror):
+
+  ```text
+  family         n   F=rsizes(front) F/n^2   G=rsizes(generated) G/n^2
+  ch7 evil k=4   23      550          1.04        2310            4.37
+  ch7 evil k=5   33     1155          1.06        5005            4.60
+  bridge CE      11       53          0.44         106            0.88
+  unary mix      31      381          0.40         693            0.72
+  ```
+
+- Plain reading: rsizes(afactored1 r s) <= ~1.1 * n^2 across every
+  family and every step; G stays a constant multiple of F.  Plugging
+  F-quadratic into the checked decomposition chain makes EVERY summand
+  cubic: card(union) <= G <= c*n^2, seq part <= n^2 * linear-H = n^3,
+  tail sums likewise.  With the checked fragment front bound (cubic)
+  the same assembly gives only quartic - exactly one degree from the
+  front bound.  So the entire gate now reduces to ONE invariant:
+
+  ```text
+  rsizes (afactored1 r s) <= C * (rsize r)^2        (any s; fragment ok)
+  ```
+
+- Structural reason to believe it: afactored1 rows are normalized
+  partial-derivative rows; classical Antimirov gives #rows <= awidth+1
+  (linear) and per-row size linear-ish -> total quadratic.  BR-033
+  artifacts (partial_derivative_path_universe etc.) may already hold
+  the row-count half.  Next: locate/prove row-count linear and
+  per-row-size linear for afactored1 on the fragment.
