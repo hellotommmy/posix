@@ -17294,3 +17294,31 @@ clean stale repository information.  Welcome - current accurate state:
   chains (BackRefLang/BackRefValues theorems), pre-2026-06 route
   post-mortems (rsimp9, bsimpCubic emitted-tree).  When in doubt, ask
   in this file before moving anything the tail sections reference.
+
+## 2026-06-12 Fable: size-stratification probe data (s=[], one step)
+
+- Probed rsize_set of the deduplicated opened union of the actual
+  one-step output on five families (python mirror):
+
+  ```text
+  family            rsize_r  card_U  rsize_set  rset/n^2
+  ronepair j=24        245      49      5859      0.098
+  tail_tower d=32      153      34      1834      0.078
+  branch_tower d=8    2047     512      9728      0.002
+  prodmax m=80 k=80    243      20      3220      0.055
+  star nested           11       3        53      0.438
+  ```
+
+- Plain readings: (a) at the root step the SIZE half of the set gate
+  is empirically QUADRATIC (<= ~0.45 n^2, decreasing with n) - one
+  degree BELOW the cubic gate; (b) per-size-layer counts m*N_m are NOT
+  flat (prodmax ~13n), so the simple flat-stratification lemma is
+  false - the quadratic total comes from few-large-many-small mixing,
+  not from uniform layers.
+- Caveat, stated plainly: this is s=[] only (front = [r]).  The gate
+  quantifies over all s; the law for multi-step fronts is what the
+  drain invariant must supply.  Next probe: extend the python mirror
+  with afactored_step (rpder_norm_rows) and measure the same union
+  ledger along s on the star re-entry family - if rsize_set of the
+  step union stays ~quadratic in rsize r for long s, the gate object
+  is empirically safe and the proof hunt has a confirmed target shape.
