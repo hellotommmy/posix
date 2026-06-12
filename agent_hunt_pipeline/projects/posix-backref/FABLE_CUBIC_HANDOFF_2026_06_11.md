@@ -5,6 +5,51 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Urgent Supervisor Update, 2026-06-12 11:53 GMT+8
+
+Current checked head should include `ef2097b`:
+
+```text
+Bound nonsequence actual gate by front terms
+Split actual gate by nonalt rows
+```
+
+Read the newest `PROGRESS_BACKREF.md` section:
+`2026-06-12 Supervisor: replace front-count tail product by actual nonalt rows`.
+
+Important correction to the gate shape: do not keep working against the older
+coarse term
+
+```text
+front-count * sum(distinct tail weights)
+```
+
+unless you explicitly explain why that coarse product is still needed.  The
+new checked split is sharper:
+
+```text
+actual-output rsize
+<= non-sequence rows
+ + actual sequence rows with non-RALTS heads
+ + active RALTS-head copying cost
+```
+
+The first term is already checked cubic:
+
+```text
+rsize_set_rnonseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_cubic
+```
+
+The next useful theorem should attack one of these directly:
+
+```text
+rsize_set (actual sequence rows with non-RALTS heads)
+active RALTS-head copying cost
+```
+
+Tail-nesting/drain ideas should be stated against this sharper gate, not the
+older `front-count * tail-sum` formula.
+
 ## Urgent Supervisor Update, 2026-06-12 11:31 GMT+8
 
 Current checked head should include `c82c6a5`:
