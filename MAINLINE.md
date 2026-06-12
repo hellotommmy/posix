@@ -59,10 +59,23 @@ Vocabulary (fixed, do not rename):
      `card(union)` (empirically linear; best checked bound one degree in the
      generated total) and `bucket(t)` (empirically linear; best checked
      bound cubic). No self-reference remains in this decomposition.
-- **Current narrow instruction:** prove a linear (or any sub-quadratic)
-  bound for the active-key count / bucket width on the per-step object —
-  candidate invariant: active tails of a single strong step are tails of the
-  SAME front-row family, pinned by the rpder_norm chain — or find the CE.
+- **Late-night refinement (22:25–23:45, commits 5865745..5f41633).** The
+  SEQ-part obligation was staticized: dynamic front rows live in the static
+  `apder_rows` carrier (`afactored1_apder_rows_subset`), whose member sizes
+  are now CHECKED quadratic (`apder_rows_member_size_quadratic`, nf
+  fragment). The whole gate (nf fragment) now closes by assembly once
+  EITHER of two named frontiers lands:
+  1. **The D law (row-count linear):**
+     `apder_nf r ==> apder_nf k ==> card (apder_term_frontier_acc r k -
+     rfrontier k) <= apder_zwidth r`. True on >200k samples; SIX inductive
+     strengthenings falsified with recorded CEs. Full self-contained
+     statement, dead-ends and suggested attacks: `MATHPROBLEM_ROWCOUNT.md`
+     (repo root) — ideal for a fresh single-focus session or sub-bounty.
+  2. **The liveness slice:** fronts above `C * n^2` only shrink (zero
+     violations empirically; needs a saturation predicate).
+- **Current narrow instruction:** attack the D law via the
+  list-version/duplicate-accounting or k-chain-fragment routes in
+  `MATHPROBLEM_ROWCOUNT.md` — NOT via the six falsified strengthenings.
   Do not fall back to `*_list_cost_alt_nodes` / generated-ledger wrappers
   (they lose a degree).
 

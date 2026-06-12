@@ -20,6 +20,8 @@ Reading order for a fresh session: `MAINLINE.md` → last ~200 lines of
 | `MAINLINE.md` | LIVE | Single-source charter: live theorem, proof state, checked-facts table, dead routes, distilled rules, session checklist. Overrides older route statements. |
 | `PROGRESS_BACKREF.md` | LIVE | Append-only progress log AND the inter-agent coordination channel (claims, corrections, supervisor gates). Read the tail, append at the bottom. Pre-06-11 head archived (see §5). |
 | `agent_hunt_pipeline/projects/posix-backref/NEXT_CHAT_FABLE_SUPERVISION_HANDOFF_2026_06_12.md` | LIVE | Compact supervisor handoff for the current set-ledger run: build discipline, checked facts, what not to do. |
+| `MATHPROBLEM_ROWCOUNT.md` | LIVE | Self-contained statement of the D law (Antimirov row-count linearity) — the main remaining sub-problem of the cubic gate. Includes six falsified strengthenings with CEs and suggested attacks. Hand to a fresh single-focus session. |
+| `CUBIC_OPEN_PROBLEM.tex` / `.pdf` | LIVE | 6-page self-contained mathematical statement of the set-ledger cubic gate: definitions, conjecture, checked facts, refutations, acceptance criteria, notation dictionary. |
 | `BACKREF_BOUNTIES.md` | LIVE | Bounty board + ledger, parsed by `backref_bounty_guard.py` — never restructure. 14 open bounties; 2026-06-12 adds a 20,000 cubic overlay (12k final theorem / 5k major bridge / 3k checked negative). Note: BR-039/BR-040 prose still describes the superseded strong-memo route; the artifact lists remain valid checked infrastructure. Known bookkeeping flag: paid 74,970 vs balances 73,950 (gap 1,020), admin to reconcile. |
 | `CLAUDE.md` (root) | LIVE | Two-line pointer into the rules and charter. |
 
