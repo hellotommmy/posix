@@ -6101,3 +6101,36 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   79.661s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 04:00: CLAIM - audit RNTIMES-zero D-law counterexample
+
+- Synced through pushed commit 44574ea, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- During the frontier-plus-acc planning audit I found a likely raw-zw2 D-law
+  counterexample using zero counted repetitions under an alternation
+  continuation.  Narrow checked brick: add a concrete Isabelle lemma showing
+  the row-count law fails for
+  `RSEQ (RCHAR c) (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])`
+  at `k = RONE`.
+
+## 2026-06-13 Codex 04:05: CHECKED/BLOCKER - raw zw2 D law false with RNTIMES 0
+
+- New checked counterexample in `AntimirovFactoredTransition.thy`:
+  `apder_zw2_D_law_rntimes_zero_alt_false`.
+- Concrete witness:
+  `r = RSEQ (RCHAR c)
+    (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])`, `k = RONE`.
+  Isabelle checks `legacy_rrexp r`, `apder_nf r`,
+  `card (apder_term_frontier_acc r RONE - rfrontier RONE) = 2`, and
+  `apder_zw2 r = 1`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  78.695s, full Posix elapsed 0:01:33).
+- Updated `MAINLINE.md` and `MATHPROBLEM_ROWCOUNT.md`: the unrestricted raw
+  zw2 law is no longer the live target.  The salvage target for the current
+  cubic payoff is the rntimes-free zw2 D law, matching
+  `apder_zw2_rntimes_free_le_rsize`, unless a zero-count-aware NTIMES
+  weight/premise is introduced later.
+- Appended the CE to `EVIL_PATTERNS.md` as B6 with deception datum: the raw
+  zw2 repair had passed the reported 295,551 deep samples and was caught by
+  this directed RNTIMES-zero audit.

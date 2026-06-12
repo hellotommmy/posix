@@ -29003,6 +29003,20 @@ lemma apder_term_frontier_acc_RZERO_right_empty [simp]:
   "apder_term_frontier_acc r RZERO = {}"
   by (induct r) auto
 
+lemma apder_zw2_D_law_rntimes_zero_alt_false:
+  defines "zalt \<equiv> RALTS
+    [RNTIMES (RCHAR (CHR ''a'')) 0,
+     RNTIMES (RCHAR (CHR ''b'')) 0]"
+  defines "cex \<equiv> RSEQ (RCHAR (CHR ''c'')) zalt"
+  shows "legacy_rrexp cex"
+    and "apder_nf cex"
+    and "apder_nf RONE"
+    and "card (apder_term_frontier_acc cex RONE - rfrontier RONE) = 2"
+    and "apder_zw2 cex = 1"
+    and "\<not> card (apder_term_frontier_acc cex RONE - rfrontier RONE) \<le>
+      apder_zw2 cex"
+  by (simp_all add: cex_def zalt_def)
+
 lemma card_diff_le_Suc_card_diff_if_small_middle:
   assumes finA: "finite A"
     and finB: "finite B"

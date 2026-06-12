@@ -244,6 +244,29 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   case 99** (depth 5 / input 6). The single hardest-to-find value bug in the
   project.
 
+## B6. Zero-count NTIMES alternation — killed unrestricted raw zw2 D
+
+- **rrexp**:
+  ```
+  r = RSEQ (RCHAR c)
+        (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])
+  k = RONE
+  ```
+- **PCRE**: `c(?:a{0}|b{0})`. For real-engine fuzzing, preserve the explicit
+  `{0}` branches instead of simplifying them away.
+- **killed**: the unrestricted corrected `apder_zw2` D law
+  `card (apder_term_frontier_acc r k - rfrontier k) <= apder_zw2 r`.
+  Checked lemma:
+  `apder_zw2_D_law_rntimes_zero_alt_false`
+  (`AntimirovFactoredTransition.thy`), with row count `2` and budget `1`.
+- **deception**: the raw zw2 repair had passed the reported **295,551** deep
+  samples; this was caught only by a directed supervisor audit of
+  `RNTIMES _ 0` continuations.
+- **mechanism**: `RNTIMES x 0` has no accumulator rows and contributes zero
+  `zw2` budget, but it remains a distinct syntactic frontier atom. A preceding
+  character imports every zero-count alternative through a single character
+  slot, so two `{0}` alternatives already overdraw the unrestricted budget.
+
 ---
 
 # Suggested fuzzer use

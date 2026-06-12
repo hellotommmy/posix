@@ -1,12 +1,14 @@
 # Open Problem: Antimirov Row-Count Linearity (the D law)
 
-Status: OPEN, CORRECTED 2026-06-13.  The original max-1 `apder_zwidth`
-D law and the first J* numeric invariant are FALSE at depth 5 (see
-CORRECTION below).  The live target is the corrected `apder_zw2` law;
-do not spend effort on the old zwidth statement except as historical
-counterexample context.  Landing the corrected law in Isabelle makes the
-checked chain for the POSIX set-ledger cubic gate close to cubic on the
-nf/rntimes-free fragment (see MAINLINE.md and PROGRESS_BACKREF.md tail).
+Status: OPEN, CORRECTED TWICE 2026-06-13.  The original max-1
+`apder_zwidth` D law and the first J* numeric invariant are FALSE at depth 5
+(see CORRECTION below).  The raw `apder_zw2` law is also FALSE if zero counted
+repetitions are allowed in continuations: a checked 04:00 CE uses
+`RNTIMES _ 0` alternatives with zero budget but non-`RONE` frontier rows.
+The live salvage target for the current cubic chain is therefore the
+`rntimes_free` instance of the `apder_zw2` law, or a future zero-count-aware
+weight/premise if the admin chooses to reopen the general NTIMES statement.
+Do not try to prove the raw unrestricted `zw2` law.
 
 ## Definitions (all in AntimirovFactoredTransition.thy)
 
@@ -31,6 +33,14 @@ nf/rntimes-free fragment (see MAINLINE.md and PROGRESS_BACKREF.md tail).
 
 ```
 apder_nf r ==> apder_nf k ==>
+card (acc r k - rfrontier k) <= apder_zw2 r
+```
+
+This unrestricted form is now checked false.  The current proof-useful target
+is the rntimes-free form:
+
+```
+apder_nf r ==> apder_nf k ==> rntimes_free r ==> rntimes_free k ==>
 card (acc r k - rfrontier k) <= apder_zw2 r
 ```
 
@@ -66,6 +76,14 @@ card (acc r k - rfrontier k) <= apder_zw2 r
    stated (<= zwidth r2) is FALSE by the same CE family with the
    singleton F(SEQ) point; some +constant or a structurally smarter
    merge is needed.
+5. Raw `apder_zw2` D is FALSE with zero counted repetitions:
+   `r = RSEQ (RCHAR c)
+     (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])`,
+   `k = RONE`.  Isabelle checks `card(acc r RONE - {RONE}) = 2`
+   while `apder_zw2 r = 1`
+   (`apder_zw2_D_law_rntimes_zero_alt_false`).  Mechanism: each
+   `RNTIMES _ 0` contributes no accumulator rows and no `zw2` budget, but
+   remains a distinct frontier atom imported by the preceding character.
 
 ## Payoff when landed
 
@@ -87,6 +105,10 @@ card (acc r k - rfrontier k) <= apder_zw2 r
   (rdistinct-style) so the overlap becomes a computable quantity.
 - Prove first for the k-chain fragment (rfrontier k a singleton all
   the way down), then lift over the single degenerate k=RONE layer.
+- For the current cubic payoff, prove the rntimes-free D law first.  If
+  the general NTIMES target is reopened, add a zero-count frontier slot
+  (for example a `max 1`/normalization premise around `RNTIMES _ 0`) before
+  attempting induction.
 
 ## HISTORICAL BREAKTHROUGH CANDIDATE (REFUTED 2026-06-13 01:05)
 
@@ -149,3 +171,25 @@ Notes for the prover:
   directed nested-star families before proving.  The J* shape may
   still be the right INDUCTION SKELETON over zw2 - re-derive its
   equality anatomy under zw2 before the Isabelle attempt.
+
+## CORRECTION (2026-06-13 04:00): raw zw2 insufficient with RNTIMES 0
+
+- CHECKED CE:
+
+  ```
+  r = RSEQ (RCHAR c)
+        (RALTS [RNTIMES (RCHAR a) 0, RNTIMES (RCHAR b) 0])
+  k = RONE
+  card(acc r k - rfrontier k) = 2
+  apder_zw2 r = 1
+  ```
+
+  Isabelle lemma:
+  `apder_zw2_D_law_rntimes_zero_alt_false`.
+- Mechanism: `RNTIMES x 0` is nullable and has empty derivative
+  accumulator, but its syntactic frontier is still the atom
+  `RNTIMES x 0`; an alternation of two such atoms imports two rows through
+  one preceding character slot.
+- The rntimes-free payoff route remains viable and is now the narrow live
+  target.  Do not attempt the unrestricted raw `zw2` law unless the weight
+  or premises are repaired first.
