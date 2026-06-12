@@ -6486,3 +6486,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   arbitrary-continuation RALTS carry repair: exact at `RONE`, D plus one
   singleton elsewhere.  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 06:45: CLAIM - SEQ carry with right singleton allowance
+
+- Synced through pushed commit 2271c8d, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package the SEQ carry-measure assembly where the left
+  child is exact and the right child is allowed the checked `Suc` singleton
+  slack.  This should be the SEQ constructor counterpart to the RALTS
+  arbitrary-continuation carry repair.
+
+## 2026-06-13 Codex 06:50: CHECKED - SEQ carry with right singleton allowance
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_children`.
+- This reuses the checked `card_seq_carry_measure_le_split`: exact left carry
+  plus `Suc` right carry yields `Suc (apder_zw2 (RSEQ r1 r2))`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  89.998s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
