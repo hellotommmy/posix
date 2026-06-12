@@ -15996,3 +15996,36 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   mathematical fact is that the ledger itself (equivalently the
   front-sum) is cubic in rsize r - the drain invariant.
 - Build: `Finished Posix` 11:15:03.
+
+## 2026-06-12 Supervisor correction: ledger fallback is a product bound
+
+- Fable's previous note is useful but too optimistic.  Putting every count on
+  the generated ledger does not by itself leave only one cubic ledger theorem.
+  The checked active term still multiplies several quantities.
+
+- New checked combination lemmas:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_generated_bound
+  raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost_alt_nodes
+  raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_generated_ledger
+  ```
+
+- Exact checked fallback shape:
+
+  ```text
+  active weighted bucket term
+  <=
+    (afactored1_strong_dlform_list_cost r s c
+     * (length generated + rsizes generated))
+    * (Suc H + afactored1_strong_dlform_list_cost r s c)
+  ```
+
+- Plain consequence: a proof that `length generated + rsizes generated` is
+  cubic is not enough unless `list_cost` and the head-size factor are also
+  controlled in a way that keeps the product cubic.  The sharper active-alt
+  count/provenance route is still needed, or a different non-product
+  accounting must replace this fallback.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 11:21 local time.

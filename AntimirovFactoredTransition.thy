@@ -21694,6 +21694,101 @@ proof -
   finally show ?thesis .
 qed
 
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_generated_bound:
+  "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le>
+    afactored1_strong_dlform_list_cost r s c *
+      (length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+       rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?G = "length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  have pair:
+      "raw_shared_prune_active_suffix_pair_budget
+        (afactored1_strong_dlform_universe r s c) \<le>
+       afactored1_strong_dlform_list_cost r s c * ?A"
+    by (rule
+        afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound)
+  have alt: "?A \<le> ?G"
+    by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
+  have "afactored1_strong_dlform_list_cost r s c * ?A \<le>
+      afactored1_strong_dlform_list_cost r s c * ?G"
+    by (rule mult_left_mono[OF alt]) simp
+  with pair show ?thesis
+    by linarith
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost_alt_nodes:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t)) \<le>
+    (afactored1_strong_dlform_list_cost r s c *
+      card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?P = "raw_shared_prune_active_suffix_pair_budget
+    (afactored1_strong_dlform_universe r s c)"
+  let ?M = "Suc H + afactored1_strong_dlform_list_cost r s c"
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  have weighted:
+      "(\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) t) *
+          (Suc H + rsize t)) \<le> ?P * ?M"
+    by (rule
+        raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost)
+  have pair: "?P \<le> ?L * ?A"
+    by (rule
+        afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound)
+  have "?P * ?M \<le> (?L * ?A) * ?M"
+    by (rule mult_right_mono[OF pair]) simp
+  with weighted show ?thesis
+    by linarith
+qed
+
+lemma raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_generated_ledger:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) t) *
+        (Suc H + rsize t)) \<le>
+    (afactored1_strong_dlform_list_cost r s c *
+      (length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+       rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))) *
+      (Suc H + afactored1_strong_dlform_list_cost r s c)"
+proof -
+  let ?A = "card (raw_shared_prune_active_suffix_alt_nodes
+    (afactored1_strong_dlform_universe r s c))"
+  let ?G = "length (concat (map (rpder_norm_list c) (afactored1 r s))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  let ?L = "afactored1_strong_dlform_list_cost r s c"
+  let ?M = "Suc H + afactored1_strong_dlform_list_cost r s c"
+  have weighted:
+      "(\<Sum>t \<in> rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) t) *
+          (Suc H + rsize t)) \<le> (?L * ?A) * ?M"
+    by (rule
+        raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_list_cost_alt_nodes)
+  have alt: "?A \<le> ?G"
+    by (rule card_afactored1_strong_dlform_universe_alt_nodes_le_generated)
+  have "?L * ?A \<le> ?L * ?G"
+    by (rule mult_left_mono[OF alt]) simp
+  then have "(?L * ?A) * ?M \<le> (?L * ?G) * ?M"
+    by (rule mult_right_mono) simp
+  with weighted show ?thesis
+    by linarith
+qed
+
 lemma same_dlfront_rows_rpder_strong_rows_raw_stepI:
   assumes generated: "\<And>q p. q \<in> set rows \<Longrightarrow>
       p \<in> set (rpder_norm_list c q) \<Longrightarrow>

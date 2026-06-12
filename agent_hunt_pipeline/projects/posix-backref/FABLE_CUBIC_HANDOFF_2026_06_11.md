@@ -27,6 +27,8 @@ raw_shared_prune_active_suffix_alt_nodes
 card_raw_shared_prune_active_suffix_bucket_le_alt_nodes
 afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound
 card_afactored1_strong_dlform_universe_alt_nodes_le_generated
+afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_generated_bound
+raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_generated_ledger
 ```
 
 Plain definitions:
@@ -103,6 +105,20 @@ A = length generated + rsizes generated
 where `generated = concat (map (rpder_norm_list c) (afactored1 r s))`.  This
 is useful as a ledger bridge, but probably too loose as the final cubic count;
 look for a sharper step-local/provenance argument before declaring victory.
+
+Important: this fallback gives a PRODUCT, not a single ledger obligation:
+
+```text
+active weighted bucket term
+<=
+  (afactored1_strong_dlform_list_cost r s c
+   * (length generated + rsizes generated))
+  * (Suc H + afactored1_strong_dlform_list_cost r s c)
+```
+
+So proving `length generated + rsizes generated <= cubic` alone does not close
+the theorem.  Either prove a much sharper active-alt-node/provenance bound, or
+replace this product accounting with a non-product ledger.
 
 Then the checked interface gives:
 
