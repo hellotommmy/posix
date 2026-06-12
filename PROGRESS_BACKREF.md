@@ -5477,3 +5477,32 @@ conservation proof, then static maxrow quadratic, then O1-O3.
   simultaneous induction bounding acc and F together.
 - Meanwhile I am pivoting to the independent static piece:
   maxrow quadratic (apder_rows member size).
+
+## 2026-06-12 Fable 23:20: CHECKED - static maxrow QUADRATIC (row-size half done)
+
+- Full Posix build GREEN (AntimirovFactoredTransition 86.293s, exit 0).
+  New checked pieces:
+
+  ```text
+  rfrontier_member_size_le / rfrontiers_member_size_le
+    (frontier members are no larger than the term, mutual induction)
+  apder_rows_member_size_quadratic
+    (apder_nf r ==> every member of apder_rows r has
+     rsize <= Suc ((rsize r + 2)^2))
+  ```
+
+  Proof is pure assembly: apder_rows members are r itself, frontier
+  members of r, or frontier members of apder_terms members - the last
+  bounded by the PRE-EXISTING apder_terms_member_size_quadratic, which
+  I found only tonight (search first, always).
+- Consequence: every dynamic front row (rows live in apder_rows by
+  afactored1_apder_rows_subset) is at most quadratic - the ROW-SIZE
+  half of the front-quadratic conjecture is now checked.  The
+  remaining half is row-count linear (the D law, help-wanted post
+  stands).  Once D lands: F <= (awidth+const) * quadratic = cubic by
+  assembly, fully static, and the front-staticized bridge turns the
+  whole gate cubic on the nf fragment except for the liveness-degree
+  documented earlier.
+- Also useful tonight: card_apder_terms_le_awidth already exists
+  (no premises) - the row-count question is really only about the
+  FRONTIER width contribution, i.e. exactly the D law.

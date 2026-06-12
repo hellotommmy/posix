@@ -28914,4 +28914,57 @@ next
 qed auto
 
 
+text \<open>
+  Static row size law: every member of the apder accumulator is at
+  most quadratic in the term plus the continuation size.  Together
+  with a row-count bound this caps the static ledger; on its own it
+  already bounds every dynamic front row (rows live in apder_rows).
+\<close>
+
+lemma rfrontier_member_size_le:
+  "x \<in> rfrontier k \<Longrightarrow> rsize x \<le> rsize k"
+  and rfrontiers_member_size_le:
+  "y \<in> rfrontiers ks \<Longrightarrow> rsize y \<le> rsizes ks"
+proof (induct k and ks arbitrary: x and y
+    rule: rfrontier_rfrontiers.induct)
+  case (2 rs)
+  then show ?case by fastforce
+next
+  case (5 r rs)
+  then show ?case by fastforce
+qed auto
+
+lemma apder_rows_member_size_quadratic:
+  assumes nf: "apder_nf r"
+    and x: "x \<in> apder_rows r"
+  shows "rsize x \<le> Suc ((rsize r + 2)\<^sup>2)"
+proof -
+  from x consider
+      "x = r"
+    | "x \<in> rfrontier r"
+    | q where "q \<in> apder_terms r" "x \<in> rfrontier q"
+    by (auto simp add: apder_rows_def apder_frontier_def)
+  then show ?thesis
+  proof cases
+    case 1
+    have "rsize r \<le> (rsize r + 2)\<^sup>2"
+      by (simp add: power2_eq_square trans_le_add1)
+    then show ?thesis using 1 by simp
+  next
+    case 2
+    have "rsize x \<le> rsize r"
+      by (rule rfrontier_member_size_le[OF 2])
+    also have "... \<le> Suc ((rsize r + 2)\<^sup>2)"
+      by (simp add: power2_eq_square trans_le_add1)
+    finally show ?thesis .
+  next
+    case 3
+    have "rsize x \<le> rsize q"
+      by (rule rfrontier_member_size_le[OF 3(2)])
+    also have "... \<le> rsize RONE + (rsize r + 2)\<^sup>2"
+      by (rule apder_terms_member_size_quadratic[OF nf 3(1)])
+    finally show ?thesis by simp
+  qed
+qed
+
 end
