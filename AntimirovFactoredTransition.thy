@@ -28874,4 +28874,44 @@ proof -
 qed
 
 
+text \<open>
+  Row-count law, passthrough-strengthened (mirror: 90,977 nf samples,
+  zero violations).  The weight zwidth charges every star at least one
+  slot (zero-width stars produce frontier rows without letters, which
+  falsifies the plain awidth law).  The passthrough discount makes the
+  induction self-balancing: when the continuation frontier survives
+  into the accumulator (a passthrough leaf exists), the budget pays
+  one slot for it; when it does not, composite frontier points are
+  simply absent from the accumulator.
+\<close>
+
+fun apder_zwidth :: "rrexp \<Rightarrow> nat" where
+  "apder_zwidth RZERO = 0"
+| "apder_zwidth RONE = 0"
+| "apder_zwidth (RCHAR c) = 1"
+| "apder_zwidth (RALTS rs) = sum_list (map apder_zwidth rs)"
+| "apder_zwidth (RSEQ r1 r2) = apder_zwidth r1 + apder_zwidth r2"
+| "apder_zwidth (RSTAR r) = max 1 (apder_zwidth r)"
+| "apder_zwidth (RNTIMES r n) = n * max 1 (apder_zwidth r)"
+| "apder_zwidth (RBACKREF4 r1 r2 r3 r4 cs) = 0"
+| "apder_zwidth (RHALF r cs rep) = 0"
+| "apder_zwidth (RRESIDUE cs rep) = 0"
+
+lemma apder_zwidth_zero_acc_empty:
+  assumes "apder_zwidth r = 0"
+  shows "apder_term_frontier_acc r k = {}"
+  using assms
+proof (induct r arbitrary: k)
+  case (RALTS rs)
+  have members: "\<And>q. q \<in> set rs \<Longrightarrow> apder_zwidth q = 0"
+    using RALTS.prems
+    by (induct rs) auto
+  show ?case
+    using RALTS.hyps members by auto
+next
+  case (RNTIMES r n)
+  then show ?case by (cases n) auto
+qed auto
+
+
 end
