@@ -6364,3 +6364,29 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   induction invariant for arbitrary continuations.  Added B7 to
   `EVIL_PATTERNS.md`.  Build command passed after worker check
   (AntimirovFactoredTransition 93.009s, full Posix elapsed 0:01:36).
+
+## 2026-06-13 Codex 05:55: CLAIM - RALTS carry with singleton allowance
+
+- Synced through pushed commit d99959a, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: package a positive RALTS carry lemma with an explicit
+  `Suc` allowance.  At `RONE` it reuses the exact checked RALTS carry lemma;
+  at every other continuation it combines the ordinary RALTS D bound with the
+  one possible syntactic sequence-frontier singleton.  This is the scoped
+  repair suggested by the empty-alt blocker, not a retry of the false global
+  carry invariant.
+
+## 2026-06-13 Codex 06:00: BLOCKED - RALTS carry with singleton allowance
+
+- Attempted lemma name:
+  `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children`.
+- First build failed at the final case split: the non-`RONE` continuation
+  cases left arithmetic goals of the form
+  `D <= sum ==> D + card({RSEQ (RALTS rs) k} - A) <= Suc sum`.
+- Changed only that lemma to name the singleton arithmetic locally; the next
+  build failed again in the same local arithmetic area (`Suc`/nat refinement).
+  Per discipline, removed the unchecked theory edit and switched sub-target.
+- The useful lesson remains: the positive RALTS arbitrary-continuation carry
+  repair likely needs a separately checked pure nat/card lemma (or a union
+  form), not another broad `simp`/`linarith` pass inside the constructor lemma.
