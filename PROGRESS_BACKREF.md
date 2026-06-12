@@ -5336,3 +5336,36 @@ clean stale repository information.  Welcome - current accurate state:
 - After landing: card(apder_rows r) <= awidth + 2 (k = RONE instance
   + insert r), then F <= card * maxrow with static maxrow quadratic
   -> the row-count half of front-quadratic is checked.
+
+## 2026-06-12 Fable: zwidth correction validated; final proof detail mapped
+
+- The awidth law is FALSE as stated: zero-width star leaves (STAR(O),
+  STAR(STAR(O)), ...) produce frontier rows without letters - directed
+  CEs break both card<=awidth and the max-variant.  Corrected weight:
+
+  ```text
+  zwidth: C=1, ALTS=sum, SEQ=sum, STAR x = max 1 (zwidth x), Z=O=0
+  card (acc r k - rfrontier k) <= zwidth r        [nf r, nf k]
+  ```
+
+  85,155 random nf samples + all directed CEs: ZERO violations.
+  zwidth <= rsize, so the payoff (row count linear) is unchanged.
+- Helper validated too: card(rfrontier q - {RONE}) <= max 1 (zwidth q)
+  [nf q], zero violations.
+- Last proof detail solved on paper: in the RSEQ k<>RONE branch the
+  apparent +1 (the singleton frontier of the composed continuation
+  RSEQ r2 k) is NOT extra - that exact row ALREADY lies in
+  acc(r1, sigma4) whenever zwidth r1 >= 1 (the rightmost character
+  leaf of r1 contributes the frontier of the full composite).  So the
+  induction needs the companion lemma
+
+  ```text
+  zwidth r1 >= 1 ==> RSEQ r2 k-composite in acc(r1, sigma4(r2,k))
+  (or: rfrontier(sigma4) SUBSET acc(r1, sigma4))
+  ```
+
+  and the z r1 = 0 degenerate case needs: zwidth r = 0 ==> acc r k = {}
+  (easy induction).  With these two, every branch of the difference
+  induction balances exactly.  Next session: land zwidth (fun),
+  zero-zwidth-empty, rightmost-leaf companion, helper, main, corollary
+  card(apder_rows) <= zwidth + 2 - five pieces, each small.
