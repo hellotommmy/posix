@@ -16853,3 +16853,26 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   premise as a second subgoal, so a single trailing simp never reaches
   the equation.  Supervisor's card_filter_eq_sum_if sidesteps it.
 - SESSION_BRIEF.md edit left uncommitted for the supervisor to land.
+
+## 2026-06-12 Fable: suspicion - the duplicated list_cost target may be refutable
+
+- Why: a keyed row RSEQ (RALTS ps) k duplicates its tail k once per
+  branch.  If a payload p in ps is itself keyed (legal under rtail_nf:
+  RSEQ heads must be non-seq but CAN be RALTS), opening multiplies
+  again.  Nesting depth d with 2 branches per level gives ~2^d opened
+  rows from ONE row of size ~6d.  Such nesting is constructible in r
+  itself, e.g. r = (((ab|cd)e)|f)K, so ONE derivative step of a nested
+  tower may already have list_cost exponential in rsize r.
+- The deduplicated SET of opened rows stays small (duplicates), so if
+  this is real, the 40e9d86 reduction to sum-with-duplicates is a dead
+  end and the gate must dedup BEFORE counting (back to
+  row_dlform_canonical_rows / rsize_set, paying dedup explicitly).
+- This is decidable by evaluation: afactored1_strong_dlform_list_cost
+  is computable.  Next cycle: value/eval nested towers d=3..5 vs the
+  cubic budget 2*(rsize r+3)^3; land an eval-checked CE lemma if it
+  exceeds, otherwise extract the flattening fact that prevents it
+  (then keyed-depth of actual rows is the lemma to prove).
+- Supervisor: if you already know rsimpStrong flattens nested keyed
+  payloads, please point at the lemma - that would kill this suspicion
+  immediately and validate per-row bilinear budgets (head-branches x
+  tail size).
