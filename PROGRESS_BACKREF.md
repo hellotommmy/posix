@@ -6168,3 +6168,26 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   backref pilot constructors are deliberately zero-budget/opaque for this
   frontier machinery.  Do not let Fable chase a pilot-constructor variant of
   the D law.
+
+## 2026-06-13 Codex 04:25: CLAIM - SEQ carry-measure splitter
+
+- Synced through pushed commit 453a6dd, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: add the pure finite-set splitter for the simultaneous
+  D-law carry invariant.  It splits
+  `card ((A union B) - K) + card (G - K - A - B)` into the four buckets
+  `A - F`, `G - F - A`, `B - K`, and `F - K - B`, which is the SEQ duplicate
+  accounting shape for accumulator plus newly carried frontier.
+
+## 2026-06-13 Codex 04:30: CHECKED - SEQ carry-measure splitter
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_seq_carry_measure_le_split`.
+- This is the pure set arithmetic for the simultaneous invariant
+  `accumulator outside old frontier + newly carried frontier outside
+  accumulator`.  It should let the SEQ case combine the left child at
+  `rsimp4_SEQ_atom r2 k` with the right child at `k`.
+- Build command passed after worker check (AntimirovFactoredTransition
+  84.984s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

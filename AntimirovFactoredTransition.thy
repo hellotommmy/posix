@@ -29323,6 +29323,39 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_seq_carry_measure_le_split:
+  assumes finA: "finite A"
+    and finB: "finite B"
+    and finF: "finite F"
+    and finG: "finite G"
+  shows "card ((A \<union> B) - K) + card (G - K - A - B) \<le>
+    card (A - F) + card (G - F - A) +
+    card (B - K) + card (F - K - B)"
+proof -
+  let ?S1 = "(A \<union> B) - K"
+  let ?S2 = "G - K - A - B"
+  let ?R1 = "A - F"
+  let ?R2 = "G - F - A"
+  let ?R3 = "B - K"
+  let ?R4 = "F - K - B"
+  have finS1: "finite ?S1"
+    using finA finB by simp
+  have finS2: "finite ?S2"
+    using finG by simp
+  have disj: "?S1 \<inter> ?S2 = {}"
+    by blast
+  have cover: "?S1 \<union> ?S2 \<subseteq> ?R1 \<union> ?R2 \<union> ?R3 \<union> ?R4"
+    by blast
+  have "card ?S1 + card ?S2 = card (?S1 \<union> ?S2)"
+    using card_Un_disjoint[OF finS1 finS2 disj] by simp
+  also have "... \<le> card (?R1 \<union> ?R2 \<union> ?R3 \<union> ?R4)"
+    by (rule card_mono)
+      (use finA finB finF finG cover in auto)
+  also have "... \<le> card ?R1 + card ?R2 + card ?R3 + card ?R4"
+    by (rule card_Un4_le)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms:
   "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
     card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
