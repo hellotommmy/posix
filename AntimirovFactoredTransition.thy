@@ -29234,6 +29234,24 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_union_diff_le_middle_split:
+  assumes finA: "finite A"
+    and finB: "finite B"
+    and finF: "finite F"
+  shows "card ((A \<union> B) - K) \<le>
+    card (A - F) + card ((F \<union> B) - K)"
+proof -
+  have cover: "(A \<union> B) - K \<subseteq> (A - F) \<union> ((F \<union> B) - K)"
+    by blast
+  have "card ((A \<union> B) - K) \<le>
+      card ((A - F) \<union> ((F \<union> B) - K))"
+    by (rule card_mono)
+      (use finA finB finF cover in auto)
+  also have "... \<le> card (A - F) + card ((F \<union> B) - K)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms:
   "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
     card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -

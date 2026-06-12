@@ -6036,3 +6036,26 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   85.875s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:30: CLAIM - frontier-plus-acc duplicate splitter
+
+- Synced through pushed commit 9c0cd4a, re-read the newest PROGRESS tail and
+  `MATHPROBLEM_ROWCOUNT.md`, and checked that no proof workers are live.
+  Known untracked `fable_partial.md` and `scratch_*.py` files remain
+  untouched.
+- Narrow checked brick: add only the pure finite-set duplicate-accounting
+  lemma needed for the zw2 frontier-plus-acc invariant:
+  `card ((X union Y) - K) <= card (X - F) + card ((F union Y) - K)`.
+  This is the list/duplicate-accounting route, not one of the falsified
+  zwidth/J* strengthenings.
+
+## 2026-06-13 Codex 03:35: CHECKED - frontier-plus-acc duplicate splitter
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_union_diff_le_middle_split`.
+- This is a pure finite-set duplicate-accounting lemma for the SEQ case:
+  charge the left side outside the middle frontier, then let the right side
+  carry the middle frontier together with its own accumulator.
+- Build command passed after worker check (AntimirovFactoredTransition
+  82.271s, full Posix elapsed 0:01:34).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
