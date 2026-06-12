@@ -15570,11 +15570,22 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
   ```text
   rseq_tails
+  rseq_rows
+  rnonseq_members
+  rseq_tail_rows
   finite_rseq_tails
+  finite_rseq_rows
+  finite_rnonseq_members
+  finite_rseq_tail_rows
+  rseq_rows_eq_UN_tail_rows
+  rnonseq_members_union_rseq_rows
   rseq_tails_aseq_terms_subsetI
   rseq_tails_row_dlformss_aseq_terms_subset
   rseq_tails_row_dlformss_afactored1_strong_one_pass_rows_subset_front
   rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_subset_front
+  rsize_set_rseq_tail_rows_bucket_boundI
+  rsize_set_rseq_rows_bucket_boundI
+  rsize_set_split_rseq_tails_bucket_boundI
   ```
 
 - Plain meaning: take the actual one-pass output
@@ -15585,13 +15596,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Why this matters: the final cubic gate is on the deduplicated set
   `rsize_set (row_dlformss (actual output))`.  To avoid charging the same
-  continuation once per branch, the proof needs to separate head atoms from
-  distinct tails.  This brick proves that the distinct-tail side is still
-  controlled by the current strong front; it is a safe count-only bridge and
-  does not use the false owner/DAG closure.
+  continuation blindly once per branch, the proof needs to separate head atoms
+  from sequence-tail buckets.  This brick proves that the distinct-tail side is
+  still controlled by the current strong front; it is a safe count-only bridge
+  and does not use the false owner/DAG closure.
+
+- Important correction: `rsize_set` is not a DAG measure.  If the same tail
+  appears in two different rows `RSEQ h1 t` and `RSEQ h2 t`, the syntax size of
+  `t` is counted twice.  So a sound sharing lemma must include a bucket-width
+  bound.  The checked generic split is:
+
+  ```text
+  if every sequence head has size <= H
+  and every tail bucket has at most B rows
+  then
+  rsize_set U <=
+    rsize_set (rnonseq_members U)
+    + sum over distinct tails t of B * (Suc H + rsize t)
+  ```
+
+  The next useful target is therefore not "distinct tails are paid once"; it is
+  to prove a good actual-output bucket-width bound for
+  `rseq_tail_rows (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 09:58 local time.
+  `Posix` green at 2026-06-12 10:12 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 

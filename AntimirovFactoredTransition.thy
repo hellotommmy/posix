@@ -6489,6 +6489,15 @@ qed
 definition rseq_tails :: "rrexp set \<Rightarrow> rrexp set" where
   "rseq_tails U = {t. \<exists>h. RSEQ h t \<in> U}"
 
+definition rseq_rows :: "rrexp set \<Rightarrow> rrexp set" where
+  "rseq_rows U = {q \<in> U. \<exists>h t. q = RSEQ h t}"
+
+definition rnonseq_members :: "rrexp set \<Rightarrow> rrexp set" where
+  "rnonseq_members U = {q \<in> U. rnonseq q}"
+
+definition rseq_tail_rows :: "rrexp set \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "rseq_tail_rows U t = {q \<in> U. \<exists>h. q = RSEQ h t}"
+
 lemma finite_rseq_tails [simp]:
   assumes "finite U"
   shows "finite (rseq_tails U)"
@@ -6499,6 +6508,30 @@ proof -
   then show ?thesis
     by (rule finite_subset) (use assms in simp)
 qed
+
+lemma finite_rseq_rows [simp]:
+  assumes "finite U"
+  shows "finite (rseq_rows U)"
+  using assms by (auto simp add: rseq_rows_def)
+
+lemma finite_rnonseq_members [simp]:
+  assumes "finite U"
+  shows "finite (rnonseq_members U)"
+  using assms by (auto simp add: rnonseq_members_def)
+
+lemma finite_rseq_tail_rows [simp]:
+  assumes "finite U"
+  shows "finite (rseq_tail_rows U t)"
+  using assms by (auto simp add: rseq_tail_rows_def)
+
+lemma rseq_rows_eq_UN_tail_rows:
+  "rseq_rows U = (\<Union>t \<in> rseq_tails U. rseq_tail_rows U t)"
+  by (auto simp add: rseq_rows_def rseq_tails_def rseq_tail_rows_def)
+
+lemma rnonseq_members_union_rseq_rows:
+  "rnonseq_members U \<union> rseq_rows U = U"
+  by (auto simp add: rnonseq_members_def rseq_rows_def)
+    (case_tac x; auto)
 
 lemma rseq_tails_aseq_terms_subsetI:
   assumes "\<And>x. x \<in> U \<Longrightarrow> aseq_terms x \<subseteq> A"
@@ -6523,6 +6556,79 @@ lemma rseq_tails_row_dlformss_aseq_terms_subset:
     aseq_termss rs"
   by (rule rseq_tails_aseq_terms_subsetI)
     (rule row_dlformss_aseq_terms_subset)
+
+lemma rsize_set_rseq_tail_rows_bucket_boundI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound: "card (rseq_tail_rows U t) \<le> B"
+  shows "rsize_set (rseq_tail_rows U t) \<le> B * (Suc H + rsize t)"
+proof (rule rsize_set_le_card_member_budgetI)
+  show "finite (rseq_tail_rows U t)"
+    by (rule finite_rseq_tail_rows[OF finite])
+  show "card (rseq_tail_rows U t) \<le> B"
+    by (rule bucket_bound)
+  show "\<And>q. q \<in> rseq_tail_rows U t \<Longrightarrow>
+      rsize q \<le> Suc H + rsize t"
+    using head_bound
+    by (auto simp add: rseq_tail_rows_def)
+  show "B * (Suc H + rsize t) \<le> B * (Suc H + rsize t)"
+    by simp
+qed
+
+lemma rsize_set_rseq_rows_bucket_boundI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow> card (rseq_tail_rows U t) \<le> B"
+  shows "rsize_set (rseq_rows U) \<le>
+    (\<Sum>t \<in> rseq_tails U. B * (Suc H + rsize t))"
+proof -
+  let ?T = "rseq_tails U"
+  have "rsize_set (rseq_rows U) =
+      rsize_set (\<Union>t \<in> ?T. rseq_tail_rows U t)"
+    by (simp add: rseq_rows_eq_UN_tail_rows)
+  also have "... \<le> (\<Sum>t \<in> ?T. rsize_set (rseq_tail_rows U t))"
+    by (rule rsize_set_UN_le)
+      (use finite in auto)
+  also have "... \<le> (\<Sum>t \<in> ?T. B * (Suc H + rsize t))"
+  proof (rule sum_mono)
+    fix t
+    assume t: "t \<in> ?T"
+    show "rsize_set (rseq_tail_rows U t) \<le>
+        B * (Suc H + rsize t)"
+      by (rule rsize_set_rseq_tail_rows_bucket_boundI
+          [OF finite head_bound bucket_bound[OF t]])
+  qed
+  finally show ?thesis .
+qed
+
+lemma rsize_set_split_rseq_tails_bucket_boundI:
+  assumes finite: "finite U"
+    and head_bound: "\<And>h t. RSEQ h t \<in> U \<Longrightarrow> rsize h \<le> H"
+    and bucket_bound:
+      "\<And>t. t \<in> rseq_tails U \<Longrightarrow> card (rseq_tail_rows U t) \<le> B"
+  shows "rsize_set U \<le>
+    rsize_set (rnonseq_members U) +
+    (\<Sum>t \<in> rseq_tails U. B * (Suc H + rsize t))"
+proof -
+  have U_eq: "U = rnonseq_members U \<union> rseq_rows U"
+    by (simp add: rnonseq_members_union_rseq_rows)
+  have "rsize_set U =
+      rsize_set (rnonseq_members U \<union> rseq_rows U)"
+    by (rule arg_cong[OF U_eq])
+  also have "... \<le>
+      rsize_set (rnonseq_members U) + rsize_set (rseq_rows U)"
+    by (rule rsize_set_Un_le)
+      (use finite in auto)
+  also have "... \<le>
+      rsize_set (rnonseq_members U) +
+      (\<Sum>t \<in> rseq_tails U. B * (Suc H + rsize t))"
+    using rsize_set_rseq_rows_bucket_boundI
+      [OF finite head_bound bucket_bound]
+    by simp
+  finally show ?thesis
+    by simp
+qed
 
 lemma row_dlformss_afactored_step_eq_generated:
   "row_dlformss (afactored_step c rs) =

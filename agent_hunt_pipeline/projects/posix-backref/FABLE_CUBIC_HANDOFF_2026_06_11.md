@@ -95,6 +95,22 @@ dlform member `RSEQ h t` is still in
 dlform tails; `raw_shared_prune_suffix_key` only sees `RSEQ (RALTS rows) k`
 buckets and misses ordinary `RSEQ h t` members.
 
+Checked size split: `rsize_set_split_rseq_tails_bucket_boundI` is the safe
+form of the deduplicated accounting.  It does NOT charge each distinct tail
+only once.  Since `rsize_set` is syntax size, the same tail repeated under
+different heads is counted once per row.  The sound statement keeps a bucket
+width `B`: if every sequence head has size at most `H`, and every fixed-tail
+bucket `rseq_tail_rows U t` has at most `B` rows, then
+
+```text
+rsize_set U <= rsize_set (rnonseq_members U)
+  + sum over distinct tails t of B * (Suc H + rsize t)
+```
+
+Next high-value concrete target: instantiate this with
+`U = row_dlformss (rpder_strong_rows_raw c (afactored1 r s))` and prove a
+useful actual-output bucket-width bound for `rseq_tail_rows U t`.
+
 High-value next moves:
 
 1. prove the actual-output gate directly from one-pass pruning;
