@@ -5911,3 +5911,31 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   80.090s, full Posix elapsed 0:01:35).  STAR branch now needs only the
   child D-zw2 obligation at `rsimp4_SEQ_atom (RSTAR r) k`; the one-point
   frontier shift is checked unconditionally.
+
+## 2026-06-13 Codex 02:40: CLAIM - RNTIMES finite-range aggregation
+
+- Synced through pushed commit 7d213b4, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: prove a conditional RNTIMES branch aggregator.
+  If every repeated continuation `m < n` is already bounded by
+  `Suc (apder_zw2 r)` against the same `rfrontier k`, then the union in
+  `apder_term_frontier_acc (RNTIMES r n) k` is bounded by
+  `apder_zw2 (RNTIMES r n) = n * Suc (apder_zw2 r)`.
+
+## 2026-06-13 Codex 02:45: BLOCKED - RNTIMES range aggregation timeout
+
+- Attempted conditional lemma
+  `card_apder_term_frontier_acc_RNTIMES_diff_le`: if every `m < n`
+  continuation is bounded by `Suc (apder_zw2 r)` against `rfrontier k`,
+  then the `RNTIMES r n` accumulator is bounded by
+  `n * Suc (apder_zw2 r)`.
+- First proof used an explicit finite-set union/card chain with
+  `card_UN_le` and `auto`; second changed the union line to `simp_all`.
+  Both builds hit the 300s wrapper timeout without a printed Isabelle goal,
+  and I stopped the leftover matching `poly.exe` workers through
+  `scripts\codex-proof-workers.ps1 -Action KillStale`.
+- Per the same-timeout-twice rule, I removed the unbuilt `.thy` attempt.
+  Future route: prove this by induction on `n` using
+  `{..<Suc n} = insert n {..<n}` and `card_Un_le`, avoiding `card_UN_le`
+  over a schematic family.
