@@ -6956,3 +6956,23 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   86.857s, full Posix elapsed 0:01:44).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 10:25: CLAIM - normal nonalt D implies Suc carry
+
+- Synced through pushed commit 7b975ba, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow scoped-carry brick: package the carry-bucket shift with an ordinary
+  D bound.  For an `apder_nf` non-alt head, `card(acc p k - F(k)) <= zw2 p`
+  should imply the `Suc` carry-measure bound at the same continuation.
+
+## 2026-06-13 Codex 10:30: CHECKED - normal nonalt D implies Suc carry
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_apder_nf_nonalt_carry_measure_le_Suc_if_diff`.
+- This packages the normal non-alt carry-bucket shift with an ordinary D
+  bound: for `apder_nf` non-alt heads, D at a continuation implies the scoped
+  `Suc` carry-measure bound at that continuation.
+- Build command passed after worker check (AntimirovFactoredTransition
+  97.474s, full Posix elapsed 0:01:47).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

@@ -29470,6 +29470,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_apder_term_frontier_acc_apder_nf_nonalt_carry_measure_le_Suc_if_diff:
+  assumes nf: "apder_nf p"
+    and nonalt: "nonalt p"
+    and diff: "card (apder_term_frontier_acc p k - rfrontier k) \<le>
+      apder_zw2 p"
+  shows "card (apder_term_frontier_acc p k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k -
+      apder_term_frontier_acc p k) \<le> Suc (apder_zw2 p)"
+proof -
+  have carry: "card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k -
+      apder_term_frontier_acc p k) \<le> 1"
+    by (rule card_rfrontier_rsimp4_SEQ_atom_apder_nf_nonalt_diff_diff_le_one
+        [OF nf nonalt])
+  show ?thesis
+    using diff carry by linarith
+qed
+
 lemma card_apder_term_frontier_acc_RSTAR_carry_measure_le:
   assumes body: "card (apder_term_frontier_acc r
       (rsimp4_SEQ_atom (RSTAR r) k) -
