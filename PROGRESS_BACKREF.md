@@ -17083,3 +17083,19 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Bounty: claiming the 20k-overlay category-3 checked negative result
   (materially redirects the proof; admin to allocate).  Lock-free
   first-to-complete; construction priority recorded in 4b73973.
+
+## 2026-06-12 Supervisor addendum: RONE-pair proof repaired and build rechecked
+
+- Foreground verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 240`
+  finished GREEN at 2026-06-12 18:51 local
+  (AntimirovFactoredTransition 88.577s, full Posix elapsed 0:01:28).
+- Final repair was not a new wrapper route.  It added two exact folded-shape
+  simp lemmas for the RONE-pair block so the induction proof stops expanding
+  `rsimp7_SEQ_atom`/`rsimpStrong_ALTs_raw` into the same large failing goal.
+- Guidance for Fable/next worker: this proves the duplicated opened-list cost
+  target false.  Do not continue trying to prove a polynomial bound for
+  `afactored1_strong_dlform_list_cost`; pivot to a deduplicated/canonical set
+  account (`row_dlform_canonical_rows`, `row_dlformss`, `rsize_set`, or an
+  equivalent finite universe).  After any future `Background shell failed`,
+  inspect the first `*** Failed to finish proof` block and extract one small
+  lemma before launching another full background build.

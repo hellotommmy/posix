@@ -5,6 +5,39 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Supervisor Update, 2026-06-12 18:51 GMT+8
+
+The RONE-pair tower counterexample is now actually checked by a foreground
+`Posix` build after the final local proof repairs.  If the UI shows many
+`Background shell failed` entries around this block, do not treat them as an
+Isabelle command problem: they were repeated proof failures at the same small
+`rsimp7_SEQ_atom`/`rsimpStrong_ALTs_raw` shape goal.
+
+Use the checked theorem:
+
+```text
+AntimirovFactoredTransition.thy:
+  afactored1_strong_dlform_list_cost_cubic_false
+```
+
+Plain meaning: the duplicated opened-list total can grow exponentially because
+each RONE-pair level opens two copies of the same tail.  Therefore the target
+
+```text
+afactored1_strong_dlform_list_cost r s c <= polynomial(rsize r)
+```
+
+is false, not merely hard.  Stop trying to prove a cubic bound for that
+duplicated list cost.  The live route is to deduplicate before counting:
+`row_dlform_canonical_rows`, `row_dlformss`, `rsize_set`, or an equivalent
+canonical/set universe.
+
+Proof-discipline note: after a failed build, read the first
+`*** Failed to finish proof` block and extract one small lemma.  Do not start
+another full background build until that goal has changed.  The final repair
+needed exact folded-shape lemmas for `ronepair_payload`; unfolding
+`ronepair_payload_def` in the wrong simp set reintroduced the failing goal.
+
 ## Urgent Supervisor Update, 2026-06-12 13:24 GMT+8
 
 The ordinary sequence-tail size branch now has a checked weighted-row

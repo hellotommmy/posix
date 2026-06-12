@@ -27767,6 +27767,14 @@ lemma rsimp7_SEQ_atom_RONE_ronepair_payload_RSEQ [simp]:
     RSEQ (RALTS [RONE, ronepair_payload a b]) (RSEQ x y)"
   by (simp add: ronepair_payload_def rsimp7_SEQ_atom_def)
 
+lemma rsimp7_SEQ_atom_strong_RONE_ronepair_payload_RSEQ [simp]:
+  "rsimp7_SEQ_atom
+      (rsimpStrong_ALTs_raw
+        (RONE # rflts [rsimpStrong_raw (ronepair_payload a b)]))
+      (RSEQ x y) =
+    RSEQ (RALTS [RONE, ronepair_payload a b]) (RSEQ x y)"
+  by (simp add: rsimpStrong_raw_ronepair_payload)
+
 lemma rsimpStrong_raw_ronepair_tower:
   "rsimpStrong_raw (ronepair_tower j a b k l) =
     ronepair_tower j a b k l"
