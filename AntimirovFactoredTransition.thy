@@ -9964,6 +9964,59 @@ fun rntimes_free :: "rrexp \<Rightarrow> bool" where
 | "rntimes_free (RHALF r cs rep) = True"
 | "rntimes_free (RRESIDUE cs rep) = True"
 
+lemma rntimes_free_rsimp4_SEQ_atom:
+  assumes "rntimes_free p"
+    and "rntimes_free k"
+  shows "rntimes_free (rsimp4_SEQ_atom p k)"
+  using assms
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases k) auto
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ p1 p2)
+  have p1_free: "rntimes_free p1"
+    using RSEQ.prems by simp
+  have p2_free: "rntimes_free p2"
+    using RSEQ.prems by simp
+  have cont_free: "rntimes_free (rsimp4_SEQ_atom p2 k)"
+    by (rule RSEQ.hyps(2)[OF p2_free RSEQ.prems(2)])
+  have "rntimes_free (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))"
+    by (rule RSEQ.hyps(1)[OF p1_free cont_free])
+  then show ?case
+    by simp
+next
+  case (RSTAR p)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES p n)
+  then show ?case
+    by simp
+next
+  case (RBACKREF4 p1 p2 p3 p4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF p cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
 fun apder_star_weight :: "rrexp \<Rightarrow> nat" where
   "apder_star_weight RZERO = 0"
 | "apder_star_weight RONE = 0"

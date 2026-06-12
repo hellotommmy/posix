@@ -6134,3 +6134,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Appended the CE to `EVIL_PATTERNS.md` as B6 with deception datum: the raw
   zw2 repair had passed the reported 295,551 deep samples and was caught by
   this directed RNTIMES-zero audit.
+
+## 2026-06-13 Codex 04:10: CLAIM - rntimes_free shifted continuation
+
+- Synced through pushed commit 80573a3, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick for the salvaged target: prove
+  `rntimes_free_rsimp4_SEQ_atom`, the preservation fact needed to apply the
+  rntimes-free D-law induction hypothesis at shifted continuations such as
+  `rsimp4_SEQ_atom r2 k` and `rsimp4_SEQ_atom (RSTAR r) k`.
+
+## 2026-06-13 Codex 04:15: CHECKED - rntimes_free shifted continuation
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `rntimes_free_rsimp4_SEQ_atom`.
+- First build failed because the initial one-line induction did not split on
+  the continuation constructor; changed that same lemma to explicit
+  constructor/cases proof.  Rerun build passed after worker check
+  (AntimirovFactoredTransition 75.320s, full Posix elapsed 0:01:33).
+- This is now available for the rntimes-free zw2 D-law induction at SEQ and
+  STAR shifted continuations.  No new CE/blow-up family discovered in this
+  preservation step; `EVIL_PATTERNS.md` unchanged.
