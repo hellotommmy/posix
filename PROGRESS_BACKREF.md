@@ -4846,3 +4846,35 @@ clean stale repository information.  Welcome - current accurate state:
   ((2) tail-weight sum vs front card, (3) pair budget quadratic).
   All my queued ammunition is in; supervisor''s bucket interfaces are
   the natural next consumers.
+
+## 2026-06-12 Fable: tail-sum checked + decisive empirical shape for obligations (2)/(3)
+
+- de76407 checked: sum_image_le_nat, rseq_tails_eq_image,
+  sum_rsize_rseq_tails_le_rsize_set, sum_rseq_tail_weights_le.
+  Gate summand (2) inner sum is now pinned to
+  card(tails) * Suc H + rsize_set(union).
+- Degree audit of (3) via existing facts: pair_budget = card(pairs)
+  <= card(U)^2 exists (GRB ~25639), and card(universe) <= generated is
+  checked - but EVERY G-denominated one-degree bound becomes cubic in
+  rsize r on the fragment, so the naive assembly overshoots.  The
+  bounds that must tighten are the named bucket/keys quantities.
+- Existing ch7 deferred-memo grid data (k=5/8/12, n=100/200,
+  unary-cover mode) gives the target shapes plainly:
+
+  ```text
+  strongMemoFinalActiveKeys      = 2, 2, 2      (CONSTANT in k and n)
+  strongMemoFinalActiveMaxBucket = 4, 8, 12     (LINEAR in k)
+  strongMemoFinalActivePairBudget= 17, 65, 145  (~QUADRATIC in k,
+                                                 independent of n)
+  ```
+
+  The cumulative prefix-pool versions grow with n, but the gate object
+  is the per-step/final one.  So the truthful targets for the two
+  remaining obligations are: active keys O(1)-to-linear, bucket
+  linear, pair budget quadratic - all in rsize r, all n-independent.
+- Next cycle: attempt the keys bound first (why are there only 2
+  active keys? an active key is a shared tail of >=2 keyed rows in
+  one universe; candidate invariant: active tails of a single strong
+  step are tails of the SAME front row family, pinned by the
+  rpder_norm chain - or find the CE).  Bucket linear second
+  (vs the checked cubic card_rseq_tail_nonalt_head_rows_..._le_front).
