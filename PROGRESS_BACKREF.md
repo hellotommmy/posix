@@ -5939,3 +5939,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   Future route: prove this by induction on `n` using
   `{..<Suc n} = insert n {..<n}` and `card_Un_le`, avoiding `card_UN_le`
   over a schematic family.
+
+## 2026-06-13 Codex 02:50: CLAIM - RNTIMES range aggregation by induction
+
+- Synced through pushed commit a8f1ee5, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: retry the RNTIMES range aggregation only with
+  the different proof shape recorded above: first prove a generic
+  induction-on-`n` union-difference/card bound over `{..<n}`, then
+  instantiate it for `apder_term_frontier_acc (RNTIMES r n) k`.  Do not use
+  `card_UN_le` over a schematic family.
+
+## 2026-06-13 Codex 02:55: CHECKED - RNTIMES range aggregation by induction
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `card_UN_lessThan_diff_le_mult` and
+  `card_apder_term_frontier_acc_RNTIMES_diff_le`.
+- This reuses the previously blocked RNTIMES statement but changes the proof
+  shape: induction on `n`, split `{..<Suc n}` as `insert n {..<n}`, then
+  use `card_Un_le`.  First build exposed the split equality as the only
+  local failure; after adding the explicit index-set split, the rerun passed.
+- Build command passed after worker check (AntimirovFactoredTransition
+  84.665s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

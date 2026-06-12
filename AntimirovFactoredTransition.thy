@@ -29055,6 +29055,56 @@ lemma card_apder_term_frontier_acc_RSTAR_diff_le:
   by (rule card_apder_term_frontier_acc_RSTAR_diff_le_Suc)
     (use body card_rfrontier_rsimp4_SEQ_atom_RSTAR_diff_le_one in auto)
 
+lemma card_UN_lessThan_diff_le_mult:
+  assumes each: "\<And>m. m < n \<Longrightarrow> card (A m - K) \<le> C"
+  shows "card ((\<Union>m \<in> {..<n}. A m) - K) \<le> n * C"
+  using each
+proof (induct n)
+  case 0
+  then show ?case
+    by simp
+next
+  case (Suc n)
+  let ?U = "\<Union>m \<in> {..<n}. A m"
+  have idx: "{..<Suc n} = insert n {..<n}"
+    by auto
+  have split: "((\<Union>m \<in> {..<Suc n}. A m) - K) =
+      (?U - K) \<union> (A n - K)"
+    by (auto simp: idx)
+  have prev: "card (?U - K) \<le> n * C"
+    by (rule Suc.hyps) (use Suc.prems in auto)
+  have curr: "card (A n - K) \<le> C"
+    using Suc.prems by simp
+  have "card ((\<Union>m \<in> {..<Suc n}. A m) - K) =
+      card ((?U - K) \<union> (A n - K))"
+    by (simp add: split)
+  also have "... \<le> card (?U - K) + card (A n - K)"
+    by (rule card_Un_le)
+  also have "... \<le> n * C + C"
+    using prev curr by linarith
+  finally show ?case
+    by simp
+qed
+
+lemma card_apder_term_frontier_acc_RNTIMES_diff_le:
+  assumes each: "\<And>m. m < n \<Longrightarrow>
+    card (apder_term_frontier_acc r
+      (rsimp4_SEQ_atom (RNTIMES r m) k) - rfrontier k) \<le>
+      Suc (apder_zw2 r)"
+  shows "card (apder_term_frontier_acc (RNTIMES r n) k - rfrontier k) \<le>
+    apder_zw2 (RNTIMES r n)"
+proof -
+  let ?A = "\<lambda>m. apder_term_frontier_acc r
+    (rsimp4_SEQ_atom (RNTIMES r m) k)"
+  have "card (apder_term_frontier_acc (RNTIMES r n) k - rfrontier k) =
+      card ((\<Union>m \<in> {..<n}. ?A m) - rfrontier k)"
+    by simp
+  also have "... \<le> n * Suc (apder_zw2 r)"
+    by (rule card_UN_lessThan_diff_le_mult) (use each in auto)
+  finally show ?thesis
+    by simp
+qed
+
 lemma card_union_diff_le_three_bucket_terms:
   assumes finA: "finite A"
     and finB: "finite B"
