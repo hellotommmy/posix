@@ -5506,3 +5506,23 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 - Also useful tonight: card_apder_terms_le_awidth already exists
   (no premises) - the row-count question is really only about the
   FRONTIER width contribution, i.e. exactly the D law.
+
+## 2026-06-12 Fable 23:30: assembly audit complete - no further degree available tonight
+
+- Checked tonight in three pushes: zwidth + zero-empty (1d0d115),
+  static maxrow quadratic (ef30819).  Assembly audit of the remaining
+  combinations against existing facts (rsize_set_apder_terms_acc_le_
+  awidth, card_apder_terms_le_awidth, the A-cubic at 3649): every
+  alternative chain reproduces degree three for the static ledger and
+  degree five+ for the gate - no new degree without the D law
+  (row-count linear) or the liveness slice.  Both are precisely
+  documented with falsified-strengthening histories and a help-wanted
+  post (899911f).
+- Tonight''s frontier, one sentence each:
+  D law: card(acc r k - rfrontier k) <= zwidth r - true on >200k
+    samples, four strengthenings falsified, needs an
+    inclusion-exclusion invariant over sibling accumulators.
+  Liveness: fronts above C*n^2 only shrink - zero violations in every
+    family, needs a saturation predicate.
+  Either one landing turns the whole checked chain cubic on the nf
+  fragment.
