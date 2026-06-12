@@ -25696,6 +25696,66 @@ proof -
     by simp
 qed
 
+lemma raw_shared_prune_active_suffix_pair_budget_card_bucket_bound:
+  assumes finite: "finite U"
+    and card_bound: "card U \<le> C"
+    and bucket_bound: "\<And>k. k \<in> raw_shared_prune_active_suffix_keys U \<Longrightarrow>
+      card (raw_shared_prune_active_suffix_bucket U k) \<le> K"
+  shows "raw_shared_prune_active_suffix_pair_budget U \<le> C * K"
+proof -
+  let ?keys = "raw_shared_prune_active_suffix_keys U"
+  let ?bucket = "raw_shared_prune_active_suffix_bucket U"
+  have finite_keys: "finite ?keys"
+    using finite by simp
+  have bucket_finite: "\<forall>k\<in>?keys. finite (?bucket k)"
+    using finite by simp
+  have bucket_disjoint:
+    "\<forall>i\<in>?keys. \<forall>j\<in>?keys. i \<noteq> j \<longrightarrow>
+      ?bucket i \<inter> ?bucket j = {}"
+    by (auto simp add: raw_shared_prune_active_suffix_bucket_def)
+  have bucket_union_subset: "(\<Union>k \<in> ?keys. ?bucket k) \<subseteq> U"
+    by (auto simp add: raw_shared_prune_active_suffix_bucket_def)
+  have sum_buckets:
+      "(\<Sum>k \<in> ?keys. card (?bucket k)) \<le> card U"
+  proof -
+    have union_eq:
+        "(\<Union>(?bucket ` ?keys)) = (\<Union>k \<in> ?keys. ?bucket k)"
+      by blast
+    have sum_eq: "(\<Sum>k \<in> ?keys. card (?bucket k)) =
+        card (\<Union>k \<in> ?keys. ?bucket k)"
+    proof -
+      have "card (\<Union>(?bucket ` ?keys)) =
+          (\<Sum>k \<in> ?keys. card (?bucket k))"
+        by (rule card_UN_disjoint
+            [OF finite_keys bucket_finite bucket_disjoint])
+      then show ?thesis
+        using union_eq by simp
+    qed
+    have union_card: "card (\<Union>k \<in> ?keys. ?bucket k) \<le> card U"
+      by (rule card_mono[OF finite bucket_union_subset])
+    show ?thesis
+      using sum_eq union_card by simp
+  qed
+  have "raw_shared_prune_active_suffix_pair_budget U =
+      (\<Sum>k \<in> ?keys. card (?bucket k) * card (?bucket k))"
+    by (simp add: raw_shared_prune_active_suffix_pair_budget_def)
+  also have "... \<le> (\<Sum>k \<in> ?keys. card (?bucket k) * K)"
+  proof (rule sum_mono)
+    fix k
+    assume k: "k \<in> ?keys"
+    show "card (?bucket k) * card (?bucket k) \<le>
+        card (?bucket k) * K"
+      by (rule mult_left_mono[OF bucket_bound[OF k]]) simp
+  qed
+  also have "... = (\<Sum>k \<in> ?keys. card (?bucket k)) * K"
+    by (simp add: sum_distrib_right)
+  also have "... \<le> card U * K"
+    by (rule mult_right_mono[OF sum_buckets]) simp
+  also have "... \<le> C * K"
+    by (rule mult_right_mono[OF card_bound]) simp
+  finally show ?thesis .
+qed
+
 lemma card_raw_final_active_suffix_pairs_le_pair_budget:
   "card (raw_shared_prune_active_suffix_pairs
       (raw_final_active_suffix_rows r)) \<le>

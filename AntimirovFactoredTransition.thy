@@ -19107,6 +19107,55 @@ lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_le_card_square
     card (afactored1_strong_dlform_universe r s c)"
   by (rule raw_shared_prune_active_suffix_pair_budget_le_card_square) simp
 
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_card_bucket_boundI:
+  assumes card_bound:
+      "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    and bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+  shows "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le> C * K"
+proof (rule raw_shared_prune_active_suffix_pair_budget_card_bucket_bound)
+  show "finite (afactored1_strong_dlform_universe r s c)"
+    by simp
+  show "card (afactored1_strong_dlform_universe r s c) \<le> C"
+    by (rule card_bound)
+  fix k
+  assume "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  then show "card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    by (rule bucket_bound)
+qed
+
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI:
+  assumes bucket_bound:
+      "\<And>k. k \<in> raw_shared_prune_active_suffix_keys
+        (afactored1_strong_dlform_universe r s c) \<Longrightarrow>
+        card (raw_shared_prune_active_suffix_bucket
+          (afactored1_strong_dlform_universe r s c) k) \<le> K"
+  shows "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le>
+    afactored1_strong_dlform_list_cost r s c * K"
+proof (rule
+    afactored1_strong_dlform_universe_active_suffix_pair_budget_card_bucket_boundI)
+  have "card (afactored1_strong_dlform_universe r s c) \<le>
+      rsize_set (afactored1_strong_dlform_universe r s c)"
+    by (rule card_le_rsize_set) simp
+  also have "... \<le> afactored1_strong_dlform_list_cost r s c"
+    by (rule rsize_set_afactored1_strong_dlform_universe_le_list_cost)
+  finally show "card (afactored1_strong_dlform_universe r s c) \<le>
+      afactored1_strong_dlform_list_cost r s c" .
+  fix k
+  assume "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  then show "card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) k) \<le> K"
+    by (rule bucket_bound)
+qed
+
 lemma card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI:
   assumes card_bound:
       "card (afactored1_strong_dlform_universe r s c) \<le> C"

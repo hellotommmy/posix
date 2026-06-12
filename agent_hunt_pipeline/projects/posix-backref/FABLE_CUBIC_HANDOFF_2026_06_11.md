@@ -21,6 +21,8 @@ New checked bridge in `AntimirovFactoredTransition.thy`:
 ```text
 raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget
 raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
+raw_shared_prune_active_suffix_pair_budget_card_bucket_bound
+afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI
 ```
 
 Plain definitions:
@@ -71,8 +73,21 @@ sharper same-key bucket theorem.
 Best immediate target:
 
 ```text
-bound raw_shared_prune_active_suffix_pair_budget
+prove a real same-key active bucket width bound:
+
+k in raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)
+==>
+card (raw_shared_prune_active_suffix_bucket
+        (afactored1_strong_dlform_universe r s c) k) <= K
+```
+
+Then the checked interface gives:
+
+```text
+raw_shared_prune_active_suffix_pair_budget
   (afactored1_strong_dlform_universe r s c)
+<= afactored1_strong_dlform_list_cost r s c * K
 ```
 
 Do not continue the older "only distinct tail count remains" claim unless it
@@ -692,12 +707,11 @@ counterexamples as a tool only when they answer a named theorem subclaim.  The
 most useful routes are now:
 
 1. Prove a sharper bound for the actual step-local active sharing budget
-   `raw_shared_prune_active_suffix_pair_budget
-   (afactored1_strong_dlform_universe r s c)`.  This is the immediate object
-   that now plugs into the checked weighted-tail lemma.  Bounding key count
-   and same-key bucket size is still useful, but only because it bounds this
-   `pair_budget`; do not stop at a statement that cannot feed the weighted
-   interface.
+   by proving a same-key active bucket width bound `K`.  The checked interface
+   `afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI`
+   then gives `pair_budget <= list_cost * K`.  Do not stop at a key-count
+   statement unless it also controls this maximum bucket width or feeds a
+   strictly sharper pair-budget theorem.
 2. Use the checked list-cost weighted bridge for the active term:
 
    ```text

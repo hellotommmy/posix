@@ -15708,6 +15708,9 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   raw_shared_prune_active_suffix_weighted_sum_le_pair_budget_key_bound
   raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_key_bound
   raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
+  raw_shared_prune_active_suffix_pair_budget_card_bucket_bound
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_card_bucket_boundI
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI
   ```
 
 - Plain definitions for this brick:
@@ -15767,8 +15770,23 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   discharge the current checked interface.  The active bucket multiplicity must
   be paid through `pair_budget`.
 
+- New pair-budget interface: if every active suffix bucket of the step-local
+  universe has size at most `K`, then the pair budget is bounded by
+
+  ```text
+  raw_shared_prune_active_suffix_pair_budget
+    (afactored1_strong_dlform_universe r s c)
+  <=
+    afactored1_strong_dlform_list_cost r s c * K
+  ```
+
+  This is stronger than the older `#keys * K * K` interface when the useful
+  control is "total active rows times maximum same-key width".  The best next
+  local theorem is therefore a genuine bound on the maximum same-key active
+  bucket width `K`, not a separate key-count wrapper.
+
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
-  `Posix` green at 2026-06-12 10:53 local time.
+  `Posix` green at 2026-06-12 11:02 local time.
 
 ## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
 
