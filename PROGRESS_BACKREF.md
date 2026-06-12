@@ -6414,3 +6414,28 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   84.317s, full Posix elapsed 0:01:38).  This supplies the pure arithmetic
   brick requested by the previous RALTS blocker; no new CE/blow-up family
   discovered, `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 06:15: CLAIM - RALTS carry with checked singleton allowance
+
+- Synced through pushed commit cdfb153, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow checked brick: retry the RALTS arbitrary-continuation carry lemma,
+  now using the checked `card_add_singleton_Diff_le_Suc` helper rather than
+  inline arithmetic.  The statement remains scoped: exact carry at `RONE`,
+  ordinary D plus one singleton at non-`RONE` continuations.
+
+## 2026-06-13 Codex 06:20: BLOCKED - RALTS retry needs two-set singleton helper
+
+- Retried `card_apder_term_frontier_acc_RALTS_carry_measure_le_Suc_if_children`
+  after the checked singleton helper landed.
+- First build failed on method syntax (`simp_all intro!:` is invalid); changed
+  only the lemma to use `auto intro!:`.  The next build reached the real
+  RALTS-continuation goal, where the singleton term has shape
+  `card ({RSEQ (RALTS rs) (RALTS ks)} - rfrontiers ks - A)`.
+- Changed only the lemma to add a local two-set singleton rewrite; two
+  rebuilds then failed at that local rewrite/refinement.  Per discipline,
+  removed the unchecked constructor lemma and switched sub-target.
+- Next safe brick: check the pure helper
+  `card A <= N ==> card A + card ({x} - B - C) <= Suc N`; then retry the
+  RALTS constructor lemma using that named theorem.
