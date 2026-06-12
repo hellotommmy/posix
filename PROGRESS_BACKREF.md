@@ -17219,3 +17219,29 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   sharing.  A generic wrapper such as `sum q^2 <= rsizes rows * rsizes rows`
   is mathematically true but probably loses a degree and does not move the
   final cubic gate.
+
+## 2026-06-12 Fable: CHECKED - union card account for the actual output
+
+- Full Posix build GREEN at 2026-06-12 19:49 local
+  (AntimirovFactoredTransition 59.513s, exit 0).  New checked pieces:
+
+  ```text
+  card_row_dlformss_le_rsizes
+    (card (row_dlformss rows) <= rsizes rows)
+  card_row_dlformss_rpder_strong_rows_raw_le_generated
+    (card of the deduplicated opened union of the actual one-step
+     output <= rsizes of the generated rows, via the deleter chain)
+  ```
+
+- Plain meaning: the CARD half of the set gate is now a one-degree
+  object: distinct opened rows of the actual output are at most the
+  generated total size.  Only the SIZE half (rsize_set) still carries
+  the extra degree via member sizes.
+- Remaining isolated gap, stated plainly: bound
+  rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))
+  (generated total) by cubic AND bound member sizes by linear, OR
+  bound rsize_set of the union directly by a size-stratified count
+  (big members are few).  The size-stratification idea is new and
+  untried: sum over distinct members <= sum over m of m * (#members
+  of size m), and members of size m may be limited by the carrier
+  structure.  Queued for next cycle.

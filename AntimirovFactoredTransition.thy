@@ -28288,4 +28288,40 @@ lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_sum_rsize_sq:
   by (rule rsize_set_row_dlformss_le_sum_rsize_sq)
 
 
+text \<open>
+  Union-level card account: the deduplicated union of opened rows over
+  a row LIST is bounded by the plain total size of the list - the
+  per-row linear card bound survives the union (sharing only helps).
+  Instantiated to the actual one-step output, the card side of the set
+  gate reduces to the generated rsizes budget, which the deleter chain
+  (rsizes_rpder_strong_rows_raw_le) already controls.
+\<close>
+
+lemma card_row_dlformss_le_rsizes:
+  "card (row_dlformss rows) \<le> rsizes rows"
+proof -
+  have "card (row_dlformss rows) \<le>
+      (\<Sum>q \<in> set rows. card (row_dlforms q))"
+    unfolding row_dlformss_def
+    by (rule card_UN_le) simp
+  also have "... \<le> (\<Sum>q \<in> set rows. rsize q)"
+    by (rule sum_mono) (rule card_row_dlforms_le_rsize)
+  also have "... \<le> rsizes rows"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
+lemma card_row_dlformss_rpder_strong_rows_raw_le_generated:
+  "card (row_dlformss (rpder_strong_rows_raw c rows)) \<le>
+    rsizes (concat (map (rpder_norm_list c) rows))"
+proof -
+  have "card (row_dlformss (rpder_strong_rows_raw c rows)) \<le>
+      rsizes (rpder_strong_rows_raw c rows)"
+    by (rule card_row_dlformss_le_rsizes)
+  also have "... \<le> rsizes (concat (map (rpder_norm_list c) rows))"
+    by (rule rsizes_rpder_strong_rows_raw_le)
+  finally show ?thesis .
+qed
+
+
 end
