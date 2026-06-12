@@ -15592,3 +15592,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 
 - Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
   `Posix` green at 2026-06-12 09:58 local time.
+
+## 2026-06-12 Fable: head-tail split inequality - exact statement (claim)
+
+- Building on the supervisor rseq_tails bricks and the checked row
+  grammar, the deduplicated-gate decomposition to prove next is:
+
+  ```text
+  rsize_set (row_dlformss out) <=
+      rsize_set (carrier)                      (atom members)
+    + card (members) * Suc (max head size)     (head part of seq members)
+    + card (carrier) * rsize_set (rseq_tails (row_dlformss out))
+                                               (tail part: each distinct
+                                                tail is shared by at most
+                                                card(carrier) heads,
+                                                since heads sit in the
+                                                carrier by the grammar)
+  ```
+
+  where carrier = strong_derivative_front_terms r (s @ [c]), out =
+  rpder_strong_rows_raw c (afactored1 r s).  All three factors then
+  reduce to: carrier cubic (checked), member count (ledger, checked),
+  head size linear (checked carrier member bound), and the one open
+  number: rsize_set of the distinct tail set.  On the fragment that
+  last number should follow from a linear tail count x quadratic tail
+  size; general fragment needs the drain invariant.
+- Claim: Fable implements this split next cycle (it only uses checked
+  grammar + rseq_tails + counting, no membership transfer through the
+  refuted carriers).
