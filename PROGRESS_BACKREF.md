@@ -16931,3 +16931,48 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   far below the cubic budget, with the widest single-row examples looking
   roughly quadratic in this model.  Treat the scratch model as a filter for
   candidate counterexamples, not as a checked Isabelle proof.
+
+## 2026-06-12 Fable: tower probe RESULT - suspicion withdrawn, exponential is impossible; correct replacement lemma identified
+
+- Verdict (4 independent probes, definitions cross-checked clause by
+  clause): the duplicated list_cost target is NOT refutable by nested
+  towers.  Reason, in plain terms: no clause in the whole pipeline
+  (rsimp4/rsimp7_SEQ_atom BI:287-314/414-421, rflts BI:177, rdistinct
+  BI:83, prune GRB:17015/18163, rpder_list GRB:934, row_dlforms_list
+  AFT:4817) ever duplicates a payload; only tails are copied, and a
+  copied tail stays CLOSED (contributes 1 row) unless its head is an
+  alternation in head position.  Empirics agree: one-step list_cost on
+  every tower family stays ~quadratic per row; max observed
+  cost/budget ratio 2.4e-3, shrinking as terms grow.  My 43ed95d
+  suspicion was wrong; 40e9d86 target stands.
+- Useful facts established on the way: (a) head-position towers are
+  flattened by rpder_list itself during differentiation - nested keyed
+  rows only arise from towers in TAIL position behind a guard char;
+  (b) rsimpStrong_raw is a literal fixpoint on width>=2 nested keyed
+  payloads (width-1 lists collapse via rsimp_ALTs [r] = r); it never
+  distributes SEQ over ALTS.
+- NEW refinement the probes missed (caught on review): rsimp4(RONE,k)
+  = k, so an RONE alternation member OPENS the tail.  With duplicate
+  RONE members (legal in raw terms, even rtail_nf) leaves multiply per
+  nesting level: m RONEs per level, depth d gives m^d opened rows from
+  size ~d*m - the "universal quadratic cap" is FALSE for raw terms
+  (CE numbers: m=6, d=3, keyed base: cost >= 1296 > 576 = rsize^2).
+  It is rescued exactly by rdistinct inside rsimpStrong: strong-simped
+  member lists carry at most ONE RONE, making tail-opening additive.
+- THE next lemma (claimed, fragment-free, replaces the refuted linear
+  per-row bounds): for strong-normalized rows q (q in the image of
+  rsimpStrong_raw, or any invariant giving dedup'd member lists at
+  every level):
+
+  ```text
+  length (row_dlforms_list q) <= rsize q
+  row_dlforms_list_size q <= rsize q * rsize q
+  ```
+
+  via member-size <= rsize (exists: row_dlforms_member_size_le_rsize).
+  This is the per-row budget f for the ea0ce80 payment interface:
+  list_cost <= sum over generated rows of (rsize)^2.  Multi-step
+  composition to cubic still needs the front sharing argument, but the
+  per-row account is now correctly shaped and provable.
+- Local artifact: scratch_dlform_cost_model.py (clause-verified Python
+  mirror of the cost pipeline, used for the numbers; left untracked).
