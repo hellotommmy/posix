@@ -5,6 +5,57 @@ cubic size-bound project.  It is intentionally much shorter than the old chat
 logs and the long progress file.  Start here; only open the long files when a
 specific theorem name or design question requires it.
 
+## Supervisor Override, 2026-06-12 19:45 GMT+8
+
+Red `Background shell failed` entries are mostly Isabelle proof failures
+inside `AntimirovFactoredTransition.thy`, not shell/environment failures.  The
+useful response is:
+
+1. Read the first `*** Failed to finish proof` block in the task output.
+2. Open exactly that line range in the theory.
+3. Change one named lemma/proof step so the first failing goal is different.
+4. Only then run one full Posix build.
+
+Do not queue another background build if the first failing line/goal is the
+same as the previous failed build.  Do not wait for "supervisor" unless
+`scripts\codex-proof-workers.ps1 -Action Check` shows a live worker or
+`git status --short` shows tracked edits you did not make in the exact same
+lines.  If the worktree is clean and no proof worker is active, take the next
+small checked step instead of idling.
+
+The row-square bridge checked at 19:26 is a safe fallback, not a new invitation
+to add coarse wrappers:
+
+```text
+rsize_set (row_dlformss actual_rows)
+  <= sum_list (map (%q. rsize q * rsize q) actual_rows)
+```
+
+Use it only if the next lemma exploits actual strong scan/prune sharing.  If a
+square-sum proof degrades into `rsizes rows ^ 2`, duplicated opened-list cost,
+or arbitrary-row-list bounds, stop and return to the existing weighted
+split/active-suffix bucket route:
+
+```text
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_open_weighted_plus_active_alt_nodesI
+rsize_set_split_rseq_tails_rpder_strong_rows_raw_afactored1_front_weighted_plus_active_alt_nodesI
+raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
+```
+
+Plain target definitions:
+
+- `actual_rows` means
+  `rpder_strong_rows_raw c (afactored1 r s)`, the one-step rows after the
+  strong simplifier/pruner.
+- `row_dlformss actual_rows` means all rows obtained by opening those rows,
+  with duplicates removed.
+- `rsize_set` sums syntax sizes over a set of distinct rows.
+- The final live gate is still the cubic set ledger:
+
+```text
+rsize_set (row_dlformss actual_rows) <= 2 * (rsize r + 3)^3
+```
+
 ## Supervisor Override, 2026-06-12 19:25 GMT+8
 
 Current red `Background shell failed` entries are still proof failures, not an

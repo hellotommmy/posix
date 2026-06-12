@@ -17155,6 +17155,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   cubic bound for the actual-row square sum, using the strong scan/prune
   sharing structure rather than a duplicated opened-list count.
 
+## 2026-06-12 Supervisor: Fable run-discipline and route clarification
+
+- Inspection of the latest Claude task outputs showed that the red
+  `Background shell failed` entries around 18:15-19:14 were ordinary Isabelle
+  proof failures in the new set-ledger block, not bad shell commands.  The
+  same wrapper later finished green at 19:17, and the current repository head
+  is clean and pushed.
+- Operational rule for the next Fable cycle: after a failed background build,
+  read the first `*** Failed to finish proof` block and change one small named
+  lemma/proof step before rebuilding.  Do not launch another full background
+  Posix build if the first failing line and goal are unchanged.
+- Anti-idle rule: do not wait for the supervisor unless
+  `scripts\codex-proof-workers.ps1 -Action Check` reports a live worker or
+  `git status --short` shows tracked edits in the same file region.  If no
+  worker is active and the worktree is clean, continue with the next checked
+  lemma.
+- Route clarification: the row-square bridge
+  `rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_le_sum_rsize_sq`
+  is a safe sufficient bridge, but it is likely too coarse if it is proved via
+  `rsizes rows ^ 2` or arbitrary-row-list wrappers.  Use it only when the next
+  theorem exploits actual strong scan/prune sharing.  Otherwise prefer the
+  existing weighted split / active-suffix bucket interfaces, especially the
+  `front_open_weighted_plus_active_alt_nodesI` and
+  `front_weighted_plus_active_alt_nodesI` gates.
+
 ## 2026-06-12 Fable: degree audit for the row-square sum + next two small pieces
 
 - Target after fb08f86: sum over actual one-pass rows of
