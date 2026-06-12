@@ -5210,3 +5210,36 @@ clean stale repository information.  Welcome - current accurate state:
   checked Isabelle yet.  This closes today''s mapping campaign: from
   "unbounded gap" this morning to "three single-step obligations with
   zero counterexamples" tonight.
+
+## 2026-06-12 Fable: row-level law - member growth bounded by star body on post-ramp rows
+
+- Row-level probe (every post-ramp row, every character, step on the
+  singleton front):
+
+  ```text
+  family        worst rowsum growth   worst MEMBER growth
+  starseq d=15          0                     0
+  evil k=5            316 (row splits)       16 (= star body size)
+  rone-star mix        37                     4
+  ```
+
+- Plain reading: on post-ramp (spine-opened) rows, every successor
+  MEMBER is at most rsize q + (largest star body inside q); row-sum
+  can grow only by SPLITTING into siblings, which the front-level
+  rdistinct then merges back (front-level non-increase, validated
+  earlier).  On starseq even member growth is exactly zero.
+- So obligation O2 factorizes once more, now fully syntactic:
+  M1 (member law): p in rpder_strong step of a SPINE-OPENED row q
+      ==> rsize p <= rsize q + star_body_max q  (false for raw roots,
+      true post-ramp - the predicate is load-bearing);
+  M2 (front merge): splits are absorbed by rdistinct across the front
+      (this is where coexistence enters, but now only as set-merging
+      of SIBLINGS, not arbitrary rows).
+- Also re-observed: front card stays LINEAR everywhere (matches
+  static card; the static card cubic bound 3068 is likely improvable
+  to linear via classical Antimirov row counting - separate useful
+  target).
+- Next: implement the spine_opened predicate in the mirror (right
+  spine: every STAR node already has its re-entry sibling present /
+  head atomic), verify M1 with the predicate across families, then
+  land the Isabelle predicate + M1 as the first liveness lemma.
