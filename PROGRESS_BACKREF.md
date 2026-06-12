@@ -5394,3 +5394,40 @@ clean stale repository information.  Welcome - current accurate state:
   bijection before the next Isabelle attempt.
 - Honest state at 23:05: law true and pinned, proof design needs one
   more idea.  This is tomorrow''s single-focus opener.
+
+## 2026-06-12 Fable: day ledger (06-12 morning -> 23:15)
+
+CHECKED Isabelle results landed and pushed today (all build-green):
+- afactored1_strong_dlform_list_cost_cubic_false (RONE-pair tower:
+  duplicated list cost refuted, exponential witness) [with supervisor]
+- front_atom_mult + double-counting identity
+- per-front-row payment interface (cost = one payment per front row)
+- card_row_dlforms_le_rsize, rsize_set_row_dlforms_le_rsize_sq
+  (set-level per-row: LINEAR card, quadratic ledger, unconditional)
+- card_row_dlformss_le_rsizes + actual-output instance (union card
+  one-degree)
+- weight bounds: union member <= generated; tail weights pinned
+- head bound: actual union RSEQ heads linear (legacy fragment)
+- pair-budget gate instantiated; THEN pair budget proven ZERO
+  (dlform universe has no keyed members) - obligation (3) eliminated,
+  gate reduced to two summands
+- exact two-number decomposition (nonseq cubic + card(seq)*H +
+  bucket-tail sums; no self-reference)
+- sum_image_le_nat, tail-sum regroup, rseq_members split
+- front total STATICIZED: rsizes(afactored1 r s) <= rsize_set
+  (apder_rows r) for every s
+MAPPED (mirror-verified, recorded, not yet Isabelle):
+- static apder_rows ledger is TIGHT cubic (star-seq tower family);
+  dynamic front quadratic confirmed on the same family
+- reachable rows = static rows (no set-shaped escape); missing degree
+  is coexistence/liveness
+- cap-law invariant (P3 or under-cap) ZERO violations all families;
+  liveness reduced to three single-step obligations O1-O3
+- row-level member law (growth <= star body) on post-ramp rows
+- row-count law pinned exactly: card(acc r k - F k) <= zwidth r
+  (85k samples + directed CEs; awidth versions false, companion
+  membership mechanisms falsified twice; conservation bijection open -
+  TOMORROW''S OPENER)
+Bounty notes: refutation claimed under overlay cat 3; set-level
+bridge under cat 2; admin to assess.  Tomorrow: row-count
+conservation proof, then static maxrow quadratic, then O1-O3.
