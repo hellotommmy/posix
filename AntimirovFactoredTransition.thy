@@ -19156,6 +19156,33 @@ proof (rule
     by (rule bucket_bound)
 qed
 
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_alt_nodes_bound:
+  "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le>
+    card (afactored1_strong_dlform_universe r s c) *
+    card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c))"
+  by (rule raw_shared_prune_active_suffix_pair_budget_alt_nodes_bound) simp
+
+lemma afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound:
+  "raw_shared_prune_active_suffix_pair_budget
+      (afactored1_strong_dlform_universe r s c) \<le>
+    afactored1_strong_dlform_list_cost r s c *
+    card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c))"
+proof (rule
+    afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI)
+  fix k
+  assume "k \<in> raw_shared_prune_active_suffix_keys
+      (afactored1_strong_dlform_universe r s c)"
+  show "card (raw_shared_prune_active_suffix_bucket
+      (afactored1_strong_dlform_universe r s c) k) \<le>
+    card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c))"
+    by (rule card_raw_shared_prune_active_suffix_bucket_le_alt_nodes)
+      simp
+qed
+
 lemma card_afactored1_strong_dlform_universe_active_suffix_closure_bucket_generated_boundI:
   assumes card_bound:
       "card (afactored1_strong_dlform_universe r s c) \<le> C"

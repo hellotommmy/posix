@@ -15915,3 +15915,43 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   bucket width `K`.  Distinct-tail total size may still help the ordinary
   non-active tail summand, but it does not replace the active bucket-width
   proof.
+
+## 2026-06-12 Supervisor: bucket width reduced to active alt-node count
+
+- New checked generic lemmas:
+
+  ```text
+  raw_shared_prune_active_suffix_alt_nodes
+  finite_raw_shared_prune_active_suffix_alt_nodes
+  card_raw_shared_prune_active_suffix_alt_nodes_le
+  card_raw_shared_prune_active_suffix_bucket_le_alt_nodes
+  raw_shared_prune_active_suffix_pair_budget_card_alt_nodes_bound
+  raw_shared_prune_active_suffix_pair_budget_alt_nodes_bound
+  ```
+
+- New checked step-local lemmas:
+
+  ```text
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_alt_nodes_bound
+  afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound
+  ```
+
+- Plain meaning: for a fixed suffix key `k`, the active bucket rows
+  `RSEQ (RALTS rows) k` inject into their `RALTS rows` heads.  Therefore the
+  remaining abstract bucket width `K` can be replaced by the concrete count of
+  active `RALTS`-head nodes:
+
+  ```text
+  pair_budget(afactored1_strong_dlform_universe r s c)
+  <=
+    afactored1_strong_dlform_list_cost r s c
+    * card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c))
+  ```
+
+- Best next theorem: bound the active alt-node count for the step-local
+  universe sharply.  This is now more precise than a generic "same-key bucket
+  width" target.
+
+- Verification: `codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` finished
+  `Posix` green at 2026-06-12 11:11 local time.

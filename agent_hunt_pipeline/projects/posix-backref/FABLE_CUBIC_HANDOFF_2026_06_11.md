@@ -23,6 +23,9 @@ raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactor
 raw_shared_prune_active_suffix_weighted_rseq_tails_rpder_strong_rows_raw_afactored1_le_pair_budget_list_cost
 raw_shared_prune_active_suffix_pair_budget_card_bucket_bound
 afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI
+raw_shared_prune_active_suffix_alt_nodes
+card_raw_shared_prune_active_suffix_bucket_le_alt_nodes
+afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound
 ```
 
 Plain definitions:
@@ -65,6 +68,17 @@ active weighted term
      * (Suc H + afactored1_strong_dlform_list_cost r s c)
 ```
 
+Latest refinement: the abstract bucket-width target is now reduced to active
+`RALTS`-head nodes.  Checked:
+
+```text
+pair_budget(afactored1_strong_dlform_universe r s c)
+<=
+  afactored1_strong_dlform_list_cost r s c
+  * card (raw_shared_prune_active_suffix_alt_nodes
+      (afactored1_strong_dlform_universe r s c))
+```
+
 Important correction: the remaining problem is not merely
 `rsize_set (rseq_tails ...)`.  A distinct tail can be copied by several
 same-key rows, so multiplicity must be paid by `pair_budget` or by an even
@@ -73,13 +87,10 @@ sharper same-key bucket theorem.
 Best immediate target:
 
 ```text
-prove a real same-key active bucket width bound:
+bound the active RALTS-head count:
 
-k in raw_shared_prune_active_suffix_keys
-      (afactored1_strong_dlform_universe r s c)
-==>
-card (raw_shared_prune_active_suffix_bucket
-        (afactored1_strong_dlform_universe r s c) k) <= K
+card (raw_shared_prune_active_suffix_alt_nodes
+        (afactored1_strong_dlform_universe r s c)) <= A
 ```
 
 Then the checked interface gives:
@@ -87,7 +98,7 @@ Then the checked interface gives:
 ```text
 raw_shared_prune_active_suffix_pair_budget
   (afactored1_strong_dlform_universe r s c)
-<= afactored1_strong_dlform_list_cost r s c * K
+<= afactored1_strong_dlform_list_cost r s c * A
 ```
 
 Do not continue the older "only distinct tail count remains" claim unless it
@@ -706,12 +717,13 @@ The next session should not continue broad counterexample hunting.  Treat
 counterexamples as a tool only when they answer a named theorem subclaim.  The
 most useful routes are now:
 
-1. Prove a sharper bound for the actual step-local active sharing budget
-   by proving a same-key active bucket width bound `K`.  The checked interface
-   `afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_bucket_boundI`
-   then gives `pair_budget <= list_cost * K`.  Do not stop at a key-count
-   statement unless it also controls this maximum bucket width or feeds a
-   strictly sharper pair-budget theorem.
+1. Prove a sharper bound for the actual step-local active sharing budget by
+   bounding
+   `raw_shared_prune_active_suffix_alt_nodes
+   (afactored1_strong_dlform_universe r s c)`.  The checked interface
+   `afactored1_strong_dlform_universe_active_suffix_pair_budget_list_cost_alt_nodes_bound`
+   then gives `pair_budget <= list_cost * card(active_alt_nodes)`.  This is
+   the concrete form of the old same-key bucket-width target.
 2. Use the checked list-cost weighted bridge for the active term:
 
    ```text
