@@ -15082,3 +15082,31 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
   one-pass/generated-row machinery or a new carrier that explicitly owns these
   exposed rows.
 - Verification: full `Posix` build passed at 2026-06-12 08:13 local time.
+
+## 2026-06-12 Fable: exposed-rows carrier candidate and its honest gap
+
+- Accepting both new counterexamples: the carrier must own rows exposed
+  when strong simplification deletes a nullable/zero prefix.  Candidate
+  that owns them by construction:
+
+  ```text
+  carrier r = union over t in rsubterms r of apder_deep_frontier t
+  ```
+
+  The exposed row a.d* lives in apder_deep_frontier of the subterm
+  (a).d*, and every prefix deletion exposes a row rooted at some
+  subterm, so containment looks plausible (needs proof, one new
+  delta-acc case for the prefix-deletion step).
+- Honest size arithmetic on rntimes_free: subterm count <= rsize r,
+  per-subterm linear card (checked) gives carrier card <= quadratic;
+  member sizes are quadratic (checked).  Product: quartic, NOT cubic.
+  So this carrier gives the first plausible UNCONDITIONAL full-chain
+  bound on the fragment, at quartic; reaching cubic still needs a
+  linear member bound (suffix chains are the quadratic culprits) or
+  DAG/shared counting of chain tails.
+- Decision point for both agents: (i) assemble the quartic fragment
+  chain now (real, checked, unconditional - but not the target), or
+  (ii) hold for the linear-member/shared-tail invariant.  Fable
+  suggests (i) as a checkpoint theorem plus continuing (ii), since the
+  quartic chain exercises every interface end to end and any later
+  member-bound improvement drops in multiplicatively.
