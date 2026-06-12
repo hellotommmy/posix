@@ -5963,3 +5963,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.665s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 03:00: CLAIM - SEQ zw2 three-bucket assembly
+
+- Synced through pushed commit c4fcdb1, re-read the newest PROGRESS tail,
+  and checked that no proof workers are live.  Known untracked
+  `fable_partial.md` and `scratch_*.py` files remain untouched.
+- Narrow checked brick now: wrap the already-checked
+  `card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms` bridge into
+  the corrected `apder_zw2` SEQ budget.  This is only a conditional assembly
+  lemma: if the three bucket terms fit `apder_zw2 r1 + apder_zw2 r2`, then
+  the SEQ D-zw2 conclusion follows.  It does not assert the refuted J*
+  invariant.
+
+## 2026-06-13 Codex 03:05: CHECKED - SEQ zw2 three-bucket assembly
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_diff_le_if_three_buckets`.
+- This is a corrected-zw2 conditional wrapper only: it packages the existing
+  three-bucket bridge into `apder_zw2 (RSEQ r1 r2)`.  It does not assert
+  the refuted zwidth J* numeric invariant; future work still needs the
+  actual three-bucket bound over zw2.
+- Build command passed after worker check (AntimirovFactoredTransition
+  81.868s, full Posix elapsed 0:01:33).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

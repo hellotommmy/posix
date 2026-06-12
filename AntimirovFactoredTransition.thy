@@ -29134,6 +29134,31 @@ lemma card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms:
     card (apder_term_frontier_acc r2 k - rfrontier k)"
   by (simp add: card_union_diff_le_three_bucket_terms)
 
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_three_buckets:
+  assumes buckets:
+    "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r1 + apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    apder_zw2 (RSEQ r1 r2)"
+proof -
+  have "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+      card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+        rfrontier (rsimp4_SEQ_atom r2 k)) +
+      card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+        rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+        apder_term_frontier_acc r2 k) +
+      card (apder_term_frontier_acc r2 k - rfrontier k)"
+    by (rule card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms)
+  also have "... \<le> apder_zw2 (RSEQ r1 r2)"
+    using buckets by simp
+  finally show ?thesis .
+qed
+
 
 text \<open>
   Static row size law: every member of the apder accumulator is at
