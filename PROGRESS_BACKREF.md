@@ -5302,3 +5302,37 @@ clean stale repository information.  Welcome - current accurate state:
 - Payoff unchanged: B + static maxrow quadratic gives F <= cubic
   directly and is the row-count half of the front-quadratic
   conjecture.
+
+## 2026-06-12 Fable: difference form CONFIRMED - full proof blueprint for row-count linear
+
+- Correction to f51f708: the difference form
+
+  ```text
+  card (apder_term_frontier_acc r k - rfrontier k) <= apder_awidth r
+  ```
+
+  has ZERO violations on 44,765 nf samples (my earlier claim that the
+  CE breaks it was a miscalculation - the CE satisfies it with
+  equality 3 = 3).  This is THE inductive form.
+- Proof blueprint (next session, single focus):
+  * Induct with apder_term_frontier_acc.induct (k universally fixed
+    per clause).  RZERO/RONE/RCHAR: empty difference.  RALTS: the
+    shared rfrontier k is subtracted BEFORE the union sum -
+    card_UN_le + IH per member, no over-count.
+  * RSEQ r1 r2 with k <> RONE: sigma4(r2,k) is RZERO (k=RZERO, diff 0)
+    or the single-frontier RSEQ r2 k; decompose
+    acc(r1,sigma4) - Fk subseteq (acc(r1,sigma4) - F(sigma4)) UNION
+    (F(sigma4) - Fk); the second part is at most ONE row, paid by the
+    rightmost character leaf of r1 (awidth r1 >= 1 when r1 nf and
+    non-RZERO/RONE... verify; else case r1 trivial).
+  * RSEQ with k = RONE: sigma4 = r2; need the helper
+    card (rfrontier q - {RONE}) <= max 1 (apder_awidth q)  [nf q]
+    with the STAR(RONE)-style corner (awidth 0, frontier a non-RONE
+    singleton) handled by the max.  Then absorb max(1,aw2) <= ?
+    carefully - if the +max(1,..) does not fit awidth r1 + awidth r2,
+    weaken the MAIN statement to ... <= max 1 (apder_awidth r) and
+    re-run the mirror check (do this FIRST next session).
+  * STAR: continuation is single-frontier; direct IH.
+- After landing: card(apder_rows r) <= awidth + 2 (k = RONE instance
+  + insert r), then F <= card * maxrow with static maxrow quadratic
+  -> the row-count half of front-quadratic is checked.
