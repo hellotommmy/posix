@@ -15428,3 +15428,25 @@ including `BBACKREF`, `BHALF`, and `BRESIDUE`.
 - Next cycle starts with the row-level lemma, then the cross-row
   distinct-tail sum.  If the supervisor takes either piece first, the
   other agent takes the remaining one.
+
+## 2026-06-12 Fable Correction: row ledger must be recursive
+
+- Before coding the row-level lemma I checked the nested case: a branch
+  p of a keyed row can itself be RSEQ (RALTS xs) b (this satisfies
+  rtail_nf and nonalt).  Then rsimp7 p k reassociates to
+  RSEQ (RALTS xs) (b.k) and SPLITS AGAIN, copying the inner tail b.k
+  into every sub-branch.  So the flat form
+  `<= rsizes ps + length ps * Suc (rsize k)` is wrong for nested keyed
+  branches; the ledger is inherently recursive: each nesting level
+  contributes (its branch payloads) + (its width) x (its accumulated
+  tail).  The correct row-level object is a recursive function
+  ledger(q) defined like row_dlforms_list but charging each level's
+  tail once per level (not once per leaf), with the lemma
+  row_dlforms_list_size q <= width(q) * ledger(q) or similar.
+- This matches why all earlier flat per-row bounds topped out at
+  cubic/quadratic-of-ledger: the leaf count multiplies the deepest
+  tail.  The distinct-tail set across rows remains the cross-row
+  savings; the within-row savings needs this recursive ledger.
+- Handover: next cycle should define ledger(q) (recursive, mirrors
+  row_dlforms_list structure) and prove the within-row inequality
+  first on flat keyed rows, then by induction on nesting depth.
