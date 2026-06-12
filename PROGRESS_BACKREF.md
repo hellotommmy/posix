@@ -5627,3 +5627,33 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 - 01:10, end of the 5-hour continuous run.  Tomorrow opener: re-run
   equality anatomy under zw2, then the (D-zw2, J*-zw2) simultaneous
   induction in Isabelle with scratch_rowcount_check.py as the gate.
+
+## 2026-06-13 Codex 01:15: CLAIM - neutral SEQ duplicate-accounting bridge
+
+- Re-read MAINLINE, CLAUDE, and the newest PROGRESS tail after Fable's
+  01:10 correction.  I am not pursuing the refuted zwidth-D law or the
+  refuted numeric J* claim.
+- Narrow checked brick now: keep the already-green SEQ duplicate-accounting
+  finite-set bridge only as weight-independent scaffolding, rename it away
+  from `jstar`, and update the row-count comment so the live target is the
+  corrected zw2 law.  No `scratch_*.py` or `fable_partial.md` edits.
+
+## 2026-06-13 Codex 01:20: CHECKED - neutral SEQ three-bucket bridge
+
+- Files changed: `AntimirovFactoredTransition.thy` (+generic finite-set
+  bridge and RSEQ specialization; comment corrected to zw2), and this
+  PROGRESS tail.  No `scratch_*.py` or `fable_partial.md` edits.
+- New checked facts:
+  `card_union_diff_le_three_bucket_terms` and
+  `card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms`.
+  These are pure duplicate-accounting/cardinality scaffolding; they do NOT
+  assert the refuted zwidth-D law or the refuted depth-shallow J* numeric
+  bound.
+- Build discipline: `scripts\codex-proof-workers.ps1 -Action Check` found
+  no workers, then
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` passed
+  (AntimirovFactoredTransition 84.442s, full Posix elapsed 0:01:37).
+- Next smallest safe target after commit/push: start the corrected zw2
+  Isabelle surface (`apder_zw2`, `apder_zwidth <= apder_zw2`, and
+  `apder_zw2 <= rsize`) or, if Fable has already moved there, switch to
+  supervisor audit of duplicate/stale D-law notes in the PROGRESS tail.

@@ -28875,14 +28875,12 @@ qed
 
 
 text \<open>
-  Row-count law, passthrough-strengthened (mirror: 90,977 nf samples,
-  zero violations).  The weight zwidth charges every star at least one
-  slot (zero-width stars produce frontier rows without letters, which
-  falsifies the plain awidth law).  The passthrough discount makes the
-  induction self-balancing: when the continuation frontier survives
-  into the accumulator (a passthrough leaf exists), the budget pays
-  one slot for it; when it does not, composite frontier points are
-  simply absent from the accumulator.
+  Row-count law frontier.  The zwidth D law and the first numeric J*
+  strengthening are false at depth; the current target is the corrected
+  zw2 law, where every STAR layer receives one slot.  The finite-set
+  bridge below is weight-independent duplicate accounting for the SEQ
+  branch, and remains reusable scaffolding for any J*-style zw2
+  induction.
 \<close>
 
 fun apder_zwidth :: "rrexp \<Rightarrow> nat" where
@@ -28912,6 +28910,35 @@ next
   case (RNTIMES r n)
   then show ?case by (cases n) auto
 qed auto
+
+lemma card_union_diff_le_three_bucket_terms:
+  assumes finA: "finite A"
+    and finB: "finite B"
+  shows "card ((A \<union> B) - K) \<le>
+    card (A - F) + card ((A \<inter> F) - K - B) + card (B - K)"
+proof -
+  have cover: "(A \<union> B) - K \<subseteq>
+      (A - F) \<union> ((A \<inter> F) - K - B) \<union> (B - K)"
+    by blast
+  have "card ((A \<union> B) - K) \<le>
+      card ((A - F) \<union> ((A \<inter> F) - K - B) \<union> (B - K))"
+    by (rule card_mono)
+      (use finA finB cover in auto)
+  also have "... \<le>
+      card (A - F) + card ((A \<inter> F) - K - B) + card (B - K)"
+    by (rule card_Un3_le)
+  finally show ?thesis .
+qed
+
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_three_bucket_terms:
+  "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) \<le>
+    card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k)"
+  by (simp add: card_union_diff_le_three_bucket_terms)
 
 
 text \<open>
