@@ -33254,6 +33254,29 @@ proof -
     using actual bridge by blast
 qed
 
+lemma rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_clean_le_strong_opened_live_potential:
+  assumes clean: "apder_clean r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    strong_opened_live_acc_potential r RONE"
+proof -
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  have actual:
+      "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+      strong_opened_live_row_universe r"
+    by (rule
+        row_dlformss_rpder_strong_rows_raw_afactored1_clean_subset_root_strong_opened_live
+        [OF clean])
+  have "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      rsize_set (strong_opened_live_row_universe r)"
+    by (rule rsize_set_mono) (use actual in auto)
+  also have "... \<le> strong_opened_live_acc_potential r RONE"
+    by (rule rsize_set_strong_opened_live_row_universe_le_potential[OF nf])
+  finally show ?thesis .
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"

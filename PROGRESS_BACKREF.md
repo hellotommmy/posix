@@ -9299,3 +9299,20 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: combine this containment with
   `rsize_set_strong_opened_live_row_universe_le_potential` to bound the actual
   gate object by `strong_opened_live_acc_potential r RONE`.
+
+## 2026-06-14 Codex: CHECKED - actual gate set bounded by root live potential
+
+- New checked numeric bridge:
+  `apder_clean r ==>
+   rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <=
+   strong_opened_live_acc_potential r RONE`.
+  Plain gloss: the actual deduplicated opened rows are contained in the root
+  strong-live carrier, and the root carrier is bounded by the accumulator
+  potential at `RONE`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the clean cubic bound for
+  `strong_opened_live_acc_potential r RONE` (sample-clean target:
+  `<= 2 * (rsize r + 3)^3`), or isolate the exact constructor needing extra
+  slack.
