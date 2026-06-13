@@ -32134,6 +32134,28 @@ proof -
     using root front arith by linarith
 qed
 
+lemma strong_opened_live_acc_RONE_base_cube_shell:
+  "1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+      rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+    (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+proof -
+  have root:
+      "rsize_set (row_dlforms (rsimpStrong_raw k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+  have front:
+      "rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlformss_set_rsimpStrong_raw_rfrontier_le)
+  have arith:
+      "1 + Suc (rsize k) * rsize k +
+        Suc (rsize k) * rsize k \<le>
+      (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    by (simp add: power3_eq_cube algebra_simps)
+  show ?thesis
+    using root front arith by linarith
+qed
+
 lemma strong_opened_live_acc_potential_RONE_cubic:
   "strong_opened_live_acc_potential RONE k \<le>
     2 * (rsize RONE + rsize k + 3) ^ 3"
@@ -32143,6 +32165,17 @@ proof -
     using strong_opened_live_acc_RONE_base_cubic[of k] by simp
   then show ?thesis
     by (simp add: add.commute add.left_commute add.assoc)
+qed
+
+lemma strong_opened_live_acc_potential_RONE_cube_shell:
+  "strong_opened_live_acc_potential RONE k \<le>
+    (rsize RONE + rsize k) ^ 3 - (rsize k) ^ 3"
+proof -
+  have "strong_opened_live_acc_potential RONE k \<le>
+      (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    using strong_opened_live_acc_RONE_base_cube_shell[of k] by simp
+  then show ?thesis
+    by (simp add: add.commute)
 qed
 
 lemma strong_opened_live_acc_root_charge_quadratic:

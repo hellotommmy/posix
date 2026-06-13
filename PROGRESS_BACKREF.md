@@ -8970,3 +8970,25 @@ STATUS_MATH and say so at the top of PROGRESS.
    2 * (rsize r + rsize k + 3)^3` on the normalized/non-backref fragment, or
   first split out the required `RALTS`/`RSEQ` arithmetic lemmas if automation
   exposes them.
+
+## 2026-06-14 Codex: CHECKED - strong-live RONE cube shell
+
+- New checked sharpened base:
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw k)) +
+     rsize_set(row_dlformss_set (rsimpStrong_raw \` rfrontier k)) <=
+   (rsize k + 1)^3 - (rsize k)^3`.
+- New checked drain-form `RONE` corollary:
+  `strong_opened_live_acc_potential RONE k <=
+   (rsize RONE + rsize k)^3 - (rsize k)^3`.
+  Plain gloss: the entire suffix/base charge fits inside one cube shell, which
+  is the shape needed for a telescoping SEQ proof of the strong-live potential.
+- Ephemeral scratch sample (no committed scratch edit): the drain candidate
+  `strong_opened_live_acc_potential r k <=
+   (rsize r + rsize k)^3 - (rsize k)^3` had 300,000 bounded normalized samples
+  with zero violations; worst sampled slack was 1 at a character over a
+  character suffix.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the RCHAR drain case, using the root-charge diff
+  against the suffix plus this `RONE` cube shell.
