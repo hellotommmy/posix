@@ -381,6 +381,14 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   (`AntimirovFactoredTransition.thy`). Isabelle proves `apder_clean r` and
   `bad ∈ rsimpStrong_dlform_closure (set (afactored1 r []))` yet
   `bad ∉ odfront RONE ∪ opened_boundary_forms r RONE`.
+- **also kills** (same family, same mechanism): the verbatim live-row-universe
+  subset target `row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) ⊆
+  partial_derivative_live_row_universe r`. Checked false:
+  `row_dlformss_actual_not_subset_live_row_universe_original_false` (next char
+  `a`, `bad ∉ partial_derivative_live_row_universe r`). Substituting
+  `rsimpStrong_raw r` for the root fixes this singleton case but is still false
+  for an opened continuation — so a dedup gate-bridge needs a *prefix-aware*
+  opened-live carrier, not a verbatim subset of the original-root universe.
 - **deception**: closed-form, minimal — but it killed an entire *checked-stack*
   route. The opened-boundary 9-lemma stack (inclusions, `open_pot` potential,
   carrier) all went green at the `apder_clean`/`afactored1` level before this CE

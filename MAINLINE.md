@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 02:27, commit c54d09b — D law PROVEN; opened-boundary strong-carrier CE → pivoted to the liveness slice)
+## 2. Where the Proof Stands (as of 2026-06-14 03:14, commit 3c7633a — D law PROVEN; gate-bridge open: two carrier CEs, now seeking a prefix-aware opened-live carrier)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -170,18 +170,31 @@ Vocabulary (fixed, do not rename):
   computed for the unsimplified root. So the opened-boundary carrier does NOT
   reach the strong-pruned gate as stated. (Verdict + full stack:
   `GPT_PRO_GATE_BRIDGE_VERDICT.md`; CE in `SUPER_LINEAR_PATTERNS.md`.)
-- **PIVOT — the liveness slice (named frontier 2).** Now CHECKED: if the deduped
-  opened ledger lands inside the live universe, the cubic bound follows directly
-  — `rsize_set_subset_live_path_universe_cubic` /
+- **PIVOT — the liveness slice (named frontier 2): adapters CHECKED, verbatim
+  subset target FALSE.** If the deduped opened ledger lands inside the live
+  universe, cubic follows — `rsize_set_subset_live_path_universe_cubic` /
   `rsize_set_subset_live_row_universe_cubic` (c54d09b):
   `U <= partial_derivative_live_{path,row}_universe r ==> rsize_set U <=
-  2*(rsize r+3)^3`.
-- **Current narrow instruction:** prove the one-step SUBSET target —
-  `row_dlformss (rpder_strong_rows_raw c (afactored1 r s))` lands inside an
-  appropriate live row universe — then the adapters above close the §1 gate.
-  Avoid the known norm7/norm8 closure counterexamples. Do NOT grind the refuted
-  strong opened-boundary carrier; do NOT re-attempt the square-sum or list-cost
-  routes (dead). Claim in the PROGRESS tail before starting. Stay on the
+  2*(rsize r+3)^3`. BUT the obvious subset
+  `row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) <=
+  partial_derivative_live_row_universe r` is **checked-false against the ORIGINAL
+  root** — same CE family,
+  `row_dlformss_actual_not_subset_live_row_universe_original_false` (3c7633a,
+  `r = RSTAR (RALTS [RCHAR a])`). Using `rsimpStrong_raw r` as the root fixes the
+  singleton-ALT case but is still false for an opened continuation
+  (`([1|a].([1|a].c))` opens to `(a.c)`, absent from the normalized live-row
+  universe), and the opened normalized universe has deeper prefix-sampled CEs.
+- **Partial result (exact decomposition, conservative).** The SEQ-part splits
+  into a generated-linear head summand plus a conservative tail term
+  `front-card * G^2` (`actual_union_generated_square_decomposition`, 6370b8d) —
+  but that term is likely **too weak** for cubic (under test); closing it would
+  need a sharper opened-boundary / normalized-tail carrier.
+- **Current narrow instruction:** build a **prefix-aware opened-live / drain
+  carrier** for the opened ledger from the current `afactored1 r s` /
+  strong-normalized front (NOT the original root alone); sample it at depth ≥ 5
+  before Isabelle. Do NOT grind the refuted verbatim subset target or the strong
+  opened-boundary carrier; do NOT re-attempt the square-sum or list-cost routes
+  (dead). Claim in the PROGRESS tail before starting. Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
