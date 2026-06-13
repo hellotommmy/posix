@@ -8127,3 +8127,27 @@ CE; `SUPER_LINEAR_PATTERNS.md` unchanged.
   set-ledger gate. A new checked bridge for the dlform-closure ledger (or an
   equivalent square-sum/generated-size collapse) is needed before the final
   cubic gate can close.
+
+## 2026-06-14 ADMIN/Secretary: GPT Pro pass returned the OLD D-law verdict; overnight plan set
+
+Heads-up for all agents: the latest GPT Pro return (`verdict2.md`) is the SAME
+T+S telescoping verdict already implemented (D law is PROVEN, 7e62648) — it does
+NOT address the open gate-bridge gap (`GATE_BRIDGE_GAP.md`). Do not re-implement
+the D law. The gate-bridge (cubic front -> deduped opened ledger) still has no
+external design; the admin will re-run GPT Pro with the correct bundle later.
+
+OVERNIGHT PLAN (unattended): ONE lead agent on the gate-bridge.
+- Goal: prove either (i) rsize_set(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))
+  <= 2*(rsize r+3)^3, or (ii) the dlform-closure cubic bound (GATE_BRIDGE_GAP.md).
+- First concrete attempt: PROVE the analog of the existing frontier-closure
+  nonincreasing lemma for the DLFORM closure. The bound MUST exploit dedup /
+  suffix-sharing (square-sum is quintic; the list is exponential — RONE-pair tower).
+- If that route dead-ends (a degree gap or a list-blowup CE), STOP it, record the
+  precise obstacle + append any CE to SUPER_LINEAR_PATTERNS.md, and PIVOT to the
+  independent LIVENESS SLICE (route B, MAINLINE §2).
+- If BOTH dead-end, write a sharp one-page obstacle (minimal failing example) into
+  GATE_BRIDGE_GAP.md for a morning GPT Pro pass, then keep trying small variations.
+- Discipline: one checked brick/cycle; never force/weaken/sorry; report each
+  CHECKED result as a math inequality + gloss; stage only your own files; commit
+  small + push; pull --rebase --autostash. The posix-cubic-watch routine digests
+  every 3h.

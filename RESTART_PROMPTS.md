@@ -11,12 +11,64 @@ later cycles.
 
 ---
 
-## CURRENT-CYCLE PROMPTS (2026-06-13 19:30): ASSEMBLY phase — wire the proven D law to the gate
+## CURRENT-CYCLE PROMPT (2026-06-14, OVERNIGHT): close the gate-bridge gap
 
-The clean-domain zw2 D law is PROVEN (`D_law_clean` / `T_and_S`, commit
-7e62648 — the GPT Pro T+S route is DONE; do not re-run it). The remaining work
-is MECHANICAL assembly: wire `D_law_clean` through to the set-ledger cubic gate
-(MAINLINE §1) on the legacy/nf/rntimes-free fragment. Paste ONE per agent.
+The D law and the cubic static front are PROVEN. The §1 gate is open on ONE
+bridge (`GATE_BRIDGE_GAP.md`): cubic front -> DEDUPED opened ledger. For an
+unattended overnight run, use ONE lead agent with PROMPT N below (a second on
+the liveness slice only if you will manage collisions; one is safest unattended).
+The 2026-06-13 ASSEMBLY prompts (A3/B3) are superseded by this gap.
+
+### PROMPT N — overnight lead (gate-bridge, with pivot + sharpen discipline)
+
+You are running OVERNIGHT, unattended, on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST: `MAINLINE.md` §1-2, then
+`GATE_BRIDGE_GAP.md` (the one open gap), then the last 100 lines of
+`PROGRESS_BACKREF.md`. Symbol definitions: `STATUS_MATH.pdf`. Never bulk-read
+history. Trust git timestamps, not PROGRESS labels. Note: the D law is already
+PROVEN (`D_law_clean`/`T_and_S`, 7e62648) — do NOT re-implement it; the latest
+GPT Pro return was that same old D-law verdict and is not about this gap.
+
+GOAL (close the gate by proving EITHER, per GATE_BRIDGE_GAP.md):
+  (i)  rsize_set(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))
+         <= 2*(rsize r + 3)^3, OR
+  (ii) rsize_set(rsimpStrong_dlform_closure(set(afactored1 r (s @ [c]))))
+         <= 2*(rsize r + 3)^3.
+FIRST concrete attempt: prove the analog of the EXISTING frontier-closure
+nonincreasing/cubic lemma for the DLFORM closure. The bound MUST exploit
+deduplication / suffix-sharing — the per-row square-sum is quintic and the
+non-deduplicated list is exponential (RONE-pair tower, refuted).
+
+DISCIPLINE (unattended — be conservative):
+- One small checked brick per cycle; search before creating; ONE Isabelle build
+  at a time (`scripts\codex-proof-workers.ps1 -Action Check` first). Red build =
+  proof failure: read the first failing goal, change ONE named lemma, never
+  relaunch on an unchanged goal; fail twice the same way -> switch sub-target.
+- If a route dead-ends (degree gap or a list-blowup CE), STOP it, record the
+  precise obstacle, append any counterexample to `SUPER_LINEAR_PATTERNS.md`, and
+  PIVOT to the independent LIVENESS SLICE (route B, MAINLINE §2: the dynamic
+  front stays quadratic; needs a saturation predicate).
+- If BOTH the gate-bridge and the liveness slice dead-end, write a sharp
+  one-page obstacle (the minimal failing example) into `GATE_BRIDGE_GAP.md` for a
+  morning design pass, then keep trying small variations — never go idle.
+- NEVER force a proof, weaken a statement, or leave a `sorry`; run the four
+  guards before pushing; stage ONLY your own files (never `git add -A`); commit
+  small + push immediately; `pull --rebase --autostash`. Report each CHECKED
+  result as a math inequality + a <=10-word plain gloss. If the gate CLOSES,
+  update `STATUS_MATH` (move the `[-> CURRENT]` marker) and say so at the top of
+  your next PROGRESS note.
+
+(Optional second agent — only if you will watch for collisions: the LIVENESS
+slice as an independent route to close the gate. Claim your lemmas in the
+PROGRESS tail; both agents edit AntimirovFactoredTransition.thy.)
+
+---
+
+## SUPERSEDED — ASSEMBLY prompts (2026-06-13 19:30; the gate hit a design gap)
+
+Kept for reference; the assembly hit the gate-bridge gap (GATE_BRIDGE_GAP.md).
+Use PROMPT N above for the overnight run.
 
 ### PROMPT A3 — Lead / Codex (assembly chain + supervisor)
 
