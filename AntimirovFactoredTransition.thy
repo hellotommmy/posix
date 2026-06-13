@@ -31586,6 +31586,40 @@ lemma cube_shell_add:
     a ^ 3 + 3 * a\<^sup>2 * b + 3 * a * b\<^sup>2"
   by (simp add: power3_eq_cube power2_eq_square algebra_simps)
 
+lemma cube_shell_mono_right:
+  fixes a m n :: nat
+  assumes le: "m \<le> n"
+  shows "(a + m) ^ 3 - m ^ 3 \<le> (a + n) ^ 3 - n ^ 3"
+proof -
+  have sq_le: "m\<^sup>2 \<le> n\<^sup>2"
+    using le by (simp add: power2_eq_square mult_mono)
+  have lin_le: "3 * a\<^sup>2 * m \<le> 3 * a\<^sup>2 * n"
+  proof -
+    have "(3 * a\<^sup>2) * m \<le> (3 * a\<^sup>2) * n"
+      by (rule mult_left_mono[OF le]) simp
+    then show ?thesis
+      by (simp add: algebra_simps)
+  qed
+  have quad_le: "3 * a * m\<^sup>2 \<le> 3 * a * n\<^sup>2"
+  proof -
+    have "(3 * a) * m\<^sup>2 \<le> (3 * a) * n\<^sup>2"
+      by (rule mult_left_mono[OF sq_le]) simp
+    then show ?thesis
+      by (simp add: algebra_simps)
+  qed
+  have terms_le:
+      "3 * a\<^sup>2 * m + 3 * a * m\<^sup>2 \<le>
+       3 * a\<^sup>2 * n + 3 * a * n\<^sup>2"
+    by (rule add_mono[OF lin_le quad_le])
+  have expanded_le:
+      "a ^ 3 + (3 * a\<^sup>2 * m + 3 * a * m\<^sup>2) \<le>
+       a ^ 3 + (3 * a\<^sup>2 * n + 3 * a * n\<^sup>2)"
+    by (rule add_left_mono[OF terms_le])
+  show ?thesis
+    using expanded_le
+    by (simp add: cube_shell_add algebra_simps)
+qed
+
 lemma sum_list_drain_alt_cubes_le:
   assumes K: "1 \<le> K"
   shows "sum_list (map (\<lambda>q. (rsize q + K) ^ 3 - K ^ 3) rs) \<le>

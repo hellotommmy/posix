@@ -9164,3 +9164,16 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: split the `RSEQ` telescoping arithmetic for the same
   strong-live drain potential, starting with a suffix-size bound for
   `rsimp4_SEQ_atom r2 k`.
+
+## 2026-06-14 Codex: CHECKED - cube shell right monotonicity
+
+- New checked arithmetic helper:
+  if `m <= n`, then `(a + m)^3 - m^3 <= (a + n)^3 - n^3`.
+  Plain gloss: enlarging the opened suffix boundary cannot shrink the drain
+  shell available to the left side of a sequence.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:16). No `sorry`.
+- NEXT smallest brick: use this helper with the existing
+  `rsize_rsimp4_SEQ_atom_le` suffix-size bound to split the `RSEQ`
+  strong-live drain telescope.
