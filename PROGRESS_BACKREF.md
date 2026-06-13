@@ -9111,3 +9111,22 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:14). No `sorry`.
 - NEXT smallest brick: prove the singleton size-1 alternative / size-1 suffix
   small root shell, then combine with the empty case and the large shell.
+
+## 2026-06-14 Codex: CHECKED - singleton size-1 RALTS root shell
+
+- New checked shape helper:
+  if `rsize r = 1`, then `r` is one of `RZERO`, `RONE`, `RCHAR c`,
+  `RALTS []`, or `RRESIDUE cs rep`.
+- New checked singleton small-root shell:
+  if `rsize q = 1` and `rsize k = 1`, then
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw
+      (rsimp4_SEQ_atom (RALTS [q]) k))) <=
+   (rsize q + rsize k + 1)^3 - (rsize q + rsize k)^3`.
+  Plain gloss: the only nonempty small-total RALTS root case has one size-1
+  branch and a size-1 suffix; strong simplification keeps the root row size
+  within the remaining constructor shell.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: assemble the full `RALTS` root shell by splitting on
+  `rsizes rs + rsize k < 3` versus the checked large shell.

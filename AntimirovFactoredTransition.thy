@@ -32376,6 +32376,96 @@ proof -
     using root0 shell by (simp add: rsize_set_def)
 qed
 
+lemma rsize_eq_1_rrexp_cases:
+  assumes "rsize r = 1"
+  shows "r = RZERO \<or> r = RONE \<or> (\<exists>c. r = RCHAR c) \<or>
+    r = RALTS [] \<or> (\<exists>cs rep. r = RRESIDUE cs rep)"
+  using assms
+proof (cases r)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis by simp
+next
+  case (RCHAR c)
+  then show ?thesis by blast
+next
+  case (RSEQ r1 r2)
+  then show ?thesis
+    using assms size_geq1[of r1] by simp
+next
+  case (RALTS rs)
+  have "rsizes rs = 0"
+    using assms RALTS by simp
+  then have "rs = []"
+    by (rule rsizes_eq_0_imp_Nil)
+  then show ?thesis
+    using RALTS by simp
+next
+  case (RSTAR r)
+  then show ?thesis
+    using assms size_geq1[of r] by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using assms size_geq1[of r] by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using assms size_geq1[of r1] by simp
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using assms size_geq1[of r] by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis by blast
+qed
+
+lemma strong_opened_live_acc_RALTS_singleton_size1_root_shell:
+  assumes q_size: "rsize q = 1"
+    and k_size: "rsize k = 1"
+  shows "1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))) \<le>
+    (rsize q + rsize k + 1) ^ 3 -
+      (rsize q + rsize k) ^ 3"
+proof -
+  let ?p = "rsimp4_SEQ_atom (RALTS [q]) k"
+  have strong_size: "rsize (rsimpStrong_raw ?p) \<le> 3"
+  proof -
+    have q_cases: "q = RZERO \<or> q = RONE \<or> (\<exists>c. q = RCHAR c) \<or>
+      q = RALTS [] \<or> (\<exists>cs rep. q = RRESIDUE cs rep)"
+      by (rule rsize_eq_1_rrexp_cases[OF q_size])
+    have k_cases: "k = RZERO \<or> k = RONE \<or> (\<exists>c. k = RCHAR c) \<or>
+      k = RALTS [] \<or> (\<exists>cs rep. k = RRESIDUE cs rep)"
+      by (rule rsize_eq_1_rrexp_cases[OF k_size])
+    show ?thesis
+      using q_cases k_cases
+      by (elim disjE exE)
+        (simp_all add: rsimpStrong_ALTs_raw_def
+          rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def
+          rsimp7_SEQ_atom_def)
+  qed
+  have root:
+      "rsize_set (row_dlforms (rsimpStrong_raw ?p)) \<le>
+      Suc (rsize (rsimpStrong_raw ?p)) * rsize (rsimpStrong_raw ?p)"
+    by (rule rsize_set_row_dlforms_rtail_nf_quadratic)
+      (rule rtail_nf_rsimpStrong_raw)
+  have root12:
+      "rsize_set (row_dlforms (rsimpStrong_raw ?p)) \<le> 12"
+  proof -
+    have "Suc (rsize (rsimpStrong_raw ?p)) *
+        rsize (rsimpStrong_raw ?p) \<le> 4 * 3"
+      by (rule mult_mono) (use strong_size in auto)
+    with root show ?thesis
+      by simp
+  qed
+  show ?thesis
+    using root12 q_size k_size by (simp add: power3_eq_cube)
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"
