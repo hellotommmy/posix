@@ -30709,6 +30709,11 @@ lemma sigma_clean:
   by (auto intro: legacy_rsimp4_SEQ_atom rntimes_free_rsimp4_SEQ_atom
       apder_nf_rsimp4_SEQ_atom apder_zero_budget_trivial_rsimp4_SEQ_atom)
 
+lemma sigma_RONE_id_nf:
+  assumes "apder_nf r"
+  shows "rsimp4_SEQ_atom r RONE = r"
+  by (rule rtail_nf_RONE_stable[OF apder_nf_imp_rtail_nf[OF assms]])
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE

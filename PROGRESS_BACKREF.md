@@ -7522,3 +7522,24 @@ but does not invalidate them.
   (AntimirovFactoredTransition 75.818s, full Posix elapsed 0:01:24).
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Next bridge to claim: `sigma_RONE_id_nf`.
+
+## 2026-06-13 Codex: CLAIM - sigma_RONE_id_nf bridge
+
+- Re-read newest PROGRESS tail after pushing `sigma_clean` (commit 9f8cff0);
+  no proof workers live.
+- CLAIM: I am editing only the named bridge `sigma_RONE_id_nf` in
+  `AntimirovFactoredTransition.thy`, deriving
+  `rsimp4_SEQ_atom r RONE = r` from `apder_nf r` via the existing
+  `apder_nf_imp_rtail_nf` + `rtail_nf_RONE_stable` chain.
+
+## 2026-06-13 Codex: CHECKED - sigma_RONE_id_nf bridge
+
+- New checked bridge in `AntimirovFactoredTransition.thy`:
+  `sigma_RONE_id_nf`.
+- Proof is the existing normal-form chain:
+  `apder_nf r ==> rtail_nf r ==> rsimp4_SEQ_atom r RONE = r`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 113.761s, full Posix elapsed 0:02:16).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next bridge to claim: `clean_zero_budget_root`.
