@@ -9280,3 +9280,22 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:20). No `sorry`.
 - NEXT smallest brick: transfer `apder_strong_dlfrontier r` into
   `strong_opened_live_row_universe r` by closure monotonicity over this subset.
+
+## 2026-06-14 Codex: CHECKED - actual rows enter root strong-live carrier
+
+- New checked carrier transfer:
+  `apder_clean r ==> apder_strong_dlfrontier r <=
+   strong_opened_live_row_universe r`.
+- New checked actual-row containment:
+  `apder_clean r ==>
+   row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) <=
+   strong_opened_live_row_universe r`.
+  Plain gloss: the old actual-row carrier `apder_strong_dlfrontier` is now
+  rooted in the repaired prefix-aware live universe, so the actual gate object
+  no longer needs the per-current-row union carrier.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: combine this containment with
+  `rsize_set_strong_opened_live_row_universe_le_potential` to bound the actual
+  gate object by `strong_opened_live_acc_potential r RONE`.

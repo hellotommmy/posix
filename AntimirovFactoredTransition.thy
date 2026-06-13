@@ -33214,6 +33214,46 @@ proof
   qed
 qed
 
+lemma apder_strong_dlfrontier_subset_strong_opened_live:
+  assumes clean: "apder_clean r"
+  shows "apder_strong_dlfrontier r \<subseteq> strong_opened_live_row_universe r"
+proof
+  fix x
+  assume x: "x \<in> apder_strong_dlfrontier r"
+  obtain p where p:
+      "p \<in> apder_rows r"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: apder_strong_dlfrontier_def
+        rsimpStrong_dlform_closure_def)
+  have p_live: "p \<in> partial_derivative_live_row_universe r"
+    using apder_rows_subset_partial_derivative_live_row_universe_clean
+      [OF clean] p(1) by blast
+  show "x \<in> strong_opened_live_row_universe r"
+    using p_live p(2)
+    by (auto simp add: strong_opened_live_row_universe_def
+        row_dlformss_set_def)
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_clean_subset_root_strong_opened_live:
+  assumes clean: "apder_clean r"
+  shows "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    strong_opened_live_row_universe r"
+proof -
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  have actual:
+      "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+      apder_strong_dlfrontier r"
+    by (rule row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier
+        [OF nf])
+  have bridge: "apder_strong_dlfrontier r \<subseteq>
+      strong_opened_live_row_universe r"
+    by (rule apder_strong_dlfrontier_subset_strong_opened_live[OF clean])
+  show ?thesis
+    using actual bridge by blast
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
