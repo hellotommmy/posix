@@ -9044,3 +9044,20 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: use this cube-sum lemma to prove the `RALTS` drain case
   for `strong_opened_live_acc_potential`, keeping the root/base charge separate
   from the branch sum.
+
+## 2026-06-14 Codex: CHECKED - tight alternative drain cube sum
+
+- New checked tight arithmetic shell lemma:
+  for `1 <= K`,
+  `sum_list (map (%q. (rsize q + K)^3 - K^3) rs) <=
+   (rsizes rs + K)^3 - K^3`.
+  Plain gloss: alternative children consume exactly the drain shell up to
+  total child size `rsizes rs`; this leaves the next one-constructor cube shell
+  available for the `RALTS` root charge.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:20). No `sorry`.
+- NEXT smallest brick: prove a local `RALTS` root-charge shell,
+  `1 + root_charge <= (rsizes rs + rsize k + 1)^3 -
+   (rsizes rs + rsize k)^3`, or split by suffix if the raw root bound is too
+  coarse.
