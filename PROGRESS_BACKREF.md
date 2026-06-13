@@ -9367,3 +9367,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: isolate a STAR-compatible child invariant; direct
   generic drain induction is too coarse, but these wrappers are ready once a
   child drain-style fact is available.
+
+## 2026-06-14 Codex: CHECKED - STAR root charge is linear
+
+- New checked STAR root charge:
+  `rsize_set(row_dlforms(rsimpStrong_raw(RSTAR r))) <= rsize(RSTAR r)`.
+- New checked STAR split:
+  `strong_opened_live_acc_potential(RSTAR r) RONE <=
+   rsize(RSTAR r) + strong_opened_live_acc_potential r (RSTAR r)`.
+- New checked conditional STAR root cubic:
+  if `strong_opened_live_acc_potential r (RSTAR r) + rsize(RSTAR r) <=
+   2 * (rsize(RSTAR r) + 3)^3`, then
+  `strong_opened_live_acc_potential(RSTAR r) RONE <=
+   2 * (rsize(RSTAR r) + 3)^3`.
+  Plain gloss: the STAR root itself is no longer a quadratic/cubic unknown;
+  the remaining STAR work is exactly the body-at-self-suffix budget plus this
+  linear root charge.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: sample/formulate the body-at-self-suffix invariant for
+  `strong_opened_live_acc_potential r (RSTAR r)`; do not reuse the false generic
+  drain shell, whose suffix is too large through STAR.

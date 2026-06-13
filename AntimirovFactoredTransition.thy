@@ -32345,6 +32345,53 @@ proof -
     using root arith by linarith
 qed
 
+lemma rsize_set_row_dlforms_rsimpStrong_raw_RSTAR_le:
+  "rsize_set (row_dlforms (rsimpStrong_raw (RSTAR r))) \<le>
+    rsize (RSTAR r)"
+proof -
+  have raw_le: "rsize (rsimpStrong_raw r) \<le> rsize r"
+    by (rule rsize_rsimpStrong_raw_le)
+  show ?thesis
+    by (cases "rsimpStrong_raw r")
+      (use raw_le in \<open>simp_all add: rsize_set_def\<close>)
+qed
+
+lemma strong_opened_live_acc_potential_RSTAR_RONE_linear_split:
+  "strong_opened_live_acc_potential (RSTAR r) RONE \<le>
+    rsize (RSTAR r) + strong_opened_live_acc_potential r (RSTAR r)"
+proof -
+  have root:
+      "rsize_set (row_dlforms (rsimpStrong_raw (RSTAR r))) \<le>
+      rsize (RSTAR r)"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_RSTAR_le)
+  have "strong_opened_live_acc_potential (RSTAR r) RONE =
+      rsize_set (row_dlforms (rsimpStrong_raw (RSTAR r))) +
+      strong_opened_live_acc_potential r (RSTAR r)"
+    by simp
+  also have "... \<le>
+      rsize (RSTAR r) + strong_opened_live_acc_potential r (RSTAR r)"
+    by (rule add_right_mono[OF root])
+  finally show ?thesis .
+qed
+
+lemma strong_opened_live_acc_potential_RSTAR_root_cubic_if_body_plus_root:
+  assumes body:
+    "strong_opened_live_acc_potential r (RSTAR r) + rsize (RSTAR r) \<le>
+      2 * (rsize (RSTAR r) + 3) ^ 3"
+  shows "strong_opened_live_acc_potential (RSTAR r) RONE \<le>
+    2 * (rsize (RSTAR r) + 3) ^ 3"
+proof -
+  have "strong_opened_live_acc_potential (RSTAR r) RONE \<le>
+      rsize (RSTAR r) + strong_opened_live_acc_potential r (RSTAR r)"
+    by (rule strong_opened_live_acc_potential_RSTAR_RONE_linear_split)
+  also have "... =
+      strong_opened_live_acc_potential r (RSTAR r) + rsize (RSTAR r)"
+    by simp
+  also have "... \<le> 2 * (rsize (RSTAR r) + 3) ^ 3"
+    by (rule body)
+  finally show ?thesis .
+qed
+
 lemma strong_opened_live_acc_RALTS_root_shell_large:
   assumes big: "3 \<le> rsizes rs + rsize k"
   shows "1 +
