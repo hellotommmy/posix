@@ -4718,7 +4718,7 @@ clean stale repository information.  Welcome - current accurate state:
 
   ```text
   family           rsize_r  worst rsize_set  /n^2   /cubic-budget
-  ch7 evil k=4        23         310         0.586    0.0088
+  ch7 super-linear k=4        23         310         0.586    0.0088
   bridge CE regex     11          53         0.438    0.0097
   rone-star mix       24          59         0.102    0.0015
   unary mix           31         381         0.396    0.0049
@@ -4975,8 +4975,8 @@ clean stale repository information.  Welcome - current accurate state:
 
   ```text
   family         n   F=rsizes(front) F/n^2   G=rsizes(generated) G/n^2
-  ch7 evil k=4   23      550          1.04        2310            4.37
-  ch7 evil k=5   33     1155          1.06        5005            4.60
+  ch7 super-linear k=4   23      550          1.04        2310            4.37
+  ch7 super-linear k=5   33     1155          1.06        5005            4.60
   bridge CE      11       53          0.44         106            0.88
   unary mix      31      381          0.40         693            0.72
   ```
@@ -5134,7 +5134,7 @@ clean stale repository information.  Welcome - current accurate state:
   starseq d=20 rand   61     0.103     0.086        1/200
   starseq d=40 rand  121     0.280     0.271        1/200
   starseq d=40 adv   121     0.304     0.174        8/164
-  evil k=6            45     1.068     0.283        6/150
+  super-linear k=6            45     1.068     0.283        6/150
   ```
 
 - Plain reading: the "increment <= C*n" candidate is FALSE (a single
@@ -5165,7 +5165,7 @@ clean stale repository information.  Welcome - current accurate state:
   expressed as a row-set bound at all; it is irreducibly about rows
   COEXISTING in one front.
 - Post-peak probe (all next characters tested at every step): on the
-  big-row families (starseq, evil) the front total is STRICTLY
+  big-row families (starseq, super-linear) the front total is STRICTLY
   non-increasing in every direction after the ramp - zero increase
   events in 80-200 steps.  The oscillating family (rone-star mix)
   bounces among ALREADY-SEEN row shapes only (no new shapes), with F
@@ -5188,7 +5188,7 @@ clean stale repository information.  Welcome - current accurate state:
 
 - Invariant I(rows) := (all c. F(step c rows) <= F(rows)) OR
   F(rows) <= C*(rsize r)^2, tested at every position with EVERY next
-  character on starseq d=15/30 (C=1), evil k=5 (C=2), rone-star mix,
+  character on starseq d=15/30 (C=1), super-linear k=5 (C=2), rone-star mix,
   bridge CE: zero invariant violations, zero preservation violations.
 - The missing degree is now equivalent to three SINGLE-STEP
   obligations (each checkable per front, no histories):
@@ -5219,7 +5219,7 @@ clean stale repository information.  Welcome - current accurate state:
   ```text
   family        worst rowsum growth   worst MEMBER growth
   starseq d=15          0                     0
-  evil k=5            316 (row splits)       16 (= star body size)
+  super-linear k=5            316 (row splits)       16 (= star body size)
   rone-star mix        37                     4
   ```
 
@@ -5247,7 +5247,7 @@ clean stale repository information.  Welcome - current accurate state:
 ## 2026-06-12 Fable: card(apder_rows) <= awidth+1 validated; proof obstacle mapped
 
 - Probe: card(apder_rows)/( awidth+1) <= 1.0 on every family
-  (starseq 0.97, evil 1.0, wide-alts 0.22).  Classical Antimirov row
+  (starseq 0.97, super-linear 1.0, wide-alts 0.22).  Classical Antimirov row
   count holds empirically with constant exactly 1.
 - Proof obstacle, mapped honestly: the naive induction on
   apder_term_frontier_acc breaks at the SEQ clause because the
@@ -5786,20 +5786,20 @@ conservation proof, then static maxrow quadratic, then O1-O3.
 
 - Synced through pushed commit 0077e47, re-read the newest PROGRESS tail,
   and checked that no proof workers are live.  Known untracked
-  `fable_partial.md`, `scratch_*.py`, and `EVIL_PATTERNS.md` files remain
+  `fable_partial.md`, `scratch_*.py`, and `SUPER_LINEAR_PATTERNS.md` files remain
   untouched.
 - `CUBIC_OPEN_PROBLEM.tex` already reflects the corrected zw2 route, so no
   doc patch needed there.  Narrow checked brick now: prove the basic
   `apder_zw2_zero_acc_empty` lemma, mirroring the existing zwidth zero
   accumulator fact for the corrected weight.
 
-## 2026-06-13 ADMIN DIRECTIVE to ALL agents: preserve every evil pattern + CE as fuzzer corpus
+## 2026-06-13 ADMIN DIRECTIVE to ALL agents: preserve every super-linear pattern + CE as fuzzer corpus
 
 This is a standing instruction from the admin (Chengsong), broadcast through
 this tail because it reaches every session across compaction. Acknowledge by
 following it; no reply needed.
 
-NEW COMPANION DELIVERABLE. Every "evil" regex that broke a simplification, and
+NEW COMPANION DELIVERABLE. Every "super-linear" regex that broke a simplification, and
 every counterexample that refuted a conjecture/inequality, is now a first-class
 research output, not just internal scar tissue. Rationale: these patterns are a
 ready-made fuzzer corpus for stress-testing the LINEARITY claims of NFA-based
@@ -5811,7 +5811,7 @@ The CEs that fooled many samples before dying are the MOST valuable (they are
 the ones other people''s test suites also miss).
 
 STANDING RULE for every agent, effective now:
-1. The corpus file is `EVIL_PATTERNS.md` at the repo root. When you discover a
+1. The corpus file is `SUPER_LINEAR_PATTERNS.md` at the repo root. When you discover a
    new blow-up family OR a counterexample that kills a conjecture/strengthening,
    add an entry there in the same cycle you record it in this tail.
 2. Each entry needs: (a) the concrete regex family verbatim in rrexp notation
@@ -5823,11 +5823,11 @@ STANDING RULE for every agent, effective now:
    deader the conjecture, the better the fuzzer input. Append, never prune.
 4. This is additive and must not slow the cubic proof. It is bookkeeping you
    are already doing (you already record CEs here); just mirror them into
-   `EVIL_PATTERNS.md` with the deception datum attached.
+   `SUPER_LINEAR_PATTERNS.md` with the deception datum attached.
 
-The secretary session is seeding `EVIL_PATTERNS.md` now from the existing
+The secretary session is seeding `SUPER_LINEAR_PATTERNS.md` now from the existing
 corpus (RONE-pair tower, NTIMES deep-frontier CE, zwidth/J* D-law CEs, the nine
-dead strengthenings, Chapter 7 evil family, value-collapse CEs, cost-not-
+dead strengthenings, Chapter 7 super-linear family, value-collapse CEs, cost-not-
 monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 
 ## 2026-06-13 Codex 02:15: CHECKED - apder_zw2 zero accumulator
@@ -5839,7 +5839,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `apder_zwidth_zero_acc_empty` with direct list induction.  Rerun build
   passed after worker check (AntimirovFactoredTransition 83.847s, full Posix
   elapsed 0:01:37).
-- Read the new admin directive on `EVIL_PATTERNS.md`.  This cycle produced
+- Read the new admin directive on `SUPER_LINEAR_PATTERNS.md`.  This cycle produced
   no new regex counterexample or blow-up family, so I did not touch the
   untracked corpus seed.
 
@@ -5847,7 +5847,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 
 - Synced through pushed commit c45fc94, re-read the newest PROGRESS tail,
   and checked that no proof workers are live.  Known untracked
-  `EVIL_PATTERNS.md`, `fable_partial.md`, and `scratch_*.py` files remain
+  `SUPER_LINEAR_PATTERNS.md`, `fable_partial.md`, and `scratch_*.py` files remain
   untouched.
 - Search found no existing `apder_awidth <= apder_zw2` fact.  Narrow
   checked brick now: prove `apder_awidth_le_apder_zw2`, a basic sanity fact
@@ -5862,12 +5862,12 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   as `apder_zwidth_le_apder_zw2`; first build for this brick was green.
   Build command passed after worker check (AntimirovFactoredTransition
   79.795s, full Posix elapsed 0:01:31).
-- No new counterexample/blow-up family discovered; `EVIL_PATTERNS.md`
+- No new counterexample/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md`
   remains untouched.
 
-## 2026-06-13 Secretary: EVIL_PATTERNS.md seeded (12 families harvested + verified)
+## 2026-06-13 Secretary: SUPER_LINEAR_PATTERNS.md seeded (12 families harvested + verified)
 
-- Corpus body written to EVIL_PATTERNS.md (repo root). Harvested via a
+- Corpus body written to SUPER_LINEAR_PATTERNS.md (repo root). Harvested via a
   5-agent extraction pass over the .thy/scala/archive sources; every regex
   is verbatim rrexp with a checked-lemma citation and (where applicable) the
   deception datum.
@@ -5876,7 +5876,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   (list ledger not even quadratic, 1024>31^2); A3 NTIMES deep-frontier
   alt-spread (apder_deep_frontier_linear_card_false, 49>39); A4 NTIMES
   star-reentry front (adlform_front_linear_card_false, 64>47); A5 Chapter-7
-  three-layer evil star.
+  three-layer super-linear star.
 - Part B (deceptive conjecture-killers, with sample-survival counts): B1
   depth-5 nested-zero-width-star (killed zwidth-D AND J*, fooled ~200k + 95k
   samples); B2 equality-tight char-over-double-star (killed 3 discounts, 113k
@@ -5884,13 +5884,13 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   B4 potential/reserve forms 9a/9b (the 9th dead strengthening); B5 value CEs
   (B5a STAR(STAR a) on "a"; B5b reassoc bug, seed 20260602 case 99).
 - Standing rule already broadcast (2026-06-13 directive): append new CEs here
-  AND in EVIL_PATTERNS.md in the same cycle; never prune a dead CE.
+  AND in SUPER_LINEAR_PATTERNS.md in the same cycle; never prune a dead CE.
 - No .thy changes; cubic proof unaffected.
 
 ## 2026-06-13 Codex 02:30: CLAIM - named RALTS singleton shift micro-lemma
 
 - Synced through pushed commit 390e750 and read the newest PROGRESS tail,
-  including the seeded `EVIL_PATTERNS.md` directive.  No proof workers live;
+  including the seeded `SUPER_LINEAR_PATTERNS.md` directive.  No proof workers live;
   known untracked `fable_partial.md` and `scratch_*.py` files remain
   untouched.
 - Returning to the STAR shift blocker only in the form suggested by the
@@ -5962,7 +5962,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   local failure; after adding the explicit index-set split, the rerun passed.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.665s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:00: CLAIM - SEQ zw2 three-bucket assembly
 
@@ -5986,7 +5986,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   actual three-bucket bound over zw2.
 - Build command passed after worker check (AntimirovFactoredTransition
   81.868s, full Posix elapsed 0:01:33).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:10: CLAIM - ALTS aggregation by list induction
 
@@ -6011,7 +6011,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   it into explicit `A x UNION U` and difference-distribution equalities.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.335s, full Posix elapsed 0:01:31).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:20: CLAIM - RNTIMES one-point frontier shift
 
@@ -6035,7 +6035,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   stated against its own shifted accumulator frontier.
 - Build command passed after worker check (AntimirovFactoredTransition
   85.875s, full Posix elapsed 0:01:32).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:30: CLAIM - frontier-plus-acc duplicate splitter
 
@@ -6058,7 +6058,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   carry the middle frontier together with its own accumulator.
 - Build command passed after worker check (AntimirovFactoredTransition
   82.271s, full Posix elapsed 0:01:34).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:40: CLAIM - SEQ middle-carried duplicate assembly
 
@@ -6080,7 +6080,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   together with that shifted frontier; the SEQ D-zw2 conclusion follows.
 - Build command passed after worker check (AntimirovFactoredTransition
   91.700s, full Posix elapsed 0:01:37).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 03:50: CLAIM - zero continuation accumulator
 
@@ -6100,7 +6100,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   frontier-plus-acc constructor inductions.
 - Build command passed after worker check (AntimirovFactoredTransition
   79.661s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 04:00: CLAIM - audit RNTIMES-zero D-law counterexample
 
@@ -6131,7 +6131,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   cubic payoff is the rntimes-free zw2 D law, matching
   `apder_zw2_rntimes_free_le_rsize`, unless a zero-count-aware NTIMES
   weight/premise is introduced later.
-- Appended the CE to `EVIL_PATTERNS.md` as B6 with deception datum: the raw
+- Appended the CE to `SUPER_LINEAR_PATTERNS.md` as B6 with deception datum: the raw
   zw2 repair had passed the reported 295,551 deep samples and was caught by
   this directed RNTIMES-zero audit.
 
@@ -6155,7 +6155,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   (AntimirovFactoredTransition 75.320s, full Posix elapsed 0:01:33).
 - This is now available for the rntimes-free zw2 D-law induction at SEQ and
   STAR shifted continuations.  No new CE/blow-up family discovered in this
-  preservation step; `EVIL_PATTERNS.md` unchanged.
+  preservation step; `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 04:20: SUPERVISOR NOTE - D target is legacy and rntimes-free
 
@@ -6190,7 +6190,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `rsimp4_SEQ_atom r2 k` with the right child at `k`.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.984s, full Posix elapsed 0:01:35).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 04:35: CLAIM - SEQ carry-measure assembly
 
@@ -6212,7 +6212,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `diff_acc`; rerun build passed after worker check
   (AntimirovFactoredTransition 85.004s, full Posix elapsed 0:01:37).
 - This packages the SEQ case for the simultaneous carry invariant.  No new
-  CE/blow-up family discovered in this proof step; `EVIL_PATTERNS.md`
+  CE/blow-up family discovered in this proof step; `SUPER_LINEAR_PATTERNS.md`
   unchanged.
 
 ## 2026-06-13 Codex 04:45: CLAIM - RCHAR carry-measure base
@@ -6233,7 +6233,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   changed the same lemma to spell out that case with
   `card_singleton_Diff_le_one`.  Rerun build passed after worker check
   (AntimirovFactoredTransition 88.845s, full Posix elapsed 0:01:36).
-- No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+- No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 04:55: CLAIM - carry shift splitter
 
@@ -6255,7 +6255,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   frontier pays the parent accumulator/carry measure.
 - Build command passed after worker check (AntimirovFactoredTransition
   78.522s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 05:05: CLAIM - STAR carry-measure assembly
 
@@ -6277,7 +6277,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   87.477s, full Posix elapsed 0:01:36).
 - This packages the STAR carry-measure case from a child D-bound plus the
   checked one-point STAR shift.  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 05:15: CLAIM - carry-measure union splitter
 
@@ -6298,7 +6298,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   lift to a list induction for the RALTS case.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.037s, full Posix elapsed 0:01:36).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 05:25: CLAIM - carry-measure list aggregation
 
@@ -6317,7 +6317,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   the RALTS carry-measure case.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.020s, full Posix elapsed 0:01:38).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 05:35: CLAIM - RALTS RONE carry-measure assembly
 
@@ -6338,7 +6338,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   simultaneous-invariant shape (`rfrontier (rsimp4_SEQ_atom q RONE)`).
 - Build command passed after worker check (AntimirovFactoredTransition
   92.602s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 05:45: CLAIM - audit global carry invariant
 
@@ -6362,7 +6362,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Meaning: the simultaneous carry-measure scaffold is usable only in scoped
   situations (such as the checked `RONE` RALTS case) and cannot be the global
   induction invariant for arbitrary continuations.  Added B7 to
-  `EVIL_PATTERNS.md`.  Build command passed after worker check
+  `SUPER_LINEAR_PATTERNS.md`.  Build command passed after worker check
   (AntimirovFactoredTransition 93.009s, full Posix elapsed 0:01:36).
 
 ## 2026-06-13 Codex 05:55: CLAIM - RALTS carry with singleton allowance
@@ -6413,7 +6413,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command then passed after worker check (AntimirovFactoredTransition
   84.317s, full Posix elapsed 0:01:38).  This supplies the pure arithmetic
   brick requested by the previous RALTS blocker; no new CE/blow-up family
-  discovered, `EVIL_PATTERNS.md` unchanged.
+  discovered, `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 06:15: CLAIM - RALTS carry with checked singleton allowance
 
@@ -6460,7 +6460,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `{RSEQ (RALTS rs) (RALTS ks)} - rfrontiers ks - A`.
 - Build command passed after worker check (AntimirovFactoredTransition
   87.819s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 06:35: CLAIM - RALTS carry with two-set singleton allowance
 
@@ -6485,7 +6485,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   85.765s, full Posix elapsed 0:01:39).  This gives the scoped positive
   arbitrary-continuation RALTS carry repair: exact at `RONE`, D plus one
   singleton elsewhere.  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 06:45: CLAIM - SEQ carry with right singleton allowance
 
@@ -6505,7 +6505,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   plus `Suc` right carry yields `Suc (apder_zw2 (RSEQ r1 r2))`.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.998s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 06:55: CLAIM - SEQ carry with left singleton allowance
 
@@ -6526,7 +6526,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `card_seq_carry_measure_le_split`.
 - Build command passed after worker check (AntimirovFactoredTransition
   92.543s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:05: CLAIM - frontier-plus-acc union splitter
 
@@ -6546,7 +6546,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `(F union B) - K = (B - K) union (F - K - B)` with disjoint buckets.
 - Build command passed after worker check (AntimirovFactoredTransition
   88.985s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:15: CLAIM - RCHAR-left SEQ D bridge
 
@@ -6566,7 +6566,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   bound using `card_frontier_acc_union_diff_le_carry_measure`.
 - Build command passed after worker check (AntimirovFactoredTransition
   98.855s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:25: CLAIM - RALTS carry nf packaging
 
@@ -6587,7 +6587,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   restate child `RONE` stability manually.
 - Build command passed after worker check (AntimirovFactoredTransition
   89.519s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:35: CLAIM - zero-left SEQ D bridge
 
@@ -6609,7 +6609,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   count.
 - Build command passed after worker check (AntimirovFactoredTransition
   90.320s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:45: CLAIM - SEQ D from right exact carry
 
@@ -6629,7 +6629,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   SEQ D assembly.
 - Build command passed after worker check (AntimirovFactoredTransition
   94.197s, full Posix elapsed 0:01:41).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 07:55: CLAIM - RALTS RONE exact carry nf packaging
 
@@ -6650,7 +6650,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   package.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.923s, full Posix elapsed 0:01:46).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:05: CLAIM - exact carry implies D
 
@@ -6669,7 +6669,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   bound.
 - Build command passed after worker check (AntimirovFactoredTransition
   88.887s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:15: CLAIM - RALTS-left SEQ D bridge
 
@@ -6688,7 +6688,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `rsimp4_SEQ_atom r2 k` and exact right carry.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.457s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:25: CLAIM - RSTAR-left SEQ D bridge
 
@@ -6708,7 +6708,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   right carry.
 - Build command passed after worker check (AntimirovFactoredTransition
   82.269s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:35: CLAIM - RALTS SEQ middle-bucket aggregation
 
@@ -6733,7 +6733,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `(K union B)` versus `- K - B` map equality.  Changed that named lemma to
   prove the equality by explicit list induction; rerun passed after worker
   check (AntimirovFactoredTransition 95.885s, full Posix elapsed 0:01:36).
-  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+  No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:45: CLAIM - generic SEQ left-two-bucket interface
 
@@ -6754,7 +6754,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   the ordinary right D bound, implies the exact parent D bound.
 - Build command passed after worker check (AntimirovFactoredTransition
   85.067s, full Posix elapsed 0:01:39).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 08:55: CLAIM - SEQ left-slack absorbs right carry
 
@@ -6776,7 +6776,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   allowance and yields the exact parent D bound.
 - Build command passed after worker check (AntimirovFactoredTransition
   103.922s, full Posix elapsed 0:01:40).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 09:05: CLAIM - audit global left-two-bucket invariant
 
@@ -6799,7 +6799,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   is a useful SEQ interface, not a standalone global invariant for the left
   child.  The middle-overlap bucket sometimes must be paid by the right
   alternation budget or by a more joint/list-aware invariant.  Added B8 to
-  `EVIL_PATTERNS.md`.  Build command passed after worker check
+  `SUPER_LINEAR_PATTERNS.md`.  Build command passed after worker check
   (AntimirovFactoredTransition 86.237s, full Posix elapsed 0:01:40).
 
 ## 2026-06-13 Codex 09:15: CLAIM - normal nonalt one-step frontier shift
@@ -6851,7 +6851,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   lemma to a direct calculation and explicit
   `card_singleton_Diff_le_one`; rerun passed after worker check
   (AntimirovFactoredTransition 82.933s, full Posix elapsed 0:01:47).
-  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+  No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 09:35: CLAIM - rsimp4 non-RONE preservation
 
@@ -6872,7 +6872,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   gives `p1 ~= RONE`.
 - Build command passed after worker check (AntimirovFactoredTransition
   84.591s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 09:45: CLAIM - arbitrary-set RSEQ singleton shift
 
@@ -6893,7 +6893,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   where the syntactic tail is not the original continuation.
 - Build command passed after worker check (AntimirovFactoredTransition
   93.761s, full Posix elapsed 0:01:42).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 09:55: CLAIM - normal nonalt rsimp4 frontier shape
 
@@ -6914,7 +6914,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   (`p = RONE`) or produces a row whose frontier has cardinal at most one.
 - Build command passed after worker check (AntimirovFactoredTransition
   83.488s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:05: CLAIM - normal nonalt one-step frontier shift retry
 
@@ -6935,7 +6935,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   follows by `card_mono`.
 - Build command passed after worker check (AntimirovFactoredTransition
   87.673s, full Posix elapsed 0:01:43).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:15: CLAIM - normal nonalt carry-bucket shift
 
@@ -6955,7 +6955,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   remaining newly carried frontier rows are still bounded by one.
 - Build command passed after worker check (AntimirovFactoredTransition
   86.857s, full Posix elapsed 0:01:44).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:25: CLAIM - normal nonalt D implies Suc carry
 
@@ -6975,7 +6975,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `Suc` carry-measure bound at that continuation.
 - Build command passed after worker check (AntimirovFactoredTransition
   97.474s, full Posix elapsed 0:01:47).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:35: CLAIM - SEQ left-slack with right nonalt D
 
@@ -6996,7 +6996,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   parent SEQ D bound, via the normal-nonalt D-to-carry bridge.
 - Build command passed after worker check (AntimirovFactoredTransition
   92.435s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:45: CLAIM - RCHAR-left SEQ with right nonalt D
 
@@ -7017,7 +7017,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   parent SEQ D bound.
 - Build command passed after worker check (AntimirovFactoredTransition
   78.980s, full Posix elapsed 0:01:49).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Codex 10:55: CLAIM - SEQ carry with right nonalt D
 
@@ -7054,7 +7054,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   an `apder_nf` non-alt right child gives the parent `Suc` carry measure.
 - Build command passed after worker check (AntimirovFactoredTransition
   72.917s, full Posix elapsed 0:01:17).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Fable: J* REVIVED under zw2 - SEQ-branch joint invariant at full standard
 
@@ -7117,7 +7117,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   composed frontier, so J* reduces to the right carry buckets.
 - Build command passed after worker check (AntimirovFactoredTransition
   69.551s, full Posix elapsed 0:01:15).  No new CE/blow-up family discovered;
-  `EVIL_PATTERNS.md` unchanged.
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Fable 08:40: CHECKED - E0 closes the J* RCHAR base
 
@@ -7179,7 +7179,7 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   `card_frontier_acc_union_diff_le_carry_measure`; moved the same named
   lemma below that helper.  Rebuild passed after worker check
   (AntimirovFactoredTransition 83.079s, full Posix elapsed 0:01:27).
-  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+  No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
 
 ## 2026-06-13 Fable 08:47: CHECKED - clean-domain predicate landed
 
@@ -7192,4 +7192,47 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   algebra.  Supervisor: the predicate is yours to consume in the
   constructor bridges if useful; simp-normalized ==> zbt is still
   unproved (queued).
+- cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Codex 11:25: CLAIM - zbt preservation through sigma4
+
+- Synced through pushed commit 62b8631, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`,
+  `cubic_progress.*` build products, and `scratch_*.py` files remain
+  untouched.
+- Narrow clean-domain brick: prove `apder_zero_budget_trivial` is preserved by
+  `rsimp4_SEQ_atom` when both the head row and continuation are clean.  This
+  should give the E00/E0/D clean-domain induction a reusable continuation
+  closure lemma without touching Fable's RALTS skeleton.
+
+## 2026-06-13 Codex 11:30: CHECKED - zbt preservation through sigma4
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `apder_zero_budget_trivial_rsimp4_SEQ_atom`.
+- This proves the clean-domain predicate is closed under `rsimp4_SEQ_atom`
+  when both inputs are clean, by the same continuation induction shape as
+  `apder_nf_rsimp4_SEQ_atom`.  It gives the planned E00/E0/D clean-domain
+  induction a reusable way to transport the zero-budget-trivial premise
+  across composed continuations.
+- Build command passed after worker check (AntimirovFactoredTransition
+  86.369s, full Posix elapsed 0:01:30).  No new CE/blow-up family discovered;
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
+
+## 2026-06-13 Fable 08:56: CHECKED - E00-RONE RALTS and RSTAR branches
+
+- Two more green builds (AntimirovFactoredTransition 65.825s/73.499s):
+
+  ```text
+  rfrontiers_eq_UN
+  E00_RONE_RALTS_if_members   (member accounts sum; RONE members free)
+  E00_RONE_RSTAR_if_body_D    (star Suc pays the singleton; conditional
+                               on body D against the star continuation)
+  ```
+
+- E00-RONE branch map: RALTS checked, RSTAR checked-conditional,
+  RCHAR trivial (next, one-liner), SEQ = the genuine joint step
+  (needs the general-k E0 with the sibling overlap - the J* shape).
+  All conditional hypotheses are exactly the simultaneous-induction
+  IHs, so the final assembly will be a single well-founded induction
+  invoking these branch lemmas.
 - cubic_progress.tex/pdf updated and recompiled.

@@ -30747,4 +30747,45 @@ proof -
 qed
 
 
+text \<open>
+  The RSTAR branch of E00 at the RONE continuation: the star absorbs
+  RONE, the merged account is the star singleton plus the body
+  accumulator against the star itself, and the Suc in zw2(RSTAR) pays
+  the singleton.  Conditional on an ordinary D bound for the body
+  against the star continuation (the simultaneous-induction hypothesis).
+\<close>
+
+lemma E00_RONE_RSTAR_if_body_D:
+  assumes body: "card (apder_term_frontier_acc r (RSTAR r) -
+      rfrontier (RSTAR r)) \<le> apder_zw2 r"
+  shows "card ((rfrontier (RSTAR r) \<union>
+      apder_term_frontier_acc (RSTAR r) RONE) - {RONE})
+    \<le> apder_zw2 (RSTAR r)"
+proof -
+  have absorb: "rsimp4_SEQ_atom (RSTAR r) RONE = RSTAR r"
+    by simp
+  have acc_eq: "apder_term_frontier_acc (RSTAR r) RONE =
+      apder_term_frontier_acc r (RSTAR r)"
+    by (simp add: absorb)
+  have fr: "rfrontier (RSTAR r) = {RSTAR r}"
+    by simp
+  have cover: "(rfrontier (RSTAR r) \<union>
+      apder_term_frontier_acc (RSTAR r) RONE) - {RONE} \<subseteq>
+      insert (RSTAR r)
+        (apder_term_frontier_acc r (RSTAR r) - rfrontier (RSTAR r))"
+    by (auto simp add: acc_eq fr)
+  have "card ((rfrontier (RSTAR r) \<union>
+      apder_term_frontier_acc (RSTAR r) RONE) - {RONE}) \<le>
+      card (insert (RSTAR r)
+        (apder_term_frontier_acc r (RSTAR r) - rfrontier (RSTAR r)))"
+    by (intro card_mono[OF _ cover]) auto
+  also have "... \<le> Suc (card (apder_term_frontier_acc r (RSTAR r) -
+      rfrontier (RSTAR r)))"
+    by (rule card_insert_le_m1) auto
+  also have "... \<le> Suc (apder_zw2 r)"
+    using body by simp
+  finally show ?thesis by simp
+qed
+
+
 end
