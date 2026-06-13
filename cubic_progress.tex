@@ -266,6 +266,8 @@ started.
 2026-06-12 & Checked: front staticized ($F \le A$ for all inputs); static maxrow quadratic.  Mirror: static ledger cubic-tight; reachable $=$ static; cap-law invariant zero violations; liveness reduced to three single-step obligations. \\
 2026-06-12/13 & Row-count law campaign: weights \code{awidth}/\code{zwidth} falsified (checked CEs), \code{zw2} landed; nine strengthenings falsified; deep-sampling standard instituted; \code{rntimes\_free} target fixed.  Supervisor: constructor-bridge decomposition under way (RCHAR-left SEQ bridge checked). \\
 2026-06-13 & This document created; compiled with pdflatex. \\
+2026-06-13 & Supervisor (overnight--morning): \code{apder\_zw2} landed with \code{rntimes\_free} payoff; checked CE \code{apder\_zw2\_D\_law\_rntimes\_zero\_alt\_false} restricts the D law to the \code{rntimes\_free} fragment; constructor-bridge decomposition: \code{RSTAR} and \code{RALTS} branches of the D induction fully checked (\code{card\_apder\_term\_frontier\_acc\_RSTAR\_diff\_le}, \code{\dots\_RALTS\_diff\_le\_if\_children}), \code{RCHAR}-left SEQ bridge checked.  The $\mathrm{Suc}$ in $\zw_2(\code{RSTAR})$ pays exactly the singleton frontier of the composed continuation. \\
+2026-06-13 & $J^*$ \emph{revived under} $\zw_2$: the joint invariant (left-acc minus own composite frontier $+$ imported-uncovered $+$ sibling count $\le \zw_2 r_1 + \zw_2 r_2$) passes the post-correction sampling standard --- 119{,}207 deep random samples (66{,}719 nontrivial) plus a 343-case directed grid, zero violations.  It implies the SEQ branch of the D law including the hard right-\code{RALTS} degenerate-continuation case.  Status: mirror-validated conjecture, recommended joint-induction skeleton. \\
 \bottomrule
 \end{longtable}
 

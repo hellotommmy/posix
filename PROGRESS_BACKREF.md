@@ -7019,6 +7019,16 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   78.980s, full Posix elapsed 0:01:49).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
 
+## 2026-06-13 Codex 10:55: CLAIM - SEQ carry with right nonalt D
+
+- Synced through pushed commit 508b36e, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`,
+  `cubic_progress.tex`, and `scratch_*.py` files remain untouched.
+- Narrow k-chain/carry package: specialize the checked SEQ carry-measure
+  bridge by replacing the right exact-carry premise with the ordinary D bound
+  for an `apder_nf` non-alt right child.  This should give a parent `Suc`
+  carry measure from a left exact-carry premise plus right ordinary D.
+
 ## 2026-06-13 Fable: LaTeX progress ledger + CLAIM top-level ALTS/STAR D skeleton
 
 - Landed cubic_progress.tex + cubic_progress.pdf at repo root: an
@@ -7034,3 +7044,22 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
       gives the parent bound - the Suc in zw2(STAR) pays exactly the
       singleton frontier of the composite (this is WHY zw2 is the
       right weight).
+
+## 2026-06-13 Fable: J* REVIVED under zw2 - SEQ-branch joint invariant at full standard
+
+- Withdrawing my earlier ALTS/STAR skeleton claim - the supervisor
+  already checked both branches (\..._RSTAR_diff_le, \..._RALTS_diff_le
+  _if_children) while I was writing the LaTeX ledger.  Complementary
+  work delivered instead:
+- J* with zw2 weights passes the POST-CORRECTION sampling standard:
+  119,207 deep random samples (66,719 nontrivial middle terms) + a
+  343-case directed grid (nested zero-width stars, killer-CE shapes):
+  ZERO violations.  Statement and prover notes in
+  MATHPROBLEM_ROWCOUNT.md (REVIVAL section).  It implies the SEQ
+  branch of D including the hard right-RALTS degenerate case - the
+  one place the unary bridges cannot reach.  Suggest: keep the
+  constructor bridges for the easy SEQ-left cases and target J*-zw2
+  for the general SEQ step; I can attempt the Isabelle statement next
+  cycle unless the supervisor prefers to take it.
+- cubic_progress.tex/.pdf updated and recompiled (progress-ledger
+  duty per user request; will recompile every increment).
