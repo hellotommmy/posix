@@ -297,6 +297,15 @@ DUTIES:
   channel immune to context compaction).
 - Archive/banner stale content; never prune checked work or rewrite history.
 
+IDLE DISCIPLINE: you are an INTERMITTENT role. On each wake, pull + run
+watch-progress + read the PROGRESS tail. IF the frontier moved, sync and commit
+(small). IF NOTHING moved (no new commits, docs already current), DO NOTHING —
+do not make work, do not restructure or "improve" docs, do not edit any .thy.
+Note "no change" and go back to sleep. Dormancy on no-progress is CORRECT, not a
+failure. The proof agents are upstream; you have nothing to do until they
+produce. If the admin is actively steering in a separate chat session, yield —
+do not double-commit the same docs.
+
 RULES: stage ONLY your own doc files (NEVER `git add -A` — agents have in-flight
 `.thy` edits in the same worktree); commit small + push; `git pull --rebase
 --autostash` first. Do not edit `AntimirovFactoredTransition.thy` or any `.thy`,
