@@ -8303,3 +8303,17 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: cubic arithmetic
   `open_pot r + 2*apder_zw2 r <= (rsize r+3)^3` on the clean/rntimes-free
   fragment.
+
+## 2026-06-14 Codex: CHECKED - open_pot cubic arithmetic
+
+- New checked arithmetic helper:
+  `sum_list (map (%q. (rsize q+3)^3) rs) <= (rsize (RALTS rs)+3)^3`.
+  Plain gloss: alternative cube budget absorbs children.
+- New checked theorem:
+  `rntimes_free r ==> open_pot r + 2*apder_zw2 r <= (rsize r+3)^3`.
+  Plain gloss: opened potential is cubic.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: combine `opened_boundary_forms_le_open_pot` with this
+  cubic arithmetic at `k = RONE`, then start `afactored1_opened_boundary_carrier`.

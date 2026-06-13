@@ -31230,6 +31230,179 @@ next
     by (simp add: apder_clean_def)
 qed
 
+lemma sum_list_open_pot_alt_cubes_le:
+  "sum_list (map (\<lambda>q. (rsize q + 3) ^ 3) rs) \<le>
+    (rsize (RALTS rs) + 3) ^ 3"
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: power3_eq_cube)
+next
+  case (Cons q rs)
+  show ?case
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      by (simp add: power3_eq_cube algebra_simps)
+  next
+    case (Cons r rs')
+    have rs_pos: "1 \<le> rsizes rs"
+      using Cons size_geq1[of r] by simp
+    have q_pos: "1 \<le> rsize q"
+      by (rule size_geq1)
+    have step:
+        "(rsize q + 3) ^ 3 + (rsizes rs + 4) ^ 3 \<le>
+        (rsize q + rsizes rs + 4) ^ 3"
+    proof -
+      let ?a = "rsize q"
+      let ?b = "rsizes rs"
+      have ab_pos: "1 \<le> ?a * ?b"
+        using q_pos rs_pos by (simp add: mult_le_mono)
+      have ab27: "27 \<le> 27 * (?a * ?b)"
+        using ab_pos by simp
+      have a_le_sq: "?a \<le> ?a * ?a"
+        using q_pos by (simp add: mult_le_mono)
+      have three_ab: "3 * (?a * ?b) \<le> 3 * ((?a * ?a) * ?b)"
+        by (intro mult_left_mono mult_right_mono a_le_sq) simp_all
+      have ab_split:
+          "27 * (?a * ?b) \<le>
+          ?a * (?b * 24) + ?a * (?a * (3 * ?b))"
+        using three_ab by (simp add: algebra_simps)
+      have core: "27 \<le>
+          ?a * (?b * 24) + ?a * (?a * (3 * ?b))"
+        using ab27 ab_split by linarith
+      show ?thesis
+        using core by (simp add: power3_eq_cube algebra_simps)
+    qed
+    have "sum_list (map (\<lambda>q. (rsize q + 3) ^ 3) (q # rs)) =
+        (rsize q + 3) ^ 3 +
+        sum_list (map (\<lambda>q. (rsize q + 3) ^ 3) rs)"
+      by simp
+    also have "... \<le> (rsize q + 3) ^ 3 + (rsize (RALTS rs) + 3) ^ 3"
+      using Cons.hyps by simp
+    also have "... \<le> (rsize (RALTS (q # rs)) + 3) ^ 3"
+      using step by (simp add: add.commute add.left_commute add.assoc)
+    finally show ?thesis .
+  qed
+qed
+
+lemma open_pot_cubic_clean:
+  assumes free: "rntimes_free r"
+  shows "open_pot r + apder_zw2 r * 2 \<le> (rsize r + 3) ^ 3"
+  using free
+proof (induct r)
+  case RZERO
+  then show ?case
+    by (simp add: power3_eq_cube)
+next
+  case RONE
+  then show ?case
+    by (simp add: power3_eq_cube)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: power3_eq_cube)
+next
+  case (RSEQ r1 r2)
+  have f1: "rntimes_free r1"
+    using RSEQ.prems by simp
+  have f2: "rntimes_free r2"
+    using RSEQ.prems by simp
+  have ih1: "open_pot r1 + apder_zw2 r1 * 2 \<le> (rsize r1 + 3) ^ 3"
+    by (rule RSEQ.hyps(1)[OF f1])
+  have ih2: "open_pot r2 + apder_zw2 r2 * 2 \<le> (rsize r2 + 3) ^ 3"
+    by (rule RSEQ.hyps(2)[OF f2])
+  have w1: "apder_zw2 r1 \<le> rsize r1"
+    by (rule apder_zw2_rntimes_free_le_rsize[OF f1])
+  have sizes: "1 \<le> rsize r1" "1 \<le> rsize r2"
+    by (rule size_geq1)+
+  have arith:
+      "(rsize r1 + 3) ^ 3 + (rsize r2 + 3) ^ 3 +
+        rsize r1 * (rsize r2 + 2) \<le>
+       (rsize (RSEQ r1 r2) + 3) ^ 3"
+    using sizes by (simp add: power3_eq_cube algebra_simps)
+  have cross:
+      "apder_zw2 r1 * (rsize r2 + 2) \<le>
+       rsize r1 * (rsize r2 + 2)"
+    by (rule mult_right_mono[OF w1]) simp
+  have "open_pot (RSEQ r1 r2) + apder_zw2 (RSEQ r1 r2) * 2 =
+      (open_pot r1 + apder_zw2 r1 * 2) +
+      (open_pot r2 + apder_zw2 r2 * 2) +
+      apder_zw2 r1 * (rsize r2 + 2)"
+    by simp
+  also have "... \<le>
+      (rsize r1 + 3) ^ 3 + (rsize r2 + 3) ^ 3 +
+      rsize r1 * (rsize r2 + 2)"
+    using ih1 ih2 cross by linarith
+  also have "... \<le> (rsize (RSEQ r1 r2) + 3) ^ 3"
+    by (rule arith)
+  finally show ?case .
+next
+  case (RALTS rs)
+  have mem:
+      "\<And>q. q \<in> set rs \<Longrightarrow>
+        open_pot q + apder_zw2 q * 2 \<le> (rsize q + 3) ^ 3"
+    using RALTS by auto
+  have list_eq:
+      "open_pot (RALTS rs) + apder_zw2 (RALTS rs) * 2 =
+       sum_list (map (\<lambda>q. open_pot q + apder_zw2 q * 2) rs)"
+    by (induct rs) (simp_all add: algebra_simps)
+  have "open_pot (RALTS rs) + apder_zw2 (RALTS rs) * 2 =
+      sum_list (map (\<lambda>q. open_pot q + apder_zw2 q * 2) rs)"
+    by (rule list_eq)
+  also have "... \<le> sum_list (map (\<lambda>q. (rsize q + 3) ^ 3) rs)"
+    by (rule sum_list_mono) (rule mem, assumption)
+  also have "... \<le> (rsize (RALTS rs) + 3) ^ 3"
+    by (rule sum_list_open_pot_alt_cubes_le)
+  finally show ?case .
+next
+  case (RSTAR r)
+  have fr: "rntimes_free r"
+    using RSTAR.prems by simp
+  have ih: "open_pot r + apder_zw2 r * 2 \<le> (rsize r + 3) ^ 3"
+    by (rule RSTAR.hyps[OF fr])
+  have w: "apder_zw2 r \<le> rsize r"
+    by (rule apder_zw2_rntimes_free_le_rsize[OF fr])
+  have size: "1 \<le> rsize r"
+    by (rule size_geq1)
+  have star_extra:
+      "Suc (apder_zw2 r) * (rsize r + 3) + 2 \<le>
+       (rsize r + 4) ^ 3 - (rsize r + 3) ^ 3"
+  proof -
+    have w_suc: "Suc (apder_zw2 r) \<le> Suc (rsize r)"
+      using w by simp
+    have "Suc (apder_zw2 r) * (rsize r + 3) + 2 \<le>
+        Suc (rsize r) * (rsize r + 3) + 2"
+      by (intro add_mono mult_right_mono w_suc) simp_all
+    also have "... \<le> (rsize r + 4) ^ 3 - (rsize r + 3) ^ 3"
+      using size by (simp add: power3_eq_cube algebra_simps)
+    finally show ?thesis .
+  qed
+  have "open_pot (RSTAR r) + apder_zw2 (RSTAR r) * 2 =
+      (open_pot r + apder_zw2 r * 2) +
+      (Suc (apder_zw2 r) * (rsize r + 3) + 2)"
+    by (simp add: algebra_simps)
+  also have "... \<le>
+      (rsize r + 3) ^ 3 +
+      ((rsize r + 4) ^ 3 - (rsize r + 3) ^ 3)"
+    using ih star_extra by linarith
+  also have "... = (rsize (RSTAR r) + 3) ^ 3"
+    by (simp add: add.commute)
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: power3_eq_cube)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: power3_eq_cube)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: power3_eq_cube)
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"
