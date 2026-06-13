@@ -8270,3 +8270,18 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: start the numeric potential bound
   `rsize_set(opened_boundary_forms r k) <= open_pot r + apder_zw2 r*(1+rsize k)`;
   first prove reusable `rsize_set` union/difference helpers if missing.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary RCHAR potential brick
+
+- New checked finite helpers:
+  finite `row_dlformss_set U` for finite `U`, and finite
+  `opened_boundary_forms r k`. Plain gloss: opened carriers are finite.
+- New checked character potential lemma:
+  `apder_nf k ==> rsize_set(opened_boundary_forms (RCHAR c) k) <=
+   open_pot (RCHAR c) + apder_zw2 (RCHAR c)*(1+rsize k)`.
+  Plain gloss: one character edge fits budget.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: full `opened_boundary_forms_le_open_pot` induction,
+  or split out RALTS/SEQ arithmetic helpers if the first proof state is large.

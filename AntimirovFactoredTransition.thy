@@ -5147,6 +5147,11 @@ lemma finite_row_dlforms [simp]:
   "finite (row_dlforms r)"
   by (induct r rule: row_dlforms.induct) auto
 
+lemma finite_row_dlformss_set [simp]:
+  assumes "finite U"
+  shows "finite (row_dlformss_set U)"
+  using assms by (auto simp add: row_dlformss_set_def)
+
 lemma rtail_nf_RONE_stable7:
   assumes "rtail_nf r"
   shows "rsimp7_SEQ_atom r RONE = r"
@@ -29017,6 +29022,10 @@ definition opened_boundary_forms :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rre
       (rfrontier (rsimp4_SEQ_atom r k) \<union> apder_term_frontier_acc r k) -
     odfront k"
 
+lemma finite_opened_boundary_forms [simp]:
+  "finite (opened_boundary_forms r k)"
+  by (simp add: opened_boundary_forms_def)
+
 fun open_pot :: "rrexp \<Rightarrow> nat" where
   "open_pot RZERO = 0"
 | "open_pot RONE = 0"
@@ -29160,6 +29169,32 @@ lemma opened_boundary_forms_RSTAR_subset:
       odfront k) \<union>
     opened_boundary_forms r (rsimp4_SEQ_atom (RSTAR r) k)"
   by (auto simp add: opened_boundary_forms_def)
+
+lemma opened_boundary_forms_RCHAR_eq:
+  "opened_boundary_forms (RCHAR c) k =
+    row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) - row_dlforms k"
+  by (auto simp add: opened_boundary_forms_def)
+
+lemma opened_boundary_forms_RCHAR_le_open_pot:
+  assumes k_nf: "apder_nf k"
+  shows "rsize_set (opened_boundary_forms (RCHAR c) k) \<le>
+    open_pot (RCHAR c) + apder_zw2 (RCHAR c) * (1 + rsize k)"
+proof -
+  have k_tail: "rtail_nf k"
+    by (rule apder_nf_imp_rtail_nf[OF k_nf])
+  have "rsize_set (opened_boundary_forms (RCHAR c) k) =
+      rsize_set (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) -
+        row_dlforms k)"
+    by (simp add: opened_boundary_forms_RCHAR_eq)
+  also have "... \<le>
+      rsize (RCHAR c) * Suc (rsize (RCHAR c) + rsize k)"
+    by (rule rsize_set_row_dlforms_rsimp4_SEQ_atom_diff_le)
+      (use k_tail in auto)
+  also have "... \<le>
+      open_pot (RCHAR c) + apder_zw2 (RCHAR c) * (1 + rsize k)"
+    by simp
+  finally show ?thesis .
+qed
 
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
