@@ -243,3 +243,33 @@ induction on the clean domain; the ALTS-RONE branch of E0 uses
 member-level E00-RONE (no +1 because sigma4 absorbs RONE), the
 ALTS-k branch pays its single composite point from the explicit
 Suc, SEQ uses the J*/three-block covering (checked bridges).
+
+## STATUS (2026-06-13 09:18, commit effa163): branch map complete
+
+The E00-RONE branch map is COMPLETE on the clean domain:
+
+- RCHAR: `E00_RONE_RCHAR` (trivial constructor; only the `RCHAR c` row
+  survives after subtracting `{RONE}`).
+- RALTS: `E00_RONE_RALTS_if_members` (member accounts sum; RONE members
+  free).
+- RSTAR (conditional): `E00_RONE_RSTAR_if_body_D` (star `Suc` pays the
+  singleton, conditional on body D against the star continuation).
+- SEQ (conditional): `E00_RONE_RSEQ_if` (case-split on the composite point;
+  the not-produced case is paid by the clean-domain passthrough discount).
+
+The **clean-domain passthrough discount** is a load-bearing NAMED obligation
+of the simultaneous induction, not just a domain assumption:
+`sigma4(r1,t) not in acc(r1,t) ==> card(acc(r1,t) - F t) <= zw2 r1 - 1`
+(240,256 applicable deep samples, zero violations). Its STAR branch is checked
+(`discount_RSTAR_if_body_D`); RCHAR is vacuous-trivial; the RALTS discount
+splits 96% member-IH-transfer (straightforward) / 4% all-members-passthrough
+(needs the union-overlap sublemma below). The E0 general-k bridge series is in
+progress (RCHAR done, `E0_RCHAR`).
+
+THREE pieces remain to close row-count-linear:
+(a) the **union-overlap sublemma** — the 4% all-members-passthrough RALTS case
+    where sibling accumulators share imported frontier points;
+(b) the E0/D general-k branches;
+(c) the **well-founded assembly induction** tying the branch lemmas together.
+All branch hypotheses are exactly the simultaneous-induction IHs, so assembly
+is a single well-founded induction. The next concrete brick is (a), then (c).

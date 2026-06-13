@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-13 09:18, commit effa163)
+## 2. Where the Proof Stands (as of 2026-06-13 11:48, commit 581d9d6)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -90,15 +90,19 @@ Vocabulary (fixed, do not rename):
     D+ idea, restricted to a "clean domain": `sigma4(r1,t) ∉ acc(r1,t) ⇒
     card(acc(r1,t) − F t) ≤ zw2 r1 − 1`), is now a named induction
     obligation — 240,256 deep samples, zero violations. STAR branch checked
-    (`discount_RSTAR_if_body_D`); RCHAR vacuous-trivial.
+    (`discount_RSTAR_if_body_D`); RCHAR checked (`discount_RCHAR`); the 96%
+    member-discount RALTS case now CHECKED (`discount_RALTS_if_member_discount`,
+    commit 581d9d6 11:48).
   - The **E00-RONE branch map is COMPLETE** (RCHAR, RALTS, RSTAR cond., SEQ
     cond.: `E00_RONE_RSEQ_if` etc.); the **E0 general-k bridge series** is in
     progress (RCHAR done).
   - **Three pieces remain** for row-count-linear: (a) the **union-overlap
     sublemma** — the 4% all-members-passthrough RALTS-discount case where
-    sibling accumulators share imported frontier points (96% inherit a member
-    discount and are easy); (b) the E0/D general-k branches; (c) the
-    **well-founded assembly induction** that ties the branches together.
+    sibling accumulators share imported frontier points; the 96% member-discount
+    case is now CHECKED (`discount_RALTS_if_member_discount`, 581d9d6), so only
+    this 4% slice is left; (b) the E0/D general-k branches (RCHAR done via
+    `E0_RCHAR`; the RALTS bridge checked, `E0_RALTS_if_members`, e0b899b); (c)
+    the **well-founded assembly induction** that ties the branches together.
 - **Current narrow instruction:** continue the simultaneous induction —
   next concrete brick is the union-overlap sublemma (a), then the assembly
   induction (c). Stay on the legacy/non-backref, rntimes-free zw2 instance.

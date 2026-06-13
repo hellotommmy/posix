@@ -149,6 +149,36 @@ memory.
   shared-suffix rows, and the outer two stars add zero-width re-entry. **The
   classic catastrophic-backtracking / superlinear-NFA family.**
 
+## A6. Least-owner-closure subset explosion — exponential owner/DAG count
+
+- **rrexp**: parameter `m`. Atoms `atomf i = RSTAR^(i+1) RONE` (`i+1` nested
+  stars over `ε`). Seeds:
+  ```
+  ras = [atomf 0, ..., atomf (m-1)]
+  L   = RSEQ (RALTS (ras @ [atomf m, atomf (m+1), atomf (m+2)])) (atomf (m+3))
+  E i = RSEQ (RALTS [atomf i, atomf (m+2)]) (atomf (m+3))
+  U   = insert L { E i | i < m }            -- card U <= m+1
+  ```
+- **PCRE**: each `atomf i` is `i+1` nested empty-stars, e.g.
+  `(?:(?:(?:())*)*)*`; the active ingredient is the alternation-under-a-shared
+  suffix `(alt)·k` that the pairwise suffix-pruner "owns". (A proof artifact
+  over ε-atoms — the fuzzing-relevant shape is *many same-suffix alternation
+  rows feeding an all-pairs pruner*.)
+- **blows up**: the abstract least-owner closure of `U` contains one distinct
+  row for every **nonempty** subset `S ⊆ {0..m-1}` — `card = 2^m − 1` — from
+  only `card U ≤ m+1` seeds. Any owner/DAG cardinality bound polynomial in
+  `card U` and member sizes alone is therefore false —
+  `raw_shared_prune_active_suffix_owner_exponential`
+  (`AntimirovFactoredTransition.thy:20928`).
+- **deception**: closed-form, no sampling. It looks polynomial for tiny `m`;
+  the `2^m` only dominates once `m` is past hand-enumeration size.
+- **mechanism**: from `m+1` same-key rows, iterated pairwise suffix pruning can
+  reach a distinct surviving row for every nonempty subset of the prunable
+  alternatives. This is *why* the cubic proof uses the order-respecting
+  one-pass pruning object and never the all-pairs owner closure — an engine
+  that materializes owner/DAG closures over shared suffixes inherits this
+  `2^m` blow-up.
+
 ---
 
 # Part B — Conjecture-killer counterexamples (the deceptive ones)
@@ -313,6 +343,28 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   frontier.  The live D law is still balanced by the right alternation budget,
   but charging that middle-overlap bucket only to the left character overdraws
   immediately.
+
+## B9. Sequence with dead tail — killed "opened rows ⊆ frontier" inclusion
+
+- **rrexp**: `p = RSEQ (RCHAR a) RZERO` = `a·∅`, opened against continuation
+  `RONE`.
+- **PCRE**: `a` immediately followed by the empty language (`a(?!)`, or
+  `a[^\s\S]`); a proof artifact — keep an explicit never-matching tail when
+  fuzzing real engines.
+- **killed**: the plausible inclusion
+  `row_lforms p ⊆ rfrontier (rsimp7_SEQ_atom p RONE)` — i.e. "every linear form
+  opened out of a row already lives in that row's frontier." Checked false:
+  `row_lforms_rsimp7_SEQ_atom_RONE_subset_false`
+  (`AntimirovFactoredTransition.thy:15578`).
+- **deception**: closed-form, minimal. The general intuition (MAINLINE §4
+  item 10) is sharper than this minimal witness: the opener splits `(a+b)·c`
+  into the linear forms `a·c`, `b·c`, while the whole-residual frontier stores
+  `(a+b)·c` and `c` — so the opened set and the frontier are genuinely
+  *incomparable*, not nested either way.
+- **mechanism**: opening distributes a leading alternation over the shared
+  suffix; the frontier keeps the un-distributed residual. Any proof step (or
+  engine state-sharing scheme) that treats opened linear forms as a subset of
+  the frontier is unsound.
 
 ---
 
