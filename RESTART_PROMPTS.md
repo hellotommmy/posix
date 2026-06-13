@@ -5,16 +5,106 @@ on branch `codex/backref-values`, and coordinate through the `PROGRESS_BACKREF.m
 tail. Paste the matching block into each fresh CLI. Keep them short on purpose —
 the charter does the heavy lifting.
 
-For THIS cycle (after the 2026-06-13 GPT Pro verdict) use the two
-verdict-aware prompts in the next section; the generic role prompts below
-remain valid once the T+S route is settled.
+For THIS cycle (assembly phase, 2026-06-13 19:30) use the two ASSEMBLY prompts
+in the next section. The generic role prompts further below remain valid for
+later cycles.
 
 ---
 
-## CURRENT-CYCLE PROMPTS (2026-06-13): absorb the T+S verdict, then execute
+## CURRENT-CYCLE PROMPTS (2026-06-13 19:30): ASSEMBLY phase — wire the proven D law to the gate
 
-A high-reasoning external pass (GPT Pro) reframed the D-law bottleneck. Both
-proof agents must absorb it first, then split the work. Paste ONE per agent.
+The clean-domain zw2 D law is PROVEN (`D_law_clean` / `T_and_S`, commit
+7e62648 — the GPT Pro T+S route is DONE; do not re-run it). The remaining work
+is MECHANICAL assembly: wire `D_law_clean` through to the set-ledger cubic gate
+(MAINLINE §1) on the legacy/nf/rntimes-free fragment. Paste ONE per agent.
+
+### PROMPT A3 — Lead / Codex (assembly chain + supervisor)
+
+You are (re)starting on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST: `MAINLINE.md` §1–2 (the clean-domain zw2
+D law is now PROVEN; the narrow instruction is to WIRE it to the gate) and the
+last 200 lines of `PROGRESS_BACKREF.md` (the `D_law_clean` landing + the
+"NEXT (open): wire …" note). Use `DOC_INDEX.md` on demand; never bulk-read
+history. `GPT_PRO_DLAW_VERDICT.md` is now HISTORY — the T+S route is complete,
+do not re-run it. Frozen chains (MAINLINE §5) — never redo. Trust git
+timestamps, not PROGRESS labels.
+
+GOAL: close the set-ledger cubic gate (MAINLINE §1) on the
+legacy/nf/rntimes-free fragment by WIRING the now-proven `D_law_clean` through
+to it. The hard design work (the D law) is done; this is assembly.
+
+YOUR lane — the assembly chain in `AntimirovFactoredTransition.thy`, one checked
+brick at a time:
+  1. `card (apder_rows r) <= apder_zw2 r + 2` — the k=RONE instance of
+     `D_law_clean` plus the root insert.
+  2. `<= rsize r + 2` via `apder_zw2_rntimes_free_le_rsize` (rntimes-free).
+  3. `rsizes (afactored1 r s) <= cubic` via `apder_rows_member_size_quadratic`
+     and `afactored1_apder_rows_subset` (static front bound).
+  4. plug into the staticized SEQ-part of the two-summand gate
+     (`actual_union_gate_two_summands` / the §2 decomposition) and conclude §1.
+Each step needs the rows in the clean domain — Fable is proving that
+prerequisite (`apder_clean` of the actual rows); consume it as it lands, or
+`sorry`-stub that one hypothesis and record the stub in PROGRESS.
+
+If a step CANNOT close — e.g. the rntimes-free restriction blocks the actual
+§1 target, or a clean-domain hypothesis turns out false for real rows — STOP,
+post the precise obstacle to the PROGRESS tail, and flag the admin: that is the
+next candidate design point (possible GPT Pro pass), not something to force.
+
+RULES: coordinate with Fable via the PROGRESS tail — claim a named lemma BEFORE
+editing it. One Isabelle build at a time (`scripts\codex-proof-workers.ps1
+-Action Check` first; lock shared). Red build = proof failure: read the first
+failing goal, change ONE named lemma, never relaunch on an unchanged goal; fail
+twice the same way → switch sub-target + record the blocker. `auto`/`simp`
+~0.5s or split. Small checked brick per cycle; search before creating; no
+wrapper-only packaging. No `sorry` left except a tracked clean-domain stub; run
+the four guards before pushing. Commit small + push immediately; `git pull
+--rebase --autostash` first; stage ONLY your own files (NEVER `git add -A`).
+Don't touch `fable_partial.md` / `scratch_*.py`.
+
+### PROMPT B3 — Fable (clean-domain discharge for the actual rows)
+
+You are (re)starting on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST: `MAINLINE.md` §1–2 and the last 200 lines
+of `PROGRESS_BACKREF.md`. Use `DOC_INDEX.md` on demand; never bulk-read history.
+The D law is PROVEN (T+S route DONE — do not redo it). Frozen chains (MAINLINE
+§5) — never redo. Trust git timestamps, not PROGRESS labels.
+
+GOAL: same set-ledger cubic gate (MAINLINE §1), via wiring `D_law_clean`.
+
+YOUR lane — the prerequisite Codex's assembly needs: prove that the rows the
+gate actually feeds are in the clean domain. Concretely, that `apder_rows r`
+(and the continuations `sigma4` produces) of a legacy / `apder_nf` /
+`rntimes_free` root satisfy `apder_clean` — especially `zero_budget_trivial`
+(every zero-`apder_zw2` subterm is `RONE`/`RZERO`; simp-normalized rows satisfy
+it), with legacy / `apder_nf` / `rntimes_free` shown to propagate to those rows.
+This is exactly what lets `D_law_clean` apply to the ACTUAL rows. Claim each
+lemma by name in the PROGRESS tail before editing so you and Codex don't
+collide. If you finish early, pick up one assembly step (claim it first).
+
+Same STOP rule: if `zero_budget_trivial` (or another clean-domain part) is FALSE
+for some actual row, that is a real obstacle — record the counterexample in
+`SUPER_LINEAR_PATTERNS.md` + PROGRESS and flag the admin.
+
+RULES: same as the lead — coordinate via the PROGRESS tail; one build at a time
+(`codex-proof-workers.ps1 -Action Check` first); red build = proof failure (read
+first goal, change one lemma, no relaunch on unchanged goal, fail twice → switch
++ record); `auto`/`simp` ~0.5s or split; small checked bricks; search before
+creating; four guards before pushing; commit small + push immediately; `pull
+--rebase --autostash`; stage ONLY your own files (never `git add -A`); don't
+touch `scratch_*.py`.
+
+(The Secretary prompt is unchanged — use PROMPT C below. PROMPT A2/B2 further
+down are the T+S-induction prompts and are now SUPERSEDED — that route is done.)
+
+---
+
+## SUPERSEDED — T+S induction prompts (2026-06-13, route now COMPLETE)
+
+Kept for reference only; the T+S simultaneous induction is fully checked. For a
+restart now, use PROMPT A3 / B3 above.
 
 ### PROMPT A2 — Lead / Codex (induction skeleton + supervisor)
 
