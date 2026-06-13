@@ -32287,6 +32287,59 @@ proof -
     using root arith by linarith
 qed
 
+lemma strong_opened_live_acc_RALTS_root_shell_large:
+  assumes big: "3 \<le> rsizes rs + rsize k"
+  shows "1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))) \<le>
+    (rsizes rs + rsize k + 1) ^ 3 -
+      (rsizes rs + rsize k) ^ 3"
+proof -
+  let ?n = "rsizes rs + rsize k"
+  have sigma_size:
+      "rsize (rsimp4_SEQ_atom (RALTS rs) k) \<le> Suc (Suc ?n)"
+  proof -
+    have "rsize (rsimp4_SEQ_atom (RALTS rs) k) \<le>
+        Suc (rsize (RALTS rs) + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    then show ?thesis
+      by simp
+  qed
+  have root:
+      "rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RALTS rs) k))) \<le>
+      Suc (Suc (Suc ?n)) * Suc (Suc ?n)"
+  proof -
+    have "rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RALTS rs) k))) \<le>
+        Suc (rsize (rsimp4_SEQ_atom (RALTS rs) k)) *
+          rsize (rsimp4_SEQ_atom (RALTS rs) k)"
+      by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+    also have "... \<le> Suc (Suc (Suc ?n)) * Suc (Suc ?n)"
+      by (rule mult_mono) (use sigma_size in auto)
+    finally show ?thesis .
+  qed
+  have arith:
+      "1 + Suc (Suc (Suc ?n)) * Suc (Suc ?n) \<le>
+      (?n + 1) ^ 3 - ?n ^ 3"
+  proof -
+    have six_le: "6 \<le> 2 * ?n"
+      using big by simp
+    have two_le: "2 \<le> ?n"
+      using big by simp
+    have n_sq: "2 * ?n \<le> ?n * ?n"
+      by (rule mult_right_mono[OF two_le]) simp
+    have quad: "6 + 2 * ?n \<le> 2 * (?n * ?n)"
+      using six_le n_sq by linarith
+    show ?thesis
+      using quad by (simp add: power3_eq_cube algebra_simps)
+  qed
+  show ?thesis
+    using root arith by linarith
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"

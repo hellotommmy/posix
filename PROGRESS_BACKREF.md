@@ -9061,3 +9061,20 @@ STATUS_MATH and say so at the top of PROGRESS.
   `1 + root_charge <= (rsizes rs + rsize k + 1)^3 -
    (rsizes rs + rsize k)^3`, or split by suffix if the raw root bound is too
   coarse.
+
+## 2026-06-14 Codex: CHECKED - RALTS large root shell
+
+- New checked large-case root shell:
+  if `3 <= rsizes rs + rsize k`, then
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw
+      (rsimp4_SEQ_atom (RALTS rs) k))) <=
+   (rsizes rs + rsize k + 1)^3 - (rsizes rs + rsize k)^3`.
+  Plain gloss: after the children consume the tight drain shell up to
+  `rsizes rs + rsize k`, the strong-simplified RALTS root row plus its `1`
+  charge fits in the next cube shell for all non-small totals.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: close the small-total root shell cases
+  `rsizes rs + rsize k < 3` by explicit suffix/list splitting, then assemble
+  the full `RALTS` drain case from the tight child-sum lemma.
