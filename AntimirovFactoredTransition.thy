@@ -28718,6 +28718,30 @@ proof -
   finally show ?thesis .
 qed
 
+lemma actual_union_seq_tail_bucket_term_le_front_generated_square:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (rseq_tail_rows
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) *
+        rsize t) \<le>
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?G = "rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  have "(\<Sum>t \<in> ?T. card (rseq_tail_rows ?U t) * rsize t) \<le>
+      ?F * rsize_set ?T"
+    by (rule actual_union_seq_tail_bucket_term_le_front_times_tails)
+  also have "... \<le> ?F * (?G * ?G)"
+    by (rule mult_left_mono)
+      (simp_all add:
+        rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_square)
+  finally show ?thesis .
+qed
+
 
 text \<open>
   The pair-budget gate, instantiated: on the legacy fragment the
@@ -29105,6 +29129,36 @@ lemma actual_union_seq_member_head_term_le_generated_linear:
   by (rule mult_right_mono)
     (simp_all add:
       card_rseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated)
+
+lemma actual_union_generated_square_decomposition:
+  assumes legacy: "legacy_rrexp r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    rsize_set (rnonseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) +
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+      Suc (Suc (rsize r + rsize r)) +
+    card (strong_derivative_front_terms r (s @ [c])) *
+      (rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+        rsizes (concat (map (rpder_norm_list c) (afactored1 r s))))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?N = "rsize_set (rnonseq_members ?U)"
+  let ?H = "Suc (Suc (rsize r + rsize r))"
+  let ?G = "rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  let ?F = "card (strong_derivative_front_terms r (s @ [c]))"
+  let ?B = "(\<Sum>t \<in> rseq_tails ?U.
+    card (rseq_tail_rows ?U t) * rsize t)"
+  have decomp: "rsize_set ?U \<le>
+      ?N + card (rseq_members ?U) * ?H + ?B"
+    by (rule actual_union_two_number_decomposition[OF legacy])
+  have heads: "card (rseq_members ?U) * ?H \<le> ?G * ?H"
+    by (rule actual_union_seq_member_head_term_le_generated_linear)
+  have tails: "?B \<le> ?F * (?G * ?G)"
+    by (rule actual_union_seq_tail_bucket_term_le_front_generated_square)
+  show ?thesis
+    using decomp heads tails by linarith
+qed
 
 
 text \<open>

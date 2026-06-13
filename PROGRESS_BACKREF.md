@@ -8464,3 +8464,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: assemble the checked bucket inequality with this tail
   ledger, then decide whether the resulting generated-square term is strong
   enough or must be replaced by a sharper opened-boundary/tail carrier.
+
+## 2026-06-14 Codex: CHECKED - conservative generated-square decomposition
+
+- New checked bucket assembly:
+  `sum_t card(rseq_tail_rows(U,t)) * rsize t <=
+   card(strong_derivative_front_terms r (s @ [c])) *
+   G * G`, where
+  `U = row_dlformss(rpder_strong_rows_raw c (afactored1 r s))` and
+  `G = rsizes(concat(map (rpder_norm_list c) (afactored1 r s)))`.
+- New checked exact-decomposition assembly, under `legacy_rrexp r`:
+  `rsize_set U <= rsize_set(rnonseq_members U) +
+   G * Suc(Suc(rsize r + rsize r)) +
+   card(strong_derivative_front_terms r (s @ [c])) * G * G`.
+  Plain gloss: the SEQ head summand is generated-linear, while the remaining
+  tail bucket summand is now isolated as a conservative `front-card * G^2`
+  term.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: test whether `front-card * G^2` is mathematically too
+  weak for the cubic gate; if so, replace the generated-square tail ledger
+  with a sharper opened-boundary or normalized-tail carrier statement.
