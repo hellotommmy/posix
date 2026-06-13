@@ -8722,3 +8722,24 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_row_universe r` at `k = RONE` under `apder_nf r`, then
   add `RCHAR`/`RSTAR` accumulator constructor containments for the size
   induction.
+
+## 2026-06-14 Codex: CHECKED - prefix carrier returns to live carrier at RONE
+
+- New checked bridge:
+  `apder_nf r ==>
+   partial_derivative_live_row_universe_acc r RONE =
+   partial_derivative_live_row_universe r`, using the existing
+  `sigma_RONE_id_nf` fact.
+- New checked strong-opened bridge:
+  `apder_nf r ==>
+   strong_opened_live_row_universe_acc r RONE =
+   strong_opened_live_row_universe r`.
+  Plain gloss: the prefix-aware accumulator carrier is a true extension of the
+  dynamic carrier already used for the actual strong rows; at the empty suffix
+  it specializes back to the old object.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:19). No `sorry`.
+- NEXT smallest brick: add accumulator constructor containments for `RCHAR`
+  and `RSTAR`; then start the size induction over
+  `strong_opened_live_row_universe_acc`.

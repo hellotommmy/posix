@@ -31898,6 +31898,22 @@ lemma strong_opened_live_row_universe_acc_RSEQ_subset:
   by (auto simp add: strong_opened_live_row_universe_acc_def
       row_dlformss_set_def)
 
+lemma partial_derivative_live_row_universe_acc_RONE_eq:
+  assumes nf: "apder_nf r"
+  shows "partial_derivative_live_row_universe_acc r RONE =
+    partial_derivative_live_row_universe r"
+  using sigma_RONE_id_nf[OF nf]
+  by (auto simp add: partial_derivative_live_row_universe_acc_def
+      partial_derivative_live_row_universe_def rpath_continuations_def)
+
+lemma strong_opened_live_row_universe_acc_RONE_eq:
+  assumes nf: "apder_nf r"
+  shows "strong_opened_live_row_universe_acc r RONE =
+    strong_opened_live_row_universe r"
+  using partial_derivative_live_row_universe_acc_RONE_eq[OF nf]
+  by (simp add: strong_opened_live_row_universe_acc_def
+      strong_opened_live_row_universe_def)
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
