@@ -7705,3 +7705,25 @@ but does not invalidate them.
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Remaining constructor helpers: RALTS (paused on list positivity)
   and RSTAR.
+
+## 2026-06-13 Fable: independent GATE re-confirmation + CLAIM T_and_S_RSTAR and T_and_S_RALTS
+
+- Independent Step-0 re-confirmation (separate mirror `ts_invariant_check.py`,
+  written from scratch, NOT derived from scratch_rowcount_check.py): T and S
+  hold on the clean legacy/rntimes-free fragment. Directed grid + 500,000
+  random clean pairs (max depth 10; 109,737 deep r>=5 pairs) ZERO violations;
+  extreme nested zero-width-star + singleton-continuation-SEQ towers to depth
+  28 ZERO violations. S is tight (min_margin 0; ~166k exact-equality cases) but
+  never overdraws. All four bridges sample-true. No deep CE; SUPER_LINEAR
+  unchanged.
+- CLAIM: editing only the two remaining constructor helpers `T_and_S_RSTAR`
+  and `T_and_S_RALTS` in AntimirovFactoredTransition.thy (RSEQ is Codex's,
+  committed b21524d). Both discharge `apder_T_bound`/`apder_S_bound` from the
+  member/body IHs at continuation k (RSTAR: body IH at sigma (RSTAR p) k).
+- RALTS list-positivity blocker (Codex's pause) is dissolved: clean (RALTS rs)
+  ==> apder_zw2 (RALTS rs) ~= 0 directly via
+  apder_zero_budget_trivial_nontrivial_pos[of "RALTS rs"]; the positive member
+  comes from the already-checked alts_positive_member and pays the global Suc
+  through the already-checked discount_RALTS_if_member_discount. T splits
+  k=RONE (E00_RONE_RALTS_if_members + member T at RONE via sigma_RONE_id_nf)
+  vs k~=RONE (singleton frontier of sigma (RALTS rs) k + the same discount).
