@@ -30714,6 +30714,22 @@ lemma sigma_RONE_id_nf:
   shows "rsimp4_SEQ_atom r RONE = r"
   by (rule rtail_nf_RONE_stable[OF apder_nf_imp_rtail_nf[OF assms]])
 
+lemma clean_zero_budget_root:
+  assumes clean: "apder_clean r"
+    and zero: "apder_zw2 r = 0"
+  shows "r = RZERO \<or> r = RONE"
+proof (rule ccontr)
+  assume "\<not> (r = RZERO \<or> r = RONE)"
+  then have nz: "r \<noteq> RZERO" "r \<noteq> RONE"
+    by auto
+  have "apder_zw2 r \<noteq> 0"
+    using clean nz
+    unfolding apder_clean_def
+    by (intro apder_zero_budget_trivial_nontrivial_pos) auto
+  then show False
+    using zero by simp
+qed
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE

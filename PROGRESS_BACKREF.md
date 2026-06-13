@@ -7543,3 +7543,25 @@ but does not invalidate them.
   (AntimirovFactoredTransition 113.761s, full Posix elapsed 0:02:16).
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Next bridge to claim: `clean_zero_budget_root`.
+
+## 2026-06-13 Codex: CLAIM - clean_zero_budget_root bridge
+
+- Re-read newest PROGRESS tail after pushing `sigma_RONE_id_nf` (commit
+  95aa064); no proof workers live.
+- CLAIM: I am editing only the named bridge `clean_zero_budget_root` in
+  `AntimirovFactoredTransition.thy`, exposing the contrapositive of the
+  existing `apder_zero_budget_trivial_nontrivial_pos`: a clean root with
+  zero `apder_zw2` is literally `RZERO` or `RONE`.
+
+## 2026-06-13 Codex: CHECKED - clean_zero_budget_root bridge
+
+- New checked bridge in `AntimirovFactoredTransition.thy`:
+  `clean_zero_budget_root`.
+- Proof exposes the root content of `apder_zero_budget_trivial`: by
+  `apder_zero_budget_trivial_nontrivial_pos`, any clean normal-form root that
+  is not `RZERO`/`RONE` has positive `apder_zw2`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 74.963s, full Posix elapsed 0:01:27).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next bridge to claim: `alts_positive_member`.
