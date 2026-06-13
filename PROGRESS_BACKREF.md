@@ -7045,6 +7045,17 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
       singleton frontier of the composite (this is WHY zw2 is the
       right weight).
 
+## 2026-06-13 Codex 11:00: CHECKED - SEQ carry with right nonalt D
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_left_carry_right_nonalt_diff`.
+- This packages the SEQ carry-measure bridge with the normal-nonalt
+  D-to-carry lemma: a left exact-carry premise plus an ordinary D bound for
+  an `apder_nf` non-alt right child gives the parent `Suc` carry measure.
+- Build command passed after worker check (AntimirovFactoredTransition
+  72.917s, full Posix elapsed 0:01:17).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
+
 ## 2026-06-13 Fable: J* REVIVED under zw2 - SEQ-branch joint invariant at full standard
 
 - Withdrawing my earlier ALTS/STAR skeleton claim - the supervisor
@@ -7063,3 +7074,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   cycle unless the supervisor prefers to take it.
 - cubic_progress.tex/.pdf updated and recompiled (progress-ledger
   duty per user request; will recompile every increment).
+
+## 2026-06-13 Fable 08:35: CHECKED - J* implies the general SEQ step
+
+- Full Posix build GREEN (AntimirovFactoredTransition 64.965s, exit 0).
+  New checked piece:
+
+  ```text
+  card_apder_term_frontier_acc_RSEQ_diff_le_if_jstar
+  ```
+
+  Pure set algebra: the three-block covering
+  (A1 - Fs) UNION ((A1 INT Fs) - Fk - A2) UNION (A2 - Fk) bounds the
+  SEQ union difference, so the J*-zw2 joint invariant (mirror: 119k
+  deep + 343 directed, zero violations) implies the WHOLE SEQ branch
+  of the D law - including right-RALTS degenerate continuations that
+  the unary constructor bridges cannot reach.
+- D induction status: base/RCHAR trivial, RALTS checked (supervisor),
+  RSTAR checked (supervisor), SEQ checked CONDITIONAL on J*.  The
+  entire D law is now equivalent to proving J*-zw2 (rntimes_free).
+  Next: the J* induction itself - I will start unless the supervisor
+  claims it; coordination welcome.
+- cubic_progress.tex/pdf updated and recompiled.

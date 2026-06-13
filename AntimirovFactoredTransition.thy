@@ -30330,6 +30330,37 @@ proof -
     by simp
 qed
 
+lemma card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_left_carry_right_nonalt_diff:
+  assumes left:
+    "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card (rfrontier (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)) -
+      rfrontier (rsimp4_SEQ_atom r2 k) -
+      apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    and r2_nf: "apder_nf r2"
+    and r2_nonalt: "nonalt r2"
+    and right: "card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 r2"
+  shows
+    "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom (RSEQ r1 r2) k) - rfrontier k -
+      apder_term_frontier_acc (RSEQ r1 r2) k) \<le>
+      Suc (apder_zw2 (RSEQ r1 r2))"
+proof (rule card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_children)
+  show "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card (rfrontier (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)) -
+      rfrontier (rsimp4_SEQ_atom r2 k) -
+      apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)) \<le> apder_zw2 r1"
+    by (rule left)
+next
+  show "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> Suc (apder_zw2 r2)"
+    by (rule card_apder_term_frontier_acc_apder_nf_nonalt_carry_measure_le_Suc_if_diff
+        [OF r2_nf r2_nonalt right])
+qed
+
 lemma card_apder_term_frontier_acc_RSEQ_carry_measure_le_Suc_if_children_left:
   assumes left:
     "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
@@ -30438,5 +30469,53 @@ proof -
     finally show ?thesis by simp
   qed
 qed
+
+text \<open>
+  The J* joint invariant implies the SEQ step of the D law: the
+  three-block covering of the union difference is pure set algebra,
+  so any future proof of J* (mirror: 119k deep samples + directed
+  grid, zero violations) immediately closes the general SEQ branch,
+  including the hard right-alternation degenerate-continuation case.
+\<close>
+
+lemma card_apder_term_frontier_acc_RSEQ_diff_le_if_jstar:
+  assumes jstar:
+    "card (apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) -
+        rfrontier (rsimp4_SEQ_atom r2 k)) +
+      card ((apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k) \<inter>
+          rfrontier (rsimp4_SEQ_atom r2 k)) -
+        rfrontier k - apder_term_frontier_acc r2 k) +
+      card (apder_term_frontier_acc r2 k - rfrontier k)
+      \<le> apder_zw2 r1 + apder_zw2 r2"
+  shows "card (apder_term_frontier_acc (RSEQ r1 r2) k - rfrontier k)
+    \<le> apder_zw2 (RSEQ r1 r2)"
+proof -
+  let ?A1 = "apder_term_frontier_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?A2 = "apder_term_frontier_acc r2 k"
+  let ?Fs = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  let ?Fk = "rfrontier k"
+  have cover: "apder_term_frontier_acc (RSEQ r1 r2) k - ?Fk \<subseteq>
+      (?A1 - ?Fs) \<union> ((?A1 \<inter> ?Fs) - ?Fk - ?A2) \<union> (?A2 - ?Fk)"
+    by auto
+  have "card (apder_term_frontier_acc (RSEQ r1 r2) k - ?Fk) \<le>
+      card ((?A1 - ?Fs) \<union> ((?A1 \<inter> ?Fs) - ?Fk - ?A2)
+        \<union> (?A2 - ?Fk))"
+    by (intro card_mono[OF _ cover]) auto
+  also have "... \<le>
+      card ((?A1 - ?Fs) \<union> ((?A1 \<inter> ?Fs) - ?Fk - ?A2)) +
+      card (?A2 - ?Fk)"
+    by (rule card_Un_le)
+  also have "... \<le>
+      card (?A1 - ?Fs) + card ((?A1 \<inter> ?Fs) - ?Fk - ?A2) +
+      card (?A2 - ?Fk)"
+    using card_Un_le[of "?A1 - ?Fs" "(?A1 \<inter> ?Fs) - ?Fk - ?A2"]
+    by simp
+  also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+    by (rule jstar)
+  also have "... \<le> apder_zw2 (RSEQ r1 r2)"
+    by simp
+  finally show ?thesis .
+qed
+
 
 end
