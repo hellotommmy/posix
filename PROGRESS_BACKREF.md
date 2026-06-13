@@ -7825,3 +7825,44 @@ Milestone reflected in the docs (docs only; no .thy touched):
   (D law proven / route complete).
 - No new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md` unchanged.
 Trust git timestamps over the `HH:MM` labels here.
+
+## 2026-06-13 Codex: CLAIM - card_apder_rows_le_apder_zw2_plus_2
+
+- Synced `codex/backref-values` with `git pull --rebase --autostash origin
+  codex/backref-values`; tree has only pre-existing untracked
+  `fable_partial.md` / `scratch_dlform_cost_model.py` (left untouched).
+  `scripts\codex-proof-workers.ps1 -Action Check` reports no live proof
+  workers.
+- CLAIM: editing only the first D-law wiring brick in
+  `AntimirovFactoredTransition.thy`, named
+  `card_apder_rows_le_apder_zw2_plus_2`: instantiate `D_law_clean` at
+  `k = RONE`, account for the root insert in `apder_rows`, and keep the
+  clean-domain premise explicit for downstream assembly.
+
+## 2026-06-13 Codex: RED/REPAIR - card_apder_rows_le_apder_zw2_plus_2 card_mono premise order
+
+- First build of `card_apder_rows_le_apder_zw2_plus_2` failed only at the
+  local `card_mono` step bounding `card U` by `card (insert RONE (U -
+  rfrontier RONE))`: the subset fact was consumed as the finite-set premise.
+- Repair changes only this named lemma, switching that step to `intro
+  card_mono` so Isabelle discharges the finite premise before the subset
+  obligation.  Also noted while proving: the row-cardinality brick uses the
+  checked T half of the D-law landing at `k = RONE`, because D-only does not
+  account for the root frontier of alternation rows.
+
+## 2026-06-13 Codex: CHECKED - card_apder_rows_le_apder_zw2_plus_2
+
+- New checked lemma in `AntimirovFactoredTransition.thy`:
+  `card_apder_rows_le_apder_zw2_plus_2`,
+  `apder_clean r ==> card (apder_rows r) <= apder_zw2 r + 2`.
+- Proof uses the RONE instance of the checked T/S landing (`T_and_S` gives
+  `apder_T_bound r RONE`), `sigma_RONE_id_nf`, and
+  `apder_frontier_eq_rfrontier_union_acc`; the two additive slots are the
+  possible `RONE` boundary point and the root insert in `apder_rows`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 73.891s, full Posix elapsed 0:01:17).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next smallest safe step: specialize through
+  `apder_zw2_rntimes_free_le_rsize` to obtain the rntimes-free
+  `card (apder_rows r) <= rsize r + 2` bridge.

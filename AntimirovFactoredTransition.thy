@@ -31651,5 +31651,45 @@ lemma D_law_clean:
   shows "card (apder_term_frontier_acc r k - rfrontier k) \<le> apder_zw2 r"
   using apder_T_bound_imp_D[OF conjunct1[OF T_and_S[OF assms]]] .
 
+lemma card_apder_rows_le_apder_zw2_plus_2:
+  assumes clean: "apder_clean r"
+  shows "card (apder_rows r) \<le> apder_zw2 r + 2"
+proof -
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  have rone_clean: "apder_clean RONE"
+    by (simp add: apder_clean_def)
+  have T: "apder_T_bound r RONE"
+    using T_and_S[OF clean rone_clean] by simp
+  have sigma: "rsimp4_SEQ_atom r RONE = r"
+    by (rule sigma_RONE_id_nf[OF nf])
+  let ?U = "rfrontier r \<union> apder_term_frontier_acc r RONE"
+  have core: "card (?U - rfrontier RONE) \<le> apder_zw2 r"
+    using T unfolding apder_T_bound_def sigma by simp
+  have front_eq: "apder_frontier r = ?U"
+    using apder_frontier_eq_rfrontier_union_acc[OF nf]
+    by (simp add: apder_term_frontiers_def)
+  have front_card: "card ?U \<le> apder_zw2 r + 1"
+  proof -
+    have "?U \<subseteq> insert RONE (?U - rfrontier RONE)"
+      by auto
+    then have "card ?U \<le> card (insert RONE (?U - rfrontier RONE))"
+      by (intro card_mono) auto
+    also have "... \<le> Suc (card (?U - rfrontier RONE))"
+      by (rule card_insert_le_m1) auto
+    also have "... \<le> Suc (apder_zw2 r)"
+      using core by simp
+    finally show ?thesis
+      by simp
+  qed
+  have "card (apder_rows r) \<le> Suc (card ?U)"
+    unfolding apder_rows_def front_eq
+    by (rule card_insert_le_m1) auto
+  also have "... \<le> Suc (apder_zw2 r + 1)"
+    using front_card by simp
+  finally show ?thesis
+    by simp
+qed
+
 
 end
