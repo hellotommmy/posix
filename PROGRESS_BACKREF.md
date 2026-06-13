@@ -7489,3 +7489,36 @@ If a deep CE appears, append it to SUPER_LINEAR_PATTERNS.md and report. The
 already-checked discount branches (discount_RALTS_if_member_discount, E0_RALTS_
 if_members, the STAR/RCHAR discounts) remain valid bricks; T subsumes their role
 but does not invalidate them.
+
+## 2026-06-13 Codex: GATE PASS + CLAIM - sigma_clean bridge for T/S route
+
+- Absorbed MAINLINE §2, the newest PROGRESS tail, the full
+  `GPT_PRO_DLAW_VERDICT.md`, and the project rules.  Synced
+  `codex/backref-values` at e4f4aba; no proof workers live before the gate.
+- STEP-0 executable gate PASSED without editing `scratch_*.py`: transient
+  extension of `scratch_rowcount_check.py` used corrected `apder_zw2`
+  (STAR = Suc), the clean-domain filter (`apder_nf` +
+  `apder_zero_budget_trivial`; legacy/rntimes-free automatic in the scratch
+  language), and checked T/S:
+  directed clean nested-star grid 4,230/4,230; random clean samples 216,609
+  (max depths r=7, k=6); historical B1/B2/B3 CE shapes all pass under T/S.
+- No deep counterexample found; `SUPER_LINEAR_PATTERNS.md` unchanged.
+- CLAIM: I am editing only the first bridge lemma, `sigma_clean`, in
+  `AntimirovFactoredTransition.thy`: package the already-checked preservation
+  facts for `rsimp4_SEQ_atom` into the clean-domain bridge needed by T/S.
+
+## 2026-06-13 Codex: CHECKED - sigma_clean bridge
+
+- New checked bridge in `AntimirovFactoredTransition.thy`:
+  `apder_clean` (definition packaging legacy + rntimes-free + `apder_nf` +
+  `apder_zero_budget_trivial`) and `sigma_clean`.
+- `sigma_clean` is wrapper-level but not bounty packaging: it is the named
+  bridge requested by the GPT Pro T/S plan and reuses the already-checked
+  component preservation facts (`legacy_rsimp4_SEQ_atom`,
+  `rntimes_free_rsimp4_SEQ_atom`, `apder_nf_rsimp4_SEQ_atom`,
+  `apder_zero_budget_trivial_rsimp4_SEQ_atom`).
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 75.818s, full Posix elapsed 0:01:24).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next bridge to claim: `sigma_RONE_id_nf`.

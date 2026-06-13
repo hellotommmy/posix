@@ -30695,6 +30695,20 @@ next
     by (cases k) auto
 qed
 
+definition apder_clean :: "rrexp \<Rightarrow> bool" where
+  "apder_clean r \<longleftrightarrow>
+    legacy_rrexp r \<and> rntimes_free r \<and> apder_nf r \<and>
+    apder_zero_budget_trivial r"
+
+lemma sigma_clean:
+  assumes "apder_clean r"
+    and "apder_clean k"
+  shows "apder_clean (rsimp4_SEQ_atom r k)"
+  using assms
+  unfolding apder_clean_def
+  by (auto intro: legacy_rsimp4_SEQ_atom rntimes_free_rsimp4_SEQ_atom
+      apder_nf_rsimp4_SEQ_atom apder_zero_budget_trivial_rsimp4_SEQ_atom)
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE
