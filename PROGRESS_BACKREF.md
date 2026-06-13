@@ -8992,3 +8992,20 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:13). No `sorry`.
 - NEXT smallest brick: prove the RCHAR drain case, using the root-charge diff
   against the suffix plus this `RONE` cube shell.
+
+## 2026-06-14 Codex: CHECKED - RCHAR strong-live root charge linear
+
+- New checked helper:
+  `rsize_set(row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) <=
+   Suc (Suc (rsize k))`.
+- New checked strong-root charge:
+  `rsize_set(row_dlforms(rsimpStrong_raw
+     (rsimp4_SEQ_atom (RCHAR c) k))) <= Suc (Suc (rsize k))`.
+  Plain gloss: a character-left opened root contributes at most one row-form of
+  suffix-linear size after strong simplification; this is the local fact needed
+  to make the RCHAR cube-shell case tight at small suffixes.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:23). No `sorry`.
+- NEXT smallest brick: combine this linear root charge with the sharpened
+  suffix/base shell to prove the RCHAR drain inequality.

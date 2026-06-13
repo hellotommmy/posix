@@ -32215,6 +32215,85 @@ proof -
     using root arith by linarith
 qed
 
+lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
+  "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
+    Suc (Suc (rsize k))"
+  by (cases k) (simp_all add: rsimp7_SEQ_atom_def rsize_set_def)
+
+lemma strong_opened_live_acc_RCHAR_root_charge_linear:
+  "rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k))) \<le>
+    Suc (Suc (rsize k))"
+proof (cases k)
+  case RZERO
+  then show ?thesis
+    by (simp add: rsize_set_def)
+next
+  case RONE
+  then show ?thesis
+    by (simp add: rsize_set_def)
+next
+  case (RCHAR d)
+  then show ?thesis
+    by (simp add: rsize_set_def)
+next
+  case (RSEQ k1 k2)
+  have "rsize_set
+      (row_dlforms
+        (rsimp7_SEQ_atom (RCHAR c) (rsimpStrong_raw k))) \<le>
+      Suc (Suc (rsize (rsimpStrong_raw k)))"
+    by (rule rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear)
+  also have "... \<le> Suc (Suc (rsize k))"
+    using rsize_rsimpStrong_raw_le[of k] by simp
+  finally show ?thesis
+    using RSEQ by simp
+next
+  case (RALTS rs)
+  have "rsize_set
+      (row_dlforms
+        (rsimp7_SEQ_atom (RCHAR c) (rsimpStrong_raw k))) \<le>
+      Suc (Suc (rsize (rsimpStrong_raw k)))"
+    by (rule rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear)
+  also have "... \<le> Suc (Suc (rsize k))"
+    using rsize_rsimpStrong_raw_le[of k] by simp
+  finally show ?thesis
+    using RALTS by simp
+next
+  case (RSTAR k')
+  have "rsize_set
+      (row_dlforms
+        (rsimp7_SEQ_atom (RCHAR c) (rsimpStrong_raw k))) \<le>
+      Suc (Suc (rsize (rsimpStrong_raw k)))"
+    by (rule rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear)
+  also have "... \<le> Suc (Suc (rsize k))"
+    using rsize_rsimpStrong_raw_le[of k] by simp
+  finally show ?thesis
+    using RSTAR by simp
+next
+  case (RNTIMES k' n)
+  have "rsize_set
+      (row_dlforms
+        (rsimp7_SEQ_atom (RCHAR c) (rsimpStrong_raw k))) \<le>
+      Suc (Suc (rsize (rsimpStrong_raw k)))"
+    by (rule rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear)
+  also have "... \<le> Suc (Suc (rsize k))"
+    using rsize_rsimpStrong_raw_le[of k] by simp
+  finally show ?thesis
+    using RNTIMES by simp
+next
+  case (RBACKREF4 k1 k2 k3 k4 cs)
+  then show ?thesis
+    by (simp add: rsize_set_def)
+next
+  case (RHALF k' cs rep)
+  then show ?thesis
+    by (simp add: rsize_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    by (simp add: rsize_set_def)
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set
