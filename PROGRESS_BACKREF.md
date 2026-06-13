@@ -8386,3 +8386,22 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: investigate a one-step subset target for
   `row_dlformss(rpder_strong_rows_raw c (afactored1 r s))` into an appropriate
   live row universe, avoiding the known norm7/norm8 closure counterexamples.
+
+## 2026-06-14 Codex: CHECKED - clean generated rows get opened-boundary cubic
+
+- New checked clean-propagation lemmas:
+  `apder_clean r /\ p IN apder_terms r ==> apder_clean p`,
+  `apder_clean r /\ p IN set(rpder_norm_list c r) ==> apder_clean p`, and
+  `apder_clean r /\ p IN set(concat(map (rpder_norm_list c) (afactored1 r s)))
+   ==> apder_clean p`.
+- New checked inequality:
+  `apder_clean r /\ p IN set(concat(map (rpder_norm_list c) (afactored1 r s)))
+   ==> rsize_set(opened_boundary_forms p RONE) <= (rsize p + 3)^3`.
+  Plain gloss: every normalized generated one-step row from a clean root
+  inherits the already-proven RONE opened-boundary cubic budget.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: lift the same clean/generated-row bridge through the
+  strong raw row opener, or use it to assemble a per-generated-row opened
+  ledger bound without reviving the false unsimplified carrier statement.

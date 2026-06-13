@@ -2169,6 +2169,41 @@ next
   then show ?case ..
 qed
 
+lemma apder_clean_apder_terms:
+  assumes clean: "apder_clean r"
+    and p: "p \<in> apder_terms r"
+  shows "apder_clean p"
+proof -
+  have legacy: "legacy_rrexp r" and free: "rntimes_free r"
+    and nf: "apder_nf r" and zbt: "apder_zero_budget_trivial r"
+    using clean by (simp_all add: apder_clean_def)
+  have "legacy_rrexp p"
+    by (rule legacy_apder_terms[OF legacy p])
+  moreover have "rntimes_free p"
+    by (rule rntimes_free_apder_terms[OF free p])
+  moreover have "apder_nf p"
+    by (rule apder_nf_apder_terms[OF nf p])
+  moreover have "apder_zero_budget_trivial p"
+    by (rule apder_zero_budget_trivial_apder_terms[OF zbt p])
+  ultimately show ?thesis
+    by (simp add: apder_clean_def)
+qed
+
+lemma apder_clean_rpder_norm_list:
+  assumes clean: "apder_clean r"
+    and p: "p \<in> set (rpder_norm_list c r)"
+  shows "apder_clean p"
+proof -
+  have nf: "apder_nf r"
+    using clean by (simp add: apder_clean_def)
+  have "p \<in> rpder c r"
+    using set_rpder_norm_list_eq_rpder_rtail_nf[OF nf] p by simp
+  then have "p \<in> apder_terms r"
+    using rpder_subset_apder_terms by blast
+  then show ?thesis
+    by (rule apder_clean_apder_terms[OF clean])
+qed
+
 lemma apder_clean_apder_rows:
   assumes clean: "apder_clean r"
     and x: "x \<in> apder_rows r"
@@ -2244,5 +2279,29 @@ proof -
   then show ?thesis
     by (rule apder_clean_apder_rows[OF clean])
 qed
+
+lemma apder_clean_concat_rpder_norm_list_afactored1:
+  assumes clean: "apder_clean r"
+    and p:
+      "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  shows "apder_clean p"
+proof -
+  obtain q where q: "q \<in> set (afactored1 r s)"
+    "p \<in> set (rpder_norm_list c q)"
+    using p by auto
+  have q_clean: "apder_clean q"
+    by (rule apder_clean_afactored1[OF clean q(1)])
+  show ?thesis
+    by (rule apder_clean_rpder_norm_list[OF q_clean q(2)])
+qed
+
+lemma opened_boundary_forms_RONE_cubic_concat_rpder_norm_list_afactored1:
+  assumes clean: "apder_clean r"
+    and p:
+      "p \<in> set (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  shows "rsize_set (opened_boundary_forms p RONE) \<le>
+    (rsize p + 3) ^ 3"
+  by (rule opened_boundary_forms_RONE_cubic)
+    (rule apder_clean_concat_rpder_norm_list_afactored1[OF clean p])
 
 end
