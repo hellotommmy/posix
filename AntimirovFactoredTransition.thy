@@ -28966,6 +28966,31 @@ proof -
     by simp
 qed
 
+lemma card_rseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated:
+  "card (rseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  have "card (rseq_members ?U) \<le> card ?U"
+    unfolding rseq_members_def
+    by (rule card_mono) auto
+  also have "... \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule card_row_dlformss_rpder_strong_rows_raw_le_generated)
+  finally show ?thesis .
+qed
+
+lemma actual_union_seq_member_head_term_le_generated_linear:
+  "card (rseq_members
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) *
+      Suc (Suc (rsize r + rsize r)) \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+      Suc (Suc (rsize r + rsize r))"
+  by (rule mult_right_mono)
+    (simp_all add:
+      card_rseq_members_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated)
+
 
 text \<open>
   The front total collapses to a STATIC quantity: afactored1 rows are

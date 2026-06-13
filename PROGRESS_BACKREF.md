@@ -8405,3 +8405,19 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: lift the same clean/generated-row bridge through the
   strong raw row opener, or use it to assemble a per-generated-row opened
   ledger bound without reviving the false unsimplified carrier statement.
+
+## 2026-06-14 Codex: CHECKED - SEQ member head term generated-linear
+
+- New checked inequality:
+  `card(rseq_members(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))) *
+   Suc(Suc(rsize r + rsize r)) <=
+   rsizes(concat(map (rpder_norm_list c) (afactored1 r s))) *
+   Suc(Suc(rsize r + rsize r))`.
+  Plain gloss: the exact decomposition's `card(SEQ members) * linear head`
+  summand is paid by the existing generated-size card ledger.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:11). No `sorry`.
+- NEXT smallest brick: prove a checked bound for the remaining
+  `sum_t bucket(t) * rsize(t)` summand, preferably by charging each bucket
+  member to generated rows without using the false unsimplified strong carrier.
