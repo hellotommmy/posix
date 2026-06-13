@@ -112,7 +112,12 @@ opening, and the dedup
 and discharge the ``clean'' hypothesis for the actual root.
 \emph{Known wrinkle:} the strong-step rows are only ``tail-normal,'' not fully
 clean, so the D law is used at the $\Rows/\Front$ level and the strong opening is
-bounded on its own. Once this lands, the boxed goal is closed (clean fragment).
+bounded on its own. \textbf{Blocked (2026-06-13 23:37) on one genuine missing
+bridge:} the cubic front does not yet reach the gate because the
+\emph{deduplicated} opened ledger needs a suffix-sharing argument --- the per-row
+square-sum is quintic and the non-deduplicated list is exponential (the RONE-pair
+tower). This is a design point, framed in \texttt{GATE\_BRIDGE\_GAP.md} and handed
+to a design pass. Once that bridge lands, the boxed goal is closed (clean fragment).
 
 \item[\todo] \textbf{After that:} lift the result from the clean fragment to
 \emph{all} regexes including bounded repetition $r^{\{n\}}$. This needs a
