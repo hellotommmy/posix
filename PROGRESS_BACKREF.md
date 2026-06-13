@@ -8061,3 +8061,69 @@ legitimate `AntimirovFactoredTransition.thy` / `AntimirovNormalFrontier.thy` edi
 Suggest adding both cubic theories to `WORKER_ALLOWED`. I did NOT edit the guard
 (guard policy is admin/steward territory, outside the docs/cleanup remit). No new
 CE; `SUPER_LINEAR_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex: CLAIM - final clean strong-opening cubic gate
+
+- Claiming one assembly lemma in `AntimirovFactoredTransition.thy`:
+  `rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_clean_cubic_gate`,
+  target
+  `apder_clean r ==> rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+   <= 2 * (rsize r + 3)^3`.
+- Route: consume `rsizes_afactored1_clean_static_cubic` at the actual
+  `afactored1` front, then use the already-checked strong deleter/opening
+  bridges. If the bridges expose a genuine degree gap, I will stop and record
+  the precise obstacle here.
+
+## 2026-06-13 Codex: BLOCKED - checked bridges do not close final gate
+
+- I did not edit the theory. The requested assembly hits a genuine missing
+  bridge, not a clean-domain problem. Clean propagation is enough for the
+  actual fronts:
+  `apder_clean r ==> rsizes (afactored1 r s) <= (rsize r + 3)^3`, and the same
+  at `s @ [c]`.
+- The checked strong/deleter and opening facts available today give only:
+  ```text
+  rsizes (rpder_strong_rows_raw c rows)
+    <= rsizes (concat (map (rpder_norm_list c) rows))
+  rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+    <= sum_list (map (%q. rsize q * rsize q)
+         (rpder_strong_rows_raw c (afactored1 r s)))
+  card (row_dlformss (rpder_strong_rows_raw c rows))
+    <= rsizes (concat (map (rpder_norm_list c) rows))
+  ```
+  Plain gloss: strong size, opened squares, opened card.
+- The promising dedup route also stops one bridge short. We have checked
+  containment
+  ```text
+  row_dlformss (rpder_strong_rows_raw c (afactored1 r s))
+    <= rsimpStrong_dlform_closure (set (afactored1 r (s @ [c])))
+  ```
+  via `row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_dlform_universe`
+  and `afactored1_strong_dlform_universe_subset_next_rows_closure`, but the
+  available size lemma for this carrier is only
+  ```text
+  rsize_set (rsimpStrong_dlform_closure U)
+    <= (SUM p in U. rsize_set (row_dlforms (rsimpStrong_raw p)))
+  ```
+  which returns the per-row opening sum. The nonincreasing closure lemma exists
+  for `rsimpStrong_frontier_closure`, not for `rsimpStrong_dlform_closure`.
+- Therefore `rsizes_afactored1_clean_static_cubic` gives a cubic bound for the
+  next front, but the checked opening bridge still asks for either a bound on
+  the sum of squares / dlform closure ledger, or a quadratic generated-size
+  bridge. No checked lemma currently supplies:
+  ```text
+  sum_list (map (%q. rsize q * rsize q)
+    (rpder_strong_rows_raw c (afactored1 r s)))
+      <= 2 * (rsize r + 3)^3
+  ```
+  nor
+  ```text
+  rsize_set (rsimpStrong_dlform_closure (set (afactored1 r (s @ [c]))))
+      <= 2 * (rsize r + 3)^3
+  ```
+- ADMIN FLAG: this is the design point the restart instructions described.
+  The root clean hypothesis is discharged at the `afactored1` level, but the
+  strong/opening/dedup bridges still lose a degree before reaching the §1
+  set-ledger gate. A new checked bridge for the dlform-closure ledger (or an
+  equivalent square-sum/generated-size collapse) is needed before the final
+  cubic gate can close.
