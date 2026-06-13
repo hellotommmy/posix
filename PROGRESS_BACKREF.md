@@ -7141,3 +7141,29 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   a known +1 subtlety - the t2 import is SHARED across siblings, use
   card(Fs - Fk - A2) directly rather than summing per-sibling IHs).
 - cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Codex 11:15: CLAIM - E0 from nonalt D
+
+- Synced through pushed commit d80cda4 plus Fable's checked E0/RCHAR entry,
+  re-read the newest PROGRESS tail, and checked that no proof workers are
+  live.  Known untracked `fable_partial.md`, `cubic_progress.*` build
+  products, and `scratch_*.py` files remain untouched.
+- Narrow E0 induction brick: package the existing normal-nonalt
+  D-to-`Suc`-carry lemma into the exact merged-frontier E0 shape
+  `card ((F(sigma4 p k) UNION acc p k) - F k) <= Suc (zw2 p)`.
+
+## 2026-06-13 Fable 09:05: domain predicate found - zero-budget-trivial unifies the CEs
+
+- E00 tight forms fail exactly on subterms with zw2 = 0 that are not
+  RONE/RZERO (SEQ(ALTS[O,O],..) members, pure-O alternations, and the
+  checked RNTIMES-0 family - one root cause).  On the clean domain
+  (nf + every zero-budget subterm trivial; simp-normalized rows
+  qualify) the TIGHT merged law E00-RONE and the D law pass 383,893
+  deep samples, zero violations.  Statement + simultaneous-induction
+  plan appended to MATHPROBLEM_ROWCOUNT.md.
+- Next: define the predicate in Isabelle (suggest name
+  apder_zero_budget_trivial), prove simp-normalized rows satisfy it,
+  then start the (E00-RONE, E0, D) simultaneous induction.  The
+  supervisor''s constructor bridges all apply on the clean domain
+  unchanged.
+- cubic_progress.tex/pdf updated and recompiled.

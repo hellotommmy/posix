@@ -217,3 +217,29 @@ card((A1 UNION A2) - Fk) <= t1 + t2 + t3.  Recommended as the joint
 invariant for the (D, J*) simultaneous induction; the supervisor''s
 constructor bridges (RCHAR-left etc.) may either consume it or be
 consumed by it.
+
+## DOMAIN PREDICATE FOUND (2026-06-13 morning): zero-budget-trivial
+
+All remaining merged-law CEs (E00 at SEQ chains, E00-RONE at
+SEQ(ALTS[O,O],...) members, and the checked RNTIMES-0 CE) share one
+root: a subterm with zw2 = 0 that is NOT RONE/RZERO occupies a
+frontier slot with no budget.  Define the domain predicate
+
+```
+zero_budget_trivial q :=  every subterm s of q with apder_zw2 s = 0
+                          satisfies s = RONE or s = RZERO
+```
+
+(simp-normalized rows satisfy it; RNTIMES _ 0 violates it).  On
+nf AND zero_budget_trivial (383,893 deep samples, zero violations):
+
+```
+E00-RONE (tight):  card((F q UNION acc(q,RONE)) - {RONE}) <= max 1 (zw2 q)
+D-RONE   (tight):  card(acc(q,RONE) - {RONE})            <= zw2 q
+```
+
+Induction plan now: (E00-RONE, E0-general(+1), D) simultaneous
+induction on the clean domain; the ALTS-RONE branch of E0 uses
+member-level E00-RONE (no +1 because sigma4 absorbs RONE), the
+ALTS-k branch pays its single composite point from the explicit
+Suc, SEQ uses the J*/three-block covering (checked bridges).
