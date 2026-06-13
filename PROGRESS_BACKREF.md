@@ -6997,3 +6997,24 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   92.435s, full Posix elapsed 0:01:45).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Codex 10:45: CLAIM - RCHAR-left SEQ with right nonalt D
+
+- Synced through pushed commit 66ec309, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`
+  and `scratch_*.py` files remain untouched.
+- Narrow constructor package: specialize the new SEQ left-slack/right-nonalt
+  D bridge to `RSEQ (RCHAR c) r2`.  The left slack side is immediate because
+  the character accumulator is exactly the middle frontier.
+
+## 2026-06-13 Codex 10:50: CHECKED - RCHAR-left SEQ with right nonalt D
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RSEQ_RCHAR_diff_le_if_right_nonalt_diff`.
+- This specializes the left-slack/right-nonalt SEQ bridge to the `RCHAR`
+  left constructor.  The left slack budget closes by simplification, so an
+  ordinary D bound for an `apder_nf` non-alt right child gives the exact
+  parent SEQ D bound.
+- Build command passed after worker check (AntimirovFactoredTransition
+  78.980s, full Posix elapsed 0:01:49).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.
