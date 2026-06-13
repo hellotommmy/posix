@@ -31770,6 +31770,47 @@ proof -
     using bad_in bad_notin by blast
 qed
 
+definition strong_opened_live_row_universe :: "rrexp \<Rightarrow> rrexp set" where
+  "strong_opened_live_row_universe r =
+    row_dlformss_set (rsimpStrong_raw ` partial_derivative_live_row_universe r)"
+
+lemma finite_strong_opened_live_row_universe [simp]:
+  "finite (strong_opened_live_row_universe r)"
+  by (simp add: strong_opened_live_row_universe_def)
+
+lemma singleton_alt_live_counterexample_repaired_by_strong_opened_live:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RALTS [RCHAR a])"
+  defines "bad \<equiv> RSTAR (RCHAR a)"
+  shows "bad \<in> strong_opened_live_row_universe r"
+    and "row_dlformss (rpder_strong_rows_raw a (afactored1 r [])) \<subseteq>
+      strong_opened_live_row_universe r"
+  by (auto simp add: r_def bad_def strong_opened_live_row_universe_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      row_dlformss_set_def row_dlformss_def afactored1_def
+      rpder_strong_rows_raw_def rpder_strong_list_raw_def rpder_norm_list_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def)
+
+lemma opened_continuation_live_counterexample_repaired_by_strong_opened_live:
+  fixes a b :: char
+  assumes ab: "a \<noteq> b"
+  defines "r \<equiv>
+    RSEQ (RALTS [RONE, RCHAR a])
+      (RSEQ (RALTS [RONE, RCHAR a]) (RCHAR b))"
+  defines "bad \<equiv> RSEQ (RCHAR a) (RCHAR b)"
+  shows "bad \<in> row_dlformss (rpder_strong_rows_raw a (afactored1 r []))"
+    and "bad \<in> strong_opened_live_row_universe r"
+    and "row_dlformss (rpder_strong_rows_raw a (afactored1 r [])) \<subseteq>
+      strong_opened_live_row_universe r"
+  using ab
+  by (auto simp add: r_def bad_def strong_opened_live_row_universe_def
+      partial_derivative_live_row_universe_def rpath_continuations_def
+      row_dlformss_set_def row_dlformss_def afactored1_def
+      rpder_strong_rows_raw_def rpder_strong_list_raw_def rpder_norm_list_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"

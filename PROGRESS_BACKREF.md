@@ -8523,3 +8523,38 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: formulate a prefix-aware liveness carrier for the
   opened ledger, likely based on the current `afactored1 r s`/strong-normalized
   front rather than the original root alone, and sample it before Isabelle.
+
+## 2026-06-14 Codex: CHECKED - strong-opened live carrier repairs live CEs
+
+- Local scratch extension of `scratch_rowcount_check.py` (not committed because
+  `backref_role_guard --role worker` disallows scratch edits) exercised the
+  actual strong row transition, `afactored1`, live-row universe, and the refined
+  carrier
+  `row_dlformss_set (rsimpStrong_raw \` partial_derivative_live_row_universe q)`.
+- Required opened-boundary sample re-run first:
+  `rsize_set(opened_boundary_forms r k) <= open_pot r + apder_zw2 r*(1+rsize k)`
+  and `open_pot r + apder_zw2 r*2 <= (rsize r+3)^3`; 200,006 depth-5
+  clean cases, zero violations.
+- Prefix-aware live scout:
+  `row_dlformss(rpder_strong_rows_raw c (afactored1 r s)) <=
+   UNION q in set(afactored1 r s).
+     strong_opened_live_row_universe(q)`; 1,000,165 depth-7 cases plus the
+  known singleton-ALT/opened-continuation witnesses, zero violations.  The
+  same run scouted the cap inequality
+  `rsize_set(actual) <= max(rsizes(afactored1 r s), (rsize r+3)^2)`;
+  zero violations (tightest sampled slack 15).
+- New checked Isabelle carrier:
+  `strong_opened_live_row_universe r =
+   row_dlformss_set (rsimpStrong_raw \` partial_derivative_live_row_universe r)`.
+  Checked finite support plus two repair lemmas:
+  `singleton_alt_live_counterexample_repaired_by_strong_opened_live` and
+  `opened_continuation_live_counterexample_repaired_by_strong_opened_live`.
+  Plain gloss: the two concrete ways static live failed are exactly absorbed by
+  opening after applying the strong simplifier to the live-row universe.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the sampled one-step carrier preservation
+  theorem, likely first for a single current row and then union-lift through
+  `afactored1`; in parallel, keep the cap inequality as the liveness-size
+  target, not the false static subset target.
