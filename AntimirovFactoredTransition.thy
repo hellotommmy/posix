@@ -31855,6 +31855,41 @@ proof
     using q xq by (auto simp add: strong_opened_live_row_universes_def)
 qed
 
+lemma rpder_norm_list_live_row_universe_self:
+  assumes legacy: "legacy_rrexp q"
+    and nf: "apder_nf q"
+    and p: "p \<in> set (rpder_norm_list c q)"
+  shows "set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
+proof -
+  have p_der: "p \<in> rder_path_continuations_acc c q RONE"
+    using rpder_list_path_continuations_acc_subset[OF legacy, of RONE c] p
+    by (auto simp add: rpder_norm_list_def)
+  have p_path: "p \<in> rpath_continuations q"
+    using rder_path_continuations_acc_subset p_der
+    by (auto simp add: rpath_continuations_def)
+  have p_rpder: "p \<in> rpder c q"
+    using set_rpder_norm_list_eq_rpder_rtail_nf[OF nf] p by simp
+  have p_term: "p \<in> apder_terms q"
+    using rpder_subset_apder_terms p_rpder by blast
+  have p_nf: "rtail_nf p"
+    by (rule rtail_nf_apder_terms[OF nf p_term])
+  have "set (rflts [p]) = rfrontier p"
+    by (rule rtail_nf_rflts_singleton_eq_rfrontier[OF p_nf])
+  also have "... \<subseteq> partial_derivative_live_row_universe q"
+    using partial_derivative_live_row_universe_path_frontier[OF p_path]
+    by blast
+  finally show ?thesis .
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_subset_strong_opened_live:
+  assumes legacy: "\<forall>q \<in> set rs. legacy_rrexp q"
+    and nf: "\<forall>q \<in> set rs. apder_nf q"
+  shows
+  "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq>
+    strong_opened_live_row_universes rs"
+  by (rule row_dlformss_rpder_strong_rows_raw_subset_strong_opened_liveI)
+    (use legacy nf rpder_norm_list_live_row_universe_self in blast)
+
 lemma singleton_alt_live_counterexample_repaired_by_strong_opened_live:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RCHAR a])"

@@ -8583,3 +8583,27 @@ STATUS_MATH and say so at the top of PROGRESS.
   `p in rpder_norm_list c q ==> set(rflts [p]) <=
    partial_derivative_live_row_universe q`, or record the first checked
   counterexample if the raw condition needs a constructor-restricted premise.
+
+## 2026-06-14 Codex: CHECKED - normal derivative rows are source-live
+
+- Ephemeral scratch sample (no committed scratch edit): the raw condition
+  `p in rpder_norm_list c q ==> set(rflts [p]) <=
+   partial_derivative_live_row_universe q` had 1,000,000 random clean cases to
+  depth 7 with zero violations.
+- New checked source-row lemma:
+  `legacy_rrexp q ==> apder_nf q ==> p in set(rpder_norm_list c q) ==>
+   set(rflts [p]) <= partial_derivative_live_row_universe q`.
+  Plain gloss: a normal derivative residual is a derivative path continuation;
+  normal form turns its one-step flattening into exactly its frontier, which is
+  already included in the live-row universe.
+- New checked row-list consequence:
+  if all current rows are `legacy_rrexp` and `apder_nf`, then
+  `row_dlformss(rpder_strong_rows_raw c rs) <=
+   strong_opened_live_row_universes rs`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: instantiate the row-list consequence for
+  `rs = afactored1 r s` under `apder_clean r`, then begin bounding
+  `rsize_set(strong_opened_live_row_universes(afactored1 r s))` by the sampled
+  liveness cap.
