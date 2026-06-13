@@ -30820,6 +30820,33 @@ lemma apder_clean_RSTAR_body:
   shows "apder_clean r"
   using assms unfolding apder_clean_def by simp
 
+lemma T_and_S_RCHAR:
+  shows "apder_T_bound (RCHAR c) k"
+    and "apder_S_bound (RCHAR c) k"
+proof -
+  have raw: "card ((rfrontier (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+      apder_term_frontier_acc (RCHAR c) k) - rfrontier k)
+    \<le> apder_zw2 (RCHAR c)"
+  proof (cases k)
+    case (RALTS rs)
+    have eq: "(rfrontier (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+        apder_term_frontier_acc (RCHAR c) k) - rfrontier k =
+        {RSEQ (RCHAR c) k} - rfrontier k"
+      using RALTS by auto
+    have "card ({RSEQ (RCHAR c) k} - rfrontier k) \<le> 1"
+      by (rule card_singleton_Diff_le_one)
+    then have "card ((rfrontier (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+        apder_term_frontier_acc (RCHAR c) k) - rfrontier k) \<le> 1"
+      by (simp only: eq)
+    then show ?thesis
+      by simp
+  qed (simp_all add: card_singleton_Diff_le_one)
+  then show "apder_T_bound (RCHAR c) k"
+    unfolding apder_T_bound_def .
+  show "apder_S_bound (RCHAR c) k"
+    unfolding apder_S_bound_def by simp
+qed
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE

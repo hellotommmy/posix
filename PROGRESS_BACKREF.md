@@ -7614,3 +7614,36 @@ but does not invalidate them.
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Next safe step: claim and build the single `T_and_S`
   induction, starting with constructor branch helpers if needed.
+
+## 2026-06-13 Codex: CLAIM - T_and_S_RCHAR constructor case
+
+- Re-read newest PROGRESS tail after pushing the T/S statement surface
+  (commit d70f0df); no proof workers live.
+- CLAIM: I am editing only the named helper `T_and_S_RCHAR` in
+  `AntimirovFactoredTransition.thy`, discharging the character constructor
+  for both `apder_T_bound` and `apder_S_bound`.
+
+## 2026-06-13 Codex: RED/REPAIR - T_and_S_RCHAR RALTS proof shape
+
+- First two builds of the new `T_and_S_RCHAR` helper failed in the RALTS
+  continuation branch, not in a mathematical counterexample: the exact set
+  equality was available, but the `unfolding apder_T_bound_def` structured
+  case proof left the final goal in a half-unfolded schematic shape.
+- Repair attempt changes only this named helper: prove the raw cardinal
+  inequality as a local `have raw` over `cases k`, then fold it into
+  `apder_T_bound`.  If this shape is still red, I will stop this helper and
+  switch constructor sub-target.
+
+## 2026-06-13 Codex: CHECKED - T_and_S_RCHAR constructor case
+
+- New checked helper in `AntimirovFactoredTransition.thy`:
+  `T_and_S_RCHAR`, proving both `apder_T_bound (RCHAR c) k` and
+  `apder_S_bound (RCHAR c) k`.
+- Two initial red builds were proof-shape only in the RALTS continuation
+  branch; the checked proof now isolates the raw cardinal inequality before
+  folding into `apder_T_bound`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 72.942s, full Posix elapsed 0:01:13).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next constructor helper candidate: `T_and_S_RALTS`.
