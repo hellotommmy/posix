@@ -8367,3 +8367,22 @@ STATUS_MATH and say so at the top of PROGRESS.
 - PIVOT: do not grind this carrier-preservation statement. Move to the
   liveness slice in MAINLINE §2 unless a revised normalized-carrier statement
   is explicitly opened.
+
+## 2026-06-14 Codex: CHECKED - live-universe set-ledger adapters
+
+- New checked set-form liveness bounds:
+  `U <= partial_derivative_live_path_universe r ==>
+   rsize_set U <= 2*(rsize r+3)^3` and
+  `U <= partial_derivative_live_row_universe r ==>
+   rsize_set U <= 2*(rsize r+3)^3`.
+  Plain gloss: if the deduped opened ledger lands inside the live universe,
+  the cubic bound follows directly.
+- Proof shape: convert finite `U` to a distinct list and reuse the existing
+  `rsizes_distinct_live_path_universe_cubic` /
+  `rsizes_distinct_live_row_universe_cubic` facts.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: investigate a one-step subset target for
+  `row_dlformss(rpder_strong_rows_raw c (afactored1 r s))` into an appropriate
+  live row universe, avoiding the known norm7/norm8 closure counterexamples.

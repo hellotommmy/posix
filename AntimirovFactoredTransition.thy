@@ -6302,6 +6302,38 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_subset_live_path_universe_cubic:
+  assumes sub: "U \<subseteq> partial_derivative_live_path_universe r"
+  shows "rsize_set U \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have fin: "finite U"
+    by (rule finite_subset[OF sub]) simp
+  obtain xs where xs: "set xs = U" "distinct xs"
+    using finite_distinct_list[OF fin] by blast
+  have "rsize_set U = rsizes xs"
+    using xs by (simp add: rsizes_distinct_eq_rsize_set)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_distinct_live_path_universe_cubic)
+      (use sub xs in auto)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_subset_live_row_universe_cubic:
+  assumes sub: "U \<subseteq> partial_derivative_live_row_universe r"
+  shows "rsize_set U \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have fin: "finite U"
+    by (rule finite_subset[OF sub]) simp
+  obtain xs where xs: "set xs = U" "distinct xs"
+    using finite_distinct_list[OF fin] by blast
+  have "rsize_set U = rsizes xs"
+    using xs by (simp add: rsizes_distinct_eq_rsize_set)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule rsizes_distinct_live_row_universe_cubic)
+      (use sub xs in auto)
+  finally show ?thesis .
+qed
+
 lemma rsizes_rows_canonical_frontier_dlforms_cubic:
   assumes disjoint: "row_dlformss_disjoint rs"
     and live: "\<forall>q \<in> set rs. row_dlforms_live q"
