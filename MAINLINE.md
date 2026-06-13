@@ -139,20 +139,32 @@ Vocabulary (fixed, do not rename):
   b918254); and clean-domain propagation to the ACTUAL rows
   (`apder_clean_apder_rows`, `apder_clean_afactored1`, AntimirovNormalFrontier.thy)
   so `D_law_clean` applies per actual front row.
-- **Current narrow instruction:** finish the wiring — discharge the root
-  `apder_clean r` for the actual gate root (the fragment / simp-normalized
-  input), then assemble the FRONT cubic bound through the one strong step +
-  opening + dedup (`rpder_strong_rows_raw` → `row_dlformss` → `rsize_set`) into
-  the set-ledger gate (§1, target `2*(rsize r+3)^3`). NOTE (worker): the
-  strong-frontier members are only `rtail_nf`, not `apder_clean`, so
-  `D_law_clean` is applied at the `apder_rows`/`afactored1` level and the strong
-  layer uses `rtail_nf` bookkeeping. Claim in the PROGRESS tail before starting.
-  Stay on the
+- **THE ONE REMAINING GAP — the dedup gate-bridge (OPEN; a DESIGN point, not
+  routine assembly; full framing in `GATE_BRIDGE_GAP.md`).** The D law and the
+  cubic static front are proven, but the §1 gate
+  `rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <=
+  2*(rsize r+3)^3` is NOT yet closed, and the naive assembly does **not** work:
+  the per-row **square-sum is QUINTIC** (linearly-many rows × quadratic member
+  size — 2 degrees too weak) and the **non-deduplicated list is EXPONENTIAL**
+  (RONE-pair tower, `afactored1_strong_dlform_list_cost_cubic_false`). The cubic
+  bound must come from **deduplication / suffix-sharing** across the opened
+  union — the analogue, for the `dlform` closure, of the telescoping invariant
+  that cracked the D law. Sufficient to prove EITHER (i) the square-sum
+  `<= 2*(rsize r+3)^3`, or (ii)
+  `rsize_set (rsimpStrong_dlform_closure (set (afactored1 r (s@[c])))) <=
+  2*(rsize r+3)^3`. Note: the strong-frontier rows are only `rtail_nf`, not
+  fully `apder_clean`. The 8 checked facts to reuse and the dead routes are in
+  `GATE_BRIDGE_GAP.md`; it is framed for a GPT Pro design pass.
+- **Current narrow instruction:** do NOT re-attempt the square-sum or list-cost
+  routes (dead per `GATE_BRIDGE_GAP.md` / `SUPER_LINEAR_PATTERNS.md`); the live
+  task is the SHARING invariant for the deduped opened ledger. Claim in the
+  PROGRESS tail before starting. Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
   `*_list_cost_alt_nodes` / generated-ledger wrappers (they lose a degree).
-  Full dead-ends: `MATHPROBLEM_ROWCOUNT.md`; full design: `GPT_PRO_DLAW_VERDICT.md`.
+  Full dead-ends: `MATHPROBLEM_ROWCOUNT.md`; full design: `GPT_PRO_DLAW_VERDICT.md`
+  (D law) and `GATE_BRIDGE_GAP.md` (the gate bridge).
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 
