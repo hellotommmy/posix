@@ -9349,3 +9349,21 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:10). No `sorry`.
 - NEXT smallest brick: find the sharper recursive invariant for RALTS/STAR;
   coarse child `2*cube` sums leave no root budget for RALTS.
+
+## 2026-06-14 Codex: CHECKED - root cubic wrappers from child drain
+
+- New checked arithmetic helper:
+  `(n + 1)^3 - 1 <= 2 * (n + 3)^3`.
+- New checked conditional root cubics:
+  `RALTS rs` is root-cubic if each child satisfies the `RONE` drain shell, and
+  `RSEQ r1 r2` is root-cubic if its left/right children satisfy the matching
+  `RONE` drain shells.
+  Plain gloss: the already-checked drain-shell constructor lemmas imply the
+  root cubic immediately; the remaining hard part is the sharper child
+  invariant for STAR/recursive use, not this final arithmetic.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: isolate a STAR-compatible child invariant; direct
+  generic drain induction is too coarse, but these wrappers are ready once a
+  child drain-style fact is available.

@@ -32885,6 +32885,61 @@ proof -
   finally show ?thesis .
 qed
 
+lemma cube_suc_minus_one_le_two_shift3:
+  fixes n :: nat
+  shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
+proof -
+  have "(n + 1) ^ 3 - 1 \<le> (n + 1) ^ 3"
+    by simp
+  also have "... \<le> (n + 3) ^ 3"
+    by (simp add: power_mono)
+  also have "... \<le> 2 * (n + 3) ^ 3"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma strong_opened_live_acc_potential_RALTS_root_cubic_if_child_drain:
+  assumes children: "\<And>q. q \<in> set rs \<Longrightarrow>
+    strong_opened_live_acc_potential q RONE \<le>
+      (rsize q + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+  shows "strong_opened_live_acc_potential (RALTS rs) RONE \<le>
+    2 * (rsize (RALTS rs) + 3) ^ 3"
+proof -
+  have drain:
+      "strong_opened_live_acc_potential (RALTS rs) RONE \<le>
+      (rsize (RALTS rs) + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+    by (rule strong_opened_live_acc_potential_RALTS_cube_shell[OF children])
+  have "(rsize (RALTS rs) + rsize RONE) ^ 3 - (rsize RONE) ^ 3 \<le>
+      2 * (rsize (RALTS rs) + 3) ^ 3"
+    using cube_suc_minus_one_le_two_shift3[of "rsize (RALTS rs)"]
+    by simp
+  then show ?thesis
+    using drain by linarith
+qed
+
+lemma strong_opened_live_acc_potential_RSEQ_root_cubic_if_child_drain:
+  assumes left:
+    "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 RONE) \<le>
+      (rsize r1 + rsize (rsimp4_SEQ_atom r2 RONE)) ^ 3 -
+        rsize (rsimp4_SEQ_atom r2 RONE) ^ 3"
+    and right:
+    "strong_opened_live_acc_potential r2 RONE \<le>
+      (rsize r2 + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+  shows "strong_opened_live_acc_potential (RSEQ r1 r2) RONE \<le>
+    2 * (rsize (RSEQ r1 r2) + 3) ^ 3"
+proof -
+  have drain:
+      "strong_opened_live_acc_potential (RSEQ r1 r2) RONE \<le>
+      (rsize (RSEQ r1 r2) + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+    by (rule strong_opened_live_acc_potential_RSEQ_cube_shell[OF left right])
+  have "(rsize (RSEQ r1 r2) + rsize RONE) ^ 3 - (rsize RONE) ^ 3 \<le>
+      2 * (rsize (RSEQ r1 r2) + 3) ^ 3"
+    using cube_suc_minus_one_le_two_shift3[of "rsize (RSEQ r1 r2)"]
+    by simp
+  then show ?thesis
+    using drain by linarith
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set
