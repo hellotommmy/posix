@@ -32357,6 +32357,25 @@ next
     using assms Cons by simp
 qed
 
+lemma strong_opened_live_acc_RALTS_empty_root_shell:
+  "1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS []) k))) \<le>
+    (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+proof -
+  have root0:
+      "rsimpStrong_raw (rsimp4_SEQ_atom (RALTS []) k) = RZERO"
+    by (cases k)
+      (simp_all add: rsimpStrong_ALTs_raw_def
+        rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_RZERO_left)
+  have shell: "2 \<le> (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    using size_geq1[of k]
+    by (simp add: cube_shell_add power3_eq_cube power2_eq_square
+        algebra_simps add.commute)
+  show ?thesis
+    using root0 shell by (simp add: rsize_set_def)
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"

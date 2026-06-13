@@ -9097,3 +9097,17 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: redo the small `RALTS` root shell using this helper and
   the existing `rsimp7_SEQ_atom_RZERO_left` lemma, with no broad constructor
   auto over arbitrary list tails.
+
+## 2026-06-14 Codex: CHECKED - empty RALTS root shell
+
+- New checked empty-alternative root shell:
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw
+      (rsimp4_SEQ_atom (RALTS []) k))) <=
+   (rsize k + 1)^3 - (rsize k)^3`.
+  Plain gloss: the empty alternative root strong-simplifies to `RZERO`, so its
+  root charge fits inside a single cube shell over the suffix.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: prove the singleton size-1 alternative / size-1 suffix
+  small root shell, then combine with the empty case and the large shell.
