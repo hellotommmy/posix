@@ -33149,6 +33149,35 @@ next
   then show ?case by simp
 qed
 
+lemma apder_terms_subset_rpath_continuations_clean:
+  assumes clean: "apder_clean r"
+  shows "apder_terms r \<subseteq> rpath_continuations r"
+proof
+  fix p
+  assume p: "p \<in> apder_terms r"
+  have legacy: "legacy_rrexp r"
+    using clean unfolding apder_clean_def by simp
+  have free: "rntimes_free r"
+    using clean unfolding apder_clean_def by simp
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  have p_tail: "rtail_nf p"
+    by (rule rtail_nf_apder_terms[OF nf p])
+  have p_acc: "p \<in> apder_terms_acc r RONE"
+  proof -
+    have "rsimp4_SEQ_atom p RONE = p"
+      by (rule rtail_nf_RONE_stable[OF p_tail])
+    then show ?thesis
+      using p unfolding apder_terms_acc_def by (metis image_eqI)
+  qed
+  have acc_eq: "apder_terms_acc r RONE =
+      rpath_continuations_acc r RONE"
+    by (rule apder_terms_acc_eq_rpath_continuations_acc_clean
+        [OF legacy free])
+  show "p \<in> rpath_continuations r"
+    using p_acc acc_eq by (simp add: rpath_continuations_def)
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"

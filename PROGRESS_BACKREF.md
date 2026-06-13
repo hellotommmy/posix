@@ -9254,3 +9254,16 @@ STATUS_MATH and say so at the top of PROGRESS.
   `apder_rows r <= partial_derivative_live_row_universe r` on `apder_clean r`,
   then transfer the old `apder_strong_dlfrontier` actual-row carrier into the
   repaired strong-opened-live carrier.
+
+## 2026-06-14 Codex: CHECKED - clean apder terms are live paths
+
+- New checked subset:
+  `apder_clean r ==> apder_terms r <= rpath_continuations r`.
+  Plain gloss: after the clean guards unfold to legacy/rntimes-free/nf, the
+  checked accumulator equality plus `RONE` stability turns every Antimirov term
+  into a live continuation.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:21). No `sorry`.
+- NEXT smallest brick: prove
+  `apder_rows r <= partial_derivative_live_row_universe r` for clean `r`.
