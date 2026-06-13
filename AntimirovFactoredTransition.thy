@@ -31549,4 +31549,107 @@ proof -
 qed
 
 
+text \<open>
+  The simultaneous T/S induction.  On the clean legacy/rntimes-free fragment
+  every constructor pays for the new frontier it creates after subtracting the
+  incoming boundary; the four constructor discharges (RCHAR, RSEQ, RSTAR,
+  RALTS) are assembled here by structural induction, instantiating each
+  member/body induction hypothesis at the relevant clean continuation
+  (clean by @{thm sigma_clean}).  The non-legacy and NTIMES constructors are
+  excluded by @{const apder_clean}.
+\<close>
+
+lemma T_and_S:
+  assumes "apder_clean r" and "apder_clean k"
+  shows "apder_T_bound r k \<and> apder_S_bound r k"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_T_bound_def apder_S_bound_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_T_bound_def apder_S_bound_def)
+next
+  case (RCHAR c)
+  show ?case
+    using T_and_S_RCHAR by blast
+next
+  case (RSEQ r1 r2)
+  have c1: "apder_clean r1"
+    using RSEQ.prems(1) by (rule apder_clean_RSEQ_left)
+  have c2: "apder_clean r2"
+    using RSEQ.prems(1) by (rule apder_clean_RSEQ_right)
+  have ih1T: "\<And>t. apder_clean t \<Longrightarrow> apder_T_bound r1 t"
+    using RSEQ.hyps(1) c1 by blast
+  have ih1S: "\<And>t. apder_clean t \<Longrightarrow> apder_S_bound r1 t"
+    using RSEQ.hyps(1) c1 by blast
+  have ih2T: "\<And>t. apder_clean t \<Longrightarrow> apder_T_bound r2 t"
+    using RSEQ.hyps(2) c2 by blast
+  show ?case
+    using T_and_S_RSEQ[OF RSEQ.prems(1) RSEQ.prems(2) ih1T ih1S ih2T]
+    by blast
+next
+  case (RALTS rs)
+  have Tmem: "\<And>q. q \<in> set rs \<Longrightarrow> apder_T_bound q k"
+  proof -
+    fix q assume q: "q \<in> set rs"
+    have cq: "apder_clean q"
+      using RALTS.prems(1) q by (rule apder_clean_RALTS_member)
+    show "apder_T_bound q k"
+      using RALTS.hyps q cq RALTS.prems(2) by blast
+  qed
+  have Smem: "\<And>q. q \<in> set rs \<Longrightarrow> apder_S_bound q k"
+  proof -
+    fix q assume q: "q \<in> set rs"
+    have cq: "apder_clean q"
+      using RALTS.prems(1) q by (rule apder_clean_RALTS_member)
+    show "apder_S_bound q k"
+      using RALTS.hyps q cq RALTS.prems(2) by blast
+  qed
+  show ?case
+    using T_and_S_RALTS[OF RALTS.prems(1) Tmem Smem] by blast
+next
+  case (RSTAR p)
+  have cp: "apder_clean p"
+    using RSTAR.prems(1) by (rule apder_clean_RSTAR_body)
+  have cm: "apder_clean (rsimp4_SEQ_atom (RSTAR p) k)"
+    using RSTAR.prems(1) RSTAR.prems(2) by (rule sigma_clean)
+  have Tb: "apder_T_bound p (rsimp4_SEQ_atom (RSTAR p) k)"
+    using RSTAR.hyps cp cm by blast
+  have Sb: "apder_S_bound p (rsimp4_SEQ_atom (RSTAR p) k)"
+    using RSTAR.hyps cp cm by blast
+  show ?case
+    using T_and_S_RSTAR[OF RSTAR.prems(1) Tb Sb] by blast
+next
+  case (RNTIMES p n)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: apder_clean_def)
+qed
+
+text \<open>
+  The clean-domain row-count linear D law, an immediate corollary of the T
+  bound: the drained accumulator rows are a subset of the merged
+  frontier-and-accumulator set bounded by @{term "apder_zw2 r"}.
+\<close>
+
+lemma D_law_clean:
+  assumes "apder_clean r" and "apder_clean k"
+  shows "card (apder_term_frontier_acc r k - rfrontier k) \<le> apder_zw2 r"
+  using apder_T_bound_imp_D[OF conjunct1[OF T_and_S[OF assms]]] .
+
+
 end
