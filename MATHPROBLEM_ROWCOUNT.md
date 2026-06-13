@@ -195,3 +195,25 @@ Notes for the prover:
 - The legacy/non-backref, rntimes-free payoff route remains viable and is now
   the narrow live target.  Do not attempt the unrestricted raw `zw2` law
   unless the weight or premises are repaired first.
+
+## REVIVAL (2026-06-13): J* survives under zw2 at full sampling standard
+
+The J* shape with zw2 weights passes the post-correction standard:
+119,207 deep random nf samples (depth<=5/4, 66,719 nontrivial middle
+terms) plus a 343-case directed grid (nested zero-width star stacks,
+killer-CE shapes, wide-frontier continuations) - ZERO violations:
+
+```
+J*-zw2(r1, r2, k):  [nf, rntimes_free; r1,r2 not RZERO/RONE; r1 non-SEQ]
+  card (acc r1 (sigma4 r2 k) - F(sigma4 r2 k))
++ card ((acc r1 (sigma4 r2 k) INT F(sigma4 r2 k)) - F k - acc r2 k)
++ card (acc r2 k - F k)
+  <= apder_zw2 r1 + apder_zw2 r2
+```
+
+This implies the SEQ branch of the D law (including the hard
+right-ALTS/degenerate-continuation case) since
+card((A1 UNION A2) - Fk) <= t1 + t2 + t3.  Recommended as the joint
+invariant for the (D, J*) simultaneous induction; the supervisor''s
+constructor bridges (RCHAR-left etc.) may either consume it or be
+consumed by it.
