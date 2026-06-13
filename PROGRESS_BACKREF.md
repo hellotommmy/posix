@@ -8558,3 +8558,28 @@ STATUS_MATH and say so at the top of PROGRESS.
   theorem, likely first for a single current row and then union-lift through
   `afactored1`; in parallel, keep the cap inequality as the liveness-size
   target, not the false static subset target.
+
+## 2026-06-14 Codex: CHECKED - strong-opened live carrier preservation lift
+
+- New checked carrier definitions/lemmas:
+  `strong_opened_live_row_universes rs =
+   UNION q in set rs. strong_opened_live_row_universe q`, and
+  `strong_opened_live_row_universe r =
+   rsimpStrong_dlform_closure(partial_derivative_live_row_universe r)`.
+- New checked lift:
+  if every raw normal derivative row is live for its source row,
+  `q in set rs ==> p in set(rpder_norm_list c q) ==>
+   set(rflts [p]) <= partial_derivative_live_row_universe q`,
+  then
+  `row_dlformss(rpder_strong_rows_raw c rs) <=
+   strong_opened_live_row_universes rs`.
+  Plain gloss: pruning, deduping, strong simplification, and row opening now
+  preserve the refined live carrier; the remaining obligation is pure
+  normal-derivative liveness, with the strong simplifier removed from the goal.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the source-row normal derivative condition
+  `p in rpder_norm_list c q ==> set(rflts [p]) <=
+   partial_derivative_live_row_universe q`, or record the first checked
+  counterexample if the raw condition needs a constructor-restricted premise.

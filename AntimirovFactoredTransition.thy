@@ -31774,9 +31774,86 @@ definition strong_opened_live_row_universe :: "rrexp \<Rightarrow> rrexp set" wh
   "strong_opened_live_row_universe r =
     row_dlformss_set (rsimpStrong_raw ` partial_derivative_live_row_universe r)"
 
+definition strong_opened_live_row_universes :: "rrexp list \<Rightarrow> rrexp set" where
+  "strong_opened_live_row_universes rs =
+    (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
+
 lemma finite_strong_opened_live_row_universe [simp]:
   "finite (strong_opened_live_row_universe r)"
   by (simp add: strong_opened_live_row_universe_def)
+
+lemma finite_strong_opened_live_row_universes [simp]:
+  "finite (strong_opened_live_row_universes rs)"
+  by (simp add: strong_opened_live_row_universes_def)
+
+lemma strong_opened_live_row_universe_eq_closure:
+  "strong_opened_live_row_universe r =
+    rsimpStrong_dlform_closure (partial_derivative_live_row_universe r)"
+  by (auto simp add: strong_opened_live_row_universe_def
+      rsimpStrong_dlform_closure_def row_dlformss_set_def)
+
+lemma row_dlforms_rsimpStrong_raw_subset_strong_opened_liveI:
+  assumes "set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
+  shows "row_dlforms (rsimpStrong_raw p) \<subseteq>
+    strong_opened_live_row_universe q"
+  using row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+    [OF assms]
+  by (simp add: strong_opened_live_row_universe_eq_closure)
+
+lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
+  assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+    set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
+  shows "row_dlformss (rpder_strong_list_raw c q) \<subseteq>
+    strong_opened_live_row_universe q"
+proof
+  fix x
+  assume x: "x \<in> row_dlformss (rpder_strong_list_raw c q)"
+  obtain p where p:
+      "p \<in> set (rpder_norm_list c q)"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x by (auto simp add: row_dlformss_member_iff
+        rpder_strong_list_raw_def)
+  have "row_dlforms (rsimpStrong_raw p) \<subseteq>
+      strong_opened_live_row_universe q"
+    by (rule row_dlforms_rsimpStrong_raw_subset_strong_opened_liveI
+        [OF live[OF p(1)]])
+  then show "x \<in> strong_opened_live_row_universe q"
+    using p(2) by blast
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_subset_strong_opened_liveI:
+  assumes live: "\<And>q p. q \<in> set rs \<Longrightarrow>
+    p \<in> set (rpder_norm_list c q) \<Longrightarrow>
+    set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
+  shows "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq>
+    strong_opened_live_row_universes rs"
+proof
+  fix x
+  assume x: "x \<in> row_dlformss (rpder_strong_rows_raw c rs)"
+  have gen:
+      "row_dlformss (rpder_strong_rows_raw c rs) \<subseteq>
+        row_dlformss (concat (map (rpder_strong_list_raw c) rs))"
+    by (rule row_dlformss_rpder_strong_rows_raw_subset_generated)
+  have x_gen: "x \<in>
+      row_dlformss (concat (map (rpder_strong_list_raw c) rs))"
+    using gen x by blast
+  obtain y where y:
+      "y \<in> set (concat (map (rpder_strong_list_raw c) rs))"
+      "x \<in> row_dlforms y"
+    using x_gen by (auto simp add: row_dlformss_member_iff)
+  obtain q where q:
+      "q \<in> set rs"
+      "y \<in> set (rpder_strong_list_raw c q)"
+    using y(1) by auto
+  have xq: "x \<in> row_dlformss (rpder_strong_list_raw c q)"
+    using q(2) y(2) by (auto simp add: row_dlformss_member_iff)
+  have "row_dlformss (rpder_strong_list_raw c q) \<subseteq>
+      strong_opened_live_row_universe q"
+    by (rule row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI)
+      (use live[OF q(1)] in blast)
+  then show "x \<in> strong_opened_live_row_universes rs"
+    using q xq by (auto simp add: strong_opened_live_row_universes_def)
+qed
 
 lemma singleton_alt_live_counterexample_repaired_by_strong_opened_live:
   fixes a :: char
