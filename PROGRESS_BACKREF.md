@@ -9177,3 +9177,19 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: use this helper with the existing
   `rsize_rsimp4_SEQ_atom_le` suffix-size bound to split the `RSEQ`
   strong-live drain telescope.
+
+## 2026-06-14 Codex: CHECKED - opened middle cube telescope
+
+- New checked arithmetic telescope:
+  if `m <= b + k + 1`, then
+  `((a + m)^3 - m^3) + ((b + k)^3 - k^3) <=
+   (a + b + k + 1)^3 - k^3`.
+  Plain gloss: the left side of a sequence may see an opened suffix one
+  constructor larger than `b+k`, and the two drain shells still telescope into
+  the parent sequence shell.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: prove the `RSEQ` constructor case for
+  `strong_opened_live_acc_potential` using this telescope and
+  `rsize_rsimp4_SEQ_atom_le`.

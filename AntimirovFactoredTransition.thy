@@ -31620,6 +31620,30 @@ proof -
     by (simp add: cube_shell_add algebra_simps)
 qed
 
+lemma cube_shell_telescope_opened_middle:
+  fixes a b k m :: nat
+  assumes m_le: "m \<le> b + k + 1"
+  shows "((a + m) ^ 3 - m ^ 3) + ((b + k) ^ 3 - k ^ 3) \<le>
+    (a + b + k + 1) ^ 3 - k ^ 3"
+proof -
+  have left_mono:
+      "(a + m) ^ 3 - m ^ 3 \<le>
+      (a + (b + k + 1)) ^ 3 - (b + k + 1) ^ 3"
+    by (rule cube_shell_mono_right[OF m_le])
+  have bridge:
+      "((a + (b + k + 1)) ^ 3 - (b + k + 1) ^ 3) +
+        ((b + k) ^ 3 - k ^ 3) \<le>
+      (a + b + k + 1) ^ 3 - k ^ 3"
+    by (simp add: power3_eq_cube power2_eq_square algebra_simps)
+  have "((a + m) ^ 3 - m ^ 3) + ((b + k) ^ 3 - k ^ 3) \<le>
+      ((a + (b + k + 1)) ^ 3 - (b + k + 1) ^ 3) +
+        ((b + k) ^ 3 - k ^ 3)"
+    by (rule add_mono[OF left_mono order.refl])
+  also have "... \<le> (a + b + k + 1) ^ 3 - k ^ 3"
+    by (rule bridge)
+  finally show ?thesis .
+qed
+
 lemma sum_list_drain_alt_cubes_le:
   assumes K: "1 \<le> K"
   shows "sum_list (map (\<lambda>q. (rsize q + K) ^ 3 - K ^ 3) rs) \<le>
