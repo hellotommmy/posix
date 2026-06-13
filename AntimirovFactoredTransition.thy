@@ -29148,6 +29148,12 @@ proof
   qed
 qed
 
+lemma opened_boundary_forms_RSEQ_subset:
+  "opened_boundary_forms (RSEQ r1 r2) k \<subseteq>
+    opened_boundary_forms r1 (rsimp4_SEQ_atom r2 k) \<union>
+    opened_boundary_forms r2 k"
+  by (auto simp add: opened_boundary_forms_def)
+
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
 proof (induct r)

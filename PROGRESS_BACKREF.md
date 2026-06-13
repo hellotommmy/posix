@@ -8243,3 +8243,16 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:16). No `sorry`.
 - NEXT smallest brick: SEQ telescoping inclusion with the middle
   `odfront(rsimp4_SEQ_atom r2 k)` cancellation.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary SEQ telescope
+
+- New checked SEQ recursion lemma:
+  `opened_boundary_forms (RSEQ r1 r2) k <=
+   opened_boundary_forms r1 (rsimp4_SEQ_atom r2 k) UNION
+   opened_boundary_forms r2 k`.
+  Plain gloss: middle opened suffix cancels.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:20). No `sorry`.
+- NEXT smallest brick: RSTAR inclusion; then assemble the recursive inclusion
+  package for the potential induction.
