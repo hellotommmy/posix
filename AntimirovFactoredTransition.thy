@@ -30730,6 +30730,32 @@ proof (rule ccontr)
     using zero by simp
 qed
 
+lemma alts_positive_member:
+  assumes clean: "apder_clean (RALTS rs)"
+    and pos: "0 < apder_zw2 (RALTS rs)"
+  shows "\<exists>q \<in> set rs. 0 < apder_zw2 q"
+  using pos
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  show ?case
+  proof (cases "0 < apder_zw2 q")
+    case True
+    then show ?thesis by auto
+  next
+    case False
+    then have q_zero: "apder_zw2 q = 0"
+      by simp
+    have "0 < sum_list (map apder_zw2 qs)"
+      using Cons.prems q_zero by simp
+    then obtain p where "p \<in> set qs" "0 < apder_zw2 p"
+      using Cons.hyps by auto
+    then show ?thesis by auto
+  qed
+qed
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE

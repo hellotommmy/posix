@@ -7565,3 +7565,25 @@ but does not invalidate them.
   (AntimirovFactoredTransition 74.963s, full Posix elapsed 0:01:27).
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Next bridge to claim: `alts_positive_member`.
+
+## 2026-06-13 Codex: CLAIM - alts_positive_member bridge
+
+- Re-read newest PROGRESS tail after pushing `clean_zero_budget_root` (commit
+  95776a2); no proof workers live.
+- CLAIM: I am editing only the named bridge `alts_positive_member` in
+  `AntimirovFactoredTransition.thy`, proving that a positive `RALTS` zw2
+  sum has a positive-budget member by explicit list induction.
+
+## 2026-06-13 Codex: CHECKED - alts_positive_member bridge
+
+- New checked bridge in `AntimirovFactoredTransition.thy`:
+  `alts_positive_member`.
+- Proof is explicit list induction over the alternation members: positive
+  `sum_list (map apder_zw2 rs)` yields a member with positive `apder_zw2`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 91.853s, full Posix elapsed 0:01:30).
+- No `sorry`; all four GPT Pro bridge names are now CHECKED:
+  `sigma_clean`, `sigma_RONE_id_nf`, `clean_zero_budget_root`,
+  `alts_positive_member`.  Next safe step: claim the exact `T_and_S`
+  simultaneous-induction statement/skeleton.
