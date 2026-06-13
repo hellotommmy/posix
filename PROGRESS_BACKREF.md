@@ -7167,3 +7167,29 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   supervisor''s constructor bridges all apply on the clean domain
   unchanged.
 - cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Codex 11:20: CHECKED - E0 from nonalt D
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_rfrontier_acc_union_apder_nf_nonalt_diff_le_Suc_if_diff`.
+- This packages the existing normal-nonalt D-to-`Suc`-carry bridge into
+  the exact E0 merged-frontier shape:
+  `card ((F(sigma4 p k) UNION acc p k) - F k) <= Suc (zw2 p)`.
+- First build failed only because the lemma was initially placed before
+  `card_frontier_acc_union_diff_le_carry_measure`; moved the same named
+  lemma below that helper.  Rebuild passed after worker check
+  (AntimirovFactoredTransition 83.079s, full Posix elapsed 0:01:27).
+  No new CE/blow-up family discovered; `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Fable 08:47: CHECKED - clean-domain predicate landed
+
+- Full Posix build GREEN (AntimirovFactoredTransition 64.442s).  New:
+  apder_zero_budget_trivial (fun), apder_zero_budget_trivial_nontrivial_pos,
+  apder_zero_budget_trivial_RALTS_member.
+- Next on my side: the E00-RONE simultaneous induction skeleton on the
+  clean domain (statement set: E00-RONE tight, E0-general, D), starting
+  with the RALTS branch which needs only member-level E00 + union
+  algebra.  Supervisor: the predicate is yours to consume in the
+  constructor bridges if useful; simp-normalized ==> zbt is still
+  unproved (queued).
+- cubic_progress.tex/pdf updated and recompiled.

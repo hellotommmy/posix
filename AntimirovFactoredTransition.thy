@@ -29880,6 +29880,26 @@ proof -
     by simp
 qed
 
+lemma card_rfrontier_acc_union_apder_nf_nonalt_diff_le_Suc_if_diff:
+  assumes nf: "apder_nf p"
+    and nonalt: "nonalt p"
+    and diff: "card (apder_term_frontier_acc p k - rfrontier k) \<le>
+      apder_zw2 p"
+  shows "card ((rfrontier (rsimp4_SEQ_atom p k) \<union>
+    apder_term_frontier_acc p k) - rfrontier k) \<le> Suc (apder_zw2 p)"
+proof -
+  have "card ((rfrontier (rsimp4_SEQ_atom p k) \<union>
+      apder_term_frontier_acc p k) - rfrontier k) \<le>
+      card (apder_term_frontier_acc p k - rfrontier k) +
+      card (rfrontier (rsimp4_SEQ_atom p k) - rfrontier k -
+        apder_term_frontier_acc p k)"
+    by (rule card_frontier_acc_union_diff_le_carry_measure) simp_all
+  also have "... \<le> Suc (apder_zw2 p)"
+    by (rule card_apder_term_frontier_acc_apder_nf_nonalt_carry_measure_le_Suc_if_diff
+        [OF nf nonalt diff])
+  finally show ?thesis .
+qed
+
 lemma card_seq_carry_measure_le_split:
   assumes finA: "finite A"
     and finB: "finite B"
@@ -30577,6 +30597,49 @@ proof -
   finally show ?thesis
     by (simp add: a1)
 qed
+
+
+text \<open>
+  The clean-domain predicate: every zero-budget subterm is trivial
+  (RONE or RZERO).  All residual merged-law counterexamples - pure-RONE
+  alternations, zero-budget SEQ frontier members, and the checked
+  RNTIMES-0 family - violate it; simp-normalized rows satisfy it.  On
+  this domain the tight merged law E00-RONE and the D law pass 383,893
+  deep mirror samples with zero violations.
+\<close>
+
+fun apder_zero_budget_trivial :: "rrexp \<Rightarrow> bool" where
+  "apder_zero_budget_trivial RZERO = True"
+| "apder_zero_budget_trivial RONE = True"
+| "apder_zero_budget_trivial (RCHAR c) = True"
+| "apder_zero_budget_trivial (RALTS rs) =
+    (apder_zw2 (RALTS rs) \<noteq> 0 \<and>
+      (\<forall>q \<in> set rs. apder_zero_budget_trivial q))"
+| "apder_zero_budget_trivial (RSEQ r1 r2) =
+    (apder_zero_budget_trivial r1 \<and> apder_zero_budget_trivial r2)"
+| "apder_zero_budget_trivial (RSTAR r) = apder_zero_budget_trivial r"
+| "apder_zero_budget_trivial (RNTIMES r n) = False"
+| "apder_zero_budget_trivial (RBACKREF4 r1 r2 r3 r4 cs) = False"
+| "apder_zero_budget_trivial (RHALF r cs rep) = False"
+| "apder_zero_budget_trivial (RRESIDUE cs rep) = False"
+
+lemma apder_zero_budget_trivial_nontrivial_pos:
+  assumes zbt: "apder_zero_budget_trivial q"
+    and nf: "apder_nf q"
+    and nz: "q \<noteq> RZERO" "q \<noteq> RONE"
+  shows "apder_zw2 q \<noteq> 0"
+  using zbt nf nz
+proof (induct q)
+  case (RSEQ r1 r2)
+  have "apder_zw2 r1 \<noteq> 0"
+    using RSEQ.prems by (intro RSEQ.hyps(1)) auto
+  then show ?case by simp
+qed auto
+
+lemma apder_zero_budget_trivial_RALTS_member:
+  "apder_zero_budget_trivial (RALTS rs) \<Longrightarrow> q \<in> set rs \<Longrightarrow>
+    apder_zero_budget_trivial q"
+  by simp
 
 
 end
