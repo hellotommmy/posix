@@ -8256,3 +8256,17 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:20). No `sorry`.
 - NEXT smallest brick: RSTAR inclusion; then assemble the recursive inclusion
   package for the potential induction.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary RSTAR inclusion
+
+- New checked RSTAR recursion lemma:
+  `opened_boundary_forms (RSTAR r) k <=
+   (row_dlformss_set(rfrontier(rsimp4_SEQ_atom (RSTAR r) k)) - odfront k)
+   UNION opened_boundary_forms r (rsimp4_SEQ_atom (RSTAR r) k)`.
+  Plain gloss: star re-entry pays one boundary.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: start the numeric potential bound
+  `rsize_set(opened_boundary_forms r k) <= open_pot r + apder_zw2 r*(1+rsize k)`;
+  first prove reusable `rsize_set` union/difference helpers if missing.

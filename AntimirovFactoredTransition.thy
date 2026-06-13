@@ -29154,6 +29154,13 @@ lemma opened_boundary_forms_RSEQ_subset:
     opened_boundary_forms r2 k"
   by (auto simp add: opened_boundary_forms_def)
 
+lemma opened_boundary_forms_RSTAR_subset:
+  "opened_boundary_forms (RSTAR r) k \<subseteq>
+    (row_dlformss_set (rfrontier (rsimp4_SEQ_atom (RSTAR r) k)) -
+      odfront k) \<union>
+    opened_boundary_forms r (rsimp4_SEQ_atom (RSTAR r) k)"
+  by (auto simp add: opened_boundary_forms_def)
+
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
 proof (induct r)
