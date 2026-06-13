@@ -1,0 +1,133 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage{microtype}
+
+% --- plain-math notation (no Isabelle jargon) ---
+\newcommand{\rs}[1]{\lvert #1\rvert}                  % regex size
+\newcommand{\norm}[1]{\lVert #1\rVert}                % total size of a finite set / list
+\newcommand{\acc}{\mathrm{acc}}                       % apder_term_frontier_acc
+\newcommand{\front}{\partial}                          % rfrontier (the one-step frontier)
+\newcommand{\seqn}{\sigma}                             % sigma4 (sequence normalizer)
+\newcommand{\zw}{\mathrm{w}}                           % apder_zw2 (weight: letters + 1 per star)
+\newcommand{\Rows}{\mathrm{Rows}}                      % apder_rows (static row universe)
+\newcommand{\Front}{\mathrm{Front}}                    % afactored1 (multi-step normalized front)
+\newcommand{\Strong}{\Delta}                           % rpder_strong_rows_raw (ONE strong step)
+\newcommand{\Open}{\mathrm{Open}}                      % row_dlformss (open to linear forms + dedup)
+\newcommand{\done}{\textcolor{green!55!black}{\textbf{[\checkmark\ PROVEN]}}}
+\newcommand{\now}{\textcolor{blue}{\textbf{[$\rightarrow$ CURRENT]}}}
+\newcommand{\todo}{\textcolor{gray}{\textbf{[$\circ$ LATER]}}}
+\newcommand{\lem}[1]{{\footnotesize\textsf{\textcolor{gray}{#1}}}}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+{\large\textbf{Where the cubic-bound proof is right now}}\hfill\textsf{\small 2026-06-13}
+
+\medskip
+Working fragment: classical regexes, in normal form, no bounded repetition
+$r^{\{n\}}$ (the ``clean'' fragment). Everything below is machine-checked in
+Isabelle with no gaps unless marked $[\rightarrow]$ or $[\circ]$.
+
+\bigskip
+\textbf{The goal} (one inequality). Run the lexer's normalized derivative
+automaton from $r$ over input $s$, do \emph{one} strongly-simplified step on the
+next letter $c$, open every resulting row into linear forms and deduplicate,
+and sum their sizes. That total is cubic in $\rs{r}$:
+\[
+\boxed{\;\norm{\;\Open\bigl(\Strong_c(\Front(r,s))\bigr)\;}\;\le\;2\,(\rs{r}+3)^3\;}
+\]
+uniformly in $s$ (its length does not appear on the right).
+
+\bigskip
+\textbf{Notation.} $\rs{r}$ = size of $r$;\;
+$\acc(r,k)$ = rows the derivative of $r$ leaves in front of continuation $k$;\;
+$\front k$ = one-step frontier of $k$;\;
+$\seqn$ = sequence normalizer;\;
+$\zw(r)$ = weight (letters, $+1$ per star) — always $\zw(r)\le\rs{r}$;\;
+$\Rows(r)$ = all rows reachable from $r$ (static);\;
+$\Front(r,s)$ = the normalized front after reading $s$;\;
+$\Strong_c$ = one strong simplify+prune step;\;
+$\Open$ = open rows to linear forms and dedup.
+
+\bigskip
+\hrule
+\medskip
+\textbf{The chain (top to bottom). Read it as: each line is justified by the one below it.}
+
+\medskip
+\begin{enumerate}[leftmargin=2.2em,itemsep=6pt]
+
+\item[\done] \textbf{Goal, on the clean fragment.}
+$\norm{\Open(\Strong_c(\Front(r,s)))}$ splits into a non-sequence part
+(already cubic) plus a sequence part bounded by the front total $\norm{\Front(r,s)}$.
+\lem{actual\_union\_gate\_two\_summands; rsize\_set\_rnonseq\_members\_\dots\_cubic}
+
+\item[\done] \textbf{Static front is cubic, for every input.}
+\[
+\norm{\Front(r,s)}\;\le\;(\rs{r}+3)^3\qquad\text{for all }s.
+\]
+\emph{In words:} however long the input, the normalized front never exceeds a
+fixed cubic in the original size.
+\lem{rsizes\_afactored1\_clean\_static\_cubic}
+
+\item[\done] \textbf{It rests on two facts about the static row universe:}
+\[
+\#\,\Rows(r)\;\le\;\rs{r}+2
+\qquad\text{and}\qquad
+\text{every row in }\Rows(r)\text{ has size}\;\le\;(\rs{r}+2)^2 .
+\]
+\emph{In words:} few rows (linearly many), each small (quadratic). Linear
+$\times$ quadratic $=$ cubic.
+\lem{card\_apder\_rows\_clean\_le\_rsize\_plus\_2;\ apder\_rows\_member\_size\_quadratic}
+
+\item[\done] \textbf{The row count is linear because of the D law} (the hard part,
+cracked via the GPT-Pro ``telescoping'' invariant):
+\[
+\#\bigl(\acc(r,k)\setminus\front k\bigr)\;\le\;\zw(r)
+\qquad\text{(clean }r,k\text{).}
+\]
+\emph{In words:} one derivative step adds at most $\zw(r)\ (\le\rs{r})$ genuinely
+new rows. Proved by a single simultaneous induction on the stronger boundary
+invariant $\#((\front(\seqn r k)\cup\acc(r,k))\setminus\front k)\le\zw(r)$ plus a
+strict-credit lemma.
+\lem{D\_law\_clean\ (from\ apder\_T\_bound/apder\_S\_bound\ via\ T\_and\_S)}
+
+\item[\done] \textbf{The D law applies to the \emph{actual} rows.}
+The rows the gate feeds are in the clean domain.
+\lem{apder\_clean\_apder\_rows;\ apder\_clean\_afactored1}
+
+\item[\now] \textbf{The one remaining step: glue the cubic front into the gate.}
+Push $\norm{\Front(r,s)}\le(\rs{r}+3)^3$ through the single strong step, the
+opening, and the dedup
+\[
+\Front(r,s)\ \xrightarrow{\ \Strong_c\ }\ \cdot\ \xrightarrow{\ \Open\ }\ \cdot
+\ \xrightarrow{\ \norm{\,\cdot\,}\ }\ \le\ 2(\rs{r}+3)^3,
+\]
+and discharge the ``clean'' hypothesis for the actual root.
+\emph{Known wrinkle:} the strong-step rows are only ``tail-normal,'' not fully
+clean, so the D law is used at the $\Rows/\Front$ level and the strong opening is
+bounded on its own. Once this lands, the boxed goal is closed (clean fragment).
+
+\item[\todo] \textbf{After that:} lift the result from the clean fragment to
+\emph{all} regexes including bounded repetition $r^{\{n\}}$. This needs a
+repetition-aware weight (the plain $\zw$ fails when a $\{0\}$ block carries an
+empty-but-present frontier). Optional; may not be required for the thesis target.
+
+\end{enumerate}
+
+\medskip
+\hrule
+\medskip
+{\footnotesize One-line status: \textbf{the hard combinatorics (the D law) and the
+static cubic front are done; one mechanical gluing step + a root-hypothesis
+discharge remain to close the gate on the clean fragment.} Full formal statement:
+\texttt{CUBIC\_OPEN\_PROBLEM.pdf}. Live detail: \texttt{MAINLINE.md} §2 and the
+\texttt{PROGRESS\_BACKREF.md} tail.}
+
+\end{document}

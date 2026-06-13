@@ -235,6 +235,14 @@ directive in the PROGRESS tail.
 Full text: `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`. The
 high-yield core:
 
+0. **Report in plain math, not jargon (admin requirement, 2026-06-13).**
+   Every `CHECKED` note in the PROGRESS tail must state the result as a math
+   inequality/identity in plain notation (e.g. `card(apder_rows r) <= rsize r
+   + 2`), with a ≤10-word plain-English gloss — NOT just the Isabelle lemma
+   name. The single-page plain-math roadmap is `STATUS_MATH.tex/.pdf` (repo
+   root); the secretary keeps it current so the admin can see which step
+   we're on at a glance. When a milestone lands, update `STATUS_MATH` (move
+   the `[→ CURRENT]` marker) and recompile.
 1. **One small checked brick at a time.** Build after every meaningful
    change; commit only checked work; push promptly (within ~5 minutes when
    multiple agents are active).

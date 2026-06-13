@@ -52,6 +52,12 @@ If a step CANNOT close — e.g. the rntimes-free restriction blocks the actual
 post the precise obstacle to the PROGRESS tail, and flag the admin: that is the
 next candidate design point (possible GPT Pro pass), not something to force.
 
+REPORT IN PLAIN MATH (admin requirement): every CHECKED note you post to the
+PROGRESS tail must state the result as a math inequality in plain notation
+(e.g. `card(apder_rows r) <= rsize r + 2`) with a short plain-English gloss —
+not just the Isabelle lemma name. (The secretary keeps the one-page roadmap
+`STATUS_MATH.pdf` current from these.)
+
 RULES: coordinate with Fable via the PROGRESS tail — claim a named lemma BEFORE
 editing it. One Isabelle build at a time (`scripts\codex-proof-workers.ps1
 -Action Check` first; lock shared). Red build = proof failure: read the first
@@ -87,6 +93,10 @@ collide. If you finish early, pick up one assembly step (claim it first).
 Same STOP rule: if `zero_budget_trivial` (or another clean-domain part) is FALSE
 for some actual row, that is a real obstacle — record the counterexample in
 `SUPER_LINEAR_PATTERNS.md` + PROGRESS and flag the admin.
+
+REPORT IN PLAIN MATH (admin requirement): every CHECKED note in the PROGRESS
+tail states the result as a math inequality in plain notation with a short
+plain-English gloss, not just the lemma name.
 
 RULES: same as the lead — coordinate via the PROGRESS tail; one build at a time
 (`codex-proof-workers.ps1 -Action Check` first); red build = proof failure (read
@@ -291,8 +301,13 @@ DUTIES:
   to judge agent progress from the repo (commits, new checked lemmas, new
   PROGRESS entries) — not from chat UIs.
 - Maintain `DOC_INDEX.md` (catalog), `SUPER_LINEAR_PATTERNS.md` (fuzzer corpus),
-  and the two math docs `CUBIC_OPEN_PROBLEM.tex/.pdf` and
-  `MATHPROBLEM_ROWCOUNT.md` — keep them in sync when the frontier moves.
+  and the math docs `CUBIC_OPEN_PROBLEM.tex/.pdf` and `MATHPROBLEM_ROWCOUNT.md`
+  — keep them in sync when the frontier moves.
+- **Keep `STATUS_MATH.tex/.pdf` current** — the one-page plain-math roadmap the
+  admin reads to see which step we're on. When a milestone lands, move the
+  `[→ CURRENT]` marker (and any `[✓ PROVEN]`/`[○ LATER]`), update the gloss,
+  and recompile with `pdflatex STATUS_MATH.tex`. This is a core admin-facing
+  duty: progress must be legible in pure math, not Isabelle jargon.
 - Broadcast any admin instruction by appending to the PROGRESS tail (the only
   channel immune to context compaction).
 - Archive/banner stale content; never prune checked work or rewrite history.

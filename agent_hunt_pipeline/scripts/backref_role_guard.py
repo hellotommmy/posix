@@ -14,6 +14,13 @@ WORKER_ALLOWED = {
     "BackRefBlexer.thy",
     "PROGRESS_BACKREF.md",
     "BACKREF_BOUNTIES.md",
+    # Cubic-phase theories the workers actively edit (added 2026-06-13:
+    # the old set listed only backref-pilot files, so `--role worker` flagged
+    # every legitimate cubic edit). The frozen original bounds files
+    # (FBound.thy, GeneralRegexBound.thy, ...) intentionally stay out — they
+    # remain admin/steward territory.
+    "AntimirovFactoredTransition.thy",
+    "AntimirovNormalFrontier.thy",
 }
 
 WORKER_PREFIXES = (
