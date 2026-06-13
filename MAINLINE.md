@@ -146,8 +146,8 @@ and every counterexample that kills a conjecture/inequality/strengthening, is
 ALSO a fuzzer-corpus deliverable. When you refute something, append the
 concrete regex family (rrexp notation + parameterization + any fixed input),
 what it killed, and the DECEPTION datum (how many samples / what depth it
-passed before being caught) to `EVIL_PATTERNS.md` at the repo root — in the
-same cycle you record it here. Never prune a CE because its conjecture is
+passed before being caught) to `SUPER_LINEAR_PATTERNS.md` at the repo root — in
+the same cycle you record it here. Never prune a CE because its conjecture is
 dead; the deader the conjecture, the better the fuzzer input. This is additive
 bookkeeping and must not slow the cubic proof. See the 2026-06-13 admin
 directive in the PROGRESS tail.

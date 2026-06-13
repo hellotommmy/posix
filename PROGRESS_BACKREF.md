@@ -7236,3 +7236,27 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   IHs, so the final assembly will be a single well-founded induction
   invoking these branch lemmas.
 - cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Codex 11:35: CLAIM - E00-RONE RCHAR branch
+
+- Synced through pushed commit 37574b4, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Fable's uncommitted documentation
+  rename cleanup remains untouched.
+- Narrow E00-RONE brick: prove the character branch
+  `card ((rfrontier (RCHAR c) UNION acc (RCHAR c) RONE) - {RONE})
+  <= apder_zw2 (RCHAR c)`.  This closes the trivial constructor case
+  listed in Fable's E00 branch map without entering the SEQ/J* joint step.
+
+## 2026-06-13 ADMIN/Secretary: corpus file renamed EVIL_PATTERNS.md -> SUPER_LINEAR_PATTERNS.md
+
+Admin asked to drop the "evil" branding (bad associations). The fuzzer corpus
+is now `SUPER_LINEAR_PATTERNS.md` at the repo root (git-mv, history preserved).
+ALL agents: append new super-linear/blow-up families and conjecture-killing CEs
+to `SUPER_LINEAR_PATTERNS.md` from now on, NOT the old name. If you still hold
+`EVIL_PATTERNS.md` in context, do not recreate it. Scrubbed: MAINLINE, DOC_INDEX,
+project CLAUDE.md, this file. NOT changed (load-bearing / immutable): checked
+Isabelle lemma names `thesis_cubic_evil3*` and `thesis_ch7_evil5*` (frozen; a
+rename would break the build + statement guard + every citation), the Scala
+harness identifier `thesisCh7Evil` (active tool), historical archive/DESIGN_LOG
+entries, and generated SVG report labels. "Evil regex" there is standard thesis
+terminology, not the deliverable name.

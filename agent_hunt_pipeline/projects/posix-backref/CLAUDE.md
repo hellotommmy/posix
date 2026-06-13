@@ -115,7 +115,7 @@ Minimum smoke coverage for a serious cubic candidate:
 
 - Shared-suffix pruning: `(a+b).c + (a+d).c` must eliminate the repeated
   `a.c` contribution without losing the `b.c` and `d.c` alternatives.
-- Thesis Chapter 7 evil family: the three-layer star shape
+- Thesis Chapter 7 nested-star family: the three-layer star shape
   `((a* + (aa)* + ... + (a...a)*)*)*` must not exhibit the old exponential
   growth behavior under repeated derivatives.
 - Bounded regex enumeration: generate all regexes up to a selected depth over a

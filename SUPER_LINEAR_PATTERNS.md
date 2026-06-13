@@ -1,4 +1,4 @@
-# EVIL_PATTERNS — Fuzzer Corpus from a Machine-Verified POSIX Lexer Proof
+# SUPER_LINEAR_PATTERNS — Fuzzer Corpus from a Machine-Verified POSIX Lexer Proof
 
 A companion deliverable of the POSIX cubic-bound project. Every entry is a
 regex (or regex family) that either **provably blows up** a derivative-based
@@ -130,7 +130,7 @@ memory.
   counts `i` at once; `8×8 = 64` distinct front rows. **`(prefix)*(...){n}` is
   a real-world ReDoS shape** — this is the formal version.
 
-## A5. Chapter-7 three-layer evil star — the thesis growth benchmark
+## A5. Chapter-7 three-layer nested-star — the thesis growth benchmark
 
 - **rrexp** (parameter `k`):
   `RSTAR (RSTAR (RALTS [RSTAR(a), RSTAR(aa), RSTAR(aaa), ..., RSTAR(a^k)]))`,
