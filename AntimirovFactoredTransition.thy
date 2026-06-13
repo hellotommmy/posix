@@ -31862,6 +31862,38 @@ definition strong_opened_live_row_universe_acc ::
     row_dlformss_set
       (rsimpStrong_raw ` partial_derivative_live_row_universe_acc r k)"
 
+fun strong_opened_live_acc_potential :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "strong_opened_live_acc_potential RZERO k = 1"
+| "strong_opened_live_acc_potential RONE k =
+    1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+      rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+| "strong_opened_live_acc_potential (RCHAR c) k =
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k))) +
+    1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+      rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+| "strong_opened_live_acc_potential (RALTS rs) k =
+    1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))) +
+    sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs)"
+| "strong_opened_live_acc_potential (RSEQ r1 r2) k =
+    strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) +
+    strong_opened_live_acc_potential r2 k"
+| "strong_opened_live_acc_potential (RSTAR r) k =
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))) +
+    strong_opened_live_acc_potential r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "strong_opened_live_acc_potential (RNTIMES r n) k =
+    rsize_set (strong_opened_live_row_universe_acc (RNTIMES r n) k)"
+| "strong_opened_live_acc_potential (RBACKREF4 r1 r2 r3 r4 cs) k =
+    rsize_set
+      (strong_opened_live_row_universe_acc (RBACKREF4 r1 r2 r3 r4 cs) k)"
+| "strong_opened_live_acc_potential (RHALF r cs rep) k =
+    rsize_set (strong_opened_live_row_universe_acc (RHALF r cs rep) k)"
+| "strong_opened_live_acc_potential (RRESIDUE cs rep) k =
+    rsize_set (strong_opened_live_row_universe_acc (RRESIDUE cs rep) k)"
+
 lemma finite_strong_opened_live_row_universe [simp]:
   "finite (strong_opened_live_row_universe r)"
   by (simp add: strong_opened_live_row_universe_def)
@@ -32144,6 +32176,111 @@ proof -
   finally show ?thesis
     by simp
 qed
+
+lemma rsize_set_strong_opened_live_row_universe_acc_le_potential:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (strong_opened_live_row_universe_acc r k) \<le>
+    strong_opened_live_acc_potential r k"
+  using nf
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  have "rsize_set (strong_opened_live_row_universe_acc RONE k) \<le>
+      1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+        rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RONE_le)
+  then show ?case
+    by simp
+next
+  case (RCHAR c)
+  have step:
+      "rsize_set (strong_opened_live_row_universe_acc (RCHAR c) k) \<le>
+      rsize_set
+        (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k))) +
+      rsize_set (strong_opened_live_row_universe_acc RONE k)"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RCHAR_le)
+  have base:
+      "rsize_set (strong_opened_live_row_universe_acc RONE k) \<le>
+        1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+          rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RONE_le)
+  show ?case
+    using step base by simp
+next
+  case (RALTS rs)
+  have nf_children: "\<forall>q \<in> set rs. apder_nf q"
+    using RALTS.prems by simp
+  have step:
+      "rsize_set (strong_opened_live_row_universe_acc (RALTS rs) k) \<le>
+      1 +
+      rsize_set
+        (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))) +
+      sum_list
+        (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RALTS_le
+        [OF nf_children])
+  have children:
+      "sum_list
+        (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)
+      \<le>
+      sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs)"
+  proof (rule sum_list_mono)
+    fix q
+    assume q: "q \<in> set rs"
+    have q_nf: "apder_nf q"
+      using nf_children q by simp
+    show "rsize_set (strong_opened_live_row_universe_acc q k)
+      \<le> strong_opened_live_acc_potential q k"
+      by (rule RALTS.hyps[OF q q_nf])
+  qed
+  show ?case
+    using step children by simp
+next
+  case (RSEQ r1 r2)
+  have nf1: "apder_nf r1"
+    using RSEQ.prems by simp
+  have nf2: "apder_nf r2"
+    using RSEQ.prems by simp
+  have step:
+      "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
+      rsize_set
+        (strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k)) +
+      rsize_set (strong_opened_live_row_universe_acc r2 k)"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RSEQ_le)
+  have left:
+      "rsize_set
+        (strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k)) \<le>
+      strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k)"
+    by (rule RSEQ.hyps(1)[OF nf1])
+  have right:
+      "rsize_set (strong_opened_live_row_universe_acc r2 k) \<le>
+      strong_opened_live_acc_potential r2 k"
+    by (rule RSEQ.hyps(2)[OF nf2])
+  show ?case
+    using step left right by simp
+next
+  case (RSTAR r)
+  have nf_body: "apder_nf r"
+    using RSTAR.prems by simp
+  have step:
+      "rsize_set (strong_opened_live_row_universe_acc (RSTAR r) k) \<le>
+      rsize_set
+        (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))) +
+      rsize_set
+        (strong_opened_live_row_universe_acc r
+          (rsimp4_SEQ_atom (RSTAR r) k))"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_RSTAR_le)
+  have body:
+      "rsize_set
+        (strong_opened_live_row_universe_acc r
+          (rsimp4_SEQ_atom (RSTAR r) k)) \<le>
+      strong_opened_live_acc_potential r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule RSTAR.hyps[OF nf_body])
+  show ?case
+    using step body by simp
+qed simp_all
 
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>

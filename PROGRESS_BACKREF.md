@@ -8898,3 +8898,30 @@ STATUS_MATH and say so at the top of PROGRESS.
   `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k)))` plus the
   `RONE` frontier base, sample the resulting recurrence budget, then prove the
   first arithmetic upper bound if the sample is clean.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live recurrence potential
+
+- Ephemeral scratch sample (no committed scratch edit): the conservative
+  recurrence potential had 200,000 bounded `apder_nf` samples with zero
+  violations for
+  `strong_opened_live_acc_potential r RONE <= 2 * (rsize r + 3)^3`.
+- New checked structural potential:
+  `strong_opened_live_acc_potential r k` follows the prefix recurrence,
+  telescopes the `RSEQ` suffix, charges the strong-opened root row at
+  `RCHAR`/`RALTS`/`RSTAR`, and keeps the explicit `RONE` suffix-frontier base
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw k)) +
+     rsize_set(row_dlformss_set(rsimpStrong_raw \` rfrontier k))`.
+- New checked inequality:
+  `apder_nf r ==>
+   rsize_set(strong_opened_live_row_universe_acc r k) <=
+   strong_opened_live_acc_potential r k`.
+  Plain gloss: the live-carrier size is now bounded by a recursive potential
+  that mirrors the checked constructor recurrences, so the remaining work is
+  arithmetic/root-charge bounding rather than carrier containment.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the sampled cubic cap for
+  `strong_opened_live_acc_potential r RONE` under the normalization hypothesis,
+  or first introduce the needed root-row/frontier charge lemmas if arithmetic
+  exposes a missing bound.
