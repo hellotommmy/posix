@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 03:14, commit 3c7633a — D law PROVEN; gate-bridge open: two carrier CEs, now seeking a prefix-aware opened-live carrier)
+## 2. Where the Proof Stands (as of 2026-06-14 07:49, commit 65707ec — D law PROVEN; prefix-aware drain carrier largely built, stuck on the STAR-compatible recursive child invariant)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -189,12 +189,22 @@ Vocabulary (fixed, do not rename):
   `front-card * G^2` (`actual_union_generated_square_decomposition`, 6370b8d) —
   but that term is likely **too weak** for cubic (under test); closing it would
   need a sharper opened-boundary / normalized-tail carrier.
-- **Current narrow instruction:** build a **prefix-aware opened-live / drain
-  carrier** for the opened ledger from the current `afactored1 r s` /
-  strong-normalized front (NOT the original root alone); sample it at depth ≥ 5
-  before Isabelle. Do NOT grind the refuted verbatim subset target or the strong
-  opened-boundary carrier; do NOT re-attempt the square-sum or list-cost routes
-  (dead). Claim in the PROGRESS tail before starting. Stay on the
+- **Prefix-aware drain carrier — LARGELY BUILT (2026-06-14, 65707ec).** The
+  `strong_opened_live` / drain carrier from the current `afactored1 r s` (not the
+  original root) is checked: per-constructor containments
+  (RCHAR/RSEQ/RALTS/RSTAR/RONE), the clean live-path/term/row facts, the
+  root-potential base cubics (RZERO/RONE/RCHAR `<= 2*(rsize+3)^3`), the
+  conditional RALTS/RSEQ root-cubic wrappers, and the `(n+1)^3-1 <= 2*(n+3)^3`
+  arithmetic. The actual gate rows sit inside the carrier (`actual rows root
+  strong live carrier`).
+- **Current narrow instruction:** close the ONE live edge — a **STAR-compatible
+  recursive CHILD invariant** for the drain root-potential. Generic drain
+  induction is too coarse (coarse child `2*cube` sums leave no root budget for
+  RALTS/STAR); the conditional wrappers are ready and fire the moment a sharper
+  child drain-style fact lands. Sample it at depth ≥ 5 before Isabelle. Do NOT
+  grind the refuted verbatim subset target or the strong opened-boundary carrier;
+  do NOT re-attempt the square-sum or list-cost routes (dead). Claim in the
+  PROGRESS tail before starting. Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
