@@ -2225,4 +2225,24 @@ proof -
   qed
 qed
 
+text \<open>
+  The directly consumable form for the gate: every ACTUAL one-step front row
+  produced by @{const afactored1} from a clean root is @{const apder_clean}.
+  This is @{thm apder_clean_apder_rows} pushed through the static containment
+  @{thm afactored1_apder_rows_subset}.
+\<close>
+
+lemma apder_clean_afactored1:
+  assumes clean: "apder_clean r"
+    and q: "q \<in> set (afactored1 r s)"
+  shows "apder_clean q"
+proof -
+  have nf: "apder_nf r"
+    using clean by (simp add: apder_clean_def)
+  have "q \<in> apder_rows r"
+    using afactored1_apder_rows_subset[OF nf] q by blast
+  then show ?thesis
+    by (rule apder_clean_apder_rows[OF clean])
+qed
+
 end

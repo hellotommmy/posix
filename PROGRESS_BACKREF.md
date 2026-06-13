@@ -8015,3 +8015,21 @@ Trust git timestamps over the `HH:MM` labels here.
 - NEXT (open, for whoever assembles): feed `apder_clean_apder_rows` into the
   per-row / SEQ-part D-law applications, and discharge the root `apder_clean r`
   for the actual gate root (the fragment / simp-normalized input). Claim first.
+
+## 2026-06-13 Fable: CHECKED - apder_clean_afactored1 (consumable bridge for the actual rows)
+
+- New checked lemma in `AntimirovNormalFrontier.thy`: `apder_clean_afactored1`,
+  `apder_clean r ==> q in set (afactored1 r s) ==> apder_clean q`. This is
+  `apder_clean_apder_rows` pushed through `afactored1_apder_rows_subset` (which
+  needs `apder_nf r`, supplied by `apder_clean`). It is the directly-plug-in
+  form: every ACTUAL one-step front row the gate feeds is clean.
+- Note on placement: the clean-domain reasoning lives at the `apder_rows`
+  level. The strong-pruned frontier (`apder_strong_frontier` /
+  `rpder_strong_rows_raw`) members are only `rtail_nf` (no
+  `apder_nf_rsimpStrong_raw` / `..._rntimes_free` / `..._zero_budget_trivial`
+  exist), so D_law_clean is meant to apply to `apder_rows`/`afactored1` rows,
+  not the strong-frontier members; the strong layer uses `rtail_nf`
+  bookkeeping (already proven). No strong-frontier clean lemma is needed.
+- Build GREEN after worker check (AntimirovNormalFrontier 2.257s; full Posix
+  0:01:32). No `sorry`. Guards bounty/no_cheat/statement PASS (role guard still
+  stale - see prior entry).
