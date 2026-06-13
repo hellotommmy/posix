@@ -8186,3 +8186,26 @@ If a constructor case or the carrier preservation genuinely dead-ends, record th
 precise obstacle and pivot to the independent liveness slice (MAINLINE §2). Report
 each CHECKED result as a math inequality + gloss; if the gate closes, update
 STATUS_MATH and say so at the top of PROGRESS.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary sample gate + carrier definitions
+
+- SAMPLE-CHECK FIRST done before Isabelle proof work. Extended
+  `scratch_rowcount_check.py` with `opened` mode mirroring `row_dlforms`,
+  `row_dlformss_set`, `rsimp4_SEQ_atom`, `rsimp7_SEQ_atom`, `acc`,
+  `apder_zw2`, and the proposed `open_pot`.
+- Checked inequalities (clean generated terms, plus explicit RONE-pass-through
+  towers):
+  `rsize_set(opened_boundary_forms r k) <= open_pot r + apder_zw2 r*(1+rsize k)`
+  and `open_pot r + 2*apder_zw2 r <= (rsize r+3)^3`.
+  Runs: 500,007 cases through depth 6, then 250,011 cases through depth 10;
+  zero violations. Plain gloss: opened suffix debt stays cubic.
+- Isabelle brick checked in `AntimirovFactoredTransition.thy`: added
+  `row_dlformss_set`, `odfront k = row_dlformss_set(rfrontier k)`,
+  `opened_boundary_forms r k =
+   row_dlformss_set(rfrontier(rsimp4_SEQ_atom r k) UNION acc(r,k)) - odfront k`,
+  and `open_pot` with `open_pot RONE = 0`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: recursive inclusions for the opened carrier, starting
+  with RZERO/RONE/RCHAR, then the telescoping RSEQ case.

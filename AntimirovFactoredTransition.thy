@@ -4998,6 +4998,27 @@ lemma rsize_set_row_dlforms_le_row_dlforms_list_size:
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 
+definition row_dlformss_set :: "rrexp set \<Rightarrow> rrexp set" where
+  "row_dlformss_set U = (\<Union>q \<in> U. row_dlforms q)"
+
+lemma row_dlformss_set_empty [simp]:
+  "row_dlformss_set {} = {}"
+  by (simp add: row_dlformss_set_def)
+
+lemma row_dlformss_set_Un [simp]:
+  "row_dlformss_set (A \<union> B) =
+    row_dlformss_set A \<union> row_dlformss_set B"
+  by (auto simp add: row_dlformss_set_def)
+
+lemma row_dlformss_set_mono:
+  assumes "A \<subseteq> B"
+  shows "row_dlformss_set A \<subseteq> row_dlformss_set B"
+  using assms by (auto simp add: row_dlformss_set_def)
+
+lemma row_dlformss_set_set [simp]:
+  "row_dlformss_set (set rs) = row_dlformss rs"
+  by (induct rs) (simp_all add: row_dlformss_set_def row_dlformss_def)
+
 definition row_dlformss_list :: "rrexp list \<Rightarrow> rrexp list" where
   "row_dlformss_list rs = concat (map row_dlforms_list rs)"
 
@@ -28975,6 +28996,30 @@ fun apder_zw2 :: "rrexp \<Rightarrow> nat" where
 | "apder_zw2 (RBACKREF4 r1 r2 r3 r4 cs) = 0"
 | "apder_zw2 (RHALF r cs rep) = 0"
 | "apder_zw2 (RRESIDUE cs rep) = 0"
+
+definition odfront :: "rrexp \<Rightarrow> rrexp set" where
+  "odfront k = row_dlformss_set (rfrontier k)"
+
+definition opened_boundary_forms :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "opened_boundary_forms r k =
+    row_dlformss_set
+      (rfrontier (rsimp4_SEQ_atom r k) \<union> apder_term_frontier_acc r k) -
+    odfront k"
+
+fun open_pot :: "rrexp \<Rightarrow> nat" where
+  "open_pot RZERO = 0"
+| "open_pot RONE = 0"
+| "open_pot (RCHAR c) = 2"
+| "open_pot (RALTS rs) = sum_list (map open_pot rs)"
+| "open_pot (RSEQ r1 r2) =
+    open_pot r1 + open_pot r2 + apder_zw2 r1 * (rsize r2 + 2)"
+| "open_pot (RSTAR r) =
+    open_pot r + Suc (apder_zw2 r) * (rsize (RSTAR r) + 2)"
+| "open_pot (RNTIMES r n) =
+    n * (open_pot r + Suc (apder_zw2 r) * (rsize (RNTIMES r n) + 2))"
+| "open_pot (RBACKREF4 r1 r2 r3 r4 cs) = 0"
+| "open_pot (RHALF r cs rep) = 0"
+| "open_pot (RRESIDUE cs rep) = 0"
 
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
