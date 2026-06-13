@@ -7395,3 +7395,28 @@ Transition.thy left as the active worker's in-flight edit).
 - No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
   Next structural-glue brick remains an E0/D general-k bridge or the
   well-founded assembly skeleton, depending on Fable's next PROGRESS claim.
+
+## 2026-06-13 Codex 11:55: CLAIM - E0 RALTS general-k bridge
+
+- Synced through pushed commit 581d9d6 after the discount repair landed,
+  re-read the newest PROGRESS tail, and checked that no proof workers were
+  live before the build.
+- Narrow structural-glue brick: prove `E0_RALTS_if_members`, the general-k
+  alternation branch of the E0 merged-frontier law.  The `k = RONE` branch
+  consumes member-level E00-RONE; the non-RONE branches use member D bounds
+  plus the explicit outer `Suc` to pay the single composite frontier point.
+
+## 2026-06-13 Codex 12:00: CHECKED - E0 RALTS general-k bridge
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `E0_RALTS_if_members`.
+- This closes the alternation constructor bridge for the general-k E0 law
+  conditional on the simultaneous-induction IHs: member E00-RONE for
+  `k = RONE`, and member D at `k` plus the singleton composite frontier for
+  every nontrivial continuation.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 86.345s, full Posix elapsed 0:01:29).
+  No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
+- Only the `E0_RALTS_if_members` theory hunk plus these PROGRESS entries are
+  mine to stage; unrelated doc/corpus edits remain unstaged.

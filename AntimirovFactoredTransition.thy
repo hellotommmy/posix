@@ -30809,6 +30809,65 @@ proof (cases k)
     unfolding eq by simp
 qed (simp_all add: card_singleton_Diff_le_one)
 
+lemma E0_RALTS_if_members:
+  assumes e00_members: "\<And>q. q \<in> set rs \<Longrightarrow> q \<noteq> RONE \<Longrightarrow>
+      card ((rfrontier q \<union> apder_term_frontier_acc q RONE) - {RONE})
+        \<le> apder_zw2 q"
+    and d_members: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+  shows "card ((rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+      apder_term_frontier_acc (RALTS rs) k) - rfrontier k)
+    \<le> Suc (apder_zw2 (RALTS rs))"
+proof -
+  have d: "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k)
+    \<le> apder_zw2 (RALTS rs)"
+    by (rule card_apder_term_frontier_acc_RALTS_diff_le_if_children)
+      (rule d_members)
+  have nontriv: "k \<noteq> RZERO \<Longrightarrow> k \<noteq> RONE \<Longrightarrow> ?thesis"
+  proof -
+    assume k0: "k \<noteq> RZERO" and k1: "k \<noteq> RONE"
+    have fr: "rfrontier (rsimp4_SEQ_atom (RALTS rs) k) =
+        {RSEQ (RALTS rs) k}"
+      using k0 k1 by (cases k) auto
+    have split: "(rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+        apder_term_frontier_acc (RALTS rs) k) - rfrontier k =
+        ({RSEQ (RALTS rs) k} - rfrontier k) \<union>
+        (apder_term_frontier_acc (RALTS rs) k - rfrontier k)"
+      by (auto simp add: fr)
+    have "card ((rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+        apder_term_frontier_acc (RALTS rs) k) - rfrontier k) \<le>
+        card ({RSEQ (RALTS rs) k} - rfrontier k) +
+        card (apder_term_frontier_acc (RALTS rs) k - rfrontier k)"
+      unfolding split by (rule card_Un_le)
+    also have "... \<le> Suc (apder_zw2 (RALTS rs))"
+      using card_add_singleton_Diff_le_Suc[OF d,
+          of "RSEQ (RALTS rs) k" "rfrontier k"]
+      by (simp add: add.commute)
+    finally show ?thesis .
+  qed
+  show ?thesis
+  proof (cases "k = RZERO")
+    case True
+    then show ?thesis by simp
+  next
+    case k0: False
+    show ?thesis
+    proof (cases "k = RONE")
+      case True
+      have e00: "card ((rfrontier (RALTS rs) \<union>
+          apder_term_frontier_acc (RALTS rs) RONE) - {RONE})
+        \<le> apder_zw2 (RALTS rs)"
+        by (rule E00_RONE_RALTS_if_members) (use e00_members in auto)
+      then show ?thesis
+        using True by simp
+    next
+      case k1: False
+      show ?thesis
+        by (rule nontriv[OF k0 k1])
+    qed
+  qed
+qed
+
 
 text \<open>
   The SEQ branch of E00 at the RONE continuation, conditional on the
