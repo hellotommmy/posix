@@ -8743,3 +8743,23 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: add accumulator constructor containments for `RCHAR`
   and `RSTAR`; then start the size induction over
   `strong_opened_live_row_universe_acc`.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live RCHAR split
+
+- New checked live-row split:
+  `partial_derivative_live_row_universe_acc(RCHAR c) k <=
+   insert (rsimp4_SEQ_atom (RCHAR c) k)
+     (partial_derivative_live_row_universe_acc RONE k)`.
+- New checked strong-opened split:
+  `strong_opened_live_row_universe_acc(RCHAR c) k <=
+   row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) UNION
+   strong_opened_live_row_universe_acc RONE k`.
+  Plain gloss: the character case contributes exactly one headed root over the
+  carried suffix, while all suffix/pass-through material is paid by the `RONE`
+  accumulator carrier.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: prove the analogous `RSTAR` accumulator split
+  `strong_opened_acc(STAR r,k) <= row(root STAR/k) UNION
+   strong_opened_acc(r, root STAR/k)`.

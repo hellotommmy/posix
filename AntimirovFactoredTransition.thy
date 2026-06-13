@@ -31914,6 +31914,20 @@ lemma strong_opened_live_row_universe_acc_RONE_eq:
   by (simp add: strong_opened_live_row_universe_acc_def
       strong_opened_live_row_universe_def)
 
+lemma partial_derivative_live_row_universe_acc_RCHAR_subset:
+  "partial_derivative_live_row_universe_acc (RCHAR c) k \<subseteq>
+    insert (rsimp4_SEQ_atom (RCHAR c) k)
+      (partial_derivative_live_row_universe_acc RONE k)"
+  by (cases k) (auto simp add: partial_derivative_live_row_universe_acc_def)
+
+lemma strong_opened_live_row_universe_acc_RCHAR_subset:
+  "strong_opened_live_row_universe_acc (RCHAR c) k \<subseteq>
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) \<union>
+    strong_opened_live_row_universe_acc RONE k"
+  using partial_derivative_live_row_universe_acc_RCHAR_subset[of c k]
+  by (auto simp add: strong_opened_live_row_universe_acc_def
+      row_dlformss_set_def)
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
