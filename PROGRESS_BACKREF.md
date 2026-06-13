@@ -9267,3 +9267,16 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:21). No `sorry`.
 - NEXT smallest brick: prove
   `apder_rows r <= partial_derivative_live_row_universe r` for clean `r`.
+
+## 2026-06-14 Codex: CHECKED - clean apder rows are live
+
+- New checked carrier subset:
+  `apder_clean r ==> apder_rows r <= partial_derivative_live_row_universe r`.
+  Plain gloss: the root row is live, root frontier rows are live, and term
+  frontier rows are live because clean `apder_terms` are live path
+  continuations.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:20). No `sorry`.
+- NEXT smallest brick: transfer `apder_strong_dlfrontier r` into
+  `strong_opened_live_row_universe r` by closure monotonicity over this subset.

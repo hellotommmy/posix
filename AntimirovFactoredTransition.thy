@@ -33178,6 +33178,42 @@ proof
     using p_acc acc_eq by (simp add: rpath_continuations_def)
 qed
 
+lemma apder_rows_subset_partial_derivative_live_row_universe_clean:
+  assumes clean: "apder_clean r"
+  shows "apder_rows r \<subseteq> partial_derivative_live_row_universe r"
+proof
+  fix q
+  assume q: "q \<in> apder_rows r"
+  have terms_live: "apder_terms r \<subseteq> rpath_continuations r"
+    by (rule apder_terms_subset_rpath_continuations_clean[OF clean])
+  have q_cases: "q = r \<or> q \<in> rfrontier r \<or>
+      (\<exists>p \<in> apder_terms r. q \<in> rfrontier p)"
+    using q by (auto simp add: apder_rows_def apder_frontier_def)
+  then show "q \<in> partial_derivative_live_row_universe r"
+  proof
+    assume "q = r"
+    then show ?thesis by simp
+  next
+    assume rest: "q \<in> rfrontier r \<or>
+      (\<exists>p \<in> apder_terms r. q \<in> rfrontier p)"
+    then show ?thesis
+    proof
+      assume front: "q \<in> rfrontier r"
+      then show ?thesis
+        by (rule partial_derivative_live_row_universe_frontier)
+    next
+      assume "\<exists>p \<in> apder_terms r. q \<in> rfrontier p"
+      then obtain p where p: "p \<in> apder_terms r" "q \<in> rfrontier p"
+        by blast
+      have p_live: "p \<in> rpath_continuations r"
+        using terms_live p(1) by blast
+      show ?thesis
+        by (rule partial_derivative_live_row_universe_path_frontier
+            [OF p_live p(2)])
+    qed
+  qed
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
