@@ -18655,6 +18655,74 @@ proof -
     using raw_subset rows_subset by simp
 qed
 
+lemma rfrontiers_subset_child_apder_rows:
+  "rfrontiers rs \<subseteq> (\<Union>q \<in> set rs. apder_rows q)"
+  by (induct rs) (auto simp add: apder_rows_def apder_frontier_def)
+
+lemma apder_rows_RALTS_subset_child_rows:
+  "apder_rows (RALTS rs) \<subseteq>
+    insert (RALTS rs) (\<Union>q \<in> set rs. apder_rows q)"
+proof -
+  have fronts:
+      "rfrontiers rs \<subseteq> (\<Union>q \<in> set rs. apder_rows q)"
+    by (rule rfrontiers_subset_child_apder_rows)
+  have term_fronts:
+      "(\<Union>p \<in> apder_terms (RALTS rs). rfrontier p) \<subseteq>
+        (\<Union>q \<in> set rs. apder_rows q)"
+    by (auto simp add: apder_rows_def apder_frontier_def)
+  show ?thesis
+    using fronts term_fronts
+    by (auto simp add: apder_rows_def apder_frontier_def)
+qed
+
+lemma apder_strong_dlfrontier_RALTS_subset:
+  "apder_strong_dlfrontier (RALTS rs) \<subseteq>
+    (\<Union>q \<in> set rs. apder_strong_dlfrontier q)"
+proof
+  fix x
+  assume x: "x \<in> apder_strong_dlfrontier (RALTS rs)"
+  obtain p where p:
+      "p \<in> apder_rows (RALTS rs)"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: apder_strong_dlfrontier_def
+        rsimpStrong_dlform_closure_def)
+  have p_cases:
+      "p = RALTS rs \<or> (\<exists>q \<in> set rs. p \<in> apder_rows q)"
+    using apder_rows_RALTS_subset_child_rows p(1) by blast
+  then show "x \<in> (\<Union>q \<in> set rs. apder_strong_dlfrontier q)"
+  proof
+    assume p_root: "p = RALTS rs"
+    have root_subset:
+        "row_dlforms (rsimpStrong_raw (RALTS rs)) \<subseteq>
+          (\<Union>q \<in> set rs. apder_strong_dlfrontier q)"
+    proof (rule row_dlforms_rsimpStrong_raw_RALTS_subsetI)
+      fix q
+      assume q: "q \<in> set rs"
+      have "row_dlforms (rsimpStrong_raw q) \<subseteq>
+          apder_strong_dlfrontier q"
+        unfolding apder_strong_dlfrontier_def
+        by (rule row_dlforms_rsimpStrong_raw_self_closure)
+          (simp add: apder_rows_def)
+      then show "row_dlforms (rsimpStrong_raw q) \<subseteq>
+          (\<Union>q \<in> set rs. apder_strong_dlfrontier q)"
+        using q by blast
+    qed
+    show ?thesis
+      using p(2) p_root root_subset by blast
+  next
+    assume "\<exists>q \<in> set rs. p \<in> apder_rows q"
+    then obtain q where q: "q \<in> set rs" "p \<in> apder_rows q"
+      by blast
+    have "x \<in> apder_strong_dlfrontier q"
+      unfolding apder_strong_dlfrontier_def
+        rsimpStrong_dlform_closure_def
+      using p(2) q(2) by blast
+    then show ?thesis
+      using q(1) by blast
+  qed
+qed
+
 lemma row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single:
   assumes flat: "set (rflts [p]) \<subseteq> U"
   shows "row_dlforms (rsimpStrong_raw p) \<subseteq>

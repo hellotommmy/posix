@@ -8630,3 +8630,28 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_row_universes(afactored1 r s)`, starting with the sampled
   cap shape `rsize_set(actual) <= max(rsizes(afactored1 r s), (rsize r+3)^2)`
   and/or a direct carrier cubic bound.
+
+## 2026-06-14 Codex: CHECKED - RALTS strong frontier is child-paid
+
+- Ephemeral scratch sample (no committed scratch edit): after matching the
+  theory fact `row_dlforms RZERO = {}`, the constructor containment
+  `apder_strong_dlfrontier(RALTS rs) <=
+   UNION q in set rs. apder_strong_dlfrontier q`
+  had 500,000 random `apder_nf` `RALTS` samples to depth 7 with zero
+  violations.
+- New checked structural helper:
+  `rfrontiers rs <= UNION q in set rs. apder_rows q`, hence
+  `apder_rows(RALTS rs) <=
+   insert (RALTS rs) (UNION q in set rs. apder_rows q)`.
+- New checked strong-opened constructor inequality:
+  `apder_strong_dlfrontier(RALTS rs) <=
+   UNION q in set rs. apder_strong_dlfrontier q`.
+  Plain gloss: top-level alternatives add no new strong-opened forms beyond
+  their child frontiers; empty/zero branches pay zero because `row_dlforms`
+  opens `RZERO` to the empty set.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:17). No `sorry`.
+- NEXT smallest brick: sample and prove the corresponding non-branching
+  constructor bounds for `apder_strong_dlfrontier`, starting with the `RSEQ`
+  split needed for a direct cubic bound on the strong-opened frontier.
