@@ -7587,3 +7587,30 @@ but does not invalidate them.
   `sigma_clean`, `sigma_RONE_id_nf`, `clean_zero_budget_root`,
   `alts_positive_member`.  Next safe step: claim the exact `T_and_S`
   simultaneous-induction statement/skeleton.
+
+## 2026-06-13 Codex: CLAIM - T/S statement surface and induction helpers
+
+- Re-read the latest PROGRESS tail after pushing `alts_positive_member`
+  (commit 44206f2); no proof workers live.
+- CLAIM: I am editing only the T/S statement surface in
+  `AntimirovFactoredTransition.thy`: define the exact merged-frontier
+  `apder_T_bound`, define strict-credit `apder_S_bound`, and add the small
+  helper facts needed by the single `T_and_S` induction (`T ==> D` and clean
+  constructor destructors).  No constructor induction proof yet in this brick.
+
+## 2026-06-13 Codex: CHECKED - T/S statement surface and helpers
+
+- New checked statement surface in `AntimirovFactoredTransition.thy`:
+  `apder_T_bound` (exact merged-frontier T) and `apder_S_bound`
+  (strict-credit S).
+- New checked induction helpers:
+  `apder_T_bound_imp_D`, `apder_S_boundD`,
+  `apder_S_bound_imp_discount`, `apder_clean_RALTS_member`,
+  `apder_clean_RSEQ_left`, `apder_clean_RSEQ_right`,
+  `apder_clean_RSTAR_body`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 84.510s, full Posix elapsed 0:01:27).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next safe step: claim and build the single `T_and_S`
+  induction, starting with constructor branch helpers if needed.

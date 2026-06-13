@@ -30756,6 +30756,70 @@ next
   qed
 qed
 
+definition apder_T_bound :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "apder_T_bound r k \<longleftrightarrow>
+    card ((rfrontier (rsimp4_SEQ_atom r k) \<union>
+      apder_term_frontier_acc r k) - rfrontier k) \<le> apder_zw2 r"
+
+definition apder_S_bound :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "apder_S_bound r k \<longleftrightarrow>
+    (0 < apder_zw2 r \<longrightarrow>
+      Suc (card (apder_term_frontier_acc r k - rfrontier k))
+        \<le> apder_zw2 r)"
+
+lemma apder_T_bound_imp_D:
+  assumes "apder_T_bound r k"
+  shows "card (apder_term_frontier_acc r k - rfrontier k)
+    \<le> apder_zw2 r"
+proof -
+  have sub: "apder_term_frontier_acc r k - rfrontier k \<subseteq>
+      (rfrontier (rsimp4_SEQ_atom r k) \<union>
+        apder_term_frontier_acc r k) - rfrontier k"
+    by auto
+  have "card (apder_term_frontier_acc r k - rfrontier k) \<le>
+      card ((rfrontier (rsimp4_SEQ_atom r k) \<union>
+        apder_term_frontier_acc r k) - rfrontier k)"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> apder_zw2 r"
+    using assms unfolding apder_T_bound_def by simp
+  finally show ?thesis .
+qed
+
+lemma apder_S_boundD:
+  assumes "apder_S_bound r k"
+    and "0 < apder_zw2 r"
+  shows "Suc (card (apder_term_frontier_acc r k - rfrontier k))
+    \<le> apder_zw2 r"
+  using assms unfolding apder_S_bound_def by simp
+
+lemma apder_S_bound_imp_discount:
+  assumes "apder_S_bound r k"
+    and "0 < apder_zw2 r"
+  shows "card (apder_term_frontier_acc r k - rfrontier k)
+    \<le> apder_zw2 r - 1"
+  using apder_S_boundD[OF assms] by simp
+
+lemma apder_clean_RALTS_member:
+  assumes "apder_clean (RALTS rs)"
+    and "q \<in> set rs"
+  shows "apder_clean q"
+  using assms unfolding apder_clean_def by simp
+
+lemma apder_clean_RSEQ_left:
+  assumes "apder_clean (RSEQ r1 r2)"
+  shows "apder_clean r1"
+  using assms unfolding apder_clean_def by simp
+
+lemma apder_clean_RSEQ_right:
+  assumes "apder_clean (RSEQ r1 r2)"
+  shows "apder_clean r2"
+  using assms unfolding apder_clean_def by simp
+
+lemma apder_clean_RSTAR_body:
+  assumes "apder_clean (RSTAR r)"
+  shows "apder_clean r"
+  using assms unfolding apder_clean_def by simp
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE
