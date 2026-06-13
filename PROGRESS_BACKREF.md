@@ -7647,3 +7647,61 @@ but does not invalidate them.
   (AntimirovFactoredTransition 72.942s, full Posix elapsed 0:01:13).
 - No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
   unchanged.  Next constructor helper candidate: `T_and_S_RALTS`.
+
+## 2026-06-13 Codex: CLAIM - T_and_S_RALTS constructor case
+
+- Re-read newest PROGRESS tail after pushing `T_and_S_RCHAR` (commit
+  10d4c79); no proof workers live.
+- CLAIM: I am editing only the named helper `T_and_S_RALTS` in
+  `AntimirovFactoredTransition.thy`, conditional on member T/S IHs for any
+  clean continuation.  The proof uses exact E00 at `RONE`, member D from T,
+  and the strict S discount to pay the proper-continuation alternation root.
+
+## 2026-06-13 Codex: RED/REPAIR - T_and_S_RALTS clean positivity
+
+- First two builds of `T_and_S_RALTS` failed at the same local step:
+  deriving `0 < apder_zw2 (RALTS rs)` from `apder_clean (RALTS rs)`.
+  The clean predicate gives the needed root nonzero fact through
+  `apder_zero_budget_trivial`, but direct `simp/auto` chased it into a
+  finite-list positivity subgoal.
+- Repair attempt changes only this named helper: extract
+  `apder_zw2 (RALTS rs) \<noteq> 0` first, then convert the nat nonzero fact to
+  positivity.  If this still fails, I will switch from RALTS to another
+  constructor helper and leave the blocker here.
+
+## 2026-06-13 Codex: SWITCH - RALTS helper paused after repeated positivity block
+
+- The explicit nonzero-to-positive repair still failed at the same local
+  finite-list positivity subgoal.  Per rule, I removed the unverified
+  `T_and_S_RALTS` helper from the theory rather than relaunching unchanged.
+- RALTS is not refuted: this is an Isabelle list-arithmetic proof-shape
+  blocker around extracting `0 < sum_list (map apder_zw2 rs)` from the clean
+  alternation root.  A future repair should introduce a small checked list
+  lemma or avoid unfolding `apder_zero_budget_trivial` through `simp`.
+- Switching constructor sub-target now; current checked theory content remains
+  through `T_and_S_RCHAR`.
+
+## 2026-06-13 Codex: CLAIM - T_and_S_RSEQ constructor case
+
+- CLAIM: switching to the named helper `T_and_S_RSEQ` in
+  `AntimirovFactoredTransition.thy`.  This is the verdict's telescoping SEQ
+  branch: left T/S at the middle boundary `sigma r2 k`, right T at `k`, and
+  clean-domain positivity of the left operand for strict S.
+
+## 2026-06-13 Codex: CHECKED - T_and_S_RSEQ constructor case
+
+- New checked helper in `AntimirovFactoredTransition.thy`:
+  `T_and_S_RSEQ`, proving both `apder_T_bound (RSEQ r1 r2) k` and
+  `apder_S_bound (RSEQ r1 r2) k` from the left/right clean IHs.
+- This is the verdict's telescoping branch: the middle frontier
+  `rfrontier (rsimp4_SEQ_atom r2 k)` is subtracted on the left and paid once
+  on the right; no inclusion-exclusion or old union-overlap sublemma is used.
+- One red build in this helper was only the final `apder_T_bound` fold-in
+  associativity (`?F1 \<union> ?A1 \<union> ?A2` vs `?F1 \<union> (?A1 \<union> ?A2)`); repaired with
+  `simp add: Un_assoc`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 81.534s, full Posix elapsed 0:01:26).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Remaining constructor helpers: RALTS (paused on list positivity)
+  and RSTAR.

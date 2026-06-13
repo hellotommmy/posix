@@ -30847,6 +30847,94 @@ proof -
     unfolding apder_S_bound_def by simp
 qed
 
+lemma T_and_S_RSEQ:
+  assumes clean: "apder_clean (RSEQ r1 r2)"
+    and k_clean: "apder_clean k"
+    and ih1T: "\<And>t. apder_clean t \<Longrightarrow> apder_T_bound r1 t"
+    and ih1S: "\<And>t. apder_clean t \<Longrightarrow> apder_S_bound r1 t"
+    and ih2T: "\<And>t. apder_clean t \<Longrightarrow> apder_T_bound r2 t"
+  shows "apder_T_bound (RSEQ r1 r2) k"
+    and "apder_S_bound (RSEQ r1 r2) k"
+proof -
+  let ?m = "rsimp4_SEQ_atom r2 k"
+  let ?F1 = "rfrontier (rsimp4_SEQ_atom r1 ?m)"
+  let ?A1 = "apder_term_frontier_acc r1 ?m"
+  let ?Fm = "rfrontier ?m"
+  let ?A2 = "apder_term_frontier_acc r2 k"
+  let ?Fk = "rfrontier k"
+  have r1_clean: "apder_clean r1"
+    by (rule apder_clean_RSEQ_left[OF clean])
+  have r2_clean: "apder_clean r2"
+    by (rule apder_clean_RSEQ_right[OF clean])
+  have m_clean: "apder_clean ?m"
+    by (rule sigma_clean[OF r2_clean k_clean])
+  have leftT: "apder_T_bound r1 ?m"
+    by (rule ih1T[OF m_clean])
+  have rightT: "apder_T_bound r2 k"
+    by (rule ih2T[OF k_clean])
+  have left_pos: "0 < apder_zw2 r1"
+  proof (rule ccontr)
+    assume "\<not> 0 < apder_zw2 r1"
+    then have zero: "apder_zw2 r1 = 0"
+      by simp
+    have root: "r1 = RZERO \<or> r1 = RONE"
+      by (rule clean_zero_budget_root[OF r1_clean zero])
+    have "r1 \<noteq> RZERO" "r1 \<noteq> RONE"
+      using clean unfolding apder_clean_def by auto
+    then show False
+      using root by auto
+  qed
+  have leftS: "apder_S_bound r1 ?m"
+    by (rule ih1S[OF m_clean])
+  have leftT_raw: "card ((?F1 \<union> ?A1) - ?Fm) \<le> apder_zw2 r1"
+    using leftT unfolding apder_T_bound_def by simp
+  have rightT_raw: "card ((?Fm \<union> ?A2) - ?Fk) \<le> apder_zw2 r2"
+    using rightT unfolding apder_T_bound_def by simp
+  have raw_T: "card ((?F1 \<union> ?A1 \<union> ?A2) - ?Fk)
+    \<le> apder_zw2 r1 + apder_zw2 r2"
+  proof -
+    have cover: "(?F1 \<union> ?A1 \<union> ?A2) - ?Fk \<subseteq>
+        ((?F1 \<union> ?A1) - ?Fm) \<union> ((?Fm \<union> ?A2) - ?Fk)"
+      by auto
+    have "card ((?F1 \<union> ?A1 \<union> ?A2) - ?Fk) \<le>
+        card (((?F1 \<union> ?A1) - ?Fm) \<union> ((?Fm \<union> ?A2) - ?Fk))"
+      by (rule card_mono) (use cover in auto)
+    also have "... \<le> card ((?F1 \<union> ?A1) - ?Fm) +
+        card ((?Fm \<union> ?A2) - ?Fk)"
+      by (rule card_Un_le)
+    also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+      using leftT_raw rightT_raw by linarith
+    finally show ?thesis .
+  qed
+  then show "apder_T_bound (RSEQ r1 r2) k"
+    unfolding apder_T_bound_def by (simp add: Un_assoc)
+  have leftS_raw: "Suc (card (?A1 - ?Fm)) \<le> apder_zw2 r1"
+    by (rule apder_S_boundD[OF leftS left_pos])
+  have raw_S: "Suc (card ((?A1 \<union> ?A2) - ?Fk))
+    \<le> apder_zw2 (RSEQ r1 r2)"
+  proof -
+    have cover: "(?A1 \<union> ?A2) - ?Fk \<subseteq>
+        (?A1 - ?Fm) \<union> ((?Fm \<union> ?A2) - ?Fk)"
+      by auto
+    have "card ((?A1 \<union> ?A2) - ?Fk) \<le>
+        card ((?A1 - ?Fm) \<union> ((?Fm \<union> ?A2) - ?Fk))"
+      by (rule card_mono) (use cover in auto)
+    also have "... \<le> card (?A1 - ?Fm) +
+        card ((?Fm \<union> ?A2) - ?Fk)"
+      by (rule card_Un_le)
+    finally have card_le: "card ((?A1 \<union> ?A2) - ?Fk) \<le>
+        card (?A1 - ?Fm) + card ((?Fm \<union> ?A2) - ?Fk)" .
+    have "Suc (card ((?A1 \<union> ?A2) - ?Fk)) \<le>
+        Suc (card (?A1 - ?Fm) + card ((?Fm \<union> ?A2) - ?Fk))"
+      using card_le by simp
+    also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+      using leftS_raw rightT_raw by linarith
+    finally show ?thesis by simp
+  qed
+  then show "apder_S_bound (RSEQ r1 r2) k"
+    unfolding apder_S_bound_def by simp
+qed
+
 
 text \<open>
   The RALTS branch of the tight merged law E00 at the RONE
