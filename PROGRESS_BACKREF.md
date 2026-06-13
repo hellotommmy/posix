@@ -8763,3 +8763,24 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove the analogous `RSTAR` accumulator split
   `strong_opened_acc(STAR r,k) <= row(root STAR/k) UNION
    strong_opened_acc(r, root STAR/k)`.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live RSTAR split
+
+- New checked live-row split:
+  `partial_derivative_live_row_universe_acc(RSTAR r) k <=
+   insert (rsimp4_SEQ_atom (RSTAR r) k)
+     (partial_derivative_live_row_universe_acc r
+       (rsimp4_SEQ_atom (RSTAR r) k))`.
+- New checked strong-opened split:
+  `strong_opened_live_row_universe_acc(RSTAR r) k <=
+   row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) UNION
+   strong_opened_live_row_universe_acc r
+     (rsimp4_SEQ_atom (RSTAR r) k)`.
+  Plain gloss: the star constructor pays its carried star root once, then
+  passes the same carried root into the body carrier; this is the expected
+  telescoping STAR branch for the prefix-aware live ledger.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: add the generalized accumulator `RALTS` split and then
+  formulate the first size bound for `strong_opened_live_row_universe_acc`.
