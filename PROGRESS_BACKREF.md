@@ -8443,3 +8443,24 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: combine this with a checked tail-size bound for
   `rsize_set(rseq_tails U)` and the existing front-term budget, without
   reintroducing the old list-cost/self-reference route.
+
+## 2026-06-14 Codex: CHECKED - actual tails bounded by generated square
+
+- New checked member/card facts for
+  `T = rseq_tails(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))`:
+  every `t IN T` satisfies
+  `rsize t <= rsizes(concat(map (rpder_norm_list c) (afactored1 r s)))`,
+  and `card T` is bounded by the same generated-size ledger.
+- New checked inequality:
+  `rsize_set T <=
+   rsizes(concat(map (rpder_norm_list c) (afactored1 r s))) *
+   rsizes(concat(map (rpder_norm_list c) (afactored1 r s)))`.
+  Plain gloss: compound tails are not forced into the front set; instead,
+  this conservative ledger pays tail count and tail size separately from the
+  generated one-step rows.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:11). No `sorry`.
+- NEXT smallest brick: assemble the checked bucket inequality with this tail
+  ledger, then decide whether the resulting generated-square term is strong
+  enough or must be replaced by a sharper opened-boundary/tail carrier.

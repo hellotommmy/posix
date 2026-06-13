@@ -28667,6 +28667,57 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_member_size_le_generated:
+  assumes t: "t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  shows "rsize t \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  obtain h where h: "RSEQ h t \<in> ?U"
+    using t by (auto simp add: rseq_tails_def)
+  have "rsize t \<le> rsize (RSEQ h t)"
+    by simp
+  also have "... \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule row_dlformss_rpder_strong_member_size_le_generated[OF h])
+  finally show ?thesis .
+qed
+
+lemma card_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated:
+  "card (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  have "card (rseq_tails ?U) \<le> card ?U"
+    by (rule card_rseq_tails_le_card) simp
+  also have "... \<le>
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+    by (rule card_row_dlformss_rpder_strong_rows_raw_le_generated)
+  finally show ?thesis .
+qed
+
+lemma rsize_set_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated_square:
+  "rsize_set (rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))) \<le>
+    rsizes (concat (map (rpder_norm_list c) (afactored1 r s))) *
+      rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+proof -
+  let ?T = "rseq_tails
+    (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))"
+  let ?G = "rsizes (concat (map (rpder_norm_list c) (afactored1 r s)))"
+  have "rsize_set ?T \<le> card ?T * ?G"
+    by (rule rsize_set_le_card_times_bound)
+      (simp_all add:
+        rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_member_size_le_generated)
+  also have "... \<le> ?G * ?G"
+    by (rule mult_right_mono)
+      (simp_all add:
+        card_rseq_tails_row_dlformss_rpder_strong_rows_raw_afactored1_le_generated)
+  finally show ?thesis .
+qed
+
 
 text \<open>
   The pair-budget gate, instantiated: on the legacy fragment the
