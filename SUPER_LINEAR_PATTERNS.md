@@ -366,6 +366,33 @@ any engine claiming to return **POSIX-correct submatches/captures**.
   engine state-sharing scheme) that treats opened linear forms as a subset of
   the frontier is unsound.
 
+## B10. Singleton-alt under a star — killed the opened-boundary carrier bridge
+
+- **rrexp**: `r = RSTAR (RALTS [RCHAR a])` = `(a)*` with a one-element
+  alternation under the star; the escaping row is `bad = RSTAR (RCHAR a)`.
+- **PCRE**: `(?:a)*` — a redundant single-branch alternation wrapped in a star.
+  For fuzzing a simplifier, keep the singleton `(?:...)` un-flattened in the
+  input so the pre/post-simplification mismatch is exercised.
+- **killed**: the strong-carrier-preservation bridge of the GPT Pro
+  opened-boundary gate route —
+  `rsimpStrong_dlform_closure (set (afactored1 r u)) ⊆
+   odfront RONE ∪ opened_boundary_forms r RONE`. Checked false:
+  `rsimpStrong_dlform_closure_opened_boundary_carrier_false`
+  (`AntimirovFactoredTransition.thy`). Isabelle proves `apder_clean r` and
+  `bad ∈ rsimpStrong_dlform_closure (set (afactored1 r []))` yet
+  `bad ∉ odfront RONE ∪ opened_boundary_forms r RONE`.
+- **deception**: closed-form, minimal — but it killed an entire *checked-stack*
+  route. The opened-boundary 9-lemma stack (inclusions, `open_pot` potential,
+  carrier) all went green at the `apder_clean`/`afactored1` level before this CE
+  showed the final bridge to the STRONG-pruned object is unsound on the clean
+  fragment. A worked, self-consistent invariant can still fail at the one place
+  the strong simplifier rewrites structure.
+- **mechanism**: strong simplification collapses the singleton `RALTS [RCHAR a]`
+  under the star (`RSTAR (RALTS [RCHAR a]) → RSTAR (RCHAR a)`) *after* the opened
+  carrier was computed for the unsimplified root, so a strong-simplified row
+  escapes the carrier built pre-simplification. Any "compute the carrier on the
+  raw form, then simplify" pipeline inherits this gap.
+
 ---
 
 # Suggested fuzzer use
