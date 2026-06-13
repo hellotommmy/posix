@@ -7420,3 +7420,39 @@ Transition.thy left as the active worker's in-flight edit).
   No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
 - Only the `E0_RALTS_if_members` theory hunk plus these PROGRESS entries are
   mine to stage; unrelated doc/corpus edits remain unstaged.
+
+## 2026-06-13 Secretary: doc-drift audit pass (commit 971cd22; docs only, no .thy)
+
+Read-only multi-agent audit of the LIVE docs vs the git/.thy frontier (HEAD
+e0b899b at audit time). No proof artifacts touched; staged only my own doc
+files (never `git add -A`). Trust git timestamps, not the `HH:MM` labels here.
+
+Applied in commit 971cd22 (pushed):
+- **CUBIC_OPEN_PROBLEM.tex — correctness fix.** Law (A) had been stated in its
+  UNRESTRICTED form, which is checked FALSE (`apder_zw2_D_law_rntimes_zero_alt_false`,
+  rntimes-zero CE). Restricted it to the legacy/rntimes-free instance, added a
+  matching §refuted item, recorded the simultaneous-induction status, recompiled
+  the PDF (clean, 7pp).
+- **MATHPROBLEM_ROWCOUNT.md.** Appended the branch-map-complete STATUS (E00-RONE
+  five branches with lemma names, clean-domain passthrough discount as a named
+  obligation, union-overlap sublemma as the next brick).
+- **SUPER_LINEAR_PATTERNS.md.** +A6 (owner-closure 2^m-1 exponential,
+  `raw_shared_prune_active_suffix_owner_exponential`) and +B9 (opened rows ⊄
+  frontier, `row_lforms_rsimp7_SEQ_atom_RONE_subset_false`). Every lemma name
+  grep-verified before citing.
+- **MAINLINE §2.** Synced to 581d9d6/e0b899b (discount RCHAR + 96% RALTS member
+  branch + E0 RALTS bridge checked; only the 4% union-overlap sublemma remains of
+  piece (a)).
+
+NOT acted on — audit false-positives, logged so they are not re-flagged later:
+- "nine dead strengthenings missing from corpus" — already covered by B1–B4
+  (B2 = #1/#2/#7, B4 = 9a/9b, B3 = membership/awidth). No duplicate entries added.
+- "B3 vs 113,751-sample discrepancy" — none: B2 = the equality CE (113,751), B3 =
+  the awidth law (47,298); different CEs.
+
+OPEN gap for proof agents/admin: MAINLINE §4 item 5 ("subterm-deep carrier
+containment — checked false") has NO concrete checked-lemma name I could locate
+(closest is `rsimpDeep_fixed_aseq_terms_payment_false`, not a containment CE). I
+did NOT fabricate a corpus entry. If a real checked-false lemma exists, name it
+and it becomes a SUPER_LINEAR_PATTERNS entry; otherwise §4 item 5 should state its
+evidence form. (§4 item 4, owner-closure, is now grounded as corpus A6.)
