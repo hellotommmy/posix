@@ -9332,3 +9332,20 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: attack the remaining root-potential cubic by constructor,
   starting with a direct RZERO/base assembly and then the RSTAR-specific
   open-potential-style arithmetic if the drain shell is too coarse.
+
+## 2026-06-14 Codex: CHECKED - root potential base cubics
+
+- New checked base constructor cubics:
+  `strong_opened_live_acc_potential RZERO RONE <=
+   2 * (rsize RZERO + 3)^3`,
+  `strong_opened_live_acc_potential RONE RONE <=
+   2 * (rsize RONE + 3)^3`, and
+  `strong_opened_live_acc_potential (RCHAR c) RONE <=
+   2 * (rsize (RCHAR c) + 3)^3`.
+  Plain gloss: zero, one, and literal roots fit the root-potential cubic; the
+  literal case reuses the checked drain shell.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:10). No `sorry`.
+- NEXT smallest brick: find the sharper recursive invariant for RALTS/STAR;
+  coarse child `2*cube` sums leave no root budget for RALTS.

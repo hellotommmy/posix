@@ -32863,6 +32863,28 @@ proof -
     by simp
 qed
 
+lemma strong_opened_live_acc_potential_RZERO_root_cubic:
+  "strong_opened_live_acc_potential RZERO RONE \<le>
+    2 * (rsize RZERO + 3) ^ 3"
+  by simp
+
+lemma strong_opened_live_acc_potential_RONE_root_cubic:
+  "strong_opened_live_acc_potential RONE RONE \<le>
+    2 * (rsize RONE + 3) ^ 3"
+  by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+
+lemma strong_opened_live_acc_potential_RCHAR_root_cubic:
+  "strong_opened_live_acc_potential (RCHAR c) RONE \<le>
+    2 * (rsize (RCHAR c) + 3) ^ 3"
+proof -
+  have "strong_opened_live_acc_potential (RCHAR c) RONE \<le>
+      (rsize (RCHAR c) + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell)
+  also have "... \<le> 2 * (rsize (RCHAR c) + 3) ^ 3"
+    by (simp add: power3_eq_cube)
+  finally show ?thesis .
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set
