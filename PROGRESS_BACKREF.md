@@ -8925,3 +8925,27 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_acc_potential r RONE` under the normalization hypothesis,
   or first introduce the needed root-row/frontier charge lemmas if arithmetic
   exposes a missing bound.
+
+## 2026-06-14 Codex: CHECKED - strong-live RONE base cubic
+
+- New checked suffix-frontier charge:
+  `rsize_set(row_dlformss_set (rsimpStrong_raw \` rfrontier k)) <=
+   Suc (rsize k) * rsize k`.
+  Plain gloss: strongly opening every row in the suffix frontier costs only a
+  quadratic amount in the suffix size, using the existing frontier-size and
+  `rsimpStrong_raw` row-form quadratic facts.
+- New checked `RONE` potential base:
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw k)) +
+     rsize_set(row_dlformss_set (rsimpStrong_raw \` rfrontier k)) <=
+   2 * (rsize k + 4)^3`, hence
+  `strong_opened_live_acc_potential RONE k <=
+   2 * (rsize RONE + rsize k + 3)^3`.
+  Plain gloss: the explicit suffix/base charge in the prefix strong-live
+  potential is safely cubic; the full potential induction can now cite this
+  base instead of reproving the frontier accounting.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: introduce a matching root-row charge bound for
+  `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k)))`, then use it
+  in the general accumulator-potential cubic induction.

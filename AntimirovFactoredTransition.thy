@@ -32079,6 +32079,72 @@ proof -
     by simp
 qed
 
+lemma rsize_set_row_dlformss_set_rsimpStrong_raw_rfrontier_le:
+  "rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+    Suc (rsize k) * rsize k"
+proof -
+  have "rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) =
+      rsize_set (\<Union>q \<in> rfrontier k. row_dlforms (rsimpStrong_raw q))"
+    by (simp add: row_dlformss_set_def)
+  also have "... \<le>
+      (\<Sum>q \<in> rfrontier k.
+        rsize_set (row_dlforms (rsimpStrong_raw q)))"
+    by (rule rsize_set_UN_le) auto
+  also have "... \<le>
+      (\<Sum>q \<in> rfrontier k. Suc (rsize k) * rsize q)"
+  proof (rule sum_mono)
+    fix q
+    assume q: "q \<in> rfrontier k"
+    have q_size: "rsize q \<le> rsize k"
+      by (rule rfrontier_member_size_le[OF q])
+    have "rsize_set (row_dlforms (rsimpStrong_raw q)) \<le>
+        Suc (rsize q) * rsize q"
+      by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+    also have "... \<le> Suc (rsize k) * rsize q"
+      by (rule mult_right_mono) (use q_size in auto)
+    finally show "rsize_set (row_dlforms (rsimpStrong_raw q)) \<le>
+      Suc (rsize k) * rsize q" .
+  qed
+  also have "... = Suc (rsize k) * rsize_set (rfrontier k)"
+    by (simp add: rsize_set_def sum_distrib_left mult.commute)
+  also have "... \<le> Suc (rsize k) * rsize k"
+    by (rule mult_left_mono) (simp_all add: rsize_set_rfrontier_le_rsize)
+  finally show ?thesis .
+qed
+
+lemma strong_opened_live_acc_RONE_base_cubic:
+  "1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+      rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+    2 * (rsize k + 4) ^ 3"
+proof -
+  have root:
+      "rsize_set (row_dlforms (rsimpStrong_raw k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+  have front:
+      "rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlformss_set_rsimpStrong_raw_rfrontier_le)
+  have arith:
+      "1 + Suc (rsize k) * rsize k +
+        Suc (rsize k) * rsize k \<le>
+      2 * (rsize k + 4) ^ 3"
+    by (simp add: power3_eq_cube algebra_simps)
+  show ?thesis
+    using root front arith by linarith
+qed
+
+lemma strong_opened_live_acc_potential_RONE_cubic:
+  "strong_opened_live_acc_potential RONE k \<le>
+    2 * (rsize RONE + rsize k + 3) ^ 3"
+proof -
+  have "strong_opened_live_acc_potential RONE k \<le>
+      2 * (rsize k + 4) ^ 3"
+    using strong_opened_live_acc_RONE_base_cubic[of k] by simp
+  then show ?thesis
+    by (simp add: add.commute add.left_commute add.assoc)
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set
