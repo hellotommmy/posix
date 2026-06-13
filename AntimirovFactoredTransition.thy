@@ -32294,6 +32294,116 @@ next
     by (simp add: rsize_set_def)
 qed
 
+lemma strong_opened_live_acc_potential_RCHAR_cube_shell_large:
+  assumes k_big: "2 \<le> rsize k"
+  shows "strong_opened_live_acc_potential (RCHAR c) k \<le>
+    (rsize (RCHAR c) + rsize k) ^ 3 - (rsize k) ^ 3"
+proof -
+  have root:
+      "rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RCHAR c) k))) \<le>
+      Suc (Suc (rsize k))"
+    by (rule strong_opened_live_acc_RCHAR_root_charge_linear)
+  have row:
+      "rsize_set (row_dlforms (rsimpStrong_raw k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+  have front:
+      "rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k)) \<le>
+      Suc (rsize k) * rsize k"
+    by (rule rsize_set_row_dlformss_set_rsimpStrong_raw_rfrontier_le)
+  have square_big: "2 \<le> rsize k * rsize k"
+  proof -
+    have "2 * 1 \<le> rsize k * rsize k"
+      by (rule mult_mono) (use k_big in auto)
+    then show ?thesis by simp
+  qed
+  have arith:
+      "Suc (Suc (rsize k)) + 1 +
+        Suc (rsize k) * rsize k +
+        Suc (rsize k) * rsize k \<le>
+      (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    using square_big by (simp add: power3_eq_cube algebra_simps)
+  have "strong_opened_live_acc_potential (RCHAR c) k \<le>
+      Suc (Suc (rsize k)) + 1 +
+        Suc (rsize k) * rsize k +
+        Suc (rsize k) * rsize k"
+    using root row front by simp
+  also have "... \<le> (rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    by (rule arith)
+  finally show ?thesis
+    by simp
+qed
+
+lemma strong_opened_live_acc_potential_RCHAR_cube_shell:
+  "strong_opened_live_acc_potential (RCHAR c) k \<le>
+    (rsize (RCHAR c) + rsize k) ^ 3 - (rsize k) ^ 3"
+proof (cases k)
+  case RZERO
+  then show ?thesis
+    by (simp add: rsize_set_def power3_eq_cube)
+next
+  case RONE
+  then show ?thesis
+    by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+next
+  case (RCHAR d)
+  then show ?thesis
+    by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+next
+  case (RSEQ k1 k2)
+  have "2 \<le> rsize k"
+    using RSEQ size_geq1[of k1] by simp
+  then show ?thesis
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+next
+  case (RALTS rs)
+  show ?thesis
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using RALTS
+      by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+          rsimpStrong_prune_pair_raw_def)
+  next
+    case (Cons q qs)
+    have "2 \<le> rsize k"
+      using RALTS Cons size_geq1[of q] by simp
+    then show ?thesis
+      by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+  qed
+next
+  case (RSTAR k')
+  have "2 \<le> rsize k"
+    using RSTAR size_geq1[of k'] by simp
+  then show ?thesis
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+next
+  case (RNTIMES k' n)
+  have "2 \<le> rsize k"
+    using RNTIMES size_geq1[of k'] by simp
+  then show ?thesis
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+next
+  case (RBACKREF4 k1 k2 k3 k4 cs)
+  have "2 \<le> rsize k"
+    using RBACKREF4 size_geq1[of k1] by simp
+  then show ?thesis
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+next
+  case (RHALF k' cs rep)
+  have "2 \<le> rsize k"
+    using RHALF size_geq1[of k'] by simp
+  then show ?thesis
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell_large)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set

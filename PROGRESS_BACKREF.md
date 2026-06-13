@@ -9009,3 +9009,22 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:23). No `sorry`.
 - NEXT smallest brick: combine this linear root charge with the sharpened
   suffix/base shell to prove the RCHAR drain inequality.
+
+## 2026-06-14 Codex: CHECKED - RCHAR strong-live drain shell
+
+- New checked large-suffix arithmetic helper:
+  if `2 <= rsize k`, then
+  `strong_opened_live_acc_potential (RCHAR c) k <=
+   (rsize (RCHAR c) + rsize k)^3 - (rsize k)^3`.
+- New checked RCHAR drain case, all suffixes:
+  `strong_opened_live_acc_potential (RCHAR c) k <=
+   (rsize (RCHAR c) + rsize k)^3 - (rsize k)^3`.
+  Plain gloss: a character consumes exactly one cube shell in the drain
+  potential; atomic suffixes are handled exactly, and all larger suffixes use
+  the linear root charge plus the quadratic suffix-frontier base.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the RZERO/RONE/RCHAR base cases are ready for a
+  full drain induction, then split the RALTS cube-sum arithmetic or the RSEQ
+  telescoping arithmetic, whichever fails first under a trial induction.
