@@ -30641,5 +30641,110 @@ lemma apder_zero_budget_trivial_RALTS_member:
     apder_zero_budget_trivial q"
   by simp
 
+lemma apder_zero_budget_trivial_rsimp4_SEQ_atom:
+  assumes p: "apder_zero_budget_trivial p"
+    and k: "apder_zero_budget_trivial k"
+  shows "apder_zero_budget_trivial (rsimp4_SEQ_atom p k)"
+  using p k
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSEQ p1 p2)
+  have p1_zbt: "apder_zero_budget_trivial p1"
+    using RSEQ.prems by simp
+  have p2_zbt: "apder_zero_budget_trivial p2"
+    using RSEQ.prems by simp
+  have cont_zbt: "apder_zero_budget_trivial (rsimp4_SEQ_atom p2 k)"
+    by (rule RSEQ.hyps(2)[OF p2_zbt RSEQ.prems(2)])
+  have "apder_zero_budget_trivial
+      (rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k))"
+    by (rule RSEQ.hyps(1)[OF p1_zbt cont_zbt])
+  then show ?case
+    by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases k) auto
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases k) auto
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases k) auto
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases k) auto
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases k) auto
+qed
+
+
+text \<open>
+  The RALTS branch of the tight merged law E00 at the RONE
+  continuation: alternation members contribute their own merged
+  accounts independently (RONE members contribute nothing), and the
+  member budgets sum to the alternation budget.  This is the first
+  assembled branch of the clean-domain simultaneous induction.
+\<close>
+
+lemma rfrontiers_eq_UN:
+  "rfrontiers rs = (\<Union>q \<in> set rs. rfrontier q)"
+  by (induct rs) auto
+
+lemma E00_RONE_RALTS_if_members:
+  assumes members: "\<And>q. q \<in> set rs \<Longrightarrow> q \<noteq> RONE \<Longrightarrow>
+      card ((rfrontier q \<union> apder_term_frontier_acc q RONE)
+        - {RONE}) \<le> apder_zw2 q"
+  shows "card ((rfrontier (RALTS rs) \<union>
+      apder_term_frontier_acc (RALTS rs) RONE) - {RONE})
+    \<le> apder_zw2 (RALTS rs)"
+proof -
+  have split: "(rfrontier (RALTS rs) \<union>
+      apder_term_frontier_acc (RALTS rs) RONE) - {RONE} =
+      (\<Union>q \<in> set rs.
+        (rfrontier q \<union> apder_term_frontier_acc q RONE) - {RONE})"
+    by (auto simp add: rfrontiers_eq_UN)
+  have "card ((rfrontier (RALTS rs) \<union>
+      apder_term_frontier_acc (RALTS rs) RONE) - {RONE}) \<le>
+      (\<Sum>q \<in> set rs.
+        card ((rfrontier q \<union> apder_term_frontier_acc q RONE)
+          - {RONE}))"
+    unfolding split by (rule card_UN_le) simp
+  also have "... \<le> (\<Sum>q \<in> set rs. apder_zw2 q)"
+  proof (rule sum_mono)
+    fix q
+    assume q: "q \<in> set rs"
+    show "card ((rfrontier q \<union> apder_term_frontier_acc q RONE)
+        - {RONE}) \<le> apder_zw2 q"
+    proof (cases "q = RONE")
+      case True
+      then show ?thesis by simp
+    next
+      case False
+      then show ?thesis using members[OF q] by simp
+    qed
+  qed
+  also have "... \<le> sum_list (map apder_zw2 rs)"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis by simp
+qed
+
 
 end
