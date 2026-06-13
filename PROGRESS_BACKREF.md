@@ -7951,3 +7951,67 @@ Trust git timestamps over the `HH:MM` labels here.
   into the staticized SEQ/two-summand gate, once the actual-row clean-domain
   premise is available (or record a tracked clean-domain stub if still
   absent).
+
+## 2026-06-13 Fable: CLAIM - clean-domain row propagation (apder_clean_apder_rows + helpers)
+
+- Synced to HEAD b918254 (tree green/clean; Codex's static afactored1 cubic
+  bound committed). Codex's closing note asks for "the actual-row clean-domain
+  premise" - that is exactly this lane.
+- CLAIM (all NEW lemmas, all in `AntimirovNormalFrontier.thy`, which is
+  downstream of FactoredTransition so `apder_clean` is visible and the
+  `legacy_apder_terms`/`legacy_apder_rows` chain already lives here; I am NOT
+  touching `AntimirovFactoredTransition.thy`):
+  * `apder_clean_RONE` : `apder_clean RONE`.
+  * `rntimes_free_apder_terms` : rntimes_free r ==> p in apder_terms r ==> rntimes_free p.
+  * `apder_zero_budget_trivial_rsubterms` : zbt r ==> q in rsubterms r ==> zbt q.
+  * `apder_zero_budget_trivial_apder_terms` : zbt r ==> p in apder_terms r ==> zbt p.
+  * `apder_clean_apder_rows` : apder_clean r ==> x in apder_rows r ==> apder_clean x.
+- This DISCHARGES the per-row/continuation `apder_clean` premise that
+  `D_law_clean` needs to apply to the ACTUAL rows (rows live in `apder_rows r`
+  via `afactored1_apder_rows_subset`), consistent with Codex's `apder_clean r`
+  premise convention.
+- MATH NOTE (recorded, not a CE): `apder_nf` alone does NOT imply
+  `apder_zero_budget_trivial` -- `RALTS [RONE]` is legacy + rntimes_free +
+  apder_nf but apder_zw2 = 0, so not zbt. Hence cleanliness is PROPAGATED from
+  an assumed-clean root, never derived from nf. The static carrier inherits
+  cleanliness from the (simp-normalized) clean root.
+- Reuses: legacy_apder_terms/legacy_apder_rows, apder_nf_apder_terms,
+  apder_nf_rfrontier_member_props, rntimes_free_legacy_rsubterms,
+  legacy_rrexp_rsubterms, rfrontier_subset_rsubterms, and the four
+  rsimp4_SEQ_atom preservations. No CE; SUPER_LINEAR unchanged.
+
+## 2026-06-13 Fable: CHECKED - clean-domain row propagation (apder_clean_apder_rows + helpers)
+
+- New checked lemmas in `AntimirovNormalFrontier.thy` (all GREEN first try):
+  * `apder_clean_RONE` : `apder_clean RONE`.
+  * `rntimes_free_apder_terms`, `apder_zero_budget_trivial_apder_terms`
+    (mirror `legacy_apder_terms` / `apder_nf_apder_terms`; RNTIMES vacuous).
+  * `apder_zero_budget_trivial_rsubterms` (mirror `legacy_rrexp_rsubterms`;
+    zbt is subterm-closed - RNTIMES/backref/half/residue vacuous).
+  * `apder_clean_apder_rows` :
+    `apder_clean r ==> x in apder_rows r ==> apder_clean x`.
+    Three-case split (x=r / x in rfrontier r / x in rfrontier q, q in
+    apder_terms r); legacy/rntimes_free/zbt via subterm-closure on
+    `rfrontier_subset_rsubterms`, apder_nf via
+    `apder_nf_rfrontier_member_props`, terms via the `*_apder_terms` chain.
+- This DISCHARGES the actual-row clean-domain premise Codex's closing note
+  asked for: the gate's actual rows live in `apder_rows r`
+  (`afactored1_apder_rows_subset`), so for a clean root every row (and every
+  `rsimp4_SEQ_atom` continuation, via the existing `sigma_clean`) is
+  `apder_clean`, and `D_law_clean` applies per-row.
+- Build GREEN after worker check (no live worker):
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovNormalFrontier 2.140s; full Posix elapsed 0:01:32). No `sorry`.
+- Guards: bounty / no_cheat / statement PASS. NOTE for admin: the
+  `backref_role_guard.py` `WORKER_ALLOWED` set is STALE (backref-pilot files
+  only: BackRefValues/BackRefBlexer + PROGRESS/BOUNTIES/scripts). It excludes
+  EVERY cubic-phase .thy file, so `--role worker` flags any cubic .thy edit
+  (Codex's `AntimirovFactoredTransition.thy` commits hit the same). It also
+  flags the pre-existing untracked `fable_partial.md` /
+  `scratch_dlform_cost_model.py`. I staged ONLY my two files
+  (`AntimirovNormalFrontier.thy`, `PROGRESS_BACKREF.md`); I did NOT weaken the
+  guard. Suggest the steward/admin refresh `WORKER_ALLOWED` for the cubic
+  phase (add AntimirovFactoredTransition.thy + AntimirovNormalFrontier.thy).
+- NEXT (open, for whoever assembles): feed `apder_clean_apder_rows` into the
+  per-row / SEQ-part D-law applications, and discharge the root `apder_clean r`
+  for the actual gate root (the fragment / simp-normalized input). Claim first.

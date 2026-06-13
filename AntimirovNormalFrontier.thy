@@ -1916,4 +1916,313 @@ proof -
     by (simp add: normal_same_front_prune_closure_def)
 qed
 
+text \<open>
+  Clean-domain propagation to the static row carrier.  The cubic gate applies
+  the clean-domain D law at each actual row (rows live in @{term "apder_rows r"}
+  via @{thm afactored1_apder_rows_subset}) and at the continuations produced by
+  @{const rsimp4_SEQ_atom}; for that the rows must be @{const apder_clean}.
+  Cleanliness is PROPAGATED from an assumed-clean root: @{const apder_nf} alone
+  does not force @{const apder_zero_budget_trivial} (for instance
+  @{term "RALTS [RONE]"} is nf, legacy and rntimes-free, yet
+  @{term "apder_zw2 (RALTS [RONE]) = 0"}), so the root carries the budget and
+  every subterm/term inherits it.
+\<close>
+
+lemma apder_clean_RONE: "apder_clean RONE"
+  by (simp add: apder_clean_def)
+
+lemma rntimes_free_apder_terms:
+  assumes free: "rntimes_free r"
+    and p: "p \<in> apder_terms r"
+  shows "rntimes_free p"
+  using free p
+proof (induct r arbitrary: p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then have "p = RONE" by simp
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> apder_terms q"
+    by auto
+  have "rntimes_free q"
+    using RALTS.prems q by simp
+  then show ?case
+    using RALTS.hyps[OF q(1)] q by blast
+next
+  case (RSEQ r1 r2)
+  have p_cases:
+      "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<or>
+        p \<in> apder_terms r2"
+    using RSEQ.prems by simp
+  show ?case
+  proof (rule disjE[OF p_cases])
+    assume "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1"
+    then obtain x where x: "x \<in> apder_terms r1"
+        "p = rsimp4_SEQ_atom x r2"
+      by blast
+    have "rntimes_free x"
+      by (rule RSEQ.hyps(1)[OF _ x(1)]) (use RSEQ.prems in simp)
+    moreover have "rntimes_free r2"
+      using RSEQ.prems by simp
+    ultimately show "rntimes_free p"
+      by (simp add: x(2) rntimes_free_rsimp4_SEQ_atom)
+  next
+    assume right: "p \<in> apder_terms r2"
+    show "rntimes_free p"
+      by (rule RSEQ.hyps(2)[OF _ right]) (use RSEQ.prems in simp)
+  qed
+next
+  case (RSTAR r)
+  then obtain x where x: "x \<in> apder_terms r"
+      "p = rsimp4_SEQ_atom x (RSTAR r)"
+    by auto
+  have "rntimes_free x"
+    by (rule RSTAR.hyps[OF _ x(1)]) (use RSTAR.prems in simp)
+  moreover have "rntimes_free (RSTAR r)"
+    using RSTAR.prems by simp
+  ultimately show ?case
+    by (simp add: x(2) rntimes_free_rsimp4_SEQ_atom)
+next
+  case (RNTIMES r n)
+  have False
+    using RNTIMES.prems(1) by simp
+  then show ?case ..
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False
+    using RBACKREF4.prems(2) by (simp only: apder_terms.simps empty_iff)
+  then show ?case ..
+next
+  case (RHALF r cs rep)
+  have False
+    using RHALF.prems(2) by (simp only: apder_terms.simps empty_iff)
+  then show ?case ..
+next
+  case (RRESIDUE cs rep)
+  have False
+    using RRESIDUE.prems(2) by (simp only: apder_terms.simps empty_iff)
+  then show ?case ..
+qed
+
+lemma apder_zero_budget_trivial_rsubterms:
+  assumes "apder_zero_budget_trivial r"
+    and "q \<in> rsubterms r"
+  shows "apder_zero_budget_trivial q"
+  using assms
+proof (induct r arbitrary: q)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  show ?case
+  proof (cases "q = RALTS rs")
+    case True
+    then show ?thesis using RALTS.prems by simp
+  next
+    case False
+    then obtain p where p: "p \<in> set rs" "q \<in> rsubterms p"
+      using RALTS.prems by auto
+    have p_zbt: "apder_zero_budget_trivial p"
+      by (rule apder_zero_budget_trivial_RALTS_member[OF RALTS.prems(1) p(1)])
+    show ?thesis
+      using RALTS.hyps p p_zbt by auto
+  qed
+next
+  case (RSEQ r1 r2)
+  show ?case
+  proof (cases "q = RSEQ r1 r2")
+    case True
+    then show ?thesis using RSEQ.prems by simp
+  next
+    case False
+    then have q_cases: "q \<in> rsubterms r1 \<or> q \<in> rsubterms r2"
+      using RSEQ.prems by simp
+    show ?thesis
+    proof (rule disjE[OF q_cases])
+      assume q1: "q \<in> rsubterms r1"
+      have "apder_zero_budget_trivial r1"
+        using RSEQ.prems(1) by simp
+      then show ?thesis by (rule RSEQ.hyps(1)[OF _ q1])
+    next
+      assume q2: "q \<in> rsubterms r2"
+      have "apder_zero_budget_trivial r2"
+        using RSEQ.prems(1) by simp
+      then show ?thesis by (rule RSEQ.hyps(2)[OF _ q2])
+    qed
+  qed
+next
+  case (RSTAR r)
+  show ?case
+  proof (cases "q = RSTAR r")
+    case True
+    then show ?thesis using RSTAR.prems by simp
+  next
+    case False
+    then have qsub: "q \<in> rsubterms r"
+      using RSTAR.prems(2) by simp
+    have "apder_zero_budget_trivial r"
+      using RSTAR.prems(1) by simp
+    then show ?thesis by (rule RSTAR.hyps[OF _ qsub])
+  qed
+next
+  case (RNTIMES r n)
+  have False using RNTIMES.prems(1) by simp
+  then show ?case ..
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False using RBACKREF4.prems(1) by simp
+  then show ?case ..
+next
+  case (RHALF r cs rep)
+  have False using RHALF.prems(1) by simp
+  then show ?case ..
+next
+  case (RRESIDUE cs rep)
+  have False using RRESIDUE.prems(1) by simp
+  then show ?case ..
+qed
+
+lemma apder_zero_budget_trivial_apder_terms:
+  assumes zbt: "apder_zero_budget_trivial r"
+    and p: "p \<in> apder_terms r"
+  shows "apder_zero_budget_trivial p"
+  using zbt p
+proof (induct r arbitrary: p)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then have "p = RONE" by simp
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> apder_terms q"
+    by auto
+  have "apder_zero_budget_trivial q"
+    by (rule apder_zero_budget_trivial_RALTS_member[OF RALTS.prems(1) q(1)])
+  then show ?case
+    using RALTS.hyps[OF q(1)] q by blast
+next
+  case (RSEQ r1 r2)
+  have p_cases:
+      "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1 \<or>
+        p \<in> apder_terms r2"
+    using RSEQ.prems by simp
+  show ?case
+  proof (rule disjE[OF p_cases])
+    assume "p \<in> (\<lambda>x. rsimp4_SEQ_atom x r2) ` apder_terms r1"
+    then obtain x where x: "x \<in> apder_terms r1"
+        "p = rsimp4_SEQ_atom x r2"
+      by blast
+    have "apder_zero_budget_trivial x"
+      by (rule RSEQ.hyps(1)[OF _ x(1)]) (use RSEQ.prems in simp)
+    moreover have "apder_zero_budget_trivial r2"
+      using RSEQ.prems by simp
+    ultimately show "apder_zero_budget_trivial p"
+      by (simp add: x(2) apder_zero_budget_trivial_rsimp4_SEQ_atom)
+  next
+    assume right: "p \<in> apder_terms r2"
+    show "apder_zero_budget_trivial p"
+      by (rule RSEQ.hyps(2)[OF _ right]) (use RSEQ.prems in simp)
+  qed
+next
+  case (RSTAR r)
+  then obtain x where x: "x \<in> apder_terms r"
+      "p = rsimp4_SEQ_atom x (RSTAR r)"
+    by auto
+  have "apder_zero_budget_trivial x"
+    by (rule RSTAR.hyps[OF _ x(1)]) (use RSTAR.prems in simp)
+  moreover have "apder_zero_budget_trivial (RSTAR r)"
+    using RSTAR.prems by simp
+  ultimately show ?case
+    by (simp add: x(2) apder_zero_budget_trivial_rsimp4_SEQ_atom)
+next
+  case (RNTIMES r n)
+  have False using RNTIMES.prems(1) by simp
+  then show ?case ..
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  have False using RBACKREF4.prems(1) by simp
+  then show ?case ..
+next
+  case (RHALF r cs rep)
+  have False using RHALF.prems(1) by simp
+  then show ?case ..
+next
+  case (RRESIDUE cs rep)
+  have False using RRESIDUE.prems(1) by simp
+  then show ?case ..
+qed
+
+lemma apder_clean_apder_rows:
+  assumes clean: "apder_clean r"
+    and x: "x \<in> apder_rows r"
+  shows "apder_clean x"
+proof -
+  have legacy: "legacy_rrexp r" and free: "rntimes_free r"
+    and nf: "apder_nf r" and zbt: "apder_zero_budget_trivial r"
+    using clean by (simp_all add: apder_clean_def)
+  from x consider
+      "x = r"
+    | "x \<in> rfrontier r"
+    | q where "q \<in> apder_terms r" "x \<in> rfrontier q"
+    by (auto simp add: apder_rows_def apder_frontier_def)
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis using clean by simp
+  next
+    case 2
+    have xsub: "x \<in> rsubterms r"
+      using 2 rfrontier_subset_rsubterms by blast
+    have "legacy_rrexp x"
+      by (rule legacy_rrexp_rsubterms[OF legacy xsub])
+    moreover have "rntimes_free x"
+      by (rule rntimes_free_legacy_rsubterms[OF legacy free xsub])
+    moreover have "apder_zero_budget_trivial x"
+      by (rule apder_zero_budget_trivial_rsubterms[OF zbt xsub])
+    moreover have "apder_nf x"
+      using apder_nf_rfrontier_member_props[OF nf 2] by blast
+    ultimately show ?thesis
+      by (simp add: apder_clean_def)
+  next
+    case 3
+    have q_legacy: "legacy_rrexp q"
+      by (rule legacy_apder_terms[OF legacy 3(1)])
+    have q_free: "rntimes_free q"
+      by (rule rntimes_free_apder_terms[OF free 3(1)])
+    have q_nf: "apder_nf q"
+      by (rule apder_nf_apder_terms[OF nf 3(1)])
+    have q_zbt: "apder_zero_budget_trivial q"
+      by (rule apder_zero_budget_trivial_apder_terms[OF zbt 3(1)])
+    have xsub: "x \<in> rsubterms q"
+      using 3(2) rfrontier_subset_rsubterms by blast
+    have "legacy_rrexp x"
+      by (rule legacy_rrexp_rsubterms[OF q_legacy xsub])
+    moreover have "rntimes_free x"
+      by (rule rntimes_free_legacy_rsubterms[OF q_legacy q_free xsub])
+    moreover have "apder_zero_budget_trivial x"
+      by (rule apder_zero_budget_trivial_rsubterms[OF q_zbt xsub])
+    moreover have "apder_nf x"
+      using apder_nf_rfrontier_member_props[OF q_nf 3(2)] by blast
+    ultimately show ?thesis
+      by (simp add: apder_clean_def)
+  qed
+qed
+
 end
