@@ -8784,3 +8784,36 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:15). No `sorry`.
 - NEXT smallest brick: add the generalized accumulator `RALTS` split and then
   formulate the first size bound for `strong_opened_live_row_universe_acc`.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live RALTS split
+
+- First attempted unconditional generalized `RALTS` split failed at the
+  `k = RONE` frontier branch: exposed child frontiers require the normalized
+  stability `rsimp4_SEQ_atom q RONE = q`. The checked statement is therefore
+  correctly restricted to `ALL q in set rs. apder_nf q`, matching the clean/nf
+  fragment used by the gate.
+- New checked helper:
+  if `ALL q in set rs. apder_nf q`, then
+  `rfrontiers rs <=
+   UNION q in set rs. partial_derivative_live_row_universe_acc q RONE`.
+- New checked live-row split:
+  if `ALL q in set rs. apder_nf q`, then
+  `partial_derivative_live_row_universe_acc(RALTS rs) k <=
+   insert RZERO (insert RONE (insert (rsimp4_SEQ_atom (RALTS rs) k)
+     (UNION q in set rs. partial_derivative_live_row_universe_acc q k)))`.
+- New checked strong-opened split:
+  if `ALL q in set rs. apder_nf q`, then
+  `strong_opened_live_row_universe_acc(RALTS rs) k <=
+   insert RONE
+     (row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)) UNION
+      (UNION q in set rs. strong_opened_live_row_universe_acc q k))`.
+  Plain gloss: normalized alternatives are paid by their carried root row plus
+  child accumulator carriers; the attempted child-only generalized split was
+  too strong without the nf stability bridge.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: formulate a size recurrence over
+  `strong_opened_live_row_universe_acc`, using the checked RCHAR/RALTS/RSEQ/RSTAR
+  containments and a root-row charge for
+  `row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k))`.

@@ -31944,6 +31944,63 @@ lemma strong_opened_live_row_universe_acc_RSTAR_subset:
   by (auto simp add: strong_opened_live_row_universe_acc_def
       row_dlformss_set_def)
 
+lemma rfrontiers_subset_child_live_row_universe_acc_RONE:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+  shows "rfrontiers rs \<subseteq>
+    (\<Union>q \<in> set rs. partial_derivative_live_row_universe_acc q RONE)"
+  using nf
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q rs)
+  have q_nf: "apder_nf q"
+    using Cons.prems by simp
+  have q_stable: "rsimp4_SEQ_atom q RONE = q"
+    by (rule sigma_RONE_id_nf[OF q_nf])
+  have q_front:
+      "rfrontier q \<subseteq> partial_derivative_live_row_universe_acc q RONE"
+    using q_stable
+    by (auto simp add: partial_derivative_live_row_universe_acc_def)
+  have rs_nf: "\<forall>q \<in> set rs. apder_nf q"
+    using Cons.prems by simp
+  have rs_front:
+      "rfrontiers rs \<subseteq>
+        (\<Union>q \<in> set rs. partial_derivative_live_row_universe_acc q RONE)"
+    by (rule Cons.hyps[OF rs_nf])
+  show ?case
+    using q_front rs_front by auto
+qed
+
+lemma partial_derivative_live_row_universe_acc_RALTS_subset:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+  shows "partial_derivative_live_row_universe_acc (RALTS rs) k \<subseteq>
+    insert RZERO
+      (insert RONE
+        (insert (rsimp4_SEQ_atom (RALTS rs) k)
+          (\<Union>q \<in> set rs.
+            partial_derivative_live_row_universe_acc q k)))"
+proof (cases k)
+  case RONE
+  have fronts:
+      "rfrontiers rs \<subseteq>
+        (\<Union>q \<in> set rs. partial_derivative_live_row_universe_acc q RONE)"
+    by (rule rfrontiers_subset_child_live_row_universe_acc_RONE[OF nf])
+  show ?thesis
+    using fronts RONE
+    by (auto simp add: partial_derivative_live_row_universe_acc_def)
+qed (auto simp add: partial_derivative_live_row_universe_acc_def)
+
+lemma strong_opened_live_row_universe_acc_RALTS_subset:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+  shows "strong_opened_live_row_universe_acc (RALTS rs) k \<subseteq>
+    insert RONE
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+       (\<Union>q \<in> set rs. strong_opened_live_row_universe_acc q k))"
+  using partial_derivative_live_row_universe_acc_RALTS_subset[OF nf, of k]
+  by (auto simp add: strong_opened_live_row_universe_acc_def
+      row_dlformss_set_def)
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
