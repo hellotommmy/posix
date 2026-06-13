@@ -8607,3 +8607,26 @@ STATUS_MATH and say so at the top of PROGRESS.
   `rs = afactored1 r s` under `apder_clean r`, then begin bounding
   `rsize_set(strong_opened_live_row_universes(afactored1 r s))` by the sampled
   liveness cap.
+
+## 2026-06-14 Codex: CHECKED - actual rows preserved by clean strong-opened live
+
+- New checked instantiation:
+  `legacy_rrexp r ==> apder_nf r ==>
+   row_dlformss(rpder_strong_rows_raw c (afactored1 r s)) <=
+   strong_opened_live_row_universes(afactored1 r s)`.
+  The proof uses `legacy_afactored1` plus
+  `afactored1_apder_rows_subset`/`apder_rows_member_apder_nf`.
+- New clean-domain form:
+  `apder_clean r ==>
+   row_dlformss(rpder_strong_rows_raw c (afactored1 r s)) <=
+   strong_opened_live_row_universes(afactored1 r s)`.
+  Plain gloss: the actual strong gate object now has a checked dynamic carrier;
+  the remaining §1 work is entirely the liveness-size/cap bound for that
+  dynamic carrier.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove or falsify a usable size bound for
+  `strong_opened_live_row_universes(afactored1 r s)`, starting with the sampled
+  cap shape `rsize_set(actual) <= max(rsizes(afactored1 r s), (rsize r+3)^2)`
+  and/or a direct carrier cubic bound.

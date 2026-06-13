@@ -31890,6 +31890,32 @@ lemma row_dlformss_rpder_strong_rows_raw_subset_strong_opened_live:
   by (rule row_dlformss_rpder_strong_rows_raw_subset_strong_opened_liveI)
     (use legacy nf rpder_norm_list_live_row_universe_self in blast)
 
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_opened_live:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+  shows "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    strong_opened_live_row_universes (afactored1 r s)"
+proof (rule row_dlformss_rpder_strong_rows_raw_subset_strong_opened_live)
+  show "\<forall>q \<in> set (afactored1 r s). legacy_rrexp q"
+    by (rule legacy_afactored1[OF legacy])
+  show "\<forall>q \<in> set (afactored1 r s). apder_nf q"
+  proof
+    fix q
+    assume q: "q \<in> set (afactored1 r s)"
+    have q_row: "q \<in> apder_rows r"
+      using afactored1_apder_rows_subset[OF nf] q by blast
+    show "apder_nf q"
+      by (rule apder_rows_member_apder_nf[OF nf q_row])
+  qed
+qed
+
+lemma row_dlformss_rpder_strong_rows_raw_afactored1_clean_subset_strong_opened_live:
+  assumes clean: "apder_clean r"
+  shows "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+    strong_opened_live_row_universes (afactored1 r s)"
+  by (rule row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_opened_live)
+    (use clean in \<open>simp_all add: apder_clean_def\<close>)
+
 lemma singleton_alt_live_counterexample_repaired_by_strong_opened_live:
   fixes a :: char
   defines "r \<equiv> RSTAR (RALTS [RCHAR a])"
