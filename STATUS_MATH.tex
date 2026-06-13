@@ -121,6 +121,64 @@ empty-but-present frontier). Optional; may not be required for the thesis target
 
 \end{enumerate}
 
+\bigskip
+\hrule
+\medskip
+\textbf{The symbols, defined} (so the inequalities above are self-contained).
+Throughout, $r,k$ are regexes, $\Sigma rs$ a list-alternation, $c$ a letter.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=4pt]
+
+\item \textbf{Size} $\rs{r}$:\;\,
+$\rs{0}=\rs{1}=\rs{c}=1$,\;
+$\rs{r_1 r_2}=1+\rs{r_1}+\rs{r_2}$,\;
+$\rs{\Sigma rs}=1+\textstyle\sum_i\rs{r_i}$,\;
+$\rs{r^*}=1+\rs{r}$,\;
+$\rs{r^{\{n\}}}=1+\rs{r}+n$.
+
+\item \textbf{Frontier} $\front k$ --- the rows of $k$ after splitting its top
+alternation:\;
+$\front 0=\emptyset$,\;\,
+$\front(\Sigma rs)=\bigcup_i \front{r_i}$,\;\,
+$\front k=\{k\}$ otherwise.
+\emph{(A plain row is itself; an alternation splits into its branches.)}
+
+\item \textbf{Sequence normalizer} $\seqn(r,k)$ --- ``the row $r$ followed by
+$k$,'' with units erased and right-associated:\;
+$\seqn(0,k)=0$,\;\,$\seqn(1,k)=k$,\;\,$\seqn(r_1 r_2,k)=\seqn(r_1,\seqn(r_2,k))$;\;
+for an atom $a$ (letter / star / alternation):\;
+$\seqn(a,0)=0$,\;$\seqn(a,1)=a$,\;else $\seqn(a,k)=a\,k$.
+
+\item \textbf{Accumulator} $\acc(r,k)$ --- the rows that one derivative of $r$
+leaves in front of continuation $k$:
+\[
+\acc(0,k)=\acc(1,k)=\emptyset,\quad
+\acc(c,k)=\front k,\quad
+\acc(\Sigma rs,k)=\bigcup_i\acc(r_i,k),
+\]
+\[
+\acc(r_1 r_2,\,k)=\acc\bigl(r_1,\seqn(r_2,k)\bigr)\,\cup\,\acc(r_2,k),
+\qquad
+\acc(r^*,k)=\acc\bigl(r,\seqn(r^*,k)\bigr).
+\]
+\emph{(A letter hands its whole continuation-frontier forward; a sequence
+accumulates the left part against the normalized $r_2k$ plus the right part
+against $k$; a star re-enters itself. This recursion --- one letter importing a
+whole frontier, balanced only across siblings --- is exactly what made the
+D law hard.)}
+
+\item \textbf{Weight} $\zw(r)$ --- letters, $+1$ per star; always
+$\zw(r)\le\rs{r}$:\;
+$\zw(0)=\zw(1)=0$,\;$\zw(c)=1$,\;
+$\zw(r_1 r_2)=\zw(\Sigma rs)=\text{sum}$,\;
+$\zw(r^*)=1+\zw(r)$,\;$\zw(r^{\{n\}})=n\,(1+\zw(r))$.
+
+\item \textbf{Static row universe} $\Rows(r)=\{r\}\cup\front r\cup\bigcup_q\front q$,
+the union over all Antimirov sub-derivative terms $q$ of $r$.
+\emph{(Every row that can ever appear in front of $r$; a finite set.)}
+
+\end{itemize}
+
 \medskip
 \hrule
 \medskip
