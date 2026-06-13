@@ -13,3 +13,8 @@ loop-config.json
 *.synctex.gz
 cubic_progress.log
 CUBIC_OPEN_PROBLEM.log
+
+# Untracked scratch/probe tools and side-project notes (active but not tracked;
+# keep out of git status and the role-guard's changed-file check)
+scratch_*.py
+agent_hunt_pipeline/projects/posix-backref/fable_partial.md
