@@ -7456,3 +7456,36 @@ containment — checked false") has NO concrete checked-lemma name I could locat
 did NOT fabricate a corpus entry. If a real checked-false lemma exists, name it
 and it becomes a SUPER_LINEAR_PATTERNS entry; otherwise §4 item 5 should state its
 evidence form. (§4 item 4, owner-closure, is now grounded as corpus A6.)
+
+## 2026-06-13 ADMIN/Secretary: GPT Pro verdict on the D-law — switch to the T+S telescoping invariant
+
+The admin ran the D-law bottleneck through GPT Pro (high-reasoning web model).
+Full verdict saved to `GPT_PRO_DLAW_VERDICT.md` (repo root) — ALL proof agents
+read it before the next D-law cycle. Headline:
+
+- REFRAME the induction. Do NOT grind the union-overlap sublemma or J* directly.
+  Prove instead the TELESCOPING BOUNDARY invariant
+    T(r,k): clean r ==> clean k ==> card((F(sigma r k) UNION A r k) - F k) <= W r
+  plus the strict-credit auxiliary
+    S(r,k): clean r ==> clean k ==> 0 < W r ==> Suc(card(A r k - F k)) <= W r.
+  D is an immediate corollary of T; J*-zw2 falls out as a SEQ corollary of
+  D(left)+T(right). The SEQ overlap DISAPPEARS — F(sigma r2 k) is a boundary,
+  subtracted on the left and paid once on the right; no inclusion-exclusion.
+- IT FOUND A REAL GAP in the current (E00-RONE, E0+1, D) plan: E0 must be the
+  EXACT merged-frontier T law, NOT the `+1` form. E0(+1) leaks one unit at the
+  ordinary singleton-continuation SEQ case (r1=RCHAR a, r2=RCHAR b, k=RCHAR c);
+  the left character's strict spare unit from S pays it. The feared k=RONE /
+  right-ALTS case is NOT the failing case — T closes it cleanly. So the 4% union-
+  overlap slice the plan was stuck on is dissolved by T, not by a bespoke lemma.
+- Four bridge lemmas to land first: sigma_clean, sigma_RONE_id_nf,
+  clean_zero_budget_root, alts_positive_member. Then the single simultaneous
+  induction `T_and_S` (statement in the verdict). Per-constructor discharge for
+  T and S (RCHAR/RALTS/RSTAR/SEQ) is worked out in the verdict.
+
+DISCIPLINE: this is a DESIGN PROPOSAL. Sample-check T and S at depth >= 5 with
+directed nested zero-width-star families (extend scratch_rowcount_check.py)
+BEFORE Isabelle — the project twice had statements pass shallow and fail deep.
+If a deep CE appears, append it to SUPER_LINEAR_PATTERNS.md and report. The
+already-checked discount branches (discount_RALTS_if_member_discount, E0_RALTS_
+if_members, the STAR/RCHAR discounts) remain valid bricks; T subsumes their role
+but does not invalidate them.

@@ -103,13 +103,29 @@ Vocabulary (fixed, do not rename):
     this 4% slice is left; (b) the E0/D general-k branches (RCHAR done via
     `E0_RCHAR`; the RALTS bridge checked, `E0_RALTS_if_members`, e0b899b); (c)
     the **well-founded assembly induction** that ties the branches together.
-- **Current narrow instruction:** continue the simultaneous induction —
-  next concrete brick is the union-overlap sublemma (a), then the assembly
-  induction (c). Stay on the legacy/non-backref, rntimes-free zw2 instance.
-  NOT via the falsified unary/potential strengthenings, the old zwidth law,
-  the first J* numeric invariant, or the unrestricted raw zw2 statement; do
-  not fall back to `*_list_cost_alt_nodes` / generated-ledger wrappers (they
-  lose a degree). Full statement and dead-ends: `MATHPROBLEM_ROWCOUNT.md`.
+- **GPT Pro steer (2026-06-13, `GPT_PRO_DLAW_VERDICT.md`): switch to the T+S
+  telescoping invariant.** Instead of grinding the union-overlap sublemma (a)
+  or J* directly, prove the boundary invariant
+  `T(r,k): clean r ⟹ clean k ⟹ card((F(σ r k) ∪ A r k) − F k) ≤ W r`
+  plus a strict-credit auxiliary
+  `S(r,k): clean r ⟹ clean k ⟹ 0 < W r ⟹ Suc(card(A r k − F k)) ≤ W r`.
+  D and J* both follow; the SEQ overlap DISAPPEARS (F(σ r2 k) is a boundary,
+  subtracted left and paid once right — no inclusion-exclusion). It also found
+  a real gap: **E0 must be the EXACT merged-frontier T law, not the `+1` form**
+  (the +1 leaks a unit at the singleton-continuation SEQ case r1=a,r2=b,k=c;
+  S supplies the spare). Bridges to land first: `sigma_clean`,
+  `sigma_RONE_id_nf`, `clean_zero_budget_root`, `alts_positive_member`; then
+  the single `T_and_S` induction.
+- **Current narrow instruction:** sample-check `T` and `S` at depth ≥ 5
+  (directed nested zero-width-star families, via `scratch_rowcount_check.py`)
+  FIRST; if they survive, prove the four bridges then the `T_and_S`
+  simultaneous induction (per-constructor discharge is in the verdict). The
+  already-checked discount/E0 branches stay valid bricks. Stay on the
+  legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
+  unary/potential strengthenings, the old zwidth law, the first J* numeric
+  invariant, or the unrestricted raw zw2 statement; do not fall back to
+  `*_list_cost_alt_nodes` / generated-ledger wrappers (they lose a degree).
+  Full dead-ends: `MATHPROBLEM_ROWCOUNT.md`; full design: `GPT_PRO_DLAW_VERDICT.md`.
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 

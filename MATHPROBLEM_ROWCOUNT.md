@@ -99,7 +99,18 @@ card (acc r k - rfrontier k) <= apder_zw2 r
   `apder_zw2_rntimes_free_le_rsize`; do not cite global
   NTIMES-inclusive `zw2 <= rsize` without a separate theorem/change.
 
-## Suggested next attacks
+## RECOMMENDED ROUTE (2026-06-13): see GPT_PRO_DLAW_VERDICT.md
+
+A high-reasoning external pass reframed this problem: prove the telescoping
+boundary invariant `T(r,k): card((F(sigma r k) UNION A r k) - F k) <= W r`
+plus a strict-credit auxiliary `S`, from which D and J* both follow and the
+SEQ overlap disappears (no inclusion-exclusion). It also found that E0 must be
+the EXACT merged-frontier T law, not the `+1` form. Full design, per-constructor
+discharge, and the four bridge lemmas are in `GPT_PRO_DLAW_VERDICT.md` (repo
+root). Sample-check T and S at depth>=5 before the Isabelle attempt. The
+suggestions below predate that verdict.
+
+## Suggested next attacks (pre-verdict; superseded by the T+S route above)
 
 - Joint induction on (a, c) = (card(acc - Fk), card(acc INT Fk)) with
   a transfer term for sibling overlap.
