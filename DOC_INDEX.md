@@ -26,6 +26,7 @@ Reading order for a fresh session: `MAINLINE.md` → last ~200 lines of
 | `SUPER_LINEAR_PATTERNS.md` | LIVE | Companion fuzzer corpus: every machine-verified blow-up regex family and every conjecture-killing counterexample, with deception data (how many samples it fooled before dying). For stress-testing the linearity claims of NFA-based regex engines. Append-only — see the 2026-06-13 admin directive. |
 | `BACKREF_BOUNTIES.md` | LIVE | Bounty board + ledger, parsed by `backref_bounty_guard.py` — never restructure. 14 open bounties; 2026-06-12 adds a 20,000 cubic overlay (12k final theorem / 5k major bridge / 3k checked negative). Note: BR-039/BR-040 prose still describes the superseded strong-memo route; the artifact lists remain valid checked infrastructure. Known bookkeeping flag: paid 74,970 vs balances 73,950 (gap 1,020), admin to reconcile. |
 | `CLAUDE.md` (root) | LIVE | Two-line pointer into the rules and charter. |
+| `RESTART_PROMPTS.md` | LIVE | Copy-paste handoff prompts for restarting each agent (Codex / Fable / Secretary): role, goal, lane, coordination mode, rules. Use when reopening stopped agents. |
 
 ## 2. Rules and operations (binding)
 
