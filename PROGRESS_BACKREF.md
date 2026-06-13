@@ -7809,3 +7809,19 @@ but does not invalidate them.
   instance (`apder_zw2_rntimes_free_le_rsize`, commit 8a7a370) and through the
   staticized SEQ-part obligation into the set-ledger cubic gate (MAINLINE s1).
   Whoever picks this up: claim in the tail first.
+
+## 2026-06-13 Secretary: docs synced to the D-law landing (7e62648)
+
+Milestone reflected in the docs (docs only; no .thy touched):
+- **MAINLINE §2** — header bumped to 7e62648; named frontier (1) marked LANDED
+  (clean-domain zw2 D law PROVEN via `D_law_clean`/`T_and_S`); the GPT Pro steer
+  block marked "T+S route COMPLETE"; the **Current narrow instruction** advanced
+  to the next OPEN step: wire `D_law_clean` → legacy/rntimes-free instance
+  (`apder_zw2_rntimes_free_le_rsize`) → staticized SEQ-part → set-ledger cubic
+  gate. The cubic gate itself is NOT yet closed — that wiring is the live target.
+- **MATHPROBLEM_ROWCOUNT.md** — top RESOLVED banner (clean-domain zw2 instance
+  proven); body kept as the dead-ends/CE/route reference.
+- **DOC_INDEX** — MATHPROBLEM_ROWCOUNT and GPT_PRO_DLAW_VERDICT entries updated
+  (D law proven / route complete).
+- No new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md` unchanged.
+Trust git timestamps over the `HH:MM` labels here.

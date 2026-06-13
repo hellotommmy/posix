@@ -1,6 +1,19 @@
 # Open Problem: Antimirov Row-Count Linearity (the D law)
 
-Status: OPEN, CORRECTED TWICE 2026-06-13.  The original max-1
+> **RESOLVED (clean-domain zw2 instance) — 2026-06-13 13:48, commit 7e62648.**
+> The clean-domain zw2 D law is PROVEN in Isabelle: `D_law_clean`
+> (`apder_clean r ==> apder_clean k ==> card (apder_term_frontier_acc r k -
+> rfrontier k) <= apder_zw2 r`), via the GPT Pro **T+S telescoping** route
+> (`T_and_S` simultaneous induction; full design in `GPT_PRO_DLAW_VERDICT.md`).
+> What remains for the cubic gate is downstream WIRING (instantiate at the
+> legacy/rntimes-free instance `apder_zw2_rntimes_free_le_rsize`, then through
+> the staticized SEQ-part into the set-ledger gate), NOT the D law itself. The
+> dead-ends, corrections and counterexamples below remain valid route/fuzzer
+> history — keep them.
+
+Status: clean-domain zw2 instance PROVEN (see banner above); the broader
+unrestricted/zwidth forms remain as documented below. CORRECTED TWICE
+2026-06-13.  The original max-1
 `apder_zwidth` D law and the first J* numeric invariant are FALSE at depth 5
 (see CORRECTION below).  The raw `apder_zw2` law is also FALSE if zero counted
 repetitions are allowed in continuations: a checked 04:00 CE uses

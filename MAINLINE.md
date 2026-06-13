@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-13 13:44, commit 54fd959)
+## 2. Where the Proof Stands (as of 2026-06-13 13:48, commit 7e62648 — clean-domain D law PROVEN)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -65,8 +65,13 @@ Vocabulary (fixed, do not rename):
   are now CHECKED quadratic (`apder_rows_member_size_quadratic`, nf
   fragment). The whole gate (nf fragment) now closes by assembly once
   EITHER of two named frontiers lands:
-  1. **The D law (row-count linear), CORRECTED 2026-06-13 00:13 and
-     narrowed 04:00:**
+  1. **The D law (row-count linear) — LANDED 2026-06-13 13:48 (7e62648).**
+     The clean-domain zw2 instance is now PROVEN: `D_law_clean`
+     (`apder_clean r ==> apder_clean k ==> card (apder_term_frontier_acc r k -
+     rfrontier k) <= apder_zw2 r`), immediate from the `T_and_S` telescoping
+     induction (GPT Pro T+S route, see below). What remains for the cubic gate
+     is the downstream WIRING, not the D law. History — CORRECTED 2026-06-13
+     00:13 and narrowed 04:00:
      `apder_nf r ==> apder_nf k ==> card (apder_term_frontier_acc r k -
      rfrontier k) <= apder_zw2 r` (zw2: star = Suc, not max-1) was the
      first repair. The old zwidth weight and the first J* joint invariant
@@ -118,16 +123,20 @@ Vocabulary (fixed, do not rename):
   `alts_positive_member` (44206f2). The T/S invariants are now STATED in
   Isabelle (`apder_T_bound`, `apder_S_bound`, d70f0df) with the load-bearing
   implications checked (`apder_T_bound_imp_D` = T⟹D,
-  `apder_S_bound_imp_discount` = S⟹discount). The single `T_and_S`
-  simultaneous induction now has **all four constructor cases CHECKED**
-  (`T_and_S_RCHAR` 10d4c79, `T_and_S_RSEQ` b21524d, `T_and_S_RSTAR` d72d32c,
-  `T_and_S_RALTS` 2c7401e); only the final well-founded `T_and_S` skeleton +
-  `D_law_clean` assembly remains (claimed, 54fd959) — one step from the D law.
-- **Current narrow instruction:** the depth-≥5 sample gate PASSED and all four
-  bridges plus all four `T_and_S` constructor cases are CHECKED; the live work
-  is the final step — assemble the well-founded `T_and_S` skeleton and conclude
-  `D_law_clean` (then D via `apder_T_bound_imp_D`). The already-checked
-  discount/E0 branches stay valid bricks. Stay on the
+  `apder_S_bound_imp_discount` = S⟹discount). **The T+S route is COMPLETE
+  (2026-06-13 13:48, 7e62648):** the `T_and_S` simultaneous induction is proven
+  (`induct r arbitrary: k`, dispatching all four constructor cases
+  `T_and_S_RCHAR` 10d4c79 / `T_and_S_RSEQ` b21524d / `T_and_S_RSTAR` d72d32c /
+  `T_and_S_RALTS` 2c7401e; RZERO/RONE empty-set, NTIMES/backref vacuous by
+  `apder_clean`), and the clean-domain zw2 D law `D_law_clean` follows
+  immediately. Build GREEN, no `sorry`.
+- **Current narrow instruction:** the clean-domain D law is PROVEN
+  (`D_law_clean`); the NEXT open step is to WIRE it through to the cubic gate —
+  instantiate it at the proof-useful legacy/rntimes-free zw2 instance
+  (`apder_zw2_rntimes_free_le_rsize`, 8a7a370) and feed it through the
+  staticized SEQ-part obligation (`afactored1_apder_rows_subset`,
+  `apder_rows_member_size_quadratic`) into the set-ledger cubic gate (§1).
+  Claim in the PROGRESS tail before starting. Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
