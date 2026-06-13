@@ -8285,3 +8285,21 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:12). No `sorry`.
 - NEXT smallest brick: full `opened_boundary_forms_le_open_pot` induction,
   or split out RALTS/SEQ arithmetic helpers if the first proof state is large.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary potential bound
+
+- New checked theorem:
+  `apder_clean r ==> apder_clean k ==>
+   rsize_set(opened_boundary_forms r k) <=
+   open_pot r + apder_zw2 r*(1+rsize k)`.
+  Plain gloss: opened boundary has potential.
+- Proof shape: structural induction on `r`; RALTS uses deduped union
+  accounting, SEQ uses the checked telescope plus
+  `rsize(rsimp4_SEQ_atom r2 k) <= Suc(rsize r2+rsize k)`, and RSTAR uses the
+  star boundary-row linear bound.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: cubic arithmetic
+  `open_pot r + 2*apder_zw2 r <= (rsize r+3)^3` on the clean/rntimes-free
+  fragment.

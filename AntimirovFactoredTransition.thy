@@ -31040,6 +31040,196 @@ lemma apder_clean_RSTAR_body:
   shows "apder_clean r"
   using assms unfolding apder_clean_def by simp
 
+lemma opened_boundary_forms_le_open_pot:
+  assumes clean_r: "apder_clean r"
+    and clean_k: "apder_clean k"
+  shows "rsize_set (opened_boundary_forms r k) \<le>
+    open_pot r + apder_zw2 r * (1 + rsize k)"
+  using clean_r clean_k
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by (simp add: rsize_set_def)
+next
+  case RONE
+  then show ?case by (simp add: rsize_set_def)
+next
+  case (RCHAR c)
+  have k_nf: "apder_nf k"
+    using RCHAR.prems(2) unfolding apder_clean_def by simp
+  show ?case
+    by (rule opened_boundary_forms_RCHAR_le_open_pot[OF k_nf])
+next
+  case (RSEQ r1 r2)
+  let ?m = "rsimp4_SEQ_atom r2 k"
+  have c1: "apder_clean r1"
+    using RSEQ.prems(1) by (rule apder_clean_RSEQ_left)
+  have c2: "apder_clean r2"
+    using RSEQ.prems(1) by (rule apder_clean_RSEQ_right)
+  have cm: "apder_clean ?m"
+    using c2 RSEQ.prems(2) by (rule sigma_clean)
+  have left: "rsize_set (opened_boundary_forms r1 ?m) \<le>
+      open_pot r1 + apder_zw2 r1 * (1 + rsize ?m)"
+    using RSEQ.hyps(1)[OF c1 cm] .
+  have right: "rsize_set (opened_boundary_forms r2 k) \<le>
+      open_pot r2 + apder_zw2 r2 * (1 + rsize k)"
+    using RSEQ.hyps(2)[OF c2 RSEQ.prems(2)] .
+  have sub: "opened_boundary_forms (RSEQ r1 r2) k \<subseteq>
+      opened_boundary_forms r1 ?m \<union> opened_boundary_forms r2 k"
+    by (rule opened_boundary_forms_RSEQ_subset)
+  have m_size: "rsize ?m \<le> Suc (rsize r2 + rsize k)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  have cross:
+      "apder_zw2 r1 * (1 + rsize ?m) \<le>
+       apder_zw2 r1 * (rsize r2 + 2) +
+       apder_zw2 r1 * (1 + rsize k)"
+  proof -
+    have "1 + rsize ?m \<le> rsize r2 + 2 + rsize k"
+      using m_size by simp
+    then have "apder_zw2 r1 * (1 + rsize ?m) \<le>
+        apder_zw2 r1 * (rsize r2 + 2 + rsize k)"
+      by (rule mult_left_mono) simp
+    also have "... \<le>
+        apder_zw2 r1 * (rsize r2 + 2) +
+        apder_zw2 r1 * (1 + rsize k)"
+      by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+  have "rsize_set (opened_boundary_forms (RSEQ r1 r2) k) \<le>
+      rsize_set (opened_boundary_forms r1 ?m \<union>
+        opened_boundary_forms r2 k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      rsize_set (opened_boundary_forms r1 ?m) +
+      rsize_set (opened_boundary_forms r2 k)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      open_pot r1 + apder_zw2 r1 * (1 + rsize ?m) +
+      (open_pot r2 + apder_zw2 r2 * (1 + rsize k))"
+    using left right by simp
+  also have "... \<le>
+      open_pot (RSEQ r1 r2) +
+      apder_zw2 (RSEQ r1 r2) * (1 + rsize k)"
+    using cross by (simp add: algebra_simps)
+  finally show ?case .
+next
+  case (RALTS rs)
+  have nf_r: "apder_nf (RALTS rs)"
+    using RALTS.prems(1) unfolding apder_clean_def by simp
+  have nf_k: "apder_nf k"
+    using RALTS.prems(2) unfolding apder_clean_def by simp
+  have sub: "opened_boundary_forms (RALTS rs) k \<subseteq>
+      (\<Union>q \<in> set rs. opened_boundary_forms q k)"
+    by (rule opened_boundary_forms_RALTS_subset[OF nf_r nf_k])
+  have mem_bound:
+      "\<And>q. q \<in> set rs \<Longrightarrow>
+        rsize_set (opened_boundary_forms q k) \<le>
+        open_pot q + apder_zw2 q * (1 + rsize k)"
+  proof -
+    fix q assume q: "q \<in> set rs"
+    have cq: "apder_clean q"
+      using RALTS.prems(1) q by (rule apder_clean_RALTS_member)
+    show "rsize_set (opened_boundary_forms q k) \<le>
+        open_pot q + apder_zw2 q * (1 + rsize k)"
+      using RALTS.hyps q cq RALTS.prems(2) by blast
+  qed
+  have list_sum:
+      "sum_list (map (\<lambda>q.
+        open_pot q + apder_zw2 q * (1 + rsize k)) rs) =
+       open_pot (RALTS rs) + apder_zw2 (RALTS rs) * (1 + rsize k)"
+    by (induct rs) (simp_all add: algebra_simps)
+  have "rsize_set (opened_boundary_forms (RALTS rs) k) \<le>
+      rsize_set (\<Union>q \<in> set rs. opened_boundary_forms q k)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le>
+      (\<Sum>q \<in> set rs. rsize_set (opened_boundary_forms q k))"
+    by (rule rsize_set_UN_le) auto
+  also have "... \<le>
+      (\<Sum>q \<in> set rs.
+        open_pot q + apder_zw2 q * (1 + rsize k))"
+    by (rule sum_mono) (rule mem_bound)
+  also have "... \<le>
+      sum_list (map (\<lambda>q.
+        open_pot q + apder_zw2 q * (1 + rsize k)) rs)"
+    by (rule sum_set_le_sum_list_nat)
+  also have "... =
+      open_pot (RALTS rs) + apder_zw2 (RALTS rs) * (1 + rsize k)"
+    by (rule list_sum)
+  finally show ?case .
+next
+  case (RSTAR r)
+  let ?m = "rsimp4_SEQ_atom (RSTAR r) k"
+  let ?B = "row_dlformss_set (rfrontier ?m) - odfront k"
+  have cr: "apder_clean r"
+    using RSTAR.prems(1) by (rule apder_clean_RSTAR_body)
+  have cm: "apder_clean ?m"
+    using RSTAR.prems(1) RSTAR.prems(2) by (rule sigma_clean)
+  have body: "rsize_set (opened_boundary_forms r ?m) \<le>
+      open_pot r + apder_zw2 r * (1 + rsize ?m)"
+    using RSTAR.hyps[OF cr cm] .
+  have k_tail: "rtail_nf k"
+    using RSTAR.prems(2)
+    unfolding apder_clean_def
+    by (auto intro: apder_nf_imp_rtail_nf)
+  have boundary: "rsize_set ?B \<le> Suc (rsize (RSTAR r) + rsize k)"
+  proof -
+    have "rsize_set ?B \<le> rsize_set (row_dlforms ?m)"
+      by (rule rsize_set_mono) auto
+    also have "... \<le> Suc (rsize (RSTAR r) + rsize k)"
+      by (rule rsize_set_row_dlforms_rsimp4_SEQ_atom_RSTAR_linear)
+    finally show ?thesis
+      by simp
+  qed
+  have sub: "opened_boundary_forms (RSTAR r) k \<subseteq>
+      ?B \<union> opened_boundary_forms r ?m"
+    by (rule opened_boundary_forms_RSTAR_subset)
+  have m_size: "rsize ?m \<le> Suc (rsize (RSTAR r) + rsize k)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  have body_cross:
+      "apder_zw2 r * (1 + rsize ?m) \<le>
+       apder_zw2 r * (rsize (RSTAR r) + rsize k + 2)"
+  proof -
+    have "1 + rsize ?m \<le> rsize (RSTAR r) + rsize k + 2"
+      using m_size by simp
+    then show ?thesis
+      by (rule mult_left_mono) simp
+  qed
+  have star_arith:
+      "Suc (rsize (RSTAR r) + rsize k) +
+       apder_zw2 r * (rsize (RSTAR r) + rsize k + 2) \<le>
+       Suc (apder_zw2 r) * (rsize (RSTAR r) + 2) +
+       Suc (apder_zw2 r) * (1 + rsize k)"
+    by (simp add: algebra_simps)
+  have "rsize_set (opened_boundary_forms (RSTAR r) k) \<le>
+      rsize_set (?B \<union> opened_boundary_forms r ?m)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> rsize_set ?B + rsize_set (opened_boundary_forms r ?m)"
+    by (rule rsize_set_Un_le) simp_all
+  also have "... \<le>
+      Suc (rsize (RSTAR r) + rsize k) +
+      (open_pot r + apder_zw2 r * (1 + rsize ?m))"
+    using boundary body by simp
+  also have "... \<le>
+      open_pot (RSTAR r) + apder_zw2 (RSTAR r) * (1 + rsize k)"
+    using body_cross star_arith by (simp add: algebra_simps)
+  finally show ?case .
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (simp add: apder_clean_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (simp add: apder_clean_def)
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"
