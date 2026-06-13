@@ -7270,3 +7270,56 @@ rename would break the build + statement guard + every citation), the Scala
 harness identifier `thesisCh7Evil` (active tool), historical archive/DESIGN_LOG
 entries, and generated SVG report labels. "Evil regex" there is standard thesis
 terminology, not the deliverable name.
+
+## 2026-06-13 Codex 11:45: CLAIM - E0 RCHAR branch
+
+- Synced through pushed commit bc21c67, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked Fable/scratch
+  artifacts remain untouched.
+- Narrow E0 brick: prove the general-continuation character branch
+  `card ((rfrontier (rsimp4_SEQ_atom (RCHAR c) k) UNION
+  acc (RCHAR c) k) - rfrontier k) <= Suc (apder_zw2 (RCHAR c))`.
+  This is the single-variable E0 counterpart of the checked E00-RONE RCHAR
+  branch and remains separate from the hard SEQ/J* overlap step.
+
+## 2026-06-13 Codex 11:50: RED/REPAIR - E0 RCHAR RALTS continuation
+
+- First build failed in the new named lemma `E0_RCHAR`, only in the
+  `k = RALTS rs` case:
+  `card (insert (RSEQ (RCHAR c) (RALTS rs)) (rfrontiers rs) - rfrontiers rs)
+  <= Suc (Suc 0)`.
+- Repairing the same lemma by splitting the RALTS case and applying the
+  existing singleton-difference bound `card_singleton_Diff_le_one`; no other
+  theorem statement is changed.
+
+## 2026-06-13 Codex 11:55: BLOCKED/REPAIR - E0 RCHAR behind Fable SEQ edit
+
+- Rebuild after the first repair is red, but the first failing proof block is
+  now Fable's uncommitted `E00_RONE_RSEQ_if`, not `E0_RCHAR`.  I am not
+  editing that proof.
+- The secondary `E0_RCHAR` RALTS goal still needed the explicit rewrite
+  `insert x S - S = {x} - S`; repaired the same named lemma locally.  Will not
+  relaunch while the first failing Fable SEQ goal is unchanged.
+
+## 2026-06-13 Fable 09:10: CHECKED - E00-RONE SEQ branch; all five branches done
+
+- Build GREEN (AntimirovFactoredTransition 66.172s).  New checked:
+
+  ```text
+  E00_RONE_RSEQ_if   (case split on the composite point; the not-produced
+                      case is paid by the clean-domain passthrough discount)
+  ```
+
+  Also courtesy-fixed the in-flight E0_RCHAR RALTS case (the final hop
+  card<=1 ==> <=2 needed the set equality unfolded first) - supervisor
+  please re-check intent is preserved.
+- NEW mirror-validated piece feeding this: the clean-domain passthrough
+  discount (the old D+ idea, REVIVED on the clean domain):
+  sigma4(r1,t) not in acc(r1,t) ==> card(acc(r1,t) - F t) <= zw2 r1 - 1,
+  240,256 applicable deep samples, zero violations.  This is now a named
+  obligation of the simultaneous induction.
+- E00-RONE branch map COMPLETE: RCHAR (supervisor), RALTS, RSTAR (cond.),
+  SEQ (cond. on discount + member IHs).  Remaining for row-count linear:
+  (a) the discount lemma, (b) E0/D general-k branches (supervisor''s
+  bridge series), (c) the well-founded assembly induction.
+- cubic_progress.tex/pdf updated and recompiled.

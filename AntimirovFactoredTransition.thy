@@ -30793,5 +30793,107 @@ lemma E00_RONE_RCHAR:
     \<le> apder_zw2 (RCHAR c)"
   by simp
 
+lemma E0_RCHAR:
+  "card ((rfrontier (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+      apder_term_frontier_acc (RCHAR c) k) - rfrontier k)
+    \<le> Suc (apder_zw2 (RCHAR c))"
+proof (cases k)
+  case (RALTS rs)
+  have eq: "(rfrontier (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+      apder_term_frontier_acc (RCHAR c) k) - rfrontier k =
+      {RSEQ (RCHAR c) k} - rfrontier k"
+    using RALTS by auto
+  have "card ({RSEQ (RCHAR c) k} - rfrontier k) \<le> 1"
+    by (rule card_singleton_Diff_le_one)
+  then show ?thesis
+    unfolding eq by simp
+qed (simp_all add: card_singleton_Diff_le_one)
+
+
+text \<open>
+  The SEQ branch of E00 at the RONE continuation, conditional on the
+  simultaneous-induction hypotheses: the body D bound, the clean-domain
+  passthrough discount (mirror: 240,256 applicable deep samples, zero
+  violations - the historical discount CE is excluded by the clean
+  domain), and the member E00.  Case split on whether the composite
+  point is produced: if produced, the plain D account covers it; if
+  not, the discount frees one budget slot to pay it.
+\<close>
+
+lemma E00_RONE_RSEQ_if:
+  assumes tail_id: "rsimp4_SEQ_atom r2 RONE = r2"
+    and d1: "card (apder_term_frontier_acc r1 r2 - rfrontier r2)
+      \<le> apder_zw2 r1"
+    and disc: "RSEQ r1 r2 \<notin> apder_term_frontier_acc r1 r2 \<Longrightarrow>
+      card (apder_term_frontier_acc r1 r2 - rfrontier r2)
+        \<le> apder_zw2 r1 - 1"
+    and e2: "card ((rfrontier r2 \<union>
+        apder_term_frontier_acc r2 RONE) - {RONE})
+      \<le> apder_zw2 r2"
+    and pos1: "apder_zw2 r1 \<noteq> 0"
+  shows "card ((rfrontier (RSEQ r1 r2) \<union>
+      apder_term_frontier_acc (RSEQ r1 r2) RONE) - {RONE})
+    \<le> apder_zw2 (RSEQ r1 r2)"
+proof -
+  let ?pt = "RSEQ r1 r2"
+  let ?A1 = "apder_term_frontier_acc r1 r2"
+  let ?A2 = "apder_term_frontier_acc r2 RONE"
+  let ?F2 = "rfrontier r2"
+  have acc_eq: "apder_term_frontier_acc (RSEQ r1 r2) RONE =
+      ?A1 \<union> ?A2"
+    by (simp add: tail_id)
+  have fr: "rfrontier (RSEQ r1 r2) = {?pt}"
+    by simp
+  have inner: "card ((?A1 \<union> ?A2) - {RONE}) \<le>
+      card (?A1 - ?F2) + apder_zw2 r2"
+  proof -
+    have cov: "(?A1 \<union> ?A2) - {RONE} \<subseteq>
+        (?A1 - ?F2) \<union> ((?F2 \<union> ?A2) - {RONE})"
+      by auto
+    have "card ((?A1 \<union> ?A2) - {RONE}) \<le>
+        card ((?A1 - ?F2) \<union> ((?F2 \<union> ?A2) - {RONE}))"
+      by (intro card_mono[OF _ cov]) auto
+    also have "... \<le> card (?A1 - ?F2) +
+        card ((?F2 \<union> ?A2) - {RONE})"
+      by (rule card_Un_le)
+    also have "... \<le> card (?A1 - ?F2) + apder_zw2 r2"
+      using e2 by simp
+    finally show ?thesis .
+  qed
+  show ?thesis
+  proof (cases "?pt \<in> ?A1 \<union> ?A2")
+    case True
+    then have sub: "(rfrontier (RSEQ r1 r2) \<union>
+        apder_term_frontier_acc (RSEQ r1 r2) RONE) - {RONE} =
+        (?A1 \<union> ?A2) - {RONE}"
+      using fr acc_eq by auto
+    have "card ((?A1 \<union> ?A2) - {RONE}) \<le>
+        apder_zw2 r1 + apder_zw2 r2"
+      using inner d1 by simp
+    then show ?thesis using sub by simp
+  next
+    case False
+    then have pt_notin: "?pt \<notin> ?A1"
+      by simp
+    have sub: "(rfrontier (RSEQ r1 r2) \<union>
+        apder_term_frontier_acc (RSEQ r1 r2) RONE) - {RONE} =
+        insert ?pt ((?A1 \<union> ?A2) - {RONE})"
+      using fr acc_eq by auto
+    have "card (insert ?pt ((?A1 \<union> ?A2) - {RONE})) \<le>
+        Suc (card ((?A1 \<union> ?A2) - {RONE}))"
+      by (rule card_insert_le_m1) auto
+    also have "... \<le> Suc (card (?A1 - ?F2) + apder_zw2 r2)"
+      using inner by simp
+    also have "... \<le> Suc ((apder_zw2 r1 - 1) + apder_zw2 r2)"
+      using disc[OF pt_notin] by simp
+    also have "... \<le> apder_zw2 r1 + apder_zw2 r2"
+      using pos1 by simp
+    finally have "card (insert ?pt ((?A1 \<union> ?A2) - {RONE}))
+        \<le> apder_zw2 r1 + apder_zw2 r2" .
+    then show ?thesis
+      using sub by simp
+  qed
+qed
+
 
 end
