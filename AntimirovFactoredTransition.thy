@@ -30896,4 +30896,52 @@ proof -
 qed
 
 
+text \<open>
+  The RSTAR branch of the clean-domain passthrough discount: if the
+  star composite point is not produced, the entire singleton frontier
+  of the composed continuation is invisible in the accumulator, so the
+  ordinary body D bound already lands one below the star budget.  Pure
+  set algebra plus the body IH; no clean-domain premise needed here.
+\<close>
+
+lemma discount_RSTAR_if_body_D:
+  assumes notin: "rsimp4_SEQ_atom (RSTAR r) t \<notin>
+      apder_term_frontier_acc (RSTAR r) t"
+    and body: "card (apder_term_frontier_acc r
+        (rsimp4_SEQ_atom (RSTAR r) t) -
+        rfrontier (rsimp4_SEQ_atom (RSTAR r) t)) \<le> apder_zw2 r"
+    and fr_one: "card (rfrontier (rsimp4_SEQ_atom (RSTAR r) t) -
+        rfrontier t) \<le> 1"
+    and fr_pt: "rfrontier (rsimp4_SEQ_atom (RSTAR r) t) \<subseteq>
+        insert (rsimp4_SEQ_atom (RSTAR r) t) (rfrontier t)"
+  shows "card (apder_term_frontier_acc (RSTAR r) t - rfrontier t)
+    \<le> apder_zw2 (RSTAR r) - 1"
+proof -
+  let ?pt = "rsimp4_SEQ_atom (RSTAR r) t"
+  let ?A = "apder_term_frontier_acc r ?pt"
+  have acc_eq: "apder_term_frontier_acc (RSTAR r) t = ?A"
+    by (cases t) simp_all
+  have pt_notin: "?pt \<notin> ?A"
+    using notin acc_eq by simp
+  have cover: "?A - rfrontier t \<subseteq> ?A - rfrontier ?pt"
+  proof
+    fix x
+    assume x: "x \<in> ?A - rfrontier t"
+    have "x \<noteq> ?pt"
+      using x pt_notin by auto
+    then have "x \<notin> rfrontier ?pt"
+      using x fr_pt by auto
+    then show "x \<in> ?A - rfrontier ?pt"
+      using x by auto
+  qed
+  have "card (apder_term_frontier_acc (RSTAR r) t - rfrontier t) \<le>
+      card (?A - rfrontier ?pt)"
+    unfolding acc_eq
+    by (intro card_mono[OF _ cover]) auto
+  also have "... \<le> apder_zw2 r"
+    by (rule body)
+  finally show ?thesis by simp
+qed
+
+
 end

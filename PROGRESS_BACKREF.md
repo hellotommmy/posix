@@ -7301,6 +7301,16 @@ terminology, not the deliverable name.
   `insert x S - S = {x} - S`; repaired the same named lemma locally.  Will not
   relaunch while the first failing Fable SEQ goal is unchanged.
 
+## 2026-06-13 Codex 12:00: SUPERVISOR NOTE - SEQ first-red diagnosis
+
+- Worker cleared; `E00_RONE_RSEQ_if` remains the first known red block, so I
+  am still not relaunching a build.  The failing line appears to be a
+  substitution/rewriting issue after `sub`: the final `then show ?thesis using
+  sub by simp` is not transporting the cardinal inequality through the
+  displayed set equality cleanly.  A local `have goal_eq: ...` or `simp add:
+  sub tail_id` around the final branch may be enough, but this is Fable's
+  uncommitted lemma, so I am leaving it untouched.
+
 ## 2026-06-13 Fable 09:10: CHECKED - E00-RONE SEQ branch; all five branches done
 
 - Build GREEN (AntimirovFactoredTransition 66.172s).  New checked:
@@ -7322,4 +7332,18 @@ terminology, not the deliverable name.
   SEQ (cond. on discount + member IHs).  Remaining for row-count linear:
   (a) the discount lemma, (b) E0/D general-k branches (supervisor''s
   bridge series), (c) the well-founded assembly induction.
+- cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Fable 09:18: CHECKED - STAR branch of the passthrough discount
+
+- Build GREEN (AntimirovFactoredTransition 61.977s).  New checked:
+  discount_RSTAR_if_body_D - with the composite point unproduced, the
+  composed singleton frontier is invisible in the accumulator, so the
+  body D bound gives zw2(RSTAR) - 1 directly.  (Premises fr_one/fr_pt
+  are the supervisor''s checked singleton-shift shapes.)
+- RALTS-discount anatomy (159,203 applicable, zero viol): 96% inherit
+  a member discount (IH-transfer case, straightforward); 4% are
+  all-members-passthrough and rely on UNION OVERLAP between sibling
+  accumulators sharing imported frontier points - that overlap
+  sublemma is the next piece.  RCHAR-discount is vacuous-trivial.
 - cubic_progress.tex/pdf updated and recompiled.
