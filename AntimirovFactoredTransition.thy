@@ -31429,4 +31429,124 @@ proof -
 qed
 
 
+text \<open>
+  The RALTS constructor discharge for the simultaneous T/S induction.  On the
+  clean domain a real alternation root has positive budget
+  (@{thm apder_zero_budget_trivial_nontrivial_pos}), so by
+  @{thm alts_positive_member} some member carries a strict S discount; that
+  member pays the global @{term Suc} through
+  @{thm discount_RALTS_if_member_discount}, giving both S and the
+  proper-continuation T (whose only extra point is the at-most-one new boundary
+  @{term "rfrontier (rsimp4_SEQ_atom (RALTS rs) k)"}).  The @{term RONE}
+  continuation is the tight merged @{thm E00_RONE_RALTS_if_members} law, fed by
+  the member T at @{term RONE} via @{thm sigma_RONE_id_nf}.  Conditional on the
+  member T/S induction hypotheses at the same continuation @{term k}.
+\<close>
+
+lemma T_and_S_RALTS:
+  assumes cleanr: "apder_clean (RALTS rs)"
+    and Tmem: "\<And>q. q \<in> set rs \<Longrightarrow> apder_T_bound q k"
+    and Smem: "\<And>q. q \<in> set rs \<Longrightarrow> apder_S_bound q k"
+  shows "apder_T_bound (RALTS rs) k"
+    and "apder_S_bound (RALTS rs) k"
+proof -
+  have cleanq: "\<And>q. q \<in> set rs \<Longrightarrow> apder_clean q"
+    using cleanr by (rule apder_clean_RALTS_member)
+  have Dmem: "\<And>q. q \<in> set rs \<Longrightarrow>
+      card (apder_term_frontier_acc q k - rfrontier k) \<le> apder_zw2 q"
+    using Tmem by (rule apder_T_bound_imp_D)
+  have posR: "0 < apder_zw2 (RALTS rs)"
+  proof -
+    have "apder_zw2 (RALTS rs) \<noteq> 0"
+      using cleanr unfolding apder_clean_def
+      by (intro apder_zero_budget_trivial_nontrivial_pos) auto
+    then show ?thesis by (rule neq0_conv[THEN iffD1])
+  qed
+  obtain q0 where q0_in: "q0 \<in> set rs" and q0_pos: "0 < apder_zw2 q0"
+    using alts_positive_member[OF cleanr posR] by blast
+  have q0_ne: "apder_zw2 q0 \<noteq> 0"
+    using q0_pos by simp
+  have q0_disc: "card (apder_term_frontier_acc q0 k - rfrontier k)
+      \<le> apder_zw2 q0 - 1"
+    using apder_S_bound_imp_discount[OF Smem[OF q0_in] q0_pos] .
+  have disc: "card (apder_term_frontier_acc (RALTS rs) k - rfrontier k)
+      \<le> apder_zw2 (RALTS rs) - 1"
+    by (rule discount_RALTS_if_member_discount[OF q0_in q0_disc q0_ne Dmem])
+  show "apder_S_bound (RALTS rs) k"
+    unfolding apder_S_bound_def
+  proof (intro impI)
+    assume "0 < apder_zw2 (RALTS rs)"
+    have "Suc (card (apder_term_frontier_acc (RALTS rs) k - rfrontier k))
+        \<le> Suc (apder_zw2 (RALTS rs) - 1)"
+      using disc by simp
+    also have "... = apder_zw2 (RALTS rs)"
+      using posR by linarith
+    finally show "Suc (card (apder_term_frontier_acc (RALTS rs) k - rfrontier k))
+        \<le> apder_zw2 (RALTS rs)" .
+  qed
+  show "apder_T_bound (RALTS rs) k"
+  proof (cases "k = RONE")
+    case True
+    have e00mem: "\<And>q. q \<in> set rs \<Longrightarrow> q \<noteq> RONE \<Longrightarrow>
+        card ((rfrontier q \<union> apder_term_frontier_acc q RONE) - {RONE})
+          \<le> apder_zw2 q"
+    proof -
+      fix q assume q: "q \<in> set rs" and qn: "q \<noteq> RONE"
+      have nfq: "apder_nf q"
+        using cleanq[OF q] by (simp add: apder_clean_def)
+      have sig: "rsimp4_SEQ_atom q RONE = q"
+        by (rule sigma_RONE_id_nf[OF nfq])
+      have "apder_T_bound q RONE"
+        using Tmem[OF q] True by simp
+      then show "card ((rfrontier q \<union> apder_term_frontier_acc q RONE) - {RONE})
+          \<le> apder_zw2 q"
+        by (simp add: apder_T_bound_def sig)
+    qed
+    have "card ((rfrontier (RALTS rs) \<union>
+        apder_term_frontier_acc (RALTS rs) RONE) - {RONE})
+        \<le> apder_zw2 (RALTS rs)"
+      by (rule E00_RONE_RALTS_if_members[OF e00mem])
+    then show ?thesis
+      using True unfolding apder_T_bound_def by simp
+  next
+    case False
+    have fsig: "card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<le> 1"
+      using False by (cases k) auto
+    show ?thesis
+      unfolding apder_T_bound_def
+    proof -
+      have dist: "(rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+          apder_term_frontier_acc (RALTS rs) k) - rfrontier k =
+          (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k) \<union>
+          (apder_term_frontier_acc (RALTS rs) k - rfrontier k)"
+        by auto
+      have fmk: "card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k)
+          \<le> 1"
+      proof -
+        have "card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k)
+            \<le> card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k))"
+          by (rule card_mono) auto
+        with fsig show ?thesis by simp
+      qed
+      have "card ((rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+          apder_term_frontier_acc (RALTS rs) k) - rfrontier k)
+          = card ((rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k) \<union>
+            (apder_term_frontier_acc (RALTS rs) k - rfrontier k))"
+        by (simp only: dist)
+      also have "... \<le>
+          card (rfrontier (rsimp4_SEQ_atom (RALTS rs) k) - rfrontier k)
+          + card (apder_term_frontier_acc (RALTS rs) k - rfrontier k)"
+        by (rule card_Un_le)
+      also have "... \<le> 1 + (apder_zw2 (RALTS rs) - 1)"
+        using fmk disc by (rule add_le_mono)
+      also have "... = apder_zw2 (RALTS rs)"
+        using posR by linarith
+      finally show "card ((rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+          apder_term_frontier_acc (RALTS rs) k) - rfrontier k)
+          \<le> apder_zw2 (RALTS rs)" .
+    qed
+  qed
+qed
+
+
 end

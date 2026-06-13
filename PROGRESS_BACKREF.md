@@ -7745,3 +7745,27 @@ but does not invalidate them.
   (AntimirovFactoredTransition 78.929s, full Posix elapsed 0:01:27). No `sorry`.
 - Next: `T_and_S_RALTS` (claimed) - the case Codex paused on; unblocked via
   `alts_positive_member` + `discount_RALTS_if_member_discount`.
+
+## 2026-06-13 Fable: CHECKED - T_and_S_RALTS (unblocks the paused case); all 4 constructor cases now done
+
+- New checked helper in AntimirovFactoredTransition.thy: `T_and_S_RALTS`,
+  proving both `apder_T_bound (RALTS rs) k` and `apder_S_bound (RALTS rs) k`
+  from the member IHs at continuation k. This is the case Codex paused on.
+- The list-positivity blocker was a `simp` landmine, not a math gap: a [simp]
+  iff rewrites `0 < sum_list (map apder_zw2 rs)` <-> `EX n:set rs. 0 < zw2 n`,
+  which derails the trivial `n ~= 0 ==> 0 < n` step. Fixed by proving the nat
+  facts with `neq0_conv[THEN iffD1]` and `linarith` (which keep
+  `apder_zw2 (RALTS rs)` opaque and never unfold it to `sum_list`).
+- Structure: posR (`0 < zw2 (RALTS rs)` via apder_zero_budget_trivial_nontrivial_pos)
+  -> positive member q0 via `alts_positive_member` -> q0 pays the global Suc via
+  `discount_RALTS_if_member_discount` (member S discount + member D). S uniform;
+  T splits k=RONE (`E00_RONE_RALTS_if_members` + member T at RONE via
+  `sigma_RONE_id_nf`) vs k~=RONE (singleton `rfrontier (sigma (RALTS rs) k)` + the
+  same discount, paid by `Suc(zw2-1)=zw2`).
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 77.131s, full Posix elapsed 0:01:23). No `sorry`.
+- STATUS: all FOUR constructor discharges now CHECKED -- RCHAR + RSEQ (Codex),
+  RSTAR + RALTS (Fable). The `T_and_S` simultaneous induction can be assembled:
+  for each constructor, instantiate the member/body IH at the right continuation
+  (clean by `sigma_clean`) and apply `T_and_S_<C>`. Skeleton remains Codex's.
