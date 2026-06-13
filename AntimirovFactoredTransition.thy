@@ -31860,6 +31860,123 @@ lemma strong_opened_live_row_universe_eq_closure:
   by (auto simp add: strong_opened_live_row_universe_def
       rsimpStrong_dlform_closure_def row_dlformss_set_def)
 
+lemma rfrontiers_subset_child_live_row_universes:
+  "rfrontiers rs \<subseteq>
+    (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
+  by (induct rs) (auto intro: partial_derivative_live_row_universe_frontier)
+
+lemma rpath_continuations_RALTS_subset_child_live_row_universes:
+  "rpath_continuations (RALTS rs) \<subseteq>
+    (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
+  unfolding rpath_continuations_def
+  by (auto simp add: partial_derivative_live_row_universe_def
+      rpath_continuations_def)
+
+lemma rpath_continuation_frontiers_RALTS_subset_child_live_row_universes:
+  "(\<Union>p \<in> rpath_continuations (RALTS rs). rfrontier p) \<subseteq>
+    (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
+  unfolding rpath_continuations_def
+  by (auto simp add: partial_derivative_live_row_universe_def
+      rpath_continuations_def)
+
+lemma partial_derivative_live_row_universe_RALTS_subset:
+  "partial_derivative_live_row_universe (RALTS rs) \<subseteq>
+    insert RZERO
+      (insert RONE
+        (insert (RALTS rs)
+          (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)))"
+proof -
+  let ?U = "(\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
+  have fronts: "rfrontiers rs \<subseteq> ?U"
+    by (rule rfrontiers_subset_child_live_row_universes)
+  have paths: "rpath_continuations (RALTS rs) \<subseteq> ?U"
+    by (rule rpath_continuations_RALTS_subset_child_live_row_universes)
+  have path_fronts:
+      "(\<Union>p \<in> rpath_continuations (RALTS rs). rfrontier p) \<subseteq> ?U"
+    by (rule rpath_continuation_frontiers_RALTS_subset_child_live_row_universes)
+  show ?thesis
+    using fronts paths path_fronts
+    by (auto simp add: partial_derivative_live_row_universe_def)
+qed
+
+lemma partial_derivative_live_row_universe_RALTS_cases:
+  assumes "p \<in> partial_derivative_live_row_universe (RALTS rs)"
+  shows "p = RZERO \<or> p = RONE \<or> p = RALTS rs \<or>
+    (\<exists>q \<in> set rs. p \<in> partial_derivative_live_row_universe q)"
+  using partial_derivative_live_row_universe_RALTS_subset[of rs] assms
+  by blast
+
+lemma strong_opened_live_row_universe_RALTS_subset:
+  "strong_opened_live_row_universe (RALTS rs) \<subseteq>
+    insert RONE
+      (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
+proof
+  fix x
+  assume x: "x \<in> strong_opened_live_row_universe (RALTS rs)"
+  obtain p where p:
+      "p \<in> partial_derivative_live_row_universe (RALTS rs)"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    using x
+    by (auto simp add: strong_opened_live_row_universe_eq_closure
+        rsimpStrong_dlform_closure_def)
+  have p_cases:
+      "p = RZERO \<or> p = RONE \<or> p = RALTS rs \<or>
+        (\<exists>q \<in> set rs. p \<in> partial_derivative_live_row_universe q)"
+    by (rule partial_derivative_live_row_universe_RALTS_cases[OF p(1)])
+  then show "x \<in> insert RONE
+      (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
+  proof
+    assume p_zero: "p = RZERO"
+    then show ?thesis
+      using p(2) by simp
+  next
+    assume rest:
+        "p = RONE \<or> p = RALTS rs \<or>
+          (\<exists>q \<in> set rs. p \<in> partial_derivative_live_row_universe q)"
+    then show ?thesis
+    proof
+      assume p_one: "p = RONE"
+      then show ?thesis
+        using p(2) by simp
+    next
+      assume rest':
+          "p = RALTS rs \<or>
+            (\<exists>q \<in> set rs. p \<in> partial_derivative_live_row_universe q)"
+      then show ?thesis
+      proof
+        assume p_root: "p = RALTS rs"
+        have root_subset:
+            "row_dlforms (rsimpStrong_raw (RALTS rs)) \<subseteq>
+              (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
+        proof (rule row_dlforms_rsimpStrong_raw_RALTS_subsetI)
+          fix q
+          assume q: "q \<in> set rs"
+          have "row_dlforms (rsimpStrong_raw q) \<subseteq>
+              strong_opened_live_row_universe q"
+            unfolding strong_opened_live_row_universe_eq_closure
+            by (rule row_dlforms_rsimpStrong_raw_self_closure) simp
+          then show "row_dlforms (rsimpStrong_raw q) \<subseteq>
+              (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
+            using q by blast
+        qed
+        show ?thesis
+          using p(2) p_root root_subset by blast
+      next
+        assume "\<exists>q \<in> set rs. p \<in> partial_derivative_live_row_universe q"
+        then obtain q where q:
+            "q \<in> set rs" "p \<in> partial_derivative_live_row_universe q"
+          by blast
+        have "row_dlforms (rsimpStrong_raw p) \<subseteq>
+            strong_opened_live_row_universe q"
+          unfolding strong_opened_live_row_universe_eq_closure
+          by (rule row_dlforms_rsimpStrong_raw_self_closure[OF q(2)])
+        then show ?thesis
+          using p(2) q(1) by blast
+      qed
+    qed
+  qed
+qed
+
 lemma row_dlforms_rsimpStrong_raw_subset_strong_opened_liveI:
   assumes "set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
   shows "row_dlforms (rsimpStrong_raw p) \<subseteq>

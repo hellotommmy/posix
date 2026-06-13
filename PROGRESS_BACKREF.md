@@ -8655,3 +8655,36 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: sample and prove the corresponding non-branching
   constructor bounds for `apder_strong_dlfrontier`, starting with the `RSEQ`
   split needed for a direct cubic bound on the strong-opened frontier.
+
+## 2026-06-14 Codex: CHECKED - RALTS dynamic strong-live carrier is child-paid
+
+- Ephemeral scratch samples (no committed scratch edit):
+  `strong_opened_live_row_universes(afactored1 r s) <=
+   strong_opened_live_row_universe r` is false in the sampled model (a
+  derivative row can expose a simplified nested continuation not present in the
+  original-root carrier), and
+  `rsize_set(strong_opened_live_row_universe r) <=
+   rsize_set(partial_derivative_live_row_universe r)` is also false (opening a
+  live row can split an alternative payload). So the live-carrier route must use
+  constructor sharing, not root subset or local cost monotonicity.
+- Positive sample: the dynamic `RALTS` containment
+  `strong_opened_live_row_universe(RALTS rs) <=
+   insert RONE (UNION q in set rs. strong_opened_live_row_universe q)`
+  had 500,000 random `apder_nf` `RALTS` samples to depth 7 with zero
+  violations.
+- New checked live-row decomposition:
+  `partial_derivative_live_row_universe(RALTS rs) <=
+   insert RZERO (insert RONE (insert (RALTS rs)
+     (UNION q in set rs. partial_derivative_live_row_universe q)))`.
+- New checked dynamic carrier inequality:
+  `strong_opened_live_row_universe(RALTS rs) <=
+   insert RONE (UNION q in set rs. strong_opened_live_row_universe q)`.
+  Plain gloss: alternatives in the dynamic strong-opened carrier add no mass
+  except the universal `RONE`; the root `RALTS` opening itself is paid by child
+  strong-opened carriers.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:18). No `sorry`.
+- NEXT smallest brick: sample/prove the `RSEQ` dynamic-carrier split with the
+  left side carrying `rsimp4_SEQ_atom r2 k` and the right side carrying `k`;
+  this is the likely telescoping shape for the remaining size bound.
