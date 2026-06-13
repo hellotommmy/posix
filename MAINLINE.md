@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-13 13:48, commit 7e62648 — clean-domain D law PROVEN)
+## 2. Where the Proof Stands (as of 2026-06-13 20:09, commit bb21795 — D law PROVEN; cubic-gate wiring in progress)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -130,13 +130,24 @@ Vocabulary (fixed, do not rename):
   `T_and_S_RALTS` 2c7401e; RZERO/RONE empty-set, NTIMES/backref vacuous by
   `apder_clean`), and the clean-domain zw2 D law `D_law_clean` follows
   immediately. Build GREEN, no `sorry`.
-- **Current narrow instruction:** the clean-domain D law is PROVEN
-  (`D_law_clean`); the NEXT open step is to WIRE it through to the cubic gate —
-  instantiate it at the proof-useful legacy/rntimes-free zw2 instance
-  (`apder_zw2_rntimes_free_le_rsize`, 8a7a370) and feed it through the
-  staticized SEQ-part obligation (`afactored1_apder_rows_subset`,
-  `apder_rows_member_size_quadratic`) into the set-ledger cubic gate (§1).
-  Claim in the PROGRESS tail before starting. Stay on the
+- **WIRING IN PROGRESS (2026-06-13 19:43–20:09).** Connecting `D_law_clean`
+  to the cubic gate. Landed: `card_apder_rows_le_apder_zw2_plus_2`
+  (card(apder_rows r) ≤ zw2 r + 2 — the D-law payoff) and
+  `card_apder_rows_clean_le_rsize_plus_2`; the **static FRONT cubic bound**
+  `rsizes_afactored1_clean_static_cubic`
+  (`apder_clean r ⟹ rsizes (afactored1 r s) ≤ (rsize r + 3)^3`, uniform in s,
+  b918254); and clean-domain propagation to the ACTUAL rows
+  (`apder_clean_apder_rows`, `apder_clean_afactored1`, AntimirovNormalFrontier.thy)
+  so `D_law_clean` applies per actual front row.
+- **Current narrow instruction:** finish the wiring — discharge the root
+  `apder_clean r` for the actual gate root (the fragment / simp-normalized
+  input), then assemble the FRONT cubic bound through the one strong step +
+  opening + dedup (`rpder_strong_rows_raw` → `row_dlformss` → `rsize_set`) into
+  the set-ledger gate (§1, target `2*(rsize r+3)^3`). NOTE (worker): the
+  strong-frontier members are only `rtail_nf`, not `apder_clean`, so
+  `D_law_clean` is applied at the `apder_rows`/`afactored1` level and the strong
+  layer uses `rtail_nf` bookkeeping. Claim in the PROGRESS tail before starting.
+  Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to

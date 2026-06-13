@@ -8033,3 +8033,31 @@ Trust git timestamps over the `HH:MM` labels here.
 - Build GREEN after worker check (AntimirovNormalFrontier 2.257s; full Posix
   0:01:32). No `sorry`. Guards bounty/no_cheat/statement PASS (role guard still
   stale - see prior entry).
+
+## 2026-06-13 Secretary: MAINLINE synced to the cubic-gate wiring (bb21795)
+
+Docs only; no .thy touched. MAINLINE §2 updated:
+- Header -> bb21795; the post-D-law section now reads **WIRING IN PROGRESS**,
+  listing what landed (`card_apder_rows_le_apder_zw2_plus_2`,
+  `card_apder_rows_clean_le_rsize_plus_2`; the static FRONT cubic bound
+  `rsizes_afactored1_clean_static_cubic`: apder_clean r ==> rsizes(afactored1 r s)
+  <= (rsize r+3)^3, uniform in s; and `apder_clean_apder_rows` /
+  `apder_clean_afactored1` so D_law_clean applies per actual front row).
+- The **Current narrow instruction** now points at the remaining glue: discharge
+  the root `apder_clean r` for the actual gate root, then assemble the front
+  cubic bound through the one strong step + opening + dedup
+  (`rpder_strong_rows_raw` -> `row_dlformss` -> `rsize_set`) into the set-ledger
+  gate (target `2*(rsize r+3)^3`). Recorded the worker's architecture note: the
+  strong-frontier members are `rtail_nf`, not `apder_clean`.
+- Status framing: the D law is PROVEN and the static front is cubic, but the
+  set-ledger cubic GATE (MAINLINE §1) is NOT yet closed — the strong-step/opening
+  assembly + root-clean discharge remain. No overclaim.
+
+ADMIN FLAG (re-surfacing the worker's note, 2x in the tail above): the
+`backref_role_guard.py` `WORKER_ALLOWED` set is STALE — it lists only backref-pilot
+files and excludes EVERY cubic-phase `.thy`, so `--role worker` flags every
+legitimate `AntimirovFactoredTransition.thy` / `AntimirovNormalFrontier.thy` edit
+(and the pre-existing untracked `fable_partial.md` / `scratch_dlform_cost_model.py`).
+Suggest adding both cubic theories to `WORKER_ALLOWED`. I did NOT edit the guard
+(guard policy is admin/steward territory, outside the docs/cleanup remit). No new
+CE; `SUPER_LINEAR_PATTERNS.md` unchanged.
