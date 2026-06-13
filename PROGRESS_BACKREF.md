@@ -8224,3 +8224,22 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:18). No `sorry`.
 - NEXT smallest brick: RALTS union inclusion; then the SEQ telescoping
   inclusion.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary RALTS inclusion
+
+- New checked support facts:
+  `row_dlformss_set(rfrontier r) = row_dlforms r` and
+  `row_dlformss_set(rfrontiers rs) = row_dlformss rs`;
+  `row_dlforms(rsimp7_SEQ_atom r k) - row_dlforms k <=
+   row_dlforms(rsimp4_SEQ_atom r k) - row_dlforms k`.
+  Plain gloss: opened frontier/opened suffix agree.
+- New checked RALTS recursion lemma:
+  `apder_nf (RALTS rs) ==> apder_nf k ==>
+   opened_boundary_forms (RALTS rs) k <=
+   UNION q in set rs. opened_boundary_forms q k`.
+  Plain gloss: alternative overlaps are free.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:16). No `sorry`.
+- NEXT smallest brick: SEQ telescoping inclusion with the middle
+  `odfront(rsimp4_SEQ_atom r2 k)` cancellation.

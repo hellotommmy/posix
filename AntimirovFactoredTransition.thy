@@ -5019,6 +5019,13 @@ lemma row_dlformss_set_set [simp]:
   "row_dlformss_set (set rs) = row_dlformss rs"
   by (induct rs) (simp_all add: row_dlformss_set_def row_dlformss_def)
 
+lemma row_dlformss_set_rfrontier_eq_row_dlforms [simp]:
+  "row_dlformss_set (rfrontier r) = row_dlforms r"
+  and row_dlformss_set_rfrontiers_eq_row_dlformss [simp]:
+  "row_dlformss_set (rfrontiers rs) = row_dlformss rs"
+  by (induct r and rs rule: rfrontier_rfrontiers.induct)
+    (simp_all add: row_dlformss_set_def row_dlformss_def)
+
 definition row_dlformss_list :: "rrexp list \<Rightarrow> rrexp list" where
   "row_dlformss_list rs = concat (map row_dlforms_list rs)"
 
@@ -29000,6 +29007,10 @@ fun apder_zw2 :: "rrexp \<Rightarrow> nat" where
 definition odfront :: "rrexp \<Rightarrow> rrexp set" where
   "odfront k = row_dlformss_set (rfrontier k)"
 
+lemma odfront_eq_row_dlforms [simp]:
+  "odfront k = row_dlforms k"
+  by (simp add: odfront_def)
+
 definition opened_boundary_forms :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "opened_boundary_forms r k =
     row_dlformss_set
@@ -29033,6 +29044,109 @@ lemma opened_boundary_forms_RCHAR_subset:
   "opened_boundary_forms (RCHAR c) k \<subseteq>
     row_dlformss_set (rfrontier (rsimp4_SEQ_atom (RCHAR c) k))"
   by (auto simp add: opened_boundary_forms_def odfront_def)
+
+lemma row_dlforms_rsimp7_SEQ_atom_diff_subset_rsimp4:
+  "row_dlforms (rsimp7_SEQ_atom r k) - row_dlforms k \<subseteq>
+    row_dlforms (rsimp4_SEQ_atom r k) - row_dlforms k"
+proof (cases r)
+  case (RSTAR p)
+  then show ?thesis
+    using row_dlforms_rsimp7_RSTAR_delta_subset_rsimp4[of p k] by simp
+qed (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma opened_boundary_forms_RALTS_subset:
+  assumes nf: "apder_nf (RALTS rs)"
+    and k_nf: "apder_nf k"
+  shows "opened_boundary_forms (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. opened_boundary_forms q k)"
+proof
+  fix x
+  assume x: "x \<in> opened_boundary_forms (RALTS rs) k"
+  then have not_k: "x \<notin> row_dlforms k"
+    by (simp add: opened_boundary_forms_def)
+  have src:
+      "x \<in> row_dlformss_set
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<or>
+       x \<in> row_dlformss_set (apder_term_frontier_acc (RALTS rs) k)"
+    using x by (auto simp add: opened_boundary_forms_def)
+  have child_nf: "\<And>q. q \<in> set rs \<Longrightarrow> apder_nf q"
+    using nf by simp
+  show "x \<in> (\<Union>q \<in> set rs. opened_boundary_forms q k)"
+    using src
+  proof
+    assume front: "x \<in> row_dlformss_set
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k))"
+    then obtain q where q: "q \<in> set rs"
+        and xq: "x \<in> row_dlforms (rsimp7_SEQ_atom q k)"
+    proof (cases k)
+      case RZERO
+      then show ?thesis
+        using front by simp
+    next
+      case RONE
+      then obtain q where q: "q \<in> set rs" "x \<in> row_dlforms q"
+        using front by (auto simp add: row_dlformss_member_iff)
+      have q_tail: "rtail_nf q"
+        by (rule apder_nf_imp_rtail_nf[OF child_nf[OF q(1)]])
+      have stable: "rsimp7_SEQ_atom q RONE = q"
+        by (rule rtail_nf_RONE_stable7[OF q_tail])
+      show ?thesis
+        by (rule that[OF q(1)]) (use q(2) RONE stable in simp)
+    next
+      case (RCHAR c)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RSEQ k1 k2)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RALTS ks)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RSTAR k)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RNTIMES k n)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RBACKREF4 k1 k2 k3 k4 cs)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RHALF k cs rep)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    next
+      case (RRESIDUE cs rep)
+      then show ?thesis
+        using front by (auto simp add: row_dlformss_set_def intro: that)
+    qed
+    have "x \<in> row_dlforms (rsimp4_SEQ_atom q k) - row_dlforms k"
+      using xq not_k row_dlforms_rsimp7_SEQ_atom_diff_subset_rsimp4[of q k]
+      by blast
+    then have "x \<in> row_dlformss_set
+        (rfrontier (rsimp4_SEQ_atom q k)) - odfront k"
+      by simp
+    then have "x \<in> opened_boundary_forms q k"
+      by (auto simp add: opened_boundary_forms_def)
+    then show ?thesis
+      using q by blast
+  next
+    assume acc: "x \<in> row_dlformss_set
+        (apder_term_frontier_acc (RALTS rs) k)"
+    then obtain q where q: "q \<in> set rs"
+        and xq: "x \<in> row_dlformss_set (apder_term_frontier_acc q k)"
+      by (auto simp add: row_dlformss_set_def)
+    have "x \<in> opened_boundary_forms q k"
+      using xq not_k by (auto simp add: opened_boundary_forms_def)
+    then show ?thesis
+      using q by blast
+  qed
+qed
 
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
