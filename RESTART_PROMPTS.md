@@ -73,6 +73,59 @@ Report each CHECKED result as a math inequality + a <=10-word plain gloss. If th
 gate CLOSES, update `STATUS_MATH` and say so at the top of your next PROGRESS note.
 Run continuously: after each push, re-read the PROGRESS tail and pick the next brick.
 
+### PROMPT W — Claude BACKUP watchdog (run with `/loop`, while Codex is primary)
+
+Paste in a Claude session as:  `/loop 20m`  then the block below. It checks
+Codex's progress every 20 min; stays out of the way while Codex is active; takes
+over the gate-bridge proof the moment Codex goes quiet. (Codex has no `/loop`, so
+this is the failsafe that guarantees zero idle time overnight.)
+
+You are the BACKUP/failsafe proof worker (Claude side) for the POSIX cubic-bound
+project, while Codex (GPT-5.5) is the PRIMARY working the gate-bridge overnight.
+Repo: `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+codex/backref-values. You SHARE ONE worktree with Codex — never edit while Codex
+is active (collision). Each cycle is self-contained; do exactly this:
+
+1. SYNC + ASSESS (always, read-only):
+   - `git -C <repo> fetch origin codex/backref-values`
+   - latest commit time on origin/codex/backref-values
+     (`git log -1 --format=%ct origin/codex/backref-values`; compare to now).
+     TRUST GIT TIMESTAMPS, not the HH:MM labels inside PROGRESS_BACKREF.md.
+   - live workers: `powershell -NoProfile -ExecutionPolicy Bypass -File
+     scripts\codex-proof-workers.ps1 -Action Check`.
+
+2. IF CODEX IS ACTIVE — a proof worker is live, OR a commit landed in the last
+   ~30 min that is not yours: STAY IN BACKUP MODE. Do NOT edit any .thy, do NOT
+   build, do NOT commit. Print one line: "Codex active, last commit <Xm> ago:
+   <subject>". End the cycle.
+
+3. IF CODEX IS STALLED — no live worker AND no new commit in > 30 min: TAKE OVER
+   as primary on the SAME opened-boundary design.
+   - `git pull --rebase --autostash`; read MAINLINE §1-2,
+     `GPT_PRO_GATE_BRIDGE_VERDICT.md` (the design), and the last 120 lines of
+     PROGRESS_BACKREF.md (find Codex's last CLAIM so you CONTINUE its stack, not
+     duplicate it).
+   - Post a CLAIM in the PROGRESS tail: "Claude backup taking over (Codex stalled
+     <Xm>); working <named lemma>." Then do ONE checked brick of the
+     opened-boundary route (verdict section 8): if the depth>=5 sample-check of
+     the potential bound isn't done, do that first; else the next lemma in the
+     stack (odfront/opened_boundary_forms defs -> recursive inclusions ->
+     potential bound -> open_pot_cubic -> carriers -> gate).
+   - ONE Isabelle build at a time (codex-proof-workers.ps1 -Action Check first).
+     Red build = read the first failing goal, change ONE lemma, no relaunch on an
+     unchanged goal, fail twice the same way -> switch sub-target. NEVER
+     force/weaken/sorry. Run the four guards; commit small + push immediately;
+     `pull --rebase --autostash`; stage ONLY your own files (never `git add -A`).
+     Report the CHECKED result as a math inequality + <=10-word gloss.
+   - If your pull/rebase shows Codex RESUMED (a fresh commit not yours), YIELD:
+     finish your current checked brick if safe, then drop back to backup mode.
+
+4. If the §1 gate is already CLOSED, say so prominently and stay in monitor mode
+   only (stop taking over).
+
+Goal: zero idle time overnight. Codex keeps going -> you stay out of its way; the
+moment it stops -> you carry the opened-boundary proof forward on the same design.
+
 ---
 
 ## SUPERSEDED — ASSEMBLY prompts (2026-06-13 19:30; the gate hit a design gap)
