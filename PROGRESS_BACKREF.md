@@ -8949,3 +8949,24 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: introduce a matching root-row charge bound for
   `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k)))`, then use it
   in the general accumulator-potential cubic induction.
+
+## 2026-06-14 Codex: CHECKED - strong-live root charge cubic
+
+- New checked root-charge quadratic:
+  `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k))) <=
+   Suc (Suc (rsize r + rsize k)) * Suc (rsize r + rsize k)`.
+  Plain gloss: opening the strong-normalized current root row is controlled by
+  the existing strong-row quadratic after the `rsimp4_SEQ_atom` size bound.
+- New checked root-charge cubic:
+  `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k))) <=
+   (rsize r + rsize k + 3)^3`.
+  Plain gloss: every constructor root charge used by
+  `strong_opened_live_acc_potential` now has a standalone cubic budget.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the generalized accumulator-potential cubic
+  `strong_opened_live_acc_potential r k <=
+   2 * (rsize r + rsize k + 3)^3` on the normalized/non-backref fragment, or
+  first split out the required `RALTS`/`RSEQ` arithmetic lemmas if automation
+  exposes them.

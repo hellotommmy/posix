@@ -32145,6 +32145,43 @@ proof -
     by (simp add: add.commute add.left_commute add.assoc)
 qed
 
+lemma strong_opened_live_acc_root_charge_quadratic:
+  "rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom r k))) \<le>
+    Suc (Suc (rsize r + rsize k)) * Suc (rsize r + rsize k)"
+proof -
+  have sigma_size:
+      "rsize (rsimp4_SEQ_atom r k) \<le> Suc (rsize r + rsize k)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  have "rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom r k))) \<le>
+      Suc (rsize (rsimp4_SEQ_atom r k)) * rsize (rsimp4_SEQ_atom r k)"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+  also have "... \<le>
+      Suc (Suc (rsize r + rsize k)) * Suc (rsize r + rsize k)"
+    by (rule mult_mono) (use sigma_size in auto)
+  finally show ?thesis .
+qed
+
+lemma strong_opened_live_acc_root_charge_cubic:
+  "rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom r k))) \<le>
+    (rsize r + rsize k + 3) ^ 3"
+proof -
+  have root:
+      "rsize_set
+        (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom r k))) \<le>
+      Suc (Suc (rsize r + rsize k)) * Suc (rsize r + rsize k)"
+    by (rule strong_opened_live_acc_root_charge_quadratic)
+  have arith:
+      "Suc (Suc (rsize r + rsize k)) *
+        Suc (rsize r + rsize k) \<le>
+      (rsize r + rsize k + 3) ^ 3"
+    by (simp add: power3_eq_cube algebra_simps)
+  show ?thesis
+    using root arith by linarith
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set
