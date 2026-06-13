@@ -33277,6 +33277,25 @@ proof -
   finally show ?thesis .
 qed
 
+lemma actual_gate_bridge_from_strong_opened_live_potential:
+  assumes clean: "apder_clean r"
+    and pot: "strong_opened_live_acc_potential r RONE \<le>
+      2 * (rsize r + 3) ^ 3"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have actual:
+      "rsize_set
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      strong_opened_live_acc_potential r RONE"
+    by (rule
+        rsize_set_row_dlformss_rpder_strong_rows_raw_afactored1_clean_le_strong_opened_live_potential
+        [OF clean])
+  show ?thesis
+    by (rule le_trans[OF actual pot])
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"

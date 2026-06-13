@@ -9316,3 +9316,19 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_acc_potential r RONE` (sample-clean target:
   `<= 2 * (rsize r + 3)^3`), or isolate the exact constructor needing extra
   slack.
+
+## 2026-06-14 Codex: CHECKED - conditional gate bridge from root potential
+
+- New checked assembly lemma:
+  if `apder_clean r` and
+  `strong_opened_live_acc_potential r RONE <= 2 * (rsize r + 3)^3`, then
+  `rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <=
+   2 * (rsize r + 3)^3`.
+  Plain gloss: the actual §1 gate now reduces exactly to the root strong-live
+  potential cubic; all actual-row carrier wiring is discharged.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: attack the remaining root-potential cubic by constructor,
+  starting with a direct RZERO/base assembly and then the RSTAR-specific
+  open-potential-style arithmetic if the drain shell is too coarse.
