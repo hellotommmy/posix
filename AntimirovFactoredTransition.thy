@@ -32823,6 +32823,46 @@ next
     by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
 qed
 
+lemma strong_opened_live_acc_potential_RSEQ_cube_shell:
+  assumes left:
+    "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) \<le>
+      (rsize r1 + rsize (rsimp4_SEQ_atom r2 k)) ^ 3 -
+        rsize (rsimp4_SEQ_atom r2 k) ^ 3"
+    and right:
+    "strong_opened_live_acc_potential r2 k \<le>
+      (rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3"
+  shows "strong_opened_live_acc_potential (RSEQ r1 r2) k \<le>
+    (rsize (RSEQ r1 r2) + rsize k) ^ 3 - (rsize k) ^ 3"
+proof -
+  let ?m = "rsize (rsimp4_SEQ_atom r2 k)"
+  have m_le: "?m \<le> rsize r2 + rsize k + 1"
+    using rsize_rsimp4_SEQ_atom_le[of r2 k] by simp
+  have shells:
+      "((rsize r1 + ?m) ^ 3 - ?m ^ 3) +
+        ((rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3) \<le>
+      (rsize r1 + rsize r2 + rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    by (rule cube_shell_telescope_opened_middle[OF m_le])
+  have potential_le:
+      "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) +
+       strong_opened_live_acc_potential r2 k \<le>
+      ((rsize r1 + ?m) ^ 3 - ?m ^ 3) +
+        ((rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3)"
+    by (rule add_le_mono[OF left right])
+  have "strong_opened_live_acc_potential (RSEQ r1 r2) k =
+      strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) +
+      strong_opened_live_acc_potential r2 k"
+    by simp
+  also have "... \<le>
+      ((rsize r1 + ?m) ^ 3 - ?m ^ 3) +
+        ((rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3)"
+    by (rule potential_le)
+  also have "... \<le>
+      (rsize r1 + rsize r2 + rsize k + 1) ^ 3 - (rsize k) ^ 3"
+    by (rule shells)
+  finally show ?thesis
+    by simp
+qed
+
 lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
   "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
     rsize_set

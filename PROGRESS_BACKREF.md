@@ -9193,3 +9193,26 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove the `RSEQ` constructor case for
   `strong_opened_live_acc_potential` using this telescope and
   `rsize_rsimp4_SEQ_atom_le`.
+
+## 2026-06-14 Codex: CHECKED - RSEQ strong-live drain case
+
+- New checked constructor drain:
+  if
+  `strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) <=
+   (rsize r1 + rsize (rsimp4_SEQ_atom r2 k))^3 -
+   rsize (rsimp4_SEQ_atom r2 k)^3`
+  and
+  `strong_opened_live_acc_potential r2 k <=
+   (rsize r2 + rsize k)^3 - rsize k^3`,
+  then
+  `strong_opened_live_acc_potential (RSEQ r1 r2) k <=
+   (rsize (RSEQ r1 r2) + rsize k)^3 - rsize k^3`.
+  Plain gloss: the left child sees the opened suffix
+  `rsimp4_SEQ_atom r2 k`, whose size is bounded by `rsize r2+rsize k+1`;
+  the opened-middle cube telescope closes the sequence shell.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:16). No `sorry`.
+- NEXT smallest brick: prove the `RSTAR` constructor drain shell, using the
+  checked root charge plus the same opened-middle telescope specialized to the
+  star self-suffix.
