@@ -8317,3 +8317,16 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:13). No `sorry`.
 - NEXT smallest brick: combine `opened_boundary_forms_le_open_pot` with this
   cubic arithmetic at `k = RONE`, then start `afactored1_opened_boundary_carrier`.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary RONE cubic specialization
+
+- New checked bridge:
+  `apder_clean r ==> rsize_set(opened_boundary_forms r RONE) <= (rsize r+3)^3`.
+  Plain gloss: root opened boundary is cubic.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove the static carrier inclusion
+  `row_dlformss(set (afactored1 r u)) <= odfront RONE UNION
+   opened_boundary_forms r RONE`, adapting the existing `afactored1`/frontier
+  carrier facts.

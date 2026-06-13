@@ -31403,6 +31403,24 @@ next
   then show ?case by (simp add: power3_eq_cube)
 qed
 
+lemma opened_boundary_forms_RONE_cubic:
+  assumes clean: "apder_clean r"
+  shows "rsize_set (opened_boundary_forms r RONE) \<le> (rsize r + 3) ^ 3"
+proof -
+  have rone_clean: "apder_clean RONE"
+    by (simp add: apder_clean_def)
+  have free: "rntimes_free r"
+    using clean unfolding apder_clean_def by simp
+  have "rsize_set (opened_boundary_forms r RONE) \<le>
+      open_pot r + apder_zw2 r * (1 + rsize RONE)"
+    by (rule opened_boundary_forms_le_open_pot[OF clean rone_clean])
+  also have "... = open_pot r + apder_zw2 r * 2"
+    by simp
+  also have "... \<le> (rsize r + 3) ^ 3"
+    by (rule open_pot_cubic_clean[OF free])
+  finally show ?thesis .
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"
