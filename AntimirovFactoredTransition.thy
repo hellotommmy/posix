@@ -29021,6 +29021,19 @@ fun open_pot :: "rrexp \<Rightarrow> nat" where
 | "open_pot (RHALF r cs rep) = 0"
 | "open_pot (RRESIDUE cs rep) = 0"
 
+lemma opened_boundary_forms_RZERO [simp]:
+  "opened_boundary_forms RZERO k = {}"
+  by (simp add: opened_boundary_forms_def)
+
+lemma opened_boundary_forms_RONE [simp]:
+  "opened_boundary_forms RONE k = {}"
+  by (simp add: opened_boundary_forms_def odfront_def)
+
+lemma opened_boundary_forms_RCHAR_subset:
+  "opened_boundary_forms (RCHAR c) k \<subseteq>
+    row_dlformss_set (rfrontier (rsimp4_SEQ_atom (RCHAR c) k))"
+  by (auto simp add: opened_boundary_forms_def odfront_def)
+
 lemma apder_zwidth_le_apder_zw2:
   "apder_zwidth r \<le> apder_zw2 r"
 proof (induct r)

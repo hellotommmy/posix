@@ -8209,3 +8209,18 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:12). No `sorry`.
 - NEXT smallest brick: recursive inclusions for the opened carrier, starting
   with RZERO/RONE/RCHAR, then the telescoping RSEQ case.
+
+## 2026-06-14 Codex: CHECKED - opened-boundary base inclusions
+
+- New checked lemmas in `AntimirovFactoredTransition.thy`:
+  `opened_boundary_forms RZERO k = {}`,
+  `opened_boundary_forms RONE k = {}`,
+  and
+  `opened_boundary_forms (RCHAR c) k <=
+   row_dlformss_set(rfrontier(rsimp4_SEQ_atom (RCHAR c) k))`.
+  Plain gloss: zero/unit add nothing; char pays its own edge.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:18). No `sorry`.
+- NEXT smallest brick: RALTS union inclusion; then the SEQ telescoping
+  inclusion.
