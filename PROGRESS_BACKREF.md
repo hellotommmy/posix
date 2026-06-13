@@ -7118,3 +7118,26 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   69.551s, full Posix elapsed 0:01:15).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Fable 08:40: CHECKED - E0 closes the J* RCHAR base
+
+- Clean rebuild GREEN (forced -c after two spurious 4-second
+  up-to-date runs; AntimirovFactoredTransition 62.278s).  Note for
+  everyone: if the wrapper finishes in seconds without "Running
+  Posix", force a clean build before trusting it.
+- New checked piece: jstar_RCHAR_if_E0 - for a character left child
+  the J* three-sum reduces to the E0 merged-frontier quantity by a
+  disjoint-union covering, so E0 (single-variable!) implies the J*
+  base case.
+- New named mirror-validated invariant E0-zw2 (full standard, 171,161
+  deep + directed, both k=RONE and general-k):
+  card((F(sigma4(q,k)) UNION acc(q,k)) - Fk) <= Suc (zw2 q).
+- Updated D-law dependency map:
+  D base/RCHAR/RALTS/RSTAR: checked (supervisor).
+  D SEQ: checked IF J*           (card_..._RSEQ_diff_le_if_jstar).
+  J* RCHAR base: checked IF E0   (jstar_RCHAR_if_E0).
+  OPEN: E0 induction (single-variable, looks tractable) and the J*
+  inductive steps (RALTS/RSTAR left children; the RALTS-left step has
+  a known +1 subtlety - the t2 import is SHARED across siblings, use
+  card(Fs - Fk - A2) directly rather than summing per-sibling IHs).
+- cubic_progress.tex/pdf updated and recompiled.

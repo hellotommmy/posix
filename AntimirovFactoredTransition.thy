@@ -30533,4 +30533,50 @@ proof -
 qed
 
 
+text \<open>
+  The merged-frontier law E0 (mirror: 171,161 deep samples + directed
+  grid, zero violations in both the k=RONE and general-k forms) closes
+  the RCHAR base case of the J* induction by pure set algebra: for a
+  character left child the accumulator IS the composite frontier, so
+  the imported and sibling blocks are disjoint pieces of the E0 union.
+\<close>
+
+lemma jstar_RCHAR_if_E0:
+  assumes e0: "card ((rfrontier (rsimp4_SEQ_atom r2 k) \<union>
+      apder_term_frontier_acc r2 k) - rfrontier k)
+    \<le> Suc (apder_zw2 r2)"
+  shows "card (apder_term_frontier_acc (RCHAR c) (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc (RCHAR c) (rsimp4_SEQ_atom r2 k) \<inter>
+        rfrontier (rsimp4_SEQ_atom r2 k)) -
+      rfrontier k - apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k)
+    \<le> apder_zw2 (RCHAR c) + apder_zw2 r2"
+proof -
+  let ?Fs = "rfrontier (rsimp4_SEQ_atom r2 k)"
+  let ?A2 = "apder_term_frontier_acc r2 k"
+  let ?Fk = "rfrontier k"
+  have a1: "apder_term_frontier_acc (RCHAR c)
+      (rsimp4_SEQ_atom r2 k) = ?Fs"
+    by simp
+  have t1: "card (apder_term_frontier_acc (RCHAR c)
+      (rsimp4_SEQ_atom r2 k) - ?Fs) = 0"
+    by (simp add: a1)
+  have disj: "((?Fs - ?Fk - ?A2) \<inter> (?A2 - ?Fk)) = {}"
+    by auto
+  have cover: "(?Fs - ?Fk - ?A2) \<union> (?A2 - ?Fk) \<subseteq>
+      (?Fs \<union> ?A2) - ?Fk"
+    by auto
+  have "card ((?Fs \<inter> ?Fs) - ?Fk - ?A2) + card (?A2 - ?Fk) =
+      card ((?Fs - ?Fk - ?A2) \<union> (?A2 - ?Fk))"
+    by (subst card_Un_disjoint[OF _ _ disj]) auto
+  also have "... \<le> card ((?Fs \<union> ?A2) - ?Fk)"
+    by (intro card_mono[OF _ cover]) auto
+  also have "... \<le> Suc (apder_zw2 r2)"
+    by (rule e0)
+  finally show ?thesis
+    by (simp add: a1)
+qed
+
+
 end
