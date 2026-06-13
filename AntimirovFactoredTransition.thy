@@ -33066,6 +33066,19 @@ next
     using step body by simp
 qed simp_all
 
+lemma rsize_set_strong_opened_live_row_universe_le_potential:
+  assumes nf: "apder_nf r"
+  shows "rsize_set (strong_opened_live_row_universe r) \<le>
+    strong_opened_live_acc_potential r RONE"
+proof -
+  have "rsize_set (strong_opened_live_row_universe r) =
+      rsize_set (strong_opened_live_row_universe_acc r RONE)"
+    by (simp add: strong_opened_live_row_universe_acc_RONE_eq[OF nf])
+  also have "... \<le> strong_opened_live_acc_potential r RONE"
+    by (rule rsize_set_strong_opened_live_row_universe_acc_le_potential[OF nf])
+  finally show ?thesis .
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"

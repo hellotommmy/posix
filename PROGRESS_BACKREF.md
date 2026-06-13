@@ -9216,3 +9216,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove the `RSTAR` constructor drain shell, using the
   checked root charge plus the same opened-middle telescope specialized to the
   star self-suffix.
+
+## 2026-06-14 Codex: CHECKED - root live carrier uses accumulator potential
+
+- RSTAR drain-shell route note: the generic child shell is too coarse for the
+  star case. For nontrivial `k`,
+  `rsimp4_SEQ_atom (RSTAR r) k = RSEQ (RSTAR r) k`, so the body induction would
+  be applied at a suffix one constructor beyond the parent shell. This is not
+  the opened-boundary `open_pot` route from the verdict; do not force it as the
+  next gate bridge.
+- New checked bridge:
+  `apder_nf r ==> rsize_set (strong_opened_live_row_universe r) <=
+   strong_opened_live_acc_potential r RONE`.
+  Plain gloss: the repaired prefix-aware live carrier rewrites to the
+  accumulator carrier at `RONE`, so the existing accumulator potential bound
+  applies directly at the root.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:16). No `sorry`.
+- NEXT smallest brick: collapse
+  `strong_opened_live_row_universes (afactored1 r s)` toward the root live
+  carrier, or find the exact missing saturation predicate if that containment
+  is too strong.
