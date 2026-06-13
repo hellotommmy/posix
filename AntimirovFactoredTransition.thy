@@ -28603,6 +28603,70 @@ proof -
         [OF legacy front])
 qed
 
+lemma rseq_tail_rows_rpder_strong_rows_raw_afactored1_eq_nonalt:
+  "rseq_tail_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t =
+    rseq_tail_nonalt_head_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t"
+proof
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  show "rseq_tail_rows ?U t \<subseteq>
+      rseq_tail_nonalt_head_rows ?U t"
+  proof
+    fix q
+    assume q: "q \<in> rseq_tail_rows ?U t"
+    then obtain h where ht: "q = RSEQ h t" "RSEQ h t \<in> ?U"
+      by (auto simp add: rseq_tail_rows_def)
+    have "nonalt h"
+      by (rule row_dlformss_seq_member_head_nonalt[OF ht(2)])
+    then show "q \<in> rseq_tail_nonalt_head_rows ?U t"
+      using ht by (auto simp add: rseq_tail_nonalt_head_rows_def
+          rseq_tail_rows_def)
+  qed
+next
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  show "rseq_tail_nonalt_head_rows ?U t \<subseteq>
+      rseq_tail_rows ?U t"
+    by (auto simp add: rseq_tail_nonalt_head_rows_def)
+qed
+
+lemma card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front:
+  "card (rseq_tail_rows
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) \<le>
+    card (strong_derivative_front_terms r (s @ [c]))"
+  by (simp add:
+      rseq_tail_rows_rpder_strong_rows_raw_afactored1_eq_nonalt
+      card_rseq_tail_nonalt_head_rows_rpder_strong_rows_raw_afactored1_le_front)
+
+lemma actual_union_seq_tail_bucket_term_le_front_times_tails:
+  "(\<Sum>t \<in> rseq_tails
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))).
+      card (rseq_tail_rows
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) t) *
+        rsize t) \<le>
+    card (strong_derivative_front_terms r (s @ [c])) *
+      rsize_set (rseq_tails
+        (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))))"
+proof -
+  let ?U = "row_dlformss (rpder_strong_rows_raw c (afactored1 r s))"
+  let ?T = "rseq_tails ?U"
+  let ?F = "strong_derivative_front_terms r (s @ [c])"
+  have "(\<Sum>t \<in> ?T. card (rseq_tail_rows ?U t) * rsize t) \<le>
+      (\<Sum>t \<in> ?T. card ?F * rsize t)"
+  proof (rule sum_mono)
+    fix t
+    assume "t \<in> ?T"
+    show "card (rseq_tail_rows ?U t) * rsize t \<le>
+        card ?F * rsize t"
+      by (rule mult_right_mono)
+        (simp_all add:
+          card_rseq_tail_rows_rpder_strong_rows_raw_afactored1_le_front)
+  qed
+  also have "... = card ?F * rsize_set ?T"
+    by (simp add: rsize_set_def sum_distrib_left)
+  finally show ?thesis .
+qed
+
 
 text \<open>
   The pair-budget gate, instantiated: on the legacy fragment the

@@ -8421,3 +8421,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove a checked bound for the remaining
   `sum_t bucket(t) * rsize(t)` summand, preferably by charging each bucket
   member to generated rows without using the false unsimplified strong carrier.
+
+## 2026-06-14 Codex: CHECKED - actual SEQ buckets charge to front tails
+
+- New checked actual-bucket facts:
+  `rseq_tail_rows(row_dlformss(rpder_strong_rows_raw c (afactored1 r s))) t =
+   rseq_tail_nonalt_head_rows(row_dlformss(rpder_strong_rows_raw c
+   (afactored1 r s))) t`, hence each fixed-tail bucket has cardinality at
+  most `card(strong_derivative_front_terms r (s @ [c]))`.
+- New checked inequality:
+  `sum_t card(rseq_tail_rows(U,t)) * rsize t <=
+   card(strong_derivative_front_terms r (s @ [c])) *
+   rsize_set(rseq_tails U)`, where
+  `U = row_dlformss(rpder_strong_rows_raw c (afactored1 r s))`.
+  Plain gloss: the exact decomposition's remaining bucket summand now has a
+  static front-count coefficient; the active/alt bucket is dead for actual
+  opened rows because their SEQ heads are nonalt.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: combine this with a checked tail-size bound for
+  `rsize_set(rseq_tails U)` and the existing front-term budget, without
+  reintroducing the old list-cost/self-reference route.
