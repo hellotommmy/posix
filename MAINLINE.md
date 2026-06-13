@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-13 20:09, commit bb21795 — D law PROVEN; cubic-gate wiring in progress)
+## 2. Where the Proof Stands (as of 2026-06-14 01:24, commit c22e97e — D law PROVEN; gate-bridge design landed, executing)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -139,8 +139,8 @@ Vocabulary (fixed, do not rename):
   b918254); and clean-domain propagation to the ACTUAL rows
   (`apder_clean_apder_rows`, `apder_clean_afactored1`, AntimirovNormalFrontier.thy)
   so `D_law_clean` applies per actual front row.
-- **THE ONE REMAINING GAP — the dedup gate-bridge (OPEN; a DESIGN point, not
-  routine assembly; full framing in `GATE_BRIDGE_GAP.md`).** The D law and the
+- **THE ONE REMAINING GAP — the dedup gate-bridge (OPEN; the DESIGN has LANDED
+  (opened-boundary route) and is now EXECUTING — see below).** The D law and the
   cubic static front are proven, but the §1 gate
   `rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <=
   2*(rsize r+3)^3` is NOT yet closed, and the naive assembly does **not** work:
@@ -154,17 +154,28 @@ Vocabulary (fixed, do not rename):
   `rsize_set (rsimpStrong_dlform_closure (set (afactored1 r (s@[c])))) <=
   2*(rsize r+3)^3`. Note: the strong-frontier rows are only `rtail_nf`, not
   fully `apder_clean`. The 8 checked facts to reuse and the dead routes are in
-  `GATE_BRIDGE_GAP.md`; it is framed for a GPT Pro design pass.
-- **Current narrow instruction:** do NOT re-attempt the square-sum or list-cost
-  routes (dead per `GATE_BRIDGE_GAP.md` / `SUPER_LINEAR_PATTERNS.md`); the live
-  task is the SHARING invariant for the deduped opened ledger. Claim in the
-  PROGRESS tail before starting. Stay on the
-  legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
+  `GATE_BRIDGE_GAP.md`.
+- **DESIGN LANDED + EXECUTING (2026-06-14).** GPT Pro (re-run with the correct
+  bundle) returned the real design: an **opened-boundary / suffix-edge
+  invariant** (the opened analog of the D-law telescoping) with an `open_pot`
+  potential and a **9-lemma execution stack**, saved verbatim in
+  `GPT_PRO_GATE_BRIDGE_VERDICT.md`. Execution in progress: the carrier
+  (`row_dlformss_set`, `odfront`) and the base inclusions `opened_boundary_forms`
+  for RZERO/RONE/RCHAR/RALTS are CHECKED (9b110c4..c22e97e). NEXT brick: the
+  **SEQ telescoping inclusion** (middle `odfront(rsimp4_SEQ_atom r2 k)`
+  cancellation), then the potential / carrier / gate steps.
+- **Current narrow instruction:** execute the opened-boundary stack per
+  `GPT_PRO_GATE_BRIDGE_VERDICT.md` (sample-check the `open_pot` bound at
+  depth ≥ 5 first); next is the SEQ telescoping inclusion. Do NOT re-attempt the
+  square-sum or list-cost routes (dead per `GATE_BRIDGE_GAP.md` /
+  `SUPER_LINEAR_PATTERNS.md`). Claim in the PROGRESS tail before starting. Stay
+  on the legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
   `*_list_cost_alt_nodes` / generated-ledger wrappers (they lose a degree).
-  Full dead-ends: `MATHPROBLEM_ROWCOUNT.md`; full design: `GPT_PRO_DLAW_VERDICT.md`
-  (D law) and `GATE_BRIDGE_GAP.md` (the gate bridge).
+  Full dead-ends: `MATHPROBLEM_ROWCOUNT.md`; full design:
+  `GPT_PRO_DLAW_VERDICT.md` (D law) and `GPT_PRO_GATE_BRIDGE_VERDICT.md` +
+  `GATE_BRIDGE_GAP.md` (the gate bridge).
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 
