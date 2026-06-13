@@ -5,6 +5,93 @@ on branch `codex/backref-values`, and coordinate through the `PROGRESS_BACKREF.m
 tail. Paste the matching block into each fresh CLI. Keep them short on purpose —
 the charter does the heavy lifting.
 
+For THIS cycle (after the 2026-06-13 GPT Pro verdict) use the two
+verdict-aware prompts in the next section; the generic role prompts below
+remain valid once the T+S route is settled.
+
+---
+
+## CURRENT-CYCLE PROMPTS (2026-06-13): absorb the T+S verdict, then execute
+
+A high-reasoning external pass (GPT Pro) reframed the D-law bottleneck. Both
+proof agents must absorb it first, then split the work. Paste ONE per agent.
+
+### PROMPT A2 — Lead / Codex (induction skeleton + supervisor)
+
+You are (re)starting on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST, in order: `MAINLINE.md` (esp. §2), the
+last 200 lines of `PROGRESS_BACKREF.md` (the 2026-06-13 GPT Pro broadcast), and
+the FULL `GPT_PRO_DLAW_VERDICT.md` — that verdict is now the D-law plan. Use
+`DOC_INDEX.md` for details on demand; never bulk-read history. Frozen chains
+(backref + Blexer/BlexerSimp/bsimp, MAINLINE §5) — never redo. Trust git
+timestamps, not PROGRESS labels.
+
+GOAL: prove the set-ledger cubic gate (MAINLINE §1) via the row-count D law,
+now reframed as the telescoping invariant T plus strict-credit S (verdict).
+
+STEP 0 — GATE (do this before any Isabelle): sample-check T and S at depth >= 5
+with directed nested zero-width-star families (extend
+`scratch_rowcount_check.py`). If a deep counterexample appears, STOP — record it
+in `SUPER_LINEAR_PATTERNS.md` + the PROGRESS tail, and fall back to the
+pre-verdict route. Only if BOTH T and S pass deep sampling do you proceed.
+
+YOUR lane once the gate passes: state `T` and `S` in
+`AntimirovFactoredTransition.thy` and build the single `T_and_S` simultaneous
+induction, discharging the constructor cases (RCHAR/RALTS/RSTAR/SEQ) per the
+verdict; use a temporary `sorry` for any of the four bridge lemmas Fable has not
+yet landed (record each `sorry` in PROGRESS, eliminate as they arrive). Then
+derive `D_law_clean` and wire it into the gate assembly. Plus supervisor duties:
+gate routes, prune duplicate effort, post corrections in the PROGRESS tail.
+
+MODE & RULES: coordinate with Fable through the PROGRESS tail — claim a named
+lemma there BEFORE editing it; read newest entries each cycle. One Isabelle
+build at a time (`scripts\codex-proof-workers.ps1 -Action Check` first; lock
+shared). Red build = proof failure: read the first failing goal, change ONE
+named lemma, never relaunch on an unchanged goal; fail twice the same way →
+switch sub-target + record the blocker. `auto`/`simp` ~0.5s or split. One small
+checked brick per cycle; search before creating; no wrapper-only packaging. No
+sorry left at end-of-task except the tracked bridge stubs; run the four guards
+before pushing. Commit small + push immediately; `git pull --rebase --autostash`
+first; stage ONLY your own files (NEVER `git add -A` — it sweeps Fable's
+in-flight `.thy`). Do not touch `fable_partial.md` / `scratch_*.py`.
+
+### PROMPT B2 — Fable (bridge lemmas, then constructor cases)
+
+You are (re)starting on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST, in order: `MAINLINE.md` (esp. §2), the
+last 200 lines of `PROGRESS_BACKREF.md` (the 2026-06-13 GPT Pro broadcast), and
+the FULL `GPT_PRO_DLAW_VERDICT.md` — that verdict is the D-law plan. Use
+`DOC_INDEX.md` on demand; never bulk-read history. Frozen chains (MAINLINE §5) —
+never redo. Trust git timestamps, not PROGRESS labels.
+
+GOAL: prove the set-ledger cubic gate (MAINLINE §1) via the T+S route.
+
+YOUR lane: land the FOUR bridge lemmas the induction needs (independent,
+mostly mechanical) — `sigma_clean`, `sigma_RONE_id_nf` (or its frontier
+version `F(sigma r RONE) = F r`), `clean_zero_budget_root`,
+`alts_positive_member` — plus the small list-union cardinal lemma that lets one
+positive member pay the global `Suc` via S. Claim each by name in the PROGRESS
+tail before editing so you and Codex (who owns the `T_and_S` skeleton) do not
+collide. As each bridge lands, the corresponding `sorry` in Codex's induction
+clears. If all bridges are done and the skeleton is waiting, pick up one
+constructor-discharge case (claim it in PROGRESS).
+
+Note: Step 0 (the depth>=5 sample-check of T and S) is the gate — if Codex
+hasn't run it, run it yourself first; do not start Isabelle on T/S until it
+passes. A deep CE → record in SUPER_LINEAR_PATTERNS.md + PROGRESS and stop.
+
+MODE & RULES: same as the lead — coordinate via the PROGRESS tail; one build at
+a time (`codex-proof-workers.ps1 -Action Check` first); red build = proof
+failure (read first goal, change one lemma, no relaunch on unchanged goal, fail
+twice → switch + record); `auto`/`simp` ~0.5s or split; small checked bricks;
+search before creating; four guards before pushing; commit small + push
+immediately; `pull --rebase --autostash`; stage ONLY your own files (never
+`git add -A`); don't touch `scratch_*.py`.
+
+(The Secretary prompt is unchanged — use PROMPT C below.)
+
 ---
 
 ## COMMON HEADER (all roles already include it below)
