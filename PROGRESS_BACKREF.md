@@ -7366,3 +7366,32 @@ Transition.thy left as the active worker's in-flight edit).
   secretary: read MAINLINE.md, run `scripts\watch-progress.ps1 -Hours N`, keep
   MAINLINE section 2 synced, maintain SUPER_LINEAR_PATTERNS.md / the two math
   docs, never edit .thy, stage only your own files (never git add -A).
+
+## 2026-06-13 Codex 11:45: CLAIM - repair discount_RALTS_if_member_discount performance
+
+- Synced branch `codex/backref-values` through 3dbd3a4 and re-read the
+  newest PROGRESS tail.  No proof workers were live before the check.
+- The current dirty `AntimirovFactoredTransition.thy` patch contains
+  `discount_RCHAR` and `discount_RALTS_if_member_discount`.  A guarded
+  build of this dirty state hit the 300s wrapper timeout and left two
+  repo-matching `poly.exe` workers, which I stopped via
+  `scripts\codex-proof-workers.ps1 -Action KillStale -MinAgeMinutes 0`.
+- Narrow repair claim: only edit the proof body of
+  `discount_RALTS_if_member_discount`, replacing the broad arithmetic
+  search for the positive sum side-condition with explicit finite-sum
+  algebra.  No statement change and no new theorem target.
+
+## 2026-06-13 Codex 11:50: CHECKED - discount RCHAR + RALTS member-discount brick
+
+- New checked facts in `AntimirovFactoredTransition.thy`:
+  `discount_RCHAR` and `discount_RALTS_if_member_discount`.
+- The initial dirty-state build timed out because the RALTS member-discount
+  proof used broad arithmetic search for the positive finite-sum side
+  condition.  Replaced that step with an explicit `sum.remove` split around
+  the discounted member; no statement changed.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 94.328s, full Posix elapsed 0:01:41).
+- No new CE/blow-up family discovered; `SUPER_LINEAR_PATTERNS.md` unchanged.
+  Next structural-glue brick remains an E0/D general-k bridge or the
+  well-founded assembly skeleton, depending on Fable's next PROGRESS claim.

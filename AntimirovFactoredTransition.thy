@@ -30944,4 +30944,83 @@ proof -
 qed
 
 
+text \<open>
+  Two more discount pieces.  RCHAR: a character accumulator is exactly
+  the continuation frontier, so the difference is empty.  RALTS with a
+  discounted member: that member pays one below its budget and the
+  others pay their ordinary D bounds; the union difference splits
+  accordingly.  The residual all-members-passthrough RALTS case (4
+  percent of applicable mirror samples) is deferred to the union
+  overlap sublemma.
+\<close>
+
+lemma discount_RCHAR:
+  "card (apder_term_frontier_acc (RCHAR c) t - rfrontier t)
+    \<le> apder_zw2 (RCHAR c) - 1"
+  by simp
+
+lemma discount_RALTS_if_member_discount:
+  assumes p: "p \<in> set ps"
+    and pd: "card (apder_term_frontier_acc p t - rfrontier t)
+      \<le> apder_zw2 p - 1"
+    and pos: "apder_zw2 p \<noteq> 0"
+    and others: "\<And>q. q \<in> set ps \<Longrightarrow>
+      card (apder_term_frontier_acc q t - rfrontier t)
+        \<le> apder_zw2 q"
+  shows "card (apder_term_frontier_acc (RALTS ps) t - rfrontier t)
+    \<le> apder_zw2 (RALTS ps) - 1"
+proof -
+  have un: "apder_term_frontier_acc (RALTS ps) t - rfrontier t =
+      (\<Union>q \<in> set ps.
+        (apder_term_frontier_acc q t - rfrontier t))"
+    by auto
+  have "card (apder_term_frontier_acc (RALTS ps) t - rfrontier t) \<le>
+      (\<Sum>q \<in> set ps.
+        card (apder_term_frontier_acc q t - rfrontier t))"
+    unfolding un by (rule card_UN_le) simp
+  also have "... \<le>
+      (\<Sum>q \<in> set ps.
+        (if q = p then apder_zw2 q - 1 else apder_zw2 q))"
+    by (rule sum_mono) (use pd others in auto)
+  also have "... \<le> (\<Sum>q \<in> set ps. apder_zw2 q) - 1"
+  proof -
+    have finps: "finite (set ps)" by simp
+    have lhs_eq: "(\<Sum>q \<in> set ps.
+        (if q = p then apder_zw2 q - 1 else apder_zw2 q)) =
+        (apder_zw2 p - 1) + (\<Sum>q \<in> set ps - {p}. apder_zw2 q)"
+      by (subst sum.remove[OF finps p]) simp
+    have rhs_eq: "(\<Sum>q \<in> set ps. apder_zw2 q) =
+        apder_zw2 p + (\<Sum>q \<in> set ps - {p}. apder_zw2 q)"
+      by (rule sum.remove[OF finps p])
+    have step: "(apder_zw2 p - 1) +
+        (\<Sum>q \<in> set ps - {p}. apder_zw2 q) =
+        (\<Sum>q \<in> set ps. apder_zw2 q) - 1"
+      using pos by (simp add: rhs_eq)
+    show ?thesis
+      by (simp only: lhs_eq step)
+  qed
+  also have "... \<le> sum_list (map apder_zw2 ps) - 1"
+  proof -
+    have "(\<Sum>q \<in> set ps. apder_zw2 q) \<le>
+        sum_list (map apder_zw2 ps)"
+      by (rule sum_set_le_sum_list_nat)
+    moreover have "1 \<le> (\<Sum>q \<in> set ps. apder_zw2 q)"
+    proof -
+      have split: "(\<Sum>q \<in> set ps. apder_zw2 q) =
+          apder_zw2 p + (\<Sum>q \<in> set ps - {p}. apder_zw2 q)"
+        by (rule sum.remove[OF finite_set p])
+      have p_pos: "1 \<le> apder_zw2 p"
+        using pos by simp
+      have "1 \<le> apder_zw2 p +
+          (\<Sum>q \<in> set ps - {p}. apder_zw2 q)"
+        using p_pos by simp
+      then show ?thesis
+        by (simp add: split)
+    qed
+    ultimately show ?thesis by simp
+  qed
+  finally show ?thesis by simp
+qed
+
+
 end
