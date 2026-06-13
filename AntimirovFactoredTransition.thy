@@ -31322,4 +31322,111 @@ proof -
 qed
 
 
+text \<open>
+  The RSTAR constructor discharge for the simultaneous T/S induction.  The
+  star absorbs the continuation into the body accumulator
+  @{term "apder_term_frontier_acc p (rsimp4_SEQ_atom (RSTAR p) k)"}; T pays the
+  at-most-one new boundary point of @{term "rsimp4_SEQ_atom (RSTAR p) k"} plus
+  the body D bound, and S uses the strict body discount whenever the body hits
+  its own boundary frontier (cleanliness forces a positive body budget there).
+  Conditional on the body T/S induction hypotheses at the composed
+  continuation.
+\<close>
+
+lemma T_and_S_RSTAR:
+  assumes cleanr: "apder_clean (RSTAR p)"
+    and Tb: "apder_T_bound p (rsimp4_SEQ_atom (RSTAR p) k)"
+    and Sb: "apder_S_bound p (rsimp4_SEQ_atom (RSTAR p) k)"
+  shows "apder_T_bound (RSTAR p) k"
+    and "apder_S_bound (RSTAR p) k"
+proof -
+  let ?m = "rsimp4_SEQ_atom (RSTAR p) k"
+  let ?A = "apder_term_frontier_acc p ?m"
+  have cleanp: "apder_clean p"
+    using cleanr by (rule apder_clean_RSTAR_body)
+  have acceq: "apder_term_frontier_acc (RSTAR p) k = ?A"
+    by simp
+  have fm1: "card (rfrontier ?m) \<le> 1"
+    by (cases k) auto
+  have fmk1: "card (rfrontier ?m - rfrontier k) \<le> 1"
+  proof -
+    have "card (rfrontier ?m - rfrontier k) \<le> card (rfrontier ?m)"
+      by (rule card_mono) auto
+    with fm1 show ?thesis by simp
+  qed
+  have D_body: "card (?A - rfrontier ?m) \<le> apder_zw2 p"
+    using apder_T_bound_imp_D[OF Tb] .
+  show "apder_T_bound (RSTAR p) k"
+    unfolding apder_T_bound_def acceq
+  proof -
+    have cov: "(rfrontier ?m \<union> ?A) - rfrontier k
+        \<subseteq> (rfrontier ?m - rfrontier k) \<union> (?A - rfrontier ?m)"
+      by auto
+    have "card ((rfrontier ?m \<union> ?A) - rfrontier k)
+        \<le> card ((rfrontier ?m - rfrontier k) \<union> (?A - rfrontier ?m))"
+      by (intro card_mono[OF _ cov]) auto
+    also have "... \<le> card (rfrontier ?m - rfrontier k) + card (?A - rfrontier ?m)"
+      by (rule card_Un_le)
+    also have "... \<le> 1 + apder_zw2 p"
+      using fmk1 D_body by (rule add_le_mono)
+    also have "... = apder_zw2 (RSTAR p)"
+      by simp
+    finally show "card ((rfrontier ?m \<union> ?A) - rfrontier k) \<le> apder_zw2 (RSTAR p)" .
+  qed
+  show "apder_S_bound (RSTAR p) k"
+    unfolding apder_S_bound_def acceq
+  proof (intro impI)
+    assume "0 < apder_zw2 (RSTAR p)"
+    have hit1: "card (?A \<inter> (rfrontier ?m - rfrontier k)) \<le> 1"
+    proof -
+      have "card (?A \<inter> (rfrontier ?m - rfrontier k))
+          \<le> card (rfrontier ?m - rfrontier k)"
+        by (rule card_mono) auto
+      with fmk1 show ?thesis by simp
+    qed
+    have key: "card (?A - rfrontier k) \<le> apder_zw2 p"
+    proof (cases "?A \<inter> (rfrontier ?m - rfrontier k) = {}")
+      case True
+      then have "?A - rfrontier k \<subseteq> ?A - rfrontier ?m"
+        by auto
+      then have "card (?A - rfrontier k) \<le> card (?A - rfrontier ?m)"
+        by (intro card_mono) auto
+      with D_body show ?thesis by simp
+    next
+      case False
+      then have Ane: "?A \<noteq> {}"
+        by auto
+      have pne: "p \<noteq> RZERO \<and> p \<noteq> RONE"
+        using Ane by (cases p) simp_all
+      have "apder_zw2 p \<noteq> 0"
+        using cleanp pne unfolding apder_clean_def
+        by (intro apder_zero_budget_trivial_nontrivial_pos) auto
+      then have pos: "0 < apder_zw2 p"
+        by simp
+      have disc: "card (?A - rfrontier ?m) \<le> apder_zw2 p - 1"
+        using apder_S_bound_imp_discount[OF Sb pos] .
+      have setsub: "?A - rfrontier k
+          \<subseteq> (?A - rfrontier ?m) \<union> (?A \<inter> (rfrontier ?m - rfrontier k))"
+        by auto
+      have "card (?A - rfrontier k)
+          \<le> card ((?A - rfrontier ?m) \<union> (?A \<inter> (rfrontier ?m - rfrontier k)))"
+        by (intro card_mono[OF _ setsub]) auto
+      also have "... \<le> card (?A - rfrontier ?m)
+            + card (?A \<inter> (rfrontier ?m - rfrontier k))"
+        by (rule card_Un_le)
+      also have "... \<le> (apder_zw2 p - 1) + 1"
+        using disc hit1 by (rule add_le_mono)
+      also have "... = apder_zw2 p"
+        using pos by simp
+      finally show ?thesis .
+    qed
+    have "Suc (card (?A - rfrontier k)) \<le> Suc (apder_zw2 p)"
+      using key by simp
+    also have "... = apder_zw2 (RSTAR p)"
+      by simp
+    finally show "Suc (card (?A - rfrontier k)) \<le> apder_zw2 (RSTAR p)" .
+  qed
+qed
+
+
 end

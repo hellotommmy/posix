@@ -7727,3 +7727,21 @@ but does not invalidate them.
   through the already-checked discount_RALTS_if_member_discount. T splits
   k=RONE (E00_RONE_RALTS_if_members + member T at RONE via sigma_RONE_id_nf)
   vs k~=RONE (singleton frontier of sigma (RALTS rs) k + the same discount).
+
+## 2026-06-13 Fable: CHECKED - T_and_S_RSTAR constructor case
+
+- New checked helper in AntimirovFactoredTransition.thy: `T_and_S_RSTAR`,
+  proving both `apder_T_bound (RSTAR p) k` and `apder_S_bound (RSTAR p) k`
+  from the body IHs `apder_T_bound`/`apder_S_bound p (rsimp4_SEQ_atom (RSTAR p) k)`.
+  T: boundary singleton of `rsimp4_SEQ_atom (RSTAR p) k` (card<=1) + body D.
+  S: split `A p m - F k` into `(A p m - F m)` and the at-most-one boundary
+  hit; on a hit, cleanliness forces `0 < zw2 p` so the body S discount pays it.
+- One red build first: the T cover subset mixed `apder_term_frontier_acc
+  (RSTAR p) k` with its unfolded body form; fixed by unfolding the acc equation
+  into the goal. Also corrected two set-EQUALITY steps to subset + card_mono
+  (`A p m - F m` may contain points of `F k`).
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 78.929s, full Posix elapsed 0:01:27). No `sorry`.
+- Next: `T_and_S_RALTS` (claimed) - the case Codex paused on; unblocked via
+  `alts_positive_member` + `discount_RALTS_if_member_discount`.
