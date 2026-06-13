@@ -32001,6 +32001,25 @@ lemma strong_opened_live_row_universe_acc_RALTS_subset:
   by (auto simp add: strong_opened_live_row_universe_acc_def
       row_dlformss_set_def)
 
+lemma strong_opened_live_row_universe_acc_RZERO:
+  "strong_opened_live_row_universe_acc RZERO k = {RONE}"
+  by (auto simp add: strong_opened_live_row_universe_acc_def
+      partial_derivative_live_row_universe_acc_def row_dlformss_set_def)
+
+lemma partial_derivative_live_row_universe_acc_RONE:
+  "partial_derivative_live_row_universe_acc RONE k =
+    insert RZERO (insert RONE (insert k (rfrontier k)))"
+  by (auto simp add: partial_derivative_live_row_universe_acc_def)
+
+lemma strong_opened_live_row_universe_acc_RONE:
+  "strong_opened_live_row_universe_acc RONE k =
+    insert RONE
+      (row_dlforms (rsimpStrong_raw k) \<union>
+       row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+  by (auto simp add: strong_opened_live_row_universe_acc_def
+      partial_derivative_live_row_universe_acc_RONE
+      row_dlformss_set_def)
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"

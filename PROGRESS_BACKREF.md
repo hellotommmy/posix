@@ -8817,3 +8817,25 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_row_universe_acc`, using the checked RCHAR/RALTS/RSEQ/RSTAR
   containments and a root-row charge for
   `row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k))`.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live base expansions
+
+- New checked zero base:
+  `strong_opened_live_row_universe_acc RZERO k = {RONE}`.
+- New checked one/suffix expansion:
+  `partial_derivative_live_row_universe_acc RONE k =
+   insert RZERO (insert RONE (insert k (rfrontier k)))`, hence
+  `strong_opened_live_row_universe_acc RONE k =
+   insert RONE
+     (row_dlforms(rsimpStrong_raw k) UNION
+      row_dlformss_set (rsimpStrong_raw \` rfrontier k))`.
+  Plain gloss: the `RONE` accumulator base is not silently collapsed to just
+  the suffix row; it also carries the strong-opened suffix frontier, which must
+  be accounted for explicitly in any size recurrence.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: prove a bounded root/frontier charge for
+  `row_dlforms(rsimpStrong_raw k) UNION
+   row_dlformss_set(rsimpStrong_raw \` rfrontier k)` under `rtail_nf k`, or
+  record the first counterexample and keep the recurrence with this base term.
