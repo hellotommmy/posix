@@ -1,0 +1,272 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{counterexample}[theorem]{Counterexample}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\rsize}{\mathrm{rsize}}
+\newcommand{\rsizes}{\mathrm{rsizes}}
+\newcommand{\rsizeset}{\mathrm{rsize\_set}}
+\newcommand{\acc}{\mathrm{acc}}
+\newcommand{\F}{\mathrm{F}}
+\newcommand{\zw}{\mathrm{zw}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+\lstset{basicstyle=\ttfamily\small, breaklines=true, columns=fullflexible}
+
+\title{Towards a Cubic Size Bound for POSIX Lexing\\
+with Strong Simplification:\\
+\large An Incrementally Compiled Ledger of Checked Progress}
+\author{Fable~5 (Claude) agent session, with the Codex (GPT-5.5) supervisor agent\\
+\small repository \code{posix-codex}, branch \code{codex/backref-values}, theory \code{Posix} (Isabelle2025-2)}
+\date{2026-06-12 -- (ongoing)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document is an incrementally updated ledger of the campaign to prove a
+cubic size bound for the Antimirov-factored strong-simplification route of
+the POSIX lexer formalization.  Every statement labelled \emph{checked} names
+an Isabelle lemma that builds green in the \code{Posix} session; every
+counterexample labelled \emph{checked} is likewise an Isabelle fact.
+Mirror-validated statements (random testing against a clause-verified Python
+model) are clearly marked as such and are \emph{not} proofs.  The document is
+recompiled after each increment of progress.
+\end{abstract}
+
+\tableofcontents
+
+\section{The target}
+
+For the erased regular-expression datatype \code{rrexp} (constructors
+\code{RZERO}, \code{RONE}, \code{RCHAR}, \code{RSEQ}, \code{RALTS},
+\code{RSTAR}, \code{RNTIMES}, plus backreference constructors excluded from
+the fragment), the live target is the \emph{set-ledger cubic gate}
+(\code{MAINLINE.md}):
+\[
+\rsizeset\bigl(\code{row\_dlformss}\,(\code{rpder\_strong\_rows\_raw}\;c\;(\code{afactored1}\;r\;s))\bigr)
+\;\le\; 2\,(\rsize r + 3)^3 .
+\]
+In words: take the rows produced by one strong derivative step from the
+factored front of $r$ after input $s$, open every row into its linear forms,
+deduplicate \emph{across the whole union}, and sum the sizes of the distinct
+opened rows; this total must be cubic in the size of the original regex.
+POSIX value preservation is handled by the separately checked
+deferred-memo reconstruction theorems and is not re-proved here.
+
+\section{Checked refutation: the duplicated list account is exponential}
+
+The first reduction attempt measured the \emph{duplicated list} cost
+$\code{afactored1\_strong\_dlform\_list\_cost}$ (sum of opened-list sizes,
+duplicates counted).  This is provably hopeless.
+
+\begin{theorem}[checked: \code{afactored1\_strong\_dlform\_list\_cost\_cubic\_false}]
+There is a family $r_j$ with $\rsize r_j = \Theta(j)$ whose one-step
+duplicated list cost grows as $2^j$; in particular the cost is not bounded by
+$2(\rsize r+3)^3$, nor by any polynomial.
+\end{theorem}
+
+The witness is the \emph{RONE-pair tower}: with
+$m' = \code{RSEQ}\,(\code{RALTS}[\code{RONE},a])\,(\code{RALTS}[\code{RONE},b])$
+and $x_j = \code{RSEQ}\,(\code{RALTS}[\code{RONE},m'])\,x_{j-1}$, every
+nesting level doubles the number of opened rows because the two
+\code{RONE}-paths of $m'$ both reopen the tail; the tower is a literal
+fixpoint of the strong simplifier, so simplification does not help.  All
+fully collapsing \code{RONE}-paths produce \emph{the same} row, which is why
+the deduplicated (set-level) account below survives.
+
+\section{Checked set-level theory}
+
+\begin{theorem}[checked: \code{card\_row\_dlforms\_le\_rsize}]
+For every row $q$: $\,|\code{row\_dlforms}\,q| \le \rsize q$.  (Distinct
+opened rows of a single row are at most linear, unconditionally.)
+\end{theorem}
+
+The proof is a set-difference triangle along the reassociation chain; the
+core checked inequality is
+\code{card\_row\_dlforms\_rsimp4\_diff\_le}:
+$|\code{row\_dlforms}(\sigma_4(p,k)) \setminus \code{row\_dlforms}\,k| \le \rsize p$,
+where $\sigma_4$ is the sequence-atom smart constructor.
+
+\begin{theorem}[checked: \code{rsize\_set\_row\_dlforms\_le\_rsize\_sq}]
+$\rsizeset(\code{row\_dlforms}\,q) \le (\rsize q)^2$ for every row $q$.
+\end{theorem}
+
+\begin{theorem}[checked: \code{card\_row\_dlformss\_le\_rsizes} and
+\code{card\_row\_dlformss\_rpder\_strong\_rows\_raw\_le\_generated}]
+The deduplicated union over a row list has at most $\rsizes(\textit{rows})$
+members; instantiated to the actual one-step output, the union card is at
+most the generated total size (one degree).
+\end{theorem}
+
+\section{Checked gate reduction: from three summands to two numbers}
+
+The supervisor's pair-budget gate splits the union ledger into a non-sequence
+part, a front-times-tail-weights part, and an active-suffix pair-budget part.
+Both abstract premises of the gate were discharged
+(\code{actual\_union\_seq\_head\_size\_linear} gives head bound
+$H = \mathrm{Suc}(2\,\rsize r)$ on the legacy fragment;
+\code{rseq\_tails\_row\_dlformss\_rpder\_strong\_weight\_le\_generated} gives
+the key weight $M$), yielding the instantiated gate
+\code{actual\_union\_pair\_budget\_gate\_instance}.  Then:
+
+\begin{theorem}[checked: \code{pair\_budget\_afactored1\_strong\_dlform\_universe\_zero}]
+The active-suffix pair budget of the dlform universe is identically zero:
+opened rows always have non-alternation heads
+(\code{row\_dlforms\_seq\_member\_head\_nonalt}), so no member of the
+universe has the keyed shape $\code{RSEQ}\,(\code{RALTS}\,\textit{rows})\,k$.
+The third gate summand vanishes
+(\code{actual\_union\_gate\_two\_summands}).
+\end{theorem}
+
+\begin{theorem}[checked: exact decomposition]
+With \code{rsize\_set\_split\_rnonseq\_rseq},
+\code{rsize\_set\_rseq\_members\_le\_heads\_tails} and
+\code{sum\_rseq\_member\_tails\_regroup}, the whole gate rests on exactly two
+numbers for the actual opened union $U$:
+\[
+\rsizeset U \;\le\; \underbrace{\text{nonseq part}}_{\text{cubic, checked}}
+\;+\; |{\code{rseq\_members}\,U}| \cdot \mathrm{Suc}\,H
+\;+\; \sum_{t} |\code{rseq\_tail\_rows}\,U\,t| \cdot \rsize t .
+\]
+The non-sequence part is cubic by
+\code{rsize\_set\_rnonseq\_members\_\dots\_cubic} via the front-terms carrier.
+\end{theorem}
+
+\section{Checked static universe results}
+
+\begin{theorem}[checked: \code{rsizes\_afactored1\_le\_rsize\_set\_apder\_rows}]
+For \emph{every} input $s$:
+$\rsizes(\code{afactored1}\,r\,s) \le \rsizeset(\code{apder\_rows}\,r)$.
+The multi-step front total is bounded by a static, input-independent
+quantity (rows are distinct and live in the static row universe).
+\end{theorem}
+
+\begin{theorem}[checked: \code{apder\_rows\_member\_size\_quadratic}]
+On the \code{apder\_nf} fragment every member of the static row universe has
+size at most $\mathrm{Suc}((\rsize r + 2)^2)$.  Hence every dynamic front row
+is at most quadratic --- the row-size half of the front-quadratic conjecture.
+\end{theorem}
+
+\begin{counterexample}[mirror-verified, tight]
+The static ledger $\rsizeset(\code{apder\_rows}\,r)$ is \emph{cubic-tight}:
+on the star-seq towers $x_{i+1} = (x_i\, b_i)^{*}$ the ratio
+$\rsizeset/(\rsize)^3$ converges to $\approx 0.040$.  The checked cubic bound
+\code{rsize\_set\_apder\_rows\_expanded\_cubic\_size\_bound} cannot be
+improved to quadratic.  Moreover the \emph{reachable} row universe equals the
+static one on this family, so no set-shaped (history-independent) bound can
+beat cubic; the missing degree is irreducibly about rows \emph{coexisting} in
+one front (liveness).
+\end{counterexample}
+
+\section{The row-count law (the ``D law'')}
+
+The remaining static improvement is row-\emph{count} linearity, classical
+Antimirov shape.  Write $\acc r k$ for
+\code{apder\_term\_frontier\_acc}, $\F k$ for \code{rfrontier}\,$k$.
+
+\begin{definition}[checked: \code{apder\_zw2}]
+$\zw_2(\code{RCHAR}) = 1$; sums over \code{RALTS}/\code{RSEQ};
+$\zw_2(\code{RSTAR}\,x) = 1 + \zw_2(x)$;
+$\zw_2(\code{RNTIMES}\,r\,n) = n\,(1+\zw_2 r)$; $0$ otherwise.
+Checked: $\zw_2 \le \rsize$ on the \code{rntimes\_free} fragment
+(\code{apder\_zw2\_rntimes\_free\_le\_rsize}).
+\end{definition}
+
+\begin{conjecture}[the D law, \code{rntimes\_free} form; mirror: $>295{,}000$ deep samples, zero violations]
+\label{conj:dlaw}
+On the legacy, \code{apder\_nf}, \code{rntimes\_free} fragment:
+\[
+|\acc r k \setminus \F k| \;\le\; \zw_2\, r .
+\]
+\end{conjecture}
+
+\subsection{Checked falsifications along the way}
+
+\begin{counterexample}[checked and mirror; weight too small]
+The plain letter-count (\code{apder\_awidth}) version is false:
+zero-width stars produce frontier rows without letters.
+The first corrected weight (\code{apder\_zwidth}, star $=\max 1$) is
+\emph{also} false at depth:
+$r = b\,(\code{ALTS}[(a^{*})^{*}, (b^{*})^{*}, b])$, $k=\code{RONE}$ gives
+$5 > 4$ --- each nested zero-consuming star layer needs its own slot.
+\end{counterexample}
+
+\begin{counterexample}[checked: \code{apder\_zw2\_D\_law\_rntimes\_zero\_alt\_false}]
+The unrestricted $\zw_2$ law is false with zero counted repetitions:
+$r = c\,(\code{ALTS}[\code{RNTIMES}\,a\,0, \code{RNTIMES}\,b\,0])$ has
+two imported frontier atoms but $\zw_2 r = 1$.  Hence the
+\code{rntimes\_free} restriction in Conjecture~\ref{conj:dlaw}.
+\end{counterexample}
+
+Nine inductive strengthenings (subset/intersect discounts, membership
+companions, potential and reserve forms, an undeduplicated list-length form,
+and the first joint invariant $J^*$) were falsified by explicit
+counterexamples; the full list with witnesses is maintained in
+\code{MATHPROBLEM\_ROWCOUNT.md}.  A hard methodological lesson is recorded
+there: two false statements each passed $\ge 95{,}000$ \emph{shallow} random
+samples; all sampling now requires depth $\ge 5$ plus directed
+nested-star/zero-width families.
+
+\subsection{Constructor bridges (checked, supervisor)}
+
+The current attack decomposes the D law by head constructor.  Checked
+bridges so far include the \code{RSEQ} frontier singleton shifts, the
+$\sigma_4$ non-\code{RONE} preservation and frontier-shape lemmas, the
+normal-nonalt frontier/carry-bucket shifts, the right-nonalt SEQ
+D bridge, and its \code{RCHAR}-left specialization
+(\code{card\_apder\_term\_frontier\_acc\_RSEQ\_RCHAR\_diff\_le\_if\_right\_nonalt\_diff}):
+an ordinary D bound for an \code{apder\_nf} non-alternation right child
+yields the exact parent SEQ bound when the left child is a character.
+
+\subsection{Payoff when landed}
+
+$|\code{apder\_rows}\,r| \le \zw_2 r + 2$, hence with the checked quadratic
+member bound: $\rsizes(\code{afactored1}\,r\,s) \le (\zw_2 r + 2) \cdot
+\mathrm{Suc}((\rsize r+2)^2)$ --- a \emph{cubic static front bound by
+assembly} on the fragment, replacing the tight-ledger detour, and the
+row-count half of the dynamic front-quadratic conjecture.
+
+\section{The liveness frontier}
+
+All single-step syntactic quantities are now known cubic-tight
+(static ledger, per-member size, per-row norm ledgers --- each with explicit
+witness families).  The remaining degree for the full gate is the
+\emph{liveness slice}: simultaneously live rows are a quadratic slice of the
+cubic static universe.  Mirror-validated with zero violations across all
+families is the cap-law invariant
+\[
+\rsizes(\code{afactored\_step}\,c\;\textit{rows}) \;\le\;
+\max\bigl(\rsizes\,\textit{rows},\; C\,(\rsize r)^2\bigr),
+\]
+factored into three single-step obligations (jump bound, monotone
+self-preservation, jump saturation) --- the first formulation in which every
+obligation quantifies over one front and one step.  Formalization has not
+started.
+
+\section{Progress log}
+
+\begin{longtable}{@{}p{0.16\textwidth}p{0.78\textwidth}@{}}
+\toprule
+\textbf{When} & \textbf{Increment} \\
+\midrule
+\endhead
+2026-06-12 & Checked: atom multiplicity, double counting, per-front-row payment interface.  Checked refutation: RONE-pair tower kills the duplicated list-cost target (exponential). \\
+2026-06-12 & Checked: set-level per-row theory (card linear, ledger quadratic); union card account; weight and head bounds; pair-budget gate instantiated, then its budget proven zero; gate cut to two summands; exact two-number decomposition. \\
+2026-06-12 & Checked: front staticized ($F \le A$ for all inputs); static maxrow quadratic.  Mirror: static ledger cubic-tight; reachable $=$ static; cap-law invariant zero violations; liveness reduced to three single-step obligations. \\
+2026-06-12/13 & Row-count law campaign: weights \code{awidth}/\code{zwidth} falsified (checked CEs), \code{zw2} landed; nine strengthenings falsified; deep-sampling standard instituted; \code{rntimes\_free} target fixed.  Supervisor: constructor-bridge decomposition under way (RCHAR-left SEQ bridge checked). \\
+2026-06-13 & This document created; compiled with pdflatex. \\
+\bottomrule
+\end{longtable}
+
+\end{document}

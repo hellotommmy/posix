@@ -7018,3 +7018,19 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
 - Build command passed after worker check (AntimirovFactoredTransition
   78.980s, full Posix elapsed 0:01:49).  No new CE/blow-up family discovered;
   `EVIL_PATTERNS.md` unchanged.
+
+## 2026-06-13 Fable: LaTeX progress ledger + CLAIM top-level ALTS/STAR D skeleton
+
+- Landed cubic_progress.tex + cubic_progress.pdf at repo root: an
+  incrementally compiled LaTeX ledger of all checked results,
+  refutations, the D-law campaign, and the liveness frontier.  Will be
+  recompiled with every increment (user request).
+- CLAIM (complementary to the supervisor''s SEQ-left constructor
+  bridges, no file collision - appending at AFT tail): the top-level
+  ALTS and STAR skeleton steps of the D law:
+  (1) RALTS: member D bounds give the parent bound (union of
+      differences, card_UN_le, sum over members);
+  (2) RSTAR: a D bound for the body against the composed continuation
+      gives the parent bound - the Suc in zw2(STAR) pays exactly the
+      singleton frontier of the composite (this is WHY zw2 is the
+      right weight).
