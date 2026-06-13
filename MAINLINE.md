@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-13 11:48, commit 581d9d6)
+## 2. Where the Proof Stands (as of 2026-06-13 12:55, commit 10d4c79)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -113,14 +113,21 @@ Vocabulary (fixed, do not rename):
   subtracted left and paid once right — no inclusion-exclusion). It also found
   a real gap: **E0 must be the EXACT merged-frontier T law, not the `+1` form**
   (the +1 leaks a unit at the singleton-continuation SEQ case r1=a,r2=b,k=c;
-  S supplies the spare). Bridges to land first: `sigma_clean`,
-  `sigma_RONE_id_nf`, `clean_zero_budget_root`, `alts_positive_member`; then
-  the single `T_and_S` induction.
-- **Current narrow instruction:** sample-check `T` and `S` at depth ≥ 5
-  (directed nested zero-width-star families, via `scratch_rowcount_check.py`)
-  FIRST; if they survive, prove the four bridges then the `T_and_S`
-  simultaneous induction (per-constructor discharge is in the verdict). The
-  already-checked discount/E0 branches stay valid bricks. Stay on the
+  S supplies the spare). **All four bridges now CHECKED:** `sigma_clean`
+  (9f8cff0), `sigma_RONE_id_nf` (95aa064), `clean_zero_budget_root` (95776a2),
+  `alts_positive_member` (44206f2). The T/S invariants are now STATED in
+  Isabelle (`apder_T_bound`, `apder_S_bound`, d70f0df) with the load-bearing
+  implications checked (`apder_T_bound_imp_D` = T⟹D,
+  `apder_S_bound_imp_discount` = S⟹discount). The single `T_and_S`
+  simultaneous induction is IN PROGRESS: character branch checked
+  (`T_and_S_RCHAR`, 10d4c79); RALTS/RSTAR/SEQ branches remain.
+- **Current narrow instruction:** the depth-≥5 sample gate PASSED (220k+ clean
+  random samples + a directed nested zero-width-star grid, zero violations) and
+  all four bridges are CHECKED; the live work is now finishing the `T_and_S`
+  simultaneous induction — discharge the remaining RALTS/RSTAR/SEQ constructor
+  branches (per-constructor discharge is in the verdict), then conclude D via
+  `apder_T_bound_imp_D`. The already-checked discount/E0 branches stay valid
+  bricks. Stay on the
   legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
   unary/potential strengthenings, the old zwidth law, the first J* numeric
   invariant, or the unrestricted raw zw2 statement; do not fall back to
