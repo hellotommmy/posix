@@ -32525,6 +32525,57 @@ next
   qed
 qed
 
+lemma strong_opened_live_acc_potential_RALTS_cube_shell:
+  assumes children: "\<And>q. q \<in> set rs \<Longrightarrow>
+    strong_opened_live_acc_potential q k \<le>
+      (rsize q + rsize k) ^ 3 - (rsize k) ^ 3"
+  shows "strong_opened_live_acc_potential (RALTS rs) k \<le>
+    (rsize (RALTS rs) + rsize k) ^ 3 - (rsize k) ^ 3"
+proof -
+  let ?K = "rsize k"
+  let ?N = "rsizes rs + ?K"
+  have K_pos: "1 \<le> ?K"
+    by (rule size_geq1)
+  have root:
+      "1 + rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RALTS rs) k))) \<le>
+      (?N + 1) ^ 3 - ?N ^ 3"
+    by (rule strong_opened_live_acc_RALTS_root_shell)
+  have child_each:
+      "sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs) \<le>
+      sum_list (map (\<lambda>q. (rsize q + ?K) ^ 3 - ?K ^ 3) rs)"
+    by (rule sum_list_mono) (use children in auto)
+  have child_sum:
+      "sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs) \<le>
+      ?N ^ 3 - ?K ^ 3"
+  proof -
+    have "sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs) \<le>
+        sum_list (map (\<lambda>q. (rsize q + ?K) ^ 3 - ?K ^ 3) rs)"
+      by (rule child_each)
+    also have "... \<le> ?N ^ 3 - ?K ^ 3"
+      by (rule sum_list_drain_alt_cubes_le_tight[OF K_pos])
+    finally show ?thesis .
+  qed
+  have combine:
+      "((?N + 1) ^ 3 - ?N ^ 3) + (?N ^ 3 - ?K ^ 3) \<le>
+      (?N + 1) ^ 3 - ?K ^ 3"
+    by (simp add: power3_eq_cube algebra_simps)
+  have "strong_opened_live_acc_potential (RALTS rs) k \<le>
+      (1 + rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RALTS rs) k)))) +
+      sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs)"
+    by simp
+  also have "... \<le>
+      ((?N + 1) ^ 3 - ?N ^ 3) + (?N ^ 3 - ?K ^ 3)"
+    by (rule add_le_mono[OF root child_sum])
+  also have "... \<le> (?N + 1) ^ 3 - ?K ^ 3"
+    by (rule combine)
+  finally show ?thesis
+    by simp
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"

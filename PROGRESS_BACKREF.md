@@ -9147,3 +9147,20 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: combine this root shell with
   `sum_list_drain_alt_cubes_le_tight` to prove the RALTS case of the
   `strong_opened_live_acc_potential` drain induction.
+
+## 2026-06-14 Codex: CHECKED - RALTS strong-live drain case
+
+- New checked constructor drain:
+  if every `q` in `set rs` satisfies
+  `strong_opened_live_acc_potential q k <=
+   (rsize q + rsize k)^3 - (rsize k)^3`, then
+  `strong_opened_live_acc_potential (RALTS rs) k <=
+   (rsize (RALTS rs) + rsize k)^3 - (rsize k)^3`.
+  Plain gloss: the child drain shells telescope up to `rsizes rs + rsize k`,
+  and the checked RALTS root shell pays the one extra constructor shell.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:17). No `sorry`.
+- NEXT smallest brick: split the `RSEQ` telescoping arithmetic for the same
+  strong-live drain potential, starting with a suffix-size bound for
+  `rsimp4_SEQ_atom r2 k`.
