@@ -5,3 +5,11 @@ agent_hunt_pipeline/run/
 __pycache__/
 loop-config.json
 .cursor/loop-state/
+
+# LaTeX build artifacts (cubic_progress.*, CUBIC_OPEN_PROBLEM.*, etc.)
+*.aux
+*.toc
+*.out
+*.synctex.gz
+cubic_progress.log
+CUBIC_OPEN_PROBLEM.log

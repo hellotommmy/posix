@@ -34,7 +34,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-12 20:44, commit cfe3636)
+## 2. Where the Proof Stands (as of 2026-06-13 09:18, commit effa163)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -83,13 +83,29 @@ Vocabulary (fixed, do not rename):
      `MATHPROBLEM_ROWCOUNT.md` (repo root).
   2. **The liveness slice:** fronts above `C * n^2` only shrink (zero
      violations empirically; needs a saturation predicate).
-- **Current narrow instruction:** attack the legacy/non-backref,
-  rntimes-free zw2 D law via the list-version/duplicate-accounting or
-  k-chain-fragment routes in
-  `MATHPROBLEM_ROWCOUNT.md` — NOT via the falsified unary/potential
-  strengthenings, the old zwidth law, the first J* numeric invariant, or the
-  unrestricted raw zw2 statement. Do not fall back to
-  `*_list_cost_alt_nodes` / generated-ledger wrappers (they lose a degree).
+- **Morning progress (06-13 ~03:40–09:18, git-authoritative; PROGRESS labels
+  drift ahead — trust git).** The zw2 D law is now being proved by a
+  **simultaneous induction**, not a one-shot bound. Structure landing:
+  - A revived discount, the **clean-domain passthrough discount** (the old
+    D+ idea, restricted to a "clean domain": `sigma4(r1,t) ∉ acc(r1,t) ⇒
+    card(acc(r1,t) − F t) ≤ zw2 r1 − 1`), is now a named induction
+    obligation — 240,256 deep samples, zero violations. STAR branch checked
+    (`discount_RSTAR_if_body_D`); RCHAR vacuous-trivial.
+  - The **E00-RONE branch map is COMPLETE** (RCHAR, RALTS, RSTAR cond., SEQ
+    cond.: `E00_RONE_RSEQ_if` etc.); the **E0 general-k bridge series** is in
+    progress (RCHAR done).
+  - **Three pieces remain** for row-count-linear: (a) the **union-overlap
+    sublemma** — the 4% all-members-passthrough RALTS-discount case where
+    sibling accumulators share imported frontier points (96% inherit a member
+    discount and are easy); (b) the E0/D general-k branches; (c) the
+    **well-founded assembly induction** that ties the branches together.
+- **Current narrow instruction:** continue the simultaneous induction —
+  next concrete brick is the union-overlap sublemma (a), then the assembly
+  induction (c). Stay on the legacy/non-backref, rntimes-free zw2 instance.
+  NOT via the falsified unary/potential strengthenings, the old zwidth law,
+  the first J* numeric invariant, or the unrestricted raw zw2 statement; do
+  not fall back to `*_list_cost_alt_nodes` / generated-ledger wrappers (they
+  lose a degree). Full statement and dead-ends: `MATHPROBLEM_ROWCOUNT.md`.
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 

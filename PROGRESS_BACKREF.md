@@ -7347,3 +7347,22 @@ terminology, not the deliverable name.
   accumulators sharing imported frontier points - that overlap
   sublemma is the next piece.  RCHAR-discount is vacuous-trivial.
 - cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Secretary: status pass + handoff (this secretary session is closing)
+
+Routine secretary pass (docs/status only; no .thy touched; AntimirovFactored-
+Transition.thy left as the active worker's in-flight edit).
+- MAINLINE.md section 2 SYNCED to the 09:18 frontier (commit effa163): the zw2
+  D law is now a simultaneous induction (clean-domain passthrough discount +
+  E00-RONE branch map complete + E0 general-k bridges); three pieces remain
+  (union-overlap sublemma, E0/D general-k branches, well-founded assembly).
+- DOC_INDEX.md: catalogued the new `cubic_progress.tex/pdf` proof ledger.
+- .gitignore: added LaTeX build artifacts (*.aux/*.toc/*.out, cubic_progress.log,
+  CUBIC_OPEN_PROBLEM.log) so per-recompile noise stops cluttering git status.
+- Reminder for all agents: TRUST GIT TIMESTAMPS, not the `Codex HH:MM` /
+  `Fable HH:MM` labels in this file — those drift hours ahead of wall-clock.
+- HANDOFF: the secretary role passes to the next session. Its duties and the
+  current frontier are in the auto-loaded memory and in MAINLINE.md. Next
+  secretary: read MAINLINE.md, run `scripts\watch-progress.ps1 -Hours N`, keep
+  MAINLINE section 2 synced, maintain SUPER_LINEAR_PATTERNS.md / the two math
+  docs, never edit .thy, stage only your own files (never git add -A).
