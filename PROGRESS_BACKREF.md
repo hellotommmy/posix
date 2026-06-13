@@ -8863,3 +8863,38 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: state the general recurrence inequality for
   `rsize_set(strong_opened_live_row_universe_acc r k)` using the constructor
   containments, with the `RONE` frontier term as a named base charge.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live numeric recurrences
+
+- New checked numeric SEQ recurrence:
+  `rsize_set(strong_opened_live_row_universe_acc(RSEQ r1 r2) k) <=
+   rsize_set(strong_opened_live_row_universe_acc r1
+     (rsimp4_SEQ_atom r2 k)) +
+   rsize_set(strong_opened_live_row_universe_acc r2 k)`.
+- New checked numeric RCHAR recurrence:
+  `rsize_set(strong_opened_live_row_universe_acc(RCHAR c) k) <=
+   rsize_set(row_dlforms(rsimpStrong_raw
+     (rsimp4_SEQ_atom (RCHAR c) k))) +
+   rsize_set(strong_opened_live_row_universe_acc RONE k)`.
+- New checked numeric RSTAR recurrence:
+  `rsize_set(strong_opened_live_row_universe_acc(RSTAR r) k) <=
+   rsize_set(row_dlforms(rsimpStrong_raw
+     (rsimp4_SEQ_atom (RSTAR r) k))) +
+   rsize_set(strong_opened_live_row_universe_acc r
+     (rsimp4_SEQ_atom (RSTAR r) k))`.
+- New checked normalized RALTS recurrence:
+  if `ALL q in set rs. apder_nf q`, then
+  `rsize_set(strong_opened_live_row_universe_acc(RALTS rs) k) <=
+   1 + rsize_set(row_dlforms(rsimpStrong_raw
+     (rsimp4_SEQ_atom (RALTS rs) k))) +
+   sum_list(map (%q. rsize_set(strong_opened_live_row_universe_acc q k)) rs)`.
+  Plain gloss: all prefix-aware constructor containments now have matching
+  numeric recurrence inequalities; the remaining design choice is the root-row
+  charge/potential that makes the recurrence cubic.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:22). No `sorry`.
+- NEXT smallest brick: define a root-charge potential for
+  `rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom r k)))` plus the
+  `RONE` frontier base, sample the resulting recurrence budget, then prove the
+  first arithmetic upper bound if the sample is clean.

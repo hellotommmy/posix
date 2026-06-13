@@ -32047,6 +32047,104 @@ proof -
     by simp
 qed
 
+lemma rsize_set_strong_opened_live_row_universe_acc_RSEQ_le:
+  "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
+    rsize_set
+      (strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k)) +
+    rsize_set (strong_opened_live_row_universe_acc r2 k)"
+proof -
+  let ?A = "strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k)"
+  let ?B = "strong_opened_live_row_universe_acc r2 k"
+  have "rsize_set (strong_opened_live_row_universe_acc (RSEQ r1 r2) k) \<le>
+      rsize_set (?A \<union> ?B)"
+    by (rule rsize_set_mono)
+      (use strong_opened_live_row_universe_acc_RSEQ_subset[of r1 r2 k]
+        in auto)
+  also have "... \<le> rsize_set ?A + rsize_set ?B"
+    by (rule rsize_set_Un_le) simp_all
+  finally show ?thesis .
+qed
+
+lemma rsize_set_strong_opened_live_row_universe_acc_RCHAR_le:
+  "rsize_set (strong_opened_live_row_universe_acc (RCHAR c) k) \<le>
+    rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k))) +
+    rsize_set (strong_opened_live_row_universe_acc RONE k)"
+proof -
+  let ?A = "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k))"
+  let ?B = "strong_opened_live_row_universe_acc RONE k"
+  have "rsize_set (strong_opened_live_row_universe_acc (RCHAR c) k) \<le>
+      rsize_set (?A \<union> ?B)"
+    by (rule rsize_set_mono)
+      (use strong_opened_live_row_universe_acc_RCHAR_subset[of c k] in auto)
+  also have "... \<le> rsize_set ?A + rsize_set ?B"
+    by (rule rsize_set_Un_le) simp_all
+  finally show ?thesis .
+qed
+
+lemma rsize_set_strong_opened_live_row_universe_acc_RSTAR_le:
+  "rsize_set (strong_opened_live_row_universe_acc (RSTAR r) k) \<le>
+    rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))) +
+    rsize_set
+      (strong_opened_live_row_universe_acc r
+        (rsimp4_SEQ_atom (RSTAR r) k))"
+proof -
+  let ?A = "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))"
+  let ?B = "strong_opened_live_row_universe_acc r
+    (rsimp4_SEQ_atom (RSTAR r) k)"
+  have "rsize_set (strong_opened_live_row_universe_acc (RSTAR r) k) \<le>
+      rsize_set (?A \<union> ?B)"
+    by (rule rsize_set_mono)
+      (use strong_opened_live_row_universe_acc_RSTAR_subset[of r k] in auto)
+  also have "... \<le> rsize_set ?A + rsize_set ?B"
+    by (rule rsize_set_Un_le) simp_all
+  finally show ?thesis .
+qed
+
+lemma rsize_set_strong_opened_live_row_universe_acc_RALTS_le:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+  shows "rsize_set (strong_opened_live_row_universe_acc (RALTS rs) k) \<le>
+    1 +
+    rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))) +
+    sum_list
+      (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)"
+proof -
+  let ?Root = "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))"
+  let ?U = "(\<Union>q \<in> set rs. strong_opened_live_row_universe_acc q k)"
+  have "rsize_set (strong_opened_live_row_universe_acc (RALTS rs) k) \<le>
+      rsize_set (insert RONE (?Root \<union> ?U))"
+    by (rule rsize_set_mono)
+      (use strong_opened_live_row_universe_acc_RALTS_subset[OF nf, of k]
+        in auto)
+  also have "... \<le> rsize_set {RONE} + rsize_set (?Root \<union> ?U)"
+    by (subst insert_is_Un) (rule rsize_set_Un_le, simp_all)
+  also have "... \<le>
+      1 + (rsize_set ?Root + rsize_set ?U)"
+  proof -
+    have "rsize_set (?Root \<union> ?U) \<le> rsize_set ?Root + rsize_set ?U"
+      by (rule rsize_set_Un_le) simp_all
+    then show ?thesis
+      by (simp add: rsize_set_def)
+  qed
+  also have "... \<le>
+      1 + rsize_set ?Root +
+        sum_list
+          (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)"
+  proof -
+    have "rsize_set ?U \<le>
+        (\<Sum>q \<in> set rs.
+          rsize_set (strong_opened_live_row_universe_acc q k))"
+      by (rule rsize_set_UN_le) simp_all
+    also have "... \<le>
+        sum_list
+          (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)"
+      by (rule sum_set_le_sum_list_nat)
+    finally show ?thesis
+      by simp
+  qed
+  finally show ?thesis
+    by simp
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
