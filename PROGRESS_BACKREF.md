@@ -9130,3 +9130,20 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:14). No `sorry`.
 - NEXT smallest brick: assemble the full `RALTS` root shell by splitting on
   `rsizes rs + rsize k < 3` versus the checked large shell.
+
+## 2026-06-14 Codex: CHECKED - full RALTS root shell
+
+- New checked full root shell:
+  `1 + rsize_set(row_dlforms(rsimpStrong_raw
+      (rsimp4_SEQ_atom (RALTS rs) k))) <=
+   (rsizes rs + rsize k + 1)^3 - (rsizes rs + rsize k)^3`.
+  Plain gloss: every RALTS root charge fits exactly in the one-constructor
+  shell above the total child-size-plus-suffix level; large totals use the
+  quadratic root bound, while small totals reduce to empty or singleton
+  size-1 cases.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:19). No `sorry`.
+- NEXT smallest brick: combine this root shell with
+  `sum_list_drain_alt_cubes_le_tight` to prove the RALTS case of the
+  `strong_opened_live_acc_potential` drain induction.

@@ -32466,6 +32466,65 @@ proof -
     using root12 q_size k_size by (simp add: power3_eq_cube)
 qed
 
+lemma strong_opened_live_acc_RALTS_root_shell:
+  "1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))) \<le>
+    (rsizes rs + rsize k + 1) ^ 3 -
+      (rsizes rs + rsize k) ^ 3"
+proof (cases "3 \<le> rsizes rs + rsize k")
+  case True
+  then show ?thesis
+    by (rule strong_opened_live_acc_RALTS_root_shell_large)
+next
+  case False
+  then have small: "rsizes rs + rsize k < 3"
+    by simp
+  show ?thesis
+  proof (cases rs)
+    case Nil
+    then show ?thesis
+      using strong_opened_live_acc_RALTS_empty_root_shell[of k] by simp
+  next
+    case (Cons q qs)
+    have q_pos: "1 \<le> rsize q"
+      by (rule size_geq1)
+    have k_pos: "1 \<le> rsize k"
+      by (rule size_geq1)
+    have qs_zero: "rsizes qs = 0"
+    proof -
+      have total: "rsize q + rsizes qs + rsize k < 3"
+        using small Cons by simp
+      have base: "2 \<le> rsize q + rsize k"
+        using q_pos k_pos by linarith
+      have "rsizes qs < 1"
+        using total base by linarith
+      then show ?thesis by simp
+    qed
+    have qs_nil: "qs = []"
+      by (rule rsizes_eq_0_imp_Nil[OF qs_zero])
+    have q_size: "rsize q = 1"
+    proof -
+      have "rsize q < 2"
+        using small Cons k_pos qs_zero by simp
+      then show ?thesis
+        using q_pos by linarith
+    qed
+    have k_size: "rsize k = 1"
+    proof -
+      have "rsize k < 2"
+        using small Cons q_pos qs_zero by simp
+      then show ?thesis
+        using k_pos by linarith
+    qed
+    show ?thesis
+      using Cons qs_nil
+        strong_opened_live_acc_RALTS_singleton_size1_root_shell
+          [OF q_size k_size]
+      by simp
+  qed
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"
