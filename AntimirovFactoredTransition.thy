@@ -31743,6 +31743,33 @@ proof -
     using bad_in bad_notin by blast
 qed
 
+lemma row_dlformss_actual_not_subset_live_row_universe_original_false:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RALTS [RCHAR a])"
+  defines "bad \<equiv> RSTAR (RCHAR a)"
+  shows "apder_clean r"
+    and "bad \<in> row_dlformss (rpder_strong_rows_raw a (afactored1 r []))"
+    and "bad \<notin> partial_derivative_live_row_universe r"
+    and "\<not> row_dlformss (rpder_strong_rows_raw a (afactored1 r [])) \<subseteq>
+      partial_derivative_live_row_universe r"
+proof -
+  show clean: "apder_clean r"
+    by (simp add: r_def apder_clean_def)
+  show bad_in:
+      "bad \<in> row_dlformss (rpder_strong_rows_raw a (afactored1 r []))"
+    by (simp add: r_def bad_def afactored1_def
+        rpder_strong_rows_raw_def rpder_strong_list_raw_def
+        rpder_norm_list_def
+        row_dlformss_def rsimpStrong_ALTs_raw_def
+        rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def)
+  show bad_notin: "bad \<notin> partial_derivative_live_row_universe r"
+    by (simp add: r_def bad_def partial_derivative_live_row_universe_def
+        rpath_continuations_def)
+  show "\<not> row_dlformss (rpder_strong_rows_raw a (afactored1 r [])) \<subseteq>
+      partial_derivative_live_row_universe r"
+    using bad_in bad_notin by blast
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"

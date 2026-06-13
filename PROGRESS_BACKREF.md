@@ -8486,3 +8486,40 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: test whether `front-card * G^2` is mathematically too
   weak for the cubic gate; if so, replace the generated-square tail ledger
   with a sharper opened-boundary or normalized-tail carrier statement.
+
+## 2026-06-14 Codex: CLAIM - live-row subset bridge
+
+- Pivoting to the MAINLINE liveness slice after the checked-false strong
+  opened-boundary carrier. Target:
+  `row_dlformss(rpder_strong_rows_raw c (afactored1 r s)) <=
+   partial_derivative_live_row_universe r`, so the already checked
+  live-universe cubic adapters close the set-ledger gate.
+- First smallest brick: search for existing norm9/live-row closure facts and
+  prove a narrow subset adapter for one actual-output component, avoiding the
+  known norm7/norm8 closure counterexamples and avoiding generated/list-cost
+  degree-losing wrappers.
+
+## 2026-06-14 Codex: CHECKED - original-root live-row subset is false
+
+- New checked counterexample:
+  `row_dlformss_actual_not_subset_live_row_universe_original_false`.
+  For `r = RSTAR (RALTS [RCHAR a])` and next character `a`,
+  `bad = RSTAR (RCHAR a)` is in
+  `row_dlformss(rpder_strong_rows_raw a (afactored1 r []))`, but
+  `bad NOTIN partial_derivative_live_row_universe r`.
+- Plain gloss: the exact MAINLINE subset target with the original root is
+  false because strong simplification collapses the singleton ALT under STAR
+  before the opened ledger is compared to the unsimplified root universe.
+- Additional scratch smoke: replacing the root by `rsimpStrong_raw r` fixes
+  that singleton-ALT case but is still false for an opened continuation case:
+  `([1|a].([1|a].c))` produces opened row `(a.c)`, while the normalized
+  live-row universe contains the unopened continuation `[1|a].c`. Opening the
+  normalized live-row universe also has deeper sampled CEs after a prefix, so
+  the next route needs a prefix-aware opened-live/drain carrier, not the
+  verbatim `U <= partial_derivative_live_row_universe r` target.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: formulate a prefix-aware liveness carrier for the
+  opened ledger, likely based on the current `afactored1 r s`/strong-normalized
+  front rather than the original root alone, and sample it before Isabelle.
