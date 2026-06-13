@@ -31846,6 +31846,22 @@ definition strong_opened_live_row_universes :: "rrexp list \<Rightarrow> rrexp s
   "strong_opened_live_row_universes rs =
     (\<Union>q \<in> set rs. strong_opened_live_row_universe q)"
 
+definition partial_derivative_live_row_universe_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "partial_derivative_live_row_universe_acc r k =
+    insert RZERO
+      (insert RONE
+        (insert (rsimp4_SEQ_atom r k)
+          (rpath_continuations_acc r k \<union>
+           rfrontier (rsimp4_SEQ_atom r k) \<union>
+           (\<Union>q \<in> rpath_continuations_acc r k. rfrontier q))))"
+
+definition strong_opened_live_row_universe_acc ::
+  "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "strong_opened_live_row_universe_acc r k =
+    row_dlformss_set
+      (rsimpStrong_raw ` partial_derivative_live_row_universe_acc r k)"
+
 lemma finite_strong_opened_live_row_universe [simp]:
   "finite (strong_opened_live_row_universe r)"
   by (simp add: strong_opened_live_row_universe_def)
@@ -31854,11 +31870,33 @@ lemma finite_strong_opened_live_row_universes [simp]:
   "finite (strong_opened_live_row_universes rs)"
   by (simp add: strong_opened_live_row_universes_def)
 
+lemma finite_partial_derivative_live_row_universe_acc [simp]:
+  "finite (partial_derivative_live_row_universe_acc r k)"
+  by (simp add: partial_derivative_live_row_universe_acc_def)
+
+lemma finite_strong_opened_live_row_universe_acc [simp]:
+  "finite (strong_opened_live_row_universe_acc r k)"
+  by (simp add: strong_opened_live_row_universe_acc_def)
+
 lemma strong_opened_live_row_universe_eq_closure:
   "strong_opened_live_row_universe r =
     rsimpStrong_dlform_closure (partial_derivative_live_row_universe r)"
   by (auto simp add: strong_opened_live_row_universe_def
       rsimpStrong_dlform_closure_def row_dlformss_set_def)
+
+lemma partial_derivative_live_row_universe_acc_RSEQ_subset:
+  "partial_derivative_live_row_universe_acc (RSEQ r1 r2) k \<subseteq>
+    partial_derivative_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    partial_derivative_live_row_universe_acc r2 k"
+  by (auto simp add: partial_derivative_live_row_universe_acc_def)
+
+lemma strong_opened_live_row_universe_acc_RSEQ_subset:
+  "strong_opened_live_row_universe_acc (RSEQ r1 r2) k \<subseteq>
+    strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+    strong_opened_live_row_universe_acc r2 k"
+  using partial_derivative_live_row_universe_acc_RSEQ_subset[of r1 r2 k]
+  by (auto simp add: strong_opened_live_row_universe_acc_def
+      row_dlformss_set_def)
 
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>

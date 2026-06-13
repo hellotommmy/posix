@@ -8688,3 +8688,37 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: sample/prove the `RSEQ` dynamic-carrier split with the
   left side carrying `rsimp4_SEQ_atom r2 k` and the right side carrying `k`;
   this is the likely telescoping shape for the remaining size bound.
+
+## 2026-06-14 Codex: CHECKED - prefix-aware strong-live RSEQ split
+
+- Ephemeral scratch sample (no committed scratch edit): after matching the
+  real recursive `rsimp4_SEQ_atom (RSEQ r1 r2) k =
+   rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)` shape, the accumulator split
+  `strong_opened_acc(RSEQ r1 r2, k) <=
+   strong_opened_acc(r1, rsimp4_SEQ_atom r2 k) UNION
+   strong_opened_acc(r2, k)`
+  had 500,000 random `apder_nf` samples to depth 7 with zero violations.
+- New prefix-aware carrier definitions:
+  `partial_derivative_live_row_universe_acc r k` uses root
+  `rsimp4_SEQ_atom r k`, path continuations `rpath_continuations_acc r k`, the
+  root frontier, and frontiers of path continuations; and
+  `strong_opened_live_row_universe_acc r k` opens that carrier after
+  `rsimpStrong_raw`.
+- New checked live-row split:
+  `partial_derivative_live_row_universe_acc(RSEQ r1 r2) k <=
+   partial_derivative_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k) UNION
+   partial_derivative_live_row_universe_acc r2 k`.
+- New checked strong-opened split:
+  `strong_opened_live_row_universe_acc(RSEQ r1 r2) k <=
+   strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k) UNION
+   strong_opened_live_row_universe_acc r2 k`.
+  Plain gloss: the dynamic strong-live carrier now has the same telescoping
+  SEQ boundary shape as the D law; no destructive reassociation is assumed,
+  only the formal `rsimp4_SEQ_atom` recursion.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: connect the accumulator carrier back to the existing
+  `strong_opened_live_row_universe r` at `k = RONE` under `apder_nf r`, then
+  add `RCHAR`/`RSTAR` accumulator constructor containments for the size
+  induction.
