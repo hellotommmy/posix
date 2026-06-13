@@ -8839,3 +8839,27 @@ STATUS_MATH and say so at the top of PROGRESS.
   `row_dlforms(rsimpStrong_raw k) UNION
    row_dlformss_set(rsimpStrong_raw \` rfrontier k)` under `rtail_nf k`, or
   record the first counterexample and keep the recurrence with this base term.
+
+## 2026-06-14 Codex: CHECKED - prefix strong-live RONE size base
+
+- Ephemeral scratch sample (no committed scratch edit): the tempting
+  sharpening
+  `rtail_nf k ==> row_dlformss_set(rsimpStrong_raw \` rfrontier k) <=
+   row_dlforms(rsimpStrong_raw k)` had 500,000 bounded `rtail_nf` samples with
+  zero violations, but no existing pruning-coverage lemma packages that
+  direction; do not grind it before the recurrence needs the sharpening.
+- New checked numeric base:
+  `rsize_set(strong_opened_live_row_universe_acc RZERO k) = 1`.
+- New checked conservative `RONE` size bound:
+  `rsize_set(strong_opened_live_row_universe_acc RONE k) <=
+   1 + rsize_set(row_dlforms(rsimpStrong_raw k)) +
+     rsize_set(row_dlformss_set(rsimpStrong_raw \` rfrontier k))`.
+  Plain gloss: the recurrence has a checked base inequality; the suffix-frontier
+  term remains visible instead of being hidden behind an unproved monotonicity
+  shortcut.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: state the general recurrence inequality for
+  `rsize_set(strong_opened_live_row_universe_acc r k)` using the constructor
+  containments, with the `RONE` frontier term as a named base charge.

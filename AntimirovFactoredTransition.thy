@@ -32020,6 +32020,33 @@ lemma strong_opened_live_row_universe_acc_RONE:
       partial_derivative_live_row_universe_acc_RONE
       row_dlformss_set_def)
 
+lemma rsize_set_strong_opened_live_row_universe_acc_RZERO [simp]:
+  "rsize_set (strong_opened_live_row_universe_acc RZERO k) = 1"
+  by (simp add: strong_opened_live_row_universe_acc_RZERO rsize_set_def)
+
+lemma rsize_set_strong_opened_live_row_universe_acc_RONE_le:
+  "rsize_set (strong_opened_live_row_universe_acc RONE k) \<le>
+    1 + rsize_set (row_dlforms (rsimpStrong_raw k)) +
+      rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+proof -
+  let ?A = "row_dlforms (rsimpStrong_raw k)"
+  let ?B = "row_dlformss_set (rsimpStrong_raw ` rfrontier k)"
+  have "rsize_set (strong_opened_live_row_universe_acc RONE k) =
+      rsize_set (insert RONE (?A \<union> ?B))"
+    by (simp add: strong_opened_live_row_universe_acc_RONE)
+  also have "... \<le> rsize_set {RONE} + rsize_set (?A \<union> ?B)"
+    by (subst insert_is_Un) (rule rsize_set_Un_le, simp_all)
+  also have "... \<le> 1 + (rsize_set ?A + rsize_set ?B)"
+  proof -
+    have "rsize_set (?A \<union> ?B) \<le> rsize_set ?A + rsize_set ?B"
+      by (rule rsize_set_Un_le) simp_all
+    then show ?thesis
+      by (simp add: rsize_set_def)
+  qed
+  finally show ?thesis
+    by simp
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
