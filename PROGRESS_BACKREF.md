@@ -8151,3 +8151,38 @@ OVERNIGHT PLAN (unattended): ONE lead agent on the gate-bridge.
   CHECKED result as a math inequality + gloss; stage only your own files; commit
   small + push; pull --rebase --autostash. The posix-cubic-watch routine digests
   every 3h.
+## 2026-06-14 ADMIN/Secretary: CORRECT GPT Pro verdict on the gate-bridge — execute the opened-boundary route
+
+Supersedes the previous overnight note. The admin re-ran GPT Pro with the right
+bundle; the real design for the gate-bridge gap is in `GPT_PRO_GATE_BRIDGE_VERDICT.md`
+(repo root). It is the OPENED analog of the D-law telescoping and is the route to
+take.
+
+THE DESIGN (one line): define an opened-boundary carrier
+`opened_boundary_forms r k = row_dlformss(rfrontier(sigma r k) UNION acc r k) - odfront k`
+(odfront k = row_dlformss(rfrontier k)) — open FIRST, then subtract the opened
+frontier already owned by k. A 1/pass-through branch then contributes ZERO new
+opened forms (its contribution is exactly odfront k, subtracted), which is why the
+RONE-pair tower is harmless for the deduped set. Bound it by a potential
+`open_pot` (RONE pays 0); telescope the SEQ case (middle suffix cancels); prove
+CARRIER PRESERVATION for the strong simplifier (NOT cost monotonicity, which is
+false). Closes gap option (ii), then the gate via the checked containment.
+
+EXECUTION ORDER (the 9-lemma stack, verdict section 8):
+1. SAMPLE-CHECK FIRST at depth>=5: the potential bound
+   rsize_set(opened_boundary_forms r k) <= open_pot r + zw2 r*(1+rsize k) and the
+   cubic arithmetic open_pot r + zw2 r*2 <= (rsize r+3)^3. Tune constants; a deep
+   CE => record in SUPER_LINEAR_PATTERNS.md and adjust. Do NOT skip this (twice
+   burned by shallow sampling).
+2. Defs: odfront, opened_boundary_forms.
+3. Recursive inclusions: RZERO/RONE/RCHAR/RALTS/RSEQ(main telescoping)/RSTAR.
+4. opened_boundary_forms_le_open_pot (potential bound).
+5. open_pot_cubic_clean (cubic arithmetic).
+6. afactored1_opened_boundary_carrier + rsimpStrong_dlform_closure_opened_boundary_carrier
+   (carrier preservation through flts/nub/prune; rtail_nf side, NOT clean).
+7. actual_gate_bridge_from_opened_boundary => the §1 gate closes.
+
+If a constructor case or the carrier preservation genuinely dead-ends, record the
+precise obstacle and pivot to the independent liveness slice (MAINLINE §2). Report
+each CHECKED result as a math inequality + gloss; if the gate closes, update
+STATUS_MATH and say so at the top of PROGRESS.

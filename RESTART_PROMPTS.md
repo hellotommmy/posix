@@ -19,49 +19,59 @@ unattended overnight run, use ONE lead agent with PROMPT N below (a second on
 the liveness slice only if you will manage collisions; one is safest unattended).
 The 2026-06-13 ASSEMBLY prompts (A3/B3) are superseded by this gap.
 
-### PROMPT N — overnight lead (gate-bridge, with pivot + sharpen discipline)
+### PROMPT N — overnight lead (execute the opened-boundary design)
 
 You are running OVERNIGHT, unattended, on the POSIX cubic-bound project. Repo:
 `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
 `codex/backref-values`. ABSORB FIRST: `MAINLINE.md` §1-2, then
-`GATE_BRIDGE_GAP.md` (the one open gap), then the last 100 lines of
+`GPT_PRO_GATE_BRIDGE_VERDICT.md` (the design to execute), then
+`GATE_BRIDGE_GAP.md` (the precise gap) and the last 100 lines of
 `PROGRESS_BACKREF.md`. Symbol definitions: `STATUS_MATH.pdf`. Never bulk-read
-history. Trust git timestamps, not PROGRESS labels. Note: the D law is already
-PROVEN (`D_law_clean`/`T_and_S`, 7e62648) — do NOT re-implement it; the latest
-GPT Pro return was that same old D-law verdict and is not about this gap.
+history. Trust git timestamps, not PROGRESS labels. The D law is already PROVEN
+(`D_law_clean`/`T_and_S`, 7e62648) — do NOT re-implement it.
 
-GOAL (close the gate by proving EITHER, per GATE_BRIDGE_GAP.md):
-  (i)  rsize_set(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))
-         <= 2*(rsize r + 3)^3, OR
-  (ii) rsize_set(rsimpStrong_dlform_closure(set(afactored1 r (s @ [c]))))
-         <= 2*(rsize r + 3)^3.
-FIRST concrete attempt: prove the analog of the EXISTING frontier-closure
-nonincreasing/cubic lemma for the DLFORM closure. The bound MUST exploit
-deduplication / suffix-sharing — the per-row square-sum is quintic and the
-non-deduplicated list is exponential (RONE-pair tower, refuted).
+GOAL: close the §1 gate by executing the opened-boundary route
+(`GPT_PRO_GATE_BRIDGE_VERDICT.md`). Carrier:
+`opened_boundary_forms r k = row_dlformss(rfrontier(rsimp4_SEQ_atom r k) UNION
+apder_term_frontier_acc r k) - odfront k` with `odfront k = row_dlformss(rfrontier k)`.
+Open FIRST, then subtract the opened frontier owned by k, so 1/pass-through
+branches contribute ZERO new forms (RONE-tower fix). Bound by the potential
+`open_pot` (RONE pays 0); telescope the SEQ case; prove CARRIER PRESERVATION for
+the strong simplifier (NOT cost monotonicity, which is checked-false).
 
-DISCIPLINE (unattended — be conservative):
-- One small checked brick per cycle; search before creating; ONE Isabelle build
-  at a time (`scripts\codex-proof-workers.ps1 -Action Check` first). Red build =
-  proof failure: read the first failing goal, change ONE named lemma, never
-  relaunch on an unchanged goal; fail twice the same way -> switch sub-target.
-- If a route dead-ends (degree gap or a list-blowup CE), STOP it, record the
-  precise obstacle, append any counterexample to `SUPER_LINEAR_PATTERNS.md`, and
-  PIVOT to the independent LIVENESS SLICE (route B, MAINLINE §2: the dynamic
-  front stays quadratic; needs a saturation predicate).
-- If BOTH the gate-bridge and the liveness slice dead-end, write a sharp
-  one-page obstacle (the minimal failing example) into `GATE_BRIDGE_GAP.md` for a
-  morning design pass, then keep trying small variations — never go idle.
-- NEVER force a proof, weaken a statement, or leave a `sorry`; run the four
-  guards before pushing; stage ONLY your own files (never `git add -A`); commit
-  small + push immediately; `pull --rebase --autostash`. Report each CHECKED
-  result as a math inequality + a <=10-word plain gloss. If the gate CLOSES,
-  update `STATUS_MATH` (move the `[-> CURRENT]` marker) and say so at the top of
-  your next PROGRESS note.
+EXECUTION ORDER (the 9-lemma stack, verdict section 8):
+0. SAMPLE-CHECK FIRST at depth>=5 (extend scratch_rowcount_check.py): the potential
+   bound `rsize_set(opened_boundary_forms r k) <= open_pot r + apder_zw2 r*(1+rsize k)`
+   and the cubic arithmetic `open_pot r + apder_zw2 r*2 <= (rsize r+3)^3`. Tune the
+   constants (the verdict says they are tightenable). A deep CE => record it in
+   SUPER_LINEAR_PATTERNS.md and adjust the potential BEFORE any Isabelle. Do NOT
+   skip this — the project has twice proved false statements that passed shallow
+   sampling.
+1. Define `odfront` and `opened_boundary_forms`.
+2. Recursive inclusions: RZERO / RONE / RCHAR / RALTS / RSEQ (the main telescoping
+   step) / RSTAR.
+3. `opened_boundary_forms_le_open_pot` (the potential bound), then
+   `open_pot_cubic_clean` (arithmetic, routine once `apder_zw2 r <= rsize r`).
+4. `afactored1_opened_boundary_carrier`, then the strong carrier
+   `rsimpStrong_dlform_closure_opened_boundary_carrier` via CARRIER PRESERVATION
+   lifted through flts/nub/prune (use the rtail_nf side, NOT clean, for the strong
+   rows). The prune case is a subset on `bucket k`.
+5. `actual_gate_bridge_from_opened_boundary` — closes the §1 gate via the
+   already-checked containment.
 
-(Optional second agent — only if you will watch for collisions: the LIVENESS
-slice as an independent route to close the gate. Claim your lemmas in the
-PROGRESS tail; both agents edit AntimirovFactoredTransition.thy.)
+DISCIPLINE (unattended — be conservative): one small checked brick per cycle;
+search before creating; ONE Isabelle build at a time
+(`scripts\codex-proof-workers.ps1 -Action Check` first). Red build = proof
+failure: read the first failing goal, change ONE named lemma, never relaunch on an
+unchanged goal; fail twice the same way -> switch sub-target. If a constructor
+case or carrier preservation genuinely dead-ends, record the precise obstacle (and
+any CE in SUPER_LINEAR_PATTERNS.md) and PIVOT to the independent LIVENESS SLICE
+(route B, MAINLINE §2). NEVER force a proof, weaken a statement, or leave a
+`sorry`; run the four guards before pushing; stage ONLY your own files (never
+`git add -A`); commit small + push immediately; `pull --rebase --autostash`.
+Report each CHECKED result as a math inequality + a <=10-word plain gloss. If the
+gate CLOSES, update `STATUS_MATH` and say so at the top of your next PROGRESS note.
+Run continuously: after each push, re-read the PROGRESS tail and pick the next brick.
 
 ---
 
