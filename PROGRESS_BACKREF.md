@@ -7096,3 +7096,25 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   Next: the J* induction itself - I will start unless the supervisor
   claims it; coordination welcome.
 - cubic_progress.tex/pdf updated and recompiled.
+
+## 2026-06-13 Codex 11:05: CLAIM - RCHAR-left J* base via right carry
+
+- Synced through pushed commit b2e571b, re-read the newest PROGRESS tail, and
+  checked that no proof workers are live.  Known untracked `fable_partial.md`,
+  `cubic_progress.*` build products, and `scratch_*.py` files remain
+  untouched.
+- Narrow J*-zw2 induction brick: prove the `r1 = RCHAR c` instance of the
+  J* left-side accounting from the right child `Suc` carry measure.  Since
+  `acc (RCHAR c) M = F(M)`, the first J* bucket is empty and the second plus
+  sibling bucket is exactly the right carry measure, up to commutativity.
+
+## 2026-06-13 Codex 11:10: CHECKED - RCHAR-left J* base via right carry
+
+- New checked fact in `AntimirovFactoredTransition.thy`:
+  `card_apder_term_frontier_acc_RCHAR_jstar_le_if_right_carry_Suc`.
+- This proves the `r1 = RCHAR c` J*-zw2 left-side accounting from the right
+  child `Suc` carry measure.  The character accumulator is exactly the
+  composed frontier, so J* reduces to the right carry buckets.
+- Build command passed after worker check (AntimirovFactoredTransition
+  69.551s, full Posix elapsed 0:01:15).  No new CE/blow-up family discovered;
+  `EVIL_PATTERNS.md` unchanged.

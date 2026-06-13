@@ -30416,6 +30416,21 @@ proof (cases k)
     by simp
 qed (simp_all add: card_singleton_Diff_le_one)
 
+lemma card_apder_term_frontier_acc_RCHAR_jstar_le_if_right_carry_Suc:
+  assumes right:
+    "card (apder_term_frontier_acc r2 k - rfrontier k) +
+    card (rfrontier (rsimp4_SEQ_atom r2 k) - rfrontier k -
+      apder_term_frontier_acc r2 k) \<le> Suc (apder_zw2 r2)"
+  shows
+    "card (apder_term_frontier_acc (RCHAR c) (rsimp4_SEQ_atom r2 k) -
+      rfrontier (rsimp4_SEQ_atom r2 k)) +
+    card ((apder_term_frontier_acc (RCHAR c) (rsimp4_SEQ_atom r2 k) \<inter>
+      rfrontier (rsimp4_SEQ_atom r2 k)) - rfrontier k -
+      apder_term_frontier_acc r2 k) +
+    card (apder_term_frontier_acc r2 k - rfrontier k) \<le>
+      apder_zw2 (RCHAR c) + apder_zw2 r2"
+  using right by (simp add: add.commute add.left_commute add.assoc)
+
 
 text \<open>
   Static row size law: every member of the apder accumulator is at
