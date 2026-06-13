@@ -32340,6 +32340,23 @@ proof -
     using root arith by linarith
 qed
 
+lemma rsizes_eq_0_imp_Nil:
+  assumes "rsizes rs = 0"
+  shows "rs = []"
+  using assms
+proof (cases rs)
+  case Nil
+  then show ?thesis by simp
+next
+  case (Cons q qs)
+  have "1 \<le> rsize q"
+    by (rule size_geq1)
+  then have "rsizes (q # qs) \<noteq> 0"
+    by simp
+  then show ?thesis
+    using assms Cons by simp
+qed
+
 lemma rsize_set_row_dlforms_rsimp7_SEQ_atom_RCHAR_linear:
   "rsize_set (row_dlforms (rsimp7_SEQ_atom (RCHAR c) k)) \<le>
     Suc (Suc (rsize k))"

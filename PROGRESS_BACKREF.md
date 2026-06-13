@@ -9078,3 +9078,22 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: close the small-total root shell cases
   `rsizes rs + rsize k < 3` by explicit suffix/list splitting, then assemble
   the full `RALTS` drain case from the tight child-sum lemma.
+
+## 2026-06-14 Codex: CHECKED - rsizes zero list collapse
+
+- Small-root-shell attempt note: the direct broad `small` proof for
+  `rsizes rs + rsize k < 3` failed twice because it left arbitrary nonempty
+  alternative tails and also tried to reproving an existing
+  `rsimp7_SEQ_atom RZERO` rewrite. Per discipline, pivoted to the exposed
+  helper sub-target instead of relaunching the unchanged small goal.
+- New checked helper:
+  `rsizes rs = 0 ==> rs = []`.
+  Plain gloss: once the small-total arithmetic forces the tail contribution to
+  zero, the alternative list tail really disappears; this will keep the next
+  small-root split finite.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: redo the small `RALTS` root shell using this helper and
+  the existing `rsimp7_SEQ_atom_RZERO_left` lemma, with no broad constructor
+  auto over arbitrary list tails.
