@@ -31691,5 +31691,19 @@ proof -
     by simp
 qed
 
+lemma card_apder_rows_clean_le_rsize_plus_2:
+  assumes clean: "apder_clean r"
+  shows "card (apder_rows r) \<le> rsize r + 2"
+proof -
+  have rows: "card (apder_rows r) \<le> apder_zw2 r + 2"
+    by (rule card_apder_rows_le_apder_zw2_plus_2[OF clean])
+  have free: "rntimes_free r"
+    using clean unfolding apder_clean_def by simp
+  have zw2: "apder_zw2 r + 2 \<le> rsize r + 2"
+    using apder_zw2_rntimes_free_le_rsize[OF free] by simp
+  show ?thesis
+    by (rule le_trans[OF rows zw2])
+qed
+
 
 end

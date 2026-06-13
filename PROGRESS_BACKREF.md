@@ -7866,3 +7866,42 @@ Trust git timestamps over the `HH:MM` labels here.
   unchanged.  Next smallest safe step: specialize through
   `apder_zw2_rntimes_free_le_rsize` to obtain the rntimes-free
   `card (apder_rows r) <= rsize r + 2` bridge.
+
+## 2026-06-13 Codex: CLAIM - card_apder_rows_clean_le_rsize_plus_2
+
+- Commit `acb7c49` pushed the checked zw2 row-cardinality bridge.  Rechecked
+  the PROGRESS tail and worker state; no live proof workers and no newer
+  claim is visible.  Pre-existing untracked `fable_partial.md` /
+  `scratch_dlform_cost_model.py` remain untouched.
+- CLAIM: editing only the rntimes-free specialization
+  `card_apder_rows_clean_le_rsize_plus_2` in
+  `AntimirovFactoredTransition.thy`, feeding
+  `card_apder_rows_le_apder_zw2_plus_2` through
+  `apder_zw2_rntimes_free_le_rsize` using the `rntimes_free` component of
+  `apder_clean`.
+
+## 2026-06-13 Codex: RED/REPAIR - card_apder_rows_clean_le_rsize_plus_2 le_trans order
+
+- First build of `card_apder_rows_clean_le_rsize_plus_2` failed only at the
+  final arithmetic transitivity step: Isabelle did not infer the intended
+  order from `card(apder_rows r) <= zw2 r + 2` and `zw2 r + 2 <= rsize r + 2`.
+- Repair changes only this named lemma, naming the zw2-to-rsize inequality
+  and applying `le_trans[OF rows zw2]` explicitly.
+
+## 2026-06-13 Codex: CHECKED - card_apder_rows_clean_le_rsize_plus_2
+
+- New checked lemma in `AntimirovFactoredTransition.thy`:
+  `card_apder_rows_clean_le_rsize_plus_2`,
+  `apder_clean r ==> card (apder_rows r) <= rsize r + 2`.
+- Proof is the rntimes-free specialization of
+  `card_apder_rows_le_apder_zw2_plus_2` via
+  `apder_zw2_rntimes_free_le_rsize`, extracting `rntimes_free r` from
+  `apder_clean_def`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 90.081s, full Posix elapsed 0:01:28).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next smallest safe step: combine static containment
+  `afactored1_apder_rows_subset`, distinctness, and
+  `apder_rows_member_size_quadratic` to produce the static cubic rsizes bound
+  for `afactored1 r s`, conditional on the clean-domain row premise.
