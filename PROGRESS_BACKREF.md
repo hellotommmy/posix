@@ -7247,6 +7247,16 @@ monotone, star-seq tight-cubic tower). After it lands, just append new finds.
   <= apder_zw2 (RCHAR c)`.  This closes the trivial constructor case
   listed in Fable's E00 branch map without entering the SEQ/J* joint step.
 
+## 2026-06-13 Codex 11:40: CHECKED - E00-RONE RCHAR branch
+
+- New checked fact in `AntimirovFactoredTransition.thy`: `E00_RONE_RCHAR`.
+- This closes the character constructor of the tight merged E00-RONE law:
+  the merged frontier/account at continuation `RONE` leaves only the single
+  `RCHAR c` row after subtracting `{RONE}`, and `apder_zw2 (RCHAR c)` pays it.
+- Build command passed after worker check (AntimirovFactoredTransition
+  89.142s, full Posix elapsed 0:01:30).  No new CE/blow-up family discovered;
+  `SUPER_LINEAR_PATTERNS.md` unchanged.
+
 ## 2026-06-13 ADMIN/Secretary: corpus file renamed EVIL_PATTERNS.md -> SUPER_LINEAR_PATTERNS.md
 
 Admin asked to drop the "evil" branding (bad associations). The fuzzer corpus

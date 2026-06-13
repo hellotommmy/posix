@@ -30787,5 +30787,11 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma E00_RONE_RCHAR:
+  "card ((rfrontier (RCHAR c) \<union>
+      apder_term_frontier_acc (RCHAR c) RONE) - {RONE})
+    \<le> apder_zw2 (RCHAR c)"
+  by simp
+
 
 end
