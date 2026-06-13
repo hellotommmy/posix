@@ -9238,3 +9238,19 @@ STATUS_MATH and say so at the top of PROGRESS.
   `strong_opened_live_row_universes (afactored1 r s)` toward the root live
   carrier, or find the exact missing saturation predicate if that containment
   is too strong.
+
+## 2026-06-14 Codex: CHECKED - clean term accumulator equals live paths
+
+- New checked structural bridge:
+  if `legacy_rrexp r` and `rntimes_free r`, then
+  `apder_terms_acc r k = rpath_continuations_acc r k`.
+  Plain gloss: on the live clean fragment, the Antimirov term accumulator and
+  the live path-continuation accumulator enumerate the same suffix rows; counted
+  repetition and non-legacy constructors are exactly why this is guarded.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:18). No `sorry`.
+- NEXT smallest brick: use this equality to prove
+  `apder_rows r <= partial_derivative_live_row_universe r` on `apder_clean r`,
+  then transfer the old `apder_strong_dlfrontier` actual-row carrier into the
+  repaired strong-opened-live carrier.

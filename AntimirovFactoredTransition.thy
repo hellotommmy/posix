@@ -33079,6 +33079,76 @@ proof -
   finally show ?thesis .
 qed
 
+lemma apder_terms_acc_eq_rpath_continuations_acc_clean:
+  assumes legacy: "legacy_rrexp r"
+    and free: "rntimes_free r"
+  shows "apder_terms_acc r k = rpath_continuations_acc r k"
+  using legacy free
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: apder_terms_acc_def)
+next
+  case RONE
+  then show ?case
+    by (simp add: apder_terms_acc_def)
+next
+  case (RCHAR c)
+  then show ?case
+    by (simp add: apder_terms_acc_def)
+next
+  case (RALTS rs)
+  have member_eq: "\<And>q. q \<in> set rs \<Longrightarrow>
+      apder_terms_acc q k = rpath_continuations_acc q k"
+    using RALTS by auto
+  have "apder_terms_acc (RALTS rs) k =
+      (\<Union>q \<in> set rs. apder_terms_acc q k)"
+    by (auto simp add: apder_terms_acc_def)
+  also have "... =
+      (\<Union>q \<in> set rs. rpath_continuations_acc q k)"
+    using member_eq by auto
+  also have "... = rpath_continuations_acc (RALTS rs) k"
+    by auto
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  have left: "apder_terms_acc r1 (rsimp4_SEQ_atom r2 k) =
+      rpath_continuations_acc r1 (rsimp4_SEQ_atom r2 k)"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in auto)
+  have right: "apder_terms_acc r2 k = rpath_continuations_acc r2 k"
+    by (rule RSEQ.hyps(2)) (use RSEQ.prems in auto)
+  have split: "apder_terms_acc (RSEQ r1 r2) k =
+      apder_terms_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+      apder_terms_acc r2 k"
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  show ?case
+    using split left right by simp
+next
+  case (RSTAR r)
+  have body: "apder_terms_acc r (rsimp4_SEQ_atom (RSTAR r) k) =
+      rpath_continuations_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (rule RSTAR.hyps) (use RSTAR.prems in auto)
+  have split: "apder_terms_acc (RSTAR r) k =
+      apder_terms_acc r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (auto simp add: apder_terms_acc_def
+        rsimp4_SEQ_atom_assoc[symmetric])
+  show ?case
+    using split body by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma rfrontiers_subset_child_live_row_universes:
   "rfrontiers rs \<subseteq>
     (\<Union>q \<in> set rs. partial_derivative_live_row_universe q)"
