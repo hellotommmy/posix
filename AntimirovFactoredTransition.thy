@@ -31488,6 +31488,35 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsimpStrong_dlform_closure_opened_boundary_carrier_false:
+  fixes a :: char
+  defines "r \<equiv> RSTAR (RALTS [RCHAR a])"
+  defines "bad \<equiv> RSTAR (RCHAR a)"
+  shows "apder_clean r"
+    and "bad \<in> rsimpStrong_dlform_closure (set (afactored1 r []))"
+    and "bad \<notin> odfront RONE \<union> opened_boundary_forms r RONE"
+    and "\<not> rsimpStrong_dlform_closure (set (afactored1 r [])) \<subseteq>
+      odfront RONE \<union> opened_boundary_forms r RONE"
+proof -
+  show clean: "apder_clean r"
+    by (simp add: r_def apder_clean_def)
+  show bad_in:
+      "bad \<in> rsimpStrong_dlform_closure (set (afactored1 r []))"
+    by (simp add: r_def bad_def afactored1_def
+        rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+        rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def)
+  have carrier:
+      "odfront RONE \<union> opened_boundary_forms r RONE = {RONE, r}"
+    by (auto simp add: r_def opened_boundary_forms_def odfront_def
+        row_dlformss_set_def)
+  show bad_notin:
+      "bad \<notin> odfront RONE \<union> opened_boundary_forms r RONE"
+    using carrier by (simp add: r_def bad_def)
+  show "\<not> rsimpStrong_dlform_closure (set (afactored1 r [])) \<subseteq>
+      odfront RONE \<union> opened_boundary_forms r RONE"
+    using bad_in bad_notin by blast
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"

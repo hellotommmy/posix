@@ -8347,3 +8347,23 @@ STATUS_MATH and say so at the top of PROGRESS.
   (full Posix elapsed 0:01:13). No `sorry`.
 - NEXT smallest brick: lift carrier preservation through strong simplifier
   stages (`flts`/`nub`/`prune`) with the `rtail_nf` side condition.
+
+## 2026-06-14 Codex: CHECKED OBSTACLE - strong opened-boundary carrier is false
+
+- New checked counterexample:
+  `r = RSTAR (RALTS [RCHAR a])`, `bad = RSTAR (RCHAR a)`.
+  Isabelle proves `apder_clean r` and
+  `bad IN rsimpStrong_dlform_closure(set(afactored1 r []))`, but
+  `bad NOTIN odfront RONE UNION opened_boundary_forms r RONE`.
+  Plain gloss: strong simplification collapses a singleton ALT under STAR
+  after the opened carrier was computed for the unsimplified root.
+- Therefore the verdict bridge
+  `rsimpStrong_dlform_closure(set(afactored1 r u)) <=
+   odfront RONE UNION opened_boundary_forms r RONE`
+  is false as stated, even on the clean fragment.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:20). No `sorry`.
+- PIVOT: do not grind this carrier-preservation statement. Move to the
+  liveness slice in MAINLINE §2 unless a revised normalized-carrier statement
+  is explicitly opened.
