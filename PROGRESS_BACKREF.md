@@ -7905,3 +7905,49 @@ Trust git timestamps over the `HH:MM` labels here.
   `afactored1_apder_rows_subset`, distinctness, and
   `apder_rows_member_size_quadratic` to produce the static cubic rsizes bound
   for `afactored1 r s`, conditional on the clean-domain row premise.
+
+## 2026-06-13 Codex: CLAIM - rsizes_afactored1_clean_static_cubic
+
+- Commit `b1d8300` pushed the checked rsize row-cardinality bridge.  Rechecked
+  the PROGRESS tail and worker state; no live proof workers and no newer claim
+  is visible.  Pre-existing untracked `fable_partial.md` /
+  `scratch_dlform_cost_model.py` remain untouched.
+- CLAIM: editing only the static front total brick in
+  `AntimirovFactoredTransition.thy`: a product helper
+  `rsizes_afactored1_clean_static_product` from
+  `afactored1_apder_rows_subset`, distinctness,
+  `card_apder_rows_clean_le_rsize_plus_2`, and
+  `apder_rows_member_size_quadratic`, plus the cubic corollary
+  `rsizes_afactored1_clean_static_cubic`.
+
+## 2026-06-13 Codex: RED/REPAIR - rsizes_afactored1_clean_static_product member-size premise
+
+- First build of `rsizes_afactored1_clean_static_product` failed only while
+  discharging the member-size premise of `rsize_set_le_card_times_bound`:
+  the compact `auto intro:` proof left a schematic member goal instead of
+  applying `apder_rows_member_size_quadratic`.
+- Repair changes only this named helper, expanding that step into an explicit
+  proof of finiteness and `q in apder_rows r ==> rsize q <= Suc ((rsize r +
+  2)^2)`.
+
+## 2026-06-13 Codex: CHECKED - rsizes_afactored1_clean_static_cubic
+
+- New checked lemmas in `AntimirovFactoredTransition.thy`:
+  `rsizes_afactored1_clean_static_product`,
+  `apder_clean r ==> rsizes (afactored1 r s) <=
+  (rsize r + 2) * Suc ((rsize r + 2)^2)`, and
+  `rsizes_afactored1_clean_static_cubic`,
+  `apder_clean r ==> rsizes (afactored1 r s) <= (rsize r + 3)^3`.
+- Product proof uses `rsizes_afactored1_le_rsize_set_apder_rows`,
+  `rsize_set_le_card_times_bound`,
+  `apder_rows_member_size_quadratic`, and
+  `card_apder_rows_clean_le_rsize_plus_2`; the cubic step is only the local
+  arithmetic `(n+2) * (Suc (n+2)^2) <= (n+3)^3`.
+- Build command passed after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (AntimirovFactoredTransition 78.242s, full Posix elapsed 0:01:24).
+- No `sorry`; no new CE/blow-up family; `SUPER_LINEAR_PATTERNS.md`
+  unchanged.  Next smallest safe step: plug this static front rsizes bound
+  into the staticized SEQ/two-summand gate, once the actual-row clean-domain
+  premise is available (or record a tracked clean-domain stub if still
+  absent).

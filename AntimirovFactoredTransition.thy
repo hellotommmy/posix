@@ -31705,5 +31705,45 @@ proof -
     by (rule le_trans[OF rows zw2])
 qed
 
+lemma rsizes_afactored1_clean_static_product:
+  assumes clean: "apder_clean r"
+  shows "rsizes (afactored1 r s) \<le>
+    (rsize r + 2) * Suc ((rsize r + 2)\<^sup>2)"
+proof -
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  let ?M = "Suc ((rsize r + 2)\<^sup>2)"
+  have rows_size: "rsize_set (apder_rows r) \<le>
+      card (apder_rows r) * ?M"
+  proof (rule rsize_set_le_card_times_bound)
+    show "finite (apder_rows r)"
+      by simp
+    show "\<And>q. q \<in> apder_rows r \<Longrightarrow> rsize q \<le> ?M"
+      by (rule apder_rows_member_size_quadratic[OF nf])
+  qed
+  have "rsizes (afactored1 r s) \<le> rsize_set (apder_rows r)"
+    by (rule rsizes_afactored1_le_rsize_set_apder_rows[OF nf])
+  also have "... \<le> card (apder_rows r) * ?M"
+    by (rule rows_size)
+  also have "... \<le> (rsize r + 2) * ?M"
+    by (rule mult_right_mono)
+      (use card_apder_rows_clean_le_rsize_plus_2[OF clean] in simp_all)
+  finally show ?thesis .
+qed
+
+lemma rsizes_afactored1_clean_static_cubic:
+  assumes clean: "apder_clean r"
+  shows "rsizes (afactored1 r s) \<le> (rsize r + 3) ^ 3"
+proof -
+  have product: "rsizes (afactored1 r s) \<le>
+      (rsize r + 2) * Suc ((rsize r + 2)\<^sup>2)"
+    by (rule rsizes_afactored1_clean_static_product[OF clean])
+  have cube: "(rsize r + 2) * Suc ((rsize r + 2)\<^sup>2)
+      \<le> (rsize r + 3) ^ 3"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  show ?thesis
+    by (rule le_trans[OF product cube])
+qed
+
 
 end
