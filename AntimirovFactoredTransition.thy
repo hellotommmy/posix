@@ -31421,6 +31421,73 @@ proof -
   finally show ?thesis .
 qed
 
+lemma row_dlformss_set_apder_rows_subset_opened_boundary_RONE:
+  assumes nf: "apder_nf r"
+  shows "row_dlformss_set (apder_rows r) \<subseteq>
+    odfront RONE \<union> opened_boundary_forms r RONE"
+proof -
+  have sigma: "rsimp4_SEQ_atom r RONE = r"
+    by (rule sigma_RONE_id_nf[OF nf])
+  have front_eq: "apder_frontier r =
+      rfrontier r \<union> apder_term_frontier_acc r RONE"
+    using apder_frontier_eq_rfrontier_union_acc[OF nf]
+    by (simp add: apder_term_frontiers_def)
+  have core: "row_dlformss_set (apder_rows r) \<subseteq>
+      row_dlformss_set
+        (rfrontier r \<union> apder_term_frontier_acc r RONE)"
+  proof
+    fix x
+    assume x: "x \<in> row_dlformss_set (apder_rows r)"
+    then obtain q where q: "q \<in> apder_rows r"
+      and xq: "x \<in> row_dlforms q"
+      by (auto simp add: row_dlformss_set_def)
+    have q_cases: "q = r \<or>
+        q \<in> rfrontier r \<union> apder_term_frontier_acc r RONE"
+      using q by (auto simp add: apder_rows_def front_eq)
+    then have src: "x \<in> row_dlforms r \<or>
+        x \<in> row_dlformss_set
+          (rfrontier r \<union> apder_term_frontier_acc r RONE)"
+      using xq by (auto simp add: row_dlformss_set_def)
+    then show "x \<in> row_dlformss_set
+        (rfrontier r \<union> apder_term_frontier_acc r RONE)"
+    proof
+      assume "x \<in> row_dlforms r"
+      then have "x \<in> row_dlformss_set (rfrontier r)"
+        by simp
+      then show ?thesis by simp
+    next
+      assume "x \<in> row_dlformss_set
+        (rfrontier r \<union> apder_term_frontier_acc r RONE)"
+      then show ?thesis .
+    qed
+  qed
+  have opened: "row_dlformss_set
+      (rfrontier r \<union> apder_term_frontier_acc r RONE) \<subseteq>
+      odfront RONE \<union> opened_boundary_forms r RONE"
+    using sigma by (auto simp add: opened_boundary_forms_def)
+  show ?thesis
+    using core opened by blast
+qed
+
+lemma afactored1_opened_boundary_carrier:
+  assumes clean: "apder_clean r"
+  shows "row_dlformss (afactored1 r u) \<subseteq>
+    odfront RONE \<union> opened_boundary_forms r RONE"
+proof -
+  have nf: "apder_nf r"
+    using clean unfolding apder_clean_def by simp
+  have rows: "set (afactored1 r u) \<subseteq> apder_rows r"
+    by (rule afactored1_apder_rows_subset[OF nf])
+  have "row_dlformss (afactored1 r u) =
+      row_dlformss_set (set (afactored1 r u))"
+    by simp
+  also have "... \<subseteq> row_dlformss_set (apder_rows r)"
+    by (rule row_dlformss_set_mono[OF rows])
+  also have "... \<subseteq> odfront RONE \<union> opened_boundary_forms r RONE"
+    by (rule row_dlformss_set_apder_rows_subset_opened_boundary_RONE[OF nf])
+  finally show ?thesis .
+qed
+
 lemma T_and_S_RCHAR:
   shows "apder_T_bound (RCHAR c) k"
     and "apder_S_bound (RCHAR c) k"

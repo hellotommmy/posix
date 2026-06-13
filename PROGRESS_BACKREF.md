@@ -8330,3 +8330,20 @@ STATUS_MATH and say so at the top of PROGRESS.
   `row_dlformss(set (afactored1 r u)) <= odfront RONE UNION
    opened_boundary_forms r RONE`, adapting the existing `afactored1`/frontier
   carrier facts.
+
+## 2026-06-14 Codex: CHECKED - afactored1 opened-boundary carrier
+
+- New checked static carrier lemma:
+  `apder_nf r ==> row_dlformss_set(apder_rows r) <=
+   odfront RONE UNION opened_boundary_forms r RONE`.
+  Plain gloss: the static derivative frontier opens inside the carrier.
+- New checked afactored1 carrier lemma:
+  `apder_clean r ==> row_dlformss(afactored1 r u) <=
+   odfront RONE UNION opened_boundary_forms r RONE`.
+  Plain gloss: one factored derivative step stays in the opened-boundary
+  carrier.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: lift carrier preservation through strong simplifier
+  stages (`flts`/`nub`/`prune`) with the `rtail_nf` side condition.
