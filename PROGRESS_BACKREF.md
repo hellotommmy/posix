@@ -9028,3 +9028,19 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove the RZERO/RONE/RCHAR base cases are ready for a
   full drain induction, then split the RALTS cube-sum arithmetic or the RSEQ
   telescoping arithmetic, whichever fails first under a trial induction.
+
+## 2026-06-14 Codex: CHECKED - alternative drain cube sum
+
+- New checked arithmetic shell lemma:
+  for `1 <= K`,
+  `sum_list (map (%q. (rsize q + K)^3 - K^3) rs) <=
+   (rsizes rs + K + 1)^3 - K^3`.
+  Plain gloss: a list of alternative-branch drain shells can be packed into a
+  single cube shell over the total `rsizes`; this is the RALTS arithmetic
+  needed for the strong-live drain induction.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:20). No `sorry`.
+- NEXT smallest brick: use this cube-sum lemma to prove the `RALTS` drain case
+  for `strong_opened_live_acc_potential`, keeping the root/base charge separate
+  from the branch sum.

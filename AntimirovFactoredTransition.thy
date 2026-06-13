@@ -31580,6 +31580,46 @@ next
   qed
 qed
 
+lemma cube_shell_add:
+  fixes a b :: nat
+  shows "(a + b) ^ 3 - b ^ 3 =
+    a ^ 3 + 3 * a\<^sup>2 * b + 3 * a * b\<^sup>2"
+  by (simp add: power3_eq_cube power2_eq_square algebra_simps)
+
+lemma sum_list_drain_alt_cubes_le:
+  assumes K: "1 \<le> K"
+  shows "sum_list (map (\<lambda>q. (rsize q + K) ^ 3 - K ^ 3) rs) \<le>
+    (rsizes rs + K + 1) ^ 3 - K ^ 3"
+  using K
+proof (induct rs)
+  case Nil
+  then show ?case
+    by (simp add: cube_shell_add)
+next
+  case (Cons q rs)
+  have q_pos: "1 \<le> rsize q"
+    by (rule size_geq1)
+  have step:
+      "(rsize q + K) ^ 3 - K ^ 3 +
+       ((rsizes rs + K + 1) ^ 3 - K ^ 3) \<le>
+       (rsize q + rsizes rs + K + 1) ^ 3 - K ^ 3"
+    using Cons.prems q_pos
+    by (simp add: cube_shell_add power3_eq_cube power2_eq_square
+        algebra_simps)
+  have "sum_list (map (\<lambda>q. (rsize q + K) ^ 3 - K ^ 3) (q # rs)) =
+      ((rsize q + K) ^ 3 - K ^ 3) +
+      sum_list (map (\<lambda>q. (rsize q + K) ^ 3 - K ^ 3) rs)"
+    by simp
+  also have "... \<le>
+      ((rsize q + K) ^ 3 - K ^ 3) +
+      ((rsizes rs + K + 1) ^ 3 - K ^ 3)"
+    by (rule add_left_mono, rule Cons.hyps[OF Cons.prems])
+  also have "... \<le> (rsize q + rsizes rs + K + 1) ^ 3 - K ^ 3"
+    by (rule step)
+  finally show ?case
+    by simp
+qed
+
 lemma open_pot_cubic_clean:
   assumes free: "rntimes_free r"
   shows "open_pot r + apder_zw2 r * 2 \<le> (rsize r + 3) ^ 3"
