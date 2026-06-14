@@ -9537,3 +9537,21 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: combine this list-ledger comparison with the
   strong-normalized payload transfer to prove the general self-STAR strong
   flat-payload set bound.
+
+## 2026-06-14 Codex: CHECKED - general strong self-STAR flat payload bound
+
+- New checked set-level strong self-STAR inequality:
+  if every payload in `ps` is `rnonseq` and `nonalt`, then
+  `rsize_set(row_dlforms(rsimpStrong_raw(RSEQ (RALTS ps)
+   (RSTAR (RALTS ps))))) <=
+   rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))`.
+  Plain gloss: the strong-normalized self-STAR RALTS root is now bounded by
+  the same product ledger as the non-strong flat opener. The proof normalizes
+  the payloads to `rflts(map rsimpStrong_raw ps)`, applies the strong ALT root
+  list ledger, and transfers `rsizes`, `length`, and suffix size back to `ps`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:21). No `sorry`.
+- NEXT smallest brick: plug this general flat-payload bound into the
+  self-suffix quadratic potential for RALTS, replacing the old concrete
+  `[RONE, RCHAR c]` warning helper with a list-parametric case.

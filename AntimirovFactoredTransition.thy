@@ -5314,6 +5314,62 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_self_star_flat_payload_strong_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "rsize_set
+      (row_dlforms
+        (rsimpStrong_raw
+          (RSEQ (RALTS ps) (RSTAR (RALTS ps))))) \<le>
+    rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))"
+proof -
+  let ?qs = "rflts (map rsimpStrong_raw ps)"
+  let ?k = "rsimpStrong_raw (RSTAR (RALTS ps))"
+  have qs_payloads:
+      "\<forall>q \<in> set ?qs. rnonseq q \<and> nonalt q"
+    by (rule rflts_map_rsimpStrong_raw_flat_payload_props[OF payloads])
+  have k_payload: "rnonseq ?k" "nonalt ?k"
+    using rsimpStrong_raw_flat_payload[of "RSTAR (RALTS ps)"]
+    by simp_all
+  have "rsize_set
+      (row_dlforms
+        (rsimpStrong_raw
+          (RSEQ (RALTS ps) (RSTAR (RALTS ps))))) \<le>
+      row_dlforms_list_size
+        (rsimpStrong_raw
+          (RSEQ (RALTS ps) (RSTAR (RALTS ps))))"
+    by (rule rsize_set_row_dlforms_le_row_dlforms_list_size)
+  also have "... =
+      row_dlforms_list_size
+        (rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ?qs) ?k)"
+    by simp
+  also have "... \<le> row_dlforms_list_size (RSEQ (RALTS ?qs) ?k)"
+    by (rule
+        row_dlforms_list_size_rsimp7_SEQ_atom_rsimpStrong_ALTs_raw_flat_payload_le
+        [OF qs_payloads])
+  also have "... \<le> rsizes ?qs + length ?qs * Suc (rsize ?k)"
+    by (rule row_dlforms_list_size_RSEQ_RALTS_flat_payload_flat_tail_le
+        [OF qs_payloads k_payload])
+  also have "... \<le>
+      rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))"
+  proof -
+    have sizes: "rsizes ?qs \<le> rsizes ps"
+      by (rule rsizes_rflts_map_rsimpStrong_raw_le)
+    have lens: "length ?qs \<le> length ps"
+      by (rule length_rflts_map_rsimpStrong_raw_flat_payload_le
+          [OF payloads])
+    have k_size: "Suc (rsize ?k) \<le>
+        Suc (rsize (RSTAR (RALTS ps)))"
+      using rsize_rsimpStrong_raw_le[of "RSTAR (RALTS ps)"] by simp
+    have prod:
+        "length ?qs * Suc (rsize ?k) \<le>
+        length ps * Suc (rsize (RSTAR (RALTS ps)))"
+      by (rule mult_le_mono[OF lens k_size])
+    show ?thesis
+      using sizes prod by simp
+  qed
+  finally show ?thesis .
+qed
+
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 
