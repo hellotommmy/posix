@@ -9688,3 +9688,19 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: check the all-`RONE`/low-character-count cases against
   the quadratic target; if the linear shell is still too weak there, sharpen
   the root ledger so pass-through `RONE` branches pay zero.
+
+## 2026-06-14 Codex: CHECKED - linear shell still overcharges RONE pass-through
+
+- New checked diagnostic witness:
+  for `ps = [RONE, RONE, RONE, RONE, RONE, RONE]`, the combined linear shell is
+  NOT bounded by the desired quadratic target. Numerically this is the
+  `169 > 163` gap found by the scratch check.
+  Plain gloss: the child side is no longer the problem; the remaining
+  overcharge is the root ledger counting pass-through `RONE` payloads by list
+  length. This is exactly the RONE-tower fix called out in the verdict.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:13). No `sorry`.
+- NEXT smallest brick: sharpen the simple RALTS root charge so `RONE`
+  pass-through branches contribute zero/new bounded frontier cost, rather than
+  the coarse `length ps * Suc(size)` product.

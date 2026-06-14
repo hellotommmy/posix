@@ -33651,6 +33651,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RALTS_six_RONE_parent_star_linear_shell_too_weak:
+  defines "ps \<equiv> [RONE, RONE, RONE, RONE, RONE, RONE]"
+  shows "\<not>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    (2 * length ps + apder_zw2 (RALTS ps)) *
+      Suc (rsize (RSTAR (RALTS ps))) \<le>
+    1 + open_pot (RALTS ps) +
+      2 * Suc (apder_zw2 (RALTS ps)) *
+        (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
+  by (simp add: ps_def power2_eq_square)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
