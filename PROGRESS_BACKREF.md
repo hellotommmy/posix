@@ -9958,3 +9958,25 @@ refined pass is being aimed at exactly this child invariant.
 - NEXT smallest brick: generalize the positive parent budget from the
   `[RSTAR(RCHAR), RONE, RCHAR]` witness to a one-STAR-payload family, while
   avoiding the checked-false pointwise child charge.
+
+## 2026-06-14 Codex: CHECKED - literal STAR-suffix star-char child base
+
+- Depth-5 scratch for the child base:
+  `strong_opened_live_acc_potential (RSTAR(RCHAR c)) (RSTAR r) <=
+   8 * Suc(rsize(RSTAR r))` survived 300,009 cases; worst sampled ratio was
+  `23 <= 24` at the literal suffix `r = RCHAR a`.
+- Attempted general arbitrary-STAR suffix lemma then hit the hard branch
+  `rsimpStrong_raw r = RSTAR x` twice, so per discipline I switched
+  sub-target instead of grinding it.
+- New checked base inequality:
+  `strong_opened_live_acc_potential (RSTAR(RCHAR c)) (RSTAR(RCHAR d)) <=
+   8 * Suc(rsize(RSTAR(RCHAR d)))`.
+  Plain gloss: the worst literal STAR-suffix child case has a checked linear
+  bound, giving a base brick for the broader one-STAR-payload family.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:37). No `sorry`.
+- NEXT smallest brick: prove the nonliteral cases of the same
+  `RSTAR(RCHAR)`-over-STAR suffix bound by splitting on the normalized suffix
+  shape, or package this base into the one-STAR-payload parent theorem if that
+  route avoids the false pointwise charge.

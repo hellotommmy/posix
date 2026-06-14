@@ -34037,6 +34037,13 @@ lemma strong_opened_live_acc_potential_RALTS_RSTAR_RCHAR_RONE_RCHAR_self_star_qu
       rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def
       power2_eq_square)
 
+lemma strong_opened_live_acc_potential_RSTAR_RCHAR_RSTAR_RCHAR_linear:
+  "strong_opened_live_acc_potential (RSTAR (RCHAR c)) (RSTAR (RCHAR d)) \<le>
+    8 * Suc (rsize (RSTAR (RCHAR d)))"
+  by (simp add: rsize_set_def row_dlformss_set_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
