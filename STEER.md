@@ -30,16 +30,19 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
-## ⏸ SCOVER VALIDATION HOLD (2026-06-15) — A: do NOT grind the scover assembly yet
-A correctly found the 6 committed `master_cover_<CTOR>` cases do NOT compose (the flat
-`weak_slots` fold is FALSE even for S-fixpoints — verified CE), and recipe'd a recursive
-`scover` cover (PROGRESS tail). The fold-failure is real. BUT the scover recipe (COVER
-induction + B1/B2 bridges + SIZE + corollary) is a sizable multi-lemma development that is
-only hand-validated. The Secretary is machine-validating it at depth≥5 NOW (same discipline
-that caught the boxed reduction). **A: HOLD scover execution until this banner is replaced
-with a GREEN-LIGHT (or a corrected recipe).** Meanwhile you MAY do the small, safe,
-recipe-independent bricks if you want (B2 `rsimp7 q cont = S(rsimp4 q cont)` under fixpoints;
-the guard-decomposition lemmas) — but NOT the scover def / COVER induction until green-lit.
+## ⛔ SCOVER REFUTED — gate assembly is a GPT Pro DESIGN problem (2026-06-15). A: HOLD.
+Secretary machine-validated A's `scover` recipe at depth≥5: it FAILS (`posix-scover-cover-refuted.md`).
+- COVER `SOL_acc q cont ⊆ scover q cont ∪ SOL cont` FALSE (23–69 viol) — SAME `a*·a*→a*` collapse:
+  CE `q=b·a*, k=a*`, the strong-collapsed row `b·a*` is absent from scover (only uncollapsed `b·(a*·a*)`).
+- B2 (`rsimp7 q cont = S(rsimp4 q cont)`) FALSE for nested-RSEQ heads; B1 literal FALSE (~25%).
+- SALVAGEABLE (validated 0-viol): B1 in the ABSORBED form `SOL(rsimp4 q cont) ⊆ SOL_acc q cont ∪ SOL cont`;
+  the guard-decompositions; `rsize_set(scover) ≤ ctx_bound`.
+- ⭐ KEY: the NUMERIC target IS TRUE — `rsize_set(strong_child_drain p k) ≤ ctx_bound ≤ drain_child_budget`
+  is 0/52654. Only the SET-CONTAINMENT proof routes (master_cover, scover) die on the collapse.
+**The §4 close is now a DESIGN problem (Pro): prove the true numeric bound WITHOUT a strong⊆cover
+set-containment.** A (and all agents): HOLD the assembly — do NOT invent a third set-cover. You MAY
+land the validated-safe bricks (the ABSORBED-B1 bridge; the guard-decompositions) — those are reusable
+under any design. Await the Pro design (see `GPT_PRO_GATE_BRIDGE_ASSEMBLY` prompt) + secretary validation.
 
 ---
 

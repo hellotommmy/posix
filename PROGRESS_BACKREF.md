@@ -10896,3 +10896,22 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - This is a sizable multi-lemma development (scover def + B1 + B2 + guard-decomp + COVER
   induction + SIZE + corollary + §7). master_cover_RALTS (the STEER-named blocker) and the
   static brick are GREEN; the scover assembly is the precise remaining work, fully recipe'd above.
+
+## 2026-06-15 Secretary: SCOVER REFUTED (depth>=5) — gate assembly is now a GPT Pro DESIGN problem
+
+- WORKER-A's recursive `scover` recipe FAILS validation (scratch_verdict6_scover_bridge_check.py,
+  posix-scover-cover-refuted.md): COVER `SOL_acc q cont <= scover q cont U SOL cont` 23-69 viol
+  (same a*.a*->a* collapse; CE q=b.a*, k=a*, collapsed row b.a* absent from uncollapsed scover);
+  B2 false for nested-RSEQ heads; B1 literal false (~25%). A must NOT grind scover.
+- ROOT PATTERN: every SET-CONTAINMENT route (master_cover fold, scover) dies on the strong
+  a*.a*->a* collapse — strong rows are collapsed, weak/scover covers are uncollapsed -> set-
+  incomparable. The 6 master_cover cases do NOT compose.
+- BUT THE NUMERIC TARGET IS TRUE: rsize_set(strong_child_drain p k) <= ctx_bound <= drain_child_budget
+  = 0/52654. So the gate is provable; it needs a proof that does NOT route through strong<=cover
+  set-containment. SALVAGE (validated 0-viol): absorbed-B1 `SOL(rsimp4 q cont) <= SOL_acc q cont U SOL cont`;
+  guard-decomps; rsize_set(weak/scover) <= ctx_bound.
+- ACTION: GPT Pro design pass on the ASSEMBLY (gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY.txt) —
+  prove the true numeric bound without a strong<=cover containment (per-row size charge / numeric
+  induction / size-monotone weak bridge). A + all agents HOLD the assembly; may land the absorbed-B1
+  bridge + guard-decomps (validated-safe, reusable). Overnight loop: watch for the Pro design, validate
+  it depth>=5, then green-light A.
