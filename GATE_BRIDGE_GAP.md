@@ -151,3 +151,54 @@ budget for the RALTS / RSTAR parent. Need a child-level invariant (an `open_pot`
 style potential charged so that RALTS sums and the RSTAR re-entry leave the parent
 enough budget) that closes the conditional RALTS/RSEQ/RSTAR root-cubic wrappers
 already in place. Sample at depth>=5 before Isabelle; constants are tunable.
+
+---
+
+## UPDATE 3 (2026-06-14): the per-child SET-containment route is CHECKED-FALSE for RALTS/RSTAR (secretary-verified)
+
+Executing UPDATE 2's drain carrier (verdict2/§4), the §5 drain ARITHMETIC is
+DONE/green (`drain_pot_le_cubic_core`, `drain_child_budget_root_cubic`) and the §4
+per-child SET-containment is PROVEN for SEQ/CHAR (Codex; RCHAR green). But the
+per-child telescoping INCLUSION `parent drain ⊆ ⋃ child drains` is machine/sample
+checked-FALSE for RALTS and RSTAR, and the secretary independently verified the
+MECHANISM against the real Isabelle definitions (not a sampling/model artifact):
+
+- `rsimp7_SEQ_atom` (BasicIdentities.thy:414-421) has a deliberate guarded rule
+  `(RSTAR r, RSTAR s) ⇒ if r=s then RSTAR r` (and prefix variant
+  `(RSTAR r, RSEQ (RSTAR s) k) ⇒ if r=s then RSEQ (RSTAR r) k`) that collapses
+  `a*·a* → a*`. `rsimp4_SEQ_atom` (BasicIdentities.thy:287-300) does NOT collapse
+  it (`RSTAR r, r2 ⇒ RSEQ (RSTAR r) r2`). The parent row glues each child to the
+  SAME continuation via `rsimp7_SEQ_atom`, so which pairings trigger the `r=s`
+  guard differs between the child-normalized term and the parent row term.
+- **C-DRAIN-1 (RALTS)**: parent `(b·a* + 1)`, `k = a*`.
+  `strong_child_drain (RALTS [b·a*, 1]) a*` contains `b·(a*·a*)` (rsize 7); no
+  child drain does — the child `nseq (b·a*) a*` reassociates and `a*·a*→a*`
+  collapses it to `b·a*` (rsize 4).
+- **C-DRAIN-2 (RSTAR)**: body `p = (1+a)·c`, `k = 1` (+ nested-star variants).
+  `strong_child_drain (RSTAR p) k` keeps a star re-entry form
+  `c·(((1+a)·c)*·…)` that escapes `star_entry p k ∪ child drain`.
+
+WHY THE OBVIOUS PATCHES FAIL (both characterized):
+- **row_dlforms boundary** (single parent opened row added): still FALSE for RSTAR.
+- **full-universe boundary** (`strong_opened_live(nseq …) − strong_opened_live(S k)`):
+  the inclusion HOLDS for both RALTS and RSTAR (0/40000), BUT cannot be PAID:
+  `apder_zw2 (RALTS rs) = Σ apder_zw2` and `open_pot (RALTS rs) = Σ open_pot`
+  EXACTLY (AntimirovFactoredTransition.thy:29673, 29702) — RALTS has **zero
+  constructor slack**, so the extra boundary row's `rsize` has nowhere to be paid.
+  (RSEQ/RSTAR DO carry slack — `apder_zw2 r1*(rsize r2+2)`, `Suc(zw2)*(rsize+2)` —
+  RALTS alone does not.)
+
+KEY POINT: the master bound `strong_child_drain_potential` is still believed TRUE
+(300k samples, zero violations) — a proof EXISTS, just not via per-child ALTS/STAR
+containment. The algebra `(a+b)·k = a·k + b·k` holds, but the strong-normaliser
+does NOT distribute `·` over `+` (it wraps `RSEQ (ALTS …) k`) and DOES collapse
+`a*·a*→a*`; per-child telescoping assumes left-distribution commutes with
+star-idempotence, which is false.
+
+THE CORRECTED ASK (GPT Pro pass): design a **non-telescoping ALTS/STAR account** —
+bound the parent drain `rsize_set` DIRECTLY within `drain_pot p + drain_w p*(1+rsize k)`,
+without requiring each parent opened row to land in a child drain. RALTS is the
+hard case (zero slack): the account must absorb the un-collapsed `a*·a*`-type
+parent rows into the children's *budget* even though they are not in the children's
+*drain sets*. Reuse the PROVEN SEQ/CHAR containment and the GREEN §5 arithmetic;
+the TRUE full-universe inclusion (above) is available as a building block.

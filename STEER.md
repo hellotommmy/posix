@@ -14,45 +14,50 @@ Self-sync protocol (every agent, every turn):
 
 ---
 
-## THE blocker (the only thing that closes the gate)
+## THE goal (unchanged) — and what just changed
 
-State and DRIVE the master theorem by induction, measure = `rsize p` only
-(continuation `k` may grow):
+Master theorem (still believed TRUE — 300k samples, zero violations; measure =
+`rsize p` only, continuation `k` may grow):
 
 ```
 rsize_set( strong_child_drain p k )  <=  drain_pot p + drain_w p * (1 + rsize k)
 ```
 
-It currently has **0 refs** — nobody has written it. This is the SET-level
-opened-set telescoping containment (analog of the proved D-law boundary
-`#(acc(r,k) - ∂k) <= w(r)`), NOT arithmetic.
+**The per-child SET-containment route to it is now CHECKED-FALSE for RALTS and
+RSTAR** (independently verified by the secretary against the real Isabelle
+defs — NOT a model bug). Mechanism: `rsimp7_SEQ_atom` has a guarded rule
+`(RSTAR r, RSTAR s) ⇒ if r=s then RSTAR r` (BasicIdentities.thy:414) that
+collapses `a*·a* → a*` in a child, while `rsimp4_SEQ_atom` keeps it — so the
+parent opened row holds a bigger form that no child drain contains. SEQ/CHAR
+are unaffected (reassociation is sound). A proof EXISTS; it is **not** via
+per-child telescoping. This is a GPT Pro design pass (in preparation).
 
-## Lanes (2026-06-14)
+## Lanes (2026-06-14, post-verification)
 
-- **opus / verdict2-§5 agent** — §5 arithmetic is DONE and GREEN; do NOT mine
-  for more arithmetic (that is wrapper polish). Take the SET-level discharges
-  for **RALTS** and **RSTAR**, then assemble the master induction. RSTAR
-  recurses on the smaller body `p` under the larger continuation
-  `nseq (RSTAR p) k`; the measure still decreases.
-  ⚠ **2026-06-14 opus: the literal RALTS/RSTAR per-child set containments are
-  CHECKED-FALSE** (depth-6, faithful model). RALTS: `nseq` WRAPS the ALTS and the
-  `c*·c*→c*` collapse fires in the child but not the parent's opened row, so the
-  parent keeps a bigger form absent from all children. Corrected RALTS (+parent
-  opened-row boundary) holds as a SET fact but OVER-COUNTS (RALTS has no budget
-  slack); corrected RSTAR still false. RSEQ/RCHAR are fine (rsimp4 reassociates
-  SEQ). Per-child set-containment does NOT transfer to ALTS/STAR — needs a
-  corrected route (design pass). Full diagnosis + minimal CEs in PROGRESS tail +
-  SUPER_LINEAR_PATTERNS. NOT grinding the refuted containments; awaiting a
-  corrected directive here.
+- **opus / ALTS-STAR agent** — DO NOT keep grinding the refuted per-child
+  containments or boundary variants. Both readings are now characterized:
+  the row_dlforms boundary is FALSE for RSTAR; the full-universe boundary
+  (`strong_opened_live(nseq …) − strong_opened_live(S k)`) makes the inclusion
+  HOLD but RALTS has **zero budget slack** (`open_pot`/`apder_zw2` of RALTS are
+  *exactly* Σ over children — no constructor term to pay the boundary). The
+  ALTS/STAR *account* is blocked pending the GPT Pro corrected design.
+  REAL interim work (non-wrapper, non-colliding): bank the TRUE unconditional
+  full-universe inclusions as standalone SET lemmas (no `child_ok` hypothesis) —
+  `strong_opened_live(nseq (RALTS rs) k) ⊆ strong_opened_live(S k) ∪ ⋃_q strong_opened_live(nseq q k)`
+  and the RSTAR analogue — since any corrected design will reuse them; the budget
+  question (how to pay) is GPT Pro's. Sample at depth ≥ 5 first. If you cannot
+  state a TRUE unconditional lemma, HOLD — do not produce conditional wrappers.
 
-- **Codex** — finish the **RSEQ** middle-boundary SET carrier containment
-  `strong_child_drain (RSEQ r1 r2) k  ⊆  strong_child_drain r1 (nseq r2 k) ∪ strong_child_drain r2 k`
-  (the telescoping step), plus the **RCHAR** set containment you already
-  budgeted. RZERO done.
+- **Codex** — UNAFFECTED, keep going: the SEQ/CHAR lane is sound. Finish the
+  **RSEQ** middle-boundary SET containment
+  `strong_child_drain (RSEQ r1 r2) k ⊆ strong_child_drain r1 (nseq r2 k) ∪ strong_child_drain r2 k`
+  (reassociation telescopes cleanly), plus the **RCHAR** containment (green).
+  These are reusable regardless of which ALTS/STAR design wins. RZERO done.
 
 ## What counts as progress (everything else does NOT)
 
 (a) a constructor case of `strong_child_drain_potential` discharged as a SET
-containment; (b) the master induction assembled; (c) §7
-`actual_gate_from_current_drain`. A new arithmetic lemma, or any lemma
-conditional on the unproven `child_ok`, does NOT count.
+containment **for SEQ/CHAR** (ALTS/STAR await the corrected design); (b) a TRUE
+unconditional ALTS/STAR set fact the design will reuse; (c) §7
+`actual_gate_from_current_drain`. A new arithmetic lemma, a refuted boundary
+variant, or any lemma conditional on the unproven `child_ok`, does NOT count.

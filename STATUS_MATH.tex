@@ -110,21 +110,25 @@ opening, and the dedup
 \ \xrightarrow{\ \norm{\,\cdot\,}\ }\ \le\ 2(\rs{r}+3)^3,
 \]
 and discharge the ``clean'' hypothesis for the actual root.
-\textbf{Design point, status 2026-06-14 11:20.} The cubic front does not reach the
-gate by naive assembly (the per-row square-sum is quintic; the non-dedup list is
-exponential --- RONE-pair tower). GPT Pro's opened-boundary design was implemented,
-but TWO ``original-root'' carriers are now machine-checked FALSE by the same
-mechanism --- the strong simplifier \emph{normalizes} rows (singleton-ALT collapse
-$\Sigma[a]\!\to\!a$ under a star, flatten, dedup), so strong rows escape any
-carrier built over the original $r$: both the opened-boundary carrier
-($\mathit{..\_carrier\_false}$, CE $r=(\Sigma[a])^{*}$) and the liveness live-row
-universe ($\mathit{..\_live\_row\_universe\_original\_false}$). \emph{Viable route,
-largely built:} a \textbf{drain carrier over the current NORMALIZED rows}
-($\mathrm{strong\_opened\_live}$) --- the actual gate rows are checked to sit inside
-it; the one open edge is a \textbf{STAR-compatible recursive child invariant} for
-its potential (the coarse child $2(\rs{r}{+}3)^3$ sum leaves no root budget for
-$\Sigma/{}^{*}$). Handed to a refined design pass
-(\texttt{GATE\_BRIDGE\_GAP.md} UPDATE~2). Once the child invariant lands, the boxed
+\textbf{Design point, status 2026-06-14 (post-refutation).} The cubic front does not
+reach the gate by naive assembly (the per-row square-sum is quintic; the non-dedup
+list is exponential --- RONE-pair tower). The viable carrier is the \textbf{drain
+carrier over the current NORMALIZED rows} ($\mathrm{strong\_opened\_live}$): its
+$\S5$ \emph{arithmetic} is DONE/green ($\mathrm{drain\_pot\_le\_cubic\_core}$), and
+the $\S4$ per-child SET-containment is PROVEN for SEQ/CHAR. \emph{But the per-child
+telescoping inclusion is now machine/sample-checked FALSE for RALTS and RSTAR}, with
+the mechanism secretary-verified against the real Isabelle definitions: a guarded
+rule $\mathrm{rsimp7\_SEQ\_atom}(a^{*},a^{*})=a^{*}$ collapses $a^{*}\!\cdot\!a^{*}\!\to\!a^{*}$
+in a child while $\mathrm{rsimp4\_SEQ\_atom}$ keeps it, so the parent opened row holds
+a bigger form no child drain contains (CE\,C-DRAIN-1 $r=(b\,a^{*}{+}1)$, $k=a^{*}$;
+CE\,C-DRAIN-2 $r=((1{+}a)c)^{*}$, $k=1$). Adding the full parent opened row as a
+boundary makes the inclusion HOLD but cannot be PAID: $\mathrm{RALTS}$ has zero
+constructor slack ($\open\_pot$ and $\zw$ of $\mathrm{RALTS}$ are exactly $\Sigma$
+over children). The master bound itself is still believed TRUE ($3{\times}10^{5}$
+samples). \emph{Open design question} (GPT Pro pass, in preparation): a
+\textbf{non-telescoping ALTS/STAR account} that bounds the parent drain directly
+within budget, reusing the proven SEQ/CHAR containment and the green $\S5$
+arithmetic. See \texttt{GATE\_BRIDGE\_GAP.md} UPDATE~3. Once it lands, the boxed
 goal closes (clean fragment).
 
 \item[\todo] \textbf{After that:} lift the result from the clean fragment to

@@ -446,3 +446,13 @@ holds, but the strong-normaliser does NOT distribute `·` over `+` (it wraps
 `RSEQ (ALTS …) k`) and DOES collapse `a*·a* → a*`. Any optimiser that assumes
 left-distribution commutes with star-idempotence will mis-deduplicate exactly
 these shapes. SEQ telescoping is unaffected (reassociation is sound).
+
+Pedigree: sampled refutations (C-DRAIN-1 depth ≤ 4 robust at 6; C-DRAIN-2
+depth 6), Isabelle CE lemmas pending. The MECHANISM is secretary-verified
+against the real source: the guarded collapse is `rsimp7_SEQ_atom`
+`(RSTAR r, RSTAR s) ⇒ if r=s then RSTAR r` (`BasicIdentities.thy:414-421`),
+absent from `rsimp4_SEQ_atom` (`:287-300`). The full-universe boundary makes
+the inclusion HOLD but unpayable — RALTS has zero slack: `apder_zw2 (RALTS rs)`
+and `open_pot (RALTS rs)` are exactly `Σ` over children
+(`AntimirovFactoredTransition.thy:29673, 29702`). (C-DRAIN-1 is written with star
+body `a`; equivalently `rs=[b·c*,1]`, `k=c*` — the star-body letter is immaterial.)

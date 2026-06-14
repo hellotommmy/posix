@@ -54,7 +54,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 11:20 — D law PROVEN; opened-boundary + liveness original-root carriers CHECKED-FALSE; drain carrier over normalized rows is the viable route, needs a STAR-compatible child invariant (→ refined GPT Pro pass); prefix-aware drain carrier largely built, stuck on the STAR-compatible recursive child invariant)
+## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; §4 per-child SET-containment PROVEN for SEQ/CHAR (Codex; RCHAR green) but CHECKED-FALSE for RALTS/RSTAR (guarded `a*·a*→a*` collapse + zero RALTS budget slack, secretary-verified against the real Isabelle defs); master bound `strong_child_drain_potential` still believed TRUE (300k samples) so a proof EXISTS but NOT via per-child ALTS/STAR telescoping; needs a corrected ALTS/STAR design → GPT Pro pass in preparation)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -209,29 +209,37 @@ Vocabulary (fixed, do not rename):
   `front-card * G^2` (`actual_union_generated_square_decomposition`, 6370b8d) —
   but that term is likely **too weak** for cubic (under test); closing it would
   need a sharper opened-boundary / normalized-tail carrier.
-- **Prefix-aware drain carrier — LARGELY BUILT (2026-06-14, 65707ec).** The
-  `strong_opened_live` / drain carrier from the current `afactored1 r s` (not the
-  original root) is checked: per-constructor containments
-  (RCHAR/RSEQ/RALTS/RSTAR/RONE), the clean live-path/term/row facts, the
-  root-potential base cubics (RZERO/RONE/RCHAR `<= 2*(rsize+3)^3`), the
-  conditional RALTS/RSEQ root-cubic wrappers, and the `(n+1)^3-1 <= 2*(n+3)^3`
-  arithmetic. The actual gate rows sit inside the carrier (`actual rows root
-  strong live carrier`).
-- **Current narrow instruction:** close the ONE live edge — a **STAR-compatible
-  recursive CHILD invariant** for the drain root-potential. Generic drain
-  induction is too coarse (coarse child `2*cube` sums leave no root budget for
-  RALTS/STAR); the conditional wrappers are ready and fire the moment a sharper
-  child drain-style fact lands. Sample it at depth ≥ 5 before Isabelle. Do NOT
-  grind the refuted verbatim subset target or the strong opened-boundary carrier;
-  do NOT re-attempt the square-sum or list-cost routes (dead). Claim in the
-  PROGRESS tail before starting. Stay on the
-  legacy/non-backref, rntimes-free zw2 instance. NOT via the falsified
-  unary/potential strengthenings, the old zwidth law, the first J* numeric
-  invariant, or the unrestricted raw zw2 statement; do not fall back to
-  `*_list_cost_alt_nodes` / generated-ledger wrappers (they lose a degree).
+- **Drain carrier (`strong_opened_live`) over the current normalized rows — §5
+  arithmetic DONE/green; §4 per-child containment SPLIT.** §5: `drain_pot_le_cubic_core`
+  (`rntimes_free r ⟹ drain_pot r ≤ rsize r*(rsize r+2)^2`) and
+  `drain_child_budget_root_cubic` are PROVEN (green, no sorry). §4 per-child SET
+  containment: **PROVEN for RCHAR (green) and RSEQ (Codex; reassociation telescopes
+  soundly).**
+- **CHECKED-FALSE (2026-06-14, secretary-verified): the per-child SET-containment
+  route for RALTS and RSTAR.** The telescoping inclusion `parent drain ⊆ ⋃ child
+  drains` is false because `rsimp7_SEQ_atom` has a guarded rule
+  `(RSTAR r, RSTAR s) ⇒ if r=s then RSTAR r` (BasicIdentities.thy:414) collapsing
+  `a*·a*→a*` in a child while `rsimp4_SEQ_atom` keeps it. CEs: **C-DRAIN-1** RALTS
+  `(b·a* + 1)`, `k=a*` (parent keeps `b·a*·a*`, no child does); **C-DRAIN-2** RSTAR
+  `(1+a)·c`, `k=1` (star re-entry form escapes). The corrected full-universe boundary
+  makes the inclusion HOLD but **RALTS has zero budget slack** (`open_pot`/`apder_zw2`
+  of RALTS are exactly Σ over children — nothing to pay the boundary). The master
+  bound itself is still believed TRUE (300k). See `SUPER_LINEAR_PATTERNS.md` C-DRAIN,
+  `GATE_BRIDGE_GAP.md` UPDATE 3.
+- **Current narrow instruction:** the per-child ALTS/STAR route is **dead** — do
+  NOT grind it or its boundary variants. SEQ/CHAR containment (Codex) and §5
+  arithmetic (green) continue. The open design question is a **corrected
+  non-telescoping ALTS/STAR account** (bound the parent drain directly, within
+  budget, without routing each parent row into a child drain) → GPT Pro pass in
+  preparation. Sample at depth ≥ 5 before Isabelle. Do NOT re-attempt: the verbatim
+  subset target, the opened-boundary/liveness original-root carriers, the square-sum
+  or list-cost routes, the falsified unary/potential strengthenings, the old zwidth
+  law, the first J* invariant, raw zw2, or `*_list_cost_alt_nodes`/generated-ledger
+  wrappers (all dead). Stay on the legacy/non-backref, rntimes-free zw2 instance.
   Full dead-ends: `MATHPROBLEM_ROWCOUNT.md` + `GATE_BRIDGE_GAP.md`; full designs:
-  `GPT_PRO_DLAW_VERDICT.md` (D law) and `GPT_PRO_GATE_BRIDGE_VERDICT.md`
-  (opened boundary — strong-carrier bridge now falsified).
+  `GPT_PRO_DLAW_VERDICT.md` (D law), `GPT_PRO_GATE_BRIDGE_VERDICT.md` /
+  `GPT_PRO_GATE_BRIDGE_VERDICT2.md` (opened-boundary / drain — per-child ALTS/STAR
+  now falsified).
 
 ## 3. Checked Facts to Reuse (never re-prove, search before adding)
 
