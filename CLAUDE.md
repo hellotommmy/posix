@@ -1,7 +1,14 @@
 # Project Agent Entry Point
 
+STANDING SELF-SYNC (do this BEFORE every proof step, every turn — not just at
+session start): `git pull --rebase --autostash`, then re-read `STEER.md` (the
+short live orders board). If it conflicts with your current plan, STEER.md wins
+— switch immediately. This is how the Secretary redirects you without
+interrupting; you are responsible for picking up the latest orders yourself.
+
 Read in this order; do not bulk-read anything else.
 
+0. `STEER.md` — the current order for your lane (tiny; re-read every turn).
 1. `MAINLINE.md` — single-source charter: current target theorem, proof
    state, checked facts, dead routes, distilled rules, session checklist.
    It overrides route statements in any older document.
