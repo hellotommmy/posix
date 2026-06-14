@@ -56,8 +56,16 @@ Infra `drain_ctxs`/`ctx_bound`/`ctx_extend`; static #1 `drain_ctxs_count_le_w`, 
   as the MUTUAL P/Q induction (verdict5 §8: `P p ≡ ∀k. strong … ≤ ctx_bound`,
   `Q p ≡ ∀k. weak … ≤ ctx_bound`; #3 uses Q on RALTS children, #4 uses Q on the RSTAR
   body), then **#6** `strong_child_drain_potential` (corollary via #1+#2+#5), then §7
-  `actual_gate_from_current_drain`. Until then: monitor; take over only an un-gated
-  stalled lane per its route above.
+  `actual_gate_from_current_drain`. Until then: MONITOR + watchdog the critical path (A).
+
+### Dependencies — BLOCKED ≠ STALLED (watchdog: do not misfire)
+- WORKER-A (weak carrier + #3) is the CRITICAL PATH and is ACTIVE. Only A's lane is
+  takeover-eligible, and only if A goes silent >30 min (no commit, clean tree, no live
+  worker) mid-lemma.
+- WORKER-B (#4) is **BLOCKED on A committing the weak infra + `weak_child_drain_ctx_bound`**,
+  by design — it is NOT stalled. WATCHDOG-C must NOT take over #4 while it is blocked.
+  Once A commits the weak infra, B becomes active/eligible.
+- #5/#6/§7 are **BLOCKED on #3 AND #4** — not workable yet. Do not attempt early.
 
 ## What counts as progress (everything else does NOT)
 A GREEN lemma from the verdict5 stack (weak charge / weak ctx_bound / #3 / #4 / #5 / #6)
