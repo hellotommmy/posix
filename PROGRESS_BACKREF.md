@@ -9925,3 +9925,36 @@ refined pass is being aimed at exactly this child invariant.
   the smallest constructor-level inequality that survives the sample. If the
   sample finds a genuine counterexample, record it in `SUPER_LINEAR_PATTERNS.md`
   and sharpen the design before touching Isabelle.
+
+## 2026-06-14 Codex: CHECKED - star-payload parent-STAR boundary
+
+- Depth-5 scratch before Isabelle:
+  parent-only flat-payload self-STAR target survived 500,108 cases, including
+  directed nested STAR lists; worst slack was `18` at `ps = []`.
+- Scratch obstacles:
+  the tempting pointwise linear child bound is false on
+  `q = RSTAR(RCHAR a)` inside `ps = [RSTAR(RCHAR a), RONE, RCHAR b]`
+  (`39 > 38`), and a size-charged pointwise/sum variant also failed on mixed
+  nested-STAR payloads. Plain gloss: the STAR child invariant must be
+  parent/sum-aware; pointwise child charges are too tight.
+- New checked diagnostic:
+  `NOT (strong_opened_live_acc_potential (RSTAR (RCHAR a))
+    (RSTAR (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) <=
+    open_pot(RSTAR (RCHAR a)) +
+    (2 + apder_zw2(RSTAR (RCHAR a))) *
+    Suc(rsize(RSTAR (RALTS [RSTAR (RCHAR a), RONE, RCHAR b]))))`.
+- New checked positive parent budget:
+  `strong_opened_live_acc_potential
+    (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])
+    (RSTAR (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) <=
+    1 + open_pot(RALTS [RSTAR (RCHAR a), RONE, RCHAR b]) +
+    2 * Suc(apder_zw2(RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) *
+    (rsize(RSTAR (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) + 1)^2`.
+  Plain gloss: adding one `RSTAR(RCHAR)` payload still satisfies the
+  self-suffix quadratic parent budget, but only at the combined parent level.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:31). No `sorry`.
+- NEXT smallest brick: generalize the positive parent budget from the
+  `[RSTAR(RCHAR), RONE, RCHAR]` witness to a one-STAR-payload family, while
+  avoiding the checked-false pointwise child charge.

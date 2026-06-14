@@ -34009,6 +34009,34 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_opened_live_acc_potential_RSTAR_RCHAR_pointwise_linear_star_suffix_false:
+  fixes a b :: char
+  defines "ps \<equiv> [RSTAR (RCHAR a), RONE, RCHAR b]"
+  shows "\<not>
+    strong_opened_live_acc_potential (RSTAR (RCHAR a))
+      (RSTAR (RALTS ps)) \<le>
+    open_pot (RSTAR (RCHAR a)) +
+      (2 + apder_zw2 (RSTAR (RCHAR a))) *
+        Suc (rsize (RSTAR (RALTS ps)))"
+  by (simp add: ps_def rsize_set_def row_dlformss_set_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def
+      power2_eq_square)
+
+lemma strong_opened_live_acc_potential_RALTS_RSTAR_RCHAR_RONE_RCHAR_self_star_quad:
+  "strong_opened_live_acc_potential
+      (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])
+      (RSTAR (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) \<le>
+    1 + open_pot (RALTS [RSTAR (RCHAR a), RONE, RCHAR b]) +
+      2 * Suc (apder_zw2
+        (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) *
+        (rsize (RSTAR
+          (RALTS [RSTAR (RCHAR a), RONE, RCHAR b])) + 1) ^ 2"
+  by (simp add: rsize_set_def row_dlformss_set_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def
+      power2_eq_square)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
