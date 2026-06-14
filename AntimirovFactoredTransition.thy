@@ -5030,6 +5030,19 @@ lemma rsize_set_row_dlforms_RSEQ_RALTS_self_star_flat_payload_le:
   by (rule rsize_set_row_dlforms_RSEQ_RALTS_flat_payload_flat_tail_le)
     (use payloads in simp_all)
 
+lemma rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_RONE_RCHAR_self_star_le:
+  "rsize_set
+      (row_dlforms
+        (rsimpStrong_raw
+          (RSEQ (RALTS [RONE, RCHAR c])
+            (RSTAR (RALTS [RONE, RCHAR c]))))) \<le>
+    rsizes [RONE, RCHAR c] +
+      length [RONE, RCHAR c] *
+        Suc (rsize (RSTAR (RALTS [RONE, RCHAR c])))"
+  by (simp add: rsize_set_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def)
+
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 

@@ -9481,3 +9481,20 @@ STATUS_MATH and say so at the top of PROGRESS.
   `row_dlforms(rsimpStrong_raw(RSEQ (RALTS ps) (RSTAR (RALTS ps))))` against this
   self-STAR payload opener, with explicit hypotheses rather than global
   monotonicity.
+
+## 2026-06-14 Codex: CHECKED - strong RONE-char self-STAR opener bound
+
+- New checked concrete strong-root inequality:
+  `rsize_set(row_dlforms(rsimpStrong_raw(RSEQ (RALTS [RONE, RCHAR c])
+   (RSTAR (RALTS [RONE, RCHAR c]))))) <=
+   rsizes [RONE, RCHAR c] +
+   length [RONE, RCHAR c] * Suc(rsize(RSTAR (RALTS [RONE, RCHAR c])))`.
+  Plain gloss: the coefficient-1 warning shape `[1|a]` is still controlled
+  after strong normalization when opened over its own STAR suffix. This is a
+  small local preservation brick, not a global cost-monotonicity claim.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: generalize this strong-root comparison from the
+  `[RONE, RCHAR c]` witness to flat RALTS payload lists, keeping the hypotheses
+  explicit.
