@@ -10531,3 +10531,23 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   context-holding primary.
 - CLAIMED + landing the structural RHS-rewrite #3 needs (verdict §2): the additive
   identity `ctx_bound (drain_ctxs (RALTS rs)) k = Sum_q ctx_bound (drain_ctxs q) k`.
+  GREEN, pushed (`ctx_bound_drain_ctxs_RALTS`, `ctx_bound_append`).
+
+## 2026-06-14 Claude backup: #3 RALTS cost-cover reduced; subset pattern ruled out (Codex down ~108m)
+
+- Codex still stalled ~108m (no worker, clean tree). Its lane is committed; #5/#6
+  block on opus #3/#4 -> #3/#4 is the sole bottleneck. Pinning it for whoever resumes:
+- DEAD END (do not retry): #3 RALTS canNOT use the RCHAR/RSEQ/RZERO/RONE pattern
+  (`strong_child_drain X k <= row-set` via a subset, then `rsize_set_mono`). RALTS has
+  NO clean child subset — that is exactly the §4 CE `b.c*.c*`. Verified again against
+  `strong_child_drain_RCHAR_ctx_bound`.
+- REDUCTION for #3 (the path that should work): use
+  `rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (line ~34844):
+    `rsize_set (strong_opened_live_row_universe_acc (RALTS rs) k)
+       <= 1 + rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)))   [WRAPPED ROOT]
+          + sum_list (map (\<lambda>q. rsize_set (strong_opened_live_row_universe_acc q k)) rs)`. [children]
+  The one NEW lemma #3 needs: charge the WRAPPED-ROOT rows
+  `row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))` to the child ctx ledger
+  (this is where `b.c*.c*` is paid by a child CONTEXT, not a child set), then bridge
+  acc<->non-acc for the nseq-wrapped form and apply the master IH to the children.
+  Multi-lemma; needs the context-holding primary or a focused session, not a backup tick.
