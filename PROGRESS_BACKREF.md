@@ -10239,3 +10239,35 @@ REDIRECT, both agents:
   non-idempotence pressure (`nseq r2 k` vs `S(S(nseq r2 k))`). Next RSEQ
   carrier work should use the normalized theorem shape from verdict2 rather
   than that unconditional identity.
+
+## 2026-06-14 New agent (verdict2 §5): CHECKED — both cubic-arithmetic lemmas landed
+
+- The two verdict2 §5 arithmetic deliverables are PROVEN (build GREEN, full
+  Posix 0:01:21, no `sorry`). They feed §6/§7, not the §4 child invariant.
+- `drain_child_budget_root_cubic` (committed 0e9c2f1):
+  `rntimes_free r ==> drain_child_budget r RONE <= (rsize r + 3)^3`.
+  Plain: the root child budget at the base continuation is one cube. Proof:
+  `drain_child_budget r RONE = open_pot r + 2*apder_zw2 r` (rsize RONE = 1),
+  bounded by the existing `open_pot_cubic_clean`. Discharges the `budget`
+  premise of `child_ok_RONE_cubicD`.
+- `drain_pot_le_cubic_core` (final 277b062, via `drain_pot_le_cubic_core_prod`):
+  `rntimes_free r ==> drain_pot r <= rsize r * (rsize r + 2)^2`.
+  Plain: the drain potential (= open_pot) is bounded by the cubic core. Fresh
+  induction in EXPLICIT-PRODUCT form with abstract semiring identities
+  `nat_drain_{step,seq,star,alts}_ident`, the RALTS superadditivity helper
+  `sum_list_drain_pot_core_le`, and `mult_le_mono` for the RALTS/RSTAR
+  `rsize(ctor)` boundary.
+- CAUTION for the corpus: the `^2`-form identities via
+  `simp add: power2_eq_square algebra_simps` left unprovable residuals (red at
+  RSEQ/RALTS/RSTAR in ce3e043..277b062) because `rsize(ctor)` unfolds to
+  `Suc(..)` and triggers asymmetric `mult_Suc` distribution vs numeral `+n`.
+  FIX PATTERN: state nat polynomial identities over abstract vars with EXPLICIT
+  products + `algebra_simps`; bridge the `rsize(ctor) = ..+1` boundary with
+  `mult_le_mono`, never `simp` on a product equality.
+- Depth>=5 sample (`scratch_drain_cubic_arith_check.py`): 129,439 exhaustive
+  core trees (max depth 9) + 200,000 random depth-5..9, zero CE for both
+  inequalities; slacks match verdict (RSEQ 3a^2b+3a^2+3ab^2+13ab+9a+3b^2+11b+9;
+  RSTAR (a+2)(2a+3); root 5n^2+21n+27).
+- §4 SPLIT (admin directive): Codex owns RZERO (done) + RCHAR + RSEQ carrier
+  work. The recursive `strong_child_drain_potential` RONE/RALTS/RSTAR discharges
+  + assembly remain THE blocker.
