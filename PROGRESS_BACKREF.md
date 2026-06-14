@@ -10942,3 +10942,18 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   slot_charges(y,x) = rsize x<=rsize y AND (x=y OR x in row_dlforms(S y)); B1 over S-closed rows on entry+body
   slots. All verdict6 failures were no-edge (0 Hall), so direct-membership edges should saturate. Validating now.
 - A + all agents HOLD. If two-route validates -> executor runs verdict6 §1-7 with slot_charges; else Pro micro-ask.
+
+## 2026-06-15 Secretary: two-route slot_origin ALSO refuted (4th route) — injective per-slot charge is the wrong shape; Pro V2 pending
+
+- Two-route slot_charges (x=y OR x in row_dlforms(S y)) cuts failures 99->24/52851 and fixes EVERY
+  verdict6 refuter, but STILL fails: minimal CE p=a+b*.a*=RALTS[a, RSEQ(b*,a*)], k=a*. Rows
+  {a.a*, b*.a*, b*.a*.a*}: the short collapse-only row b*.a* and the long x=y row b*.a*.a* can ONLY
+  charge to the same slot (slot1) -> Hall collision, no injection. Also no-edge residuals (a*.a*.c).
+  B1-SEQ + global RSEQ/RALTS glue still fail; L-SEQ/L-STAR + B1-STAR(all-slots) hold.
+- SHARP DIAGNOSIS: the NUMERIC bound is TRUE (0-viol many times) but NO injective per-slot charge exists
+  — total budget covers the rows yet some slots overloaded, others underused. The proof must spend the
+  TOTAL budget, not a row->slot injection. (4 routes now dead: master_cover, scover, collapses_to, two-route
+  — all on the a*.a* collapse-granularity gap.)
+- HANDOFF: GPT Pro V2 ask ready (gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt) — non-injective/
+  aggregate/numeric-induction proof. A + all agents HOLD; may land the validated-safe bricks (absorbed-B1,
+  guard-decomps, L-SEQ/L-STAR lifts, ctx ledger). Memory: verdict6-tworoute-refuted.md.

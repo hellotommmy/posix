@@ -44,17 +44,25 @@ set-containment.** A (and all agents): HOLD the assembly — do NOT invent a thi
 land the validated-safe bricks (the ABSORBED-B1 bridge; the guard-decompositions) — those are reusable
 under any design.
 
-### ⏳ verdict6 `slot_origin_cover` — AS-WRITTEN REFUTED; secretary TWO-ROUTE fix in validation (2026-06-15)
-verdict6 (`GPT_PRO_GATE_BRIDGE_VERDICT5.md`): replace set-containment with a `slot_origin_cover`
-(injective strong-row → paid-slot charge, weak row = cost witness via `collapses_to`). Validated
-depth≥5: the strict-`collapses_to` make-or-break FAILS (97/40849) + B1-SEQ/B1-STAR fail as written.
-ROOT: `strong_child_drain` RETAINS some UNCOLLAPSED long rows (RALTS regime, CE `p=(a+a·a*), k=a*`,
-row `a·a*·a*` rsize 7) that no S-collapsing witness can reach — `collapses_to` is inverted there.
-SALVAGE (secretary, from the data — those rows ARE weak slot rows, `x=y`): a TWO-ROUTE witness
-`slot_charges(y,x) ⟺ rsize x ≤ rsize y ∧ (x=y ∨ x∈row_dlforms(S y))` + B1 over the S-closed rows on
-ALL slots (entry+body). All prior failures were no-edge (0 Hall failures), so this should saturate.
-Being machine-validated NOW. **STILL HOLD — do NOT execute verdict6 as written.** If the two-route fix
-validates, the executor runs the §1-7 stack with `slot_charges` (not `collapses_to`); else a Pro micro-ask.
+### 🛑 GATE ASSEMBLY — 4 routes REFUTED; the injective per-slot charge is the wrong shape. Pro V2 pending. A: HOLD.
+FOUR proof designs for `rsize_set(strong_child_drain p k) ≤ ctx_bound` have now been depth≥5-refuted
+(all die on the `a*·a*→a*` collapse): (1) master_cover set-inclusion (doesn't compose); (2) scover
+recursive cover (COVER false); (3) verdict6 `slot_origin_cover` via `collapses_to` (97/40849 — strong
+drain RETAINS uncollapsed long rows); (4) secretary two-route `slot_charges` (24/52851 — better, fixes
+every route-3 refuter, but a HALL collision remains: CE `p=a+b*·a*, k=a*`, rows `b*·a*` and `b*·a*·a*`
+can only charge to the SAME slot).
+⭐ THE DIAGNOSIS: the NUMERIC bound is TRUE (validated 0-viol many times), but **no INJECTIVE per-slot
+charge can exist** — the total ledger budget covers the rows, yet some slots are overloaded (a collapsed
+row + its uncollapsed predecessor both originate there) while others are underused. The proof must spend
+the TOTAL budget, NOT a row→slot injection. strong_child_drain mixes collapsed + uncollapsed rows; S is
+not pointwise cost-monotone; no uniform row-identity relation works.
+ACTION: GPT Pro design V2 (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt`) — a NON-injective /
+aggregate / numeric-induction proof of the true bound (candidates: many-to-one slot accounting;
+rsize_set(strong)≤rsize_set(weak) at the set level; pure numeric induction avoiding the RALTS
+subadditive over-count; or tightening the opening def). **A + all agents: HOLD the §4 assembly — do NOT
+invent a 5th injective/set-cover. You MAY land the validated-safe bricks (absorbed-B1, guard-decomps,
+the L-SEQ/L-STAR lift lemmas, the ctx ledger) — all reusable under any final design.** Await Pro V2 +
+secretary validation. (Refutations: `posix-scover-cover-refuted.md`, `verdict6-tworoute-refuted.md`.)
 
 ---
 
