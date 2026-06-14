@@ -5010,6 +5010,26 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsize_set_row_dlforms_RSEQ_RALTS_flat_payload_flat_tail_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+    and tail: "rnonseq k" "nonalt k"
+  shows "rsize_set (row_dlforms (RSEQ (RALTS ps) k)) \<le>
+    rsizes ps + length ps * Suc (rsize k)"
+proof (rule rsize_set_row_dlforms_RSEQ_RALTS_flat_payload_le)
+  show "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+    by (rule payloads)
+  show "row_dlforms_list_size k \<le> rsize k"
+    by (rule row_dlforms_list_size_nonseq_nonalt_le[OF tail])
+qed
+
+lemma rsize_set_row_dlforms_RSEQ_RALTS_self_star_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "rsize_set
+      (row_dlforms (RSEQ (RALTS ps) (RSTAR (RALTS ps)))) \<le>
+    rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))"
+  by (rule rsize_set_row_dlforms_RSEQ_RALTS_flat_payload_flat_tail_le)
+    (use payloads in simp_all)
+
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 

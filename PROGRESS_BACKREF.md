@@ -9459,3 +9459,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: connect this non-strong RALTS opener bound to the
   strong-normalized RALTS root row, without asserting the known-false general
   rowwise cost monotonicity.
+
+## 2026-06-14 Codex: CHECKED - self-STAR RALTS payload opener bound
+
+- New checked flat-tail corollary:
+  if every payload in `ps` is `rnonseq` and `nonalt`, and the tail `k` is also
+  `rnonseq`/`nonalt`, then
+  `rsize_set(row_dlforms(RSEQ (RALTS ps) k)) <=
+   rsizes ps + length ps * Suc(rsize k)`.
+- New checked self-STAR specialization:
+  if every payload in `ps` is `rnonseq` and `nonalt`, then
+  `rsize_set(row_dlforms(RSEQ (RALTS ps) (RSTAR (RALTS ps)))) <=
+   rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))`.
+  Plain gloss: the non-strong RALTS root over its own STAR tail has the desired
+  product-sized opened SET ledger. The remaining bridge is strong-normalized
+  preservation for this root shape, not the payload arithmetic.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: prove a strong-root subset/size bound for
+  `row_dlforms(rsimpStrong_raw(RSEQ (RALTS ps) (RSTAR (RALTS ps))))` against this
+  self-STAR payload opener, with explicit hypotheses rather than global
+  monotonicity.
