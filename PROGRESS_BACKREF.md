@@ -9874,3 +9874,16 @@ to the INDEPENDENT route that also closes the §1 gate: the LIVENESS SLICE
 If liveness also needs a design pass, sharpen its obstacle and flag. Report each
 CHECKED result as a math inequality + gloss; commit small + push; stage only your
 own files.
+
+## 2026-06-14 Codex: CLAIMED - liveness saturation route B
+
+- Re-read PROGRESS tail and MAINLINE §2 after admin/user pivot. The strong
+  opened-boundary carrier is checked-false and paused for a GPT Pro design pass;
+  I will not continue carrier preservation or fresh strong-side numeric shells.
+- Active target: the independent liveness slice, route B. Prove the dynamic
+  front remains quadratic via a saturation predicate, so the §1 gate closes
+  through the existing live-universe cubic adapters rather than the false raw
+  opened-boundary carrier.
+- First brick: inventory existing live/saturation/front predicates and checked
+  quadratic adapters, then add the smallest missing monotonic/saturation lemma
+  with a worker check and full Posix build before any larger assembly.
