@@ -32527,8 +32527,12 @@ proof -
     proof -
       have le: "rsizes rs \<le> rsize (RALTS rs)" by (simp add: sz)
       then have le2: "rsizes rs + 2 \<le> rsize (RALTS rs) + 2" by simp
+      have prod_le:
+          "(rsizes rs + 2) * (rsizes rs + 2) \<le>
+          (rsize (RALTS rs) + 2) * (rsize (RALTS rs) + 2)"
+        by (rule mult_mono[OF le2 le2]) simp_all
       show ?thesis
-        by (rule mult_le_mono[OF le mult_le_mono[OF le2 le2]])
+        by (rule mult_mono[OF le prod_le]) simp_all
     qed
     finally show ?case .
   next
@@ -32539,24 +32543,28 @@ proof -
       using RSTAR.hyps[OF fr] .
     have w: "apder_zw2 r \<le> rsize r"
       by (rule apder_zw2_rntimes_free_le_rsize[OF fr])
-    have suc: "Suc (apder_zw2 r) * (rsize r + 3)
-        \<le> (rsize r + 1) * (rsize r + 3)"
-    proof -
-      have "Suc (apder_zw2 r) \<le> rsize r + 1" using w by simp
-      then show ?thesis by (rule mult_right_mono) simp
-    qed
     have sz: "rsize (RSTAR r) = rsize r + 1"
       by simp
-    have "open_pot (RSTAR r) = open_pot r + Suc (apder_zw2 r) * (rsize r + 3)"
+    have wb: "Suc (apder_zw2 r) \<le> rsize r + 1" using w by simp
+    have sb: "rsize (RSTAR r) + 2 \<le> rsize r + 3" by (simp add: sz)
+    have cross: "Suc (apder_zw2 r) * (rsize (RSTAR r) + 2)
+        \<le> (rsize r + 1) * (rsize r + 3)"
+      by (rule mult_le_mono[OF wb sb])
+    have "open_pot (RSTAR r) =
+        open_pot r + Suc (apder_zw2 r) * (rsize (RSTAR r) + 2)"
       by simp
     also have "... \<le>
         rsize r * ((rsize r + 2) * (rsize r + 2)) + (rsize r + 1) * (rsize r + 3)"
-      using ih suc by linarith
+      using ih cross by linarith
     also have "... \<le> (rsize r + 1) * ((rsize r + 3) * (rsize r + 3))"
       using nat_drain_star_ident[of "rsize r"] by linarith
-    also have "... =
+    also have "... \<le>
         rsize (RSTAR r) * ((rsize (RSTAR r) + 2) * (rsize (RSTAR r) + 2))"
-      by (simp add: sz algebra_simps)
+    proof -
+      have a: "rsize r + 1 \<le> rsize (RSTAR r)" by (simp add: sz)
+      have b: "rsize r + 3 \<le> rsize (RSTAR r) + 2" by (simp add: sz)
+      show ?thesis by (rule mult_le_mono[OF a mult_le_mono[OF b b]])
+    qed
     finally show ?case .
   next
     case (RNTIMES r n)
