@@ -32658,6 +32658,22 @@ proof -
     using open_pot_cubic_clean[OF free] eq by linarith
 qed
 
+(* Static ledger bound (#1 + #2): the context bound is dominated by the
+   per-child drain budget.  Used by the strong_child_drain_potential corollary. *)
+lemma ctx_bound_le_drain_child_budget:
+  "ctx_bound (drain_ctxs p) k \<le> drain_child_budget p k"
+proof -
+  have "ctx_bound (drain_ctxs p) k =
+      ctx_base (drain_ctxs p) + ctx_count (drain_ctxs p) * (1 + rsize k)"
+    by (simp add: ctx_bound_def)
+  also have "... \<le> drain_pot p + drain_w p * (1 + rsize k)"
+    using drain_ctxs_base_le_pot[of p] drain_ctxs_count_le_w[of p]
+    by (intro add_mono mult_right_mono) auto
+  also have "... = drain_child_budget p k"
+    by (simp add: drain_child_budget_def)
+  finally show ?thesis .
+qed
+
 (* verdict2 section 5: the standalone cubic core for the drain potential.
    Proved with explicit products (robust nat arithmetic, no power/Suc interaction);
    the (rsize+2)^2 corollary drain_pot_le_cubic_core is derived at the end.
