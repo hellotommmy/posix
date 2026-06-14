@@ -35446,6 +35446,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_child_drain_RZERO_ctx_bound:
+  "rsize_set (strong_child_drain RZERO k) \<le>
+    ctx_bound (drain_ctxs RZERO) k"
+  by (auto simp add: strong_child_drain_def nseq_def
+      strong_opened_live_row_universe_def partial_derivative_live_row_universe_def
+      rpath_continuations_def row_dlformss_set_def ctx_bound_def
+      rsimp7_SEQ_atom_RZERO_left rsize_set_def)
+
+lemma strong_child_drain_RONE_ctx_bound:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "rsize_set (strong_child_drain RONE k) \<le>
+    ctx_bound (drain_ctxs RONE) k"
+  using norm_k
+  by (auto simp add: strong_child_drain_def nseq_def ctx_bound_def
+      rsize_set_def)
+
 lemma strong_child_drain_RCHAR_ctx_bound:
   assumes norm_k: "rsimpStrong_raw k = k"
   shows "rsize_set (strong_child_drain (RCHAR c) k) \<le>

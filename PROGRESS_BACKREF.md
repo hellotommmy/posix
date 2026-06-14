@@ -10496,3 +10496,25 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - Build GREEN after worker check:
   `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
   (full Posix elapsed 0:01:33). No `sorry`.
+
+## 2026-06-14 Codex: CLAIMED — RZERO/RONE ctx base cases
+
+- Taking the cheap verdict4 master base cases:
+  `rsize_set(strong_child_drain RZERO k) <= ctx_bound(drain_ctxs RZERO) k`
+  and the normalized RONE analogue.
+- These should give the eventual `strong_child_drain_ctx_bound` induction its
+  empty/pass-through leaves without touching the hard ALTS/STAR covers.
+
+## 2026-06-14 Codex: CHECKED — RZERO/RONE ctx base cases
+
+- CHECKED:
+  `rsize_set(strong_child_drain RZERO k)
+   <= ctx_bound(drain_ctxs RZERO) k`.
+  Plain gloss: RZERO opens no new drain cost.
+- CHECKED:
+  `rsimpStrong_raw k = k ==> rsize_set(strong_child_drain RONE k)
+   <= ctx_bound(drain_ctxs RONE) k`.
+  Plain gloss: normalized RONE is pure pass-through.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:28). No `sorry`.
