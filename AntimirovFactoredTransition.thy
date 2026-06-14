@@ -35042,6 +35042,133 @@ lemma row_dlforms_rsimpStrong_raw_subset_strong_opened_liveI:
     [OF assms]
   by (simp add: strong_opened_live_row_universe_eq_closure)
 
+lemma strong_opened_live_row_universe_nseq_RCHAR_subset:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "strong_opened_live_row_universe (nseq (RCHAR c) k) \<subseteq>
+    row_dlforms (nseq (RCHAR c) k) \<union>
+    strong_opened_live_row_universe k"
+using norm_k
+proof (cases k)
+  case RZERO
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case RONE
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RCHAR d)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RSEQ k1 k2)
+  have k_tail: "rtail_nf (RSEQ k1 k2)"
+    using RSEQ norm_k rtail_nf_rsimpStrong_raw[of k] by simp
+  have k_stable: "rsimp4_SEQ_atom k RONE = k"
+  proof -
+    have "rsimp4_SEQ_atom (RSEQ k1 k2) RONE = RSEQ k1 k2"
+      by (rule rtail_nf_RONE_stable[OF k_tail])
+    then show ?thesis
+      using RSEQ by simp
+  qed
+  have k2_tail: "rtail_nf k2"
+    using k_tail by simp
+  have k2_stable: "rsimp4_SEQ_atom k2 RONE = k2"
+    by (rule rtail_nf_RONE_stable[OF k2_tail])
+  have atom_id: "rsimp4_SEQ_atom k1 k2 = RSEQ k1 k2"
+    using k_tail by (cases k1; cases k2) simp_all
+  have seq_norm:
+      "rsimpStrong_raw
+        (rsimp4_SEQ_atom k1 (rsimp4_SEQ_atom k2 RONE)) =
+      RSEQ k1 k2"
+    using RSEQ norm_k k2_stable atom_id by simp
+  have root_norm:
+      "rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k) =
+      RSEQ (RCHAR c) k"
+    using RSEQ norm_k by simp
+  have root_atom: "rsimp4_SEQ_atom (RCHAR c) k = RSEQ (RCHAR c) k"
+    using RSEQ by simp
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def
+        rsimp4_SEQ_atom_assoc seq_norm k_stable k2_stable root_norm
+        root_atom)
+next
+  case (RALTS rs)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RSTAR r)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    using norm_k
+    by (auto simp add: nseq_def strong_opened_live_row_universe_def
+        partial_derivative_live_row_universe_def
+        rpath_continuations_def row_dlformss_set_def)
+qed
+
+lemma strong_child_drain_RCHAR_subset_row:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "strong_child_drain (RCHAR c) k \<subseteq>
+    row_dlforms (nseq (RCHAR c) k)"
+  using strong_opened_live_row_universe_nseq_RCHAR_subset[OF norm_k, of c]
+  by (auto simp add: strong_child_drain_def norm_k)
+
+lemma strong_child_drain_RCHAR_potential:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "rsize_set (strong_child_drain (RCHAR c) k) \<le>
+    drain_child_budget (RCHAR c) k"
+proof -
+  have "rsize_set (strong_child_drain (RCHAR c) k) \<le>
+      rsize_set (row_dlforms (nseq (RCHAR c) k))"
+    by (rule rsize_set_mono)
+      (use strong_child_drain_RCHAR_subset_row[OF norm_k, of c] in auto)
+  also have "... \<le> drain_child_budget (RCHAR c) k"
+    by (rule rsize_set_row_dlforms_nseq_RCHAR_le_budget)
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"

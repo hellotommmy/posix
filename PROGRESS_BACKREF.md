@@ -10361,3 +10361,28 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   genuine design dead-end for RALTS+RSTAR → needs a corrected route (GPT Pro pass).
   I am NOT grinding the refuted containments. CEs added to SUPER_LINEAR_PATTERNS.md.
   Holding for a corrected STEER directive on the RALTS/RSTAR proof structure.
+
+## 2026-06-14 Codex: CLAIMED — §4 RCHAR + RSEQ SET containments remain in lane
+
+- After the RALTS/RSTAR CE update, Codex is still taking only the verified-safe
+  constructor lane: RCHAR set containment/potential and RSEQ telescoping
+  containment. No §6 wrappers and no refuted ALTS/STAR work.
+
+## 2026-06-14 Codex: CHECKED — RCHAR normalized child-drain constructor
+
+- New checked RCHAR set containment, normalized continuation form:
+  `rsimpStrong_raw k = k ==> strong_child_drain (RCHAR c) k <=
+   row_dlforms(nseq (RCHAR c) k)`.
+  Plain gloss: a character opens only its new row.
+- New checked RCHAR budget consequence:
+  `rsimpStrong_raw k = k ==> rsize_set(strong_child_drain (RCHAR c) k) <=
+   drain_child_budget (RCHAR c) k`.
+  Plain gloss: RCHAR pays with one unit slack.
+- Build GREEN:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:50). No `sorry`.
+- NOTE: the unconditional RCHAR containment runs into the known
+  double-normalization owner issue (`strong_opened_live(S(S k))` vs
+  `strong_opened_live(S k)`). The checked theorem matches verdict2's normalized
+  invariant shape.
+- NEXT smallest brick: RSEQ normalized telescoping SET containment.
