@@ -33351,6 +33351,47 @@ lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_self_star_quad:
       rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       rsimpStrong_prune_pair_raw_def)
 
+lemma strong_opened_live_acc_potential_RALTS_self_star_flat_payload_root_ledger:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) \<le>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps)"
+proof -
+  have root:
+      "rsize_set
+        (row_dlforms
+          (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RALTS ps) (RSTAR (RALTS ps))))) \<le>
+      rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))"
+    using
+      rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_self_star_flat_payload_strong_le
+        [OF payloads]
+    by simp
+  have "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) =
+    1 +
+    rsize_set
+      (row_dlforms
+        (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RALTS ps) (RSTAR (RALTS ps))))) +
+    sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps)"
+    by simp
+  also have "... \<le>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps)"
+    using root by simp
+  finally show ?thesis .
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

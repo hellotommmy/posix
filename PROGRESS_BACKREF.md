@@ -9555,3 +9555,21 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: plug this general flat-payload bound into the
   self-suffix quadratic potential for RALTS, replacing the old concrete
   `[RONE, RCHAR c]` warning helper with a list-parametric case.
+
+## 2026-06-14 Codex: CHECKED - RALTS self-STAR root ledger in potential
+
+- New checked potential stepping inequality:
+  if every payload in `ps` is `rnonseq` and `nonalt`, then
+  `strong_opened_live_acc_potential (RALTS ps) (RSTAR (RALTS ps)) <=
+   1 + (rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))) +
+   sum_list(map (%q. strong_opened_live_acc_potential q
+   (RSTAR (RALTS ps))) ps)`.
+  Plain gloss: the hard strong-normalized RALTS root charge is now replaced by
+  the checked product ledger inside the potential recurrence. The remaining
+  work is the child-sum drain at the parent STAR suffix.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:17). No `sorry`.
+- NEXT smallest brick: prove a child-sum bound for flat payloads at the parent
+  STAR suffix, starting with the simple `RONE`/`RCHAR` payload family before
+  attempting arbitrary flat payloads.
