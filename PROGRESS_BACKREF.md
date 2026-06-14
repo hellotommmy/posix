@@ -9592,3 +9592,23 @@ STATUS_MATH and say so at the top of PROGRESS.
   child-sum shell into a list-parametric RALTS self-STAR bound for simple
   `RONE`/`RCHAR` payload lists, then inspect whether the resulting polynomial
   is strong enough for the quadratic target or needs a sharper child estimate.
+
+## 2026-06-14 Codex: CHECKED - simple RALTS parent-STAR combined shell
+
+- New checked combined inequality:
+  if every payload in `ps` is either `RONE` or some `RCHAR c`, then
+  `strong_opened_live_acc_potential (RALTS ps) (RSTAR (RALTS ps)) <=
+   1 + (rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))) +
+   ((rsizes ps + rsize(RSTAR (RALTS ps)))^3 -
+    rsize(RSTAR (RALTS ps))^3)`.
+  Plain gloss: the list-parametric simple-payload RALTS case now combines the
+  checked strong root ledger with the checked parent-STAR child drain. This is
+  a safe diagnostic shell; it is intentionally not claimed as the final
+  quadratic potential bound yet.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: compare this combined shell against the desired
+  quadratic target for small/simple families. If it is too weak, record the
+  exact algebraic gap and sharpen the child drain instead of forcing the
+  polynomial.

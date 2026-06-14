@@ -33445,6 +33445,45 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_parent_star_shell:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) \<le>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    ((rsizes ps + rsize (RSTAR (RALTS ps))) ^ 3 -
+      rsize (RSTAR (RALTS ps)) ^ 3)"
+proof -
+  let ?child =
+    "sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps)"
+  let ?shell =
+    "(rsizes ps + rsize (RSTAR (RALTS ps))) ^ 3 -
+      rsize (RSTAR (RALTS ps)) ^ 3"
+  have payloads: "\<forall>q \<in> set ps. rnonseq q \<and> nonalt q"
+    using simple by auto
+  have child: "?child \<le> ?shell"
+    by (rule
+        strong_opened_live_acc_potential_RONE_RCHAR_child_sum_parent_star_shell
+        [OF simple])
+  have "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) \<le>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    ?child"
+    by (rule
+        strong_opened_live_acc_potential_RALTS_self_star_flat_payload_root_ledger
+        [OF payloads])
+  also have "... \<le>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    ?shell"
+    by (rule add_left_mono[OF child])
+  finally show ?thesis .
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
