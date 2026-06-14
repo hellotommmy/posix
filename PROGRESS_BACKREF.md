@@ -10842,3 +10842,57 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   the child IH `SOL_acc q k ⊆ weak_slots q k ∪ SOL k` + `weak_slots_RALTS`
   (weak_slots (RALTS rs) k = UN_q weak_slots q k) + `RONE ∈ SOL k`. Uses the GREEN
   `strong_opened_live_row_universe_acc_RALTS_subset` (needs ∀q∈set rs. apder_nf q).
+
+## 2026-06-15 WORKER-A (Claude/opus): ASSEMBLY DIAGNOSIS — committed cases don't compose; the fix is a recursive cover (CORRECTS my earlier "S-fixpoint resolves the fold" note)
+
+- CORRECTION: my note two entries up said the S-fixpoint guard makes the per-case
+  RHS fold into the uniform `weak_slots q k`. That is WRONG. The fold
+  `weak_slots r1 (rsimp4_SEQ_atom r2 k) ⊆ weak_slots (RSEQ r1 r2) k ∪ SOL k` is FALSE
+  even for S-fixpoints: take r1 = RALTS [RSTAR a, RCHAR b] (S-fixed, multi-child so
+  rsimp_ALTs doesn't unwrap it), r2 = RSTAR a. RSEQ r1 r2 IS an S-fixpoint and apder_nf,
+  yet weak_slots r1 (rsimp4 r2 k) holds the UNcollapsed a*·a*·k (via r1's RSTAR a slot
+  opened at rsimp4(RSTAR a) k), which is absent from weak_slots(RSEQ r1 r2) k (raw_plug
+  collapses a*·a*→a*) and from SOL k. So the committed `master_cover_RSEQ/RSTAR/RALTS`
+  (flat `weak_slots` IHs + decomposed shifted-continuation conclusions) do NOT compose
+  into a uniform-`weak_slots` induction, and a naive acc-subset SIZE induction BLOWS UP
+  the boundary (gets +rsize_set(SOL(rsimp4 r2 k)) per RSEQ level).
+- THE FIX (validated by hand) — a RECURSIVE cover `scover` with boundary = SOL(continuation):
+  define
+    scover RZERO/RONE cont   = {}
+    scover (RCHAR c) cont    = weak_slots (RCHAR c) cont
+    scover (RSEQ r1 r2) cont = scover r1 (rsimp4_SEQ_atom r2 cont) ∪ scover r2 cont
+    scover (RSTAR p) cont    = row_dlforms (nseq (RSTAR p) cont) ∪ scover p (nseq (RSTAR p) cont)
+    scover (RALTS rs) cont   = (⋃q∈set rs. scover q cont)         (* wrapped root FOLDED into children *)
+  Then prove, by `induct q arbitrary: cont`:
+    (COVER)  S q=q ⟹ S cont=cont ⟹ apder_nf q ⟹ legacy q ⟹
+             SOL_acc q cont ⊆ scover q cont ∪ SOL cont.
+  RSEQ closes WITHOUT the false fold (scover(RSEQ) = scover r1 (rsimp4 r2 cont) ∪ scover r2 cont
+  BY DEFINITION); the boundary growth SOL(rsimp4 r2 cont) from the r1-IH is absorbed by the
+  r2-IH via the BRIDGE below. RALTS folds its wrapped root row_dlforms(S(rsimp4(RALTS rs)cont))
+  = ⋃p row_dlforms(rsimp7_SEQ_atom p cont) into ⋃q scover q cont via per-child WCC
+  (rsimp7_SEQ_atom p cont = S(rsimp4_SEQ_atom p cont) under S p=p,S cont=cont ⟹
+  row_dlforms(...) ⊆ SOL_acc p cont ⊆[IH] scover p cont ∪ SOL cont).
+- TWO NEW SUPPORTING LEMMAS NEEDED (do not yet exist):
+  (B1) nseq↔acc BRIDGE: `SOL (rsimp4_SEQ_atom q cont) ⊆ SOL_acc q cont`
+       (relate pdlru(rsimp4 q cont) to pdlru_acc q cont; rpath_continuations(rsimp4 q cont)
+       = rpath_continuations_acc q cont via rpath_continuations_acc(rsimp4 q cont) RONE).
+  (B2) S/rsimp7 identity: `S q=q ⟹ S cont=cont ⟹
+       rsimp7_SEQ_atom q cont = rsimpStrong_raw (rsimp4_SEQ_atom q cont)` (by rsimp4_SEQ_atom.induct).
+  Plus guard-decomposition: legacy/apder_nf decompose by simp; `S(RSEQ r1 r2)=RSEQ r1 r2 ⟹
+  S r1=r1 ∧ S r2=r2`, `S(RALTS rs)=RALTS rs ⟹ ∀q∈set rs. S q=q`, `S(RSTAR p)=RSTAR p ⟹ S p=p`
+  (small, via rsimp7_SEQ_atom / rsimpStrong_ALTs_raw shape).
+- SIZE: `rsize_set (scover q cont) ≤ ctx_bound (drain_ctxs q) cont` by `induct q`/scover + ctx arith
+  (RSEQ: ctx_bound r1 (rsimp4 r2 cont)+ctx_bound r2 cont ≤ ctx_bound(RSEQ) via rsize_rsimp4_SEQ_atom_le;
+  RSTAR: entry slot + body via rsize_nseq_star_le; RALTS: ctx_bound_drain_ctxs_RALTS;
+  RSTAR/RALTS singleton roots via wd_nonalt_head). Then COVER+SIZE+B1 give the corollary
+  `strong_child_drain p k ⊆ scover p k` (SOL(nseq p k) ⊆ SOL_acc p k ∪ SOL(S k) [B1-style] ⊆
+  scover p k ∪ SOL(S k); subtract SOL(S k); row_dlforms k ⊆ SOL(S k) GREEN), hence
+  rsize_set(strong_child_drain p k) ≤ ctx_bound ≤ drain_child_budget [ctx_bound_le_drain_child_budget GREEN]
+  = `strong_child_drain_potential` = §4 blocker CLOSED. Then §7 aggregation.
+- ⚠ COORDINATION: this assembly does NOT use the committed `master_cover_RSEQ/RSTAR/RALTS`
+  (they over-approximate with flat weak_slots and can't be the inductive steps). `scover`
+  re-proves the constructor covers with recursive IHs via the `*_acc_*_subset` lemmas
+  directly. master_cover_RZERO/RONE/RCHAR (mine) and weak_slots_RALTS stay usable.
+- This is a sizable multi-lemma development (scover def + B1 + B2 + guard-decomp + COVER
+  induction + SIZE + corollary + §7). master_cover_RALTS (the STEER-named blocker) and the
+  static brick are GREEN; the scover assembly is the precise remaining work, fully recipe'd above.
