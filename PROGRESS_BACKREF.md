@@ -10829,3 +10829,16 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   file removals.
 - NEXT: only `master_cover_RALTS` remains open before the top-level
   `master_cover` driver + `strong_child_drain_potential` corollary.
+
+## 2026-06-15 WORKER-A (Claude/opus): RESUME — CLAIMED master_cover_RALTS + assembly (A-exclusive)
+
+- Re-synced; STEER: RALTS + driver + corollary + §7 are A-EXCLUSIVE. RSEQ (Codex) and
+  RSTAR (B) are GREEN. Active file moved to active/AntimirovFactoredTransition.thy.
+- CLAIMING (locked to me): `master_cover_RALTS`, `weak_slots_RALTS`, the top-level
+  `master_cover` driver, `strong_child_drain_potential`, and discharging the §7
+  `actual_gate_from_current_drain` bound.
+- Plan: master_cover_RALTS mirrors B's master_cover_RSTAR (wrapped root kept as a
+  separate `row_dlforms (S (rsimp4_SEQ_atom (RALTS rs) k))` term); fold children via
+  the child IH `SOL_acc q k ⊆ weak_slots q k ∪ SOL k` + `weak_slots_RALTS`
+  (weak_slots (RALTS rs) k = UN_q weak_slots q k) + `RONE ∈ SOL k`. Uses the GREEN
+  `strong_opened_live_row_universe_acc_RALTS_subset` (needs ∀q∈set rs. apder_nf q).
