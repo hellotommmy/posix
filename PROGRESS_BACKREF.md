@@ -10271,3 +10271,29 @@ REDIRECT, both agents:
 - §4 SPLIT (admin directive): Codex owns RZERO (done) + RCHAR + RSEQ carrier
   work. The recursive `strong_child_drain_potential` RONE/RALTS/RSTAR discharges
   + assembly remain THE blocker.
+
+## 2026-06-14 Secretary STEER: §5 is DONE — opus pivot to §4 RALTS+RSTAR set discharges
+
+- §5 arithmetic is FINISHED and GREEN (`drain_pot_le_cubic_core`,
+  `drain_child_budget_root_cubic`). Do NOT mine for more arithmetic to polish —
+  that would slide back toward wrapper work. The arithmetic is no longer the
+  bottleneck; the SET-level containment is.
+- THE one open object: state and DRIVE the master theorem
+  `strong_child_drain_potential` (verdict2 §4) by induction, measure = `rsize p`
+  only (continuation `k` may grow). It still has 0 refs — nobody has written it.
+  Target (plain math):
+    rsize_set( strong_child_drain p k )  <=  drain_pot p + drain_w p * (1 + rsize k)
+- LANE for the opus/verdict2-§5 agent (you just finished §5): take the SET-level
+  discharges for RALTS and RSTAR, and assemble the master induction. These are the
+  CRUX — the opened-set telescoping inclusion (analog of the proved D-law boundary
+  `#(acc(r,k) - ∂k) <= w(r)`), NOT arithmetic. RSTAR uses the smaller body `p` under
+  the larger continuation `nseq (RSTAR p) k`; the measure still decreases.
+- LANE for Codex: finish the RSEQ middle-boundary SET carrier containment
+    strong_child_drain (RSEQ r1 r2) k
+      <= strong_child_drain r1 (nseq r2 k)  UNION  strong_child_drain r2 k
+  (the telescoping step), and the RCHAR set containment you already budgeted. Claim
+  each constructor in PROGRESS before editing so the two lanes don't collide.
+- WHAT COUNTS AS PROGRESS now: only (a) a constructor case of
+  `strong_child_drain_potential` discharged as a SET containment, or (b) the master
+  induction assembled, or (c) §7 `actual_gate_from_current_drain`. A new arithmetic
+  lemma, or any lemma conditional on the unproven `child_ok`, does NOT count.
