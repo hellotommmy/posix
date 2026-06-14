@@ -33551,6 +33551,67 @@ proof -
   finally show ?thesis .
 qed
 
+lemma sum_list_simple_child_linear_coeff:
+  "sum_list (map (\<lambda>q. (2 + apder_zw2 q) * S) ps) =
+    (2 * length ps + sum_list (map apder_zw2 ps)) * S"
+  by (induct ps) (simp_all add: algebra_simps)
+
+lemma strong_opened_live_acc_potential_RONE_RCHAR_child_sum_parent_star_linear:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps) \<le>
+    (2 * length ps + apder_zw2 (RALTS ps)) *
+      Suc (rsize (RSTAR (RALTS ps)))"
+proof -
+  let ?k = "RSTAR (RALTS ps)"
+  let ?S = "Suc (rsize ?k)"
+  have child_each:
+      "sum_list
+        (map (\<lambda>q. strong_opened_live_acc_potential q ?k) ps) \<le>
+      sum_list (map (\<lambda>q. (2 + apder_zw2 q) * ?S) ps)"
+  proof (rule sum_list_mono)
+    fix q
+    assume q: "q \<in> set ps"
+    then consider "q = RONE" | c where "q = RCHAR c"
+      using simple by blast
+    then show "strong_opened_live_acc_potential q ?k \<le>
+        (2 + apder_zw2 q) * ?S"
+    proof cases
+      case 1
+      have "strong_opened_live_acc_potential q ?k \<le>
+          1 + 2 * rsize ?k"
+        using 1 strong_opened_live_acc_potential_RONE_RSTAR_linear[of "RALTS ps"]
+        by simp
+      also have "... \<le> 2 * ?S"
+        by simp
+      also have "... = (2 + apder_zw2 q) * ?S"
+        using 1 by simp
+      finally show ?thesis .
+    next
+      case (2 c)
+      have "strong_opened_live_acc_potential q ?k \<le> 3 * ?S"
+        using 2 strong_opened_live_acc_potential_RCHAR_RSTAR_linear
+          [of c "RALTS ps"]
+        by simp
+      also have "... = (2 + apder_zw2 q) * ?S"
+        using 2 by simp
+      finally show ?thesis .
+    qed
+  qed
+  have sum_eq0:
+      "sum_list (map (\<lambda>q. (2 + apder_zw2 q) * ?S) ps) =
+      (2 * length ps + sum_list (map apder_zw2 ps)) * ?S"
+    by (rule sum_list_simple_child_linear_coeff)
+  have sum_eq:
+      "sum_list (map (\<lambda>q. (2 + apder_zw2 q) * ?S) ps) =
+      (2 * length ps + apder_zw2 (RALTS ps)) * ?S"
+    using sum_eq0 by simp
+  show ?thesis
+    using child_each sum_eq by simp
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

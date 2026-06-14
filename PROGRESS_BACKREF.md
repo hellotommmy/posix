@@ -9651,3 +9651,22 @@ STATUS_MATH and say so at the top of PROGRESS.
   simple child-sum bound of the form
   `(2 * length ps + apder_zw2(RALTS ps)) *
    Suc(rsize(RSTAR (RALTS ps)))`.
+
+## 2026-06-14 Codex: CHECKED - linear simple child-sum lift
+
+- New checked list-parametric child-sum bound:
+  if every payload in `ps` is either `RONE` or some `RCHAR c`, then
+  `sum_list(map (%q. strong_opened_live_acc_potential q
+   (RSTAR (RALTS ps))) ps) <=
+   (2 * length ps + apder_zw2(RALTS ps)) *
+   Suc(rsize(RSTAR (RALTS ps)))`.
+  Plain gloss: simple children at the parent STAR suffix are now charged
+  linearly in the suffix size, with `apder_zw2` counting the character payloads.
+  This replaces the too-coarse cubic child shell for the simple family.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: combine the root product ledger with this linear child
+  sum and compare the result to the desired quadratic target. Watch the
+  all-`RONE` case, where the root ledger may still overcharge pass-through
+  branches.
