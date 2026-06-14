@@ -9740,3 +9740,29 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: generalize the root sharpening from pure `RONE` lists
   to mixed `RONE`/`RCHAR` lists by charging the root only for character
   payloads plus one optional pass-through STAR row.
+
+## 2026-06-14 Codex: CHECKED - positive-character simple RALTS quadratic
+
+- New checked helper facts for simple `RONE`/`RCHAR` lists:
+  `rsizes ps = length ps`, and
+  `open_pot(RALTS ps) = 2 * apder_zw2(RALTS ps)`.
+- New checked arithmetic bridge:
+  for `0 < M`,
+  `1 + (L + L*(L+3)) + (2*L+M)*(L+3) <=
+   1 + 2*M + 2*Suc M*(L+3)^2`.
+- New checked parent-STAR quadratic theorem:
+  if every payload in `ps` is `RONE` or `RCHAR c`, and
+  `0 < apder_zw2(RALTS ps)`, then
+  `strong_opened_live_acc_potential (RALTS ps) (RSTAR (RALTS ps)) <=
+   1 + open_pot(RALTS ps) +
+   2 * Suc(apder_zw2(RALTS ps)) *
+   (rsize(RSTAR (RALTS ps)) + 1)^2`.
+  Plain gloss: all simple lists with at least one character now meet the
+  intended quadratic target; pure nonempty `RONE` lists were checked in the
+  previous brick.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:28). No `sorry`.
+- NEXT smallest brick: package the pure-RONE and positive-character results
+  into one simple `RONE`/`RCHAR` parent-STAR quadratic theorem, splitting on
+  `apder_zw2(RALTS ps) = 0`.

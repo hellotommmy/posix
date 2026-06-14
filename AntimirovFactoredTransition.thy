@@ -33783,6 +33783,96 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsizes_RONE_RCHAR_simple:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "rsizes ps = length ps"
+  using simple
+  by (induct ps) auto
+
+lemma open_pot_RALTS_RONE_RCHAR_simple:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "open_pot (RALTS ps) = 2 * apder_zw2 (RALTS ps)"
+  using simple
+  by (induct ps) auto
+
+lemma RONE_RCHAR_linear_shell_quadratic_arith:
+  fixes L M :: nat
+  assumes pos: "0 < M"
+  shows "1 + (L + L * (L + 3)) + (2 * L + M) * (L + 3) \<le>
+    1 + 2 * M + 2 * Suc M * (L + 3) ^ 2"
+proof -
+  let ?lhs = "1 + (L + L * (L + 3)) + (2 * L + M) * (L + 3)"
+  let ?rhs = "1 + 2 * M + 2 * Suc M * (L + 3) ^ 2"
+  obtain M' where M: "M = Suc M'"
+    using pos by (cases M) auto
+  have "?rhs =
+      ?lhs + (L * L + 13 * L + 35 + M' * (2 * L * L + 11 * L + 17))"
+    using M by (simp add: power2_eq_square algebra_simps)
+  then show ?thesis
+    by simp
+qed
+
+lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_self_star_quad_if_char:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+    and pos: "0 < apder_zw2 (RALTS ps)"
+  shows "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) \<le>
+    1 + open_pot (RALTS ps) +
+      2 * Suc (apder_zw2 (RALTS ps)) *
+        (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
+proof -
+  have shell:
+      "strong_opened_live_acc_potential (RALTS ps)
+        (RSTAR (RALTS ps)) \<le>
+      1 +
+      (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+      (2 * length ps + apder_zw2 (RALTS ps)) *
+        Suc (rsize (RSTAR (RALTS ps)))"
+    by (rule
+        strong_opened_live_acc_potential_RALTS_RONE_RCHAR_parent_star_linear
+        [OF simple])
+  have sizes: "rsizes ps = length ps"
+    by (rule rsizes_RONE_RCHAR_simple[OF simple])
+  have pot: "open_pot (RALTS ps) = 2 * apder_zw2 (RALTS ps)"
+    by (rule open_pot_RALTS_RONE_RCHAR_simple[OF simple])
+  have arith:
+      "1 +
+      (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+      (2 * length ps + apder_zw2 (RALTS ps)) *
+        Suc (rsize (RSTAR (RALTS ps))) \<le>
+      1 + open_pot (RALTS ps) +
+        2 * Suc (apder_zw2 (RALTS ps)) *
+          (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
+  proof -
+    let ?L = "length ps"
+    let ?M = "apder_zw2 (RALTS ps)"
+    have arith0:
+        "1 + (?L + ?L * (?L + 3)) + (2 * ?L + ?M) * (?L + 3) \<le>
+        1 + 2 * ?M + 2 * Suc ?M * (?L + 3) ^ 2"
+      by (rule RONE_RCHAR_linear_shell_quadratic_arith[OF pos])
+    have lhs:
+        "1 +
+        (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+        (2 * length ps + apder_zw2 (RALTS ps)) *
+          Suc (rsize (RSTAR (RALTS ps))) =
+        1 + (?L + ?L * (?L + 3)) + (2 * ?L + ?M) * (?L + 3)"
+      using sizes by (simp add: algebra_simps)
+    have rhs:
+        "1 + open_pot (RALTS ps) +
+          2 * Suc (apder_zw2 (RALTS ps)) *
+            (rsize (RSTAR (RALTS ps)) + 1) ^ 2 =
+        1 + 2 * ?M + 2 * Suc ?M * (?L + 3) ^ 2"
+      using sizes pot by (simp add: power2_eq_square algebra_simps)
+    show ?thesis
+      using arith0 lhs rhs by simp
+  qed
+  show ?thesis
+    using shell arith by linarith
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
