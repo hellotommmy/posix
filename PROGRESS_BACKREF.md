@@ -10036,3 +10036,39 @@ math inequality + gloss; never force/weaken/sorry; stage only your own files; pu
 - NEXT smallest brick: claim and add the formal `nseq`/`strong_child_drain`/
   `drain_pot` interface plus the smallest checked base lemma, unless another
   agent lands those defs first.
+
+## 2026-06-14 Codex: CLAIMED - verdict2 formal drain interface
+
+- No live proof worker and no existing formal `nseq`/`strong_child_drain`/
+  `drain_pot`/`child_ok` definitions were present after commit `b2c1c78`.
+- I am claiming the smallest non-colliding formal brick from verdict2 sections
+  1-2: add the `nseq`, `strong_child_drain`, `drain_pot`,
+  `drain_child_budget`, and `child_ok` interface, plus only base/pass-through
+  checked lemmas. I will not attempt the full recursive
+  `strong_child_drain_potential` induction in this brick.
+- Target inequalities for this brick:
+  `rsize_set(strong_child_drain RZERO k) <= drain_child_budget RZERO k` and
+  `rsize_set(strong_child_drain RONE k) <= drain_child_budget RONE k`.
+  Plain gloss: zero and one children add no new drained strong-opened forms.
+
+## 2026-06-14 Codex: CHECKED - formal drain interface and nseq sizes
+
+- New formal interface in `AntimirovFactoredTransition.thy`:
+  `nseq`, `strong_child_drain`, `drain_w`, `drain_pot`,
+  `drain_child_budget`, and `child_ok`.
+- New checked size inequality:
+  `rsize (nseq p k) <= rsize p + rsize k + 1`.
+  Plain gloss: normalized sequencing grows by at most one constructor.
+- New checked STAR-specialized size inequality:
+  `rsize (nseq (RSTAR p) k) <= rsize p + rsize k + 2`.
+  Plain gloss: STAR re-entry has exactly the continuation-size bound needed by
+  verdict2.
+- I deliberately stopped this brick before the RZERO/RONE drain-empty subset
+  proof: `rsimpStrong_raw` is already known not to be idempotent, so the
+  pass-through lemma should be proved as a carrier subset fact, not by assuming
+  syntactic `S(S k) = S k`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:38). No `sorry`.
+- NEXT smallest brick: prove the RZERO/RONE pass-through child-drain bounds from
+  set containment, then start the RCHAR constructor bound.

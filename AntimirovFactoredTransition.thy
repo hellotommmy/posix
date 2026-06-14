@@ -32367,6 +32367,52 @@ definition strong_opened_live_row_universe_acc ::
     row_dlformss_set
       (rsimpStrong_raw ` partial_derivative_live_row_universe_acc r k)"
 
+definition nseq :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "nseq p k =
+    rsimpStrong_raw
+      (rsimp7_SEQ_atom (rsimpStrong_raw p) (rsimpStrong_raw k))"
+
+definition strong_child_drain :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "strong_child_drain p k =
+    strong_opened_live_row_universe (nseq p k) -
+    strong_opened_live_row_universe (rsimpStrong_raw k)"
+
+definition drain_w :: "rrexp \<Rightarrow> nat" where
+  "drain_w r = apder_zw2 r"
+
+definition drain_pot :: "rrexp \<Rightarrow> nat" where
+  "drain_pot r = open_pot r"
+
+definition drain_child_budget :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "drain_child_budget p k = drain_pot p + drain_w p * (1 + rsize k)"
+
+definition child_ok :: "rrexp \<Rightarrow> bool" where
+  "child_ok p \<longleftrightarrow>
+    (\<forall>k. rtail_nf k \<longrightarrow> rntimes_free k \<longrightarrow> legacy_rrexp k \<longrightarrow>
+      rsize_set (strong_child_drain p k) \<le> drain_child_budget p k)"
+
+lemma rsize_nseq_le:
+  "rsize (nseq p k) \<le> rsize p + rsize k + 1"
+proof -
+  have "rsize (nseq p k) \<le>
+      rsize (rsimp7_SEQ_atom (rsimpStrong_raw p) (rsimpStrong_raw k))"
+    by (simp add: nseq_def rsize_rsimpStrong_raw_le)
+  also have "... \<le> rsize (rsimpStrong_raw p) +
+      rsize (rsimpStrong_raw k) + 1"
+    using rsize_rsimp7_SEQ_atom_le[of
+        "rsimpStrong_raw p" "rsimpStrong_raw k"]
+    by simp
+  also have "... \<le> rsize p + rsize k + 1"
+    using rsize_rsimpStrong_raw_le[of p]
+      rsize_rsimpStrong_raw_le[of k]
+    by linarith
+  finally show ?thesis .
+qed
+
+lemma rsize_nseq_star_le:
+  "rsize (nseq (RSTAR p) k) \<le> rsize p + rsize k + 2"
+  using rsize_nseq_le[of "RSTAR p" k] by simp
+
 fun strong_opened_live_acc_potential :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
   "strong_opened_live_acc_potential RZERO k = 1"
 | "strong_opened_live_acc_potential RONE k =
