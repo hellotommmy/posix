@@ -62,7 +62,19 @@ Then announce in STEER: active file is now `active/AntimirovFactoredTransition.t
   cross). A future active file importing another base theory by bare name needs that base
   theory `(global)` too, or a `Posix_Base.That` qualified import.
 
-## Status
-Validated artifacts live in the worktree `posix-codex-opt2` (branch `opt-modular-build2`).
-NOT landed. Land at: a brief coordinated pause of A+B (sooner = faster remaining builds),
-or at gate-close. Secretary drives the land once workers are confirmed committed + idle.
+## Status — LANDED 2026-06-14 (commit ff420e2)
+Landed during a coordinated FREEZE (workers committed + held): 11 frozen theories → `base/`,
+2 active → `active/`, new two-session ROOT, per-session build script. Validated GREEN in the
+shared tree: `Posix_Base` ~60s (one-time), `Posix_Antimirov` active build **~28-40s vs ~104s**.
+Workers resumed on the new layout (`active/AntimirovFactoredTransition.thy`, same build command).
+The worktree `posix-codex-opt2` was removed.
+
+## Pilot follow-up (DEFERRED — dormant backref session)
+Moving `RegLangs` into `base/` broke `pilot/ROOT` (BackRefPilot imported `RegLangs` via
+`directories ".."`). `pilot/ROOT` is reparented onto `Posix_Base` (ready), BUT it does NOT
+build until **`RegLangs (global)`** is added to `Posix_Base` in `ROOT`. That edit invalidates
+the `Posix_Base` heap and forces a one-time rebuild — which could race active worker builds —
+so it was DEFERRED to avoid disrupting the cubic push. TO FINISH (at a base-rebuild window,
+e.g. gate-close): (1) add `(global)` to `RegLangs` in `ROOT`; (2) `isabelle build -d . -d pilot BackRefPilot`
+should then be GREEN. BackRefPilot only imports `RegLangs` from the base (verified), so just
+that one `(global)` is needed. This does NOT affect the cubic build (separate `-d`).
