@@ -32405,6 +32405,151 @@ proof -
     using open_pot_cubic_clean[OF free] eq by linarith
 qed
 
+(* verdict2 section 5: the standalone cubic core for the drain potential.
+   Superadditivity helper for the RALTS case: f(x) = x*(x+2)^2 is superadditive
+   on a list, sum_list (map f rs) <= f (rsizes rs). *)
+lemma sum_list_drain_pot_core_le:
+  "sum_list (map (\<lambda>q. rsize q * (rsize q + 2) ^ 2) rs)
+     \<le> rsizes rs * (rsizes rs + 2) ^ 2"
+proof (induct rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q rs)
+  have step:
+      "rsize q * (rsize q + 2) ^ 2 + rsizes rs * (rsizes rs + 2) ^ 2
+         \<le> (rsize q + rsizes rs) * (rsize q + rsizes rs + 2) ^ 2"
+  proof -
+    have "(rsize q + rsizes rs) * (rsize q + rsizes rs + 2) ^ 2 =
+        rsize q * (rsize q + 2) ^ 2 + rsizes rs * (rsizes rs + 2) ^ 2 +
+        rsize q * rsizes rs * (3 * rsize q + 3 * rsizes rs + 8)"
+      by (simp add: power2_eq_square algebra_simps)
+    then show ?thesis by linarith
+  qed
+  have "sum_list (map (\<lambda>q. rsize q * (rsize q + 2) ^ 2) (q # rs)) =
+      rsize q * (rsize q + 2) ^ 2 +
+      sum_list (map (\<lambda>q. rsize q * (rsize q + 2) ^ 2) rs)"
+    by simp
+  also have "... \<le> rsize q * (rsize q + 2) ^ 2 +
+      rsizes rs * (rsizes rs + 2) ^ 2"
+    using Cons.hyps by simp
+  also have "... \<le> (rsize q + rsizes rs) * (rsize q + rsizes rs + 2) ^ 2"
+    by (rule step)
+  also have "... = rsizes (q # rs) * (rsizes (q # rs) + 2) ^ 2"
+    by simp
+  finally show ?case .
+qed
+
+lemma drain_pot_le_cubic_core:
+  assumes free: "rntimes_free r"
+  shows "drain_pot r \<le> rsize r * (rsize r + 2) ^ 2"
+proof -
+  have "open_pot r \<le> rsize r * (rsize r + 2) ^ 2"
+    using free
+  proof (induct r)
+    case RZERO
+    then show ?case by simp
+  next
+    case RONE
+    then show ?case by simp
+  next
+    case (RCHAR c)
+    then show ?case by (simp add: power2_eq_square)
+  next
+    case (RSEQ r1 r2)
+    have f1: "rntimes_free r1" and f2: "rntimes_free r2"
+      using RSEQ.prems by simp_all
+    have ih1: "open_pot r1 \<le> rsize r1 * (rsize r1 + 2) ^ 2"
+      using RSEQ.hyps(1)[OF f1] .
+    have ih2: "open_pot r2 \<le> rsize r2 * (rsize r2 + 2) ^ 2"
+      using RSEQ.hyps(2)[OF f2] .
+    have w1: "apder_zw2 r1 \<le> rsize r1"
+      by (rule apder_zw2_rntimes_free_le_rsize[OF f1])
+    have cross: "apder_zw2 r1 * (rsize r2 + 2) \<le> rsize r1 * (rsize r2 + 2)"
+      by (rule mult_right_mono[OF w1]) simp
+    have ident:
+        "(rsize r1 + rsize r2 + 1) * (rsize r1 + rsize r2 + 3) ^ 2 =
+          rsize r1 * (rsize r1 + 2) ^ 2 + rsize r2 * (rsize r2 + 2) ^ 2 +
+          rsize r1 * (rsize r2 + 2) +
+          (3 * rsize r1 ^ 2 * rsize r2 + 3 * rsize r1 ^ 2 +
+           3 * rsize r1 * rsize r2 ^ 2 + 13 * rsize r1 * rsize r2 +
+           9 * rsize r1 + 3 * rsize r2 ^ 2 + 11 * rsize r2 + 9)"
+      by (simp add: power2_eq_square algebra_simps)
+    have "open_pot (RSEQ r1 r2) =
+        open_pot r1 + open_pot r2 + apder_zw2 r1 * (rsize r2 + 2)"
+      by simp
+    also have "... \<le> rsize r1 * (rsize r1 + 2) ^ 2 +
+        rsize r2 * (rsize r2 + 2) ^ 2 + rsize r1 * (rsize r2 + 2)"
+      using ih1 ih2 cross by linarith
+    also have "... \<le> (rsize r1 + rsize r2 + 1) * (rsize r1 + rsize r2 + 3) ^ 2"
+      using ident by linarith
+    also have "... = rsize (RSEQ r1 r2) * (rsize (RSEQ r1 r2) + 2) ^ 2"
+      by simp
+    finally show ?case .
+  next
+    case (RALTS rs)
+    have mem: "\<And>q. q \<in> set rs \<Longrightarrow>
+        open_pot q \<le> rsize q * (rsize q + 2) ^ 2"
+      using RALTS by auto
+    have "open_pot (RALTS rs) = sum_list (map open_pot rs)"
+      by simp
+    also have "... \<le> sum_list (map (\<lambda>q. rsize q * (rsize q + 2) ^ 2) rs)"
+      by (rule sum_list_mono) (rule mem, assumption)
+    also have "... \<le> rsizes rs * (rsizes rs + 2) ^ 2"
+      by (rule sum_list_drain_pot_core_le)
+    also have "... \<le> rsize (RALTS rs) * (rsize (RALTS rs) + 2) ^ 2"
+    proof -
+      have "rsize (RALTS rs) * (rsize (RALTS rs) + 2) ^ 2 =
+          rsizes rs * (rsizes rs + 2) ^ 2 +
+          (3 * rsizes rs ^ 2 + 11 * rsizes rs + 9)"
+        by (simp add: power2_eq_square algebra_simps)
+      then show ?thesis by linarith
+    qed
+    finally show ?case .
+  next
+    case (RSTAR r)
+    have fr: "rntimes_free r"
+      using RSTAR.prems by simp
+    have ih: "open_pot r \<le> rsize r * (rsize r + 2) ^ 2"
+      using RSTAR.hyps[OF fr] .
+    have w: "apder_zw2 r \<le> rsize r"
+      by (rule apder_zw2_rntimes_free_le_rsize[OF fr])
+    have suc: "Suc (apder_zw2 r) * (rsize r + 3)
+        \<le> Suc (rsize r) * (rsize r + 3)"
+    proof -
+      have "Suc (apder_zw2 r) \<le> Suc (rsize r)" using w by simp
+      then show ?thesis by (rule mult_right_mono) simp
+    qed
+    have ident:
+        "Suc (rsize r) * (rsize r + 3) ^ 2 =
+          rsize r * (rsize r + 2) ^ 2 + Suc (rsize r) * (rsize r + 3) +
+          (rsize r + 2) * (2 * rsize r + 3)"
+      by (simp add: power2_eq_square algebra_simps)
+    have "open_pot (RSTAR r) = open_pot r + Suc (apder_zw2 r) * (rsize r + 3)"
+      by simp
+    also have "... \<le> rsize r * (rsize r + 2) ^ 2 + Suc (rsize r) * (rsize r + 3)"
+      using ih suc by linarith
+    also have "... \<le> Suc (rsize r) * (rsize r + 3) ^ 2"
+      using ident by linarith
+    also have "... = rsize (RSTAR r) * (rsize (RSTAR r) + 2) ^ 2"
+      by simp
+    finally show ?case .
+  next
+    case (RNTIMES r n)
+    then show ?case by simp
+  next
+    case (RBACKREF4 r1 r2 r3 r4 cs)
+    then show ?case by simp
+  next
+    case (RHALF r cs rep)
+    then show ?case by simp
+  next
+    case (RRESIDUE cs rep)
+    then show ?case by simp
+  qed
+  then show ?thesis by (simp add: drain_pot_def)
+qed
+
 lemma rsize_nseq_le:
   "rsize (nseq p k) \<le> rsize p + rsize k + 1"
 proof -
