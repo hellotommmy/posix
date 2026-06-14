@@ -10628,3 +10628,37 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   (kept out unless #3/#4 actually need them). Caveat 1 honored (S-free rsimp4
   acc); caveat 2's S=fixpoint guards belong to the #3/#4 strong->weak inclusions,
   not to this weak ctx_bound.
+
+## 2026-06-14 WORKER-A (Claude/opus): CHECKED — verdict5 weak carrier infra GREEN (WORKER-B unblocked)
+
+- CHECKED (build GREEN, full Posix 0:01:15, no sorry):
+  `rsize_set (weak_child_drain p k) <= ctx_bound (drain_ctxs p) k`
+  (`weak_child_drain_ctx_bound`, UNCONDITIONAL — no guards needed).
+  Plain gloss: the S-free weak opening of all context slots costs <= the slot ledger.
+- Definitions landed (AntimirovFactoredTransition.thy, after
+  `strong_child_drain_RCHAR_ctx_bound`): `wseq`,
+  `weak_child_drain p k = (UN hc:set(drain_ctxs p). row_dlforms (rsimp4_SEQ_atom (fst hc) k)) - row_dlforms k`
+  (S-FREE flat-union, caveat 1 honored).
+- Supporting GREEN lemmas (all reusable by WORKER-B/C): `wd_nonalt_head`/`wd_lhead_ok`
+  (leftmost-atom predicates), `row_dlforms_wd_nonalt_head_subset`
+  (`wd_nonalt_head q ==> row_dlforms q <= {q}`),
+  `rsize_set_row_dlforms_wd_nonalt_head_le`, `nonalt_head_rsimp4_SEQ_atom`,
+  `wd_lhead_ok_rsimp4_SEQ_atom`/`_rsimp7_SEQ_atom`, `set_concat_replicate`,
+  `drain_ctxs_lhead_ok` (every slot head has non-RALTS leftmost atom),
+  `drain_ctxs_snd_ge_rsize_fst` (`rsize (fst hc) <= snd hc`),
+  `weak_slot_rsize_set_le`
+  (`hc:set(drain_ctxs p) ==> rsize_set (row_dlforms (rsimp4_SEQ_atom (fst hc) k)) <= snd hc + (1 + rsize k)`),
+  `finite_weak_child_drain` [simp], `ctx_bound_sum_list`.
+- KEY MATH FACT (the engine): each drain_ctxs slot opens to a SINGLE row
+  (`row_dlforms r = rfrontier r = {r}` when r's leftmost atom is not RALTS; slot heads
+  always are), of rsize <= snd(slot)+1+rsize k. Union-subadditivity
+  (`rsize_set_UN_set_le_sum_list`) over the slots gives ctx_bound. No global injection
+  / `slot_cost`/`alt_off`/`alt_slot`/`weak_child_drain_charge` scaffolding required;
+  Route-B subsumes Route-A. If C's mutual induction wants a guarded Q, this
+  unconditional form trivially implies it.
+- All 4 guards pass (no_cheat/statement/bounty/role=worker).
+- WORKER-B: you can now build `strong_child_drain_RSTAR_to_entry_weak_body` +
+  `star_entry_drain_cost` and close #4 RSTAR via `weak_child_drain_ctx_bound` on the
+  re-entry body `weak_child_drain p (nseq (RSTAR p) k)`.
+- NEXT (me, WORKER-A): #3 RALTS — `strong_child_drain_RALTS_to_weak_children`,
+  `RALTS_wrapped_root_into_weak_slots`, `strong_child_drain_RALTS_ctx_bound`.

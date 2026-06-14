@@ -35505,6 +35505,337 @@ proof -
   finally show ?thesis .
 qed
 
+(* ================================================================= *)
+(* WORKER-A: verdict5 WEAK carrier (S-free) + per-slot singleton       *)
+(* charge.  The weak accumulator opens each stored context head with   *)
+(* the NON-collapsing rsimp4 plug (STEER caveat 1).  Every drain_ctxs  *)
+(* head has a non-RALTS leftmost atom (drain_ctxs seeds heads only      *)
+(* from RCHAR/RSTAR and ctx_extend = raw_plug preserves the leftmost    *)
+(* atom), so each head opens to a SINGLE row of rsize bounded by the    *)
+(* slot's stored cost; the whole union therefore costs <= ctx_bound.    *)
+(* This proves weak_child_drain_ctx_bound directly (union              *)
+(* subadditivity), subsuming the Route-A explicit slot injection.      *)
+(* ================================================================= *)
+
+definition wseq :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "wseq p k = rsimp4_SEQ_atom p k"
+
+definition weak_child_drain :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "weak_child_drain p k =
+    (\<Union>hc \<in> set (drain_ctxs p). row_dlforms (rsimp4_SEQ_atom (fst hc) k))
+      - row_dlforms k"
+
+fun wd_nonalt_head :: "rrexp \<Rightarrow> bool" where
+  "wd_nonalt_head (RALTS rs) = False"
+| "wd_nonalt_head (RSEQ (RALTS rs) k) = False"
+| "wd_nonalt_head _ = True"
+
+fun wd_lhead_ok :: "rrexp \<Rightarrow> bool" where
+  "wd_lhead_ok (RSEQ r1 r2) = wd_lhead_ok r1"
+| "wd_lhead_ok (RALTS rs) = False"
+| "wd_lhead_ok RONE = False"
+| "wd_lhead_ok _ = True"
+
+lemma row_dlforms_wd_nonalt_head_subset:
+  assumes "wd_nonalt_head q"
+  shows "row_dlforms q \<subseteq> {q}"
+proof (cases q)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis by simp
+next
+  case (RCHAR c)
+  then show ?thesis by simp
+next
+  case (RSEQ r1 r2)
+  show ?thesis
+  proof (cases r1)
+    case (RALTS rs)
+    then show ?thesis using assms RSEQ by simp
+  next
+    case RZERO then show ?thesis using RSEQ by simp
+  next
+    case RONE then show ?thesis using RSEQ by simp
+  next
+    case (RCHAR c) then show ?thesis using RSEQ by simp
+  next
+    case (RSEQ s1 s2) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  next
+    case (RSTAR r) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  next
+    case (RNTIMES r n) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  next
+    case (RBACKREF4 a b d e cs) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  next
+    case (RHALF r cs rep) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  next
+    case (RRESIDUE cs rep) then show ?thesis using \<open>q = RSEQ r1 r2\<close> by simp
+  qed
+next
+  case (RALTS rs)
+  then show ?thesis using assms by simp
+next
+  case (RSTAR r)
+  then show ?thesis by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis by simp
+next
+  case (RBACKREF4 a b d e cs)
+  then show ?thesis by simp
+next
+  case (RHALF r cs rep)
+  then show ?thesis by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis by simp
+qed
+
+lemma rsize_set_row_dlforms_wd_nonalt_head_le:
+  assumes "wd_nonalt_head q"
+  shows "rsize_set (row_dlforms q) \<le> rsize q"
+proof -
+  have "rsize_set (row_dlforms q) \<le> rsize_set {q}"
+    by (rule rsize_set_mono)
+      (use row_dlforms_wd_nonalt_head_subset[OF assms] in auto)
+  also have "... = rsize q"
+    by (simp add: rsize_set_def)
+  finally show ?thesis .
+qed
+
+lemma nonalt_head_rsimp4_SEQ_atom:
+  "wd_lhead_ok h \<Longrightarrow> wd_nonalt_head (rsimp4_SEQ_atom h k)"
+  by (induction h k rule: rsimp4_SEQ_atom.induct) auto
+
+lemma wd_lhead_ok_rsimp4_SEQ_atom:
+  "wd_lhead_ok h \<Longrightarrow> wd_lhead_ok (rsimp4_SEQ_atom h k)"
+  by (induction h k rule: rsimp4_SEQ_atom.induct) auto
+
+lemma wd_lhead_ok_rsimp7_SEQ_atom:
+  assumes "wd_lhead_ok h"
+  shows "wd_lhead_ok (rsimp7_SEQ_atom h k)"
+  using assms
+  by (auto simp add: rsimp7_SEQ_atom_def wd_lhead_ok_rsimp4_SEQ_atom
+      split: rrexp.splits if_splits prod.splits)
+
+lemma set_concat_replicate:
+  "set (concat (replicate n xs)) = (if n = 0 then {} else set xs)"
+  by (induct n) auto
+
+lemma drain_ctxs_lhead_ok:
+  "hc \<in> set (drain_ctxs p) \<Longrightarrow> wd_lhead_ok (fst hc)"
+proof (induction p arbitrary: hc)
+  case RZERO then show ?case by simp
+next
+  case RONE then show ?case by simp
+next
+  case (RCHAR c) then show ?case by simp
+next
+  case (RSEQ p q)
+  from RSEQ.prems consider
+      (left) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend q hc'"
+    | (right) "hc \<in> set (drain_ctxs q)"
+    by auto
+  then show ?case
+  proof cases
+    case left
+    have "wd_lhead_ok (fst hc')" by (rule RSEQ.IH(1)[OF left(1)])
+    then show ?thesis
+      using left(2)
+      by (simp add: ctx_extend_def raw_plug_def wd_lhead_ok_rsimp7_SEQ_atom)
+  next
+    case right
+    show ?thesis by (rule RSEQ.IH(2)[OF right])
+  qed
+next
+  case (RALTS rs)
+  from RALTS.prems obtain r where r: "r \<in> set rs" "hc \<in> set (drain_ctxs r)"
+    by auto
+  show ?case by (rule RALTS.IH[OF r(1) r(2)])
+next
+  case (RSTAR p)
+  from RSTAR.prems consider
+      (root) "hc = (RSTAR p, rsize (RSTAR p))"
+    | (body) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend (RSTAR p) hc'"
+    by auto
+  then show ?case
+  proof cases
+    case root then show ?thesis by simp
+  next
+    case body
+    have "wd_lhead_ok (fst hc')" by (rule RSTAR.IH[OF body(1)])
+    then show ?thesis
+      using body(2)
+      by (simp add: ctx_extend_def raw_plug_def wd_lhead_ok_rsimp7_SEQ_atom)
+  qed
+next
+  case (RNTIMES p n)
+  from RNTIMES.prems have
+      "hc \<in> set ((RNTIMES p n, rsize (RNTIMES p n)) #
+                  map (ctx_extend (RNTIMES p n)) (drain_ctxs p))"
+    by (simp add: set_concat_replicate split: if_splits)
+  then consider
+      (root) "hc = (RNTIMES p n, rsize (RNTIMES p n))"
+    | (body) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend (RNTIMES p n) hc'"
+    by auto
+  then show ?case
+  proof cases
+    case root then show ?thesis by simp
+  next
+    case body
+    have "wd_lhead_ok (fst hc')" by (rule RNTIMES.IH[OF body(1)])
+    then show ?thesis
+      using body(2)
+      by (simp add: ctx_extend_def raw_plug_def wd_lhead_ok_rsimp7_SEQ_atom)
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs) then show ?case by simp
+next
+  case (RHALF r cs rep) then show ?case by simp
+next
+  case (RRESIDUE cs rep) then show ?case by simp
+qed
+
+lemma drain_ctxs_snd_ge_rsize_fst:
+  "hc \<in> set (drain_ctxs p) \<Longrightarrow> rsize (fst hc) \<le> snd hc"
+proof (induction p arbitrary: hc)
+  case RZERO then show ?case by simp
+next
+  case RONE then show ?case by simp
+next
+  case (RCHAR c) then show ?case by simp
+next
+  case (RSEQ p q)
+  from RSEQ.prems consider
+      (left) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend q hc'"
+    | (right) "hc \<in> set (drain_ctxs q)"
+    by auto
+  then show ?case
+  proof cases
+    case left
+    have ih: "rsize (fst hc') \<le> snd hc'" by (rule RSEQ.IH(1)[OF left(1)])
+    have "rsize (fst hc) = rsize (rsimp7_SEQ_atom (fst hc') q)"
+      using left(2) by (simp add: ctx_extend_def raw_plug_def)
+    also have "... \<le> Suc (rsize (fst hc') + rsize q)"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    also have "... \<le> snd hc"
+      using ih left(2) by (simp add: ctx_extend_def)
+    finally show ?thesis .
+  next
+    case right
+    show ?thesis by (rule RSEQ.IH(2)[OF right])
+  qed
+next
+  case (RALTS rs)
+  from RALTS.prems obtain r where r: "r \<in> set rs" "hc \<in> set (drain_ctxs r)"
+    by auto
+  show ?case by (rule RALTS.IH[OF r(1) r(2)])
+next
+  case (RSTAR p)
+  from RSTAR.prems consider
+      (root) "hc = (RSTAR p, rsize (RSTAR p))"
+    | (body) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend (RSTAR p) hc'"
+    by auto
+  then show ?case
+  proof cases
+    case root then show ?thesis by simp
+  next
+    case body
+    have ih: "rsize (fst hc') \<le> snd hc'" by (rule RSTAR.IH[OF body(1)])
+    have "rsize (fst hc) = rsize (rsimp7_SEQ_atom (fst hc') (RSTAR p))"
+      using body(2) by (simp add: ctx_extend_def raw_plug_def)
+    also have "... \<le> Suc (rsize (fst hc') + rsize (RSTAR p))"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    also have "... \<le> snd hc"
+      using ih body(2) by (simp add: ctx_extend_def)
+    finally show ?thesis .
+  qed
+next
+  case (RNTIMES p n)
+  from RNTIMES.prems have
+      "hc \<in> set ((RNTIMES p n, rsize (RNTIMES p n)) #
+                  map (ctx_extend (RNTIMES p n)) (drain_ctxs p))"
+    by (simp add: set_concat_replicate split: if_splits)
+  then consider
+      (root) "hc = (RNTIMES p n, rsize (RNTIMES p n))"
+    | (body) hc' where "hc' \<in> set (drain_ctxs p)" "hc = ctx_extend (RNTIMES p n) hc'"
+    by auto
+  then show ?case
+  proof cases
+    case root then show ?thesis by simp
+  next
+    case body
+    have ih: "rsize (fst hc') \<le> snd hc'" by (rule RNTIMES.IH[OF body(1)])
+    have "rsize (fst hc) = rsize (rsimp7_SEQ_atom (fst hc') (RNTIMES p n))"
+      using body(2) by (simp add: ctx_extend_def raw_plug_def)
+    also have "... \<le> Suc (rsize (fst hc') + rsize (RNTIMES p n))"
+      by (rule rsize_rsimp7_SEQ_atom_le)
+    also have "... \<le> snd hc"
+      using ih body(2) by (simp add: ctx_extend_def)
+    finally show ?thesis .
+  qed
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs) then show ?case by simp
+next
+  case (RHALF r cs rep) then show ?case by simp
+next
+  case (RRESIDUE cs rep) then show ?case by simp
+qed
+
+lemma weak_slot_rsize_set_le:
+  assumes "hc \<in> set (drain_ctxs p)"
+  shows "rsize_set (row_dlforms (rsimp4_SEQ_atom (fst hc) k))
+          \<le> snd hc + (1 + rsize k)"
+proof -
+  have ok: "wd_lhead_ok (fst hc)" by (rule drain_ctxs_lhead_ok[OF assms])
+  have ge: "rsize (fst hc) \<le> snd hc" by (rule drain_ctxs_snd_ge_rsize_fst[OF assms])
+  have "rsize_set (row_dlforms (rsimp4_SEQ_atom (fst hc) k))
+        \<le> rsize (rsimp4_SEQ_atom (fst hc) k)"
+    by (rule rsize_set_row_dlforms_wd_nonalt_head_le)
+      (rule nonalt_head_rsimp4_SEQ_atom[OF ok])
+  also have "... \<le> Suc (rsize (fst hc) + rsize k)"
+    by (rule rsize_rsimp4_SEQ_atom_le)
+  also have "... \<le> snd hc + (1 + rsize k)"
+    using ge by simp
+  finally show ?thesis .
+qed
+
+lemma finite_weak_child_drain [simp]:
+  "finite (weak_child_drain p k)"
+  unfolding weak_child_drain_def by auto
+
+lemma ctx_bound_sum_list:
+  "sum_list (map (\<lambda>hc. snd hc + (1 + rsize k)) Cs) = ctx_bound Cs k"
+  by (induct Cs)
+    (auto simp add: ctx_bound_def ctx_base_def ctx_count_def)
+
+lemma weak_child_drain_ctx_bound:
+  "rsize_set (weak_child_drain p k) \<le> ctx_bound (drain_ctxs p) k"
+proof -
+  let ?U = "(\<Union>hc \<in> set (drain_ctxs p).
+               row_dlforms (rsimp4_SEQ_atom (fst hc) k))"
+  have fin: "finite ?U" by auto
+  have "rsize_set (weak_child_drain p k) \<le> rsize_set ?U"
+    unfolding weak_child_drain_def
+    by (rule rsize_set_mono[OF fin]) blast
+  also have "rsize_set ?U
+        \<le> sum_list (map (\<lambda>hc. snd hc + (1 + rsize k)) (drain_ctxs p))"
+  proof (rule rsize_set_UN_set_le_sum_list)
+    fix x assume "x \<in> set (drain_ctxs p)"
+    then show "finite (row_dlforms (rsimp4_SEQ_atom (fst x) k))" by simp
+  next
+    fix x assume "x \<in> set (drain_ctxs p)"
+    then show "rsize_set (row_dlforms (rsimp4_SEQ_atom (fst x) k))
+                \<le> snd x + (1 + rsize k)"
+      by (rule weak_slot_rsize_set_le)
+  qed
+  also have "... = ctx_bound (drain_ctxs p) k"
+    by (rule ctx_bound_sum_list)
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
