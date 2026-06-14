@@ -33663,6 +33663,75 @@ lemma RALTS_six_RONE_parent_star_linear_shell_too_weak:
         (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
   by (simp add: ps_def power2_eq_square)
 
+lemma rdistinct_replicate_singleton:
+  "rdistinct (replicate (Suc n) x) {} = [x]"
+  by (induct n) simp_all
+
+lemma rdistinct_replicate_seen:
+  "rdistinct (replicate n x) {x} = []"
+  by (induct n) simp_all
+
+lemma rflts_replicate_RONE [simp]:
+  "rflts (replicate n RONE) = replicate n RONE"
+  by (induct n) simp_all
+
+lemma rsimpStrong_ALTs_raw_replicate_RONE:
+  "rsimpStrong_ALTs_raw (replicate (Suc n) RONE) = RONE"
+proof -
+  have rows: "rsimpStrong_prune_rows_raw (replicate (Suc n) RONE) =
+      replicate (Suc n) RONE"
+    by (rule rsimpStrong_prune_rows_raw_rnonseq) simp
+  have distinct:
+      "rdistinct
+        (rflts (rsimpStrong_prune_rows_raw (replicate (Suc n) RONE)))
+        {} = [RONE]"
+    using rows
+    by (simp add: rdistinct_replicate_singleton rdistinct_replicate_seen)
+  have "rsimpStrong_ALTs_raw (replicate (Suc n) RONE) =
+      rsimp_ALTs
+        (rdistinct
+          (rflts (rsimpStrong_prune_rows_raw (replicate (Suc n) RONE)))
+          {})"
+    by (simp add: rsimpStrong_ALTs_raw_def)
+  also have "... = rsimp_ALTs [RONE]"
+    using distinct by simp
+  also have "... = RONE"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_replicate_RONE_self_star_le:
+  "rsize_set
+      (row_dlforms
+        (rsimpStrong_raw
+          (RSEQ (RALTS (replicate (Suc n) RONE))
+            (RSTAR (RALTS (replicate (Suc n) RONE)))))) \<le> 1"
+proof -
+  have left:
+      "rsimpStrong_raw (RALTS (replicate (Suc n) RONE)) = RONE"
+  proof -
+    have "rsimpStrong_raw (RALTS (replicate (Suc n) RONE)) =
+        rsimpStrong_ALTs_raw
+          (rflts (map rsimpStrong_raw (replicate (Suc n) RONE)))"
+      by simp
+    also have "... = rsimpStrong_ALTs_raw (replicate (Suc n) RONE)"
+      by simp
+    also have "... = RONE"
+      by (rule rsimpStrong_ALTs_raw_replicate_RONE)
+    finally show ?thesis .
+  qed
+  have star:
+      "rsimpStrong_raw (RSTAR (RALTS (replicate (Suc n) RONE))) = RONE"
+    using left by simp
+  have seq:
+      "rsimpStrong_raw
+        (RSEQ (RALTS (replicate (Suc n) RONE))
+          (RSTAR (RALTS (replicate (Suc n) RONE)))) = RONE"
+    using left star by simp
+  show ?thesis
+    using seq by (simp add: rsize_set_def)
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

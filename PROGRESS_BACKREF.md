@@ -9704,3 +9704,21 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: sharpen the simple RALTS root charge so `RONE`
   pass-through branches contribute zero/new bounded frontier cost, rather than
   the coarse `length ps * Suc(size)` product.
+
+## 2026-06-14 Codex: CHECKED - pure RONE self-STAR root collapses
+
+- New checked normalization facts:
+  `rsimpStrong_ALTs_raw (replicate (Suc n) RONE) = RONE`.
+  Consequently,
+  `rsize_set(row_dlforms(rsimpStrong_raw(RSEQ (RALTS (replicate (Suc n) RONE))
+   (RSTAR (RALTS (replicate (Suc n) RONE)))))) <= 1`.
+  Plain gloss: a nonempty pure `RONE` alternative list has constant
+  self-STAR root cost after strong normalization, rather than the coarse
+  `length * suffix-size` product. This directly targets the checked six-RONE
+  overcharge.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: use this pure-RONE root collapse to prove the actual
+  parent-STAR quadratic bound for nonempty pure `RONE` lists, then generalize
+  to mixed simple lists by charging only character payloads in the root.
