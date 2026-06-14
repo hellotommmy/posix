@@ -10915,3 +10915,18 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   induction / size-monotone weak bridge). A + all agents HOLD the assembly; may land the absorbed-B1
   bridge + guard-decomps (validated-safe, reusable). Overnight loop: watch for the Pro design, validate
   it depth>=5, then green-light A.
+
+## 2026-06-15 WORKER-EXEC: CLAIM guard-decompositions + ABSORBED-B1 bridge (validated-safe bricks)
+
+- Per STEER banner clause "You MAY land the validated-safe bricks". Claiming these NEW lemmas
+  (none exist yet in active/AntimirovFactoredTransition.thy); will land at end of file, no sorry.
+  NOT touching the refuted scover/master_cover assembly or §4/§7 gate.
+- A1 `S_fixpoint_RSEQ_decompose`:
+  `rsimpStrong_raw (RSEQ r1 r2) = RSEQ r1 r2 ==> rsimpStrong_raw r1 = r1 & rsimpStrong_raw r2 = r2`.
+- A2 `S_fixpoint_RALTS_decompose`:
+  `rsimpStrong_raw (RALTS rs) = RALTS rs ==> (ALL q : set rs. rsimpStrong_raw q = q)`.
+- A3 `S_fixpoint_RSTAR_decompose`:
+  `rsimpStrong_raw (RSTAR p) = RSTAR p ==> rsimpStrong_raw p = p`.
+- B (ABSORBED form ONLY; literal form is FALSE ~25%) `SOL_rsimp4_SEQ_atom_absorbed_bridge`:
+  `strong_opened_live_row_universe (rsimp4_SEQ_atom q cont)
+     <= strong_opened_live_row_universe_acc q cont U strong_opened_live_row_universe cont`.
