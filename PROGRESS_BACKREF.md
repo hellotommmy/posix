@@ -10601,3 +10601,30 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   (commit weak infra FIRST); WORKER-B = #4 RSTAR (star_entry_drain, the bridge, entry cost) after
   A's weak infra lands; WATCHDOG-C = #5 mutual induction + #6 corollary + §7 when #3/#4 green.
   #6 green = §4 blocker CLOSED.
+
+## 2026-06-14 WORKER-A (Claude/opus): CLAIMED — verdict5 weak carrier infra + #3 RALTS
+
+- CLAIMING (no live worker; tree clean): the weak-carrier infra + #3 RALTS cover.
+  Lemmas locked by me (do not touch): `wseq`, `weak_child_drain` (S-FREE flat-union
+  per STEER caveat 1), `wd_lhead_ok`/`wd_nonalt_head` (+ their lemmas),
+  `nonalt_head_rsimp4_SEQ_atom`, `rsize_set_row_dlforms_nonalt_head_le`,
+  `wd_lhead_ok_rsimp4_SEQ_atom`/`_rsimp7_SEQ_atom`, `drain_ctxs_lhead_ok`,
+  `drain_ctxs_snd_ge_rsize_fst`, `weak_slot_rsize_set_le`,
+  `finite_weak_child_drain`, `ctx_bound_sum_list`, `weak_child_drain_ctx_bound`;
+  then #3: `strong_child_drain_RALTS_to_weak_children`,
+  `RALTS_wrapped_root_into_weak_slots`, `strong_child_drain_RALTS_ctx_bound`.
+- DESIGN NOTE (route refinement, ground-truthed against the real defs): the
+  consumed corollary `weak_child_drain_ctx_bound` is proven DIRECTLY via
+  union-subadditivity (`rsize_set_UN_set_le_sum_list`) + a per-slot singleton
+  bound, NOT the explicit global injection. Each drain_ctxs slot head has a
+  non-RALTS leftmost atom (drain_ctxs seeds heads only from RCHAR/RSTAR and
+  ctx_extend=raw_plug preserves the leftmost atom), so
+  `row_dlforms (rsimp4_SEQ_atom (fst slot) k)` is singleton-or-empty
+  (`row_dlforms r = rfrontier r = {r}` on the catch-all). Hence each slot opens
+  to ONE row of rsize <= rsize(head)+1+rsize k <= snd(slot)+1+rsize k, and
+  Sum over slots = ctx_bound. So `weak_child_drain_ctx_bound` holds
+  UNCONDITIONALLY (no rtail_nf/S=fixpoint guards needed). This subsumes the
+  Route-A `weak_child_drain_charge`/`slot_cost`/`alt_off`/`alt_slot` scaffolding
+  (kept out unless #3/#4 actually need them). Caveat 1 honored (S-free rsimp4
+  acc); caveat 2's S=fixpoint guards belong to the #3/#4 strong->weak inclusions,
+  not to this weak ctx_bound.
