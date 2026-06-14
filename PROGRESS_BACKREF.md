@@ -9498,3 +9498,22 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: generalize this strong-root comparison from the
   `[RONE, RCHAR c]` witness to flat RALTS payload lists, keeping the hypotheses
   explicit.
+
+## 2026-06-14 Codex: CHECKED - flat payload strong-normalization ledger
+
+- New checked flat-payload preservation facts:
+  if every payload in `ps` is `rnonseq` and `nonalt`, then every payload in
+  `rflts(map rsimpStrong_raw ps)` is still `rnonseq`/`nonalt`, and
+  `length(rflts(map rsimpStrong_raw ps)) <= length ps`.
+- New checked size transfer:
+  `rsizes(rflts(map rsimpStrong_raw ps)) <= rsizes ps`.
+  Plain gloss: strong normalization plus flattening cannot inflate the flat
+  RALTS payload ledger. This is the transfer step needed to compare the
+  strong-normalized RALTS root back to the original self-STAR payload bound.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:17). No `sorry`.
+- NEXT smallest brick: bound
+  `row_dlforms(rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ps) k)` by the flat
+  `RSEQ (RALTS ps) k` list/set ledger for flat payloads, including the
+  degenerate unit suffix cases.

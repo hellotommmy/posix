@@ -5043,6 +5043,84 @@ lemma rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_RONE_RCHAR_self_star_le:
       rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       rsimpStrong_prune_pair_raw_def)
 
+lemma rsimpStrong_raw_flat_payload:
+  assumes "rnonseq p" "nonalt p"
+  shows "rnonseq (rsimpStrong_raw p)"
+    and "nonalt (rsimpStrong_raw p)"
+proof -
+  show "rnonseq (rsimpStrong_raw p)"
+    using assms by (cases p; simp split: rrexp.splits)
+  show "nonalt (rsimpStrong_raw p)"
+  proof (cases p)
+    case (RSTAR r)
+    then show ?thesis
+      by (cases "rsimpStrong_raw r") simp_all
+  qed (use assms in simp_all)
+qed
+
+lemma rflts_flat_payload_set_props:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "\<forall>q \<in> set (rflts ps). rnonseq q \<and> nonalt q"
+  using payloads
+proof (induct ps)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons p ps)
+  then show ?case
+    by (cases p) auto
+qed
+
+lemma length_rflts_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "length (rflts ps) \<le> length ps"
+  using payloads
+proof (induct ps)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons p ps)
+  then show ?case
+    by (cases p) auto
+qed
+
+lemma rflts_map_rsimpStrong_raw_flat_payload_props:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "\<forall>q \<in> set (rflts (map rsimpStrong_raw ps)).
+    rnonseq q \<and> nonalt q"
+proof -
+  have "\<forall>q \<in> set (map rsimpStrong_raw ps).
+      rnonseq q \<and> nonalt q"
+    using payloads rsimpStrong_raw_flat_payload by auto
+  then show ?thesis
+    by (rule rflts_flat_payload_set_props)
+qed
+
+lemma length_rflts_map_rsimpStrong_raw_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "length (rflts (map rsimpStrong_raw ps)) \<le> length ps"
+proof -
+  have strong_payloads:
+      "\<forall>q \<in> set (map rsimpStrong_raw ps). rnonseq q \<and> nonalt q"
+    using payloads rsimpStrong_raw_flat_payload by auto
+  have "length (rflts (map rsimpStrong_raw ps)) \<le>
+      length (map rsimpStrong_raw ps)"
+    by (rule length_rflts_flat_payload_le[OF strong_payloads])
+  then show ?thesis
+    by simp
+qed
+
+lemma rsizes_rflts_map_rsimpStrong_raw_le:
+  "rsizes (rflts (map rsimpStrong_raw ps)) \<le> rsizes ps"
+proof -
+  have "rsizes (rflts (map rsimpStrong_raw ps)) \<le>
+      rsizes (map rsimpStrong_raw ps)"
+    by (rule rflts_mono)
+  also have "... \<le> rsizes ps"
+    using rsize_rsimpStrong_raw_le by (simp add: sum_list_mono)
+  finally show ?thesis .
+qed
+
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 
