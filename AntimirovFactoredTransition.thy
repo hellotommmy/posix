@@ -33675,6 +33675,10 @@ lemma rflts_replicate_RONE [simp]:
   "rflts (replicate n RONE) = replicate n RONE"
   by (induct n) simp_all
 
+lemma sum_list_replicate_nat [simp]:
+  "sum_list (replicate n (a :: nat)) = n * a"
+  by (induct n) simp_all
+
 lemma rsimpStrong_ALTs_raw_replicate_RONE:
   "rsimpStrong_ALTs_raw (replicate (Suc n) RONE) = RONE"
 proof -
@@ -33730,6 +33734,53 @@ proof -
     using left star by simp
   show ?thesis
     using seq by (simp add: rsize_set_def)
+qed
+
+lemma strong_opened_live_acc_potential_RALTS_replicate_RONE_self_star_quad:
+  "strong_opened_live_acc_potential
+      (RALTS (replicate (Suc n) RONE))
+      (RSTAR (RALTS (replicate (Suc n) RONE))) \<le>
+    1 + open_pot (RALTS (replicate (Suc n) RONE)) +
+      2 * Suc (apder_zw2 (RALTS (replicate (Suc n) RONE))) *
+        (rsize (RSTAR (RALTS (replicate (Suc n) RONE))) + 1) ^ 2"
+proof -
+  let ?ps = "replicate (Suc n) RONE"
+  let ?k = "RSTAR (RALTS ?ps)"
+  let ?S = "Suc (rsize ?k)"
+  have simple: "\<forall>q \<in> set ?ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+    by simp
+  have root:
+      "rsize_set
+        (row_dlforms
+          (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS ?ps) ?k))) \<le> 1"
+    using
+      rsize_set_row_dlforms_rsimpStrong_raw_RSEQ_RALTS_replicate_RONE_self_star_le
+        [of n]
+    by simp
+  have child:
+      "sum_list
+        (map (\<lambda>q. strong_opened_live_acc_potential q ?k) ?ps) \<le>
+      (2 * length ?ps + apder_zw2 (RALTS ?ps)) * ?S"
+    by (rule
+        strong_opened_live_acc_potential_RONE_RCHAR_child_sum_parent_star_linear
+        [OF simple])
+  have "strong_opened_live_acc_potential (RALTS ?ps) ?k =
+      1 +
+      rsize_set
+        (row_dlforms
+          (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS ?ps) ?k))) +
+      sum_list
+        (map (\<lambda>q. strong_opened_live_acc_potential q ?k) ?ps)"
+    by simp
+  also have "... \<le> 1 + 1 +
+      (2 * length ?ps + apder_zw2 (RALTS ?ps)) * ?S"
+    using root child by simp
+  also have "... \<le>
+    1 + open_pot (RALTS ?ps) +
+      2 * Suc (apder_zw2 (RALTS ?ps)) *
+        (rsize ?k + 1) ^ 2"
+    by (simp add: power2_eq_square algebra_simps)
+  finally show ?thesis .
 qed
 
 lemma cube_suc_minus_one_le_two_shift3:

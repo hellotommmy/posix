@@ -9722,3 +9722,21 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: use this pure-RONE root collapse to prove the actual
   parent-STAR quadratic bound for nonempty pure `RONE` lists, then generalize
   to mixed simple lists by charging only character payloads in the root.
+
+## 2026-06-14 Codex: CHECKED - pure RONE parent-STAR quadratic bound
+
+- New checked quadratic bound:
+  `strong_opened_live_acc_potential (RALTS (replicate (Suc n) RONE))
+   (RSTAR (RALTS (replicate (Suc n) RONE))) <=
+   1 + open_pot(RALTS (replicate (Suc n) RONE)) +
+   2 * Suc(apder_zw2(RALTS (replicate (Suc n) RONE))) *
+   (rsize(RSTAR (RALTS (replicate (Suc n) RONE))) + 1)^2`.
+  Plain gloss: after the root collapse, the actual all-`RONE` parent-STAR
+  potential satisfies the desired quadratic target. The prior six-RONE gap was
+  only an artifact of the coarse root ledger.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:40). No `sorry`.
+- NEXT smallest brick: generalize the root sharpening from pure `RONE` lists
+  to mixed `RONE`/`RCHAR` lists by charging the root only for character
+  payloads plus one optional pass-through STAR row.
