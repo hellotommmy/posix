@@ -37242,4 +37242,23 @@ proof -
 qed
 
 
+(* === WORKER-EXEC validated-safe bricks: S-fixpoint guard-decompositions === *)
+
+(* A3: a star-collapse fixpoint forces the body to be its own S-fixpoint.
+   The only delicate branch is rsimpStrong_raw p = RSTAR s: the fixpoint hyp
+   forces s = p, i.e. rsimpStrong_raw p = RSTAR p, which is impossible because
+   rsimpStrong_raw never grows the size (rsize (RSTAR p) > rsize p). *)
+lemma S_fixpoint_RSTAR_decompose:
+  assumes "rsimpStrong_raw (RSTAR p) = RSTAR p"
+  shows "rsimpStrong_raw p = p"
+proof (cases "rsimpStrong_raw p")
+  case (RSTAR s)
+  have "rsize (rsimpStrong_raw p) \<le> rsize p"
+    by (rule rsize_rsimpStrong_raw_le)
+  moreover have "rsimpStrong_raw p = RSTAR p"
+    using assms RSTAR by simp
+  ultimately show ?thesis
+    by simp
+qed (use assms in simp_all)
+
 end
