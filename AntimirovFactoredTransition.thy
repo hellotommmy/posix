@@ -32413,6 +32413,17 @@ lemma rsize_nseq_star_le:
   "rsize (nseq (RSTAR p) k) \<le> rsize p + rsize k + 2"
   using rsize_nseq_le[of "RSTAR p" k] by simp
 
+lemma rtail_nf_nseq [simp]:
+  "rtail_nf (nseq q k)"
+  by (simp add: nseq_def rtail_nf_rsimpStrong_raw)
+
+lemma legacy_nseq:
+  assumes q: "legacy_rrexp q"
+    and k: "legacy_rrexp k"
+  shows "legacy_rrexp (nseq q k)"
+  using q k
+  by (simp add: nseq_def legacy_rsimpStrong_raw legacy_rsimp7_SEQ_atom)
+
 lemma child_okD:
   assumes ok: "child_ok p"
     and nf: "rtail_nf k"
@@ -32438,6 +32449,26 @@ lemma child_ok_RONE_cubicD:
   shows "rsize_set (strong_child_drain p RONE) \<le>
     (rsize p + 3) ^ 3"
   using child_ok_RONED[OF ok] budget by linarith
+
+lemma child_ok_nseqD:
+  assumes ok: "child_ok p"
+    and free: "rntimes_free (nseq q k)"
+    and legacy_q: "legacy_rrexp q"
+    and legacy_k: "legacy_rrexp k"
+  shows "rsize_set (strong_child_drain p (nseq q k)) \<le>
+    drain_child_budget p (nseq q k)"
+  by (rule child_okD[OF ok])
+    (use free legacy_nseq[OF legacy_q legacy_k] in simp_all)
+
+lemma child_ok_star_reentryD:
+  assumes ok: "child_ok p"
+    and free: "rntimes_free (nseq (RSTAR p) k)"
+    and legacy_p: "legacy_rrexp p"
+    and legacy_k: "legacy_rrexp k"
+  shows "rsize_set (strong_child_drain p (nseq (RSTAR p) k)) \<le>
+    drain_child_budget p (nseq (RSTAR p) k)"
+  by (rule child_ok_nseqD[OF ok free])
+    (use legacy_p legacy_k in simp_all)
 
 fun strong_opened_live_acc_potential :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
   "strong_opened_live_acc_potential RZERO k = 1"

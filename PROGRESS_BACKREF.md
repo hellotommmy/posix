@@ -10115,3 +10115,37 @@ math inequality + gloss; never force/weaken/sorry; stage only your own files; pu
   (full Posix elapsed 0:01:40). No `sorry`.
 - NEXT smallest brick: after the §1-5 child theorem lands, replace the abstract
   current-carrier bound premise with the `child_ok`-based root wrapper bound.
+
+## 2026-06-14 Codex: CLAIMED - child_ok nseq instantiation API
+
+- Still staying in verdict2 §6 wrapper lane, not the child-invariant lane.
+- Target: prove `rtail_nf (nseq q k)` and
+  `legacy_rrexp q ==> legacy_rrexp k ==> legacy_rrexp (nseq q k)`, then expose
+  a `child_ok_nseqD` elimination lemma for wrapper calls at continuations of
+  the form `nseq q k`.
+- I will keep `rntimes_free (nseq q k)` as an explicit premise for now; proving
+  strong simplification preserves `rntimes_free` belongs with the shared §1-5
+  child theorem lane unless it becomes a tiny side fact.
+
+## 2026-06-14 Codex: CHECKED - child_ok nseq instantiation API
+
+- New checked side condition:
+  `rtail_nf (nseq q k)`.
+  Plain gloss: every normalized continuation is tail-normal.
+- New checked side condition:
+  `legacy_rrexp q ==> legacy_rrexp k ==> legacy_rrexp (nseq q k)`.
+  Plain gloss: normalized sequencing stays in the legacy fragment.
+- New wrapper elimination:
+  `child_ok p ==> rntimes_free (nseq q k) ==> legacy_rrexp q ==>
+   legacy_rrexp k ==> rsize_set(strong_child_drain p (nseq q k)) <=
+   drain_child_budget p (nseq q k)`.
+  Plain gloss: RSEQ/RSTAR wrappers can instantiate child_ok at normalized
+  continuation edges.
+- STAR re-entry corollary checked:
+  same inequality at `nseq (RSTAR p) k`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:42). No `sorry`.
+- NEXT smallest brick: once the child theorem/cubic arithmetic lands, consume
+  these APIs to close the conditional RALTS/RSEQ/RSTAR root wrappers without
+  falling back to the old per-shape potential shells.
