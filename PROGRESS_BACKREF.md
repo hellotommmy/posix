@@ -9788,3 +9788,26 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: lift the same root sharpening from simple
   `RONE`/`RCHAR` lists to the flat-payload strong ALT children produced by the
   simplifier, then fold it into the opened-boundary carrier preservation route.
+
+## 2026-06-14 Codex: CHECKED - simple ALT body gives STAR root cubic
+
+- Scratch sample before Isabelle:
+  exhaustive simple payload lists over `{RONE, RCHAR a, RCHAR b}` up to length
+  10 had zero violations for the wrapper arithmetic
+  `rsize(RSTAR(RALTS ps)) + body_bound <=
+   2*(rsize(RSTAR(RALTS ps))+3)^3`; worst sampled slack was `229` at `ps=[]`.
+- New checked arithmetic helper:
+  if `M <= L`, then
+  `L + 2 + (1 + 2*M + 2*Suc M*(L+3)^2) <= 2*(L+5)^3`.
+- New checked STAR root wrapper:
+  if every payload in `ps` is `RONE` or `RCHAR c`, then
+  `strong_opened_live_acc_potential (RSTAR (RALTS ps)) RONE <=
+   2 * (rsize (RSTAR (RALTS ps)) + 3)^3`.
+  Plain gloss: the simple self-STAR body budget now feeds the checked STAR
+  split and gives a root cubic for any STAR over a simple ALT body.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:36). No `sorry`.
+- NEXT smallest brick: use this as the STAR/simple branch in the broader
+  STAR-compatible child invariant, then lift beyond simple `RONE`/`RCHAR`
+  payloads toward arbitrary flat non-sequence ALT children.

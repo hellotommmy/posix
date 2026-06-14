@@ -33941,6 +33941,74 @@ next
   qed
 qed
 
+lemma apder_zw2_RONE_RCHAR_simple_le_length:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "apder_zw2 (RALTS ps) \<le> length ps"
+  using simple
+  by (induct ps) auto
+
+lemma RONE_RCHAR_self_star_body_to_root_cubic_arith:
+  fixes L M :: nat
+  assumes M_le: "M \<le> L"
+  shows "L + 2 + (1 + 2 * M + 2 * Suc M * (L + 3) ^ 2) \<le>
+    2 * (L + 5) ^ 3"
+proof -
+  obtain D where L: "L = M + D"
+    using M_le by (auto simp add: le_iff_add)
+  show ?thesis
+    using L by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+qed
+
+lemma strong_opened_live_acc_potential_RSTAR_RALTS_RONE_RCHAR_simple_root_cubic:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "strong_opened_live_acc_potential (RSTAR (RALTS ps)) RONE \<le>
+    2 * (rsize (RSTAR (RALTS ps)) + 3) ^ 3"
+proof -
+  let ?r = "RALTS ps"
+  let ?st = "RSTAR ?r"
+  have body:
+      "strong_opened_live_acc_potential ?r ?st \<le>
+      1 + open_pot ?r +
+        2 * Suc (apder_zw2 ?r) * (rsize ?st + 1) ^ 2"
+    by (rule
+        strong_opened_live_acc_potential_RALTS_RONE_RCHAR_simple_self_star_quad
+        [OF simple])
+  have split:
+      "strong_opened_live_acc_potential ?st RONE \<le>
+      rsize ?st + strong_opened_live_acc_potential ?r ?st"
+    by (rule strong_opened_live_acc_potential_RSTAR_RONE_linear_split)
+  have M_le: "apder_zw2 ?r \<le> length ps"
+    by (rule apder_zw2_RONE_RCHAR_simple_le_length[OF simple])
+  have pot: "open_pot ?r = 2 * apder_zw2 ?r"
+    by (rule open_pot_RALTS_RONE_RCHAR_simple[OF simple])
+  have arith:
+      "rsize ?st +
+        (1 + open_pot ?r +
+          2 * Suc (apder_zw2 ?r) * (rsize ?st + 1) ^ 2) \<le>
+      2 * (rsize ?st + 3) ^ 3"
+  proof -
+    let ?L = "length ps"
+    let ?M = "apder_zw2 ?r"
+    have arith0:
+        "?L + 2 + (1 + 2 * ?M + 2 * Suc ?M * (?L + 3) ^ 2) \<le>
+        2 * (?L + 5) ^ 3"
+      by (rule RONE_RCHAR_self_star_body_to_root_cubic_arith[OF M_le])
+    show ?thesis
+      using arith0 pot rsizes_RONE_RCHAR_simple[OF simple]
+      by (simp add: power2_eq_square algebra_simps)
+  qed
+  have "strong_opened_live_acc_potential ?st RONE \<le>
+      rsize ?st +
+        (1 + open_pot ?r +
+          2 * Suc (apder_zw2 ?r) * (rsize ?st + 1) ^ 2)"
+    by (rule le_trans[OF split add_left_mono[OF body]])
+  also have "... \<le> 2 * (rsize ?st + 3) ^ 3"
+    by (rule arith)
+  finally show ?thesis .
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
