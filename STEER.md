@@ -10,54 +10,48 @@ Self-sync protocol (every agent, every turn):
 1. `git pull --rebase --autostash` in `posix-codex`.
 2. Re-read THIS file (and the PROGRESS tail if you need context).
 3. Obey the order for your lane below. Claim the lemma you take in PROGRESS
-   before editing so the two lanes don't collide.
+   before editing so lanes don't collide. Stage ONLY your own hunks (never
+   `git add -A`); commit small; push immediately. No `sorry`/`oops`/`admit`.
 
 ---
 
-## THE route — verdict4 context-cover (VALIDATED, implement it)
+## THE route — verdict4 context-cover (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`, VALIDATED)
 
-GPT Pro's verdict4 (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`) replaces the refuted
-set-MEMBERSHIP step with a size **cost-cover**: a linear context-slot ledger
-`drain_ctxs p` (one slot per `drain_w` unit) whose **declared** cost survives the
-`a*·a*→a*` collapse. Keeps `drain_pot`, `drain_w`, and the green §5 arithmetic.
+Bound the parent drain SIZE by a linear context-slot ledger `drain_ctxs p`, NOT by
+set membership. Whole design sample-validated at depth≥5 (zero violations, ~580k
+cases; both old CEs covered). Go straight to Isabelle; re-sample only if you CHANGE
+a statement.
 
-**Secretary has sample-validated ALL of it at depth≥5 — zero violations across
-~580k cases, and BOTH old CEs (C-DRAIN-1, C-DRAIN-2) are now covered.** You may go
-STRAIGHT to Isabelle; only re-sample if you CHANGE a statement. ⚠ The master cover
-is TIGHT on C-DRAIN-2 (slack 0) — the RSTAR/RSEQ arithmetic must be exact, no
-rounding-away of constants.
+### Progress (DONE = green, do not redo)
+- Infra defs `drain_ctxs` / `ctx_bound` / `ctx_extend` (+ `ctx_*_append`,
+  `ctx_*_concat_map`, `ctx_bound_drain_ctxs_RALTS`) — GREEN.
+- **#1** `drain_ctxs_count_le_w`, **#2** `drain_ctxs_base_le_pot` — GREEN.
+- RCHAR / RSEQ / RZERO / RONE ctx cases — GREEN.
 
-### The 6-lemma stack to implement (verdict4 §5)
-
-Infra (defs): `drain_ctx = rrexp×nat`, `ctx_base`, `ctx_count`,
-`ctx_bound Cs k = ctx_base Cs + ctx_count Cs * (1 + rsize k)`,
-`raw_plug h k = rsimp7_SEQ_atom h k`,
-`ctx_extend q hc = (raw_plug (fst hc) q, snd hc + (1 + rsize q))`  ← DECLARED cost,
-NOT `rsize (raw_plug …)`, and `drain_ctxs` (the structural recursion, §1).
-
-1. `drain_ctxs_count_le_w`  : `ctx_count (drain_ctxs p) ≤ drain_w p`     (structural)
-2. `drain_ctxs_base_le_pot` : `ctx_base  (drain_ctxs p) ≤ drain_pot p`   (structural)
-3. `strong_child_drain_RALTS_ctx_bound`  — the RALTS cost cover           (NEW, crux)
-4. `strong_child_drain_RSTAR_ctx_step`   — the RSTAR cost step            (NEW, crux)
-5. `strong_child_drain_ctx_bound`  : `rsize_set (strong_child_drain p k) ≤ ctx_bound (drain_ctxs p) k`
-   — the master induction on `rsize p` (continuation may grow), dispatching all ctors
-6. `strong_child_drain_potential`  : the original target, as a COROLLARY of 1+2+5.
-   **Lemma 6 green = the §4 blocker is CLOSED; then §7 `actual_gate_from_current_drain`.**
-
-### Lanes (2026-06-14, post-validation)
-
-- **opus** — own the INFRA defs + the two NEW semantic covers (#3 RALTS, #4 RSTAR).
-  Commit the infra defs (`drain_ctxs`, `ctx_*`, `ctx_extend`, `raw_plug`) FIRST so
-  Codex can build on them. These two covers are the only genuinely-new design
-  content; everything else reuses existing facts.
-- **Codex** — own the two STATIC lemmas (#1, #2 — pure structural induction; they
-  need only the infra defs, not the covers, so start as soon as opus commits defs),
-  the **RSEQ + RCHAR** ctx cases (reuse your green SEQ containment + verdict4 §4's
-  exact RSEQ arithmetic), then the master assembly (#5, blocks on opus's #3/#4) and
-  the corollary (#6).
+### THE bottleneck (the only remaining content) — lanes
+- **WORKER-A → #3 `strong_child_drain_RALTS_ctx_bound`** (the crux; multi-lemma,
+  needs sustained context — do NOT attempt cold-then-abandon). The subset pattern is
+  a DEAD END (RALTS has no clean child subset — that's the CE `b·c*·c*`). Use the
+  pinned reduction: `rsize_set_strong_opened_live_row_universe_acc_RALTS_le`
+  (~line 34844) splits the parent into `1 + WRAPPED-ROOT
+  row_dlforms(rsimpStrong_raw(rsimp4_SEQ_atom (RALTS rs) k)) + Σ_q children`. The ONE
+  new lemma: charge the WRAPPED-ROOT rows to the child ctx ledger (this is where
+  `b·c*·c*` is paid by a child CONTEXT, not a child set), bridge acc↔non-acc for the
+  nseq-wrapped form, then apply the master IH to the children.
+- **WORKER-B → #4 `strong_child_drain_RSTAR_ctx_step`** (independent of #3). Verdict4
+  §3: direct star-context step — the escaped re-entry row is charged to a body context
+  from `drain_ctxs p` extended by the declared `RSTAR p` suffix
+  (`map (ctx_extend (RSTAR p)) (drain_ctxs p)`), plus the one entry slot. Use the size
+  fact `rsize(nseq (RSTAR p) k) ≤ rsize p + rsize k + 2`. ⚠ the master cover is TIGHT
+  on C-DRAIN-2 (slack 0) — keep the arithmetic exact.
+- **ASSEMBLER/WATCHDOG-C** (`/loop`) → when #3 AND #4 are green: **#5**
+  `strong_child_drain_ctx_bound` (induction on `rsize p`, dispatch the now-green ctor
+  cases) + **#6** `strong_child_drain_potential` (corollary via #1+#2+#5, `nlinarith`),
+  then begin §7 `actual_gate_from_current_drain`. Until then: monitor A & B; if either
+  stalls >30min (no commit, clean tree), TAKE OVER its lane. Do not attempt #3/#4
+  cold as a backup tick — only as a sustained primary.
 
 ## What counts as progress (everything else does NOT)
-
-A GREEN (checked, no sorry) lemma from the 6-stack above, or §7. Lemma 6 green is
-the win. A refuted boundary variant, a child_ok-conditional wrapper, or more
-arithmetic outside this stack does NOT count.
+A GREEN lemma from {#3, #4, #5, #6} or §7. **#6 green = the §4 blocker is CLOSED.**
+A child_ok-conditional wrapper, the refuted subset pattern, or arithmetic outside
+this stack does NOT count.

@@ -5,13 +5,85 @@ on branch `codex/backref-values`, and coordinate through the `PROGRESS_BACKREF.m
 tail. Paste the matching block into each fresh CLI. Keep them short on purpose —
 the charter does the heavy lifting.
 
-For THIS cycle (assembly phase, 2026-06-13 19:30) use the two ASSEMBLY prompts
-in the next section. The generic role prompts further below remain valid for
-later cycles.
+For THIS cycle use the THREE prompts in the next section (verdict4 context-cover,
+implementation phase). Everything below that is SUPERSEDED but kept for reference.
 
 ---
 
-## CURRENT-CYCLE PROMPT (2026-06-14 12:00): execute verdict #2 — the drain potential
+## CURRENT-CYCLE PROMPTS (2026-06-14, verdict4 context-cover — IMPLEMENTATION)
+
+State: the verdict4 context-cover route is VALIDATED (depth≥5, zero violations).
+Infra defs + static lemmas #1/#2 + RCHAR/RSEQ/RZERO/RONE ctx cases are GREEN. The
+ONLY remaining content is **#3 RALTS cover** + **#4 RSTAR cover** (the two crux
+semantic lemmas), then the mechanical **#5 master** + **#6 corollary** + **§7 gate**.
+
+Pipeline: 3 agents, ALL in `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`
+on branch `codex/backref-values`, shared `AntimirovFactoredTransition.thy`, coordinating
+via `STEER.md` self-sync + `PROGRESS_BACKREF.md` claims. Recommend all three be
+Claude Code / Opus 4.8 (Codex GPT-5.5 stalled repeatedly last cycle). Common entry
+chain (every agent, first thing): `STEER.md` → `MAINLINE.md` §1-2 →
+`GPT_PRO_GATE_BRIDGE_VERDICT3.md` (the design; §2=RALTS, §3=RSTAR, §5=the 6-lemma
+stack) → last ~150 lines of `PROGRESS_BACKREF.md` →
+`agent_hunt_pipeline/projects/posix-backref/CLAUDE.md` (binding rules). Never
+bulk-read history; trust git timestamps. No `sorry`/`oops`/`admit`; stage ONLY your
+own hunks; `git pull --rebase --autostash` before every push; commit small, push
+immediately. The design is pre-validated — go straight to Isabelle; re-sample
+(reuse `scratch_drain_ctxs_master_check.py`) ONLY if you change a statement.
+
+### PROMPT A — WORKER-A (#3 RALTS cover — the crux; needs sustained context)
+
+You are a proof worker on the POSIX cubic-bound project. Repo + entry chain: see
+above. Your SOLE deliverable: prove `strong_child_drain_RALTS_ctx_bound`
+(verdict4 §2 / the 6-lemma stack item #3) GREEN, no `sorry`. Claim it in
+`PROGRESS_BACKREF.md` before editing. DEAD END — do not retry: the RCHAR/RSEQ subset
+pattern (`strong_child_drain X k ⊆ row-set` then `rsize_set_mono`); RALTS has NO
+clean child subset (that is the CE `b·c*·c*`). USE the pinned reduction already in
+the file: `rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (~line 34844)
+splits the parent into `1 + WRAPPED-ROOT row_dlforms(rsimpStrong_raw(rsimp4_SEQ_atom
+(RALTS rs) k)) + Σ_q children`. The structural additive identity
+`ctx_bound_drain_ctxs_RALTS` is already GREEN. The ONE new semantic lemma you must
+prove: charge the WRAPPED-ROOT rows to the child ctx ledger (this is where `b·c*·c*`
+is paid by a child CONTEXT slot, not a child set), bridge acc↔non-acc for the
+nseq-wrapped form, then apply the master IH to the children. This is multi-lemma —
+hold context, do not abandon midway. When green, record it in PROGRESS and update
+STEER's progress list.
+
+### PROMPT B — WORKER-B (#4 RSTAR cover — independent of A)
+
+You are a proof worker on the POSIX cubic-bound project. Repo + entry chain: see
+above. Your SOLE deliverable: prove `strong_child_drain_RSTAR_ctx_step` (verdict4 §3
+/ stack item #4) GREEN, no `sorry`. Claim it in `PROGRESS_BACKREF.md` before editing.
+It is INDEPENDENT of #3 — proceed in parallel with WORKER-A. Route (verdict4 §3): the
+direct star-context step — the escaped re-entry row is charged to a body context from
+`drain_ctxs p` extended by the declared `RSTAR p` suffix
+(`map (ctx_extend (RSTAR p)) (drain_ctxs p)`), plus the single entry slot
+`(RSTAR p, rsize (RSTAR p))`. Target:
+`rsize_set(strong_child_drain (RSTAR p) k) ≤ rsize(RSTAR p) + (1+rsize k) +
+ctx_bound(drain_ctxs p)(nseq (RSTAR p) k)`, using the size fact
+`rsize(nseq (RSTAR p) k) ≤ rsize p + rsize k + 2`. ⚠ the master cover is TIGHT on
+C-DRAIN-2 (slack 0) — keep the arithmetic exact, do not round away constants. When
+green, record it in PROGRESS and update STEER.
+
+### PROMPT C — ASSEMBLER + WATCHDOG (`/loop`, e.g. every 20-30 min)
+
+You are the assembler/watchdog on the POSIX cubic-bound project. Repo + entry chain:
+see above. Run on `/loop`. EACH tick: `git pull --rebase --autostash`, read STEER +
+PROGRESS tail, check whether `strong_child_drain_RALTS_ctx_bound` (#3) and
+`strong_child_drain_RSTAR_ctx_step` (#4) are both GREEN.
+- If BOTH green: prove **#5** `strong_child_drain_ctx_bound` (induction on `rsize p`,
+  dispatching the now-green per-constructor ctx cases) and **#6**
+  `strong_child_drain_potential` (corollary via #1 `drain_ctxs_count_le_w` + #2
+  `drain_ctxs_base_le_pot` + #5; `nlinarith` after unfolding `ctx_bound`). #6 green =
+  the §4 blocker is CLOSED — then begin §7 `actual_gate_from_current_drain`.
+- If NOT both green: check WORKER-A and WORKER-B for stalls. If a lane has had NO
+  commit for >30 min with a clean tree, TAKE OVER that lane (claim it in PROGRESS,
+  using A's or B's route above). Do NOT attempt #3/#4 as a quick backup tick if a
+  worker is actively committing — only take over a genuinely stalled lane.
+Build to verify green: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
+
+---
+
+## SUPERSEDED — CURRENT-CYCLE PROMPT (2026-06-14 12:00): execute verdict #2 — the drain potential
 
 The D law and the cubic static front are PROVEN. Both original-root carriers
 (opened-boundary + liveness) are checked-FALSE. GPT Pro's corrected design is
