@@ -30,6 +30,19 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
+## ⏸ SCOVER VALIDATION HOLD (2026-06-15) — A: do NOT grind the scover assembly yet
+A correctly found the 6 committed `master_cover_<CTOR>` cases do NOT compose (the flat
+`weak_slots` fold is FALSE even for S-fixpoints — verified CE), and recipe'd a recursive
+`scover` cover (PROGRESS tail). The fold-failure is real. BUT the scover recipe (COVER
+induction + B1/B2 bridges + SIZE + corollary) is a sizable multi-lemma development that is
+only hand-validated. The Secretary is machine-validating it at depth≥5 NOW (same discipline
+that caught the boxed reduction). **A: HOLD scover execution until this banner is replaced
+with a GREEN-LIGHT (or a corrected recipe).** Meanwhile you MAY do the small, safe,
+recipe-independent bricks if you want (B2 `rsimp7 q cont = S(rsimp4 q cont)` under fixpoints;
+the guard-decomposition lemmas) — but NOT the scover def / COVER induction until green-lit.
+
+---
+
 ## THE route — verdict5 weak-carrier (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`, VALIDATED — implement it)
 
 #3/#4 are UN-GATED. GPT Pro verdict5 gives the proof skeleton: a proof-only WEAK
