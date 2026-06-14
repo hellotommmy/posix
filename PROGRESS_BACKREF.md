@@ -9670,3 +9670,21 @@ STATUS_MATH and say so at the top of PROGRESS.
   sum and compare the result to the desired quadratic target. Watch the
   all-`RONE` case, where the root ledger may still overcharge pass-through
   branches.
+
+## 2026-06-14 Codex: CHECKED - simple RALTS parent-STAR linear shell
+
+- New checked combined linear inequality:
+  if every payload in `ps` is either `RONE` or some `RCHAR c`, then
+  `strong_opened_live_acc_potential (RALTS ps) (RSTAR (RALTS ps)) <=
+   1 + (rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))) +
+   (2 * length ps + apder_zw2(RALTS ps)) *
+   Suc(rsize(RSTAR (RALTS ps)))`.
+  Plain gloss: the simple-payload RALTS parent-STAR shell is now quadratic
+  (root product plus linear child sum), not cubic. Remaining risk is root
+  overcharge on pass-through `RONE` payloads.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: check the all-`RONE`/low-character-count cases against
+  the quadratic target; if the linear shell is still too weak there, sharpen
+  the root ledger so pass-through `RONE` branches pay zero.
