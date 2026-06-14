@@ -33873,6 +33873,74 @@ proof -
     using shell arith by linarith
 qed
 
+lemma RONE_RCHAR_simple_zero_apder_replicate_RONE:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+    and zero: "apder_zw2 (RALTS ps) = 0"
+  shows "ps = replicate (length ps) RONE"
+  using simple zero
+proof (induct ps)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q ps)
+  have q_simple: "q = RONE \<or> (\<exists>c. q = RCHAR c)"
+    using Cons.prems by simp
+  have q_zero: "apder_zw2 q = 0"
+    using Cons.prems by simp
+  have q_one: "q = RONE"
+    using q_simple q_zero by auto
+  have tail_zero: "apder_zw2 (RALTS ps) = 0"
+    using Cons.prems q_one by simp
+  have tail_simple: "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+    using Cons.prems by simp
+  have "ps = replicate (length ps) RONE"
+    by (rule Cons.hyps[OF tail_simple tail_zero])
+  then show ?case
+    using q_one by simp
+qed
+
+lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_simple_self_star_quad:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "strong_opened_live_acc_potential (RALTS ps)
+      (RSTAR (RALTS ps)) \<le>
+    1 + open_pot (RALTS ps) +
+      2 * Suc (apder_zw2 (RALTS ps)) *
+        (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
+proof (cases "apder_zw2 (RALTS ps) = 0")
+  case False
+  then have pos: "0 < apder_zw2 (RALTS ps)"
+    by (cases "apder_zw2 (RALTS ps)") simp_all
+  show ?thesis
+    by (rule
+        strong_opened_live_acc_potential_RALTS_RONE_RCHAR_self_star_quad_if_char
+        [OF simple pos])
+next
+  case True
+  have rep: "ps = replicate (length ps) RONE"
+    by (rule RONE_RCHAR_simple_zero_apder_replicate_RONE[OF simple True])
+  show ?thesis
+  proof (cases "length ps")
+    case 0
+    then have "ps = []"
+      by simp
+    then show ?thesis
+      by (simp add: rsize_set_def power2_eq_square
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+          rsimp7_SEQ_atom_RZERO_left)
+  next
+    case (Suc n)
+    then have ps_rep: "ps = replicate (Suc n) RONE"
+      using rep by simp
+    show ?thesis
+      using
+        strong_opened_live_acc_potential_RALTS_replicate_RONE_self_star_quad
+          [of n]
+      by (simp add: ps_rep)
+  qed
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

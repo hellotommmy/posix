@@ -9766,3 +9766,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: package the pure-RONE and positive-character results
   into one simple `RONE`/`RCHAR` parent-STAR quadratic theorem, splitting on
   `apder_zw2(RALTS ps) = 0`.
+
+## 2026-06-14 Codex: CHECKED - simple RALTS parent-STAR quadratic package
+
+- New checked zero-apder classifier:
+  if every payload in `ps` is `RONE` or `RCHAR c`, and
+  `apder_zw2(RALTS ps) = 0`, then
+  `ps = replicate (length ps) RONE`.
+- New checked packaged theorem:
+  if every payload in `ps` is `RONE` or `RCHAR c`, then
+  `strong_opened_live_acc_potential (RALTS ps) (RSTAR (RALTS ps)) <=
+   1 + open_pot(RALTS ps) +
+   2 * Suc(apder_zw2(RALTS ps)) *
+   (rsize(RSTAR (RALTS ps)) + 1)^2`.
+  Plain gloss: the simple parent-STAR case is now uniform. Positive-character
+  lists use the character-paying shell; zero-character lists collapse to the
+  pure-`RONE` theorem, including the empty list base case.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:30). No `sorry`.
+- NEXT smallest brick: lift the same root sharpening from simple
+  `RONE`/`RCHAR` lists to the flat-payload strong ALT children produced by the
+  simplifier, then fold it into the opened-boundary carrier preservation route.
