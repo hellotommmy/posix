@@ -9833,3 +9833,28 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: extend the STAR-compatible child library beyond simple
   ALT roots, focusing on one flat non-sequence payload family at a time instead
   of using the false coarse generic STAR arithmetic.
+
+## 2026-06-14 Codex: CLAIMED - return to verdict carrier preservation route
+
+- Re-read `GPT_PRO_GATE_BRIDGE_VERDICT.md` sections 3, 5, and 7 after user
+  correction. Active route is the opened-boundary verdict path, not the
+  `strong_opened_live` numeric-shell salvage path.
+- Target now: prove carrier preservation for the strong side,
+  `row_dlforms (rsimpStrong_raw q) <=
+   odfront RONE Un opened_boundary_forms r RONE`,
+  then lift through `rflts`/`rdistinct`/`rsimpStrong_prune_rows_raw` by subset
+  monotonicity and `rtail_nf`-side syntactic facts.
+- Discipline for this claim: do not introduce fresh per-shape strong-side
+  potentials. If the opened-boundary carrier genuinely misses a strong row,
+  record the minimal failing row and flag it as a design point.
+- Immediate check against existing Isabelle facts: this carrier preservation
+  statement is already CHECKED-FALSE in
+  `rsimpStrong_dlform_closure_opened_boundary_carrier_false`.
+  Minimal failing row:
+  `r = RSTAR (RALTS [RCHAR a])`, `q = r` from `afactored1 r []`, and
+  `row_dlforms (rsimpStrong_raw q)` contains `bad = RSTAR (RCHAR a)`, while
+  `bad NOTIN odfront RONE Un opened_boundary_forms r RONE`.
+  Admin/design flag: the verdict carrier must be revised to account for
+  strong singleton-ALT collapse under STAR, or computed on a normalized carrier;
+  the raw opened-boundary carrier cannot be inherited by the strong rows as
+  currently stated.
