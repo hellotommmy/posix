@@ -9,6 +9,26 @@ Read THIS file first in every fresh or compacted session. Read other
 documents only on demand, via `DOC_INDEX.md`. Do not re-read large
 historical files to "restore context"; that is how sessions drown.
 
+## 0. The three standing questions (answer ALL THREE at every status check)
+
+The admin's standing check. Whenever anyone — admin, secretary, monitor, or the
+`posix-cubic-watch` routine — assesses this project, answer all three, from GIT
+(not from the drifting `HH:MM` labels inside `PROGRESS_BACKREF.md`):
+
+1. **进展如何 — Progress?** What checked results landed since the last look,
+   stated as math inequalities + a ≤10-word plain gloss? How many commits, and
+   the time of the latest one?
+2. **卡住了吗 — Stuck?** Is a proof worker live / did a commit land recently
+   (HEALTHY), or is it no-commit-in->30-min + no-worker (STALLED)? Is the current
+   "live edge" a real WALL (a recorded blocker / a route dead-end / a checked
+   counterexample) or just GRINDING a known/anticipated case?
+3. **需要给 Pro 什么吗 — Need a design pass (GPT Pro)?** Only if a case genuinely
+   DEAD-ENDS — a degree gap or counterexample the current design cannot absorb.
+   Mechanical grinding and anticipated sub-issues (e.g. the RONE pass-through
+   fix) do NOT warrant a GPT Pro pass; let the agents execute. If one IS needed,
+   frame the precise obstacle (a minimal failing example) into the relevant gap
+   file before escalating.
+
 ## 1. The One Open Problem
 
 Everything in this repository now converges on one theorem, the
