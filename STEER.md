@@ -42,7 +42,16 @@ Secretary machine-validated A's `scover` recipe at depth≥5: it FAILS (`posix-s
 **The §4 close is now a DESIGN problem (Pro): prove the true numeric bound WITHOUT a strong⊆cover
 set-containment.** A (and all agents): HOLD the assembly — do NOT invent a third set-cover. You MAY
 land the validated-safe bricks (the ABSORBED-B1 bridge; the guard-decompositions) — those are reusable
-under any design. Await the Pro design (see `GPT_PRO_GATE_BRIDGE_ASSEMBLY` prompt) + secretary validation.
+under any design.
+
+### ⏳ verdict6 RECEIVED — `slot_origin_cover` (validation in progress, 2026-06-15)
+GPT Pro verdict6 (`GPT_PRO_GATE_BRIDGE_VERDICT5.md`) answers it: replace set-containment with a
+`slot_origin_cover` — an INJECTIVE map from each strong row to a paid drain_ctxs slot whose weak
+witness `collapses_to` it (`row_dlforms(S y)={x} ∧ rsize x ≤ rsize y`); strong row = theorem object,
+weak row = cost witness only. Pays `b·a*` via `y=b·(a*·a*)`. Secretary is machine-validating the
+make-or-break (does an injective slot_origin_cover EXIST for strong_child_drain — a matching check —
++ the lift lemmas) at depth≥5. **STILL HOLD until this banner is replaced by a GREEN-LIGHT.** If
+validated, the executor implements the §1-7 stack; if a CE is found, a Pro micro-ask follows.
 
 ---
 
