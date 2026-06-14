@@ -35395,6 +35395,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_child_drain_RCHAR_ctx_bound:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "rsize_set (strong_child_drain (RCHAR c) k) \<le>
+    ctx_bound (drain_ctxs (RCHAR c)) k"
+proof -
+  have "rsize_set (strong_child_drain (RCHAR c) k) \<le>
+      rsize_set (row_dlforms (nseq (RCHAR c) k))"
+    by (rule rsize_set_mono)
+      (use strong_child_drain_RCHAR_subset_row[OF norm_k, of c] in auto)
+  also have "... \<le> Suc (Suc (rsize k))"
+    by (rule rsize_set_row_dlforms_nseq_RCHAR_le)
+  also have "... = ctx_bound (drain_ctxs (RCHAR c)) k"
+    by (simp add: ctx_bound_def)
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"

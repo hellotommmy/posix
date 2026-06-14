@@ -10450,3 +10450,25 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - NEXT Codex lane: RCHAR/RSEQ ctx-bound cases or master
   `strong_child_drain_ctx_bound`, after syncing with any landed opus RALTS/RSTAR
   semantic covers.
+
+## 2026-06-14 Codex: CLAIMED — RCHAR ctx-bound case
+
+- Taking the verdict4 RCHAR context-bound case next:
+  `rsimpStrong_raw k = k ==> rsize_set(strong_child_drain (RCHAR c) k)
+   <= ctx_bound (drain_ctxs (RCHAR c)) k`.
+- This should reuse the checked row containment
+  `strong_child_drain_RCHAR_subset_row` and the exact row-size bound
+  `rsize_set(row_dlforms(nseq (RCHAR c) k)) <= rsize k + 2`.
+
+## 2026-06-14 Codex: CHECKED — RCHAR ctx-bound case
+
+- CHECKED:
+  `rsimpStrong_raw k = k ==> rsize_set(strong_child_drain (RCHAR c) k)
+   <= ctx_bound (drain_ctxs (RCHAR c)) k`.
+  Plain gloss: RCHAR's opened row fits one context slot.
+- Proof uses the existing checked containment into
+  `row_dlforms(nseq (RCHAR c) k)` plus
+  `rsize_set(row_dlforms(nseq (RCHAR c) k)) <= rsize k + 2`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:34). No `sorry`.
