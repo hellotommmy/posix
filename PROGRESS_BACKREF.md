@@ -10743,3 +10743,36 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   GUARD BRIDGE NEEDED: acc decompositions use `apder_nf` (RALTS_subset: ∀q. apder_nf q;
   RONE_eq: apder_nf k), STEER guards are `S _ = _`/rtail_nf — need `S r = r ==> apder_nf r`
   (or run the induction on apder_nf directly and bridge at the strong_child_drain top).
+
+## 2026-06-14 WORKER-B (Codex): CLAIMED — #4 RSTAR direct star-context step
+
+- CLAIMING (no live worker; branch up to date at `a3c080e`; tree clean): verdict5
+  #4 RSTAR lane. Locked names: `star_entry_drain`,
+  `strong_child_drain_RSTAR_to_entry_weak_body`, `star_entry_drain_cost`,
+  `strong_child_drain_RSTAR_ctx_step`.
+- Route: use WORKER-A's green `weak_child_drain` +
+  `weak_child_drain_ctx_bound`; charge the escaped re-entry row to the body weak
+  drain at continuation `nseq (RSTAR p) k`, plus the single entry slot
+  `(RSTAR p, rsize (RSTAR p))`. The entry opened row set must use the linear
+  singleton-or-empty bound, not the generic quadratic `row_dlforms` bound.
+- Target math: `rsize_set(strong_child_drain (RSTAR p) k) <= rsize(RSTAR p) +
+  (1+rsize k) + ctx_bound(drain_ctxs p)(nseq (RSTAR p) k)`. Keep the C-DRAIN-2
+  arithmetic exact (slack 0).
+
+## 2026-06-14 Secretary: lane re-split after A unified #3/#4/#5 into master_cover; B = master_cover_RSTAR
+
+- A discovered (0ffa1a0) #3/#4/#5 are ONE mutual induction, proved as per-constructor
+  SET-INCLUSION lemmas `master_cover_<CTOR>`:
+  `strong_opened_live_row_universe_acc (CTOR …) k ⊆ [opened rows] ∪ strong_opened_live_row_universe k`.
+  GREEN: master_cover_RZERO/RONE/RCHAR (a3c080e; RCHAR ~line 35905 is the pattern to mirror).
+- NEW LANES (B starting now; STEER updated):
+  - WORKER-A: `master_cover_RALTS` (active claim) + `master_cover_RSEQ` + the top-level
+    `master_cover` induction driver + the `strong_child_drain_potential` corollary.
+  - WORKER-B: **`master_cover_RSTAR`** — the RSTAR case, INDEPENDENT of A's RALTS/RSEQ
+    (recurses on the body via the IH). Mirror `master_cover_RCHAR` (assumes `rsimpStrong_raw k = k`)
+    with an explicit body-IH assumption; split into star ENTRY slot + recursive body under
+    `nseq (RSTAR p) k` (verdict5 §6); linear entry bound. B must CLAIM `master_cover_RSTAR`
+    before editing so A doesn't also take RSTAR.
+  - WATCHDOG-C: assemble `master_cover` + corollary + §7 once RALTS/RSEQ/RSTAR are all green.
+- B's old standalone `strong_child_drain_RSTAR_ctx_step` framing is SUPERSEDED by
+  `master_cover_RSTAR` (same RSTAR content, A's unified naming).

@@ -35,39 +35,42 @@ both CEs covered). Go straight to Isabelle; re-sample only if you change a state
    verdict5's `norm`/`norm_k`. Also keep W3's LHS subtraction `strong_opened_live (S k)`
    (bigger set) — do not weaken it to `row_dlforms k`.
 
-### Progress so far (GREEN — do not redo)
-Infra `drain_ctxs`/`ctx_bound`/`ctx_extend`; static #1 `drain_ctxs_count_le_w`, #2
-`drain_ctxs_base_le_pot`; RCHAR/RSEQ/RZERO/RONE ctx cases. The old additive acc-split
-(line 34844) is BOXED — do NOT use it for #3.
+### Progress so far (GREEN — do not redo) — 2026-06-14, A's actual structure
+- Weak carrier infra + `weak_child_drain` (S-FREE) + `weak_child_drain_ctx_bound` — GREEN.
+- **A found #3/#4/#5 are ONE mutual induction (★).** It is being proved as per-constructor
+  SET-INCLUSION lemmas named `master_cover_<CTOR>`:
+    `strong_opened_live_row_universe_acc (CTOR …) k ⊆ [opened rows of CTOR] ∪ strong_opened_live_row_universe k`
+  **GREEN: `master_cover_RZERO`, `master_cover_RONE`, `master_cover_RCHAR`** (line ~35873-35922;
+  RCHAR is the pattern to mirror — `assumes rsimpStrong_raw k = k`, opens via
+  `rsimp4_SEQ_atom`, absorbs the RONE boundary into SOL k).
+- OPEN cases: `master_cover_RALTS`, `master_cover_RSEQ`, `master_cover_RSTAR`. The old
+  additive acc-split (line 34844) is BOXED — do NOT use it.
 
-### Lanes
-- **WORKER-A** — the weak carrier + #3. Commit FIRST (so B can build): the infra
-  (`wseq`, `weak_child_drain` [S-FREE acc per caveat 1], `slot_cost`, `ctx_bound_as_slots`,
-  `alt_off`/`alt_slot`/`alt_slot_lt`/`nth_alt_slot`), then the CORE
-  `weak_child_drain_charge` (injective slot charge, induction on `rsize p`, all ctor
-  cases incl. the RALTS/RSEQ/RSTAR decomps in verdict5 §3) and its corollary
-  `weak_child_drain_ctx_bound`. Then #3: `strong_child_drain_RALTS_to_weak_children`,
-  `RALTS_wrapped_root_into_weak_slots`, `strong_child_drain_RALTS_ctx_bound` (verdict5 §4-5).
-- **WORKER-B** — #4 RSTAR (verdict5 §6-7), after A commits the weak infra + `weak_child_drain_ctx_bound`:
-  `star_entry_drain` def, `strong_child_drain_RSTAR_to_entry_weak_body`,
-  `star_entry_drain_cost` (singleton/linear — NOT the generic quadratic row bound),
-  `strong_child_drain_RSTAR_ctx_step`. ⚠ master cover is TIGHT on C-DRAIN-2 (slack 0).
-- **WATCHDOG-C** (`/loop`) — when #3 AND #4 are green: **#5** `strong_child_drain_ctx_bound`
-  as the MUTUAL P/Q induction (verdict5 §8: `P p ≡ ∀k. strong … ≤ ctx_bound`,
-  `Q p ≡ ∀k. weak … ≤ ctx_bound`; #3 uses Q on RALTS children, #4 uses Q on the RSTAR
-  body), then **#6** `strong_child_drain_potential` (corollary via #1+#2+#5), then §7
-  `actual_gate_from_current_drain`. Until then: MONITOR + watchdog the critical path (A).
+### Lanes (post-unification)
+- **WORKER-A** — owns `master_cover_RALTS` (its current claim — the hard case) +
+  `master_cover_RSEQ` + the top-level `master_cover` induction driver that combines the
+  cases + the final `strong_child_drain_potential` corollary.
+- **WORKER-B** — owns **`master_cover_RSTAR`** (the RSTAR case; B's #4 area, now framed as
+  the RSTAR case of the unified cover). Mirror `master_cover_RCHAR` (line 35905): state it
+  in the same `…acc (RSTAR p) k ⊆ … ∪ strong_opened_live_row_universe k` shape, with an
+  EXPLICIT induction-hypothesis assumption for the body `p` (the case is inductive, not a
+  base case — see verdict5 §6: the star ENTRY slot + the recursive body under
+  `nseq (RSTAR p) k`). Keep the `rsimpStrong_raw k = k` guard (caveat 2). This is
+  INDEPENDENT of A's RALTS/RSEQ (it recurses on the body via the IH), so B can START NOW.
+  CLAIM `master_cover_RSTAR` in PROGRESS before editing.
+- **WATCHDOG-C** (`/loop`) — when `master_cover_RALTS/RSEQ/RSTAR` are all green: ensure the
+  top-level `master_cover` induction + `strong_child_drain_potential` corollary are assembled
+  (if A hasn't), then §7 `actual_gate_from_current_drain`. Until then: MONITOR + watchdog A.
 
 ### Dependencies — BLOCKED ≠ STALLED (watchdog: do not misfire)
-- WORKER-A (weak carrier + #3) is the CRITICAL PATH and is ACTIVE. Only A's lane is
-  takeover-eligible, and only if A goes silent >30 min (no commit, clean tree, no live
-  worker) mid-lemma.
-- WORKER-B (#4) is **BLOCKED on A committing the weak infra + `weak_child_drain_ctx_bound`**,
-  by design — it is NOT stalled. WATCHDOG-C must NOT take over #4 while it is blocked.
-  Once A commits the weak infra, B becomes active/eligible.
-- #5/#6/§7 are **BLOCKED on #3 AND #4** — not workable yet. Do not attempt early.
+- WORKER-A (`master_cover_RALTS`/RSEQ + driver) is the CRITICAL PATH and ACTIVE.
+- WORKER-B (`master_cover_RSTAR`) is now UN-BLOCKED and independent of A's cases — start it.
+  It is its OWN lemma; claim it so A doesn't also take RSTAR.
+- C must NOT take over a case a live worker is committing; assembly (#6/§7) is BLOCKED until
+  all three open cases are green.
 
 ## What counts as progress (everything else does NOT)
-A GREEN lemma from the verdict5 stack (weak charge / weak ctx_bound / #3 / #4 / #5 / #6)
-or §7. **#6 green = the §4 blocker is CLOSED.** The boxed acc-split, the refuted subset,
+A GREEN `master_cover_<CTOR>` case (RALTS/RSEQ/RSTAR), the assembled `master_cover`
+induction, the `strong_child_drain_potential` corollary, or §7. **The corollary green =
+the §4 blocker is CLOSED.** The boxed acc-split (line 34844), the refuted per-child subset,
 or a child_ok-conditional wrapper do NOT count.

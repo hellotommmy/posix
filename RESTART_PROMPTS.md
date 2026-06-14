@@ -52,29 +52,30 @@ include `S p = p` / `S k = k`, not just `rtail_nf`. Design is pre-validated at d
 each lemma in PROGRESS before editing; build
 `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
 
-### PROMPT B — WORKER-B (verdict5 #4 RSTAR) — GO once WORKER-A commits the weak infra
+### PROMPT B — WORKER-B (master_cover_RSTAR — the RSTAR case) — GO NOW (independent of A)
 
-You are a proof worker on the POSIX cubic-bound project. Repo + entry chain as in
-PROMPT A, but read `GPT_PRO_GATE_BRIDGE_VERDICT4.md` §6-7 (RSTAR). Your lane: #4. It
-reuses `weak_child_drain` + `weak_child_drain_ctx_bound` from WORKER-A — START once A
-has committed those (check PROGRESS); meanwhile you may draft against the stated
-signatures. Deliverables (verdict5 §6-7): `star_entry_drain` def,
-`strong_child_drain_RSTAR_to_entry_weak_body`, `star_entry_drain_cost` (the opened row
-set is singleton-or-empty → use the LINEAR row-size bound, NOT the generic quadratic
-`row_dlforms` bound), then `strong_child_drain_RSTAR_ctx_step` GREEN, no `sorry`. Same
-two caveats as PROMPT A (S-free weak acc; `S p = p` guards). ⚠ the master cover is
-TIGHT on C-DRAIN-2 (slack 0) — keep arithmetic exact. Claim in PROGRESS before editing;
-build `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`. Independent of #3's
-RALTS-specific lemmas once the shared weak infra is in. Route (verdict4 §3): the
-direct star-context step — the escaped re-entry row is charged to a body context from
-`drain_ctxs p` extended by the declared `RSTAR p` suffix
-(`map (ctx_extend (RSTAR p)) (drain_ctxs p)`), plus the single entry slot
-`(RSTAR p, rsize (RSTAR p))`. Target:
-`rsize_set(strong_child_drain (RSTAR p) k) ≤ rsize(RSTAR p) + (1+rsize k) +
-ctx_bound(drain_ctxs p)(nseq (RSTAR p) k)`, using the size fact
-`rsize(nseq (RSTAR p) k) ≤ rsize p + rsize k + 2`. ⚠ the master cover is TIGHT on
-C-DRAIN-2 (slack 0) — keep the arithmetic exact, do not round away constants. When
-green, record it in PROGRESS and update STEER.
+You are a proof worker on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch `codex/backref-values`.
+Read FIRST: `STEER.md` (live lanes — authoritative), `MAINLINE.md` §1-2,
+`GPT_PRO_GATE_BRIDGE_VERDICT4.md` §6-7 (the RSTAR route), last ~150 lines of
+`PROGRESS_BACKREF.md`, then `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`.
+CONTEXT: WORKER-A discovered #3/#4/#5 are ONE mutual induction, proved as per-constructor
+SET-INCLUSION lemmas `master_cover_<CTOR>`: `strong_opened_live_row_universe_acc (CTOR …) k
+⊆ [opened rows] ∪ strong_opened_live_row_universe k`. RZERO/RONE/RCHAR are GREEN
+(see `master_cover_RCHAR`, ~line 35905 — the pattern to mirror). A owns RALTS+RSEQ.
+YOUR LANE: prove **`master_cover_RSTAR`** GREEN, no `sorry` — the RSTAR case of the same
+cover. It is INDEPENDENT of A's RALTS/RSEQ (it recurses on the body `p` via the induction
+hypothesis), so start NOW. CLAIM `master_cover_RSTAR` in `PROGRESS_BACKREF.md` before editing
+so A doesn't also take RSTAR. State it in the SAME shape as `master_cover_RCHAR`
+(`assumes rsimpStrong_raw k = k`, conclusion `…acc (RSTAR p) k ⊆ … ∪ strong_opened_live_row_universe k`)
+but as an INDUCTIVE case: add an explicit IH assumption for the body `p`, and split the RSTAR
+opened universe into the star ENTRY slot `(RSTAR p, rsize (RSTAR p))` + the recursive body
+under `nseq (RSTAR p) k` (verdict5 §6). Use the LINEAR row-size bound for the entry (the
+opened set is singleton-or-empty — NOT the generic quadratic `row_dlforms` bound), and the
+size fact `rsize (nseq (RSTAR p) k) ≤ rsize p + rsize k + 2`. ⚠ keep the `rsimpStrong_raw k = k`
+guard (caveat 2); the cover is TIGHT on the C-DRAIN-2 family (slack 0) — keep arithmetic exact.
+Build `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`. When green, record in
+PROGRESS and update STEER's progress list.
 
 ### PROMPT C — ASSEMBLER + WATCHDOG (`/loop`, e.g. every 20-30 min) — STEER-DRIVEN
 
