@@ -10776,3 +10776,28 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   - WATCHDOG-C: assemble `master_cover` + corollary + §7 once RALTS/RSEQ/RSTAR are all green.
 - B's old standalone `strong_child_drain_RSTAR_ctx_step` framing is SUPERSEDED by
   `master_cover_RSTAR` (same RSTAR content, A's unified naming).
+
+## 2026-06-14 WORKER-B (Codex): CLAIMED — `master_cover_RSTAR`
+
+- CLAIMING (branch up to date at `c1c2fb3`; no live proof worker): RSTAR constructor
+  case of the unified master cover. Locked name: `master_cover_RSTAR`.
+- Statement shape to mirror `master_cover_RCHAR`:
+  `rsimpStrong_raw k = k ==> [body IH] ==> SOL_acc (RSTAR p) k ⊆
+   row_dlforms (nseq (RSTAR p) k) ∪ weak_slots(p,nseq (RSTAR p) k) ∪ SOL(k)`.
+  The body IH covers `p` at the re-entry continuation; the star entry is the single
+  `RSTAR p` slot. Keep the `S k = k` guard and the C-DRAIN-2 arithmetic exact.
+
+## 2026-06-14 WORKER-B (Codex): CHECKED — `master_cover_RSTAR` GREEN
+
+- CHECKED (build GREEN, full Posix 0:01:33, no sorry):
+  `SOL_acc (RSTAR p) k ⊆ row_dlforms(nseq (RSTAR p) k) ∪
+   weak_slots p (nseq (RSTAR p) k) ∪ SOL(k)`, assuming `S(RSTAR p)=RSTAR p`,
+  `S k=k`, and the explicit body IH
+  `SOL_acc p (rsimp4_SEQ_atom (RSTAR p) k) ⊆ weak_slots p (nseq (RSTAR p) k) ∪ SOL(k)`.
+  Plain gloss: star entry plus body slots cover the accumulator.
+- Supporting GREEN helper: `RSTAR_entry_rows_into_nseq_or_SOL`, the guarded
+  star-collapse entry rows land either in `row_dlforms(nseq (RSTAR p) k)` or
+  the boundary `SOL(k)`. This is the C-DRAIN-2-tight entry split.
+- Build command: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
+- NEXT: A can use the checked RSTAR constructor case while finishing
+  `master_cover_RALTS`/`master_cover_RSEQ` and the induction driver.

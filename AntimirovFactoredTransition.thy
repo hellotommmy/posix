@@ -35525,6 +35525,10 @@ definition weak_child_drain :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp se
     (\<Union>hc \<in> set (drain_ctxs p). row_dlforms (rsimp4_SEQ_atom (fst hc) k))
       - row_dlforms k"
 
+definition weak_slots :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "weak_slots p k =
+    (\<Union>hc \<in> set (drain_ctxs p). row_dlforms (rsimp4_SEQ_atom (fst hc) k))"
+
 fun wd_nonalt_head :: "rrexp \<Rightarrow> bool" where
   "wd_nonalt_head (RALTS rs) = False"
 | "wd_nonalt_head (RSEQ (RALTS rs) k) = False"
@@ -35918,6 +35922,126 @@ proof -
   also have "... \<subseteq> row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) \<union>
                     strong_opened_live_row_universe k"
     using wrap master_cover_RONE[of k] by auto
+  finally show ?thesis .
+qed
+
+lemma RSTAR_entry_rows_into_nseq_or_SOL:
+  assumes norm: "rsimpStrong_raw (RSTAR p) = RSTAR p"
+    and norm_k: "rsimpStrong_raw k = k"
+  shows "row_dlforms
+      (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR p) k)) \<subseteq>
+    row_dlforms (nseq (RSTAR p) k) \<union>
+    strong_opened_live_row_universe k"
+proof -
+  have k_boundary:
+      "row_dlforms k \<subseteq> strong_opened_live_row_universe k"
+    using row_dlforms_rsimpStrong_raw_self_subset_SOL[of k] norm_k by simp
+  show ?thesis
+  proof (cases k)
+    case RZERO
+    then show ?thesis
+      using norm by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case RONE
+    then show ?thesis
+      using norm by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RSEQ k1 k2)
+    show ?thesis
+    proof (cases k1)
+      case (RSTAR q)
+      show ?thesis
+      proof (cases "p = q")
+        case True
+        have nseq_eq: "nseq (RSTAR p) k = k"
+          using RSEQ RSTAR True norm norm_k
+          by (simp add: nseq_def rsimp7_SEQ_atom_def)
+        have root_eq:
+            "rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR p) k) = k"
+          using RSEQ RSTAR True norm norm_k
+          by (simp add: nseq_def rsimp7_SEQ_atom_def)
+        show ?thesis
+          using nseq_eq root_eq k_boundary by simp
+      next
+        case False
+        then show ?thesis
+          using RSEQ RSTAR norm norm_k
+          by (simp add: nseq_def rsimp7_SEQ_atom_def)
+      qed
+    qed (use RSEQ norm norm_k in
+      \<open>simp_all add: nseq_def rsimp7_SEQ_atom_def\<close>)
+  next
+    case (RALTS rs)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RSTAR q)
+    show ?thesis
+    proof (cases "p = q")
+      case True
+      have nseq_eq: "nseq (RSTAR p) k = k"
+        using RSTAR True norm norm_k
+        by (simp add: nseq_def rsimp7_SEQ_atom_def)
+      have root_eq:
+          "rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR p) k) = k"
+        using RSTAR True norm norm_k
+        by (simp add: nseq_def rsimp7_SEQ_atom_def)
+      show ?thesis
+        using nseq_eq root_eq k_boundary by simp
+    next
+      case False
+      then show ?thesis
+        using RSTAR norm norm_k
+        by (simp add: nseq_def rsimp7_SEQ_atom_def)
+    qed
+  next
+    case (RNTIMES q n)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RBACKREF4 a b c d cs)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RHALF q cs rep)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using norm norm_k by (simp add: nseq_def rsimp7_SEQ_atom_def)
+  qed
+qed
+
+lemma master_cover_RSTAR:
+  assumes norm: "rsimpStrong_raw (RSTAR p) = RSTAR p"
+    and norm_k: "rsimpStrong_raw k = k"
+    and body_ih:
+      "strong_opened_live_row_universe_acc p
+         (rsimp4_SEQ_atom (RSTAR p) k) \<subseteq>
+       weak_slots p (nseq (RSTAR p) k) \<union>
+       strong_opened_live_row_universe k"
+  shows "strong_opened_live_row_universe_acc (RSTAR p) k \<subseteq>
+    row_dlforms (nseq (RSTAR p) k) \<union>
+    weak_slots p (nseq (RSTAR p) k) \<union>
+    strong_opened_live_row_universe k"
+proof -
+  have "strong_opened_live_row_universe_acc (RSTAR p) k \<subseteq>
+      row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR p) k)) \<union>
+      strong_opened_live_row_universe_acc p
+        (rsimp4_SEQ_atom (RSTAR p) k)"
+    by (rule strong_opened_live_row_universe_acc_RSTAR_subset)
+  also have "... \<subseteq>
+      row_dlforms (nseq (RSTAR p) k) \<union>
+      weak_slots p (nseq (RSTAR p) k) \<union>
+      strong_opened_live_row_universe k"
+    using RSTAR_entry_rows_into_nseq_or_SOL[OF norm norm_k]
+      body_ih by auto
   finally show ?thesis .
 qed
 
