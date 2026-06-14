@@ -32506,7 +32506,7 @@ proof -
       by linarith
     also have "... = rsize (RSEQ r1 r2) *
         ((rsize (RSEQ r1 r2) + 2) * (rsize (RSEQ r1 r2) + 2))"
-      by (simp add: sz)
+      by (simp add: sz algebra_simps)
     finally show ?case .
   next
     case (RALTS rs)
@@ -32526,10 +32526,13 @@ proof -
         rsize (RALTS rs) * ((rsize (RALTS rs) + 2) * (rsize (RALTS rs) + 2))"
     proof -
       have "rsize (RALTS rs) * ((rsize (RALTS rs) + 2) * (rsize (RALTS rs) + 2)) =
+          (rsizes rs + 1) * ((rsizes rs + 3) * (rsizes rs + 3))"
+        by (simp add: sz)
+      also have "... =
           rsizes rs * ((rsizes rs + 2) * (rsizes rs + 2)) +
           (3 * (rsizes rs * rsizes rs) + 11 * rsizes rs + 9)"
-        using nat_drain_alts_ident[of "rsizes rs"] by (simp add: sz)
-      then show ?thesis by linarith
+        by (rule nat_drain_alts_ident)
+      finally show ?thesis by linarith
     qed
     finally show ?case .
   next
