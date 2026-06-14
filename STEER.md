@@ -15,16 +15,18 @@ Self-sync protocol (every agent, every turn):
 
 ---
 
-## ⛔⛔ FREEZE (2026-06-14, build restructure) — COMMIT AND HOLD NOW ⛔⛔
-The Secretary is landing the validated build modularization (it MOVES the active `.thy`
-file to `active/`, so the tree must be clean). DO THIS IMMEDIATELY:
-1. Commit your current work (no `sorry`); push.
-2. STOP — do NOT edit any `.thy`, do NOT start a new lemma, do NOT launch a build.
-3. Post one line `HELD <your-lane>` in the PROGRESS tail.
-4. Wait until this banner is replaced by a RESUME notice (then `git pull --rebase` and
-   open the NEW path `active/AntimirovFactoredTransition.thy`).
-Takes ~5-10 min; afterwards your edit→build cycle is ~55% faster. This banner overrides
-all lane orders below until RESUME.
+## ✅ RESUME (2026-06-14) — build modularization LANDED & GREEN (~104s → ~28-40s)
+RESUME your lanes below. ONE-TIME setup, each agent:
+1. `git pull --rebase --autostash` (you'll receive the file moves).
+2. The active file MOVED (identical content): now `active/AntimirovFactoredTransition.thy`
+   and `active/AntimirovNormalFrontier.thy`. The 11 frozen theories are now in `base/`.
+3. **Build the SAME command** — `scripts\codex-isabelle-build-posix.ps1` (no args) now
+   targets the fast `Posix_Antimirov` leaf, loading the frozen base from its heap image:
+   **~28-40s instead of ~104s.** (jEdit/PIDE: open the new `active/…` path, session
+   `Posix_Antimirov` — auto-loads the `Posix_Base` heap.) You do NOT rebuild the base; if
+   ever needed: `scripts\codex-isabelle-build-posix.ps1 -Session Posix_Base` (rare).
+A: continue `master_cover_RALTS`, then `master_cover_RSEQ`. RSTAR is GREEN (B). Then the
+`master_cover` driver + `strong_child_drain_potential` corollary + §7. Resume now.
 
 ---
 
