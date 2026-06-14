@@ -32413,6 +32413,32 @@ lemma rsize_nseq_star_le:
   "rsize (nseq (RSTAR p) k) \<le> rsize p + rsize k + 2"
   using rsize_nseq_le[of "RSTAR p" k] by simp
 
+lemma child_okD:
+  assumes ok: "child_ok p"
+    and nf: "rtail_nf k"
+    and free: "rntimes_free k"
+    and legacy: "legacy_rrexp k"
+  shows "rsize_set (strong_child_drain p k) \<le>
+    drain_child_budget p k"
+  using assms by (auto simp add: child_ok_def)
+
+lemma child_ok_RONED:
+  assumes ok: "child_ok p"
+  shows "rsize_set (strong_child_drain p RONE) \<le>
+    drain_child_budget p RONE"
+  by (rule child_okD[OF ok]) simp_all
+
+lemma drain_child_budget_RONE:
+  "drain_child_budget p RONE = drain_pot p + 2 * drain_w p"
+  by (simp add: drain_child_budget_def mult.commute)
+
+lemma child_ok_RONE_cubicD:
+  assumes ok: "child_ok p"
+    and budget: "drain_child_budget p RONE \<le> (rsize p + 3) ^ 3"
+  shows "rsize_set (strong_child_drain p RONE) \<le>
+    (rsize p + 3) ^ 3"
+  using child_ok_RONED[OF ok] budget by linarith
+
 fun strong_opened_live_acc_potential :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
   "strong_opened_live_acc_potential RZERO k = 1"
 | "strong_opened_live_acc_potential RONE k =
@@ -34843,6 +34869,39 @@ lemma row_dlformss_rpder_strong_rows_raw_afactored1_clean_subset_strong_opened_l
     strong_opened_live_row_universes (afactored1 r s)"
   by (rule row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_opened_live)
     (use clean in \<open>simp_all add: apder_clean_def\<close>)
+
+lemma actual_gate_from_current_drain:
+  assumes legacy: "legacy_rrexp r"
+    and nf: "apder_nf r"
+    and bound:
+      "rsize_set (strong_opened_live_row_universes (afactored1 r s)) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have sub: "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+      strong_opened_live_row_universes (afactored1 r s)"
+    by (rule row_dlformss_rpder_strong_rows_raw_afactored1_subset_strong_opened_live
+        [OF legacy nf])
+  have "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      rsize_set (strong_opened_live_row_universes (afactored1 r s))"
+    by (rule rsize_set_mono) (use sub in auto)
+  then show ?thesis
+    using bound by linarith
+qed
+
+lemma actual_gate_from_current_drain_clean:
+  assumes clean: "apder_clean r"
+    and bound:
+      "rsize_set (strong_opened_live_row_universes (afactored1 r s)) \<le>
+        2 * (rsize r + 3) ^ 3"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+  by (rule actual_gate_from_current_drain)
+    (use clean bound in \<open>simp_all add: apder_clean_def\<close>)
 
 lemma singleton_alt_live_counterexample_repaired_by_strong_opened_live:
   fixes a :: char

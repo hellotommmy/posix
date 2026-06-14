@@ -10072,3 +10072,46 @@ math inequality + gloss; never force/weaken/sorry; stage only your own files; pu
   (full Posix elapsed 0:01:38). No `sorry`.
 - NEXT smallest brick: prove the RZERO/RONE pass-through child-drain bounds from
   set containment, then start the RCHAR constructor bound.
+
+## 2026-06-14 Codex: CLAIMED - child_ok wrapper API and current-drain bridge
+
+- User correction after `fd91cd0`: stop working the §1-5 child-invariant lane.
+  A local checked RZERO child-drain WIP was stashed as
+  `wip-rzero-child-drain-off-lane` and will not be pushed from this lane.
+- Active Codex lane is verdict2 §6-7: adapt wrappers to consume `child_ok` and
+  wire the final bridge from the current normalized drain carrier to the actual
+  gate.
+- Small target now: prove `child_ok` elimination lemmas for root continuation
+  `RONE`, expose `drain_child_budget p RONE = drain_pot p + 2*drain_w p`,
+  and prove the conditional bridge
+  `rsize_set(strong_opened_live_row_universes (afactored1 r s)) <=
+   2*(rsize r+3)^3 ==> actual_gate <= 2*(rsize r+3)^3`.
+
+## 2026-06-14 Codex: CHECKED - child_ok root API and current-drain bridge
+
+- New wrapper-facing elimination:
+  `child_ok p ==> rsize_set(strong_child_drain p RONE) <=
+   drain_child_budget p RONE`.
+  Plain gloss: wrappers can consume the child theorem at the root continuation.
+- New root-budget rewrite:
+  `drain_child_budget p RONE = drain_pot p + 2 * drain_w p`.
+  Plain gloss: the root child budget is exactly potential plus two weight units.
+- New cubic handoff:
+  `child_ok p ==> drain_child_budget p RONE <= (rsize p+3)^3 ==>
+   rsize_set(strong_child_drain p RONE) <= (rsize p+3)^3`.
+  Plain gloss: once the child theorem and cubic arithmetic land, wrappers inherit
+  the root child bound directly.
+- New current-carrier bridge:
+  `legacy_rrexp r ==> apder_nf r ==>
+   rsize_set(strong_opened_live_row_universes (afactored1 r s)) <=
+   2*(rsize r+3)^3 ==>
+   rsize_set(row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <=
+   2*(rsize r+3)^3`.
+  Plain gloss: the actual gate is now wired to the current normalized carrier,
+  not to the checked-false original-root carriers.
+- Clean-domain wrapper also checked via `apder_clean_def`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:40). No `sorry`.
+- NEXT smallest brick: after the §1-5 child theorem lands, replace the abstract
+  current-carrier bound premise with the `child_ok`-based root wrapper bound.
