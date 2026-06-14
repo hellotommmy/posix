@@ -54,7 +54,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; §4 per-child SET-containment PROVEN for SEQ/CHAR (Codex; RCHAR green) but CHECKED-FALSE for RALTS/RSTAR (guarded `a*·a*→a*` collapse + zero RALTS budget slack, secretary-verified against the real Isabelle defs); master bound `strong_child_drain_potential` still believed TRUE (300k samples) so a proof EXISTS but NOT via per-child ALTS/STAR telescoping; needs a corrected ALTS/STAR design → GPT Pro pass in preparation)
+## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; §4 per-child SET-containment PROVEN for SEQ/CHAR but CHECKED-FALSE for RALTS/RSTAR (guarded `a*·a*→a*` collapse); CORRECTED ROUTE in hand: GPT Pro verdict4 context-cover ledger `drain_ctxs` — replaces set-membership with a size COST-COVER — VALIDATED at depth≥5 (zero violations, ~580k cases, both old CEs now covered); now IMPLEMENTING the 6-lemma stack. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED, then §7.)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -226,12 +226,20 @@ Vocabulary (fixed, do not rename):
   of RALTS are exactly Σ over children — nothing to pay the boundary). The master
   bound itself is still believed TRUE (300k). See `SUPER_LINEAR_PATTERNS.md` C-DRAIN,
   `GATE_BRIDGE_GAP.md` UPDATE 3.
-- **Current narrow instruction:** the per-child ALTS/STAR route is **dead** — do
-  NOT grind it or its boundary variants. SEQ/CHAR containment (Codex) and §5
-  arithmetic (green) continue. The open design question is a **corrected
-  non-telescoping ALTS/STAR account** (bound the parent drain directly, within
-  budget, without routing each parent row into a child drain) → GPT Pro pass in
-  preparation. Sample at depth ≥ 5 before Isabelle. Do NOT re-attempt: the verbatim
+- **CORRECTED ROUTE — verdict4 context-cover (2026-06-14, VALIDATED).** GPT Pro's
+  `GPT_PRO_GATE_BRIDGE_VERDICT3.md`: bound the parent drain SIZE by a linear
+  context-slot ledger `drain_ctxs p` (one slot per `drain_w` unit; DECLARED cost
+  `snd + (1+rsize q)` survives the `a*·a*→a*` collapse), NOT by set membership.
+  Secretary-validated at depth≥5 (zero violations, ~580k cases; both C-DRAIN CEs
+  now covered; master cover TIGHT on C-DRAIN-2). 6-lemma stack (verdict4 §5):
+  `drain_ctxs_{count_le_w, base_le_pot}` (static), `strong_child_drain_{RALTS_ctx_bound,
+  RSTAR_ctx_step}` (NEW covers), `strong_child_drain_ctx_bound` (master induction on
+  rsize p), `strong_child_drain_potential` (corollary = §4 blocker CLOSED).
+  Lane split + exact statements: STEER.md.
+- **Current narrow instruction:** implement the verdict4 6-lemma stack (above).
+  The design is pre-validated — go straight to Isabelle, re-sample only if you
+  change a statement. Do NOT re-attempt the now-dead per-child ALTS/STAR
+  membership or its boundary variants. Do NOT re-attempt: the verbatim
   subset target, the opened-boundary/liveness original-root carriers, the square-sum
   or list-cost routes, the falsified unary/potential strengthenings, the old zwidth
   law, the first J* invariant, raw zw2, or `*_list_cost_alt_nodes`/generated-ledger

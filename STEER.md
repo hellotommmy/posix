@@ -9,55 +9,55 @@ live in `PROGRESS_BACKREF.md`; this file is only "what to do right now."
 Self-sync protocol (every agent, every turn):
 1. `git pull --rebase --autostash` in `posix-codex`.
 2. Re-read THIS file (and the PROGRESS tail if you need context).
-3. Obey the order for your lane below. Claim the constructor you take in
-   PROGRESS before editing so the two lanes don't collide.
+3. Obey the order for your lane below. Claim the lemma you take in PROGRESS
+   before editing so the two lanes don't collide.
 
 ---
 
-## THE goal (unchanged) — and what just changed
+## THE route — verdict4 context-cover (VALIDATED, implement it)
 
-Master theorem (still believed TRUE — 300k samples, zero violations; measure =
-`rsize p` only, continuation `k` may grow):
+GPT Pro's verdict4 (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`) replaces the refuted
+set-MEMBERSHIP step with a size **cost-cover**: a linear context-slot ledger
+`drain_ctxs p` (one slot per `drain_w` unit) whose **declared** cost survives the
+`a*·a*→a*` collapse. Keeps `drain_pot`, `drain_w`, and the green §5 arithmetic.
 
-```
-rsize_set( strong_child_drain p k )  <=  drain_pot p + drain_w p * (1 + rsize k)
-```
+**Secretary has sample-validated ALL of it at depth≥5 — zero violations across
+~580k cases, and BOTH old CEs (C-DRAIN-1, C-DRAIN-2) are now covered.** You may go
+STRAIGHT to Isabelle; only re-sample if you CHANGE a statement. ⚠ The master cover
+is TIGHT on C-DRAIN-2 (slack 0) — the RSTAR/RSEQ arithmetic must be exact, no
+rounding-away of constants.
 
-**The per-child SET-containment route to it is now CHECKED-FALSE for RALTS and
-RSTAR** (independently verified by the secretary against the real Isabelle
-defs — NOT a model bug). Mechanism: `rsimp7_SEQ_atom` has a guarded rule
-`(RSTAR r, RSTAR s) ⇒ if r=s then RSTAR r` (BasicIdentities.thy:414) that
-collapses `a*·a* → a*` in a child, while `rsimp4_SEQ_atom` keeps it — so the
-parent opened row holds a bigger form that no child drain contains. SEQ/CHAR
-are unaffected (reassociation is sound). A proof EXISTS; it is **not** via
-per-child telescoping. This is a GPT Pro design pass (in preparation).
+### The 6-lemma stack to implement (verdict4 §5)
 
-## Lanes (2026-06-14, post-verification)
+Infra (defs): `drain_ctx = rrexp×nat`, `ctx_base`, `ctx_count`,
+`ctx_bound Cs k = ctx_base Cs + ctx_count Cs * (1 + rsize k)`,
+`raw_plug h k = rsimp7_SEQ_atom h k`,
+`ctx_extend q hc = (raw_plug (fst hc) q, snd hc + (1 + rsize q))`  ← DECLARED cost,
+NOT `rsize (raw_plug …)`, and `drain_ctxs` (the structural recursion, §1).
 
-- **opus / ALTS-STAR agent** — DO NOT keep grinding the refuted per-child
-  containments or boundary variants. Both readings are now characterized:
-  the row_dlforms boundary is FALSE for RSTAR; the full-universe boundary
-  (`strong_opened_live(nseq …) − strong_opened_live(S k)`) makes the inclusion
-  HOLD but RALTS has **zero budget slack** (`open_pot`/`apder_zw2` of RALTS are
-  *exactly* Σ over children — no constructor term to pay the boundary). The
-  ALTS/STAR *account* is blocked pending the GPT Pro corrected design.
-  REAL interim work (non-wrapper, non-colliding): bank the TRUE unconditional
-  full-universe inclusions as standalone SET lemmas (no `child_ok` hypothesis) —
-  `strong_opened_live(nseq (RALTS rs) k) ⊆ strong_opened_live(S k) ∪ ⋃_q strong_opened_live(nseq q k)`
-  and the RSTAR analogue — since any corrected design will reuse them; the budget
-  question (how to pay) is GPT Pro's. Sample at depth ≥ 5 first. If you cannot
-  state a TRUE unconditional lemma, HOLD — do not produce conditional wrappers.
+1. `drain_ctxs_count_le_w`  : `ctx_count (drain_ctxs p) ≤ drain_w p`     (structural)
+2. `drain_ctxs_base_le_pot` : `ctx_base  (drain_ctxs p) ≤ drain_pot p`   (structural)
+3. `strong_child_drain_RALTS_ctx_bound`  — the RALTS cost cover           (NEW, crux)
+4. `strong_child_drain_RSTAR_ctx_step`   — the RSTAR cost step            (NEW, crux)
+5. `strong_child_drain_ctx_bound`  : `rsize_set (strong_child_drain p k) ≤ ctx_bound (drain_ctxs p) k`
+   — the master induction on `rsize p` (continuation may grow), dispatching all ctors
+6. `strong_child_drain_potential`  : the original target, as a COROLLARY of 1+2+5.
+   **Lemma 6 green = the §4 blocker is CLOSED; then §7 `actual_gate_from_current_drain`.**
 
-- **Codex** — UNAFFECTED, keep going: the SEQ/CHAR lane is sound. Finish the
-  **RSEQ** middle-boundary SET containment
-  `strong_child_drain (RSEQ r1 r2) k ⊆ strong_child_drain r1 (nseq r2 k) ∪ strong_child_drain r2 k`
-  (reassociation telescopes cleanly), plus the **RCHAR** containment (green).
-  These are reusable regardless of which ALTS/STAR design wins. RZERO done.
+### Lanes (2026-06-14, post-validation)
+
+- **opus** — own the INFRA defs + the two NEW semantic covers (#3 RALTS, #4 RSTAR).
+  Commit the infra defs (`drain_ctxs`, `ctx_*`, `ctx_extend`, `raw_plug`) FIRST so
+  Codex can build on them. These two covers are the only genuinely-new design
+  content; everything else reuses existing facts.
+- **Codex** — own the two STATIC lemmas (#1, #2 — pure structural induction; they
+  need only the infra defs, not the covers, so start as soon as opus commits defs),
+  the **RSEQ + RCHAR** ctx cases (reuse your green SEQ containment + verdict4 §4's
+  exact RSEQ arithmetic), then the master assembly (#5, blocks on opus's #3/#4) and
+  the corollary (#6).
 
 ## What counts as progress (everything else does NOT)
 
-(a) a constructor case of `strong_child_drain_potential` discharged as a SET
-containment **for SEQ/CHAR** (ALTS/STAR await the corrected design); (b) a TRUE
-unconditional ALTS/STAR set fact the design will reuse; (c) §7
-`actual_gate_from_current_drain`. A new arithmetic lemma, a refuted boundary
-variant, or any lemma conditional on the unproven `child_ok`, does NOT count.
+A GREEN (checked, no sorry) lemma from the 6-stack above, or §7. Lemma 6 green is
+the win. A refuted boundary variant, a child_ok-conditional wrapper, or more
+arithmetic outside this stack does NOT count.

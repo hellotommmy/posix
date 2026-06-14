@@ -202,3 +202,41 @@ hard case (zero slack): the account must absorb the un-collapsed `a*·a*`-type
 parent rows into the children's *budget* even though they are not in the children's
 *drain sets*. Reuse the PROVEN SEQ/CHAR containment and the GREEN §5 arithmetic;
 the TRUE full-universe inclusion (above) is available as a building block.
+
+---
+
+## UPDATE 4 (2026-06-14): GPT Pro verdict4 — the context-cover ledger — ANSWERS it (validated)
+
+GPT Pro returned the corrected design (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`). It is
+exactly the tail-incidence answer the UPDATE 3 ask asked for: bound the parent drain
+SIZE, not its membership.
+
+THE DESIGN: a linear ledger of one-hole right contexts
+  `drain_ctxs p :: (rrexp × nat) list`  — one slot per `drain_w` unit (one per char,
+  one per star re-entry), with each slot carrying a DECLARED cost
+  `ctx_extend q hc = (rsimp7_SEQ_atom (fst hc) q, snd hc + (1 + rsize q))`.
+The declared cost (NOT `rsize (raw_plug …)`) is the whole trick: when `rsimp7`
+collapses `a*·a*→a*` in a child, the slot still charges for the consumed suffix. So
+a parent opened row is SIZE-COVERED by a child context slot even though it is not a
+MEMBER of any child drain. RALTS needs no new credit because `drain_ctxs (RALTS rs)`
+is just `concat` of the children's ledgers — additive exactly like `drain_pot` and
+`apder_zw2`. RSTAR adds one entry slot + extends every body slot by the declared
+`RSTAR p` suffix (`W+2` slack, as the prior memo's star arithmetic).
+
+  rsize_set (strong_child_drain p k)  ≤  ctx_bound (drain_ctxs p) k
+                                      ≤  drain_pot p + drain_w p * (1 + rsize k)
+
+(the second `≤` from `ctx_count ≤ drain_w` and `ctx_base ≤ drain_pot`).
+
+WHY THE CEs ARE PAID:
+- C-DRAIN-1: `b·(a*·a*)` (rsize 7) is charged to the slot of head `b·a*` (base 4)
+  plus continuation `1 + rsize k = 3` → `4+3 = 7` exactly.
+- C-DRAIN-2: the escaped star re-entry row is charged to a body slot extended by the
+  declared `RSTAR p` suffix (`map (ctx_extend (RSTAR p)) (drain_ctxs p)`).
+
+VALIDATION (secretary, depth≥5, 2026-06-14): three independent harnesses over the
+faithful model (each passing the RCHAR-sanity gate + a transcription self-test),
+ZERO violations across ~580k cases — the two static lemmas, the RALTS cover, the
+RSTAR step/cover, the master `strong_child_drain_ctx_bound`, and the corollary all
+hold; both C-DRAIN cases now PASS (C-DRAIN-2 tight, slack 0). 6-lemma implementation
+stack in verdict4 §5; lane split in STEER.md. This is the route being implemented.

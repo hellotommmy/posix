@@ -10386,3 +10386,39 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   `strong_opened_live(S k)`). The checked theorem matches verdict2's normalized
   invariant shape.
 - NEXT smallest brick: RSEQ normalized telescoping SET containment.
+
+## 2026-06-14 Codex: CLAIMED — RSEQ normalized telescoping containment
+
+- Taking the RSEQ middle-boundary SET containment next, in the same normalized
+  theorem shape as the checked RCHAR brick. Existing sampled model result:
+  RSEQ holds on 100,000 normalized random cases plus directed families.
+
+## 2026-06-14 Secretary: GPT Pro verdict4 (context-cover) VALIDATED — new route, both lanes flipped
+
+- The §4 per-child ALTS/STAR membership route is dead (C-DRAIN-1/2, verified vs
+  real Isabelle defs). GPT Pro verdict4 (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`) is the
+  corrected design: a **context-cover ledger** `drain_ctxs p` — bound the parent
+  drain SIZE by linear context slots (one per `drain_w` unit; DECLARED cost
+  `snd + (1+rsize q)` survives the `a*·a*→a*` collapse), NOT set membership. Keeps
+  `drain_pot`/`drain_w` + the green §5 arithmetic.
+- Plain math (the master + corollary):
+    rsize_set( strong_child_drain p k )  ≤  ctx_bound(drain_ctxs p) k
+                                         ≤  drain_pot p + drain_w p * (1 + rsize k)
+  via `ctx_count(drain_ctxs p) ≤ drain_w p` and `ctx_base(drain_ctxs p) ≤ drain_pot p`.
+- VALIDATED by secretary at depth≥5 — 3 independent harnesses over the faithful
+  model (each passing RCHAR-sanity + a transcription self-test), ZERO violations
+  across ~580k cases; both C-DRAIN CEs now COVERED (C-DRAIN-1 exact: slot 4+3=7;
+  C-DRAIN-2 tight, slack 0). RALTS pays with NO new credit (slot lists concat,
+  additive like drain_pot/zw2); RSTAR adds one entry slot (W+2 slack).
+- NEW LANES (see STEER.md for exact statements):
+  - opus: INFRA defs (`drain_ctxs`, `ctx_*`, `ctx_extend`, `raw_plug`) committed
+    FIRST, then the two NEW semantic covers `strong_child_drain_RALTS_ctx_bound`
+    and `strong_child_drain_RSTAR_ctx_step`.
+  - Codex: the two STATIC lemmas (`drain_ctxs_count_le_w`, `drain_ctxs_base_le_pot`),
+    the RSEQ/RCHAR ctx cases (reuse green SEQ containment), then master
+    `strong_child_drain_ctx_bound` (induction on rsize p) + corollary
+    `strong_child_drain_potential`.
+- Design is PRE-VALIDATED: go straight to Isabelle, re-sample only if a statement
+  changes. ⚠ master cover is TIGHT on C-DRAIN-2 (slack 0) — RSTAR/RSEQ arithmetic
+  must be exact. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED,
+  then §7 `actual_gate_from_current_drain`.

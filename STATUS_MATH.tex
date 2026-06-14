@@ -4,7 +4,7 @@
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage[colorlinks=true,linkcolor=blue]{hyperref}
-\usepackage{microtype}
+\usepackage[expansion=false]{microtype}
 
 % --- plain-math notation (no Isabelle jargon) ---
 \newcommand{\rs}[1]{\lvert #1\rvert}                  % regex size
@@ -124,12 +124,18 @@ a bigger form no child drain contains (CE\,C-DRAIN-1 $r=(b\,a^{*}{+}1)$, $k=a^{*
 CE\,C-DRAIN-2 $r=((1{+}a)c)^{*}$, $k=1$). Adding the full parent opened row as a
 boundary makes the inclusion HOLD but cannot be PAID: $\mathrm{RALTS}$ has zero
 constructor slack ($\mathrm{open\_pot}$ and $\zw$ of $\mathrm{RALTS}$ are exactly
-$\Sigma$ over children). The master bound itself is still believed TRUE ($3{\times}10^{5}$
-samples). \emph{Open design question} (GPT Pro pass, in preparation): a
-\textbf{non-telescoping ALTS/STAR account} that bounds the parent drain directly
-within budget, reusing the proven SEQ/CHAR containment and the green $\S5$
-arithmetic. See \texttt{GATE\_BRIDGE\_GAP.md} UPDATE~3. Once it lands, the boxed
-goal closes (clean fragment).
+$\Sigma$ over children). \emph{Corrected route, in hand (GPT Pro verdict4, VALIDATED
+at depth ${\ge}5$, zero violations over ${\sim}5.8{\times}10^{5}$ cases):} replace
+the set-MEMBERSHIP step by a size \textbf{cost-cover} --- a linear context-slot
+ledger $\mathrm{drain\_ctxs}\,p$ (one slot per $\zw$ unit) whose \emph{declared}
+slot cost survives the $a^{*}\!\cdot\!a^{*}\!\to\!a^{*}$ collapse, so a parent
+opened row is size-covered by a child slot without being a child-drain member.
+$\mathrm{RALTS}$ needs no new credit (slot lists concatenate, additive like
+$\mathrm{drain\_pot}/\zw$); $\mathrm{RSTAR}$ adds one entry slot. Both old CEs are
+now covered. Now IMPLEMENTING the 6-lemma stack
+(\texttt{GPT\_PRO\_GATE\_BRIDGE\_VERDICT3.md} \S5; \texttt{GATE\_BRIDGE\_GAP.md}
+UPDATE~4): the corollary $\mathrm{strong\_child\_drain\_potential}$ green closes the
+boxed goal (clean fragment), then the gate wrapper.
 
 \item[\todo] \textbf{After that:} lift the result from the clean fragment to
 \emph{all} regexes including bounded repetition $r^{\{n\}}$. This needs a
