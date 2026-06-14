@@ -10930,3 +10930,15 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - B (ABSORBED form ONLY; literal form is FALSE ~25%) `SOL_rsimp4_SEQ_atom_absorbed_bridge`:
   `strong_opened_live_row_universe (rsimp4_SEQ_atom q cont)
      <= strong_opened_live_row_universe_acc q cont U strong_opened_live_row_universe cont`.
+
+## 2026-06-15 Secretary: verdict6 (slot_origin_cover) AS-WRITTEN REFUTED (depth>=5); two-route salvage in validation
+
+- verdict6 strict-collapses_to make-or-break FAILS 97/40849: strong_child_drain RETAINS uncollapsed
+  long rows in the RALTS regime (CE p=RALTS[a, a.a*]=(a+a.a*), k=a*, row a.a*.a* rsize 7) that NO
+  S-collapsing weak witness reaches (S(any big weak row)=a.a*). collapses_to is inverted there. B1-SEQ/
+  B1-STAR also fail as written (corrected only as S-closed over ALL slots). L-SEQ/L-STAR HOLD. (3rd
+  structural route to die on the a*.a* collapse-granularity gap; numeric bound still 0-viol true.)
+- SECRETARY SALVAGE (from the failure data: the failing rows ARE weak slot rows, x=y): TWO-ROUTE witness
+  slot_charges(y,x) = rsize x<=rsize y AND (x=y OR x in row_dlforms(S y)); B1 over S-closed rows on entry+body
+  slots. All verdict6 failures were no-edge (0 Hall), so direct-membership edges should saturate. Validating now.
+- A + all agents HOLD. If two-route validates -> executor runs verdict6 §1-7 with slot_charges; else Pro micro-ask.

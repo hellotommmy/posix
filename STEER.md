@@ -44,14 +44,17 @@ set-containment.** A (and all agents): HOLD the assembly — do NOT invent a thi
 land the validated-safe bricks (the ABSORBED-B1 bridge; the guard-decompositions) — those are reusable
 under any design.
 
-### ⏳ verdict6 RECEIVED — `slot_origin_cover` (validation in progress, 2026-06-15)
-GPT Pro verdict6 (`GPT_PRO_GATE_BRIDGE_VERDICT5.md`) answers it: replace set-containment with a
-`slot_origin_cover` — an INJECTIVE map from each strong row to a paid drain_ctxs slot whose weak
-witness `collapses_to` it (`row_dlforms(S y)={x} ∧ rsize x ≤ rsize y`); strong row = theorem object,
-weak row = cost witness only. Pays `b·a*` via `y=b·(a*·a*)`. Secretary is machine-validating the
-make-or-break (does an injective slot_origin_cover EXIST for strong_child_drain — a matching check —
-+ the lift lemmas) at depth≥5. **STILL HOLD until this banner is replaced by a GREEN-LIGHT.** If
-validated, the executor implements the §1-7 stack; if a CE is found, a Pro micro-ask follows.
+### ⏳ verdict6 `slot_origin_cover` — AS-WRITTEN REFUTED; secretary TWO-ROUTE fix in validation (2026-06-15)
+verdict6 (`GPT_PRO_GATE_BRIDGE_VERDICT5.md`): replace set-containment with a `slot_origin_cover`
+(injective strong-row → paid-slot charge, weak row = cost witness via `collapses_to`). Validated
+depth≥5: the strict-`collapses_to` make-or-break FAILS (97/40849) + B1-SEQ/B1-STAR fail as written.
+ROOT: `strong_child_drain` RETAINS some UNCOLLAPSED long rows (RALTS regime, CE `p=(a+a·a*), k=a*`,
+row `a·a*·a*` rsize 7) that no S-collapsing witness can reach — `collapses_to` is inverted there.
+SALVAGE (secretary, from the data — those rows ARE weak slot rows, `x=y`): a TWO-ROUTE witness
+`slot_charges(y,x) ⟺ rsize x ≤ rsize y ∧ (x=y ∨ x∈row_dlforms(S y))` + B1 over the S-closed rows on
+ALL slots (entry+body). All prior failures were no-edge (0 Hall failures), so this should saturate.
+Being machine-validated NOW. **STILL HOLD — do NOT execute verdict6 as written.** If the two-route fix
+validates, the executor runs the §1-7 stack with `slot_charges` (not `collapses_to`); else a Pro micro-ask.
 
 ---
 
