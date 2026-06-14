@@ -60,22 +60,35 @@ ctx_bound(drain_ctxs p)(nseq (RSTAR p) k)`, using the size fact
 C-DRAIN-2 (slack 0) — keep the arithmetic exact, do not round away constants. When
 green, record it in PROGRESS and update STEER.
 
-### PROMPT C — ASSEMBLER + WATCHDOG (`/loop`, e.g. every 20-30 min)
+### PROMPT C — ASSEMBLER + WATCHDOG (`/loop`, e.g. every 20-30 min) — STEER-DRIVEN
 
-You are the assembler/watchdog on the POSIX cubic-bound project. Repo + entry chain:
-see above. Run on `/loop`. EACH tick: `git pull --rebase --autostash`, read STEER +
-PROGRESS tail, check whether `strong_child_drain_RALTS_ctx_bound` (#3) and
-`strong_child_drain_RSTAR_ctx_step` (#4) are both GREEN.
-- If BOTH green: prove **#5** `strong_child_drain_ctx_bound` (induction on `rsize p`,
-  dispatching the now-green per-constructor ctx cases) and **#6**
-  `strong_child_drain_potential` (corollary via #1 `drain_ctxs_count_le_w` + #2
-  `drain_ctxs_base_le_pot` + #5; `nlinarith` after unfolding `ctx_bound`). #6 green =
-  the §4 blocker is CLOSED — then begin §7 `actual_gate_from_current_drain`.
-- If NOT both green: check WORKER-A and WORKER-B for stalls. If a lane has had NO
-  commit for >30 min with a clean tree, TAKE OVER that lane (claim it in PROGRESS,
-  using A's or B's route above). Do NOT attempt #3/#4 as a quick backup tick if a
-  worker is actively committing — only take over a genuinely stalled lane.
-Build to verify green: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
+You are the watchdog/assembler on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch `codex/backref-values`.
+You SHARE the worktree — never edit while a worker is active (collision). Run on `/loop`.
+EACH cycle, READ-ONLY FIRST: `git pull --rebase --autostash` (TRUST git timestamps, not
+HH:MM labels in PROGRESS); re-read `STEER.md` (the live order — it OVERRIDES anything
+hardcoded here) + the last ~120 lines of `PROGRESS_BACKREF.md`; liveness check
+`powershell -NoProfile -ExecutionPolicy Bypass -File scripts\codex-proof-workers.ps1 -Action Check`.
+The CURRENT route is verdict4 context-cover (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`); the
+opened-boundary / `VERDICT.md` route is DEAD — NEVER work it. Then act by STEER, priority:
+  A. If STEER shows #3 `strong_child_drain_RALTS_ctx_bound` AND #4
+     `strong_child_drain_RSTAR_ctx_step` BOTH green → do the mechanical assembly: #5
+     `strong_child_drain_ctx_bound` (induction on `rsize p`), then #6
+     `strong_child_drain_potential` (corollary via #1+#2+#5, `nlinarith`), then begin §7
+     `actual_gate_from_current_drain`. ONE Isabelle build at a time
+     (`scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`); four guards; no
+     `sorry`; stage only your own files; commit small + push.
+  B. Else if STEER marks #3/#4 as GATED (awaiting the GPT Pro cover-proof skeleton) —
+     the CURRENT state → MONITOR ONLY. Do NOT edit .thy, do NOT take over, do NOT
+     re-derive the boxed acc-split. Print one line: "Gated on GPT Pro skeleton; workers
+     <live/stopped>; newest commit <Xm> ago: <subject>; §1 gate <open/closed>."
+  C. Else if a worker lane is UN-gated in STEER and that worker stalled >30 min (no
+     commit, clean tree, no live worker) → take over THAT lane per STEER's route for it
+     (claim in PROGRESS first). Never cold-tick a crux STEER reserves for a sustained primary.
+  D. If the §1 gate is already CLOSED → say so prominently, monitor only.
+If your pull shows a worker resumed (fresh commit not yours), finish your current safe
+brick then drop to monitor. Report results as a math inequality + ≤10-word gloss. Goal:
+zero idle time, but NEVER advance a dead or gated route.
 
 ---
 
