@@ -10149,3 +10149,36 @@ math inequality + gloss; never force/weaken/sorry; stage only your own files; pu
 - NEXT smallest brick: once the child theorem/cubic arithmetic lands, consume
   these APIs to close the conditional RALTS/RSEQ/RSTAR root wrappers without
   falling back to the old per-shape potential shells.
+
+## 2026-06-14 Codex: CLAIMED - nseq child_ok numeric wrapper bounds
+
+- No newer remote child theorem yet after fetch; no live worker.
+- Target: prove the verdict2 wrapper arithmetic interfaces
+  `drain_child_budget p (nseq q k) <=
+   drain_pot p + drain_w p * (rsize q + rsize k + 2)` and the STAR re-entry
+  specialization with `q = RSTAR p`, then combine them with `child_ok_nseqD`.
+- These are §6 wrapper consumption lemmas only; they do not prove the shared
+  recursive child invariant.
+
+## 2026-06-14 ADMIN/Secretary: STOP building wrappers — prove the §4 CHILD INVARIANT (it is unstaffed)
+
+Priority inversion flagged by the admin. The last ~40 min went entirely into
+verdict2 §6 wrapper/API consumption lemmas (child_ok_nseqD, nseq side-conditions,
+wrapper arithmetic interfaces). Those are CONDITIONAL on `child_ok`, which is NOT
+yet proven — so they do not advance the final result yet. Meanwhile the actual
+content, the recursive child invariant `strong_child_drain_potential` (verdict2
+§4), has 0 refs — NO ONE is proving it.
+
+REDIRECT, both agents:
+- §6 wrappers are now SUFFICIENT — STOP adding more wrapper/API/interface lemmas.
+- The gate is blocked on exactly ONE thing: prove
+  `strong_child_drain_potential` (verdict2 §4) — the recursive
+  `rsize_set(strong_child_drain p k) <= drain_pot p + drain_w p*(1+rsize k)`,
+  measure = rsize p only, by the per-constructor discharges:
+  RZERO/RONE (=∅), RCHAR (+1 slack), RALTS (additive child budget + subadditivity),
+  RSEQ (+Wp, middle-boundary cancellation), RSTAR (+W+2, body under nseq(RSTAR p) k).
+  SPLIT the constructor cases between the two agents; claim each in PROGRESS.
+- Then `drain_pot_le_cubic_core` / `drain_child_budget_root_cubic` (§5) and the
+  final `actual_gate_from_current_drain` (§7). THESE close the gate; nothing else does.
+- DO NOT write any more conditional lemmas premised on an unproven `child_ok`.
+  Only the two theorems above (§4 child invariant, §7 final gate) count as progress.
