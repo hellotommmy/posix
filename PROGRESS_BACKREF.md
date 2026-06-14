@@ -9438,3 +9438,24 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove a general RALTS self-suffix quadratic constructor
   bound, likely by pairing the existing RALTS root-shell/root-charge facts with
   child budgets at the shared parent STAR suffix.
+
+## 2026-06-14 Codex: CHECKED - set-level RALTS payload opener bound
+
+- First build attempt failed only because the new corollary was placed before
+  its dependency `rsize_set_row_dlforms_le_row_dlforms_list_size`; moved it
+  below that fact and rebuilt green.
+- New checked set-level corollary:
+  if every payload in `ps` is `rnonseq` and `nonalt`, and
+  `row_dlforms_list_size k <= rsize k`, then
+  `rsize_set(row_dlforms(RSEQ (RALTS ps) k)) <=
+   rsizes ps + length ps * Suc(rsize k)`.
+  Plain gloss: opening a flat alternative payload over a controlled suffix has
+  the expected quadratic/product bound at the SET ledger level, not just as a
+  list-size statement. This is the non-strong target needed for the tighter
+  RALTS root-charge comparison.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: connect this non-strong RALTS opener bound to the
+  strong-normalized RALTS root row, without asserting the known-false general
+  rowwise cost monotonicity.
