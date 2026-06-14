@@ -10010,3 +10010,29 @@ LANE SPLIT (avoid collision; both edit AntimirovFactoredTransition.thy):
 
 Both: one build at a time; small checked bricks; report each CHECKED result as a
 math inequality + gloss; never force/weaken/sorry; stage only your own files; push.
+
+## 2026-06-14 Codex: CHECKED - verdict2 drain sample checker
+
+- Added `agent_hunt_pipeline/scripts/drain_rowcount_check.py` with a `drain`
+  sampler that models
+  `rsimpStrong_raw`, `nseq p k = S(rsimp7_SEQ_atom (S p) (S k))`,
+  `strong_opened_live`, and
+  `strong_child_drain p k = strong_opened_live(nseq p k) -
+  strong_opened_live(S k)`.
+- Depth-5 sample before Isabelle:
+  `rsize_set(strong_child_drain p k) <=
+   drain_pot p + drain_w p * (1 + rsize k)` survived 300,013 normalized
+  cases, including singleton-ALT, opened-continuation, nested-STAR, and
+  RONE-tower directed cases. Tightest child slack was the intended
+  pass-through equality `0 <= 0`.
+- Same sample checked the cubic core:
+  `drain_pot p <= rsize p * (rsize p + 2)^2`; tightest sampled case was
+  the character base `2 <= 9`.
+  Plain gloss: the continuation-parametric drain budget has no depth-5 CE
+  and RONE contributes zero new forms.
+- Regression smoke: existing `opened` mode still passes 10,006 depth-5 cases.
+- No Isabelle theory edit in this brick. Worker check before sampling found no
+  live proof-worker process.
+- NEXT smallest brick: claim and add the formal `nseq`/`strong_child_drain`/
+  `drain_pot` interface plus the smallest checked base lemma, unless another
+  agent lands those defs first.
