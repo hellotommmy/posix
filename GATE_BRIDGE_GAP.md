@@ -84,3 +84,44 @@ for the opened ledger. Concretely:
 Respect the refutations in `CUBIC_OPEN_PROBLEM.pdf` §6 and
 `SUPER_LINEAR_PATTERNS.md` (the list-cost / square-sum routes are dead as stated;
 any bound must be on the deduplicated set).
+
+---
+
+## UPDATE 2026-06-14: the verdict's carrier-preservation step is FALSE as stated (checked CE)
+
+Executing the opened-boundary verdict, the agent hit a genuine, machine-checked
+obstacle. The verdict's section-5/7 "carrier preservation" — that strong rows
+stay inside the clean opened-boundary carrier — is FALSE as literally stated.
+
+Checked lemma `rsimpStrong_dlform_closure_opened_boundary_carrier_false`:
+```
+r   = RSTAR (RALTS [RCHAR a])     -- clean (apder_clean r holds)
+bad = RSTAR (RCHAR a)
+odfront RONE UNION opened_boundary_forms r RONE  =  {RONE, r}
+bad : rsimpStrong_dlform_closure (set (afactored1 r []))     -- in the strong closure
+bad NOTIN {RONE, r}                                          -- but NOT in the carrier
+```
+MECHANISM: the strong simplifier collapses the singleton alternation
+`RALTS [RCHAR a] -> RCHAR a`, so `rsimpStrong_raw r = RSTAR (RCHAR a)`. That
+strong-normalized row is not SYNTACTICALLY in the carrier, which only holds the
+unsimplified `r`. The strong rows live in a DIFFERENT normal form (rtail_nf /
+strong-normalized) than the clean carrier. The verdict gestured at this in
+section 7 ("compare tails in the same normalized representation") but did not make
+it precise; this CE pins it down.
+
+THE DESIGN QUESTION FOR THE NEXT PASS:
+Revise the carrier so the strong rows ARE contained, without losing the cubic
+bound. Candidate directions (need a holistic check):
+- Build the carrier over the STRONG-NORMALIZED root `rsimpStrong_raw r` (or close
+  the carrier under the strong rewrites: singleton-ALT collapse, rflts, rdistinct,
+  the prune). Since `rsimpStrong_raw` is root-size-non-increasing, a cubic bound in
+  `rsize (rsimpStrong_raw r)` would transfer to `rsize r`.
+- OR strengthen the root normal-form assumption to exclude singleton/degenerate
+  alternations that the strong simplifier would collapse (a stronger normal form
+  than `apder_clean`), IF the actual gate roots already satisfy it.
+- Watch the interaction with the checked `rsimpStrong_raw_row_dlforms_cost_not_monotone`
+  (the strong simplifier can INCREASE the opened SET ledger of a single row), so a
+  per-row size-monotonicity argument will NOT work; the bound must be on the
+  normalized carrier as a whole.
+Constraint: still set-native, deduped, clean/rntimes-free fragment; respect all
+refutations in CUBIC_OPEN_PROBLEM.pdf §6 and SUPER_LINEAR_PATTERNS.md.

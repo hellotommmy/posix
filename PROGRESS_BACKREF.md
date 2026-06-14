@@ -9858,3 +9858,19 @@ STATUS_MATH and say so at the top of PROGRESS.
   strong singleton-ALT collapse under STAR, or computed on a normalized carrier;
   the raw opened-boundary carrier cannot be inherited by the strong rows as
   currently stated.
+
+## 2026-06-14 ADMIN/Secretary: carrier-preservation is a real checked design gap — pivot to liveness while it goes to a design pass
+
+The agent correctly found that the verdict's carrier preservation is CHECKED-FALSE
+(`rsimpStrong_dlform_closure_opened_boundary_carrier_false`: strong singleton-ALT
+collapse under STAR puts a strong row outside the clean carrier). This is a real
+design point, now framed in GATE_BRIDGE_GAP.md (UPDATE 2026-06-14) for a refined
+GPT Pro pass (revise the carrier to the strong-normalized form).
+
+INSTRUCTION for the agent: do NOT resume the per-shape strong_opened_live grind,
+and do NOT force the false carrier. While the carrier redesign is pending, PIVOT
+to the INDEPENDENT route that also closes the §1 gate: the LIVENESS SLICE
+(MAINLINE §2 route B — the dynamic front stays quadratic / a saturation predicate).
+If liveness also needs a design pass, sharpen its obstacle and flag. Report each
+CHECKED result as a math inequality + gloss; commit small + push; stage only your
+own files.
