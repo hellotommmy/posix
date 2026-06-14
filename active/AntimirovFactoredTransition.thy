@@ -37261,4 +37261,96 @@ proof (cases "rsimpStrong_raw p")
     by simp
 qed (use assms in simp_all)
 
+(* Helper: an rsimp7_SEQ_atom that lands on an RSEQ either reproduces its two
+   inputs verbatim, or it is an "absorbing" branch whose output strictly shrinks
+   one input's recorded size.  rtail_nf a tames the RSEQ-headed recursion of
+   rsimp4_SEQ_atom (the head x41 is then rnonseq, so the atom does not recurse
+   into a larger left component). *)
+lemma rsimp7_SEQ_atom_RSEQ_components:
+  assumes nf_a: "rtail_nf a"
+    and eq: "rsimp7_SEQ_atom a b = RSEQ x y"
+  shows "(a = x \<and> b = y) \<or> rsize x < rsize a \<or> rsize y < rsize b"
+proof (cases a)
+  case (RSEQ x41 x42)
+  have nonseq: "rnonseq x41" and x41_ne0: "x41 \<noteq> RZERO"
+    and x41_ne1: "x41 \<noteq> RONE"
+    using nf_a RSEQ by simp_all
+  have notstar: "\<And>r. a \<noteq> RSTAR r"
+    using RSEQ by simp
+  have atom: "rsimp7_SEQ_atom a b = rsimp4_SEQ_atom x41 (rsimp4_SEQ_atom x42 b)"
+    using RSEQ by (simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+  have x41_nonseq: "\<And>p q. x41 \<noteq> RSEQ p q"
+    using nonseq by (cases x41) simp_all
+  have shape: "rsimp4_SEQ_atom x41 (rsimp4_SEQ_atom x42 b) = RZERO \<or>
+      rsimp4_SEQ_atom x41 (rsimp4_SEQ_atom x42 b) = x41 \<or>
+      rsimp4_SEQ_atom x41 (rsimp4_SEQ_atom x42 b)
+        = RSEQ x41 (rsimp4_SEQ_atom x42 b)"
+    by (rule rsimp4_SEQ_atom_nonseq_shape[OF x41_nonseq x41_ne0 x41_ne1])
+  from eq atom shape x41_nonseq have "x = x41"
+    by auto
+  then have "rsize x < rsize a"
+    using RSEQ by simp
+  then show ?thesis by blast
+next
+  case RZERO
+  then show ?thesis using eq by (simp add: rsimp7_SEQ_atom_def)
+next
+  case RONE
+  then show ?thesis using eq
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RSTAR r)
+  show ?thesis
+    using eq RSTAR
+    by (cases b)
+       (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits if_splits)
+next
+  case (RCHAR c)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+next
+  case (RALTS rs)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+next
+  case (RNTIMES r n)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+next
+  case (RHALF r cs rep)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using eq
+    by (cases b) (auto simp add: rsimp7_SEQ_atom_def)
+qed
+
+(* A1: a fixpoint sequence forces each component to be its own S-fixpoint.
+   Writing a = S r1, b = S r2, rsimp7_SEQ_atom a b = RSEQ r1 r2 must take the
+   reproduce-verbatim branch: a shrinking branch would put rsize r1 < rsize (S r1)
+   or rsize r2 < rsize (S r2), contradicting rsize (S r) <= rsize r. *)
+lemma S_fixpoint_RSEQ_decompose:
+  assumes "rsimpStrong_raw (RSEQ r1 r2) = RSEQ r1 r2"
+  shows "rsimpStrong_raw r1 = r1 \<and> rsimpStrong_raw r2 = r2"
+proof -
+  have eq: "rsimp7_SEQ_atom (rsimpStrong_raw r1) (rsimpStrong_raw r2)
+      = RSEQ r1 r2"
+    using assms by simp
+  have nf_a: "rtail_nf (rsimpStrong_raw r1)"
+    by (rule rtail_nf_rsimpStrong_raw)
+  have sz1: "rsize (rsimpStrong_raw r1) \<le> rsize r1"
+    by (rule rsize_rsimpStrong_raw_le)
+  have sz2: "rsize (rsimpStrong_raw r2) \<le> rsize r2"
+    by (rule rsize_rsimpStrong_raw_le)
+  from rsimp7_SEQ_atom_RSEQ_components[OF nf_a eq]
+  have "rsimpStrong_raw r1 = r1 \<and> rsimpStrong_raw r2 = r2"
+    using sz1 sz2 by auto
+  then show ?thesis by simp
+qed
+
 end
