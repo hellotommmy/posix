@@ -9573,3 +9573,22 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove a child-sum bound for flat payloads at the parent
   STAR suffix, starting with the simple `RONE`/`RCHAR` payload family before
   attempting arbitrary flat payloads.
+
+## 2026-06-14 Codex: CHECKED - RONE/RCHAR parent-STAR child sum
+
+- New checked child-sum shell:
+  if every payload in `ps` is either `RONE` or some `RCHAR c`, then
+  `sum_list(map (%q. strong_opened_live_acc_potential q
+   (RSTAR (RALTS ps))) ps) <=
+   (rsizes ps + rsize(RSTAR (RALTS ps)))^3 -
+   rsize(RSTAR (RALTS ps))^3`.
+  Plain gloss: the old concrete `[1|a]` warning case now has a list-parametric
+  child-drain statement for any simple one/character payload list. This uses
+  the existing `RONE`/`RCHAR` cube shells and the tight ALT sum telescope.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:15). No `sorry`.
+- NEXT smallest brick: combine the root-ledger inequality and this simple
+  child-sum shell into a list-parametric RALTS self-STAR bound for simple
+  `RONE`/`RCHAR` payload lists, then inspect whether the resulting polynomial
+  is strong enough for the quadratic target or needs a sharper child estimate.

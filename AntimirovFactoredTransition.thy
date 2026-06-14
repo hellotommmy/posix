@@ -33392,6 +33392,59 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_opened_live_acc_potential_RONE_RCHAR_child_sum_parent_star_shell:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q
+        (RSTAR (RALTS ps))) ps) \<le>
+    (rsizes ps + rsize (RSTAR (RALTS ps))) ^ 3 -
+      rsize (RSTAR (RALTS ps)) ^ 3"
+proof -
+  let ?k = "RSTAR (RALTS ps)"
+  let ?K = "rsize ?k"
+  have K_pos: "1 \<le> ?K"
+    by (rule size_geq1)
+  have child_each:
+      "sum_list
+        (map (\<lambda>q. strong_opened_live_acc_potential q ?k) ps) \<le>
+      sum_list (map (\<lambda>q. (rsize q + ?K) ^ 3 - ?K ^ 3) ps)"
+  proof (rule sum_list_mono)
+    fix q
+    assume q: "q \<in> set ps"
+    then consider "q = RONE" | c where "q = RCHAR c"
+      using simple by blast
+    then show "strong_opened_live_acc_potential q ?k \<le>
+        (rsize q + ?K) ^ 3 - ?K ^ 3"
+    proof cases
+      case 1
+      have "strong_opened_live_acc_potential q ?k =
+          strong_opened_live_acc_potential RONE ?k"
+        using 1 by simp
+      also have "... \<le> (rsize RONE + ?K) ^ 3 - ?K ^ 3"
+        by (rule strong_opened_live_acc_potential_RONE_cube_shell)
+      finally show ?thesis
+        using 1 by simp
+    next
+      case (2 c)
+      have "strong_opened_live_acc_potential q ?k =
+          strong_opened_live_acc_potential (RCHAR c) ?k"
+        using 2 by simp
+      also have "... \<le> (rsize (RCHAR c) + ?K) ^ 3 - ?K ^ 3"
+        by (rule strong_opened_live_acc_potential_RCHAR_cube_shell)
+      finally show ?thesis
+        using 2 by simp
+    qed
+  qed
+  have "sum_list
+      (map (\<lambda>q. strong_opened_live_acc_potential q ?k) ps) \<le>
+    sum_list (map (\<lambda>q. (rsize q + ?K) ^ 3 - ?K ^ 3) ps)"
+    by (rule child_each)
+  also have "... \<le> (rsizes ps + ?K) ^ 3 - ?K ^ 3"
+    by (rule sum_list_drain_alt_cubes_le_tight[OF K_pos])
+  finally show ?thesis .
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
