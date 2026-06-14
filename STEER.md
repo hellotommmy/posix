@@ -15,6 +15,19 @@ Self-sync protocol (every agent, every turn):
 
 ---
 
+## ⛔⛔ FREEZE (2026-06-14, build restructure) — COMMIT AND HOLD NOW ⛔⛔
+The Secretary is landing the validated build modularization (it MOVES the active `.thy`
+file to `active/`, so the tree must be clean). DO THIS IMMEDIATELY:
+1. Commit your current work (no `sorry`); push.
+2. STOP — do NOT edit any `.thy`, do NOT start a new lemma, do NOT launch a build.
+3. Post one line `HELD <your-lane>` in the PROGRESS tail.
+4. Wait until this banner is replaced by a RESUME notice (then `git pull --rebase` and
+   open the NEW path `active/AntimirovFactoredTransition.thy`).
+Takes ~5-10 min; afterwards your edit→build cycle is ~55% faster. This banner overrides
+all lane orders below until RESUME.
+
+---
+
 ## THE route — verdict5 weak-carrier (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`, VALIDATED — implement it)
 
 #3/#4 are UN-GATED. GPT Pro verdict5 gives the proof skeleton: a proof-only WEAK
