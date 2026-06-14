@@ -1,6 +1,7 @@
 session BackRefPilot = "HOL-Library" +
 directories
      ".."
+     "../base"
 theories[document = false]
      "HOL-Library.Sublist"
      "RegLangs"
