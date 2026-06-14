@@ -10182,3 +10182,39 @@ REDIRECT, both agents:
   final `actual_gate_from_current_drain` (§7). THESE close the gate; nothing else does.
 - DO NOT write any more conditional lemmas premised on an unproven `child_ok`.
   Only the two theorems above (§4 child invariant, §7 final gate) count as progress.
+
+## 2026-06-14 Codex: CLAIMED - §4 child invariant RCHAR and RSEQ cases
+
+- Latest admin/user correction accepted: stop §6 wrapper/API work. The
+  uncommitted wrapper arithmetic WIP was stashed as `wip-wrapper-api-off-lane`;
+  it is not being pushed.
+- Active Codex lane: verdict2 §4 child invariant constructor cases **RCHAR** and
+  **RSEQ** only. The other agent owns RALTS and RSTAR.
+- Target statements:
+  `rsize_set(strong_child_drain (RCHAR c) k) <=
+   drain_child_budget (RCHAR c) k`, and the RSEQ constructor step from child
+  bounds at `nseq r2 k` and `k` to the parent bound.
+- First proof attack: prove the RCHAR drain containment/bound using the existing
+  checked linear opened-root charge, then prove the RSEQ middle-boundary
+  cancellation containment and its arithmetic telescope.
+
+## 2026-06-14 Codex: CHECKED - RSEQ child-drain budget telescope
+
+- New checked RSEQ constructor arithmetic:
+  `rsize_set(strong_child_drain r1 (nseq r2 k)) <=
+   drain_child_budget r1 (nseq r2 k)` and
+  `rsize_set(strong_child_drain r2 k) <= drain_child_budget r2 k`
+  imply
+  `rsize_set(strong_child_drain r1 (nseq r2 k)) +
+   rsize_set(strong_child_drain r2 k) <=
+   drain_child_budget (RSEQ r1 r2) k`.
+  Plain gloss: RSEQ child budgets telescope inside parent budget.
+- This uses the checked size inequality
+  `rsize(nseq r2 k) <= rsize r2 + rsize k + 1`, leaving one `drain_w r1`
+  unit of slack in the parent.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:32). No `sorry`.
+- NEXT smallest brick: prove the RSEQ middle-boundary carrier containment
+  into the two child drains, or switch back to a sharper RCHAR containment
+  if the RSEQ set proof repeats an unchanged failing goal.

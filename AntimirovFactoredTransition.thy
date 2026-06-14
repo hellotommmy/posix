@@ -32572,6 +32572,43 @@ lemma rsize_nseq_star_le:
   "rsize (nseq (RSTAR p) k) \<le> rsize p + rsize k + 2"
   using rsize_nseq_le[of "RSTAR p" k] by simp
 
+lemma strong_child_drain_RSEQ_budget_sum_le:
+  assumes left:
+    "rsize_set (strong_child_drain r1 (nseq r2 k)) \<le>
+      drain_child_budget r1 (nseq r2 k)"
+    and right:
+    "rsize_set (strong_child_drain r2 k) \<le>
+      drain_child_budget r2 k"
+  shows "rsize_set (strong_child_drain r1 (nseq r2 k)) +
+    rsize_set (strong_child_drain r2 k) \<le>
+    drain_child_budget (RSEQ r1 r2) k"
+proof -
+  have nseq_size:
+      "1 + rsize (nseq r2 k) \<le> rsize r2 + 2 + rsize k"
+    using rsize_nseq_le[of r2 k] by simp
+  have cross:
+      "drain_w r1 * (1 + rsize (nseq r2 k)) \<le>
+       drain_w r1 * (rsize r2 + 2) + drain_w r1 * (1 + rsize k)"
+  proof -
+    have "drain_w r1 * (1 + rsize (nseq r2 k)) \<le>
+        drain_w r1 * (rsize r2 + 2 + rsize k)"
+      by (rule mult_left_mono[OF nseq_size]) simp
+    also have "... \<le>
+        drain_w r1 * (rsize r2 + 2) + drain_w r1 * (1 + rsize k)"
+      by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+  have "rsize_set (strong_child_drain r1 (nseq r2 k)) +
+      rsize_set (strong_child_drain r2 k) \<le>
+      drain_child_budget r1 (nseq r2 k) + drain_child_budget r2 k"
+    using left right by simp
+  also have "... \<le> drain_child_budget (RSEQ r1 r2) k"
+    using cross
+    by (simp add: drain_child_budget_def drain_pot_def drain_w_def
+        algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma rtail_nf_nseq [simp]:
   "rtail_nf (nseq q k)"
   by (simp add: nseq_def rtail_nf_rsimpStrong_raw)
