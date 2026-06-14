@@ -32873,6 +32873,57 @@ proof -
   finally show ?thesis .
 qed
 
+lemma ctx_bound_RSEQ_children_le:
+  "ctx_bound (drain_ctxs p) (nseq q k) +
+    ctx_bound (drain_ctxs q) k \<le>
+   ctx_bound (drain_ctxs (RSEQ p q)) k"
+proof -
+  have nseq_size:
+      "1 + rsize (nseq q k) \<le> rsize q + rsize k + 2"
+    using rsize_nseq_le[of q k] by simp
+  have cross:
+      "ctx_count (drain_ctxs p) * (1 + rsize (nseq q k)) \<le>
+       ctx_count (drain_ctxs p) * (rsize q + rsize k + 2)"
+    by (rule mult_left_mono[OF nseq_size]) simp
+  show ?thesis
+    using cross
+    by (simp add: ctx_bound_def algebra_simps)
+qed
+
+lemma strong_child_drain_RSEQ_ctx_bound_from_cover:
+  assumes cover: "strong_child_drain (RSEQ p q) k \<subseteq>
+      strong_child_drain p (nseq q k) \<union> strong_child_drain q k"
+    and left:
+      "rsize_set (strong_child_drain p (nseq q k)) \<le>
+       ctx_bound (drain_ctxs p) (nseq q k)"
+    and right:
+      "rsize_set (strong_child_drain q k) \<le>
+       ctx_bound (drain_ctxs q) k"
+  shows "rsize_set (strong_child_drain (RSEQ p q) k) \<le>
+    ctx_bound (drain_ctxs (RSEQ p q)) k"
+proof -
+  have "rsize_set (strong_child_drain (RSEQ p q) k) \<le>
+      rsize_set (strong_child_drain p (nseq q k) \<union>
+        strong_child_drain q k)"
+    by (rule rsize_set_mono)
+      (use cover in
+        \<open>auto simp add: strong_child_drain_def
+          strong_opened_live_row_universe_def\<close>)
+  also have "... \<le>
+      rsize_set (strong_child_drain p (nseq q k)) +
+      rsize_set (strong_child_drain q k)"
+    by (rule rsize_set_Un_le)
+      (simp_all add: strong_child_drain_def
+        strong_opened_live_row_universe_def)
+  also have "... \<le>
+      ctx_bound (drain_ctxs p) (nseq q k) +
+      ctx_bound (drain_ctxs q) k"
+    by (rule add_mono[OF left right])
+  also have "... \<le> ctx_bound (drain_ctxs (RSEQ p q)) k"
+    by (rule ctx_bound_RSEQ_children_le)
+  finally show ?thesis .
+qed
+
 lemma rtail_nf_nseq [simp]:
   "rtail_nf (nseq q k)"
   by (simp add: nseq_def rtail_nf_rsimpStrong_raw)

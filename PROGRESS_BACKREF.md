@@ -10472,3 +10472,27 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - Build GREEN after worker check:
   `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
   (full Posix elapsed 0:01:34). No `sorry`.
+
+## 2026-06-14 Codex: CLAIMED — RSEQ ctx arithmetic case
+
+- Taking the verdict4 exact RSEQ context arithmetic next:
+  `ctx_bound(drain_ctxs p)(nseq q k) + ctx_bound(drain_ctxs q) k
+   <= ctx_bound(drain_ctxs (RSEQ p q)) k`.
+- This is the RSEQ budget identity from verdict4 §4; it uses
+  `rsize(nseq q k) <= rsize q + rsize k + 1` and does not re-enter the
+  refuted ALTS/STAR membership route.
+
+## 2026-06-14 Codex: CHECKED — RSEQ ctx arithmetic case
+
+- CHECKED:
+  `ctx_bound(drain_ctxs p)(nseq q k) + ctx_bound(drain_ctxs q) k
+   <= ctx_bound(drain_ctxs (RSEQ p q)) k`.
+  Plain gloss: RSEQ child context budgets telescope exactly.
+- CHECKED cover-to-case packaging:
+  if `strong_child_drain (RSEQ p q) k` is covered by the two child drains and
+  each child has its ctx bound, then the parent has
+  `rsize_set(strong_child_drain (RSEQ p q) k)
+   <= ctx_bound(drain_ctxs (RSEQ p q)) k`.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:33). No `sorry`.
