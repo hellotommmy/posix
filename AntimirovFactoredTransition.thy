@@ -35899,6 +35899,28 @@ proof -
     by auto
 qed
 
+(* RCHAR leaf of the master cover: the single drain slot (RCHAR c, _) opens   *)
+(* to row_dlforms (rsimp4_SEQ_atom (RCHAR c) k); the acc tail is the RONE     *)
+(* boundary, absorbed by SOL k.  Needs S k = k so the wrapped root is S-fixed.*)
+lemma master_cover_RCHAR:
+  assumes norm_k: "rsimpStrong_raw k = k"
+  shows "strong_opened_live_row_universe_acc (RCHAR c) k \<subseteq>
+           row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+           strong_opened_live_row_universe k"
+proof -
+  have wrap: "rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)
+                = rsimp4_SEQ_atom (RCHAR c) k"
+    using norm_k by (cases k) (simp_all add: rsimp7_SEQ_atom_RCHAR)
+  have "strong_opened_live_row_universe_acc (RCHAR c) k \<subseteq>
+          row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) \<union>
+          strong_opened_live_row_universe_acc RONE k"
+    by (rule strong_opened_live_row_universe_acc_RCHAR_subset)
+  also have "... \<subseteq> row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) \<union>
+                    strong_opened_live_row_universe k"
+    using wrap master_cover_RONE[of k] by auto
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"

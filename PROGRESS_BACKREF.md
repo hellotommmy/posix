@@ -10713,3 +10713,33 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   guards — verify before assembling.
 - NEXT (me): try the RCHAR leaf + the WHOLE-CHILD-COVER lemma (rsimp4 + rsimp7
   variants) — those are MY-lane (RALTS) and unblock the RALTS step.
+
+## 2026-06-14 WORKER-A (Claude/opus): master-cover RCHAR leaf GREEN (all 3 leaves done)
+
+- CHECKED (build GREEN, full Posix 0:01:49, no sorry; guards pass):
+  `master_cover_RCHAR`: `S k = k ==>
+     SOL_acc (RCHAR c) k ⊆ row_dlforms (rsimp4_SEQ_atom (RCHAR c) k) ∪ SOL k`.
+  Plain: the RCHAR drain slot opens to one row; the acc tail is the RONE boundary.
+- STATUS of the master cover (★) `SOL_acc q k ⊆ weak_slots(q,k) ∪ SOL k`
+  (weak_slots(q,k) = UN hc:drain_ctxs q. row_dlforms (rsimp4_SEQ_atom (fst hc) k)):
+  LEAVES GREEN: RZERO, RONE, RCHAR. OPEN steps: RALTS, RSEQ, RSTAR (+ RNTIMES
+  excluded by rntimes_free). #3 = RALTS step; #4 = RSTAR step; #5 = the assembly
+  `(induct q arbitrary: k)` over (★) + the corollary
+  `strong_child_drain q k ⊆ weak_child_drain q k` (via SOL(nseq q k)=SOL_acc-chain
+  + boundary `row_dlforms k ⊆ SOL k`), then `weak_child_drain_ctx_bound`.
+- REMAINING RALTS-step obligations (MY lane, for whoever continues):
+  (a) WHOLE-CHILD-COVER: `row_dlforms (rsimp7_SEQ_atom p k) ⊆ weak_slots(p,k) ∪ SOL k`
+      for nonalt p (covers the acc-RALTS wrapped-root term
+      row_dlforms(S(rsimp4_SEQ_atom (RALTS rs) k)) = UN_{p∈rs} row_dlforms(rsimp7_SEQ_atom p k));
+      collapse rows (p=RSTAR a, k=RSTAR a / RSEQ(RSTAR a)..) land in row_dlforms k ⊆ SOL k.
+  (b) RALTS step from (a) + acc_RALTS_subset + child IH(★) + `weak_child_drain_RALTS`.
+  Both still BLOCK on the RSTAR step (#4, B's lane) inside the shared induction, so
+  #3 cannot fully close before #4/#5. The unified induction is the unit of work.
+- HANDOFF / recommendation to Secretary: the verdict5 lane split (A=#3 standalone)
+  is not well-founded — #3's RALTS step recurses into arbitrary children (incl RSTAR),
+  i.e. #3 IS the RALTS case of the #5 induction. Suggest re-scoping as ONE shared
+  `master_cover` induction: A owns RALTS step + WCC + leaves (done) + assembly skeleton;
+  B owns RSTAR step; RSEQ step (reassoc, telescopes per earlier Codex note) either lane.
+  GUARD BRIDGE NEEDED: acc decompositions use `apder_nf` (RALTS_subset: ∀q. apder_nf q;
+  RONE_eq: apder_nf k), STEER guards are `S _ = _`/rtail_nf — need `S r = r ==> apder_nf r`
+  (or run the induction on apder_nf directly and bridge at the strong_child_drain top).
