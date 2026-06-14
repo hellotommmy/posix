@@ -69,12 +69,11 @@ shared tree: `Posix_Base` ~60s (one-time), `Posix_Antimirov` active build **~28-
 Workers resumed on the new layout (`active/AntimirovFactoredTransition.thy`, same build command).
 The worktree `posix-codex-opt2` was removed.
 
-## Pilot follow-up (DEFERRED — dormant backref session)
-Moving `RegLangs` into `base/` broke `pilot/ROOT` (BackRefPilot imported `RegLangs` via
-`directories ".."`). `pilot/ROOT` is reparented onto `Posix_Base` (ready), BUT it does NOT
-build until **`RegLangs (global)`** is added to `Posix_Base` in `ROOT`. That edit invalidates
-the `Posix_Base` heap and forces a one-time rebuild — which could race active worker builds —
-so it was DEFERRED to avoid disrupting the cubic push. TO FINISH (at a base-rebuild window,
-e.g. gate-close): (1) add `(global)` to `RegLangs` in `ROOT`; (2) `isabelle build -d . -d pilot BackRefPilot`
-should then be GREEN. BackRefPilot only imports `RegLangs` from the base (verified), so just
-that one `(global)` is needed. This does NOT affect the cubic build (separate `-d`).
+## Pilot — REMOVED (2026-06-14)
+The dormant BackRef pilot (8 `BackRef*.thy` + `pilot/ROOT`) was DELETED from the working
+tree at the admin's request — it was not part of the cubic pipeline (the cubic ROOT never
+listed it; the "BackRef" strings in the frozen theories are comments only). So the
+`RegLangs (global)` follow-up is moot: `RegLangs` stays non-global, `Posix_Base` is the clean
+two-session cubic layout, nothing else imports `RegLangs` across a session boundary.
+(The `agent_hunt_pipeline/projects/posix-backref/` rules infra is KEPT — despite the name it
+is the active cubic work-rules/scripts the agent entry chain reads; renaming would break it.)
