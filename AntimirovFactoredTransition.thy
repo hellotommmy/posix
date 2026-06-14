@@ -35836,6 +35836,69 @@ proof -
   finally show ?thesis .
 qed
 
+(* ----- #3 RALTS: reduction + boundary building blocks ------------- *)
+(* Because drain_ctxs (RALTS rs) = concat (map drain_ctxs rs), the weak    *)
+(* carrier of an alternation is the union of the children's weak carriers. *)
+lemma weak_child_drain_RALTS:
+  "weak_child_drain (RALTS rs) k = (\<Union>q \<in> set rs. weak_child_drain q k)"
+  by (auto simp add: weak_child_drain_def set_concat)
+
+(* Boundary facts: the strong opened-live universe of k contains both RONE *)
+(* and the root row opening row_dlforms (S k).  These let the drain        *)
+(* subtraction strong_opened_live_row_universe (S k) absorb the weak       *)
+(* boundary row_dlforms k.                                                 *)
+lemma RONE_in_strong_opened_live_row_universe:
+  "RONE \<in> strong_opened_live_row_universe k"
+proof -
+  have "RONE \<in> row_dlforms (rsimpStrong_raw RONE)" by simp
+  moreover have "RONE \<in> partial_derivative_live_row_universe k" by simp
+  ultimately show ?thesis
+    unfolding strong_opened_live_row_universe_eq_closure
+      rsimpStrong_dlform_closure_def
+    by blast
+qed
+
+lemma row_dlforms_rsimpStrong_raw_self_subset_SOL:
+  "row_dlforms (rsimpStrong_raw k) \<subseteq> strong_opened_live_row_universe k"
+  unfolding strong_opened_live_row_universe_eq_closure
+  by (rule row_dlforms_rsimpStrong_raw_self_closure) simp
+
+(* Master-cover (verdict5 #5) leaf cases.  The master cover is               *)
+(*   strong_opened_live_row_universe_acc q k                                 *)
+(*     \<subseteq> (\<Union>hc\<in>set(drain_ctxs q). row_dlforms (rsimp4_SEQ_atom (fst hc) k)) *)
+(*        \<union> strong_opened_live_row_universe k                                 *)
+(* proven by induction on q (the P/Q induction of verdict5 \<section>8).  These two  *)
+(* leaves (RZERO, RONE) are unconditional; drain_ctxs of each is [] so the   *)
+(* whole acc universe collapses into the boundary strong_opened_live k.      *)
+lemma master_cover_RZERO:
+  "strong_opened_live_row_universe_acc RZERO k
+     \<subseteq> strong_opened_live_row_universe k"
+  by (simp add: strong_opened_live_row_universe_acc_RZERO
+      RONE_in_strong_opened_live_row_universe)
+
+lemma master_cover_RONE:
+  "strong_opened_live_row_universe_acc RONE k
+     \<subseteq> strong_opened_live_row_universe k"
+proof -
+  have rf: "rfrontier k \<subseteq> partial_derivative_live_row_universe k"
+    by (auto simp add: partial_derivative_live_row_universe_def)
+  have acc: "strong_opened_live_row_universe_acc RONE k =
+          insert RONE (row_dlforms (rsimpStrong_raw k) \<union>
+                       row_dlformss_set (rsimpStrong_raw ` rfrontier k))"
+    by (rule strong_opened_live_row_universe_acc_RONE)
+  have front: "row_dlformss_set (rsimpStrong_raw ` rfrontier k)
+                 \<subseteq> strong_opened_live_row_universe k"
+    using rf
+    unfolding strong_opened_live_row_universe_eq_closure
+      rsimpStrong_dlform_closure_def row_dlformss_set_def
+    by blast
+  show ?thesis
+    unfolding acc
+    using RONE_in_strong_opened_live_row_universe[of k]
+      row_dlforms_rsimpStrong_raw_self_subset_SOL[of k] front
+    by auto
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"

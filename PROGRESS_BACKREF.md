@@ -10662,3 +10662,54 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   re-entry body `weak_child_drain p (nseq (RSTAR p) k)`.
 - NEXT (me, WORKER-A): #3 RALTS — `strong_child_drain_RALTS_to_weak_children`,
   `RALTS_wrapped_root_into_weak_slots`, `strong_child_drain_RALTS_ctx_bound`.
+
+## 2026-06-14 WORKER-A (Claude/opus): #3 reduction + master-cover leaves GREEN; KEY STRUCTURAL FINDING
+
+- CHECKED (build GREEN, full Posix 0:01:37, no sorry; 4 guards pass):
+  1. `weak_child_drain (RALTS rs) k = (UN q:set rs. weak_child_drain q k)`
+     (`weak_child_drain_RALTS`). Plain: the weak carrier is additive over RALTS
+     children (since drain_ctxs(RALTS rs)=concat(map drain_ctxs rs) and
+     (A-C)∪(B-C)=(A∪B)-C). => #3's incl target
+     `strong_child_drain (RALTS rs) k ⊆ UN_q weak_child_drain q k`
+     is EQUIVALENT to `strong_child_drain (RALTS rs) k ⊆ weak_child_drain (RALTS rs) k`,
+     and then `weak_child_drain_ctx_bound` (already green) closes #3.
+  2. `RONE ∈ strong_opened_live_row_universe k`
+     (`RONE_in_strong_opened_live_row_universe`).
+  3. `row_dlforms (rsimpStrong_raw k) ⊆ strong_opened_live_row_universe k`
+     (`row_dlforms_rsimpStrong_raw_self_subset_SOL`). With `S k = k` this gives the
+     boundary fact `row_dlforms k ⊆ SOL(k)` needed so the strong drain's
+     `- SOL(S k)` subtraction absorbs the weak `- row_dlforms k`.
+  4. Master-cover LEAVES (verdict5 #5 induction base cases), UNCONDITIONAL:
+     `master_cover_RZERO`: `SOL_acc RZERO k ⊆ SOL k`;
+     `master_cover_RONE`:  `SOL_acc RONE  k ⊆ SOL k`
+     (SOL_acc = strong_opened_live_row_universe_acc; drain_ctxs of RZERO/RONE = []
+     so their weak-slot opening is empty and the whole acc universe ⊆ the boundary).
+
+- KEY STRUCTURAL FINDING (re the lane split): #3 RALTS is NOT independently
+  provable. Reducing `strong_child_drain (RALTS rs) k ⊆ weak_child_drain (RALTS rs) k`
+  via the acc family gives (verified verbatim against the real defs):
+    SOL(nseq (RALTS rs) k)
+      = SOL(RSEQ (RALTS rs) k)                         [norms; nseq unfolds, S idempotent here]
+      ⊆ SOL_acc (RALTS rs) k ∪ SOL(k)                  [acc RSEQ subset + RONE_eq]
+      ⊆ insert RONE (row_dlforms(S(rsimp4_SEQ_atom (RALTS rs) k))
+                     ∪ UN_{q∈rs} SOL_acc q k) ∪ SOL(k) [acc RALTS subset, needs ∀q. apder_nf q]
+  The `UN_{q∈rs} SOL_acc q k` term requires, for EACH child q, the MASTER COVER
+    (★)  SOL_acc q k ⊆ (UN hc:drain_ctxs q. row_dlforms (rsimp4_SEQ_atom (fst hc) k)) ∪ SOL(k).
+  Children q are arbitrary nonalt regexes (RSTAR, RSEQ, RCHAR), so (★) on children
+  is exactly the #4 (RSTAR) / #5 content. => #3, #4, #5 are ONE mutual induction
+  on q (★); the standalone "#3 RALTS" slice cannot be closed without the children's
+  cover. RECOMMEND: do #3/#4/#5 as a SINGLE induction `(induct q arbitrary: k)`
+  proving (★); #3 = its RALTS step (acc RALTS subset + child IH + the wrapped-root
+  WHOLE-CHILD-COVER `row_dlforms(rsimp7_SEQ_atom p k) ⊆ child-slots ∪ SOL(k)`),
+  #4 = its RSTAR step (re-entry continuation k'=rsimp4_SEQ_atom (RSTAR p) k;
+  reassoc via rsimp4_SEQ_atom_assoc; star-collapse rows land in SOL(k); slack-0).
+- GREEN so far for (★): leaves RZERO, RONE. RCHAR leaf is also clean (acc RCHAR
+  subset + master_cover_RONE + `S(rsimp4_SEQ_atom (RCHAR c) k)=rsimp4_SEQ_atom (RCHAR c) k`
+  under S k=k) — not yet committed. OPEN: RALTS step (needs WHOLE-CHILD-COVER for
+  rsimp7 roots), RSEQ step (reassoc), RSTAR step (#4, B's lane).
+- GUARD NOTE for whoever runs (★): the acc decompositions use `apder_nf` premises
+  (RALTS subset: `∀q∈set rs. apder_nf q`; RONE_eq: `apder_nf k`), NOT `rtail_nf`/
+  `S _ = _`. Need a bridge `S r = r ⟹ apder_nf r` (or similar) to connect to STEER's
+  guards — verify before assembling.
+- NEXT (me): try the RCHAR leaf + the WHOLE-CHILD-COVER lemma (rsimp4 + rsimp7
+  variants) — those are MY-lane (RALTS) and unblock the RALTS step.
