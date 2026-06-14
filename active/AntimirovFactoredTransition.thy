@@ -36076,6 +36076,48 @@ proof -
   finally show ?thesis .
 qed
 
+(* weak_slots is additive over RALTS children (drain_ctxs (RALTS rs) =
+   concat (map drain_ctxs rs)). *)
+lemma weak_slots_RALTS:
+  "weak_slots (RALTS rs) k = (\<Union>q \<in> set rs. weak_slots q k)"
+  by (auto simp add: weak_slots_def set_concat)
+
+(* RALTS constructor of the master cover.  Mirrors master_cover_RSTAR: the
+   wrapped root row_dlforms (S (rsimp4_SEQ_atom (RALTS rs) k)) is kept as a
+   separate term; the children's accumulators fold into weak_slots (RALTS rs) k
+   via the child IH + weak_slots_RALTS, and the RONE tail into SOL k. *)
+lemma master_cover_RALTS:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+    and norm_k: "rsimpStrong_raw k = k"
+    and child_ih: "\<And>q. q \<in> set rs \<Longrightarrow>
+      strong_opened_live_row_universe_acc q k \<subseteq>
+        weak_slots q k \<union> strong_opened_live_row_universe k"
+  shows "strong_opened_live_row_universe_acc (RALTS rs) k \<subseteq>
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+    weak_slots (RALTS rs) k \<union>
+    strong_opened_live_row_universe k"
+proof -
+  have "strong_opened_live_row_universe_acc (RALTS rs) k \<subseteq>
+      insert RONE
+        (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+         (\<Union>q \<in> set rs. strong_opened_live_row_universe_acc q k))"
+    by (rule strong_opened_live_row_universe_acc_RALTS_subset[OF nf])
+  also have "... \<subseteq>
+      row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+      weak_slots (RALTS rs) k \<union>
+      strong_opened_live_row_universe k"
+  proof -
+    have rone: "RONE \<in> strong_opened_live_row_universe k"
+      by (rule RONE_in_strong_opened_live_row_universe)
+    have children:
+        "(\<Union>q \<in> set rs. strong_opened_live_row_universe_acc q k) \<subseteq>
+          weak_slots (RALTS rs) k \<union> strong_opened_live_row_universe k"
+      using child_ih by (auto simp add: weak_slots_RALTS)
+    show ?thesis using rone children by auto
+  qed
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"
