@@ -32391,6 +32391,20 @@ definition child_ok :: "rrexp \<Rightarrow> bool" where
     (\<forall>k. rtail_nf k \<longrightarrow> rntimes_free k \<longrightarrow> legacy_rrexp k \<longrightarrow>
       rsize_set (strong_child_drain p k) \<le> drain_child_budget p k)"
 
+(* verdict2 section 5 cubic arithmetic (new-agent lane).  The root child budget
+   at the base continuation RONE is one cube; discharges the `budget` premise of
+   child_ok_RONE_cubicD.  drain_child_budget r RONE = open_pot r + 2*apder_zw2 r
+   (rsize RONE = 1), and open_pot_cubic_clean already bounds that by (rsize r+3)^3. *)
+lemma drain_child_budget_root_cubic:
+  assumes free: "rntimes_free r"
+  shows "drain_child_budget r RONE \<le> (rsize r + 3) ^ 3"
+proof -
+  have eq: "drain_child_budget r RONE = open_pot r + apder_zw2 r * 2"
+    by (simp add: drain_child_budget_def drain_pot_def drain_w_def)
+  show ?thesis
+    using open_pot_cubic_clean[OF free] eq by linarith
+qed
+
 lemma rsize_nseq_le:
   "rsize (nseq p k) \<le> rsize p + rsize k + 1"
 proof -
