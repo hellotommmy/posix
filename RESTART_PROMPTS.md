@@ -11,12 +11,72 @@ later cycles.
 
 ---
 
-## CURRENT-CYCLE PROMPT (2026-06-14, OVERNIGHT): close the gate-bridge gap
+## CURRENT-CYCLE PROMPT (2026-06-14 12:00): execute verdict #2 — the drain potential
 
-The D law and the cubic static front are PROVEN. The §1 gate is open on ONE
-bridge (`GATE_BRIDGE_GAP.md`): cubic front -> DEDUPED opened ledger. For an
-unattended overnight run, use ONE lead agent with PROMPT N below (a second on
-the liveness slice only if you will manage collisions; one is safest unattended).
+The D law and the cubic static front are PROVEN. Both original-root carriers
+(opened-boundary + liveness) are checked-FALSE. GPT Pro's corrected design is
+`GPT_PRO_GATE_BRIDGE_VERDICT2.md` — the continuation-parametric drain potential
+over the CURRENT normalized rows. Two agents work it (lane split below): a NEW
+agent on the core (PROMPT V3), the EXISTING Codex on the wrappers/bridge.
+
+### PROMPT V3 — NEW agent (verdict2 core: defs + child invariant + arithmetic)
+
+You are joining the POSIX cubic-bound project as a proof worker. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch
+`codex/backref-values`. ABSORB FIRST: `MAINLINE.md` §1-2, then
+`GPT_PRO_GATE_BRIDGE_VERDICT2.md` (the design you execute — read it fully), then
+the last 120 lines of `PROGRESS_BACKREF.md` (the 2026-06-14 verdict #2 broadcast
++ the other agent's claims — do NOT duplicate its lemmas). Symbol defs:
+`STATUS_MATH.pdf`. Never bulk-read history. Trust git timestamps, not PROGRESS
+labels. The D law is PROVEN — do not touch it. Both original-root carriers are
+CHECKED-FALSE — do not re-attempt them.
+
+GOAL: land verdict2 SECTIONS 1-5 — the continuation-parametric child invariant
+that closes the gate. Carrier over the CURRENT normalized rows
+(`S = rsimpStrong_raw`); measure = `rsize p` only; continuation `k` may grow
+(incl. the star re-entry `nseq (RSTAR p) k`). The singleton-ALT CE is harmless
+because the induction root is `S p`.
+
+EXECUTION ORDER:
+0. SAMPLE-CHECK FIRST at depth>=5 (extend `scratch_rowcount_check.py`): the child
+   invariant `rsize_set(strong_child_drain p k) <= drain_pot p + drain_w p*(1+rsize k)`
+   and the cubic `drain_pot r <= rsize r*(rsize r+2)^2`. Tune constants if needed
+   (verdict shows positive slack everywhere, so it should sample clean). A deep CE
+   => record in SUPER_LINEAR_PATTERNS.md + flag the admin. Do NOT skip this.
+1. CLAIM in the PROGRESS tail, then DEFINE (verdict §1-2): `nseq`,
+   `strong_child_drain`, `drain_pot`, `drain_child_budget`, `child_ok`. These are
+   the shared interface the other agent's wrappers consume — define them first.
+2. `rsize_nseq_le` and `rsize_nseq_star_le` (verdict §3 — syntactic size
+   non-increase; NOT rowwise S-monotonicity, which is checked-false).
+3. The recursive `strong_child_drain_potential` (verdict §4): constructor
+   discharges RZERO/RONE (=∅), RCHAR (+1 slack), RALTS (additive child budget,
+   subadditivity), RSEQ (+Wp slack, middle-boundary cancellation), RSTAR (+W+2
+   slack, body under `nseq (RSTAR p) k`). Measure on `rsize p` only.
+4. The cubic arithmetic (verdict §5): `drain_pot_le_cubic_core`,
+   `drain_child_budget_root_cubic`.
+
+DISCIPLINE: ONE build at a time (`scripts\codex-proof-workers.ps1 -Action Check`
+first; lock shared). Red build = read the first failing goal, change ONE named
+lemma, never relaunch on an unchanged goal; fail twice the same way -> switch
+sub-target. NEVER force/weaken/sorry; run the four guards before pushing; stage
+ONLY your own files (NEVER `git add -A` — the other agent has in-flight edits in
+the same file). Commit small + push immediately; `pull --rebase --autostash`.
+Report each CHECKED result as a math inequality + a <=10-word plain gloss. Claim
+each def/lemma in PROGRESS before editing it. Do NOT touch the wrapper/bridge
+lemmas (verdict §6-7) — those are the existing Codex agent's lane.
+
+(The existing Codex agent: keep working your wrappers, but adapt them to consume
+`child_ok` per verdict §6 and wire `actual_gate_from_current_drain` §7 once the
+new agent's defs/child theorem land. Claim your lemmas in PROGRESS.)
+
+---
+
+## SUPERSEDED — overnight opened-boundary PROMPT N (carrier route checked-false 2026-06-14)
+
+The opened-boundary carrier route below is machine-checked false (both original-root
+carriers). Use PROMPT V3 above (the drain potential, verdict #2). Kept for reference.
+
+### (old) overnight PROMPT N — opened-boundary route
 The 2026-06-13 ASSEMBLY prompts (A3/B3) are superseded by this gap.
 
 ### PROMPT N — overnight lead (execute the opened-boundary design)

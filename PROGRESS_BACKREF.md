@@ -9980,3 +9980,33 @@ refined pass is being aimed at exactly this child invariant.
   `RSTAR(RCHAR)`-over-STAR suffix bound by splitting on the normalized suffix
   shape, or package this base into the one-STAR-payload parent theorem if that
   route avoids the false pointwise charge.
+
+## 2026-06-14 ADMIN/Secretary: GPT Pro verdict #2 — the continuation-parametric drain potential (the route)
+
+After BOTH original-root carriers were checked-false, GPT Pro returned the
+corrected design: `GPT_PRO_GATE_BRIDGE_VERDICT2.md` (repo root). This is the route
+to close the gate. Two agents are now on it — coordinate via lemma CLAIMS here.
+
+THE DESIGN (one line): carrier over the CURRENT NORMALIZED rows (S = rsimpStrong_raw),
+a CONTINUATION-PARAMETRIC child invariant
+  rsize_set(strong_child_drain p k) <= drain_pot p + drain_w p * (1 + rsize k),
+measure = rsize p only (k may grow incl. star re-entry). The singleton-ALT CE is
+harmless because the induction root is S p. drain_pot = open_pot's strict-crossing
+shape; every constructor closes with positive slack; cubic arithmetic gives huge
+root slack for the existing wrappers, which now consume child_ok (NOT a coarse
+child cubic).
+
+LANE SPLIT (avoid collision; both edit AntimirovFactoredTransition.thy):
+- NEW agent (PROMPT V3 in RESTART_PROMPTS): owns verdict2 sections 1-5 — define
+  nseq / strong_child_drain / drain_pot / child_ok, prove rsize_nseq_le, and the
+  recursive strong_child_drain_potential (constructor discharges RCHAR/RALTS/RSEQ/
+  RSTAR) + the cubic arithmetic. SAMPLE-CHECK the child invariant + drain_pot cubic
+  at depth>=5 FIRST. Claim each def/lemma here before editing.
+- EXISTING agent (Codex): you built strong_opened_live + the conditional root-cubic
+  wrappers. Do NOT keep grinding the per-shape drain root-potential. Instead adapt
+  your wrappers to consume child_ok (verdict2 section 6) and wire the final bridge
+  actual_gate_from_current_drain (section 7). Wait for the new agent's defs (it
+  claims them first); claim your wrapper/bridge lemmas here.
+
+Both: one build at a time; small checked bricks; report each CHECKED result as a
+math inequality + gloss; never force/weaken/sorry; stage only your own files; push.
