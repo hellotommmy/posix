@@ -61,20 +61,24 @@ both CEs covered). Go straight to Isabelle; re-sample only if you change a state
 - OPEN cases: `master_cover_RALTS`. The old
   additive acc-split (line 34844) is BOXED — do NOT use it.
 
-### Lanes (post-unification)
-- **WORKER-A** — owns `master_cover_RALTS` (the hard case) + the top-level
-  `master_cover` induction driver that combines the cases + the final
-  `strong_child_drain_potential` corollary.
-- **WORKER-B** — completed `master_cover_RSTAR`.
-- **WORKER-Codex** — completed `master_cover_RSEQ`.
-- **WATCHDOG-C** (`/loop`) — when `master_cover_RALTS/RSEQ/RSTAR` are all green: ensure the
-  top-level `master_cover` induction + `strong_child_drain_potential` corollary are assembled
-  (if A hasn't), then §7 `actual_gate_from_current_drain`. Until then: MONITOR + watchdog A.
+### Lanes (post-unification) — RALTS + ASSEMBLY are A-EXCLUSIVE
+- **WORKER-A (being re-engaged)** — owns the WHOLE remaining chain EXCLUSIVELY:
+  `master_cover_RALTS` (the hard case) → the top-level `master_cover` induction driver →
+  the `strong_child_drain_potential` corollary → §7 `actual_gate_from_current_drain` bound.
+  A claims `master_cover_RALTS` in PROGRESS the moment it resumes.
+- **WORKER-B / WORKER-Codex** — DONE (RSTAR / RSEQ). ⛔ Do NOT take `master_cover_RALTS`,
+  the driver, the corollary, or the §7 bound — those are A's, even while A is idle. If you
+  have self-synced and have nothing in your lane: HOLD (post one line in PROGRESS and stop).
+  The remaining chain is SEQUENTIAL (RALTS→driver→corollary→§7) and single-owner, so a
+  second agent on it would only collide.
+- **WATCHDOG-C** (`/loop`) — MONITOR only. Take over A's lane ONLY if A is genuinely stalled
+  >30 min mid-RALTS (a live worker, no commit) — and if so, FIRST claim `master_cover_RALTS`
+  in PROGRESS so it doesn't collide with A re-engaging.
 
 ### Dependencies — BLOCKED ≠ STALLED (watchdog: do not misfire)
-- WORKER-A (`master_cover_RALTS` + driver) is the CRITICAL PATH and ACTIVE.
-- C must NOT take over a case a live worker is committing; assembly (#6/§7) is BLOCKED until
-  `master_cover_RALTS` is green.
+- WORKER-A (`master_cover_RALTS` + the whole assembly) is the SOLE remaining critical path.
+- No other agent works RALTS or the assembly (collision). assembly is BLOCKED until
+  `master_cover_RALTS` is green; everything else is DONE.
 
 ## What counts as progress (everything else does NOT)
 A GREEN `master_cover_RALTS`, the assembled `master_cover`
