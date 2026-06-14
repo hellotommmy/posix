@@ -9811,3 +9811,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: use this as the STAR/simple branch in the broader
   STAR-compatible child invariant, then lift beyond simple `RONE`/`RCHAR`
   payloads toward arbitrary flat non-sequence ALT children.
+
+## 2026-06-14 Codex: CHECKED - simple ALT root cubic
+
+- Scratch obstacle before Isabelle:
+  the tempting generic STAR wrapper from only the coarse facts
+  `open_pot r + 2*apder_zw2 r <= (rsize r+3)^3` and
+  `apder_zw2 r <= rsize r` is too weak. Arithmetic sample:
+  `n=11`, `M=11`, `OP=2722` satisfies the premises but gives
+  `6791 > 6750`. Plain gloss: do not try to close arbitrary STAR bodies from
+  the coarse cubic cap alone; the self-suffix body budget needs more structure.
+- New checked root-cubic wrapper:
+  if every payload in `ps` is `RONE` or `RCHAR c`, then
+  `strong_opened_live_acc_potential (RALTS ps) RONE <=
+   2 * (rsize (RALTS ps) + 3)^3`.
+  Plain gloss: simple ALT roots now close directly by the existing child drain
+  shells for `RONE` and `RCHAR`, via the checked conditional RALTS wrapper.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:35). No `sorry`.
+- NEXT smallest brick: extend the STAR-compatible child library beyond simple
+  ALT roots, focusing on one flat non-sequence payload family at a time instead
+  of using the false coarse generic STAR arithmetic.

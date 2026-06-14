@@ -34041,6 +34041,31 @@ proof -
     using drain by linarith
 qed
 
+lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_root_cubic:
+  assumes simple:
+    "\<forall>q \<in> set ps. q = RONE \<or> (\<exists>c. q = RCHAR c)"
+  shows "strong_opened_live_acc_potential (RALTS ps) RONE \<le>
+    2 * (rsize (RALTS ps) + 3) ^ 3"
+proof (rule strong_opened_live_acc_potential_RALTS_root_cubic_if_child_drain)
+  fix q
+  assume q: "q \<in> set ps"
+  then consider "q = RONE" | c where "q = RCHAR c"
+    using simple by blast
+  then show "strong_opened_live_acc_potential q RONE \<le>
+    (rsize q + rsize RONE) ^ 3 - rsize RONE ^ 3"
+  proof cases
+    case 1
+    then show ?thesis
+      using strong_opened_live_acc_potential_RONE_cube_shell[of RONE]
+      by simp
+  next
+    case (2 c)
+    then show ?thesis
+      using strong_opened_live_acc_potential_RCHAR_cube_shell[of c RONE]
+      by simp
+  qed
+qed
+
 lemma strong_opened_live_acc_potential_RSEQ_root_cubic_if_child_drain:
   assumes left:
     "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 RONE) \<le>
