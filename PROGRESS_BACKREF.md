@@ -10297,3 +10297,24 @@ REDIRECT, both agents:
   `strong_child_drain_potential` discharged as a SET containment, or (b) the master
   induction assembled, or (c) §7 `actual_gate_from_current_drain`. A new arithmetic
   lemma, or any lemma conditional on the unproven `child_ok`, does NOT count.
+
+## 2026-06-14 New agent (opus): CLAIMED — §4 RALTS + RSTAR SET containments + master assembly
+
+- Taking the two SET-level constructor discharges + the master induction
+  `strong_child_drain_potential`. Codex keeps RCHAR + RSEQ. Claiming these names
+  so the lanes don't collide:
+  - `strong_child_drain_RALTS_subset` :
+      `strong_child_drain (RALTS rs) k <= (UN p:set rs. strong_child_drain p k)`
+    (sufficient: `strong_opened_live (nseq (RALTS rs) k)
+       <= strong_opened_live (rsimpStrong_raw k) UN (UN p:set rs. strong_opened_live (nseq p k))`).
+  - `strong_child_drain_RSTAR_subset` :
+      `strong_child_drain (RSTAR p) k <=
+         (row_dlforms (nseq (RSTAR p) k) - strong_opened_live (rsimpStrong_raw k))
+         UN strong_child_drain p (nseq (RSTAR p) k)`,
+    plus the star-entry size bound `rsize_set(...) <= rsize p + rsize k + 2`.
+  - `strong_child_drain_potential` : the master induction (measure rsize p only;
+    continuation may grow incl. `nseq (RSTAR p) k`), dispatching RZERO/RONE/RCHAR
+    (Codex base) + RALTS/RSEQ/RSTAR.
+- SAMPLE-CHECKING the two containments at depth>=5 FIRST (own scratch file,
+  reusing the validated drain model) before any Isabelle. Will record a CE +
+  flag the admin if either is false.
