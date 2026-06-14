@@ -10422,3 +10422,31 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   changes. ⚠ master cover is TIGHT on C-DRAIN-2 (slack 0) — RSTAR/RSEQ arithmetic
   must be exact. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED,
   then §7 `actual_gate_from_current_drain`.
+
+## 2026-06-14 Codex: CLAIMED — verdict4 static context lemmas
+
+- After self-sync, the verdict4 infra defs are not yet present in
+  `AntimirovFactoredTransition.thy` and no proof worker is live. To avoid idle
+  wait, Codex is taking the minimal infra needed for its lane plus the two
+  static structural lemmas:
+  `drain_ctxs_count_le_w` and `drain_ctxs_base_le_pot`.
+- Not touching the opus semantic cover lane
+  (`strong_child_drain_RALTS_ctx_bound`, `strong_child_drain_RSTAR_ctx_step`).
+
+## 2026-06-14 Codex: CHECKED — verdict4 static context lemmas
+
+- Added the verdict4 context infra:
+  `drain_ctx`, `ctx_base`, `ctx_count`, `ctx_bound`, `raw_plug`,
+  `ctx_extend`, and structural `drain_ctxs`.
+- CHECKED:
+  `ctx_count(drain_ctxs p) <= drain_w p`.
+  Plain gloss: context slots are paid by drain width.
+- CHECKED:
+  `ctx_base(drain_ctxs p) <= drain_pot p`.
+  Plain gloss: declared slot bases fit the drain potential.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:31). No `sorry`.
+- NEXT Codex lane: RCHAR/RSEQ ctx-bound cases or master
+  `strong_child_drain_ctx_bound`, after syncing with any landed opus RALTS/RSTAR
+  semantic covers.

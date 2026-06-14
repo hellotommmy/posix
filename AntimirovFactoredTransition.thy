@@ -32391,6 +32391,232 @@ definition child_ok :: "rrexp \<Rightarrow> bool" where
     (\<forall>k. rtail_nf k \<longrightarrow> rntimes_free k \<longrightarrow> legacy_rrexp k \<longrightarrow>
       rsize_set (strong_child_drain p k) \<le> drain_child_budget p k)"
 
+type_synonym drain_ctx = "rrexp \<times> nat"
+
+definition ctx_base :: "drain_ctx list \<Rightarrow> nat" where
+  "ctx_base Cs = sum_list (map snd Cs)"
+
+definition ctx_count :: "drain_ctx list \<Rightarrow> nat" where
+  "ctx_count Cs = length Cs"
+
+definition ctx_bound :: "drain_ctx list \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "ctx_bound Cs k = ctx_base Cs + ctx_count Cs * (1 + rsize k)"
+
+definition raw_plug :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "raw_plug h k = rsimp7_SEQ_atom h k"
+
+definition ctx_extend :: "rrexp \<Rightarrow> drain_ctx \<Rightarrow> drain_ctx" where
+  "ctx_extend q hc = (raw_plug (fst hc) q, snd hc + (1 + rsize q))"
+
+fun drain_ctxs :: "rrexp \<Rightarrow> drain_ctx list" where
+  "drain_ctxs RZERO = []"
+| "drain_ctxs RONE = []"
+| "drain_ctxs (RCHAR c) = [(RCHAR c, rsize (RCHAR c))]"
+| "drain_ctxs (RALTS rs) = concat (map drain_ctxs rs)"
+| "drain_ctxs (RSEQ p q) = map (ctx_extend q) (drain_ctxs p) @ drain_ctxs q"
+| "drain_ctxs (RSTAR p) =
+    (RSTAR p, rsize (RSTAR p)) #
+      map (ctx_extend (RSTAR p)) (drain_ctxs p)"
+| "drain_ctxs (RNTIMES p n) =
+    concat
+      (replicate n
+        ((RNTIMES p n, rsize (RNTIMES p n)) #
+          map (ctx_extend (RNTIMES p n)) (drain_ctxs p)))"
+| "drain_ctxs (RBACKREF4 r1 r2 r3 r4 cs) = []"
+| "drain_ctxs (RHALF r cs rep) = []"
+| "drain_ctxs (RRESIDUE cs rep) = []"
+
+lemma ctx_count_Nil [simp]:
+  "ctx_count [] = 0"
+  by (simp add: ctx_count_def)
+
+lemma ctx_count_Cons [simp]:
+  "ctx_count (c # Cs) = Suc (ctx_count Cs)"
+  by (simp add: ctx_count_def)
+
+lemma ctx_base_Nil [simp]:
+  "ctx_base [] = 0"
+  by (simp add: ctx_base_def)
+
+lemma ctx_base_Cons [simp]:
+  "ctx_base (c # Cs) = snd c + ctx_base Cs"
+  by (simp add: ctx_base_def)
+
+lemma ctx_count_append [simp]:
+  "ctx_count (xs @ ys) = ctx_count xs + ctx_count ys"
+  by (simp add: ctx_count_def)
+
+lemma ctx_base_append [simp]:
+  "ctx_base (xs @ ys) = ctx_base xs + ctx_base ys"
+  by (simp add: ctx_base_def)
+
+lemma ctx_count_map_ctx_extend [simp]:
+  "ctx_count (map (ctx_extend q) Cs) = ctx_count Cs"
+  by (simp add: ctx_count_def)
+
+lemma ctx_base_map_ctx_extend [simp]:
+  "ctx_base (map (ctx_extend q) Cs) =
+    ctx_base Cs + ctx_count Cs * (1 + rsize q)"
+  by (induct Cs)
+    (simp_all add: ctx_base_def ctx_count_def ctx_extend_def)
+
+lemma ctx_count_concat_map:
+  "ctx_count (concat (map f xs)) =
+    sum_list (map (\<lambda>x. ctx_count (f x)) xs)"
+  by (induct xs) simp_all
+
+lemma ctx_base_concat_map:
+  "ctx_base (concat (map f xs)) =
+    sum_list (map (\<lambda>x. ctx_base (f x)) xs)"
+  by (induct xs) simp_all
+
+lemma ctx_count_concat_replicate [simp]:
+  "ctx_count (concat (replicate n Cs)) = n * ctx_count Cs"
+  by (induct n) simp_all
+
+lemma ctx_base_concat_replicate [simp]:
+  "ctx_base (concat (replicate n Cs)) = n * ctx_base Cs"
+  by (induct n) simp_all
+
+lemma drain_ctxs_count_le_w:
+  "ctx_count (drain_ctxs p) \<le> drain_w p"
+proof (induct p)
+  case RZERO
+  then show ?case by (simp add: drain_w_def)
+next
+  case RONE
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RCHAR c)
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RSEQ p q)
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RALTS rs)
+  have "ctx_count (drain_ctxs (RALTS rs)) =
+      sum_list (map (\<lambda>q. ctx_count (drain_ctxs q)) rs)"
+    by (simp add: ctx_count_concat_map)
+  also have "... \<le> sum_list (map drain_w rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  finally have le:
+      "ctx_count (drain_ctxs (RALTS rs)) \<le> sum_list (map drain_w rs)" .
+  have target: "sum_list (map drain_w rs) = drain_w (RALTS rs)"
+    by (induct rs) (simp_all add: drain_w_def)
+  show ?case
+    using le target by simp
+next
+  case (RSTAR p)
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RNTIMES p n)
+  have slot:
+      "ctx_count
+        ((RNTIMES p n, rsize (RNTIMES p n)) #
+          map (ctx_extend (RNTIMES p n)) (drain_ctxs p)) =
+       Suc (ctx_count (drain_ctxs p))"
+    by simp
+  have step:
+      "Suc (ctx_count (drain_ctxs p)) \<le> Suc (drain_w p)"
+    using RNTIMES.hyps by simp
+  have "ctx_count (drain_ctxs (RNTIMES p n)) =
+      n * Suc (ctx_count (drain_ctxs p))"
+    by (simp add: slot)
+  also have "... \<le> n * Suc (drain_w p)"
+    by (rule mult_left_mono[OF step]) simp
+  finally show ?case
+    by (simp add: drain_w_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: drain_w_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: drain_w_def)
+qed
+
+lemma drain_ctxs_base_le_pot:
+  "ctx_base (drain_ctxs p) \<le> drain_pot p"
+proof (induct p)
+  case RZERO
+  then show ?case by (simp add: drain_pot_def)
+next
+  case RONE
+  then show ?case by (simp add: drain_pot_def)
+next
+  case (RCHAR c)
+  then show ?case by (simp add: drain_pot_def)
+next
+  case (RSEQ p q)
+  have count_p: "ctx_count (drain_ctxs p) \<le> drain_w p"
+    by (rule drain_ctxs_count_le_w)
+  have cross:
+      "ctx_count (drain_ctxs p) * (1 + rsize q) \<le>
+       drain_w p * (rsize q + 2)"
+    by (rule mult_le_mono[OF count_p]) simp_all
+  show ?case
+    using RSEQ.hyps cross
+    by (simp add: drain_pot_def drain_w_def)
+next
+  case (RALTS rs)
+  have "ctx_base (drain_ctxs (RALTS rs)) =
+      sum_list (map (\<lambda>q. ctx_base (drain_ctxs q)) rs)"
+    by (simp add: ctx_base_concat_map)
+  also have "... \<le> sum_list (map drain_pot rs)"
+    by (rule sum_list_mono) (use RALTS in auto)
+  finally have le:
+      "ctx_base (drain_ctxs (RALTS rs)) \<le> sum_list (map drain_pot rs)" .
+  have target: "sum_list (map drain_pot rs) = drain_pot (RALTS rs)"
+    by (induct rs) (simp_all add: drain_pot_def)
+  show ?case
+    using le target by simp
+next
+  case (RSTAR p)
+  have count_p: "ctx_count (drain_ctxs p) \<le> drain_w p"
+    by (rule drain_ctxs_count_le_w)
+  have cross:
+      "ctx_count (drain_ctxs p) * (1 + rsize (RSTAR p)) \<le>
+       drain_w p * (rsize (RSTAR p) + 2)"
+    by (rule mult_le_mono[OF count_p]) simp_all
+  show ?case
+    using RSTAR.hyps cross
+    by (simp add: drain_pot_def drain_w_def)
+next
+  case (RNTIMES p n)
+  let ?S = "rsize (RNTIMES p n)"
+  let ?slot =
+    "((RNTIMES p n, ?S) #
+      map (ctx_extend (RNTIMES p n)) (drain_ctxs p))"
+  have count_p: "ctx_count (drain_ctxs p) \<le> drain_w p"
+    by (rule drain_ctxs_count_le_w)
+  have cross:
+      "ctx_count (drain_ctxs p) * (1 + ?S) \<le>
+       drain_w p * (?S + 2)"
+    by (rule mult_le_mono[OF count_p]) simp_all
+  have slot_le:
+      "ctx_base ?slot \<le>
+       drain_pot p + Suc (drain_w p) * (?S + 2)"
+    using RNTIMES.hyps cross by (simp add: drain_pot_def drain_w_def)
+  have "ctx_base (drain_ctxs (RNTIMES p n)) = n * ctx_base ?slot"
+    by simp
+  also have "... \<le>
+      n * (drain_pot p + Suc (drain_w p) * (?S + 2))"
+    by (rule mult_left_mono[OF slot_le]) simp
+  finally show ?case
+    by (simp add: drain_pot_def drain_w_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (simp add: drain_pot_def)
+next
+  case (RHALF r cs rep)
+  then show ?case by (simp add: drain_pot_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: drain_pot_def)
+qed
+
 (* verdict2 section 5 cubic arithmetic (new-agent lane).  The root child budget
    at the base continuation RONE is one cube; discharges the `budget` premise of
    child_ok_RONE_cubicD.  drain_child_budget r RONE = open_pot r + 2*apder_zw2 r
