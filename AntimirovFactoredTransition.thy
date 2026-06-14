@@ -32525,14 +32525,10 @@ proof -
     also have "... \<le>
         rsize (RALTS rs) * ((rsize (RALTS rs) + 2) * (rsize (RALTS rs) + 2))"
     proof -
-      have "rsize (RALTS rs) * ((rsize (RALTS rs) + 2) * (rsize (RALTS rs) + 2)) =
-          (rsizes rs + 1) * ((rsizes rs + 3) * (rsizes rs + 3))"
-        by (simp add: sz)
-      also have "... =
-          rsizes rs * ((rsizes rs + 2) * (rsizes rs + 2)) +
-          (3 * (rsizes rs * rsizes rs) + 11 * rsizes rs + 9)"
-        by (rule nat_drain_alts_ident)
-      finally show ?thesis by linarith
+      have le: "rsizes rs \<le> rsize (RALTS rs)" by (simp add: sz)
+      then have le2: "rsizes rs + 2 \<le> rsize (RALTS rs) + 2" by simp
+      show ?thesis
+        by (rule mult_le_mono[OF le mult_le_mono[OF le2 le2]])
     qed
     finally show ?case .
   next
@@ -32560,7 +32556,7 @@ proof -
       using nat_drain_star_ident[of "rsize r"] by linarith
     also have "... =
         rsize (RSTAR r) * ((rsize (RSTAR r) + 2) * (rsize (RSTAR r) + 2))"
-      by (simp add: sz)
+      by (simp add: sz algebra_simps)
     finally show ?case .
   next
     case (RNTIMES r n)
