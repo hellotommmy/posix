@@ -5121,6 +5121,199 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rsimpStrong_prune_pair_raw_rnonseq_later:
+  assumes "rnonseq later"
+  shows "rsimpStrong_prune_pair_raw earlier later = later"
+  using assms
+  by (cases later)
+    (simp_all add: rsimpStrong_prune_pair_raw_def split: rrexp.splits)
+
+lemma rsimpStrong_prune_against_rows_raw_rnonseq_later:
+  assumes "rnonseq later"
+  shows "rsimpStrong_prune_against_rows_raw seen later = later"
+  using assms
+  by (induct seen arbitrary: later)
+    (simp_all add: rsimpStrong_prune_pair_raw_rnonseq_later)
+
+lemma rsimpStrong_prune_rows_acc_raw_rnonseq:
+  assumes rows: "\<forall>p \<in> set ps. rnonseq p"
+  shows "rsimpStrong_prune_rows_acc_raw seen ps = ps"
+  using rows
+proof (induct ps arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons p ps)
+  have head: "rsimpStrong_prune_against_rows_raw seen p = p"
+    by (rule rsimpStrong_prune_against_rows_raw_rnonseq_later)
+      (use Cons.prems in simp)
+  have tail:
+      "rsimpStrong_prune_rows_acc_raw (p # seen) ps = ps"
+    by (rule Cons.hyps) (use Cons.prems in simp)
+  show ?case
+    using head tail by (simp add: Let_def)
+qed
+
+lemma rsimpStrong_prune_rows_raw_rnonseq:
+  assumes "\<forall>p \<in> set ps. rnonseq p"
+  shows "rsimpStrong_prune_rows_raw ps = ps"
+  unfolding rsimpStrong_prune_rows_raw_def
+  by (rule rsimpStrong_prune_rows_acc_raw_rnonseq[OF assms])
+
+lemma sum_list_map_rdistinct_le:
+  "sum_list (map (f :: rrexp \<Rightarrow> nat) (rdistinct xs acc)) \<le>
+    sum_list (map f xs)"
+proof (induct xs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "x \<in> acc")
+    case True
+    have "sum_list (map f (rdistinct (x # xs) acc)) =
+        sum_list (map f (rdistinct xs acc))"
+      using True by simp
+    also have "... \<le> sum_list (map f xs)"
+      by (rule Cons.hyps)
+    also have "... \<le> f x + sum_list (map f xs)"
+      by simp
+    finally show ?thesis
+      by simp
+  next
+    case False
+    have "sum_list (map f (rdistinct (x # xs) acc)) =
+        f x + sum_list (map f (rdistinct xs (insert x acc)))"
+      using False by simp
+    also have "... \<le> f x + sum_list (map f xs)"
+      using Cons.hyps by simp
+    finally show ?thesis
+      by simp
+  qed
+qed
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_RONE_flat_payload:
+  assumes "rnonseq p" "nonalt p"
+  shows "row_dlforms_list_size (rsimp7_SEQ_atom p RONE) =
+    row_dlforms_list_size p"
+  using assms
+  by (cases p) (simp_all add: rsimp7_SEQ_atom_def)
+
+lemma sum_list_map_rsimp7_SEQ_atom_RONE_flat_payload:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p RONE)) ps) =
+    sum_list (map row_dlforms_list_size ps)"
+  using payloads
+  by (induct ps)
+    (simp_all add: row_dlforms_list_size_rsimp7_SEQ_atom_RONE_flat_payload)
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_RALTS_RONE_flat_payload_le_sum:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "row_dlforms_list_size (rsimp7_SEQ_atom (RALTS ps) RONE) \<le>
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p RONE)) ps)"
+proof -
+  have rhs:
+      "sum_list
+        (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p RONE)) ps) =
+      sum_list (map row_dlforms_list_size ps)"
+    by (rule sum_list_map_rsimp7_SEQ_atom_RONE_flat_payload[OF payloads])
+  have "row_dlforms_list_size (rsimp7_SEQ_atom (RALTS ps) RONE) =
+      sum_list (map row_dlforms_list_size ps)"
+    by (simp add: rsimp7_SEQ_atom_def)
+  then show ?thesis
+    using rhs by simp
+qed
+
+lemma sum_list_map_rsimp7_SEQ_atom_rflts_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k))
+        (rflts ps)) \<le>
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
+  using payloads
+proof (induct ps)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons p ps)
+  then show ?case
+    by (cases p) (simp_all add: rsimp7_SEQ_atom_def)
+qed
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_flat_payload_le_sum:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "row_dlforms_list_size (rsimp7_SEQ_atom (rsimp_ALTs ps) k) \<le>
+    sum_list
+      (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)) ps)"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (Cons p qs)
+  note ps = Cons
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using ps by simp
+  next
+    case (Cons q qs')
+    show ?thesis
+    proof (cases k)
+      case RONE
+      have ps_payloads:
+          "\<forall>x \<in> set (p # q # qs'). rnonseq x \<and> nonalt x"
+        using ps Cons payloads by simp
+      have "row_dlforms_list_size
+          (rsimp7_SEQ_atom (RALTS (p # q # qs')) RONE) \<le>
+        sum_list
+          (map (\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p RONE))
+            (p # q # qs'))"
+        by (rule
+            row_dlforms_list_size_rsimp7_SEQ_atom_RALTS_RONE_flat_payload_le_sum
+            [OF ps_payloads])
+      then show ?thesis
+        using ps Cons RONE by simp
+    qed (use ps Cons payloads in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed
+qed
+
+lemma row_dlforms_list_size_rsimp7_SEQ_atom_rsimpStrong_ALTs_raw_flat_payload_le:
+  assumes payloads: "\<forall>p \<in> set ps. rnonseq p \<and> nonalt p"
+  shows "row_dlforms_list_size
+      (rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ps) k) \<le>
+    row_dlforms_list_size (RSEQ (RALTS ps) k)"
+proof -
+  let ?f = "\<lambda>p. row_dlforms_list_size (rsimp7_SEQ_atom p k)"
+  let ?ds = "rdistinct (rflts ps) {}"
+  have pruned: "rsimpStrong_prune_rows_raw ps = ps"
+    by (rule rsimpStrong_prune_rows_raw_rnonseq)
+      (use payloads in auto)
+  have ds_payloads: "\<forall>p \<in> set ?ds. rnonseq p \<and> nonalt p"
+    using rflts_flat_payload_set_props[OF payloads]
+    by (auto simp add: rdistinct_set_equality1)
+  have "row_dlforms_list_size
+      (rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ps) k) =
+    row_dlforms_list_size (rsimp7_SEQ_atom (rsimp_ALTs ?ds) k)"
+    by (simp add: rsimpStrong_ALTs_raw_def pruned)
+  also have "... \<le> sum_list (map ?f ?ds)"
+    by (rule
+        row_dlforms_list_size_rsimp7_SEQ_atom_rsimp_ALTs_flat_payload_le_sum
+        [OF ds_payloads])
+  also have "... \<le> sum_list (map ?f (rflts ps))"
+    by (rule sum_list_map_rdistinct_le)
+  also have "... \<le> sum_list (map ?f ps)"
+    by (rule sum_list_map_rsimp7_SEQ_atom_rflts_flat_payload_le
+        [OF payloads])
+  also have "... = row_dlforms_list_size (RSEQ (RALTS ps) k)"
+    by simp
+  finally show ?thesis .
+qed
+
 definition row_dlformss :: "rrexp list \<Rightarrow> rrexp set" where
   "row_dlformss rs = (\<Union>q \<in> set rs. row_dlforms q)"
 

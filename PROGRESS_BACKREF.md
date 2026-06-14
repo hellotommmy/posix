@@ -9517,3 +9517,23 @@ STATUS_MATH and say so at the top of PROGRESS.
   `row_dlforms(rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ps) k)` by the flat
   `RSEQ (RALTS ps) k` list/set ledger for flat payloads, including the
   degenerate unit suffix cases.
+
+## 2026-06-14 Codex: CHECKED - strong ALT root list ledger
+
+- New checked pruning identity:
+  if every row in `ps` is `rnonseq`, then
+  `rsimpStrong_prune_rows_raw ps = ps`.
+- New checked flat ALT comparison:
+  if every payload in `ps` is `rnonseq` and `nonalt`, then
+  `row_dlforms_list_size(rsimp7_SEQ_atom (rsimpStrong_ALTs_raw ps) k) <=
+   row_dlforms_list_size(RSEQ (RALTS ps) k)`.
+  Plain gloss: the strong ALT root cannot cost more, in the row-list ledger,
+  than opening the original flat alternative over the same suffix. The proof
+  includes the `k = RONE` pass-through branch separately, so this does not rely
+  on the non-unit-suffix shortcut.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: combine this list-ledger comparison with the
+  strong-normalized payload transfer to prove the general self-STAR strong
+  flat-payload set bound.
