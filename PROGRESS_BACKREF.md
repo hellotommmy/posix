@@ -10318,3 +10318,46 @@ REDIRECT, both agents:
 - SAMPLE-CHECKING the two containments at depth>=5 FIRST (own scratch file,
   reusing the validated drain model) before any Isabelle. Will record a CE +
   flag the admin if either is false.
+
+## 2026-06-14 Codex: CLAIMED — §4 RCHAR + RSEQ child-drain SET containments
+
+- Continuing only the verdict2 §4 constructor content, not §6 wrappers:
+  RCHAR normalized set containment and RSEQ telescoping set containment.
+- First target is to split the existing unchecked RCHAR proof into small
+  constructor branches; the current broad `cases k` automation timed out and
+  will not be relaunched unchanged.
+
+## 2026-06-14 New agent (opus): CHECKED-FALSE — §4 RALTS + RSTAR per-child SET containments (my assigned lane). ADMIN/SECRETARY: route needs a corrected design.
+
+Mandatory depth>=5 sample-check FIRST (`scratch_drain_containment_check.py`,
+faithful model — it reproduces Codex's PROVEN RCHAR containment with 0 violations,
+and its rsimp4/rsimp7 match `rsimp4_SEQ_atom`/`rsimp7_SEQ_atom` exactly). Result:
+the literal verdict2 §4 containments STEER assigns me are FALSE.
+
+- **RALTS literal CE (minimal)**: `rs = [RSEQ (RCHAR b) (RSTAR (RCHAR c)), RONE]`,
+  `k = RSTAR (RCHAR c)`.
+    `strong_child_drain (RALTS rs) k` contains `b·(c*·c*)`  [= b.c*.c*]
+    which is in NO child `strong_child_drain q k`  (so NOT `⊆ ⋃ q. ...`).
+  MECHANISM: `nseq (RALTS rs) k = (b·c* + 1)·c*` — `rsimp4` WRAPS the ALTS
+  (`RSEQ (RALTS …) k`), it does NOT distribute. Opening that row gives the
+  UN-collapsed `b·c*·c*`. But the child `nseq (b·c*) (c*)` REASSOCIATES then the
+  STAR-STAR rule `c*·c* → c*` fires, collapsing the child to `b·c*`. So the parent
+  keeps a bigger form (rsize 7) absent from every child (max rsize 4).
+- **RSTAR literal CE**: `p = RSEQ (RALTS [RONE, RCHAR a]) (RCHAR c)`, `k = RONE`;
+  `c·((((1+a)·c)*)·…)` escapes `star_entry p k ∪ strong_child_drain p (nseq (RSTAR p) k)`.
+- **Corrected RALTS** (add the parent opened row as a boundary,
+  `⊆ (row_dlforms (nseq (RALTS rs) k) − strong_opened_live (S k)) ∪ ⋃ q. …`)
+  HOLDS as a SET fact (40,000 depth-6 clean) — BUT it does not close the
+  arithmetic: `drain_pot (RALTS rs) = Σ drain_pot q` and `drain_w (RALTS rs) =
+  Σ drain_w q` EXACTLY (no RALTS constructor slack), so the extra boundary term's
+  `rsize_set` (7 in the CE) has nowhere to be paid. Over-budget by the boundary.
+- **Corrected RSTAR** (full opened-row boundary): STILL FALSE (40k found a CE).
+- **RSEQ (Codex lane) HOLDS** (40,000 depth-6 clean), as does RCHAR. The defect
+  is SPECIFIC to ALTS/STAR: `rsimp4` reassociates SEQ (so SEQ telescopes
+  cleanly), but wraps ALTS and never reconciles the STAR-STAR collapse.
+- BOTTOM LINE: the per-child SET-containment paradigm (analog of the D-law
+  boundary) transfers to SEQ/CHAR but NOT to ALTS/STAR. The bound itself is TRUE
+  (Codex's 300k), so a proof exists — but NOT via these containments. This is a
+  genuine design dead-end for RALTS+RSTAR → needs a corrected route (GPT Pro pass).
+  I am NOT grinding the refuted containments. CEs added to SUPER_LINEAR_PATTERNS.md.
+  Holding for a corrected STEER directive on the RALTS/RSTAR proof structure.

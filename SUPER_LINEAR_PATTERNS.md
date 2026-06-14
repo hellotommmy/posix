@@ -420,3 +420,29 @@ any engine claiming to return **POSIX-correct submatches/captures**.
 The recurring villains are **nested zero-width stars `(x*)*`** and **bounded
 repetition `r{n}` under iteration**. Any engine that special-cases `{n}` by
 unrolling, or that flattens `(x*)*`, is where these will bite.
+
+---
+
+## C-DRAIN — STAR-STAR collapse breaks per-child telescoping (2026-06-14)
+
+These killed the verdict2 §4 *per-child SET-containment* proof route for the
+`strong_child_drain` master invariant (RALTS and RSTAR constructor cases). The
+**bound itself is true** (300k samples) — what is false is the telescoping
+*inclusion* into the children.
+
+- **C-DRAIN-1 (RALTS)** — regex parent `(b·a* + 1)`, continuation `k = a*`.
+  Claim refuted: `strong_child_drain (RALTS [b·a*, 1]) a*  ⊆  ⋃ child drains`.
+  The parent drain contains `b·(a*·a*)` (rsize 7); no child drain does (the
+  child `nseq (b·a*) a*` reassociates and the STAR-STAR rule `a*·a* → a*`
+  collapses it to `b·a*`, rsize 4). Deception: passes shallow samples; first
+  caught at depth ≤ 4, robust at depth 6.
+- **C-DRAIN-2 (RSTAR)** — body `p = (1+a)·c`, `k = 1` (and nested-star variants
+  `((1+a)*)*` under a fresh char). `strong_child_drain (RSTAR p) k` keeps a star
+  re-entry form `c·(((1+a)·c)*·…)` that escapes `star_entry p k ∪ child drain`,
+  even after adding the full parent opened row as a boundary.
+
+The deception datum / engine lesson: the regex algebra `(a+b)·k = a·k + b·k`
+holds, but the strong-normaliser does NOT distribute `·` over `+` (it wraps
+`RSEQ (ALTS …) k`) and DOES collapse `a*·a* → a*`. Any optimiser that assumes
+left-distribution commutes with star-idempotence will mis-deduplicate exactly
+these shapes. SEQ telescoping is unaffected (reassociation is sound).

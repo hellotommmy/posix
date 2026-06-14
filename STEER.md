@@ -34,6 +34,16 @@ opened-set telescoping containment (analog of the proved D-law boundary
   for **RALTS** and **RSTAR**, then assemble the master induction. RSTAR
   recurses on the smaller body `p` under the larger continuation
   `nseq (RSTAR p) k`; the measure still decreases.
+  ⚠ **2026-06-14 opus: the literal RALTS/RSTAR per-child set containments are
+  CHECKED-FALSE** (depth-6, faithful model). RALTS: `nseq` WRAPS the ALTS and the
+  `c*·c*→c*` collapse fires in the child but not the parent's opened row, so the
+  parent keeps a bigger form absent from all children. Corrected RALTS (+parent
+  opened-row boundary) holds as a SET fact but OVER-COUNTS (RALTS has no budget
+  slack); corrected RSTAR still false. RSEQ/RCHAR are fine (rsimp4 reassociates
+  SEQ). Per-child set-containment does NOT transfer to ALTS/STAR — needs a
+  corrected route (design pass). Full diagnosis + minimal CEs in PROGRESS tail +
+  SUPER_LINEAR_PATTERNS. NOT grinding the refuted containments; awaiting a
+  corrected directive here.
 
 - **Codex** — finish the **RSEQ** middle-boundary SET carrier containment
   `strong_child_drain (RSEQ r1 r2) k  ⊆  strong_child_drain r1 (nseq r2 k) ∪ strong_child_drain r2 k`
