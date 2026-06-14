@@ -240,3 +240,36 @@ ZERO violations across ~580k cases — the two static lemmas, the RALTS cover, t
 RSTAR step/cover, the master `strong_child_drain_ctx_bound`, and the corollary all
 hold; both C-DRAIN cases now PASS (C-DRAIN-2 tight, slack 0). 6-lemma implementation
 stack in verdict4 §5; lane split in STEER.md. This is the route being implemented.
+
+---
+
+## UPDATE 5 (2026-06-14): the #3/#4 cover PROOFS — verdict5 weak-carrier + injective slot charge (validated)
+
+verdict4 gave the context-cover BOUND (validated) but deferred the #3/#4 cover PROOFS.
+The obvious additive acc-split via `rsize_set_strong_opened_live_row_universe_acc_RALTS_le`
+(line 34844) was measured BOXED: it bounds the parent SUBADDITIVELY (`1 + wrapped-root +
+Σ children`) on top of the already-full child ledgers (`Σ child ctx_bound == ctxR`), so the
+`1 + root` term has nothing to charge against (0/60000 close; deficit always `1+root`).
+
+GPT Pro verdict5 (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`) is the corrected PROOF. The move:
+insert a proof-only **weak carrier**
+  `weak_child_drain p k = (⋃ (h,_)∈drain_ctxs p. row_dlforms (rsimp4_SEQ_atom h k)) − row_dlforms k`
+(the NON-collapsing `rsimp4` plug — NOT `rsimpStrong`), and prove an **injective indexed-slot
+charge** `weak_child_drain_charge` mapping each weak row to a distinct paid slot with
+`rsize x ≤ slot_cost p k (ch x)`. Then `weak_child_drain_ctx_bound` uses subadditivity ONLY
+AFTER every row has a slot (no free-standing `1+root`). #3 = `strong_child_drain (RALTS rs) k
+⊆ ⋃_q weak_child_drain q k` then the slot bound; #4 = the analogous `star_entry_drain ∪
+weak body`. The strong cover #5 is a **mutual P/Q induction** (P=strong, Q=weak); the old
+route used P on children and lost the uncollapsed parent row — Q's root clause is exactly the
+`rsimp4` plug the parent opener exposes. The CE `b·c*·c*` is charged to the child slot
+`(b·c*,4)` extended by k = `4+(1+2)=7` via the weak plug (where the strong child collapsed it).
+
+VALIDATION (secretary, depth≥5, 2026-06-14): 3 harnesses over the faithful model, ~660k
+checks, 0 in-fragment violations — W1 weak cover (138852), W2/W3 RALTS bridge (359932),
+W4/W5 RSTAR bridge + entry cost (164866); both CEs covered (C-DRAIN-2 tight, slack 0).
+
+TWO IMPLEMENTATION CAVEATS (validation-found): (1) the weak acc must be S-FREE — applying
+`rsimpStrong_raw` inside the weak opening collapses `a*·a*` and the duplicate row breaks the
+injective charge (measured: 4 in-fragment CEs). (2) Guards must be `S p = p` / `S k = k`, not
+just `rtail_nf`/`nf` (nf accepts nested stars on which the inclusions fail). The implementation
+stack + lane split is in STEER.md; this is the route being implemented.

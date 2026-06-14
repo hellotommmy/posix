@@ -30,26 +30,42 @@ own hunks; `git pull --rebase --autostash` before every push; commit small, push
 immediately. The design is pre-validated — go straight to Isabelle; re-sample
 (reuse `scratch_drain_ctxs_master_check.py`) ONLY if you change a statement.
 
-### PROMPT A — WORKER-A (#3 RALTS cover) — GATED on the GPT Pro micro-ask
+### PROMPT A — WORKER-A (verdict5 weak carrier + #3 RALTS) — GO
 
-⚠ DO NOT START until the GPT Pro cover-proof skeleton lands (see PROGRESS / STEER).
-The two obvious reductions are both DEAD: (1) per-child SUBSET (RALTS has no clean
-child subset — CE `b·c*·c*`); (2) the additive acc-split via
-`rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (line 34844) is BOXED —
-measured 0/60000 close, deficit always `1+root` (subadditive on top of full child
-ledgers). When the skeleton lands, this prompt will carry it. The RIGHT shape:
-inject each parent drain ROW into a child CONTEXT SLOT and bound its `rsize` by the
-slot's declared cost (`b·c*·c*` rsize 7 ≤ slot `(b·c*,4)` extended = `4+(1+2)=7`),
-NOT a bulk `rsize_set` split. Deliverable: `strong_child_drain_RALTS_ctx_bound`
-GREEN, no `sorry`; claim in PROGRESS before editing.
+You are a proof worker on the POSIX cubic-bound project. Repo:
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex`, branch `codex/backref-values`.
+Read in order: `STEER.md`, `MAINLINE.md` §1-2, `GPT_PRO_GATE_BRIDGE_VERDICT4.md` (the
+verdict5 design — read the SECRETARY HEADER caveats + §1-5), last ~150 lines of
+`PROGRESS_BACKREF.md`, then `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`.
+Your lane: the weak carrier + #3. COMMIT FIRST so WORKER-B can build: the infra
+(`wseq`, `weak_child_drain`, `slot_cost`, `ctx_bound_as_slots`, `alt_off`/`alt_slot`/
+`alt_slot_lt`/`nth_alt_slot`), then `weak_child_drain_charge` (the injective slot
+charge — induction on `rsize p`, all ctor cases per verdict5 §3) and
+`weak_child_drain_ctx_bound`. Then #3: `strong_child_drain_RALTS_to_weak_children`,
+`RALTS_wrapped_root_into_weak_slots`, `strong_child_drain_RALTS_ctx_bound` (§4-5).
+⚠ CAVEAT 1 (critical): the weak acc is S-FREE —
+`weak_child_drain p k = (⋃ (h,_)∈drain_ctxs p. row_dlforms (rsimp4_SEQ_atom h k)) − row_dlforms k`;
+do NOT apply `rsimpStrong_raw`/S inside the weak opening (S collapses `a*·a*` and the
+duplicate breaks the injective charge — secretary-measured). ⚠ CAVEAT 2: guards must
+include `S p = p` / `S k = k`, not just `rtail_nf`. Design is pre-validated at depth≥5
+— go straight to Isabelle; re-sample only if you change a statement. No `sorry`; claim
+each lemma in PROGRESS before editing; build
+`scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
 
-### PROMPT B — WORKER-B (#4 RSTAR cover) — ALSO GATED on the GPT Pro micro-ask
+### PROMPT B — WORKER-B (verdict5 #4 RSTAR) — GO once WORKER-A commits the weak infra
 
-⚠ DO NOT START until the skeleton lands. #4's analog split lemma (line 34825) is the
-SAME subadditive shape as #3's boxed one, so #4 is at the same risk — the micro-ask
-covers BOTH RALTS and RSTAR cover proofs. When the skeleton lands, this prompt will
-carry it. Deliverable: prove `strong_child_drain_RSTAR_ctx_step` (verdict4 §3 / stack
-item #4) GREEN, no `sorry`; claim in PROGRESS before editing. Independent of #3. Route (verdict4 §3): the
+You are a proof worker on the POSIX cubic-bound project. Repo + entry chain as in
+PROMPT A, but read `GPT_PRO_GATE_BRIDGE_VERDICT4.md` §6-7 (RSTAR). Your lane: #4. It
+reuses `weak_child_drain` + `weak_child_drain_ctx_bound` from WORKER-A — START once A
+has committed those (check PROGRESS); meanwhile you may draft against the stated
+signatures. Deliverables (verdict5 §6-7): `star_entry_drain` def,
+`strong_child_drain_RSTAR_to_entry_weak_body`, `star_entry_drain_cost` (the opened row
+set is singleton-or-empty → use the LINEAR row-size bound, NOT the generic quadratic
+`row_dlforms` bound), then `strong_child_drain_RSTAR_ctx_step` GREEN, no `sorry`. Same
+two caveats as PROMPT A (S-free weak acc; `S p = p` guards). ⚠ the master cover is
+TIGHT on C-DRAIN-2 (slack 0) — keep arithmetic exact. Claim in PROGRESS before editing;
+build `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`. Independent of #3's
+RALTS-specific lemmas once the shared weak infra is in. Route (verdict4 §3): the
 direct star-context step — the escaped re-entry row is charged to a body context from
 `drain_ctxs p` extended by the declared `RSTAR p` suffix
 (`map (ctx_extend (RSTAR p)) (drain_ctxs p)`), plus the single entry slot

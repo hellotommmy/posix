@@ -10578,3 +10578,26 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   `gpt_pro_bundle/5_FOLLOWUP_cover_proofs.txt`. WORKER-A/#3 and WORKER-B/#4 are GATED:
   HOLD until the skeleton lands; do NOT re-derive a boxed split. Infra/static/SEQ/CHAR
   remain green; #5/#6 still block on #3/#4.
+
+## 2026-06-14 Secretary: GPT Pro verdict5 (weak-carrier proof skeleton) VALIDATED — #3/#4 UN-GATED
+
+- The micro-ask returned: GPT Pro verdict5 (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`) is the
+  PROOF for the deferred #3/#4 covers. Move: a proof-only WEAK carrier
+    weak_child_drain p k = (UN (h,_) in drain_ctxs p. row_dlforms (rsimp4_SEQ_atom h k)) − row_dlforms k
+  (NON-collapsing rsimp4 plug) + an INJECTIVE indexed-slot charge `weak_child_drain_charge`
+  (each parent drain row → a distinct paid slot, rsize ≤ slot_cost). Subadditivity is used
+  ONLY after every row has a slot — no boxed `1+root`. #5 strong cover = MUTUAL P/Q induction
+  (P=strong, Q=weak); the old route used P on children and lost the uncollapsed row.
+- Plain math (the win chain): strong_child_drain (RALTS rs) k ⊆ UN_q weak_child_drain q k,
+  and rsize_set(weak_child_drain p k) ≤ ctx_bound(drain_ctxs p) k via the injective charge,
+  so rsize_set(strong_child_drain (RALTS rs) k) ≤ Σ_q ctx_bound(drain_ctxs q) k = ctx_bound(drain_ctxs(RALTS rs)) k.
+- VALIDATED by secretary at depth≥5 — 3 harnesses, ~660k checks, 0 in-fragment violations:
+  W1 weak cover (138852), W2/W3 RALTS bridge (359932), W4/W5 RSTAR bridge + entry cost (164866);
+  both CEs covered (C-DRAIN-2 tight, slack 0). Strong cover holds jointly → P/Q mutual induction OK.
+- ⚠ TWO CAVEATS (validation-found, baked into STEER): (1) the weak acc must be S-FREE —
+  applying rsimpStrong_raw inside the weak opening collapses a*·a* and the duplicate row breaks
+  the injective charge (4 in-fragment CEs). (2) Guards must be S p=p / S k=k, not just rtail_nf/nf.
+- LANES (STEER.md): WORKER-A = weak carrier infra + weak_child_drain_charge/_ctx_bound + #3 RALTS
+  (commit weak infra FIRST); WORKER-B = #4 RSTAR (star_entry_drain, the bridge, entry cost) after
+  A's weak infra lands; WATCHDOG-C = #5 mutual induction + #6 corollary + §7 when #3/#4 green.
+  #6 green = §4 blocker CLOSED.

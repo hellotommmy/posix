@@ -54,7 +54,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; §4 per-child SET-containment PROVEN for SEQ/CHAR but CHECKED-FALSE for RALTS/RSTAR (guarded `a*·a*→a*` collapse); CORRECTED ROUTE in hand: GPT Pro verdict4 context-cover ledger `drain_ctxs` — replaces set-membership with a size COST-COVER — VALIDATED at depth≥5 (zero violations, ~580k cases, both old CEs now covered); now IMPLEMENTING the 6-lemma stack. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED, then §7.)
+## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; context-cover infra + static lemmas + RCHAR/RSEQ ctx cases green; the #3/#4 cover PROOFS go via GPT Pro verdict5 WEAK-CARRIER skeleton (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`) — a proof-only `weak_child_drain` (non-collapsing rsimp4 plug) + injective indexed-slot charge, mutual P/Q induction — VALIDATED at depth≥5 (~660k checks, 0 in-fragment violations, both CEs covered). #3/#4 UN-GATED, implementing. Two caveats: weak acc must be S-FREE; guards must be `S p=p`. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED, then §7.)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
@@ -226,20 +226,21 @@ Vocabulary (fixed, do not rename):
   of RALTS are exactly Σ over children — nothing to pay the boundary). The master
   bound itself is still believed TRUE (300k). See `SUPER_LINEAR_PATTERNS.md` C-DRAIN,
   `GATE_BRIDGE_GAP.md` UPDATE 3.
-- **CORRECTED ROUTE — verdict4 context-cover (2026-06-14, VALIDATED).** GPT Pro's
-  `GPT_PRO_GATE_BRIDGE_VERDICT3.md`: bound the parent drain SIZE by a linear
-  context-slot ledger `drain_ctxs p` (one slot per `drain_w` unit; DECLARED cost
-  `snd + (1+rsize q)` survives the `a*·a*→a*` collapse), NOT by set membership.
-  Secretary-validated at depth≥5 (zero violations, ~580k cases; both C-DRAIN CEs
-  now covered; master cover TIGHT on C-DRAIN-2). 6-lemma stack (verdict4 §5):
-  `drain_ctxs_{count_le_w, base_le_pot}` (static), `strong_child_drain_{RALTS_ctx_bound,
-  RSTAR_ctx_step}` (NEW covers), `strong_child_drain_ctx_bound` (master induction on
-  rsize p), `strong_child_drain_potential` (corollary = §4 blocker CLOSED).
-  Lane split + exact statements: STEER.md.
-- **Current narrow instruction:** implement the verdict4 6-lemma stack (above).
-  The design is pre-validated — go straight to Isabelle, re-sample only if you
-  change a statement. Do NOT re-attempt the now-dead per-child ALTS/STAR
-  membership or its boundary variants. Do NOT re-attempt: the verbatim
+- **CORRECTED ROUTE — verdict4 context-cover ledger (the bound) + verdict5 weak-carrier
+  (the PROOF).** verdict4 (`GPT_PRO_GATE_BRIDGE_VERDICT3.md`) bounds the parent drain SIZE
+  by the linear context-slot ledger `drain_ctxs p` (validated). Its #3/#4 cover PROOFS were
+  deferred; the obvious additive acc-split was measured BOXED (line 34844). verdict5
+  (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`) gives the proof: a proof-only **`weak_child_drain`**
+  carrier (S-FREE, non-collapsing `rsimp4` plug) + an **injective indexed-slot charge**, so
+  each parent drain row gets its own paid slot (no `1+root` split). The strong cover #5 is a
+  **mutual P/Q induction** (P=strong, Q=weak). VALIDATED depth≥5 (~660k checks, 0 in-fragment
+  violations; W1 weak cover, W2/W3 RALTS bridge, W4/W5 RSTAR bridge; both CEs covered).
+  ⚠ two caveats: weak acc S-FREE; guards `S p=p` (not just nf). Stack + lanes: STEER.md.
+- **Current narrow instruction:** implement the verdict5 stack (STEER.md): weak carrier +
+  `weak_child_drain_charge`/`_ctx_bound`, then #3 RALTS, #4 RSTAR, then the mutual-induction
+  #5 + corollary #6 + §7. Pre-validated — go straight to Isabelle, re-sample only if a
+  statement changes. Do NOT use the BOXED additive acc-split (line 34844) for #3, nor the
+  dead per-child membership. Do NOT re-attempt: the verbatim
   subset target, the opened-boundary/liveness original-root carriers, the square-sum
   or list-cost routes, the falsified unary/potential strengthenings, the old zwidth
   law, the first J* invariant, raw zw2, or `*_list_cost_alt_nodes`/generated-ledger
