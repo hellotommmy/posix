@@ -33497,6 +33497,60 @@ lemma RALTS_two_chars_parent_star_shell_too_weak_for_quadratic_target:
         (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
   by (simp add: ps_def power2_eq_square power3_eq_cube)
 
+lemma strong_opened_live_acc_potential_RONE_RSTAR_linear:
+  "strong_opened_live_acc_potential RONE (RSTAR r) \<le>
+    1 + 2 * rsize (RSTAR r)"
+proof -
+  have row:
+      "rsize_set (row_dlforms (rsimpStrong_raw (RSTAR r))) \<le>
+      rsize (RSTAR r)"
+    by (rule rsize_set_row_dlforms_rsimpStrong_raw_RSTAR_le)
+  have front:
+      "rsize_set
+        (row_dlformss_set (rsimpStrong_raw ` rfrontier (RSTAR r))) \<le>
+      rsize (RSTAR r)"
+    using row by (simp add: row_dlformss_set_def)
+  have "strong_opened_live_acc_potential RONE (RSTAR r) =
+      1 +
+      rsize_set (row_dlforms (rsimpStrong_raw (RSTAR r))) +
+      rsize_set
+        (row_dlformss_set (rsimpStrong_raw ` rfrontier (RSTAR r)))"
+    by simp
+  also have "... \<le> 1 + rsize (RSTAR r) + rsize (RSTAR r)"
+    using row front by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma strong_opened_live_acc_potential_RCHAR_RSTAR_linear:
+  "strong_opened_live_acc_potential (RCHAR c) (RSTAR r) \<le>
+    3 * Suc (rsize (RSTAR r))"
+proof -
+  have root:
+      "rsize_set
+        (row_dlforms
+          (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) (RSTAR r)))) \<le>
+      Suc (Suc (rsize (RSTAR r)))"
+    by (rule strong_opened_live_acc_RCHAR_root_charge_linear)
+  have tail:
+      "strong_opened_live_acc_potential RONE (RSTAR r) \<le>
+      1 + 2 * rsize (RSTAR r)"
+    by (rule strong_opened_live_acc_potential_RONE_RSTAR_linear)
+  have "strong_opened_live_acc_potential (RCHAR c) (RSTAR r) =
+      rsize_set
+        (row_dlforms
+          (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) (RSTAR r)))) +
+      strong_opened_live_acc_potential RONE (RSTAR r)"
+    by simp
+  also have "... \<le>
+      Suc (Suc (rsize (RSTAR r))) +
+      (1 + 2 * rsize (RSTAR r))"
+    by (rule add_mono[OF root tail])
+  also have "... \<le> 3 * Suc (rsize (RSTAR r))"
+    by simp
+  finally show ?thesis .
+qed
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

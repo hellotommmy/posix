@@ -9633,3 +9633,21 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: prove sharper parent-STAR child bounds for `RONE` and
   `RCHAR` that use the specific suffix `RSTAR (RALTS ps)`, not the generic
   cube-shell drain.
+
+## 2026-06-14 Codex: CHECKED - linear STAR-suffix simple child bounds
+
+- New checked STAR-suffix child bounds:
+  `strong_opened_live_acc_potential RONE (RSTAR r) <=
+   1 + 2 * rsize(RSTAR r)`.
+  `strong_opened_live_acc_potential (RCHAR c) (RSTAR r) <=
+   3 * Suc(rsize(RSTAR r))`.
+  Plain gloss: at a parent STAR suffix, simple children are linear, not cubic.
+  This is the sharpening needed after the checked two-character gap showed the
+  generic cube-shell child drain was too coarse.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: lift these two pointwise bounds to a list-parametric
+  simple child-sum bound of the form
+  `(2 * length ps + apder_zw2(RALTS ps)) *
+   Suc(rsize(RSTAR (RALTS ps)))`.
