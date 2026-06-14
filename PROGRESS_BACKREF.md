@@ -9416,3 +9416,25 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: make the sampled self-suffix body budget a named
   conditional wrapper or prove its RALTS/SEQ constructor cases, without
   generalizing to arbitrary suffixes.
+
+## 2026-06-14 Codex: CHECKED - self-suffix quadratic base cases
+
+- New checked self-suffix budget bases:
+  `strong_opened_live_acc_potential RZERO (RSTAR RZERO) <=
+   1 + open_pot RZERO +
+   2 * Suc(apder_zw2 RZERO) * (rsize(RSTAR RZERO)+1)^2`,
+  and the analogous checked bounds for `RONE` and `RCHAR c`.
+- New checked pass-through warning case:
+  `strong_opened_live_acc_potential (RALTS [RONE, RCHAR c])
+   (RSTAR (RALTS [RONE, RCHAR c])) <=
+   1 + open_pot (RALTS [RONE, RCHAR c]) +
+   2 * Suc(apder_zw2 (RALTS [RONE, RCHAR c])) *
+     (rsize(RSTAR (RALTS [RONE, RCHAR c]))+1)^2`.
+  Plain gloss: the coefficient-2 self-suffix quadratic budget covers the
+  smallest RONE/pass-through alternative that refuted the coefficient-1 version.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:18). No `sorry`.
+- NEXT smallest brick: prove a general RALTS self-suffix quadratic constructor
+  bound, likely by pairing the existing RALTS root-shell/root-charge facts with
+  child budgets at the shared parent STAR suffix.

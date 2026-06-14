@@ -32947,6 +32947,35 @@ lemma strong_opened_live_acc_potential_RSTAR_RCHAR_root_cubic:
     2 * (rsize (RSTAR (RCHAR c)) + 3) ^ 3"
   by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
 
+lemma strong_opened_live_acc_potential_RZERO_self_star_quad:
+  "strong_opened_live_acc_potential RZERO (RSTAR RZERO) \<le>
+    1 + open_pot RZERO +
+      2 * Suc (apder_zw2 RZERO) * (rsize (RSTAR RZERO) + 1) ^ 2"
+  by simp
+
+lemma strong_opened_live_acc_potential_RONE_self_star_quad:
+  "strong_opened_live_acc_potential RONE (RSTAR RONE) \<le>
+    1 + open_pot RONE +
+      2 * Suc (apder_zw2 RONE) * (rsize (RSTAR RONE) + 1) ^ 2"
+  by (simp add: rsize_set_def row_dlformss_set_def power2_eq_square)
+
+lemma strong_opened_live_acc_potential_RCHAR_self_star_quad:
+  "strong_opened_live_acc_potential (RCHAR c) (RSTAR (RCHAR c)) \<le>
+    1 + open_pot (RCHAR c) +
+      2 * Suc (apder_zw2 (RCHAR c)) *
+        (rsize (RSTAR (RCHAR c)) + 1) ^ 2"
+  by (simp add: rsize_set_def row_dlformss_set_def power2_eq_square)
+
+lemma strong_opened_live_acc_potential_RALTS_RONE_RCHAR_self_star_quad:
+  "strong_opened_live_acc_potential (RALTS [RONE, RCHAR c])
+      (RSTAR (RALTS [RONE, RCHAR c])) \<le>
+    1 + open_pot (RALTS [RONE, RCHAR c]) +
+      2 * Suc (apder_zw2 (RALTS [RONE, RCHAR c])) *
+        (rsize (RSTAR (RALTS [RONE, RCHAR c])) + 1) ^ 2"
+  by (simp add: rsize_set_def row_dlformss_set_def power2_eq_square
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"
