@@ -36045,6 +36045,37 @@ proof -
   finally show ?thesis .
 qed
 
+(* RSEQ constructor of the master cover.  The accumulator split already
+   performs the rsimp4 reassociation; the guard is kept for the uniform
+   master-cover interface. *)
+lemma master_cover_RSEQ:
+  assumes norm_k: "rsimpStrong_raw k = k"
+    and left_ih:
+      "strong_opened_live_row_universe_acc r1
+         (rsimp4_SEQ_atom r2 k) \<subseteq>
+       weak_slots r1 (rsimp4_SEQ_atom r2 k) \<union>
+       strong_opened_live_row_universe k"
+    and right_ih:
+      "strong_opened_live_row_universe_acc r2 k \<subseteq>
+       weak_slots r2 k \<union>
+       strong_opened_live_row_universe k"
+  shows "strong_opened_live_row_universe_acc (RSEQ r1 r2) k \<subseteq>
+    weak_slots r1 (rsimp4_SEQ_atom r2 k) \<union>
+    weak_slots r2 k \<union>
+    strong_opened_live_row_universe k"
+proof -
+  have "strong_opened_live_row_universe_acc (RSEQ r1 r2) k \<subseteq>
+      strong_opened_live_row_universe_acc r1 (rsimp4_SEQ_atom r2 k) \<union>
+      strong_opened_live_row_universe_acc r2 k"
+    by (rule strong_opened_live_row_universe_acc_RSEQ_subset)
+  also have "... \<subseteq>
+      weak_slots r1 (rsimp4_SEQ_atom r2 k) \<union>
+      weak_slots r2 k \<union>
+      strong_opened_live_row_universe k"
+    using norm_k left_ih right_ih by auto
+  finally show ?thesis .
+qed
+
 lemma row_dlformss_rpder_strong_list_raw_subset_strong_opened_liveI:
   assumes live: "\<And>p. p \<in> set (rpder_norm_list c q) \<Longrightarrow>
     set (rflts [p]) \<subseteq> partial_derivative_live_row_universe q"

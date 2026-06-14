@@ -10801,3 +10801,31 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - Build command: `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`.
 - NEXT: A can use the checked RSTAR constructor case while finishing
   `master_cover_RALTS`/`master_cover_RSEQ` and the induction driver.
+
+## 2026-06-14 WORKER-Codex: CLAIMED — `master_cover_RSEQ`
+
+- CLAIMING (branch `codex/backref-values` up to date at `b27e8b0`; no live
+  proof worker): RSEQ constructor case of the unified master cover. Locked
+  name: `master_cover_RSEQ`.
+- Route: mirror `master_cover_RCHAR`/`master_cover_RSTAR`; telescope the
+  accumulator through reassociation using the existing `rsimp4_SEQ_atom`
+  facts. Target shape:
+  `S k = k ==> [left IH at rsimp4_SEQ_atom r2 k] ==> [right IH at k] ==>
+   SOL_acc (RSEQ r1 r2) k ⊆ weak_slots(r1,rsimp4_SEQ_atom r2 k) ∪
+   weak_slots(r2,k) ∪ SOL(k)`.
+
+## 2026-06-14 WORKER-Codex: CHECKED — `master_cover_RSEQ` GREEN
+
+- CHECKED (build GREEN, Posix_Antimirov 0:00:43, no sorry):
+  `SOL_acc(RSEQ r1 r2,k) ⊆ weak_slots(r1, rsimp4_SEQ_atom r2 k) ∪
+   weak_slots(r2,k) ∪ SOL(k)`, assuming `S k = k` and the explicit left/right
+  IHs at `rsimp4_SEQ_atom r2 k` and `k`.
+  Plain gloss: RSEQ reassociation telescopes through child slots.
+- Build command: `scripts\codex-isabelle-build-posix.ps1` (no args).
+- Guard status before commit: no-cheat PASS; scoped statement guard on
+  `active/AntimirovFactoredTransition.thy` PASS; role guard PASS as `--role admin`
+  but `--role worker` is stale for `active/` + requested `STEER.md`; default
+  statement/bounty guards still fail on pre-existing `b27e8b0` BackRef-pilot
+  file removals.
+- NEXT: only `master_cover_RALTS` remains open before the top-level
+  `master_cover` driver + `strong_child_drain_potential` corollary.
