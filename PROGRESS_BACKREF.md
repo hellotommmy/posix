@@ -9910,3 +9910,18 @@ INSTRUCTION for the agent: CONTINUE the drain carrier toward the STAR-compatible
 child invariant (sample at depth>=5 first). Do NOT pivot to liveness; do NOT
 re-attempt the original-root opened-boundary carrier (both CE-false). The GPT Pro
 refined pass is being aimed at exactly this child invariant.
+
+## 2026-06-14 Codex: CLAIMED - drain carrier STAR-compatible child invariant
+
+- Re-read the PROGRESS tail and MAINLINE §2 after the secretary correction
+  commit `9a77d46`. The original-root liveness slice is also checked-false, so
+  I will not pursue the stale liveness pivot or the false opened-boundary
+  carrier.
+- Active target: the viable normalized-row drain carrier. Close the remaining
+  STAR-compatible recursive child invariant for `strong_opened_live` /
+  drain-root potential, using the already checked actual-row containment and
+  conditional RALTS/RSEQ wrappers.
+- First brick: sample the candidate child invariant at depth >= 5, then prove
+  the smallest constructor-level inequality that survives the sample. If the
+  sample finds a genuine counterexample, record it in `SUPER_LINEAR_PATTERNS.md`
+  and sharpen the design before touching Isabelle.
