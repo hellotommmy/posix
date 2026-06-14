@@ -32932,6 +32932,21 @@ proof -
   finally show ?thesis .
 qed
 
+lemma strong_opened_live_acc_potential_RSTAR_RZERO_root_cubic:
+  "strong_opened_live_acc_potential (RSTAR RZERO) RONE \<le>
+    2 * (rsize (RSTAR RZERO) + 3) ^ 3"
+  by (simp add: rsize_set_def power3_eq_cube)
+
+lemma strong_opened_live_acc_potential_RSTAR_RONE_root_cubic:
+  "strong_opened_live_acc_potential (RSTAR RONE) RONE \<le>
+    2 * (rsize (RSTAR RONE) + 3) ^ 3"
+  by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+
+lemma strong_opened_live_acc_potential_RSTAR_RCHAR_root_cubic:
+  "strong_opened_live_acc_potential (RSTAR (RCHAR c)) RONE \<le>
+    2 * (rsize (RSTAR (RCHAR c)) + 3) ^ 3"
+  by (simp add: rsize_set_def row_dlformss_set_def power3_eq_cube)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

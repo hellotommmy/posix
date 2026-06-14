@@ -9389,3 +9389,30 @@ STATUS_MATH and say so at the top of PROGRESS.
 - NEXT smallest brick: sample/formulate the body-at-self-suffix invariant for
   `strong_opened_live_acc_potential r (RSTAR r)`; do not reuse the false generic
   drain shell, whose suffix is too large through STAR.
+
+## 2026-06-14 Codex: CHECKED - simple STAR root cubics
+
+- Ephemeral scratch:
+  the self-suffix body budget
+  `P r (RSTAR r) <=
+   1 + open_pot r + 2*Suc(apder_zw2 r)*(rsize(RSTAR r)+1)^2`
+  survived 300,000 random clean depth-7 samples and directed RONE-pair/nested
+  STAR families, but the arbitrary-suffix strengthening with `rsize k` is false
+  (sample CE: a STAR over an ALT/SEQ body with a one-character suffix). Keep the
+  next invariant self-suffix-specific.
+- New checked root-potential cubics:
+  `strong_opened_live_acc_potential (RSTAR RZERO) RONE <=
+   2 * (rsize (RSTAR RZERO) + 3)^3`,
+  `strong_opened_live_acc_potential (RSTAR RONE) RONE <=
+   2 * (rsize (RSTAR RONE) + 3)^3`, and
+  `strong_opened_live_acc_potential (RSTAR (RCHAR c)) RONE <=
+   2 * (rsize (RSTAR (RCHAR c)) + 3)^3`.
+  Plain gloss: the first nontrivial STAR roots now have checked cubic budgets,
+  matching the linear root-charge split and giving concrete base cases for the
+  self-suffix STAR route.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:12). No `sorry`.
+- NEXT smallest brick: make the sampled self-suffix body budget a named
+  conditional wrapper or prove its RALTS/SEQ constructor cases, without
+  generalizing to arbitrary suffixes.
