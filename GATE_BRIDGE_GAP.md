@@ -125,3 +125,29 @@ bound. Candidate directions (need a holistic check):
   normalized carrier as a whole.
 Constraint: still set-native, deduped, clean/rntimes-free fragment; respect all
 refutations in CUBIC_OPEN_PROBLEM.pdf §6 and SUPER_LINEAR_PATTERNS.md.
+---
+
+## UPDATE 2 (2026-06-14 11:20): liveness is ALSO false; the viable carrier is the drain carrier over NORMALIZED rows
+
+Both "original-root" routes are now checked-false by the SAME mechanism:
+- opened-boundary carrier over the original root: `rsimpStrong_dlform_closure_opened_boundary_carrier_false`.
+- liveness live-row-universe over the original root: `row_dlformss_actual_not_subset_live_row_universe_original_false`
+  (same `RSTAR (RALTS [RCHAR a])`), and even over `rsimpStrong_raw r` it is false for an opened continuation
+  (`([1|a].([1|a].c))` opens to `(a.c)`, absent from the normalized live-row universe).
+
+Root cause (common to both): the strong simplifier NORMALIZES rows (singleton-ALT
+collapse, flatten, dedup, prune), so the strong rows live in a representation that
+no carrier/universe computed over the ORIGINAL root contains.
+
+VIABLE ROUTE (already largely built by the agent): the **drain carrier over the
+CURRENT normalized `afactored1 r s` rows** (`strong_opened_live`), into which the
+actual gate rows are CHECKED to fall. Per-constructor containments
+(RCHAR/RSEQ/RALTS/RSTAR/RONE) and root-potential base cubics are checked.
+
+THE REMAINING DESIGN QUESTION (this is the real ask): design the **STAR-compatible
+recursive CHILD invariant / potential** for the drain root-potential. The generic
+drain induction is too coarse — a coarse child `2*(rsize+3)^3` sum leaves NO root
+budget for the RALTS / RSTAR parent. Need a child-level invariant (an `open_pot`-
+style potential charged so that RALTS sums and the RSTAR re-entry leave the parent
+enough budget) that closes the conditional RALTS/RSEQ/RSTAR root-cubic wrappers
+already in place. Sample at depth>=5 before Isabelle; constants are tunable.

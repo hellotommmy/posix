@@ -27,7 +27,7 @@
 
 \begin{document}
 
-{\large\textbf{Where the cubic-bound proof is right now}}\hfill\textsf{\small 2026-06-13}
+{\large\textbf{Where the cubic-bound proof is right now}}\hfill\textsf{\small 2026-06-14 11:20}
 
 \medskip
 Working fragment: classical regexes, in normal form, no bounded repetition
@@ -110,14 +110,22 @@ opening, and the dedup
 \ \xrightarrow{\ \norm{\,\cdot\,}\ }\ \le\ 2(\rs{r}+3)^3,
 \]
 and discharge the ``clean'' hypothesis for the actual root.
-\emph{Known wrinkle:} the strong-step rows are only ``tail-normal,'' not fully
-clean, so the D law is used at the $\Rows/\Front$ level and the strong opening is
-bounded on its own. \textbf{Blocked (2026-06-13 23:37) on one genuine missing
-bridge:} the cubic front does not yet reach the gate because the
-\emph{deduplicated} opened ledger needs a suffix-sharing argument --- the per-row
-square-sum is quintic and the non-deduplicated list is exponential (the RONE-pair
-tower). This is a design point, framed in \texttt{GATE\_BRIDGE\_GAP.md} and handed
-to a design pass. Once that bridge lands, the boxed goal is closed (clean fragment).
+\textbf{Design point, status 2026-06-14 11:20.} The cubic front does not reach the
+gate by naive assembly (the per-row square-sum is quintic; the non-dedup list is
+exponential --- RONE-pair tower). GPT Pro's opened-boundary design was implemented,
+but TWO ``original-root'' carriers are now machine-checked FALSE by the same
+mechanism --- the strong simplifier \emph{normalizes} rows (singleton-ALT collapse
+$\Sigma[a]\!\to\!a$ under a star, flatten, dedup), so strong rows escape any
+carrier built over the original $r$: both the opened-boundary carrier
+($\mathit{..\_carrier\_false}$, CE $r=(\Sigma[a])^{*}$) and the liveness live-row
+universe ($\mathit{..\_live\_row\_universe\_original\_false}$). \emph{Viable route,
+largely built:} a \textbf{drain carrier over the current NORMALIZED rows}
+($\mathrm{strong\_opened\_live}$) --- the actual gate rows are checked to sit inside
+it; the one open edge is a \textbf{STAR-compatible recursive child invariant} for
+its potential (the coarse child $2(\rs{r}{+}3)^3$ sum leaves no root budget for
+$\Sigma/{}^{*}$). Handed to a refined design pass
+(\texttt{GATE\_BRIDGE\_GAP.md} UPDATE~2). Once the child invariant lands, the boxed
+goal closes (clean fragment).
 
 \item[\todo] \textbf{After that:} lift the result from the clean fragment to
 \emph{all} regexes including bounded repetition $r^{\{n\}}$. This needs a

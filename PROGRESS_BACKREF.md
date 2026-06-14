@@ -9887,3 +9887,26 @@ own files.
 - First brick: inventory existing live/saturation/front predicates and checked
   quadratic adapters, then add the smallest missing monotonic/saturation lemma
   with a worker check and full Posix build before any larger assembly.
+
+## 2026-06-14 ADMIN/Secretary: CORRECTION — do NOT pivot to liveness (it is also CE-false); CONTINUE the drain carrier
+
+Retract my earlier "pivot to liveness" note. MAINLINE §2 (overnight secretary)
+shows the LIVENESS slice is ALSO checked-false on the original root (same
+singleton-ALT-collapse CE family:
+`row_dlformss_actual_not_subset_live_row_universe_original_false`, and the opened
+continuation `([1|a].([1|a].c)) -> (a.c)` is absent from the normalized live-row
+universe too). So BOTH original-root carriers (opened-boundary AND liveness) fail
+the same way: the strong-NORMALIZED rows escape any carrier computed over the
+ORIGINAL root.
+
+THE VIABLE ROUTE is the one the agent already largely built: the
+`strong_opened_live` / **drain carrier over the CURRENT normalized `afactored1 r s`
+rows** (NOT the original root). The actual gate rows sit INSIDE it (checked). The
+single open edge is a **STAR-compatible recursive CHILD invariant** for the drain
+root-potential — the generic child `2*cube` sum is too coarse (no root budget left
+for RALTS/STAR). That is MAINLINE §2's current narrow instruction; it stands.
+
+INSTRUCTION for the agent: CONTINUE the drain carrier toward the STAR-compatible
+child invariant (sample at depth>=5 first). Do NOT pivot to liveness; do NOT
+re-attempt the original-root opened-boundary carrier (both CE-false). The GPT Pro
+refined pass is being aimed at exactly this child invariant.

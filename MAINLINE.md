@@ -54,7 +54,7 @@ Vocabulary (fixed, do not rename):
   duplicated LIST quantities. These are the BAD quantities (see §4).
 - `rsize_set U` — sum of `rsize` over distinct members of `U`.
 
-## 2. Where the Proof Stands (as of 2026-06-14 07:49, commit 65707ec — D law PROVEN; prefix-aware drain carrier largely built, stuck on the STAR-compatible recursive child invariant)
+## 2. Where the Proof Stands (as of 2026-06-14 11:20 — D law PROVEN; opened-boundary + liveness original-root carriers CHECKED-FALSE; drain carrier over normalized rows is the viable route, needs a STAR-compatible child invariant (→ refined GPT Pro pass); prefix-aware drain carrier largely built, stuck on the STAR-compatible recursive child invariant)
 
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
