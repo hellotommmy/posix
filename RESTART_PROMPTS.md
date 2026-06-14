@@ -30,30 +30,26 @@ own hunks; `git pull --rebase --autostash` before every push; commit small, push
 immediately. The design is pre-validated — go straight to Isabelle; re-sample
 (reuse `scratch_drain_ctxs_master_check.py`) ONLY if you change a statement.
 
-### PROMPT A — WORKER-A (#3 RALTS cover — the crux; needs sustained context)
+### PROMPT A — WORKER-A (#3 RALTS cover) — GATED on the GPT Pro micro-ask
 
-You are a proof worker on the POSIX cubic-bound project. Repo + entry chain: see
-above. Your SOLE deliverable: prove `strong_child_drain_RALTS_ctx_bound`
-(verdict4 §2 / the 6-lemma stack item #3) GREEN, no `sorry`. Claim it in
-`PROGRESS_BACKREF.md` before editing. DEAD END — do not retry: the RCHAR/RSEQ subset
-pattern (`strong_child_drain X k ⊆ row-set` then `rsize_set_mono`); RALTS has NO
-clean child subset (that is the CE `b·c*·c*`). USE the pinned reduction already in
-the file: `rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (~line 34844)
-splits the parent into `1 + WRAPPED-ROOT row_dlforms(rsimpStrong_raw(rsimp4_SEQ_atom
-(RALTS rs) k)) + Σ_q children`. The structural additive identity
-`ctx_bound_drain_ctxs_RALTS` is already GREEN. The ONE new semantic lemma you must
-prove: charge the WRAPPED-ROOT rows to the child ctx ledger (this is where `b·c*·c*`
-is paid by a child CONTEXT slot, not a child set), bridge acc↔non-acc for the
-nseq-wrapped form, then apply the master IH to the children. This is multi-lemma —
-hold context, do not abandon midway. When green, record it in PROGRESS and update
-STEER's progress list.
+⚠ DO NOT START until the GPT Pro cover-proof skeleton lands (see PROGRESS / STEER).
+The two obvious reductions are both DEAD: (1) per-child SUBSET (RALTS has no clean
+child subset — CE `b·c*·c*`); (2) the additive acc-split via
+`rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (line 34844) is BOXED —
+measured 0/60000 close, deficit always `1+root` (subadditive on top of full child
+ledgers). When the skeleton lands, this prompt will carry it. The RIGHT shape:
+inject each parent drain ROW into a child CONTEXT SLOT and bound its `rsize` by the
+slot's declared cost (`b·c*·c*` rsize 7 ≤ slot `(b·c*,4)` extended = `4+(1+2)=7`),
+NOT a bulk `rsize_set` split. Deliverable: `strong_child_drain_RALTS_ctx_bound`
+GREEN, no `sorry`; claim in PROGRESS before editing.
 
-### PROMPT B — WORKER-B (#4 RSTAR cover — independent of A)
+### PROMPT B — WORKER-B (#4 RSTAR cover) — ALSO GATED on the GPT Pro micro-ask
 
-You are a proof worker on the POSIX cubic-bound project. Repo + entry chain: see
-above. Your SOLE deliverable: prove `strong_child_drain_RSTAR_ctx_step` (verdict4 §3
-/ stack item #4) GREEN, no `sorry`. Claim it in `PROGRESS_BACKREF.md` before editing.
-It is INDEPENDENT of #3 — proceed in parallel with WORKER-A. Route (verdict4 §3): the
+⚠ DO NOT START until the skeleton lands. #4's analog split lemma (line 34825) is the
+SAME subadditive shape as #3's boxed one, so #4 is at the same risk — the micro-ask
+covers BOTH RALTS and RSTAR cover proofs. When the skeleton lands, this prompt will
+carry it. Deliverable: prove `strong_child_drain_RSTAR_ctx_step` (verdict4 §3 / stack
+item #4) GREEN, no `sorry`; claim in PROGRESS before editing. Independent of #3. Route (verdict4 §3): the
 direct star-context step — the escaped re-entry row is charged to a body context from
 `drain_ctxs p` extended by the declared `RSTAR p` suffix
 (`map (ctx_extend (RSTAR p)) (drain_ctxs p)`), plus the single entry slot

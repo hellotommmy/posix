@@ -29,15 +29,23 @@ a statement.
 - RCHAR / RSEQ / RZERO / RONE ctx cases — GREEN.
 
 ### THE bottleneck (the only remaining content) — lanes
-- **WORKER-A → #3 `strong_child_drain_RALTS_ctx_bound`** (the crux; multi-lemma,
-  needs sustained context — do NOT attempt cold-then-abandon). The subset pattern is
-  a DEAD END (RALTS has no clean child subset — that's the CE `b·c*·c*`). Use the
-  pinned reduction: `rsize_set_strong_opened_live_row_universe_acc_RALTS_le`
-  (~line 34844) splits the parent into `1 + WRAPPED-ROOT
-  row_dlforms(rsimpStrong_raw(rsimp4_SEQ_atom (RALTS rs) k)) + Σ_q children`. The ONE
-  new lemma: charge the WRAPPED-ROOT rows to the child ctx ledger (this is where
-  `b·c*·c*` is paid by a child CONTEXT, not a child set), bridge acc↔non-acc for the
-  nseq-wrapped form, then apply the master IH to the children.
+- **WORKER-A → #3 `strong_child_drain_RALTS_ctx_bound`** (the crux). ⛔ TWO DEAD ENDS,
+  do NOT retry either: (1) the per-child SUBSET pattern (RALTS has no clean child
+  subset — CE `b·c*·c*`); (2) **the additive acc-split via
+  `rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (line 34844) is BOXED** —
+  secretary-measured (depth≥5, 60000 cases, scratch_ralts_cover3_additive_check.py):
+  it bounds the parent by `1 + WRAPPED-ROOT + Σ children` SUBADDITIVELY on top of the
+  already-full child ledgers (`Σ child ctx_bound == ctxR`, the whole RHS), so the
+  `1 + root` term has nothing to charge against — deficit ALWAYS positive (= 1+root),
+  0/60000 close. The wrapped-root also carries new mass not in any child universe, so
+  overlap doesn't save it. DO NOT bolt `1 + rsize_set(wrapped-root)` onto `childCtx`.
+  ✅ THE RIGHT SHAPE (verdict4 §2, the deferred proof): a CONTAINMENT/charging argument —
+  inject each row of the parent drain `strong_child_drain (RALTS rs) k` into a child
+  CONTEXT SLOT (`drain_ctxs q` extended by k) and bound that row's `rsize` by the
+  slot's DECLARED cost (e.g. `b·c*·c*` rsize 7 ≤ slot `(b·c*, 4)` extended = `4+(1+2)=7`).
+  This avoids the lossy bulk-`rsize_set` split entirely. The exact charging lemma is
+  PENDING a focused GPT Pro micro-ask (see PROGRESS) — HOLD #3 until that lands rather
+  than re-deriving a boxed split.
 - **WORKER-B → #4 `strong_child_drain_RSTAR_ctx_step`** (independent of #3). Verdict4
   §3: direct star-context step — the escaped re-entry row is charged to a body context
   from `drain_ctxs p` extended by the declared `RSTAR p` suffix

@@ -10551,3 +10551,30 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   (this is where `b.c*.c*` is paid by a child CONTEXT, not a child set), then bridge
   acc<->non-acc for the nseq-wrapped form and apply the master IH to the children.
   Multi-lemma; needs the context-holding primary or a focused session, not a backup tick.
+
+## 2026-06-14 Secretary: the #3 acc-split reduction is BOXED — #3/#4 cover PROOFS go to a GPT Pro micro-ask
+
+- Measured the #3 reduction (`scratch_ralts_cover3_additive_check.py`, depth≥5,
+  60000 clean/nf RALTS + the C-DRAIN-1 CE). VERDICT: the additive acc-split via
+  `rsize_set_strong_opened_live_row_universe_acc_RALTS_le` (line 34844) CANNOT close.
+  It is SUBADDITIVE (`rsize_set(A∪B) ≤ rsize_set A + rsize_set B`) on top of the
+  already-full child ledgers — `Σ_q ctx_bound(drain_ctxs q) k == ctx_bound(drain_ctxs
+  (RALTS rs)) k` (the whole RHS, additive identity proven) — so the `1 + WRAPPED-ROOT`
+  term has nothing to charge against. `1 + root + childCtx ≤ ctxR` holds 0/60000;
+  deficit always `= 1 + root` (range [1,674]). The wrapped root also carries NEW mass
+  not in any child universe (24/60000; CE row `b·c*·c*` rsize 7 = the whole drain).
+- The END-TO-END target is TRUE (`rsize_set(strong_child_drain (RALTS rs) k) ≤
+  ctx_bound(drain_ctxs (RALTS rs)) k`: 60000/60000, tight slack 0). So a proof EXISTS;
+  the boxed reduction just isn't it. ⛔ Both DEAD for #3: the per-child SUBSET (C-DRAIN-1)
+  AND the additive acc-split (line 34844). #4 RSTAR's analog split (line 34825) is the
+  SAME subadditive shape → same risk.
+- RIGHT SHAPE (verdict4 §2, the deferred proof): a CONTAINMENT/charging argument —
+  inject each parent-drain ROW into a child CONTEXT SLOT and bound its `rsize` by the
+  slot's declared k-extended cost (CE: `b·c*·c*` 7 ≤ slot `(b·c*,4)` ext = `4+(1+2)=7`),
+  NOT a bulk-`rsize_set` split. The exact charging lemma is the genuinely-new content
+  verdict4 deferred in §5.
+- ACTION: focused GPT Pro micro-ask (same verdict4 thread) for the PROOF SKELETON of
+  both covers (#3 RALTS, #4 RSTAR) — the row→slot charging map. Draft:
+  `gpt_pro_bundle/5_FOLLOWUP_cover_proofs.txt`. WORKER-A/#3 and WORKER-B/#4 are GATED:
+  HOLD until the skeleton lands; do NOT re-derive a boxed split. Infra/static/SEQ/CHAR
+  remain green; #5/#6 still block on #3/#4.
