@@ -33484,6 +33484,19 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RALTS_two_chars_parent_star_shell_too_weak_for_quadratic_target:
+  fixes a b :: char
+  defines "ps \<equiv> [RCHAR a, RCHAR b]"
+  shows "\<not>
+    1 +
+    (rsizes ps + length ps * Suc (rsize (RSTAR (RALTS ps)))) +
+    ((rsizes ps + rsize (RSTAR (RALTS ps))) ^ 3 -
+      rsize (RSTAR (RALTS ps)) ^ 3) \<le>
+    1 + open_pot (RALTS ps) +
+      2 * Suc (apder_zw2 (RALTS ps)) *
+        (rsize (RSTAR (RALTS ps)) + 1) ^ 2"
+  by (simp add: ps_def power2_eq_square power3_eq_cube)
+
 lemma cube_suc_minus_one_le_two_shift3:
   fixes n :: nat
   shows "(n + 1) ^ 3 - 1 \<le> 2 * (n + 3) ^ 3"

@@ -9612,3 +9612,24 @@ STATUS_MATH and say so at the top of PROGRESS.
   quadratic target for small/simple families. If it is too weak, record the
   exact algebraic gap and sharpen the child drain instead of forcing the
   polynomial.
+
+## 2026-06-14 Codex: CHECKED - combined simple shell is too weak
+
+- New checked diagnostic witness:
+  for `ps = [RCHAR a, RCHAR b]`, the combined parent-STAR shell
+  `1 + (rsizes ps + length ps * Suc(rsize(RSTAR (RALTS ps)))) +
+   ((rsizes ps + rsize(RSTAR (RALTS ps)))^3 -
+    rsize(RSTAR (RALTS ps))^3)`
+  is NOT bounded by the desired quadratic target
+  `1 + open_pot(RALTS ps) +
+   2 * Suc(apder_zw2(RALTS ps)) *
+   (rsize(RSTAR (RALTS ps)) + 1)^2`.
+  Plain gloss: the safe cube-shell child drain is too coarse; do not try to
+  force this shell into the quadratic potential. The next proof must sharpen
+  the child estimate at the parent STAR suffix.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:14). No `sorry`.
+- NEXT smallest brick: prove sharper parent-STAR child bounds for `RONE` and
+  `RCHAR` that use the specific suffix `RSTAR (RALTS ps)`, not the generic
+  cube-shell drain.
