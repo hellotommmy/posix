@@ -33472,6 +33472,29 @@ next
     by (simp add: rsize_set_def)
 qed
 
+lemma rsize_set_row_dlforms_nseq_RCHAR_le:
+  "rsize_set (row_dlforms (nseq (RCHAR c) k)) \<le>
+    Suc (Suc (rsize k))"
+proof -
+  have "rsize_set (row_dlforms (nseq (RCHAR c) k)) =
+      rsize_set
+        (row_dlforms
+          (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RCHAR c) (rsimpStrong_raw k))))"
+    by (simp add: nseq_def)
+  also have "... \<le> Suc (Suc (rsize (rsimpStrong_raw k)))"
+    by (rule strong_opened_live_acc_RCHAR_root_charge_linear)
+  also have "... \<le> Suc (Suc (rsize k))"
+    using rsize_rsimpStrong_raw_le[of k] by simp
+  finally show ?thesis .
+qed
+
+lemma rsize_set_row_dlforms_nseq_RCHAR_le_budget:
+  "rsize_set (row_dlforms (nseq (RCHAR c) k)) \<le>
+    drain_child_budget (RCHAR c) k"
+  using rsize_set_row_dlforms_nseq_RCHAR_le[of c k]
+  by (simp add: drain_child_budget_def drain_pot_def drain_w_def)
+
 lemma strong_opened_live_acc_potential_RCHAR_cube_shell_large:
   assumes k_big: "2 \<le> rsize k"
   shows "strong_opened_live_acc_potential (RCHAR c) k \<le>

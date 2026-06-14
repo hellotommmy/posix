@@ -10218,3 +10218,24 @@ REDIRECT, both agents:
 - NEXT smallest brick: prove the RSEQ middle-boundary carrier containment
   into the two child drains, or switch back to a sharper RCHAR containment
   if the RSEQ set proof repeats an unchanged failing goal.
+
+## 2026-06-14 Codex: CHECKED - RCHAR normalized-row budget slack
+
+- New checked RCHAR row inequality:
+  `rsize_set(row_dlforms(nseq (RCHAR c) k)) <= rsize k + 2`.
+  Plain gloss: one character opens one normalized row.
+- New checked RCHAR budget consequence:
+  `rsize_set(row_dlforms(nseq (RCHAR c) k)) <=
+   drain_child_budget (RCHAR c) k`.
+  Plain gloss: RCHAR has one unit of child-budget slack.
+- Also made the existing `drain_pot r <= rsize r*(rsize r+2)^2`
+  product/corollary arithmetic proof explicit (`algebra_simps` / split
+  multiplication monotonicity); no statement changed.
+- Build GREEN after worker check:
+  `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
+  (full Posix elapsed 0:01:34). No `sorry`.
+- NOTE: an attempted unconditional `nseq (RSEQ r1 r2) k =
+  nseq r1 (nseq r2 k)` was not pushed; Isabelle exposed the known
+  non-idempotence pressure (`nseq r2 k` vs `S(S(nseq r2 k))`). Next RSEQ
+  carrier work should use the normalized theorem shape from verdict2 rather
+  than that unconditional identity.
