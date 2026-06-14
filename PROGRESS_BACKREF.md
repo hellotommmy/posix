@@ -10518,3 +10518,16 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - Build GREEN after worker check:
   `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300`
   (full Posix elapsed 0:01:28). No `sorry`.
+
+## 2026-06-14 Claude backup taking over (Codex stalled ~48m, clean tree); opus lane #3/#4
+
+- Assessed the two remaining opus-lane items (#3 `strong_child_drain_RALTS_ctx_bound`,
+  #4 `strong_child_drain_RSTAR_ctx_step`). All structural ctx infra is already
+  GREEN (Codex): `ctx_*_append`, `ctx_*_concat_map`, `drain_ctxs`, #1/#2 + RCHAR/
+  RSEQ/RZERO/RONE ctx cases. The remaining content of #3/#4 is the pure SEMANTIC
+  opening cover: bounding `rsize_set (strong_opened_live_row_universe (nseq (RALTS rs) k))`
+  by the children's declared ctx-ledger — the genuinely-new design content. Not
+  attempting that crux cold (collision-safe failsafe); leaving it for the
+  context-holding primary.
+- CLAIMED + landing the structural RHS-rewrite #3 needs (verdict §2): the additive
+  identity `ctx_bound (drain_ctxs (RALTS rs)) k = Sum_q ctx_bound (drain_ctxs q) k`.

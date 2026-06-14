@@ -32478,6 +32478,33 @@ lemma ctx_base_concat_replicate [simp]:
   "ctx_base (concat (replicate n Cs)) = n * ctx_base Cs"
   by (induct n) simp_all
 
+lemma ctx_bound_append:
+  "ctx_bound (xs @ ys) k = ctx_bound xs k + ctx_bound ys k"
+  by (simp add: ctx_bound_def algebra_simps)
+
+lemma ctx_bound_drain_ctxs_RALTS:
+  "ctx_bound (drain_ctxs (RALTS rs)) k
+     = sum_list (map (\<lambda>q. ctx_bound (drain_ctxs q) k) rs)"
+proof (induction rs)
+  case Nil
+  show ?case by (simp add: ctx_bound_def)
+next
+  case (Cons a rs)
+  have ih: "ctx_bound (concat (map drain_ctxs rs)) k
+              = sum_list (map (\<lambda>q. ctx_bound (drain_ctxs q) k) rs)"
+    using Cons.IH by simp
+  have "ctx_bound (drain_ctxs (RALTS (a # rs))) k
+          = ctx_bound (drain_ctxs a @ concat (map drain_ctxs rs)) k"
+    by simp
+  also have "\<dots> = ctx_bound (drain_ctxs a) k
+                    + ctx_bound (concat (map drain_ctxs rs)) k"
+    by (simp add: ctx_bound_append)
+  also have "\<dots> = ctx_bound (drain_ctxs a) k
+                    + sum_list (map (\<lambda>q. ctx_bound (drain_ctxs q) k) rs)"
+    by (simp add: ih)
+  finally show ?case by simp
+qed
+
 lemma drain_ctxs_count_le_w:
   "ctx_count (drain_ctxs p) \<le> drain_w p"
 proof (induct p)
