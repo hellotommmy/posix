@@ -19,25 +19,48 @@
 \newcommand{\alt}{+}
 \newcommand{\one}{\mathbf 1}
 \title{The \S4 gate bound: the objects, the counterexamples,\\
-and exactly why each proof route fails --- worked computations}
+and exactly why each proof route fails --- worked computations\\[2pt]
+\large\color{red}(plus: why the target itself was FALSE, and the cube-shell bypass)}
 \author{(secretary worked-reference; all values machine-computed from the faithful model)}
-\date{2026-06-15}
+\date{2026-06-15, updated 2026-06-16}
 
 \begin{document}\maketitle
 
+\begin{center}\fcolorbox{red}{red!4}{\parbox{0.95\textwidth}{%
+\textbf{\color{red}CRITICAL UPDATE (2026-06-16) --- the central inequality of this note is FALSE.}\\[3pt]
+The boxed target $\rss{\sd\,p\,k}\le\ctxb(\dctx p)\,k$ (\S1) is \emph{not} true in-regime. Its
+``$0$ violations over $>10^5$ cases'' was a \textbf{sampling artifact}: the true violation rate is
+${\approx}1/1.2\text{M}$, below what those gates sampled. Verified counterexample (S-fixed, normal form,
+depth$\ge5$):
+\[
+p=\one\alt\bigl(\,[\,\one\alt(\one\alt a)\seq a\alt(c\alt\one)\seq(c\alt\one)\,]\seq c^{*}\bigr),\quad k=c^{*}
+\ \Rightarrow\ \rss{\sd}=47\ >\ 46=\ctxb .
+\]
+The \emph{looser} fallback $\rss{\sd\,p\,k}\le\textit{drain\_child\_budget}\,p\,k$ --- the predicate
+\texttt{child\_ok}, which is what the gate actually needs --- is \textbf{also false} (CE $99>96$); its
+``$0/1.2$M'' was the same artifact. So every route in \S5 failed because \textbf{the target itself is false},
+not for want of cleverness; the worked CEs are the local symptoms of that global fact. \textbf{Resolution}
+(\S\ref{sec:resolution}): the gate needs \emph{neither} per-step budget --- it reduces, through already-green
+lemmas, to a \emph{cube-shell} invariant that \emph{is} true, leaving one star-case lemma.}}\end{center}
+
+\medskip
 \noindent\textbf{Notation.} Characters $a,b,c$; $r^{*}$ = star; $r\seq s$ = sequence;
 $r\alt s$ = alternation; $\one$ = the empty-string regex. $\rs{\cdot}$ is regex size;
 $\rss{X}=\sum_{x\in X}\rs{x}$ over the \emph{deduplicated} set $X$. All numbers below are
 computed by the validated Python model (\texttt{scratch\_ce\_trace\_for\_doc.py}).
 
-\section{The one inequality we must prove}
-The D law, the static cubic front, and the gate wrapper are all green. The \S1 gate reduces to
+\section{The inequality these routes tried (now known FALSE)}
+The D law, the static cubic front, and the gate wrapper are all green. The effort reduced the \S1 gate to
 the single numeric inequality
 \[
-\boxed{\ \rss{\sd\;p\;k}\ \le\ \ctxb(\dctx\;p)\;k\ }\qquad\text{(TRUE: $0$ violations over $>10^5$ depth-$\ge5$ cases).}
+\boxed{\ \rss{\sd\;p\;k}\ \le\ \ctxb(\dctx\;p)\;k\ }\qquad\text{\color{red}(FALSE in-regime --- sampling artifact; see the update box above).}
 \]
-Everything below is about \emph{proving} this true inequality. Four/eight routes failed; this
-note shows, for each, the exact left/right sides and their values on the counterexamples.
+This was \emph{believed} true ($0$ violations over $\sim\!10^4$--$10^5$ sampled depth-$\ge5$ cases), and every
+route in \S5 is an attempt to prove it. It is in fact false (rate ${\approx}1/1.2$M). The worked counterexamples
+below remain exactly correct and \emph{instructive}: they are the local symptoms (the $a^{*}\seq a^{*}$ collapse
+heterogeneity) of the global fact that the target is unprovable --- and the \emph{same} symptoms make the looser
+\texttt{drain\_child\_budget} target fail too. Read \S2--\S5 as ``why no per-row/per-slot accounting can work,''
+then \S\ref{sec:resolution} for the route that does.
 
 \section{The objects (concrete)}
 \begin{description}[leftmargin=1.2em,itemsep=2pt]
@@ -170,12 +193,40 @@ forms. Therefore:
 \textbf{Consequence (the search-narrowing result):} the proof cannot be a per-row or per-slot
 \emph{set/membership} statement. It must be a \emph{total-budget} argument that does not match rows to slots.
 
-\section{Where verdict7 points}
-verdict7's ``budgeted collapse trace'' is exactly this: charge at the level of \emph{syntax-node
-occurrences} $\to$ \emph{cost tokens} (atoms of $\ctxb$), not rows $\to$ slots. On CE-Hall the short row
-$b^{*}\seq a^{*}$ ($5$ nodes) and the long row $b^{*}\seq(a^{*}\seq a^{*})$ ($8$ nodes) consume
-\emph{disjoint} cost atoms (drawn from slot$_1$ \emph{and} the source-star/collapse slot) instead of both
-demanding the one indivisible slot$_1$ --- so the Hall collision dissolves. The open question is whether the
-node$\to$atom injection is constructible at RALTS; that is what to validate before executing.
+\section{Two further routes (node-to-atom), also refuted}
+\textbf{verdict7} (``budgeted collapse trace'') charged at the level of \emph{syntax-node occurrences} $\to$
+\emph{cost tokens} (atoms of $\ctxb$), not rows $\to$ slots, hoping the short row $b^{*}\seq a^{*}$ and the long
+row $b^{*}\seq(a^{*}\seq a^{*})$ draw \emph{disjoint} atoms. Modelled as a max-flow it is feasible in $40851/40852$
+cases but fails one: parallel star-children sharing a continuation over-subscribe the single source-star slot ---
+the long predecessor \emph{contains a full copy} of the short row's body, so the atoms are not disjoint.
+\textbf{verdict8} (occurrence-keyed traced budget) keys events by producer-path; the key is honest but powerless
+(it only re-routes a fixed total, never shrinks it), and the unowned doubled-star rows cannot be keyed. Both die on
+the same wall --- and, as the update box records, on the deeper fact that the target inequality is false.
+
+\section{The resolution (2026-06-16): drop the per-step budget; the cube-shell bypass}\label{sec:resolution}
+Both per-step budgets are false in-regime: the tight $\ctxb$ (CE $47>46$) and the looser
+$\textit{drain\_child\_budget}=\textit{open\_pot}\,p+\textit{zw2}\,p\cdot(1{+}\rs k)$ that \texttt{child\_ok} needs
+(CE $\rss{\sd}=99>96$). Their ``$0$-violation'' validations were sampling artifacts: the killer family --- nested
+$\seq\bigl(\,{+}[\textit{pre},\one],\ \dots\seq(\text{atom},\,\text{star}^{*})\bigr)$ opened at $k=\text{star}^{*}$,
+which re-doubles $\text{star}^{*}\!\to\!\text{star}^{*}\!\seq\text{star}^{*}$ at every frame --- is never built by
+uniform random generation. The deficit grows \emph{quadratically} with chain depth, so no constant, multiplier, or
+minimal companion rescues a $\sim$\,quadratic budget.
+\smallskip\\
+\textbf{But the gate never needed a per-step budget.} It already has a second, fully green route in the theory: the
+wrapper hypothesis $\rss{\,\text{one strong step of the front}\,}\le2(\rs r+3)^3$ follows from a \emph{per-row} bound
+$\rss{\SOL(r)}\le\textit{pot}(r,\one)$ (green, structural induction) plus the \emph{cube-shell invariant}
+\[
+\boxed{\ \textit{pot}(r,k)\ \le\ (\rs r+\rs k)^3-(\rs k)^3\ }\qquad\text{(machine-validated TRUE, $0/90$k$+$ incl.\ the killers above).}
+\]
+This succeeds where the budgets failed because it bounds the per-row \emph{opening universe} by a \emph{cubic}
+telescoping shell (a difference of cubes, which composes \emph{additively}), not the collapsed$+$uncollapsed shadow
+rows by a quadratic budget. Leaves ($\one$, char) and the $\alt$/$\seq$ steps are green; the lone open step is
+\textbf{RSTAR}, which decomposes (validated) into a routine HEAD term plus the saturation
+\[
+\text{SAT:}\quad \textit{pot}\bigl(r,\ r^{*}\!\seq k\bigr)\ \le\ (\rs r+\rs k)^3-(\rs k)^3
+\]
+--- opening the star body $r$ against its \emph{own} star costs only the body's $k$-shell (the $r^{*}$ prefix is
+absorbed for free). SAT is true with margin (ratio $\le0.81$) and is the single remaining piece; full plan in
+\texttt{RSTAR\_CUBE\_SHELL\_SKETCH.md}.
 
 \end{document}

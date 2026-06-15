@@ -27,7 +27,7 @@
 
 \begin{document}
 
-{\large\textbf{Where the cubic-bound proof is right now}}\hfill\textsf{\small 2026-06-14 11:20}
+{\large\textbf{Where the cubic-bound proof is right now}}\hfill\textsf{\small 2026-06-16}
 
 \medskip
 Working fragment: classical regexes, in normal form, no bounded repetition
@@ -110,25 +110,28 @@ opening, and the dedup
 \ \xrightarrow{\ \norm{\,\cdot\,}\ }\ \le\ 2(\rs{r}+3)^3,
 \]
 and discharge the ``clean'' hypothesis for the actual root.
-\textbf{Design point, status 2026-06-15.} The D law and the static cubic front are
-done; the $\S5$ drain arithmetic is green; all six per-constructor cover cases and
-the gate WRAPPER are green. The $\S1$ gate reduces (proven wrapper) to ONE numeric
-bound: $\mathrm{rsize\_set}(\mathrm{strong\_child\_drain}\;p\;k)\le
-\mathrm{ctx\_bound}(\mathrm{drain\_ctxs}\;p)\;k$, which is machine-validated TRUE
-(zero violations over $>\!10^{5}$ depth-${\ge}5$ cases). \emph{But the PROOF is the
-stubborn part}: FIVE structural routes have now been depth-${\ge}5$ REFUTED, all on
-the same guarded collapse $\mathrm{rsimp7\_SEQ\_atom}(a^{*},a^{*})=a^{*}$ --- per-child
-set-containment (the cases do not compose), the recursive $\mathrm{scover}$, the
-injective slot-origin charge via $\mathrm{collapses\_to}$ and a two-route variant, and
-a pure numeric induction (the RALTS step fails). \emph{The sharp diagnosis:}
-$\mathrm{strong\_child\_drain}$ mixes S-collapsed short rows and uncollapsed long rows
-(RALTS re-exposure), and NO injective row${\to}$slot charge can exist --- the total
-ledger budget covers the rows, but some slots are overloaded while others are
-underused (a Hall collision with a true size bound). The remaining design problem (a
-parallel candidate search $+$ a GPT~Pro pass): a \textbf{non-injective / aggregate /
-total-budget} proof of the (true) bound. Once it lands,
-$\mathrm{strong\_child\_drain\_potential}$ $+$ the gate wrapper close the boxed goal
-(clean fragment).
+\textbf{Design point, status 2026-06-16 (major correction).} The D law and the static
+cubic front are done; the gate WRAPPER is green. The effort had reduced the gate to ONE
+per-step numeric bound $\mathrm{rsize\_set}(\mathrm{strong\_child\_drain}\;p\;k)\le
+\mathrm{ctx\_bound}(\mathrm{drain\_ctxs}\;p)\;k$ and ground on it through \emph{ten}
+structural routes. \textbf{That bound is now known FALSE in-regime} (CE $47>46$); its
+``zero violations over $>\!10^{5}$ cases'' was a \emph{sampling artifact} (true rate
+${\approx}1/1.2$M). The \emph{looser} bound the gate actually needs, $\texttt{child\_ok}:
+\mathrm{rsize\_set}(\mathrm{strong\_child\_drain}\,p\,k)\le\mathrm{drain\_child\_budget}\,p\,k$,
+is \textbf{also false} (CE $99>96$) --- $\mathrm{drain\_child\_budget}$ is only
+${\sim}$quadratic while the killer chains push the strong drain up quadratically with depth.
+\emph{So all ten routes failed because the per-step \textbf{target} was false, not for want
+of cleverness.}
+\textbf{The bypass (the live direction).} The gate needs \emph{no} per-step budget: through
+already-green lemmas it reduces to a \emph{per-row} bound
+$\mathrm{rsize\_set}(\mathrm{SOL}\,r)\le\mathrm{pot}(r,\mathbf 1)$ plus the \emph{cube-shell
+invariant} $\mathrm{pot}(r,k)\le(\rs r+\rs k)^3-(\rs k)^3$ --- machine-validated TRUE
+($0/90$k$+$, including the killers above), because it bounds the opening \emph{universe} by a
+\emph{cubic} telescoping shell, not the shadow rows by a quadratic budget. Leaves and the
+alternation/sequence steps are green; the one open step is \textbf{RSTAR}, which splits (validated)
+into a routine HEAD term and the saturation $\mathrm{pot}(r,\,r^{*}\!\cdot k)\le(\rs
+r+\rs k)^3-(\rs k)^3$ (the star body against its own star costs only the body's $k$-shell).
+That single lemma closes the boxed goal (clean fragment).
 
 \item[\todo] \textbf{After that:} lift the result from the clean fragment to
 \emph{all} regexes including bounded repetition $r^{\{n\}}$. This needs a
@@ -199,8 +202,9 @@ the union over all Antimirov sub-derivative terms $q$ of $r$.
 \hrule
 \medskip
 {\footnotesize One-line status: \textbf{the hard combinatorics (the D law) and the
-static cubic front are done; one mechanical gluing step + a root-hypothesis
-discharge remain to close the gate on the clean fragment.} Full formal statement:
+static cubic front are done; the per-step budget target was discovered FALSE (a
+sampling artifact, $10$ routes), and the gate instead reduces --- via green lemmas ---
+to a cube-shell invariant whose lone open step is the RSTAR saturation lemma.} Full formal statement:
 \texttt{CUBIC\_OPEN\_PROBLEM.pdf}. Live detail: \texttt{MAINLINE.md} §2 and the
 \texttt{PROGRESS\_BACKREF.md} tail.}
 
