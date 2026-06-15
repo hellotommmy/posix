@@ -1,0 +1,181 @@
+\documentclass{article}
+\usepackage[a4paper,margin=2.1cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage[expansion=false]{microtype}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage{enumitem}
+
+\newcommand{\rs}[1]{\lvert #1\rvert}                 % regex size
+\newcommand{\rss}[1]{\lVert #1\rVert}                % rsize_set (sum over distinct members)
+\newcommand{\sd}{\mathrm{scd}}                       % strong_child_drain
+\newcommand{\wcd}{\mathrm{wcd}}                        % weak_child_drain
+\newcommand{\ctxb}{\mathrm{ctx\_bound}}
+\newcommand{\dctx}{\mathrm{drain\_ctxs}}
+\newcommand{\SOL}{\mathrm{SOL}}
+\newcommand{\Strong}{\mathsf{S}}                     % rsimpStrong_raw
+\newcommand{\rfour}{\mathbin{\diamond_4}}            % rsimp4 plug
+\newcommand{\seq}{\cdot}
+\newcommand{\alt}{+}
+\newcommand{\one}{\mathbf 1}
+\title{The \S4 gate bound: the objects, the counterexamples,\\
+and exactly why each proof route fails --- worked computations}
+\author{(secretary worked-reference; all values machine-computed from the faithful model)}
+\date{2026-06-15}
+
+\begin{document}\maketitle
+
+\noindent\textbf{Notation.} Characters $a,b,c$; $r^{*}$ = star; $r\seq s$ = sequence;
+$r\alt s$ = alternation; $\one$ = the empty-string regex. $\rs{\cdot}$ is regex size;
+$\rss{X}=\sum_{x\in X}\rs{x}$ over the \emph{deduplicated} set $X$. All numbers below are
+computed by the validated Python model (\texttt{scratch\_ce\_trace\_for\_doc.py}).
+
+\section{The one inequality we must prove}
+The D law, the static cubic front, and the gate wrapper are all green. The \S1 gate reduces to
+the single numeric inequality
+\[
+\boxed{\ \rss{\sd\;p\;k}\ \le\ \ctxb(\dctx\;p)\;k\ }\qquad\text{(TRUE: $0$ violations over $>10^5$ depth-$\ge5$ cases).}
+\]
+Everything below is about \emph{proving} this true inequality. Four/eight routes failed; this
+note shows, for each, the exact left/right sides and their values on the counterexamples.
+
+\section{The objects (concrete)}
+\begin{description}[leftmargin=1.2em,itemsep=2pt]
+\item[$\Strong$ (\texttt{rsimpStrong\_raw}).] The strong normaliser. Crucially it \emph{collapses}
+  $a^{*}\seq a^{*}\to a^{*}$ (a guarded rule, only when the two starred bodies are syntactically equal).
+\item[$\rfour$ (\texttt{rsimp4\_SEQ\_atom}).] The \emph{weak} sequence plug: $h\rfour k$ appends $k$
+  after head $h$ (reassociating), but \textbf{never} collapses $a^{*}\seq a^{*}$. (\texttt{rsimp7} is
+  the same but \emph{does} collapse, at the top head only.)
+\item[$\dctx\;p$.] A \emph{list} of slots $(\textit{head}_i,\textit{cost}_i)$, one per ``drain weight''
+  unit of $p$ (one per character, one per star), built structurally.
+  $\textit{slot\_cost}(p,k,i)=\textit{cost}_i+(1+\rs{k})$ and $\ctxb(\dctx p)\,k=\sum_i \textit{slot\_cost}(p,k,i)$.
+\item[$\textit{weak\_slot\_rows}(p,k,i) = \mathrm{rows}(\,\textit{head}_i\rfour k\,)\setminus\mathrm{rows}(k)$.]
+  The \emph{uncollapsed} opening of slot $i$. $\wcd\;p\;k=\bigcup_i \textit{weak\_slot\_rows}(p,k,i)$.
+  Green fact: $\rss{\wcd\;p\;k}\le \ctxb(\dctx p)\,k$.
+\item[$\sd\;p\;k = \SOL(\textit{nseq}\;p\;k)\setminus\SOL(\Strong k)$.] The \textbf{actual} object:
+  the opened rows after the \emph{strong}, $\Strong$-normalised step. \emph{These rows are collapsed.}
+\end{description}
+\noindent\textbf{The whole tension in one line:} the weak rows use $\rfour$ (uncollapsed), the strong
+rows use $\Strong$ (collapsed). So a strong row and ``its'' weak row are often \emph{different rows} of
+\emph{different sizes}, even though the budget covers them.
+
+\section{Three counterexamples, fully computed}
+All three use $k=a^{*}$, and all are in-regime ($\Strong p=p,\ \Strong k=k$, normal form). For each
+$p$ the slot ledger $\dctx p$ and $\ctxb$ are shown, then $\sd$ and $\wcd$.
+
+\subsection*{CE-A: $p=b\seq a^{*}$ --- the collapse, in isolation}
+\[
+\sd(b\seq a^{*},\,a^{*}) = \{\,\underbrace{b\seq a^{*}}_{\rs{}=4}\,\},\qquad \rss{\sd}=4.
+\]
+Slots of $\dctx(b\seq a^{*})$ (head, cost, slot\_cost, weak row):
+\[
+\begin{array}{llll}
+\text{slot}_0: & b\seq a^{*}\ (4) & \textit{slot\_cost}=7 & \mathrm{weak}=b\seq(a^{*}\seq a^{*})\ \ \rs{}=7\\
+\text{slot}_1: & a^{*}\ (2) & \textit{slot\_cost}=5 & \mathrm{weak}=a^{*}\seq a^{*}\ \ \rs{}=5\\
+\text{slot}_2: & a\seq a^{*}\ (4) & \textit{slot\_cost}=7 & \mathrm{weak}=a\seq(a^{*}\seq a^{*})\ \ \rs{}=7
+\end{array}
+\]
+$\ctxb=7+5+7=19$, and $\wcd=\{b\seq(a^{*}\seq a^{*}),\ a^{*}\seq a^{*},\ a\seq(a^{*}\seq a^{*})\}$, $\rss{\wcd}=19$.
+\textbf{Key:} the one strong row $b\seq a^{*}$ is the \emph{$\Strong$-collapse} of the slot$_0$ weak row:
+\[
+\Strong\bigl(b\seq(a^{*}\seq a^{*})\bigr)=b\seq a^{*},\qquad \rs{b\seq a^{*}}=4\ \le\ 7=\rs{b\seq(a^{*}\seq a^{*})}.
+\]
+So $b\seq a^{*}\notin\wcd$ (set-containment into the weak cover \emph{fails}), but it is the collapse of a
+weak row, and collapse \emph{shrinks}. Bound holds: $4\le19$.
+
+\subsection*{CE-B: $p=b\seq a^{*}\alt\one$ --- the RALTS wrap \emph{retains} the uncollapsed row}
+Same slots/$\ctxb=19$ as CE-A (the $\one$ adds no slot). But now
+\[
+\sd(b\seq a^{*}\alt\one,\,a^{*}) = \{\,\underbrace{b\seq(a^{*}\seq a^{*})}_{\rs{}=7}\,\},\qquad \rss{\sd}=7 .
+\]
+\textbf{Same head $b\seq a^{*}$, opposite outcome:} wrapped under $\alt$, the opener exposes the
+\emph{uncollapsed} $b\seq(a^{*}\seq a^{*})$ and the strong step does \emph{not} collapse it back.
+And $\Strong$ runs the \emph{wrong way} for any witness:
+\[
+\Strong\bigl(b\seq(a^{*}\seq a^{*})\bigr)=b\seq a^{*}\ \neq\ b\seq(a^{*}\seq a^{*}).
+\]
+So \emph{no} weak row $y$ has $\Strong(y)=$ the strong row (every $\Strong$-image is the \emph{shorter}
+$b\seq a^{*}$). The strong row here \emph{is} the slot$_0$ weak row itself ($x=y$). Bound holds: $7\le19$.
+
+\subsection*{CE-Hall: $p=a\alt(b^{*}\seq a^{*})$ --- both versions at once}
+\[
+\sd(a\alt b^{*}\seq a^{*},\,a^{*})=\{\,\underbrace{a\seq a^{*}}_{4},\ \underbrace{b^{*}\seq a^{*}}_{5},\ \underbrace{b^{*}\seq(a^{*}\seq a^{*})}_{8}\,\},\quad \rss{\sd}=17,\quad \ctxb=34 .
+\]
+The slot for head $b^{*}\seq a^{*}$ is slot$_1$ (cost $5$, slot\_cost $8$, weak row $b^{*}\seq(a^{*}\seq a^{*})$, size $8$). Now:
+\[
+b^{*}\seq(a^{*}\seq a^{*})\ \text{is the slot}_1\ \text{weak row }(x{=}y),\qquad
+\Strong\bigl(b^{*}\seq(a^{*}\seq a^{*})\bigr)=b^{*}\seq a^{*}.
+\]
+So \emph{both} strong rows $b^{*}\seq a^{*}$ (collapsed, $5$) and $b^{*}\seq(a^{*}\seq a^{*})$ (uncollapsed, $8$)
+have their \emph{only} origin at slot$_1$, whose single budget $8$ cannot pay both ($5+8=13>8$). Bound still
+holds ($17\le34$): the \emph{total} budget covers them because other slots are underused.
+
+\section{Each failed route: left side, right side, value on the CE}
+\begin{description}[leftmargin=0pt,itemsep=5pt]
+
+\item[\textbf{R1. Per-child set-containment} (\texttt{master\_cover}, the original C-DRAIN).]
+Tried: $\ \sd(\textstyle\sum_q q)\,k\ \subseteq\ \bigcup_q \sd\;q\;k\ $ (parent rows are union of child rows).
+\emph{Intuition:} a $\sum$ should just be the union of its parts.
+\emph{Killed by CE-B:} $\ \mathrm{LHS}=\{b\seq(a^{*}\seq a^{*})\}\ $ (parent, uncollapsed), but the child
+$b\seq a^{*}$ alone gives $\sd(b\seq a^{*},a^{*})=\{b\seq a^{*}\}$ (CE-A, collapsed) and $\one$ gives $\{\}$, so
+$\ \mathrm{RHS}=\{b\seq a^{*}\}$. The parent's uncollapsed row $b\seq(a^{*}\seq a^{*})\notin\{b\seq a^{*}\}$. The
+$\alt$-wrap blocks the collapse the child performs. Fails.
+
+\item[\textbf{R2. Total-size domination.}]
+Tried: $\ \rss{\sd\;p\;k}\ \le\ \rss{\wcd\;p\;k}\ $ (then the green $\rss{\wcd}\le\ctxb$ finishes).
+\emph{Intuition:} strong rows are ``smaller'' than the weak cover, so their total is too.
+\emph{False:} $\Strong$ can \emph{grow} a row's opened ledger, so the strong total can exceed the weak total.
+Machine CE: $p=(\,\one\alt b\seq(a\alt\one)\alt(\one\alt a)\seq a^{*}\,)\seq a^{*},\ k=c$:
+$\ \rss{\sd}=36\ >\ 29=\rss{\wcd}\ $ (while $\ctxb=51$ still covers $36$). So the weak \emph{set} does not dominate;
+only the \emph{ledger} over-covers.
+
+\item[\textbf{R3. Injective slot-origin via \texttt{collapses\_to}} (verdict6).]
+Tried: an injection $x\mapsto(\text{slot } i_x,\ \text{witness } y_x)$ with $\ \Strong(y_x)=\{x\}\ $ and $\rs{x}\le\rs{y_x}$.
+\emph{Intuition:} each strong row is the collapse of a paid weak slot row.
+\emph{Killed by CE-B:} the strong row $x=b\seq(a^{*}\seq a^{*})$ is \emph{uncollapsed}; no weak $y$ has
+$\Strong(y)=x$ ($\Strong$ only \emph{produces} the shorter $b\seq a^{*}$). The relation points the wrong way:
+$x$ is the long predecessor, not the collapse. ($97/40849$ failures.)
+
+\item[\textbf{R4. Two-route injective charge} (secretary salvage).]
+Tried: same injection but $\ x=y_x\ \vee\ x\in\mathrm{rows}(\Strong y_x)\ $ (allow ``$x$ \emph{is} the weak row'').
+\emph{Intuition:} cover both the uncollapsed ($x{=}y$) and collapsed ($x=\Strong y$) cases.
+\emph{Killed by CE-Hall:} $b^{*}\seq a^{*}$ (via $x\in\Strong y$) and $b^{*}\seq(a^{*}\seq a^{*})$ (via $x{=}y$) are
+\emph{both} edged only to slot$_1$. Two rows, one slot $\Rightarrow$ no injection (a Hall collision), even though
+slot$_1$'s cost would suffice for either alone. ($24/52851$; cuts R3 by $4\times$ but cannot reach $0$.)
+
+\item[\textbf{R5. Pure numeric induction, RALTS step.}]
+Tried: $\ \rss{\sd(\sum_q q)\,k}\ \le\ \sum_q \rss{\sd\;q\;k}\ $ (deduped-union size bounded by the sum of children).
+\emph{Killed by CE-B:} $\ \mathrm{LHS}=\rss{\{b\seq(a^{*}\seq a^{*})\}}=7\ $, $\ \mathrm{RHS}=\rss{\{b\seq a^{*}\}}+0=4\ $;
+$7>4$. The parent's single uncollapsed row is \emph{bigger} than the whole child sum. (RALTS has zero
+constructor slack, so there is no room for the extra.)
+
+\item[\textbf{R6. Any slot-derived carrier (the impossibility square).}]
+For \emph{any} carrier $W'$ built from the slot rows: plain weak $W'=\wcd$ has $\rss{\sd}>\rss{W'}$ sometimes (R2);
+$\Strong$-applied carriers shrink \emph{below} $\sd$ (bridge fails worse); $\wcd\cup\sd$ pushes the \emph{ceiling}
+above $\ctxb$ (CE-A-like: $23>19$). No carrier sits between $\rss{\sd}$ and $\ctxb$. The whole
+carrier/membership class is dead.
+\end{description}
+
+\section{The one obstruction, stated once}
+$\sd\;p\;k$ is a \emph{heterogeneous} set: a $\sum$/star wrap can make it \emph{retain the uncollapsed long
+row} $b\seq(a^{*}\seq a^{*})$ (CE-B), while a bare sequence makes it \emph{keep the collapsed short row}
+$b\seq a^{*}$ (CE-A), and a mix keeps \emph{both} (CE-Hall). The weak cover only ever holds the uncollapsed
+forms. Therefore:
+\begin{itemize}[itemsep=1pt]
+\item set-containment fails (collapsed strong rows are not weak members);
+\item $\Strong$-witnessing fails (uncollapsed strong rows are not $\Strong$-images);
+\item any row$\to$slot \emph{injection} fails (collapsed + uncollapsed siblings collide on one slot);
+\item yet the \emph{total} ledger $\ctxb$ always covers $\rss{\sd}$ (other slots are underused).
+\end{itemize}
+\textbf{Consequence (the search-narrowing result):} the proof cannot be a per-row or per-slot
+\emph{set/membership} statement. It must be a \emph{total-budget} argument that does not match rows to slots.
+
+\section{Where verdict7 points}
+verdict7's ``budgeted collapse trace'' is exactly this: charge at the level of \emph{syntax-node
+occurrences} $\to$ \emph{cost tokens} (atoms of $\ctxb$), not rows $\to$ slots. On CE-Hall the short row
+$b^{*}\seq a^{*}$ ($5$ nodes) and the long row $b^{*}\seq(a^{*}\seq a^{*})$ ($8$ nodes) consume
+\emph{disjoint} cost atoms (drawn from slot$_1$ \emph{and} the source-star/collapse slot) instead of both
+demanding the one indivisible slot$_1$ --- so the Hall collision dissolves. The open question is whether the
+node$\to$atom injection is constructible at RALTS; that is what to validate before executing.
+
+\end{document}
