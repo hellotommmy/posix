@@ -50,13 +50,18 @@ invent another carrier/cover/charge. You MAY land the validated-safe bricks (abs
 L-SEQ/L-STAR lifts, ctx ledger).** Refutations in memory: `posix-scover-cover-refuted`,
 `verdict6-tworoute-refuted`, `posix-cand3-numeric-induction-ralts-refuted`.
 
-### ⏳ verdict7 — node→cost-token "budgeted collapse trace" (validating, 2026-06-15)
-GPT Pro verdict7 (`gpt_pro_bundle/verdict7.md`): charge at the SYNTAX-NODE → COST-TOKEN level (not rows→slots),
-so the collapsed row + its uncollapsed predecessor consume DISJOINT atoms (ordinary slot + source-star/collapse
-slot) — dissolving the Hall collision. First idea of the right SHAPE (total-budget, divisible). Secretary is
-validating it as a max-flow feasibility (does the divisible node→atom charge saturate at depth≥5, esp RALTS/CE-Hall).
-**HOLD until validated.** If VIABLE → executor implements it; if the flow is infeasible → a Pro micro-ask. See
-worked CEs in `FAILED_ROUTES_WORKED.pdf`.
+### 🛑 verdict7 — node→cost-token "budgeted collapse trace" REFUTED (depth≥5, 2026-06-15). HOLD; Pro micro-ask pending.
+verdict7 (charge at SYNTAX-NODE → COST-TOKEN with a SOURCE-STAR slot per `a*·a*→a*` collapse) was validated as a
+divisible max-flow feasibility (`scratch_verdict7_flow_feasibility_check.py`, 40852 depth≥5 pairs, all sanity gates
+GREEN). The source-star edge fixes 24/25 base Hall failures but **ONE CE survives** (WITH-source-star INFEASIBLE=1):
+`k=b*`, p has TWO parallel star-children (`a*`,`(a+1+b)*`) that each produce a `b*·b*` tail via the shared
+continuation `·((1+(a·b))·b*)`; all four long/short rows charge the SAME single source-star slot for `b*` →
+overload (Hall cut supply 110 > cap 98, flow 251/295). The row→slot collision REAPPEARS as a node→source-star-slot
+collision: atom disjointness separates a row from ITS predecessor, NOT sibling rows sharing a freed star.
+**9 routes now dead; numeric bound still TRUE (G2 0-viol). DO NOT execute verdict7. A + all agents HOLD the §4
+assembly.** Pro micro-ask drafted: `GPT_PRO_VERDICT7_MICROASK.md` (3 narrow patch options — per-child source-star
+slots / capacity top-up / non-flow collapse-event ledger). Full CE + diagnosis in PROGRESS_BACKREF.md (2026-06-15).
+You MAY still land the validated-safe bricks (absorbed-B1, guard-decomps, L-SEQ/L-STAR lifts, ctx ledger).
 
 ---
 

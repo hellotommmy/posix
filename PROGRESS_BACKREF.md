@@ -10971,3 +10971,37 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   relating rsimpStrong collapse to a slot-cost DECREASE — NOT opened-row membership. Baked into the
   sharpened V2 prompt (gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt). STATUS_MATH.pdf refreshed to
   current. A + all agents HOLD; may land the validated-safe bricks. Next: fire sharpened Pro V2.
+
+## 2026-06-15 Secretary: verdict7 (node->cost-token budgeted collapse trace) REFUTED (depth>=5) — closest route yet (1/40852); Pro micro-ask drafted; HOLD
+
+- verdict7 (charge at SYNTAX-NODE -> COST-TOKEN, with a SOURCE-STAR slot for each a*.a*->a*
+  collapse so the short collapsed row + its long predecessor draw DISJOINT atoms) was validated
+  as a divisible max-flow feasibility (scratch_verdict7_flow_feasibility_check.py, seed 20260615,
+  40852 in-regime depth>=5 pairs: 22832 exhaustive rsize<=7 x conts + 18000 random depth5-7 +
+  directed). All 3 sanity gates GREEN (G0/G1/G2 = 0 viol; numeric bound rsize_set(strong)<=ctx_bound
+  TRUE as always).
+- RESULT: source-star addition fixes 24 of 25 base failures (NO-source-star INFEASIBLE=25,
+  WITH-source-star INFEASIBLE=1). **REFUTED by ONE residual CE** (exit code 1) — the closest any
+  route has come (9 routes now dead).
+- MIN CE (k=b*):
+    p = ((((a*.((c.(b.b))+1+(b.b)*+(b.c)))+((a+1+b)*.(((1+c).a)+1+(a.b*)))+a).((1+(a.b)).b*))
+        +((1+b*+c+a).(1+((1+((b+1).(1+b))).(b+1)))))
+    k = b*
+    flow = 251/295 (INFEASIBLE).
+  Violated Hall cut (supply 110 > capacity 98), 4 rows reaching slots {0,10,16,21,23}:
+    two parallel star-children (a* and (a+1+b)*) EACH produce a b*.b* tail via the shared
+    continuation .((1+(a.b)).b*); both the long (.b*.b*) and short (.b*) variants of BOTH
+    children charge to the SAME single source-star slot for b*.
+- DIAGNOSIS: the row->slot Hall collision verdict7 dissolved REAPPEARS one level down as a
+  node->source-star-slot collision. Atom-level disjointness separates a row from ITS OWN
+  predecessor, but NOT sibling rows that share the same freed star. Parallel children collapsing
+  via the same star all pile onto the one source-star slot for that star -> overload. (Same
+  a*.a* collapse-granularity gap, now at the source-star slot.)
+- ACTION: Pro micro-ask drafted (GPT_PRO_VERDICT7_MICROASK.md) — narrow patch, 3 options:
+  (1) per-occurrence/per-child source-star slots (split the 4 rows 2+2); (2) capacity top-up
+  scost(j) += (#collapse events routed to j)*(1+rsize k) instead of flat +(1+rsize k);
+  (3) non-flow size-decrease ledger keyed on collapse events summed over children. Must survive
+  this CE AND the prior killer p=a+b*.a*,k=a*; no injective row->slot / strong<=cover.
+- STEER set to HOLD. Did NOT execute (no Isabelle implementation spawned). The §1/§4 gate stays
+  OPEN. Numeric bound remains TRUE; obstruction is still distribution, not budget. Memory note to
+  follow: verdict7-flow-refuted.
