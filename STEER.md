@@ -30,39 +30,25 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
-## ⛔ SCOVER REFUTED — gate assembly is a GPT Pro DESIGN problem (2026-06-15). A: HOLD.
-Secretary machine-validated A's `scover` recipe at depth≥5: it FAILS (`posix-scover-cover-refuted.md`).
-- COVER `SOL_acc q cont ⊆ scover q cont ∪ SOL cont` FALSE (23–69 viol) — SAME `a*·a*→a*` collapse:
-  CE `q=b·a*, k=a*`, the strong-collapsed row `b·a*` is absent from scover (only uncollapsed `b·(a*·a*)`).
-- B2 (`rsimp7 q cont = S(rsimp4 q cont)`) FALSE for nested-RSEQ heads; B1 literal FALSE (~25%).
-- SALVAGEABLE (validated 0-viol): B1 in the ABSORBED form `SOL(rsimp4 q cont) ⊆ SOL_acc q cont ∪ SOL cont`;
-  the guard-decompositions; `rsize_set(scover) ≤ ctx_bound`.
-- ⭐ KEY: the NUMERIC target IS TRUE — `rsize_set(strong_child_drain p k) ≤ ctx_bound ≤ drain_child_budget`
-  is 0/52654. Only the SET-CONTAINMENT proof routes (master_cover, scover) die on the collapse.
-**The §4 close is now a DESIGN problem (Pro): prove the true numeric bound WITHOUT a strong⊆cover
-set-containment.** A (and all agents): HOLD the assembly — do NOT invent a third set-cover. You MAY
-land the validated-safe bricks (the ABSORBED-B1 bridge; the guard-decompositions) — those are reusable
-under any design.
-
-### 🛑 GATE ASSEMBLY — 4 routes REFUTED; the injective per-slot charge is the wrong shape. Pro V2 pending. A: HOLD.
-FOUR proof designs for `rsize_set(strong_child_drain p k) ≤ ctx_bound` have now been depth≥5-refuted
-(all die on the `a*·a*→a*` collapse): (1) master_cover set-inclusion (doesn't compose); (2) scover
-recursive cover (COVER false); (3) verdict6 `slot_origin_cover` via `collapses_to` (97/40849 — strong
-drain RETAINS uncollapsed long rows); (4) secretary two-route `slot_charges` (24/52851 — better, fixes
-every route-3 refuter, but a HALL collision remains: CE `p=a+b*·a*, k=a*`, rows `b*·a*` and `b*·a*·a*`
-can only charge to the SAME slot).
-⭐ THE DIAGNOSIS: the NUMERIC bound is TRUE (validated 0-viol many times), but **no INJECTIVE per-slot
-charge can exist** — the total ledger budget covers the rows, yet some slots are overloaded (a collapsed
-row + its uncollapsed predecessor both originate there) while others are underused. The proof must spend
-the TOTAL budget, NOT a row→slot injection. strong_child_drain mixes collapsed + uncollapsed rows; S is
-not pointwise cost-monotone; no uniform row-identity relation works.
-ACTION: GPT Pro design V2 (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt`) — a NON-injective /
-aggregate / numeric-induction proof of the true bound (candidates: many-to-one slot accounting;
-rsize_set(strong)≤rsize_set(weak) at the set level; pure numeric induction avoiding the RALTS
-subadditive over-count; or tightening the opening def). **A + all agents: HOLD the §4 assembly — do NOT
-invent a 5th injective/set-cover. You MAY land the validated-safe bricks (absorbed-B1, guard-decomps,
-the L-SEQ/L-STAR lift lemmas, the ctx ledger) — all reusable under any final design.** Await Pro V2 +
-secretary validation. (Refutations: `posix-scover-cover-refuted.md`, `verdict6-tworoute-refuted.md`.)
+### 🛑 GATE ASSEMBLY — the whole CARRIER CLASS is refuted (impossibility proven). A: HOLD. Pro V2 sharpened.
+The §1 gate reduces (GREEN wrapper) to ONE numeric bound
+`rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k` — machine-validated TRUE (0-viol, >10^5
+depth≥5 cases). But EIGHT structural proof routes are now depth≥5-REFUTED, all on the guarded `a*·a*→a*`
+collapse: per-child set-containment (master_cover, doesn't compose); recursive `scover`; injective
+slot-origin via `collapses_to` (97/40849) + the two-route variant (24/52851, Hall collision); total-size
+`strong≤weak` (strong CAN exceed weak, 36>29); non-injective aggregate (COVER fails 4/128541); pure
+numeric induction (RALTS step 94/13837); S-rownorm the opening (UNSOUND — gate needs the un-normed drain).
+- ⭐ IMPOSSIBILITY SQUARE (proven, 43707 cases): NO slot-derived carrier can sit between the strong total
+  and ctx_bound. **The entire carrier / opened-row-membership / cover CLASS is dead — stop searching there.**
+- ⭐ DIAGNOSIS: `strong_child_drain` mixes S-collapsed short rows + uncollapsed long rows; no injective
+  row→slot charge exists (total budget covers, but slots are overloaded/underused).
+THE ONE REMAINING SEED (Pro V2, now sharpened): charge each S-collapsed row to the **SOURCE STAR SLOT**
+that produced the `a*·a*`, relating `rsimpStrong`'s collapse to a slot-cost **DECREASE** — NOT opened-row
+membership. ACTION: fire GPT Pro V2 (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt`, updated with all
+8 refutations + the impossibility square + this seed). **A + all agents: HOLD the §4 assembly — do NOT
+invent another carrier/cover/charge. You MAY land the validated-safe bricks (absorbed-B1, guard-decomps,
+L-SEQ/L-STAR lifts, ctx ledger).** Refutations in memory: `posix-scover-cover-refuted`,
+`verdict6-tworoute-refuted`, `posix-cand3-numeric-induction-ralts-refuted`.
 
 ---
 

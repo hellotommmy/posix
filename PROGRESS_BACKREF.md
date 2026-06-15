@@ -10957,3 +10957,17 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - HANDOFF: GPT Pro V2 ask ready (gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt) — non-injective/
   aggregate/numeric-induction proof. A + all agents HOLD; may land the validated-safe bricks (absorbed-B1,
   guard-decomps, L-SEQ/L-STAR lifts, ctx ledger). Memory: verdict6-tworoute-refuted.md.
+
+## 2026-06-15 Secretary: design-search fan-out — ALL 4 candidates REFUTED; carrier class IMPOSSIBLE; V2 sharpened
+
+- Fanned 4 non-injective candidates in parallel, all depth>=5 REFUTED (same a*.a* collapse):
+  total-size strong<=weak (strong CAN exceed weak, CE rs 36>29); non-injective aggregate (global reduces
+  to COVER, fails 4/128541); pure numeric induction (RSEQ/RSTAR close, RALTS step 94/13837); S-rownorm
+  the opening (UNSOUND — gate needs the un-normed drain, X not-subset X 99/40852).
+- IMPOSSIBILITY SQUARE (cand2, 43707 cases): NO slot-derived carrier W can sit between strong-total and
+  ctx_bound (plain weak: bridge fails; S-applied carriers: fail worse; weak∪strong: ceiling overshoots).
+  The whole carrier/opened-row-membership/cover CLASS is dead. 8 routes refuted total.
+- ONE SEED LEFT (from cand2): charge S-collapsed rows to the SOURCE STAR SLOT that produced the a*.a*,
+  relating rsimpStrong collapse to a slot-cost DECREASE — NOT opened-row membership. Baked into the
+  sharpened V2 prompt (gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt). STATUS_MATH.pdf refreshed to
+  current. A + all agents HOLD; may land the validated-safe bricks. Next: fire sharpened Pro V2.
