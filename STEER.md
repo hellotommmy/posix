@@ -44,8 +44,13 @@ team's existing RSTAR escapes (`_RSTAR_root_cubic_if_body_plus_root` @33409, `_i
 now-FALSE child_ok — DEAD. The real RSTAR obligation: `potential r (RSTAR r) ≤ ~2·(rsize(RSTAR r)+3)³` (star body
 opened against its OWN star). Naive cube-shell IH is too loose (~7m³ vs needed ~2m³) because the re-entry continuation
 doubles the body contribution; needs a DIRECT saturation argument (the body-against-its-own-star opening is bounded by
-the star's own universe, not the IH product). **A + agents: still HOLD execution — the RSTAR cube-shell is a meaty
-proof; awaiting user decision (Pro design vs A attempt vs deeper saturation analysis). Do NOT touch child_ok/drain.**
+the star's own universe, not the IH product). **DE-RISKED (Secretary, see `RSTAR_CUBE_SHELL_SKETCH.md`):** RSTAR
+cube-shell decomposes (0-viol/15059) into HEAD (≤ top shell layer — EASY, direct analogue of GREEN
+`strong_opened_live_acc_RALTS_root_shell_large` @33427) + **SAT** `pot r (r*·k) ≤ (rsize r+rsize k)³−(rsize k)³` (the
+saturation; TRUE 0/15k, ratio max 0.806). SAT is the lone real crux. CAVEAT: SAT is about the recursive POTENTIAL
+(over-approximates the set), so it does NOT fall out of the set-subset lemmas (@33132) alone — needs a saturation/
+idempotency argument on the potential recursion. **A + agents: still HOLD execution — awaiting user decision (Pro
+design on SAT vs A attempt with the sketch). Do NOT touch child_ok/drain.**
 
 ---
 
