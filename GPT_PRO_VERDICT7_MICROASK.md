@@ -1,3 +1,11 @@
+> ⚠️ **OBSOLETE / DO NOT FIRE (2026-06-16).** Superseded by the Secretary PIVOT
+> (`bace5b5`): the entire `ctx_bound` target this ask is built on was a SAMPLING
+> ARTIFACT and is **FALSE** in-regime (CE2 `p=1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`,
+> `k=c*` → 47 > 46). The new target is the LOOSER `child_ok`/`drain_child_budget`
+> bound via master_cover + verdict8 `plug_drain` — **no Pro design is needed** (STEER:
+> "Do NOT fire Pro; the design exists, the target was just wrong"). Kept only as a
+> record of the verdict7 refutation. See STEER.md and PROGRESS_BACKREF.md (2026-06-16).
+
 # GPT Pro micro-ask — verdict7 node→cost-token flow is REFUTED by ONE CE (closest route yet)
 
 **Date:** 2026-06-15. **Status:** verdict7 (budgeted collapse trace, node→cost-token

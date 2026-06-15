@@ -11005,3 +11005,27 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - STEER set to HOLD. Did NOT execute (no Isabelle implementation spawned). The §1/§4 gate stays
   OPEN. Numeric bound remains TRUE; obstruction is still distribution, not budget. Memory note to
   follow: verdict7-flow-refuted.
+
+## 2026-06-16 Watchdog-C (/loop): PICKED UP THE PIVOT — verdict7/ctx_bound DROPPED; monitoring child_ok re-validation; NOT executing
+
+- Self-synced and received Secretary PIVOT (bace5b5). STEER now states the ctx_bound target
+  `rsize_set(strong_child_drain p k) <= ctx_bound` is FALSE in-regime (sampling artifact, real
+  violation ~1/1.2M; CE2 p=1+((1+((1+a).a)+((c+1).(c+1))).c*), k=c* -> 47>46). All 9 prior
+  refutations (incl. my verdict7) were proving a FALSE lemma. New target: the LOOSER `child_ok`
+  (rsize_set(strong_child_drain p k) <= drain_child_budget p k) via master_cover (RALTS open) +
+  verdict8 `plug_drain` companion. ctx_bound is dropped.
+- LOOP ORDERS NOW STALE: this /loop hard-codes "implement verdict7 / prove <= ctx_bound", both
+  abandoned by the pivot. STEER wins -> switched. Actions taken to comply:
+  * Did NOT execute verdict7 (dead route, dropped target).
+  * Did NOT fire the Pro micro-ask (STEER: "Do NOT fire Pro"). Marked GPT_PRO_VERDICT7_MICROASK.md
+    OBSOLETE / DO-NOT-FIRE.
+  * Did NOT spawn an executor: master_cover_RALTS + the plug_drain/child_ok assembly are
+    A-EXCLUSIVE per STEER; this /loop is WATCHDOG-C = MONITOR only.
+- verdict8 re-validation status = IN-FLIGHT / INCONCLUSIVE: new harnesses present
+  (scratch_verdict8_traced_induction_A/B, _plug_ralts_probe, _key_faithfulness_check,
+  _ralts_per_invariant) but no result recorded in PROGRESS; and _ralts_per_invariant still tests
+  against ctx_bound (the abandoned target), so the admin is mid-iteration. Per guardrail
+  (ambiguous/inconclusive -> HOLD + flag admin) I did NOT run them and guess a verdict.
+- HOLDING in monitor mode. ADMIN FLAG: the standing /loop prompt no longer matches the live target;
+  decide whether to keep this loop monitoring under child_ok (re-spawn the executor lane only when
+  the verdict8/drain_child_budget composition returns VIABLE and A is not on it) or stand it down.
