@@ -30,7 +30,7 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
-### 🟢 PIVOT (2026-06-16) — the ctx_bound target was FALSE *and unnecessary*. New target: `child_ok`. A + agents HOLD pending re-validation.
+### 🛑 BOTH per-step budgets FALSE (2026-06-16) — ctx_bound AND child_ok refuted. ARCHITECTURE problem; escalated to user. ALL HOLD.
 **The "one numeric bound" we ground on for 9 routes — `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k`
 — is FALSE in-regime.** CE2 (Secretary-reproduced, S-fixed, nf, depth≥5): `p = 1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`,
 `k = c*` → `rsize_set(strong)=47 > ctx_bound=46`. CE1: `p=(((((a+1)·b)+1)·((1+a)·(c·b*)))+c)`, `k=b*` → `64 > 60`.
@@ -47,13 +47,22 @@ The "machine-validated TRUE, 0-viol >10^5" was a **SAMPLING ARTIFACT**: real vio
   `strong_child_drain_RSEQ_budget_sum_le` @32882). The RALTS cover gap (parent re-exposes `b·(a*·a*)` no child
   strong has) is FIXED by verdict8's `plug_drain` companion (impl-B: `parent_strong ⊆ ⋃ child (strong∪plug)`,
   0-fail/13511). The looser `drain_child_budget` has the slack (≈13 on CE2) that `ctx_bound` lacked.
-THE NEW MAKE-OR-BREAK (under validation NOW): does the strengthened invariant
-`rsize_set(strong_child_drain ∪ plug_drain) ≤ drain_child_budget` compose at RALTS (+RSEQ/RSTAR)? All 9 routes
-tested strong∪plug against the *tight* ctx_bound (overshot); against `drain_child_budget` it is UNTESTED. If it
-holds → child_ok closes → gate closes (NO Pro design needed). **A + all agents: HOLD execution until the
-re-validation returns. Do NOT touch ctx_bound. Do NOT fire Pro (this is not a missing-design problem; the design
-exists, the target was just wrong).** You MAY land the validated-safe `drain_child_budget` superadditivity bricks
-for RALTS/RSTAR (analogues of @32882 — pure arithmetic, true, needed regardless).
+RE-VALIDATION RESULT (2026-06-16): **`child_ok` is ALSO FALSE.** `rsize_set(strong_child_drain p k) ≤
+drain_child_budget p k` fails in-regime. Secretary-verified CE (S-fixed, nf, depth 6):
+`p = (((((a+1)·b)+1)·((((a+1)·b)+1)·(a·b*)))+c)`, `k = b*` → `rsize_set(strong)=99 > drain_child_budget=96`. The
+"0/1.2M" that supported child_ok was the SAME sampling artifact that hid the ctx_bound CE: `rand_clean` never builds
+the killer structure — nested `SEQ(ALTS[pre,1], … SEQ(atom, star*))` opened at `k=star*`, which re-doubles
+`star*→star*·star*` each frame, stacking uncollapsed S-shadow rows multiplicatively. A witness-biased generator finds
+it at 2.7–9.5%. drain_child_budget (= drain_pot + drain_w·(1+rsize k)) is only ~QUADRATIC; the overshoot grows
+QUADRATICALLY with chain depth, so NO constant / fixed multiplier / minimal companion / cubic-safe correction closes
+it (all tested, all fail). **BUT** `rsize_set(strong_child_drain) ≤ (rsize p+3)³` holds directly with huge slack
+(99 ≪ 15625) — strong IS cubic; the per-step BUDGET is the broken link.
+- ⛔ Both ctx_bound (tight) and drain_child_budget (loose) per-step budgets are refuted. This is an ARCHITECTURE
+  decision, escalated to the user. **A + ALL agents: HOLD. Do NOT start any Isabelle proof of `child_ok` or any
+  per-step budget bound. Do NOT fire Pro until the architect picks the new frame.**
+- ⚠ METHODOLOGY FIX (mandatory): every future validation gate MUST include the witness-family generator
+  (`witness_family()` in `scratch_childok_drainbudget_A.py`) targeting the nested-SEQ-chain-opened-at-star* structure,
+  NOT just `rand_clean`. Two "validated TRUE" claims were sampling artifacts of this exact blind spot.
 
 ---
 
