@@ -11029,3 +11029,20 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - HOLDING in monitor mode. ADMIN FLAG: the standing /loop prompt no longer matches the live target;
   decide whether to keep this loop monitoring under child_ok (re-spawn the executor lane only when
   the verdict8/drain_child_budget composition returns VIABLE and A is not on it) or stand it down.
+
+## 2026-06-16 Watchdog-C (/loop): picked up BYPASS frame — holding for user's Pro-vs-A decision on RSTAR SAT
+
+- Self-synced to 649d4c9. child_ok/ctx_bound/drain ALL abandoned (both per-step budgets FALSE,
+  quadratic overshoot). NEW frame: the gate's SECOND green route (actual_gate_bridge_from_strong_
+  opened_live_potential @35221 + rsize_set_..._le_potential @35010) reduces it to the CUBE-SHELL
+  invariant `strong_opened_live_acc_potential r k <= (rsize r+rsize k)^3 - (rsize k)^3`. RONE/RCHAR/
+  RALTS/RSEQ cube-shell steps GREEN; cube-shell validated 0-viol/90k+ incl. the child_ok killers.
+- ONE OPEN PIECE: unconditional RSTAR cube-shell step + driver, de-risked (RSTAR_CUBE_SHELL_SKETCH.md,
+  0-viol/15059) into HEAD (easy, analogue of @33427) + SAT `pot r (r*.k) <= (rsize r+rsize k)^3-(rsize k)^3`
+  (TRUE 0/15k, ratio<=0.806). SAT is the lone crux; about the recursive POTENTIAL so it needs a
+  saturation/idempotency argument, not just the set-subset lemmas.
+- Watchdog stance UPDATED from the stale child_ok-monitoring posture: now monitoring the cube-shell
+  frame. Per STEER "still HOLD execution — awaiting user decision (Pro design on SAT vs A attempt
+  with the sketch)": did NOT execute, did NOT spawn, did NOT touch child_ok/drain. This /loop remains
+  MONITOR-only. ADMIN FLAG: the gate is one step from closed; the pending blocker is a USER decision
+  (fire Pro on SAT, or hand A the sketch). Will pick up whichever lands in STEER.
