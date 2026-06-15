@@ -30,38 +30,30 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
-### 🛑 GATE ASSEMBLY — the whole CARRIER CLASS is refuted (impossibility proven). A: HOLD. Pro V2 sharpened.
-The §1 gate reduces (GREEN wrapper) to ONE numeric bound
-`rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k` — machine-validated TRUE (0-viol, >10^5
-depth≥5 cases). But EIGHT structural proof routes are now depth≥5-REFUTED, all on the guarded `a*·a*→a*`
-collapse: per-child set-containment (master_cover, doesn't compose); recursive `scover`; injective
-slot-origin via `collapses_to` (97/40849) + the two-route variant (24/52851, Hall collision); total-size
-`strong≤weak` (strong CAN exceed weak, 36>29); non-injective aggregate (COVER fails 4/128541); pure
-numeric induction (RALTS step 94/13837); S-rownorm the opening (UNSOUND — gate needs the un-normed drain).
-- ⭐ IMPOSSIBILITY SQUARE (proven, 43707 cases): NO slot-derived carrier can sit between the strong total
-  and ctx_bound. **The entire carrier / opened-row-membership / cover CLASS is dead — stop searching there.**
-- ⭐ DIAGNOSIS: `strong_child_drain` mixes S-collapsed short rows + uncollapsed long rows; no injective
-  row→slot charge exists (total budget covers, but slots are overloaded/underused).
-THE ONE REMAINING SEED (Pro V2, now sharpened): charge each S-collapsed row to the **SOURCE STAR SLOT**
-that produced the `a*·a*`, relating `rsimpStrong`'s collapse to a slot-cost **DECREASE** — NOT opened-row
-membership. ACTION: fire GPT Pro V2 (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_ASSEMBLY_V2.txt`, updated with all
-8 refutations + the impossibility square + this seed). **A + all agents: HOLD the §4 assembly — do NOT
-invent another carrier/cover/charge. You MAY land the validated-safe bricks (absorbed-B1, guard-decomps,
-L-SEQ/L-STAR lifts, ctx ledger).** Refutations in memory: `posix-scover-cover-refuted`,
-`verdict6-tworoute-refuted`, `posix-cand3-numeric-induction-ralts-refuted`.
-
-### 🛑 verdict7 — node→cost-token "budgeted collapse trace" REFUTED (depth≥5, 2026-06-15). HOLD; Pro micro-ask pending.
-verdict7 (charge at SYNTAX-NODE → COST-TOKEN with a SOURCE-STAR slot per `a*·a*→a*` collapse) was validated as a
-divisible max-flow feasibility (`scratch_verdict7_flow_feasibility_check.py`, 40852 depth≥5 pairs, all sanity gates
-GREEN). The source-star edge fixes 24/25 base Hall failures but **ONE CE survives** (WITH-source-star INFEASIBLE=1):
-`k=b*`, p has TWO parallel star-children (`a*`,`(a+1+b)*`) that each produce a `b*·b*` tail via the shared
-continuation `·((1+(a·b))·b*)`; all four long/short rows charge the SAME single source-star slot for `b*` →
-overload (Hall cut supply 110 > cap 98, flow 251/295). The row→slot collision REAPPEARS as a node→source-star-slot
-collision: atom disjointness separates a row from ITS predecessor, NOT sibling rows sharing a freed star.
-**9 routes now dead; numeric bound still TRUE (G2 0-viol). DO NOT execute verdict7. A + all agents HOLD the §4
-assembly.** Pro micro-ask drafted: `GPT_PRO_VERDICT7_MICROASK.md` (3 narrow patch options — per-child source-star
-slots / capacity top-up / non-flow collapse-event ledger). Full CE + diagnosis in PROGRESS_BACKREF.md (2026-06-15).
-You MAY still land the validated-safe bricks (absorbed-B1, guard-decomps, L-SEQ/L-STAR lifts, ctx ledger).
+### 🟢 PIVOT (2026-06-16) — the ctx_bound target was FALSE *and unnecessary*. New target: `child_ok`. A + agents HOLD pending re-validation.
+**The "one numeric bound" we ground on for 9 routes — `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k`
+— is FALSE in-regime.** CE2 (Secretary-reproduced, S-fixed, nf, depth≥5): `p = 1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`,
+`k = c*` → `rsize_set(strong)=47 > ctx_bound=46`. CE1: `p=(((((a+1)·b)+1)·((1+a)·(c·b*)))+c)`, `k=b*` → `64 > 60`.
+The "machine-validated TRUE, 0-viol >10^5" was a **SAMPLING ARTIFACT**: real violation rate ~1/1.2M, so every
+20k–40k gate missed it. **All 9 prior refutations were proving a FALSE lemma — that is why every one died.**
+- ⭐ ctx_bound is NOT NEEDED. The gate wrapper `actual_gate_from_current_drain` (@36253) needs only
+  `rsize_set(strong_opened_live_row_universes …) ≤ 2(rsize r+3)³`, scaffolded by **`child_ok`** (@32389):
+  `∀k∈regime. rsize_set(strong_child_drain p k) ≤ drain_child_budget p k` — the **LOOSER** bound, which is what
+  feeds cubicity (`drain_child_budget_root_cubic` @32651). `ctx_bound` was only a believed-tighter stepping stone
+  (prove `≤ ctx_bound`, chain `ctx_bound_le_drain_child_budget` @32663 to `child_ok`). The stepping stone is false;
+  **drop it.** There is no `strong_child_drain_ctx_bound` lemma — nothing consumes the tight bound.
+- ⭐ `child_ok` is TRUE (holds on both CEs with slack 47≤60, 64≤74; 0/1.2M). Its proof = **master_cover** (set cover,
+  RZERO/RONE/RCHAR/RSEQ/RSTAR GREEN, only **RALTS** open) **+ drain_child_budget superadditivity** (RSEQ GREEN:
+  `strong_child_drain_RSEQ_budget_sum_le` @32882). The RALTS cover gap (parent re-exposes `b·(a*·a*)` no child
+  strong has) is FIXED by verdict8's `plug_drain` companion (impl-B: `parent_strong ⊆ ⋃ child (strong∪plug)`,
+  0-fail/13511). The looser `drain_child_budget` has the slack (≈13 on CE2) that `ctx_bound` lacked.
+THE NEW MAKE-OR-BREAK (under validation NOW): does the strengthened invariant
+`rsize_set(strong_child_drain ∪ plug_drain) ≤ drain_child_budget` compose at RALTS (+RSEQ/RSTAR)? All 9 routes
+tested strong∪plug against the *tight* ctx_bound (overshot); against `drain_child_budget` it is UNTESTED. If it
+holds → child_ok closes → gate closes (NO Pro design needed). **A + all agents: HOLD execution until the
+re-validation returns. Do NOT touch ctx_bound. Do NOT fire Pro (this is not a missing-design problem; the design
+exists, the target was just wrong).** You MAY land the validated-safe `drain_child_budget` superadditivity bricks
+for RALTS/RSTAR (analogues of @32882 — pure arithmetic, true, needed regardless).
 
 ---
 
