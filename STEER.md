@@ -30,7 +30,26 @@ A: continue `master_cover_RALTS`. RSEQ is GREEN (Codex) and RSTAR is GREEN (B). 
 
 ---
 
-### 🛑 BOTH per-step budgets FALSE (2026-06-16) — ctx_bound AND child_ok refuted. ARCHITECTURE problem; escalated to user. ALL HOLD.
+### 🟢 BYPASS FOUND (2026-06-16) — gate reduces (ALL GREEN, no sorry) to the CUBE-SHELL invariant. One open step: RSTAR. child_ok/drain ABANDONED.
+**The whole per-step budget detour (ctx_bound, child_ok, drain) was unnecessary.** The gate already has a SECOND,
+green route in the file: `actual_gate_bridge_from_strong_opened_live_potential` (@35221) + the per-row bound
+`rsize_set_strong_opened_live_row_universe_le_potential` (@35010, proven) reduce the gate to ONE inequality
+`strong_opened_live_acc_potential r RONE ≤ 2·(rsize r+3)³`, which reduces to the **cube-shell invariant**
+`strong_opened_live_acc_potential r k ≤ (rsize r + rsize k)³ − (rsize k)³`. Leaves (RONE @33332, RCHAR @33860) GREEN;
+RALTS (@33665) + RSEQ (@33928) cube-shell steps GREEN (telescoping difference-of-cubes — composes additively, unlike
+the dead quadratic budget). **Cube-shell is TRUE: Secretary-validated 0 violations / 90k+ depth≥5 incl. the EXACT
+child_ok killers (pot 431 ≤ shell 13816 on the rsize-22 CE where strong 99 > dcb 96) AND worst-case RSTAR star-re-entry
+inflation.** THE ONE OPEN PIECE: the **unconditional RSTAR cube-shell step** + the assembling induction driver. The
+team's existing RSTAR escapes (`_RSTAR_root_cubic_if_body_plus_root` @33409, `_if_child_drain`) route through the
+now-FALSE child_ok — DEAD. The real RSTAR obligation: `potential r (RSTAR r) ≤ ~2·(rsize(RSTAR r)+3)³` (star body
+opened against its OWN star). Naive cube-shell IH is too loose (~7m³ vs needed ~2m³) because the re-entry continuation
+doubles the body contribution; needs a DIRECT saturation argument (the body-against-its-own-star opening is bounded by
+the star's own universe, not the IH product). **A + agents: still HOLD execution — the RSTAR cube-shell is a meaty
+proof; awaiting user decision (Pro design vs A attempt vs deeper saturation analysis). Do NOT touch child_ok/drain.**
+
+---
+
+### 🛑 (superseded by the BYPASS above) BOTH per-step budgets FALSE (2026-06-16) — ctx_bound AND child_ok refuted.
 **The "one numeric bound" we ground on for 9 routes — `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k`
 — is FALSE in-regime.** CE2 (Secretary-reproduced, S-fixed, nf, depth≥5): `p = 1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`,
 `k = c*` → `rsize_set(strong)=47 > ctx_bound=46`. CE1: `p=(((((a+1)·b)+1)·((1+a)·(c·b*)))+c)`, `k=b*` → `64 > 60`.
