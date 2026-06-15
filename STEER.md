@@ -50,6 +50,14 @@ invent another carrier/cover/charge. You MAY land the validated-safe bricks (abs
 L-SEQ/L-STAR lifts, ctx ledger).** Refutations in memory: `posix-scover-cover-refuted`,
 `verdict6-tworoute-refuted`, `posix-cand3-numeric-induction-ralts-refuted`.
 
+### ⏳ verdict7 — node→cost-token "budgeted collapse trace" (validating, 2026-06-15)
+GPT Pro verdict7 (`gpt_pro_bundle/verdict7.md`): charge at the SYNTAX-NODE → COST-TOKEN level (not rows→slots),
+so the collapsed row + its uncollapsed predecessor consume DISJOINT atoms (ordinary slot + source-star/collapse
+slot) — dissolving the Hall collision. First idea of the right SHAPE (total-budget, divisible). Secretary is
+validating it as a max-flow feasibility (does the divisible node→atom charge saturate at depth≥5, esp RALTS/CE-Hall).
+**HOLD until validated.** If VIABLE → executor implements it; if the flow is infeasible → a Pro micro-ask. See
+worked CEs in `FAILED_ROUTES_WORKED.pdf`.
+
 ---
 
 ## THE route — verdict5 weak-carrier (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`, VALIDATED — implement it)
