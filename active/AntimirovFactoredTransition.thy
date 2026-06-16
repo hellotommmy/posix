@@ -37447,14 +37447,13 @@ qed
 (* ----- cases use the existing GREEN constructor cube-shells.    ------ *)
 
 lemma strong_opened_live_acc_potential_cube_shell:
-  assumes env: "\<And>r' k'.
+  assumes env: "\<And>r' k'. apder_clean (RSTAR r') \<Longrightarrow>
       strong_opened_live_acc_potential (RSTAR r') k' \<le>
         (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
-    and free: "rntimes_free r"
-    and leg: "legacy_rrexp r"
+    and clean: "apder_clean r"
   shows "strong_opened_live_acc_potential r k \<le>
       (rsize r + rsize k) ^ 3 - (rsize k) ^ 3"
-  using free leg
+  using clean
 proof (induct r arbitrary: k)
   case RZERO
   then show ?case
@@ -37472,38 +37471,51 @@ next
   have ch: "\<And>q. q \<in> set rs \<Longrightarrow>
       strong_opened_live_acc_potential q k \<le>
         (rsize q + rsize k) ^ 3 - (rsize k) ^ 3"
-    using RALTS by auto
+  proof -
+    fix q assume q: "q \<in> set rs"
+    have cq: "apder_clean q"
+      by (rule apder_clean_RALTS_member[OF RALTS.prems q])
+    show "strong_opened_live_acc_potential q k \<le>
+        (rsize q + rsize k) ^ 3 - (rsize k) ^ 3"
+      by (rule RALTS.hyps) (use q cq in auto)
+  qed
   show ?case
     by (rule strong_opened_live_acc_potential_RALTS_cube_shell[OF ch])
 next
   case (RSEQ r1 r2)
+  have c1: "apder_clean r1"
+    by (rule apder_clean_RSEQ_left[OF RSEQ.prems])
+  have c2: "apder_clean r2"
+    by (rule apder_clean_RSEQ_right[OF RSEQ.prems])
   have left:
       "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) \<le>
         (rsize r1 + rsize (rsimp4_SEQ_atom r2 k)) ^ 3 -
           rsize (rsimp4_SEQ_atom r2 k) ^ 3"
-    by (rule RSEQ.hyps(1)) (use RSEQ.prems in auto)
+    by (rule RSEQ.hyps(1)) (use c1 in auto)
   have right:
       "strong_opened_live_acc_potential r2 k \<le>
         (rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3"
-    by (rule RSEQ.hyps(2)) (use RSEQ.prems in auto)
+    by (rule RSEQ.hyps(2)) (use c2 in auto)
   show ?case
     by (rule strong_opened_live_acc_potential_RSEQ_cube_shell[OF left right])
 next
   case (RSTAR r0)
+  have c: "apder_clean (RSTAR r0)"
+    using RSTAR.prems by blast
   show ?case
-    by (rule strong_opened_live_acc_potential_RSTAR_cube_shell[OF env])
+    by (rule strong_opened_live_acc_potential_RSTAR_cube_shell[OF env[OF c]])
 next
   case (RNTIMES r0 n)
-  then show ?case by simp
+  then show ?case by (simp add: apder_clean_def)
 next
   case (RBACKREF4 r1 r2 r3 r4 cs)
-  then show ?case by simp
+  then show ?case by (simp add: apder_clean_def)
 next
   case (RHALF r0 cs rep)
-  then show ?case by simp
+  then show ?case by (simp add: apder_clean_def)
 next
   case (RRESIDUE cs rep)
-  then show ?case by simp
+  then show ?case by (simp add: apder_clean_def)
 qed
 
 lemma cube_shell_RONE_le_double_cubic:
@@ -37517,17 +37529,16 @@ proof -
 qed
 
 lemma strong_opened_live_acc_potential_root_cubic:
-  assumes env: "\<And>r' k'.
+  assumes env: "\<And>r' k'. apder_clean (RSTAR r') \<Longrightarrow>
       strong_opened_live_acc_potential (RSTAR r') k' \<le>
         (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
-    and free: "rntimes_free r"
-    and leg: "legacy_rrexp r"
+    and clean: "apder_clean r"
   shows "strong_opened_live_acc_potential r RONE \<le> 2 * (rsize r + 3) ^ 3"
 proof -
   have shell:
       "strong_opened_live_acc_potential r RONE \<le>
         (rsize r + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
-    by (rule strong_opened_live_acc_potential_cube_shell[OF env free leg])
+    by (rule strong_opened_live_acc_potential_cube_shell[OF env clean])
   have "strong_opened_live_acc_potential r RONE \<le>
       (rsize r + 1) ^ 3 - 1"
     using shell by simp
@@ -37539,7 +37550,7 @@ qed
 (* ----- the gate, GREEN modulo the single RSTAR affine envelope. ----- *)
 
 lemma actual_gate_from_cube_shell:
-  assumes env: "\<And>r' k'.
+  assumes env: "\<And>r' k'. apder_clean (RSTAR r') \<Longrightarrow>
       strong_opened_live_acc_potential (RSTAR r') k' \<le>
         (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
     and clean: "apder_clean r"
@@ -37547,12 +37558,8 @@ lemma actual_gate_from_cube_shell:
       (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
     2 * (rsize r + 3) ^ 3"
 proof -
-  have free: "rntimes_free r"
-    using clean unfolding apder_clean_def by simp
-  have leg: "legacy_rrexp r"
-    using clean unfolding apder_clean_def by simp
   have pot: "strong_opened_live_acc_potential r RONE \<le> 2 * (rsize r + 3) ^ 3"
-    by (rule strong_opened_live_acc_potential_root_cubic[OF env free leg])
+    by (rule strong_opened_live_acc_potential_root_cubic[OF env clean])
   show ?thesis
     by (rule actual_gate_bridge_from_strong_opened_live_potential[OF clean pot])
 qed

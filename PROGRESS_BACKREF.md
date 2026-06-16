@@ -11171,6 +11171,27 @@ and ROOT<=M^3 is false for M<5 so handle small M separately." WORKER-A will pick
 or a sharpened sketch when it lands in STEER; meanwhile HOLDING on the crux (no false-forcing per
 MAINLINE 6.11).
 
+## 2026-06-16 WORKER-A: RESUME on verdict_body (Secretary GO) — claiming the size-1-anchored cert
+
+- Secretary validated `verdict_body.md` VIABLE (size-1-anchored affine trace certificate). Resuming.
+  Key design: prove the envelope via LOOSE intercept A1=M^3+3M^2 + slope B=3M^2 anchored at rsize k=1;
+  the 1<=rsize k step gives M^3+3M^2*rsize k, closing M=2/3/4 with no base cases.
+- GUARD RECONCILIATION (resolved): verdict_body envelope carries `apder_clean (RSTAR r)`. My green
+  driver/root/gate currently take an UNCONDITIONAL env -> must convert to a `apder_clean (RSTAR r')`-
+  guarded env. apder_clean DECOMPOSES cleanly (apder_clean_RSEQ_left/right @31697/31702,
+  _RALTS_member @31691, _RSTAR_body @31707; apder_clean=legacy/\\rntimes_free/\\apder_nf/\\zero_budget)
+  so threading it through `induct r` is mechanical: RSEQ/RALTS via decomposition, RSTAR uses the case
+  premise apder_clean(RSTAR r0), NTIMES/backref/half/residue vacuous (apder_clean False). No loss --
+  the gate only ever needs apder_clean r.
+- CLAIMING (verdict_body patches; new names, grepped absent; end of active file, no sorry):
+  `aplug`, `aevt`/`aevt_cost`/`atrace`/`rstar_atrace`, `rstar_atrace_sound`, `aevt_A1`/`aevt_B`,
+  `aevt_tail_affine_size1`, `rstar_atrace_A1_bound`, `rstar_atrace_B_bound`,
+  `strong_opened_live_acc_potential_RSTAR_affine_envelope`; plus converting the green
+  `..._cube_shell`/`_root_cubic`/`actual_gate_from_cube_shell` to the apder_clean-guarded env.
+- PLAN: (1) convert driver/root/gate to conditional env [SAFE]. (2) land aplug+aevt+atrace defs +
+  rstar_atrace_sound [substrate]. (3) define aevt_A1/aevt_B, VALIDATE the 3 scalar lemmas
+  numerically (ask Secretary), then grind. Will commit small + push each brick.
+
 ## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
 
 - Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
