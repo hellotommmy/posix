@@ -54,8 +54,16 @@ cube-arithmetic: **ROOT** `A(r) ≤ M³` and **SLOPE** `B(r) ≤ 3M²` (M=rsize(
 0.52). Then `A+B·n ≤ M³+3M²n ≤ (M+n)³−n³` closes it for ALL k. SLOPE is the easy half (continuation enters linearly);
 **ROOT** `pot(RSTAR r, RONE) ≤ M³` (≡ `pot r (r*) ≤ M³−M` via `_RSTAR_RONE_linear_split` @33391) is the lone scalar
 core — route via the static star-universe facts (@37190 linear count, @31364 quadratic size). Full plan +
-refinement in `RSTAR_CUBE_SHELL_SKETCH.md`. **A + agents: still HOLD execution — awaiting user decision (Pro design
-on the ROOT scalar vs A attempt with the sketch). Do NOT touch child_ok/drain.**
+refinement in `RSTAR_CUBE_SHELL_SKETCH.md`. **GO (2026-06-16): GPT Pro returned `gpt_pro_bundle/verdict_root.md`; the
+Secretary VALIDATED it** — trace soundness 0/949, affine envelope `pot(RSTAR r)k ≤ M³+3M²·rsize k` 0-viol, scalar
+bounds A≤M³ & B≤3M² 0/437. Pro's strategy = a tagged `pot_trace` mirroring the potential + the affine envelope +
+two scalar lemmas (`trace_A≤M³` via static facts, `trace_B≤3M²` via k-at-tail) → RSTAR cube-shell. **⚠ CAVEAT
+(validation): Pro's unrestricted self-star absorption lemma is FALSE (483/508); it holds ONLY for r*-prefixed k, and
+the body never contains the anchor r* anyway — so use k-at-TAIL linearity (slope) + static star-universe finiteness
+(intercept), NOT r*·r* absorption.** **WORKER-A: GO — formalize per `WORKER_A_RSTAR_PROMPT.md` (land the safe
+skeleton first: pot_trace+soundness → envelope→cube-shell arithmetic + driver wiring + HEAD; THEN the two scalar
+lemmas = the crux). Claim lemmas in PROGRESS. Ask Secretary to validate any new numeric sub-claim on the witness
+family before grinding it. Do NOT touch child_ok/drain or the unrestricted absorption.**
 
 ---
 
