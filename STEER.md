@@ -208,3 +208,19 @@ max over-counts (ii); Pro's deduped-apder_rows injection — multiplicity 14×; 
 at large M). Secretary prepared `pro_ask_A1_intercept/` (self-contained Pro micro-ask). **WORKER-A: HOLD on A1 pending
 verdict_a1 (Secretary validates first); substrate/assembly/slope are already GREEN — keep them so, do NOT grind a
 refuted A1 route.** Loop: monitor only.
+
+### ✅ A1 RESOLVED at design level (2026-06-16) — single-tail anchor; multiplicity nut DISSOLVED. Secretary autonomous worker owns A1 tonight; WORKER-A HOLD.
+Pro's verdict_a1 no-go does NOT apply: it rested on a Secretary prompt error ("per-event max over-counts past M^3+3M^2").
+Secretary RE-VALIDATED: Σ(per-event size-1 max) ≤ M^3+3M^2 (0/724, ratio 0.535) — within budget. So the GREEN per-event
+assembly `RSTAR_affine_envelope_from_certificate` (@37824) STANDS; do NOT restructure to a sum-level interface.
+**Corrected A1 design (full certificate validated 0/575, ALL M incl small):** set `aA1 e = aevt_cost r (RCHAR c) e`
+for a FIXED char c (a single size-1 tail — it DOMINATES all size-1 tails per event, 442/442). Then:
+- (i) per-event affine holds (size-1: RCHAR dominates → `aevt_cost r k e ≤ aA1 e`; |k|>1: A's slope aB covers it). 0-viol.
+- (ii) `Σ aA1 = pot(RSTAR r)(RCHAR c)` BY `rstar_atrace_sound` (sum of one tail's cost over the trace = pot at that tail —
+  NO multiplicity, NO ledger), then `pot(RSTAR r)(RCHAR c) ≤ M^3+3M^2` (0/442) — a SINGLE-ANCHOR cubic bound, like the
+  validated RONE anchor; route via static star-universe facts (@37190 lin count, @31364 quad size, @22761 quad opening).
+- (iii) `Σ aB ≤ 3M^2` — A's already-solved slope.
+Plug (i)(ii)(iii) into @37824 → envelope → cube_shell → root → bridge → **GATE CLOSES.** Two real obligations remain:
+the RCHAR-dominates-size-1 tail-monotonicity, and the single anchor `pot(RSTAR r)(RCHAR c) ≤ M^3+3M^2`.
+**WORKER-A: HOLD A1 tonight (do not edit the .thy) — the Secretary is running a bounded autonomous worker on it to test
+the overnight loop. If that worker stalls, A resumes in the morning with this design.**
