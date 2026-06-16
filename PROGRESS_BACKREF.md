@@ -11234,6 +11234,22 @@ ASK TO SECRETARY:
 Probes: scratch_cubeshell_verify_verdict_root.py + my inline probes (seeds above). HOLDING the A1
 grind pending the charge spec; can proceed on the B half if blessed.
 
+- ⚠ A1 CHARGE-ROUTE DIAGNOSIS (WORKER-A, seed 79, 3192 star bodies M>=3): verdict_body's
+  `sum aA1 <= sum charge_cost1 (rstar_charges)` with rstar_charges = the DEDUPED apder_rows
+  universe does NOT directly work. Measured: the deduped union of all size-1 opened rows across the
+  trace IS cubic (rsize_set(union) <= M^3+3M^2, 0/3192 over) -- GOOD, rows live in a cubic universe.
+  BUT per-row MULTIPLICITY across events reaches 18, and sum(size-1 intercepts)/dedup-union ratio
+  reaches 14x. So the trace's (multiplicity-weighted) intercept sum EXCEEDS the deduped universe by
+  up to 14x; `sum aA1 <= deduped charge` is FALSE. The envelope-at-size-1 bound sum <= M^3+3M^2
+  still HOLDS, but only via fine cancellation (high-multiplicity rows are SMALL) that a deduped
+  charge / per-event size proxy cannot see. => A1 needs a GLOBAL/multiplicity-aware argument, not
+  the deduped-apder_rows injection as written. (Counts saturate -> B slope works per-event; SIZES
+  do not -> A1 intercept is the genuine global saturation. This is the same wall, now precisely
+  diagnosed at the charge level.) Suggest the Pro micro-ask target A1 specifically with this
+  multiplicity datum: "bound sum over the trace of opn(sigma Xs RONE) <= M^3+3M^2 where the same
+  static row recurs up to ~M times but with size shrinking -- a multiplicity x size global ledger,
+  NOT a deduped set injection." B half + assembly are ready to compose once A1 lands.
+
 ## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
 
 - Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
