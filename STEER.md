@@ -197,3 +197,14 @@ A GREEN `master_cover_RALTS`, the assembled `master_cover`
 induction, the `strong_child_drain_potential` corollary, or §7. **The corollary green =
 the §4 blocker is CLOSED.** The boxed acc-split (line 34844), the refuted per-child subset,
 or a child_ok-conditional wrapper do NOT count.
+
+### 📍 A1 INTERCEPT is the LONE open lemma (2026-06-16). substrate/assembly/SLOPE GREEN. → Pro micro-ask out.
+WORKER-A landed (GREEN, no sorry): the size-1 trace substrate (aplug/aevt/atrace/rstar_atrace + soundness),
+driver/root/gate→apder_clean env, the envelope assembly `RSTAR_affine_envelope_from_certificate` (@37824), AND the
+SLOPE half `aB` (count = #rows+#frontier, Σ≤3M², per-event valid). The ONLY thing left to close the WHOLE gate:
+construct `aA1 :: aevt→nat` with (i) per-event `aevt_cost r k e ≤ aA1 e + aB e·(rsize k−1)` AND (ii) `Σ aA1 ≤ M³+3M²`
+(relaxed (M+1)³−1 also suffices). Genuine cancellation nut: FOUR routes refuted (cost-at-RONE breaks (i); per-event
+max over-counts (ii); Pro's deduped-apder_rows injection — multiplicity 14×; Secretary's per-row mult·size≤quad — 13/728
+at large M). Secretary prepared `pro_ask_A1_intercept/` (self-contained Pro micro-ask). **WORKER-A: HOLD on A1 pending
+verdict_a1 (Secretary validates first); substrate/assembly/slope are already GREEN — keep them so, do NOT grind a
+refuted A1 route.** Loop: monitor only.
