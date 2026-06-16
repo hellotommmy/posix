@@ -11069,3 +11069,26 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
     (= `pot(RSTAR r) k <= M^3 + 3M^2*rsize k`) via the two scalar lemmas (trace_A<=M^3 ROOT,
     trace_B<=3M^2 SLOPE). Validated 0-viol (STEER). Will post the exact stuck goal here if I wall.
 - A-EXCLUSIVE lane per STEER; no other agent on RSTAR/driver/gate. Will commit small + push.
+
+## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
+
+- Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
+- The full safe skeleton is landed in active/AntimirovFactoredTransition.thy (end of file):
+  * `affine_envelope_imp_cube_shell` — `M^3 + 3*M^2*n <= (M+n)^3 - n^3` (pure nat, via `cube_shell_add`).
+  * `strong_opened_live_acc_potential_RSTAR_cube_shell` — RSTAR shell FROM the assumed affine envelope.
+  * `strong_opened_live_acc_potential_cube_shell` — THE DRIVER. `induct r arbitrary: k`, guarded by
+    `rntimes_free r` + `legacy_rrexp r` (purely to kill RNTIMES/RBACKREF4/RHALF/RRESIDUE by simp;
+    those never arise under apder_clean). RZERO/RONE/RCHAR/RALTS/RSEQ reuse the existing GREEN
+    constructor cube-shells; RSTAR is discharged by an unconditional universally-quantified envelope
+    hypothesis `env: ⋀r' k'. pot (RSTAR r') k' <= (rsize(RSTAR r'))^3 + 3*(rsize(RSTAR r'))^2 * rsize k'`.
+  * `cube_shell_RONE_le_double_cubic` — `(R+1)^3 - 1 <= 2*(R+3)^3`.
+  * `strong_opened_live_acc_potential_root_cubic` — k:=RONE specialisation -> `pot r RONE <= 2*(rsize r+3)^3`.
+  * `actual_gate_from_cube_shell` — feeds the root-cubic into the GREEN gate bridge @35221 under
+    `apder_clean r`, giving the gate target
+    `rsize_set(row_dlformss(rpder_strong_rows_raw c (afactored1 r s))) <= 2*(rsize r+3)^3`.
+- NET EFFECT: the WHOLE gate is now GREEN modulo a SINGLE remaining obligation — the RSTAR affine
+  envelope `env`. Prove that one lemma (unconditionally, for all r' k') and the gate closes with no
+  further wiring. This is the huge safe milestone.
+- REMAINING OPEN (the crux): `strong_opened_live_acc_potential (RSTAR r') k' <=
+  (rsize(RSTAR r'))^3 + 3*(rsize(RSTAR r'))^2 * rsize k'`. Validated 0-viol (STEER): splits via
+  ROOT `A(r')<=M^3` + SLOPE `B(r')<=3M^2`. Next phase.
