@@ -37372,6 +37372,62 @@ proof -
   then show ?thesis by simp
 qed
 
+(* HEAD term:  the star root-charge opn(sigma(RSTAR r) k) fits the top    *)
+(* shell layer  (n+1)^3 - n^3  with n = rsize r + rsize k.  Direct        *)
+(* analogue of strong_opened_live_acc_RALTS_root_shell_large (@33427):    *)
+(* rsize(RSTAR r) = Suc(rsize r) mirrors rsize(RALTS rs) = Suc(rsizes rs).*)
+lemma strong_opened_live_acc_RSTAR_root_shell_large:
+  assumes big: "3 \<le> rsize r + rsize k"
+  shows "1 +
+    rsize_set
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))) \<le>
+    (rsize r + rsize k + 1) ^ 3 - (rsize r + rsize k) ^ 3"
+proof -
+  let ?n = "rsize r + rsize k"
+  have sigma_size:
+      "rsize (rsimp4_SEQ_atom (RSTAR r) k) \<le> Suc (Suc ?n)"
+  proof -
+    have "rsize (rsimp4_SEQ_atom (RSTAR r) k) \<le>
+        Suc (rsize (RSTAR r) + rsize k)"
+      by (rule rsize_rsimp4_SEQ_atom_le)
+    then show ?thesis
+      by simp
+  qed
+  have root:
+      "rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RSTAR r) k))) \<le>
+      Suc (Suc (Suc ?n)) * Suc (Suc ?n)"
+  proof -
+    have "rsize_set
+        (row_dlforms (rsimpStrong_raw
+          (rsimp4_SEQ_atom (RSTAR r) k))) \<le>
+        Suc (rsize (rsimp4_SEQ_atom (RSTAR r) k)) *
+          rsize (rsimp4_SEQ_atom (RSTAR r) k)"
+      by (rule rsize_set_row_dlforms_rsimpStrong_raw_quadratic)
+    also have "... \<le> Suc (Suc (Suc ?n)) * Suc (Suc ?n)"
+      by (rule mult_mono) (use sigma_size in auto)
+    finally show ?thesis .
+  qed
+  have arith:
+      "1 + Suc (Suc (Suc ?n)) * Suc (Suc ?n) \<le>
+      (?n + 1) ^ 3 - ?n ^ 3"
+  proof -
+    have six_le: "6 \<le> 2 * ?n"
+      using big by simp
+    have two_le: "2 \<le> ?n"
+      using big by simp
+    have n_sq: "2 * ?n \<le> ?n * ?n"
+      by (rule mult_right_mono[OF two_le]) simp
+    have quad: "6 + 2 * ?n \<le> 2 * (?n * ?n)"
+      using six_le n_sq by linarith
+    show ?thesis
+      using quad by (simp add: power3_eq_cube algebra_simps)
+  qed
+  show ?thesis
+    using root arith by linarith
+qed
+
 lemma strong_opened_live_acc_potential_RSTAR_cube_shell:
   assumes env: "strong_opened_live_acc_potential (RSTAR r) k \<le>
       (rsize (RSTAR r)) ^ 3 + 3 * (rsize (RSTAR r))\<^sup>2 * rsize k"
