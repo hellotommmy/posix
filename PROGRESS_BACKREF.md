@@ -11392,3 +11392,82 @@ STATUS: build GREEN, no sorry, nothing committed to the .thy. Substrate + assemb
 GREEN (WORKER-A). The lone open lemma is the single anchor B (= the body saturation), unchanged in difficulty by the
 single-tail simplification (which only fixed the interface multiplicity, not the underlying pot cubic bound). I am
 NOT fabricating an invariant; HOLDING per fail-stop discipline.
+
+## 2026-06-16 WORKER-A (verdict_saturation mobilization): BRICK1 landed GREEN; CHARGE-CUBIC FAIL-STOP (15 probes, same saturation wall)
+
+CLAIMED + LANDED GREEN (no sorry, build Posix_Antimirov 32s): the safe telescoping event-count brick
+`length_atrace_le_4_rsize` (+ helper `length_concat_atrace_le`, + `length_rstar_atrace_le`) at the end of
+active/AntimirovFactoredTransition.thy. It proves `length (atrace q xs) <= 4 * rsize q` (the LINEAR event-count
+factor of the charge-cubic), telescoping cleanly through EVERY constructor with no inflation (leaves 1..4<=4; ALTS
+2+sum<=4+4*rsizes; SEQ len p+len q<=4(rsize-1); STAR 1+len body<=4*rsize-3). Validated 0/4236 subterm checks incl
+the killer chains, tight (worst ratio 1.000). This is reusable substrate for ANY future charge attempt.
+
+NOTE ON SCOPE: the verdict_saturation strategy doc (`pro_ask_saturation/verdict_saturation.md`) and its NEW machinery
+(`astack/apush/ainst/atraceS/acost/rstar_atraceS`) were NEVER committed (commit 540139e edited only STEER.md; grep
+over ALL of git history finds no astack/apush/ainst/atraceS). The strategy lives only in the STEER summary. Its two
+de-risking findings are ALREADY BANKED in the file under different names:
+  F1 (soundness = EQUALITY): GREEN as `rstar_atrace_sound` (@37788): pot(RSTAR r) k = sum_list(map (aevt_cost r k)
+     (rstar_atrace r)). Confirmed 0 mismatches.  F2 (apush boundary = dead code): the existing `aplug`/`atrace`
+     substrate has NO `S x = RSTAR r -> AHere` branch at all (aplug always re-plugs onto RSTAR a at the base), so
+     the boundary case is structurally absent — nothing to discharge.
+So the existing substrate IS verdict_saturation's anchored trace, and the ONLY remaining content is the charge-cubic,
+exactly as the brief states.
+
+THE EXACT OPEN GOAL (the lone hypothesis closing the gate via the GREEN
+`actual_gate_from_cube_shell`/`RSTAR_affine_envelope_from_certificate` chain):
+    ANCHOR / CHARGE-CUBIC:  pot (RSTAR r) (RCHAR c) <= M^3 + 3*M^2      (M = rsize (RSTAR r) = Suc (rsize r))
+  equivalently (by rstar_atrace_sound):  sum_list (map (aevt_cost r (RCHAR c)) (rstar_atrace r)) <= M^3 + 3*M^2.
+  Then plug into RSTAR_affine_envelope_from_certificate with aA1 e = aevt_cost r (RCHAR c) e, aB the GREEN slope:
+  (i) per-event affine [RCHAR dominates size-1; |k|>1 slope], (ii) sum aA1 = pot(RSTAR r)(RCHAR c) <= M^3+3M^2 by
+  soundness [THIS anchor], (iii) sum aB <= 3M^2 [slope] -> envelope -> cube_shell -> root -> gate. ALL GREEN modulo (ii).
+
+WHY I FAIL-STOPPED: the charge-cubic is the SAME body saturation wall (autoworker 8e79d9d, 8+ Pro verdicts, design
+panel 4f1596a). I probed it exhaustively (15 scripts, scratch_chargecubic_probe{1..15}.py + scratch_chargecubic_final.py,
+witness family incl. killer chains, ALL S-fixed nf depth>=5). The anchor is TRUE (0 viol, worst ratio 0.535). But
+EVERY clean telescoping / product charge decomposition OVERSHOOTS — the cancellation is global and not capturable by
+any structural-induction invariant:
+  - CRUDE  (#OF events)*(max per-event opn):           1.505x over (25 viol).
+  - per-event opn(aplug) <= (M+1)*M [quad in M, the SATURATED cap]: HOLDS 0-viol, BUT #events ~ 2M-4M, so
+    (count)*(cap) = 4M*M^2 = ~4M^3.  len(atrace)<=4*rsize is TIGHT (can't shave the 4).
+  - body invariant T(q,xs) <= (rsize q+1)*(M+1)*M: HOLDS 0-viol (ratio 0.000 at root gives M^3+M^2, would close!)
+    BUT does NOT telescope through ALTS algebraically: step needs `1 + cap*|rs| <= cap`, FALSE for |rs|>=1 (each
+    child adds +1 to the linear count but rsize(RALTS) credits only +1 total). The looser 2*rsize q*cap telescopes
+    but overshoots to ~2M^3 at root. No coefficient is BOTH tight-at-root AND ALTS-telescoping.
+  - deduped apder_rows union rsize_set <= M^3+3M^2 (0-viol, 0.21x) — TRUE but per-row MULTIPLICITY reaches 18 and
+    Sum/dedup ratio 14x, so `sum aA1 <= deduped charge` is FALSE (re-confirms ce0d30d). universe*maxmult = 1.19x over.
+  - generic per-event quad Suc(sz)*sz [the only thing @22761 gives WITHOUT saturation, sz=rsize(aplug) ~ up to 3.1*M]:
+    summed = 7.0x over.  Sum_events rsize(aplug) <= M^2 also 3.7x over.
+  - per-event opn <= M*card(rows): FALSE (rows up to 3M > M); Sum card(rows) <= M^2 HOLDS (0.52x) and M*Sum card <=
+    budget HOLDS (0.345x) BUT the per-event step opn <= M*card is false (3.1x), so it doesn't compose.
+  - Sum card(rows)*maxrowsize(event) <= budget: HOLDS (0.515x) — matches the true sum, but maxrowsize is per-event
+    (up to 3M) and the product across events is exactly the irreducible cancellation; no per-event/per-row product
+    cap reproduces it.
+  - per-event cost distribution: ALL events are super-linear (mean frac cost>M = 1.0), count(cost>M) reaches 29>M,
+    so there is NO "few expensive events" structure to exploit.
+  The consistent signature: true ratio ~0.5 vs every provable product 1.2x-7x. The factor-2+ gap is genuine
+  global cancellation (events with many rows have small cost; events with large cost have few rows), invisible to
+  any telescoping invariant on rsize/count. This is the documented saturation, re-confirmed at the charge level.
+
+NUMERIC SUB-CLAIMS FOR SECRETARY TO VALIDATE BEFORE ANY FURTHER GRIND (do NOT grind without a blessed telescoping
+inductive form):
+  (S1) Is there a TELESCOPING per-NODE charge cap(node q, xs) — NOT a uniform (M+1)*M — s.t. own-events-cost(node) <=
+       cap(node) AND sum over nodes of cap telescopes to <= M^3+3M^2?  The cap must shrink for deeper/smaller nodes
+       (the saturation: deeper aplug opens collapse under S).  Candidate to test: cap(node) = M * (1 + card of rows
+       node opens) with the node-local row count, given Sum over nodes of card(rows) <= M^2 (validated 0.52x). The
+       binding test is the per-node step opn(node) <= M*(1+card) AND the RSEQ/RALTS telescoping of the cap-sum in the
+       cap algebra (not pointwise pot).  [I could not find a node-local cap that is BOTH per-node-valid AND
+       telescoping; every uniform cap overshoots and every tight cap fails ALTS.]
+  (S2) Or: validate a DIRECT strengthened pot invariant f(q,cont) that (a) bounds pot q cont, (b) telescopes through
+       RSEQ WITHOUT cont-inflation (C1 = Suc(rsize q)*(rsize cont+3)^2 fails RSEQ per autoworker), (c) gives
+       f(RSTAR r, RCHAR c) <= M^3+3M^2.  The RSEQ-step inequality must hold in the f-bound ALGEBRA for all clean
+       r1,r2,cont (LHS f(r1, sig r2 cont) + f(r2,cont) <= RHS f(RSEQ r1 r2, cont)), the same test the autoworker
+       flagged.  This is the SAME open invariant the design panel and autoworker could not crack.
+
+If neither (S1) nor (S2) is validated, the charge-cubic genuinely needs the global-cancellation argument that no
+rsize/count telescoping captures — i.e. a true potential-vs-multiset-of-rows ledger with the size/multiplicity
+trade-off made explicit — and that is a fresh external Pro round or human insight, not autogrind.
+
+STATUS: build GREEN, no sorry. BRICK1 (event-count) committed + pushed. Substrate (F1 soundness) + assembly +
+certificate interface + slope all already GREEN. The lone open lemma = the ANCHOR pot(RSTAR r)(RCHAR c) <= M^3+3M^2
+(the body saturation), unchanged in difficulty. HOLDING the charge-cubic per fail-stop discipline; not fabricating an
+unvalidated invariant. Probes: scratch_chargecubic_probe{1..15}.py, scratch_chargecubic_final.py.

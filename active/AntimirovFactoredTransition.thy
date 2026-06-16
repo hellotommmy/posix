@@ -37863,4 +37863,82 @@ proof -
   finally show ?thesis .
 qed
 
+(* ==================================================================== *)
+(* BRICK1 (safe, telescoping): the anchored trace has LINEARLY many     *)
+(* events.  len(atrace q xs) <= 4 * rsize q, tight (worst ratio 1.0,    *)
+(* 0 violations / 4236 subterm checks incl. the killer chains).  This   *)
+(* is the clean event-count factor for the charge-cubic; it telescopes  *)
+(* through every constructor without inflation:                          *)
+(*   leaves : 1..4 <= 4                                                   *)
+(*   ALTS   : 2 + sum children <= 4 + 4*rsizes = 4*rsize                  *)
+(*   SEQ    : len p + len q <= 4*(rsize p + rsize q) = 4*(rsize-1)        *)
+(*   STAR   : 1 + len body <= 1 + 4*rsize body = 4*rsize - 3             *)
+(* (independent of the size-1 anchor; pure structural count.)            *)
+(* ==================================================================== *)
+
+lemma length_concat_atrace_le:
+  assumes "\<forall>q \<in> set rs. length (atrace q xs) \<le> 4 * rsize q"
+  shows "length (concat (map (\<lambda>q. atrace q xs) rs)) \<le> 4 * rsizes rs"
+  using assms by (induct rs) (auto simp add: length_concat comp_def)
+
+lemma length_atrace_le_4_rsize:
+  "length (atrace q xs) \<le> 4 * rsize q"
+proof (induct q arbitrary: xs)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have ch: "\<forall>q \<in> set rs. length (atrace q xs) \<le> 4 * rsize q"
+    using RALTS.hyps by blast
+  have "length (atrace (RALTS rs) xs) =
+      2 + length (concat (map (\<lambda>q. atrace q xs) rs))"
+    by simp
+  also have "... \<le> 2 + 4 * rsizes rs"
+    using length_concat_atrace_le[OF ch] by simp
+  also have "... \<le> 4 * rsize (RALTS rs)"
+    by simp
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  have "length (atrace (RSEQ r1 r2) xs) =
+      length (atrace r1 (r2 # xs)) + length (atrace r2 xs)"
+    by simp
+  also have "... \<le> 4 * rsize r1 + 4 * rsize r2"
+    using RSEQ.hyps(1)[of "r2 # xs"] RSEQ.hyps(2)[of xs] by simp
+  also have "... \<le> 4 * rsize (RSEQ r1 r2)"
+    by simp
+  finally show ?case .
+next
+  case (RSTAR q)
+  have "length (atrace (RSTAR q) xs) = 1 + length (atrace q (RSTAR q # xs))"
+    by simp
+  also have "... \<le> 1 + 4 * rsize q"
+    using RSTAR.hyps[of "RSTAR q # xs"] by simp
+  also have "... \<le> 4 * rsize (RSTAR q)"
+    by simp
+  finally show ?case .
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma length_rstar_atrace_le:
+  "length (rstar_atrace r) \<le> 4 * rsize r + 1"
+  by (simp add: rstar_atrace_def length_atrace_le_4_rsize)
+
 end
