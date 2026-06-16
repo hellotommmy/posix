@@ -11192,6 +11192,48 @@ MAINLINE 6.11).
   rstar_atrace_sound [substrate]. (3) define aevt_A1/aevt_B, VALIDATE the 3 scalar lemmas
   numerically (ask Secretary), then grind. Will commit small + push each brick.
 
+## 2026-06-16 WORKER-A: verdict_body substrate + assembly LANDED GREEN; slope half VALIDATED; A1 intercept isolated
+
+GREEN & pushed (no sorry): driver/root/gate -> apder_clean env (3138368);
+aplug/aevt/aevt_cost/atrace/rstar_atrace + atrace_sound + rstar_atrace_sound (3e0c5a2);
+RSTAR_affine_envelope_from_certificate assembly (80a6246). Chain now:
+  gate <= ... <= RSTAR affine envelope
+       <= [RSTAR_affine_envelope_from_certificate]  EXHIBIT (aA1,aB) s.t.
+          (i)  aevt_cost r k e <= aA1 e + aB e*(rsize k - 1)   [per-event affine]
+          (ii) sum aA1 (rstar_atrace r) <= M^3 + 3M^2          [A1 intercept]
+          (iii)sum aB  (rstar_atrace r) <= 3M^2                [B slope]
+So the envelope is GREEN modulo a concrete certificate (aA1,aB) + (i)(ii)(iii).
+
+NUMERIC FINDINGS (WORKER-A, seeds 31/41/53/67 + witness_gen family ~12k legacy star bodies):
+- aplug r xs k = sigma (foldr RSEQ xs (RSTAR r)) k  [sigma-assoc, 0 bad/3000]; rstar_atrace_sound
+  0/3000 -> each opening is a SINGLE seq (sigma Xs k) with k at the tail. GOOD.
+- Per-event aevt_cost is EXACTLY affine in rsize k (0 non-affine), and the TRUE per-event slope/
+  intercept sums are within budget (0-viol). So per-event certificates CAN work if tight enough.
+- ** B SLOPE = SOLVED at validation level. ** aB(AO/AF xs) = nrows(S(sigma Xs RONE)) +
+  nfront(S(sigma Xs RONE))  (rows + frontier-rows count of the size-1 opening) is:
+  per-event-VALID (>= true slope, 0/44k) AND aggregate sum <= 3M^2 (0 oversum), CONFIRMED on the
+  witness family (0/11974). aB AU = 0. The naive aB=rsize Xs+1 OVERSHOOTS 1.79x; nrows alone is
+  per-event-INVALID; nrows+nfront is the sweet spot. <- NEW sub-claim for Secretary to bless.
+- ** A1 INTERCEPT = the lone hard nut (the cubic saturation). ** sum of per-event intercepts =
+  pot at size-1 (~ pot at RONE) <= M^3+3M^2 (TRUE, envelope at k=RONE) but CIRCULAR to use. Every
+  naive STRUCTURAL per-event intercept OVERSHOOTS: quad(sigma Xs RONE) per event sums to 13x M^3+3M^2
+  (worst M=7: 6581 vs 490). Reason: intercept is a SIZE-sum; openings across events SHARE the bounded
+  static universe (<= M+2 rows), so only a DEDUPED charge bounds it -- a per-event size proxy can't.
+  => A1 needs verdict_body's tagged-charge route: sum aA1 <= sum charge_cost1 (rstar_charges r),
+  rstar_charges = tagged expansion of apder_rows(RSTAR r) (<= M+2 rows, each <= (M+2)^2, quadratic
+  opening => cubic), with the trace openings INJECTING into apder_rows at bounded multiplicity. The
+  multiplicity/injection is the genuine remaining content (verdict_body sketches it, underspecified).
+
+ASK TO SECRETARY:
+  1. Bless aB = nrows+nfront(S(sigma Xs RONE)) (the validated slope certificate) -- ok to formalize
+     the B half (per-event slope tail-append lemma + Bsum row-count aggregate)?
+  2. A1 intercept: need the EXACT rstar_charges structure + the injection/multiplicity claim to
+     validate before grinding (the size-1 intercept bridge is the cubic-saturation core; my naive
+     proxies all overshoot 13x). Sharpen aA1 / rstar_charges, or fire a Pro micro-ask on JUST
+     "sum of trace size-1 opening costs <= M^3+3M^2 via injection into apder_rows(RSTAR r)".
+Probes: scratch_cubeshell_verify_verdict_root.py + my inline probes (seeds above). HOLDING the A1
+grind pending the charge spec; can proceed on the B half if blessed.
+
 ## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
 
 - Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
