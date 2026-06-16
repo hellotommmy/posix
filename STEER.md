@@ -79,6 +79,25 @@ You correctly caught the small-M gap. Validated on the witness family across **A
 - ❌ SLOPE-relative-to-`pot ... RONE` FAILS: `pot(RSTAR r) k` depends on k's **structure**, not just rsize k (same-size RONE→11 vs C('a')→19), so RONE is the min-pot anchor and the relative-slope overflows.
 - **Remaining crux = BODY `pot r (rsimp4_SEQ_atom (RSTAR r) k)`** (the saturation). Needs a UNIFIED argument (not additive split) OR explicit small-M (M≤4) base cases + the large-M engine (k-at-tail linearity + static star-universe cubic). **This BODY lemma is going to GPT Pro as a focused micro-ask in parallel** (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_BODY.txt`). MEANWHILE: land the HEAD brick + the ROOT-at-RONE anchor (both validated), keep the skeleton green; do not grind the additive split (it's false at small M).
 
+### ✅ GO (2026-06-16): Pro `verdict_body` VALIDATED VIABLE — WORKER-A formalize the size-1-anchored affine certificate
+GPT Pro returned the BODY strategy (`pro_ask_RSTAR_body/verdict_body.md`); the Secretary VALIDATED it (workflow + own
+re-run). It AVOIDS the dead routes: a **size-1-anchored affine trace certificate** `pot(RSTAR r)k ≤ A1(r)+B(r)·(rsize k−1)`
+with `A1(r) ≤ M³+3M²`, `B(r) ≤ 3M²` (a hole-aware A1 = symbolic upper bound over ALL size-1 tails, so the RONE-vs-RCHAR
+structure dependence can't break it; B counts the right-hole occurrence weight, no k² since the body never re-creates the
+root anchor). Numeric necessary conditions hold with **0 violations, EXHAUSTIVELY at small M** (every S-fixed star, body
+rsize≤8 = 50,583 roots; ENV 0/3.45M): A1*(r)=max over size-1 tails ≤ M³+3M² all M; ENV holds; tight-anchor CORE holds too.
+- ⚠ **ONE FORMALIZATION CAVEAT (knife-edge):** the binding case is `r=a*` at **M=2**: `A1*=19 ≤ M³+3M²=20`, slack EXACTLY 1.
+  **Use the LOOSE intercept `A1(r)=M³+3M²` (and `B=3M²`) in the lemma statement**, NOT the concrete `A1*` — then the M=2
+  margin is automatic from `1 ≤ rsize k` and you avoid the slack-1 arithmetic. (M=3 is structurally VACUOUS — spectrum
+  jumps 2→4 — so NO small-M base cases are needed.)
+- **WORKER-A: GO.** Formalize per `verdict_body.md` §"实施顺序" — the 8 patches: `aplug` → `aevt/aevt_cost/atrace/rstar_atrace`
+  → `rstar_atrace_sound` (specialise the GREEN `pot_trace_sound`) → `aevt_tail_affine_size1` (hole-aware tail-linearity,
+  the K²-killer) → `rstar_atrace_A1_bound` (≤ M³+3M², charge trace events to the static star universe via @37190/@31364/
+  @22761 — tagged/list, NOT the wrong-direction set≤pot @34905) → `rstar_atrace_B_bound` (≤ 3M², the slope) →
+  `strong_opened_live_acc_potential_RSTAR_affine_envelope`. Then reuse the GREEN `…_RSTAR_cube_shell`/driver/root/bridge —
+  **gate closes.** Claim lemmas in PROGRESS; ask Secretary to validate any NEW numeric sub-claim (esp. the tail-affine
+  constants) on the witness family before grinding. The two real lemmas are A1_bound (intercept) and B_bound (slope).
+
 ---
 
 ### 🛑 (superseded by the BYPASS above) BOTH per-step budgets FALSE (2026-06-16) — ctx_bound AND child_ok refuted.
