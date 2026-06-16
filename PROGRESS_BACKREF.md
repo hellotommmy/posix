@@ -11046,3 +11046,26 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   with the sketch)": did NOT execute, did NOT spawn, did NOT touch child_ok/drain. This /loop remains
   MONITOR-only. ADMIN FLAG: the gate is one step from closed; the pending blocker is a USER decision
   (fire Pro on SAT, or hand A the sketch). Will pick up whichever lands in STEER.
+
+## 2026-06-16 WORKER-A: ENGAGED on RSTAR cube-shell (Pro strategy, STEER GO bac159f). CLAIMING lemmas.
+
+- Self-synced (up to date), read STEER + WORKER_A_RSTAR_PROMPT + RSTAR_CUBE_SHELL_SKETCH +
+  scratch_cubeshell_verify_verdict_root.py (verdict_root.md itself absent from tree; trace defs
+  recovered from the validation script). Baseline build GREEN (Posix_Antimirov, 24s).
+- Confirmed reduction: gate `actual_gate_bridge_from_strong_opened_live_potential` (@35221) +
+  `rsize_set_strong_opened_live_row_universe_le_potential` (@35010) need only
+  `pot r RONE <= 2*(rsize r+3)^3`, which the cube-shell driver gives at k:=RONE. Constructor
+  cube-shell cases RONE/RCHAR/RALTS/RSEQ GREEN; **RSTAR is the one open case**. pot def @33027,
+  `pot(RSTAR r) k = opn(sig(RSTAR r) k) + pot r (sig(RSTAR r) k)`, M=rsize(RSTAR r)=Suc(rsize r).
+- CLAIMING (new lemma names, none exist yet — verified by grep; landing at end of active/
+  AntimirovFactoredTransition.thy, no sorry):
+  * SAFE skeleton (this phase): `pot_event`/`event_cost`/`pot_trace`/`pot_trace_sound`;
+    `affine_envelope_imp_cube_shell` (M^3+3M^2 n <= (M+n)^3-n^3, pure nat);
+    `strong_opened_live_acc_potential_RSTAR_cube_shell` (FROM an assumed RSTAR affine envelope);
+    HEAD lemma `strong_opened_live_acc_RSTAR_root_shell_large` (@33427 analogue);
+    `strong_opened_live_acc_potential_cube_shell` driver (conditional on the RSTAR envelope) +
+    `..._root_cubic` k:=RONE specialisation -> feeds the gate green MODULO the envelope.
+  * CRUX (next phase): `strong_opened_live_acc_potential_RSTAR_affine_envelope`
+    (= `pot(RSTAR r) k <= M^3 + 3M^2*rsize k`) via the two scalar lemmas (trace_A<=M^3 ROOT,
+    trace_B<=3M^2 SLOPE). Validated 0-viol (STEER). Will post the exact stuck goal here if I wall.
+- A-EXCLUSIVE lane per STEER; no other agent on RSTAR/driver/gate. Will commit small + push.
