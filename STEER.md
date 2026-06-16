@@ -64,6 +64,11 @@ the body never contains the anchor r* anyway — so use k-at-TAIL linearity (slo
 skeleton first: pot_trace+soundness → envelope→cube-shell arithmetic + driver wiring + HEAD; THEN the two scalar
 lemmas = the crux). Claim lemmas in PROGRESS. Ask Secretary to validate any new numeric sub-claim on the witness
 family before grinding it. Do NOT touch child_ok/drain or the unrestricted absorption.**
+**⛔ SINGLE OWNER — the active `.thy` RSTAR/cube-shell work belongs to WORKER-A ONLY. If you are the earlier overnight
+GATE-ASSEMBLY lane (`master_cover_RALTS` / `child_ok` / the `master_cover` driver / the `strong_child_drain_potential`
+corollary / §7): ⛔ STOP NOW. Your target is FALSE — `child_ok` was refuted (CE 99>96, commit 4d8ca75), so that whole
+chain CANNOT close and Isabelle will never prove it. Do NOT edit `active/AntimirovFactoredTransition.thy` (you will
+collide with WORKER-A). Post one line in PROGRESS and halt; await re-tasking.**
 
 ---
 
