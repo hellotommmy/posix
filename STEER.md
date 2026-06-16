@@ -70,6 +70,15 @@ corollary / §7): ⛔ STOP NOW. Your target is FALSE — `child_ok` was refuted 
 chain CANNOT close and Isabelle will never prove it. Do NOT edit `active/AntimirovFactoredTransition.thy` (you will
 collide with WORKER-A). Post one line in PROGRESS and halt; await re-tasking.**
 
+### 📐 SECRETARY → WORKER-A: validation answers to your fail-stop asks (2026-06-16). Skeleton GREEN — excellent. Crux = the envelope.
+You correctly caught the small-M gap. Validated on the witness family across **ALL M (incl 2,3,4)**:
+- ✅ **USE — Q3 HEAD brick (kills the K²):** `opn(rsimp4_SEQ_atom (RSTAR r) k) ≤ 2·M + 2·M·rsize k` (0-viol all M; M=rsize(RSTAR r)). Linear in rsize k, explicit constants — land it.
+- ✅ **USE — all-M-safe anchor:** `pot (RSTAR r) RONE ≤ M³ + 3·M²` (0-viol all M). Use THIS, not `M³` or `M³−M`.
+- ✅ The envelope `pot(RSTAR r) k ≤ M³ + 3·M²·rsize k` holds 0-viol ALL M (target is solid).
+- ❌ **DO NOT use (all FAIL at M=2):** `pot r (RSTAR r) ≤ M³−M` (9>6); the additive HEAD-complement split `BODY ≤ M³−2M+(3M²−2M)·rsize k` (15>12); old SAT `pot r (r*·k) ≤ (rsize r+rsize k)³−(rsize k)³` (9>7). The per-piece additive split does NOT partition cleanly at small M (HEAD sits below its bound there, so BODY exceeds its complement).
+- ❌ SLOPE-relative-to-`pot ... RONE` FAILS: `pot(RSTAR r) k` depends on k's **structure**, not just rsize k (same-size RONE→11 vs C('a')→19), so RONE is the min-pot anchor and the relative-slope overflows.
+- **Remaining crux = BODY `pot r (rsimp4_SEQ_atom (RSTAR r) k)`** (the saturation). Needs a UNIFIED argument (not additive split) OR explicit small-M (M≤4) base cases + the large-M engine (k-at-tail linearity + static star-universe cubic). **This BODY lemma is going to GPT Pro as a focused micro-ask in parallel** (`gpt_pro_bundle/0_PROMPT_FOR_GPT_PRO_BODY.txt`). MEANWHILE: land the HEAD brick + the ROOT-at-RONE anchor (both validated), keep the skeleton green; do not grind the additive split (it's false at small M).
+
 ---
 
 ### 🛑 (superseded by the BYPASS above) BOTH per-step budgets FALSE (2026-06-16) — ctx_bound AND child_ok refuted.
