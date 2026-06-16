@@ -251,3 +251,20 @@ trace events to the cubic static star-universe (apder_rows(RSTAR r): @37190 line
 quad opening). **Secretary autonomous worker mobilized to formalize. WORKER-A: continue HOLD.** Likely path: land V2
 (identity) + boundary-unreachable + scaffold green, then the charge-cubic is the lone Isabelle lemma — clean if
 #events×quadratic ≤ cubic works, else fail-stop on the exact charge-cubic goal (the multiplicity-aware tagged charge).
+
+### 🧱 charge-cubic = the IRREDUCIBLE wall (2026-06-16). Structural-induction space EXHAUSTED. Autonomous loop STOPPED.
+Formalize-worker fail-stopped (commit 332d66d): build GREEN, no sorry. BANKED **BRICK1** `length_atrace_le_4_rsize`
+(length(atrace q xs) ≤ 4·rsize q — the LINEAR event-count factor, telescopes, tight). CORRECTION: Pro's
+verdict_saturation `astack/apush/atraceS` machinery was NEVER committed (grep of all history finds none); the EXISTING
+`aplug`/`atrace` substrate already IS the anchored trace and has NO boundary branch — so Pro's "boundary absorption"
+added nothing (it was inert, as validated). The lone open goal is still `pot(RSTAR r)(RCHAR c) ≤ M³+3M²`
+(= `sum_list(map (aevt_cost r (RCHAR c)) (rstar_atrace r)) ≤ M³+3M²`). The worker probed it with 15 scripts: anchor TRUE
+(ratio ~0.5) but **EVERY structural charge OVERSHOOTS** — crude product 1.5×, saturated per-event cap × 4·rsize ~4M³,
+tight body invariant doesn't ALTS-telescope, deduped-union cubic but multiplicity-18 kills the injection, generic quad
+7×. Diagnosis (sharpest yet): a **GLOBAL CANCELLATION** (events with many rows have small cost; events with few rows
+have large cost) that **NO rsize/count structural-induction invariant captures**. This wall has now defeated 8+ Pro
+verdicts + 3 worker attempts + the design panel. **Autonomous loop STOPPED — structural induction is exhausted; the next
+move needs a NEW PROOF TECHNIQUE (an amortized/POTENTIAL argument for the size cancellation — analogous to how the
+D-law's telescoping invariant cracked the row-COUNT — or a rethink of the pot/opening DEFINITIONS), NOT more
+auto-grinding.** WORKER-A: HOLD. Gate stays GREEN-modulo this one anchor; all bricks (substrate/assembly/slope/single-
+tail/BRICK1) stand.
