@@ -37386,4 +37386,119 @@ proof -
     by (rule le_trans[OF env bridge])
 qed
 
+(* ----- the cube-shell induction driver (conditional on the RSTAR ----- *)
+(* ----- affine envelope for every star subterm).  All non-RSTAR  ------ *)
+(* ----- cases use the existing GREEN constructor cube-shells.    ------ *)
+
+lemma strong_opened_live_acc_potential_cube_shell:
+  assumes env: "\<And>r' k'.
+      strong_opened_live_acc_potential (RSTAR r') k' \<le>
+        (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
+    and free: "rntimes_free r"
+    and leg: "legacy_rrexp r"
+  shows "strong_opened_live_acc_potential r k \<le>
+      (rsize r + rsize k) ^ 3 - (rsize k) ^ 3"
+  using free leg
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: power3_eq_cube algebra_simps)
+next
+  case RONE
+  show ?case
+    by (rule strong_opened_live_acc_potential_RONE_cube_shell)
+next
+  case (RCHAR c)
+  show ?case
+    by (rule strong_opened_live_acc_potential_RCHAR_cube_shell)
+next
+  case (RALTS rs)
+  have ch: "\<And>q. q \<in> set rs \<Longrightarrow>
+      strong_opened_live_acc_potential q k \<le>
+        (rsize q + rsize k) ^ 3 - (rsize k) ^ 3"
+    using RALTS by auto
+  show ?case
+    by (rule strong_opened_live_acc_potential_RALTS_cube_shell[OF ch])
+next
+  case (RSEQ r1 r2)
+  have left:
+      "strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k) \<le>
+        (rsize r1 + rsize (rsimp4_SEQ_atom r2 k)) ^ 3 -
+          rsize (rsimp4_SEQ_atom r2 k) ^ 3"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in auto)
+  have right:
+      "strong_opened_live_acc_potential r2 k \<le>
+        (rsize r2 + rsize k) ^ 3 - (rsize k) ^ 3"
+    by (rule RSEQ.hyps(2)) (use RSEQ.prems in auto)
+  show ?case
+    by (rule strong_opened_live_acc_potential_RSEQ_cube_shell[OF left right])
+next
+  case (RSTAR r0)
+  show ?case
+    by (rule strong_opened_live_acc_potential_RSTAR_cube_shell[OF env])
+next
+  case (RNTIMES r0 n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r0 cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma cube_shell_RONE_le_double_cubic:
+  fixes R :: nat
+  shows "(R + 1) ^ 3 - 1 \<le> 2 * (R + 3) ^ 3"
+proof -
+  have "(R + 1) ^ 3 - 1 \<le> (R + 1) ^ 3" by simp
+  also have "... \<le> (R + 3) ^ 3" by (rule power_mono) simp_all
+  also have "... \<le> 2 * (R + 3) ^ 3" by simp
+  finally show ?thesis .
+qed
+
+lemma strong_opened_live_acc_potential_root_cubic:
+  assumes env: "\<And>r' k'.
+      strong_opened_live_acc_potential (RSTAR r') k' \<le>
+        (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
+    and free: "rntimes_free r"
+    and leg: "legacy_rrexp r"
+  shows "strong_opened_live_acc_potential r RONE \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have shell:
+      "strong_opened_live_acc_potential r RONE \<le>
+        (rsize r + rsize RONE) ^ 3 - (rsize RONE) ^ 3"
+    by (rule strong_opened_live_acc_potential_cube_shell[OF env free leg])
+  have "strong_opened_live_acc_potential r RONE \<le>
+      (rsize r + 1) ^ 3 - 1"
+    using shell by simp
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule cube_shell_RONE_le_double_cubic)
+  finally show ?thesis .
+qed
+
+(* ----- the gate, GREEN modulo the single RSTAR affine envelope. ----- *)
+
+lemma actual_gate_from_cube_shell:
+  assumes env: "\<And>r' k'.
+      strong_opened_live_acc_potential (RSTAR r') k' \<le>
+        (rsize (RSTAR r')) ^ 3 + 3 * (rsize (RSTAR r'))\<^sup>2 * rsize k'"
+    and clean: "apder_clean r"
+  shows "rsize_set
+      (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have free: "rntimes_free r"
+    using clean unfolding apder_clean_def by simp
+  have leg: "legacy_rrexp r"
+    using clean unfolding apder_clean_def by simp
+  have pot: "strong_opened_live_acc_potential r RONE \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule strong_opened_live_acc_potential_root_cubic[OF env free leg])
+  show ?thesis
+    by (rule actual_gate_bridge_from_strong_opened_live_potential[OF clean pot])
+qed
+
 end
