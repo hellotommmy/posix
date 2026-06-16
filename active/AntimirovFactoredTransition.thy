@@ -37672,4 +37672,143 @@ next
   then show ?case by simp
 qed
 
+(* ==================================================================== *)
+(* verdict_body: the size-1-anchored affine trace.  Instead of a        *)
+(* concrete continuation, the RSTAR body trace tracks the right tail    *)
+(* SYMBOLICALLY as a prefix path xs; the actual continuation is         *)
+(* aplug r xs k = sigma x1 (... (sigma (RSTAR r) k)), with k always at  *)
+(* the rightmost hole behind the single anchor (RSTAR r).               *)
+(* ==================================================================== *)
+
+fun aplug :: "rrexp \<Rightarrow> rrexp list \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "aplug a [] k = rsimp4_SEQ_atom (RSTAR a) k"
+| "aplug a (x # xs) k = rsimp4_SEQ_atom x (aplug a xs k)"
+
+datatype aevt = AU | AO "rrexp list" | AF "rrexp list"
+
+fun aevt_cost :: "rrexp \<Rightarrow> rrexp \<Rightarrow> aevt \<Rightarrow> nat" where
+  "aevt_cost r k AU = 1"
+| "aevt_cost r k (AO xs) =
+    rsize_set (row_dlforms (rsimpStrong_raw (aplug r xs k)))"
+| "aevt_cost r k (AF xs) =
+    rsize_set (row_dlformss_set
+      (rsimpStrong_raw ` rfrontier (aplug r xs k)))"
+
+fun atrace :: "rrexp \<Rightarrow> rrexp list \<Rightarrow> aevt list" where
+  "atrace RZERO xs = [AU]"
+| "atrace RONE xs = [AU, AO xs, AF xs]"
+| "atrace (RCHAR c) xs = [AO (RCHAR c # xs), AU, AO xs, AF xs]"
+| "atrace (RALTS rs) xs =
+    AU # AO (RALTS rs # xs) # concat (map (\<lambda>q. atrace q xs) rs)"
+| "atrace (RSEQ p q) xs = atrace p (q # xs) @ atrace q xs"
+| "atrace (RSTAR q) xs =
+    AO (RSTAR q # xs) # atrace q (RSTAR q # xs)"
+| "atrace (RNTIMES q n) xs = []"
+| "atrace (RBACKREF4 r1 r2 r3 r4 cs) xs = []"
+| "atrace (RHALF q cs rep) xs = []"
+| "atrace (RRESIDUE cs rep) xs = []"
+
+definition rstar_atrace :: "rrexp \<Rightarrow> aevt list" where
+  "rstar_atrace r = AO [] # atrace r []"
+
+lemma sum_list_aevt_cost_concat_atrace:
+  assumes "\<forall>q \<in> set rs.
+      sum_list (map (aevt_cost r k) (atrace q xs)) =
+        strong_opened_live_acc_potential q (aplug r xs k)"
+  shows "sum_list (map (aevt_cost r k)
+      (concat (map (\<lambda>q. atrace q xs) rs))) =
+    sum_list (map (\<lambda>q. strong_opened_live_acc_potential q (aplug r xs k)) rs)"
+  using assms by (induct rs) auto
+
+lemma atrace_sound:
+  assumes "rntimes_free q" and "legacy_rrexp q"
+  shows "sum_list (map (aevt_cost r k) (atrace q xs)) =
+    strong_opened_live_acc_potential q (aplug r xs k)"
+  using assms
+proof (induct q arbitrary: xs)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have mem: "\<forall>q \<in> set rs.
+      sum_list (map (aevt_cost r k) (atrace q xs)) =
+        strong_opened_live_acc_potential q (aplug r xs k)"
+    using RALTS by auto
+  have "strong_opened_live_acc_potential (RALTS rs) (aplug r xs k) =
+      1 + rsize_set (row_dlforms (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RALTS rs) (aplug r xs k)))) +
+      sum_list (map (\<lambda>q. strong_opened_live_acc_potential q
+            (aplug r xs k)) rs)"
+    by simp
+  also have "... =
+      1 + rsize_set (row_dlforms (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RALTS rs) (aplug r xs k)))) +
+      sum_list (map (aevt_cost r k)
+        (concat (map (\<lambda>q. atrace q xs) rs)))"
+    by (simp add: sum_list_aevt_cost_concat_atrace[OF mem])
+  also have "... =
+      sum_list (map (aevt_cost r k) (atrace (RALTS rs) xs))"
+    by simp
+  finally show ?case by simp
+next
+  case (RSEQ p q)
+  have e1: "sum_list (map (aevt_cost r k) (atrace p (q # xs))) =
+        strong_opened_live_acc_potential p (aplug r (q # xs) k)"
+    by (rule RSEQ.hyps(1)) (use RSEQ.prems in auto)
+  have e2: "sum_list (map (aevt_cost r k) (atrace q xs)) =
+        strong_opened_live_acc_potential q (aplug r xs k)"
+    by (rule RSEQ.hyps(2)) (use RSEQ.prems in auto)
+  show ?case by (simp add: e1 e2)
+next
+  case (RSTAR q)
+  have e: "sum_list (map (aevt_cost r k) (atrace q (RSTAR q # xs))) =
+        strong_opened_live_acc_potential q (aplug r (RSTAR q # xs) k)"
+    by (rule RSTAR.hyps) (use RSTAR.prems in auto)
+  show ?case by (simp add: e)
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
+lemma rstar_atrace_sound:
+  assumes free: "rntimes_free (RSTAR r)"
+    and leg: "legacy_rrexp (RSTAR r)"
+  shows "strong_opened_live_acc_potential (RSTAR r) k =
+    sum_list (map (aevt_cost r k) (rstar_atrace r))"
+proof -
+  have fr: "rntimes_free r" using free by simp
+  have lr: "legacy_rrexp r" using leg by simp
+  have body: "sum_list (map (aevt_cost r k) (atrace r [])) =
+      strong_opened_live_acc_potential r (rsimp4_SEQ_atom (RSTAR r) k)"
+    using atrace_sound[OF fr lr, of r k "[]"] by simp
+  have "sum_list (map (aevt_cost r k) (rstar_atrace r)) =
+      rsize_set (row_dlforms (rsimpStrong_raw
+        (rsimp4_SEQ_atom (RSTAR r) k))) +
+      sum_list (map (aevt_cost r k) (atrace r []))"
+    by (simp add: rstar_atrace_def)
+  also have "... =
+      rsize_set (row_dlforms (rsimpStrong_raw
+        (rsimp4_SEQ_atom (RSTAR r) k))) +
+      strong_opened_live_acc_potential r (rsimp4_SEQ_atom (RSTAR r) k)"
+    by (simp add: body)
+  also have "... = strong_opened_live_acc_potential (RSTAR r) k"
+    by simp
+  finally show ?thesis by simp
+qed
+
 end
