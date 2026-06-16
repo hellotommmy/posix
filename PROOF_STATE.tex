@@ -1,0 +1,335 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[expansion=false]{microtype}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+
+% ---------- symbols ----------
+\newcommand{\rs}[1]{\lvert #1\rvert}                 % regex size
+\newcommand{\rss}[1]{\lVert #1\rVert}                % size of a DISTINCT set (sum of sizes)
+\newcommand{\Strong}{\mathsf{S}}                     % strong normaliser  (collapses a* a* -> a*)
+\newcommand{\sig}{\sigma}                            % weak sequence plug (NO collapse)
+\newcommand{\dpar}{\partial}                         % frontier (top alternation split)
+\newcommand{\opn}{\mathrm{o}}                        % opened size of ONE regex
+\newcommand{\front}{\mathrm{f}}                      % opened size of the frontier
+\newcommand{\Dc}{\mathsf{D}}                         % Antimirov partial-derivative list
+\newcommand{\Dch}{\widehat{\mathsf{D}}}              % canonicalised derivative rows
+\newcommand{\Front}{\mathsf{F}}                      % afactored1: normalised front
+\newcommand{\dstep}{\Delta}                          % rpder_strong_rows_raw: one strong step
+\newcommand{\opens}{\Theta}                          % row_dlformss: open a row list
+\newcommand{\dlf}{\mathrm{dl}}                       % row_dlforms: open one regex to linear forms
+\newcommand{\sigt}{\sig_{\!7}}                       % rsimp7_SEQ_atom: sigma + top star-collapse
+\newcommand{\Prune}{\mathsf{P}}                      % rsimpStrong_prune_rows_raw
+\newcommand{\pot}{\mathsf{p}}                        % strong_opened_live_acc_potential
+\newcommand{\SOL}{\mathsf{U}}                        % strong_opened_live_row_universe
+\newcommand{\tr}{\tau}                               % rstar_atrace: the event list
+\newcommand{\wt}{\mathsf{w}}                          % aevt_cost: event cost
+\newcommand{\seq}{\cdot}
+\newcommand{\alt}{+}
+\newcommand{\one}{\mathbf 1}
+\newcommand{\zero}{\mathbf 0}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\GREEN}{\textcolor{green!55!black}{\textbf{[proved]}}}
+\newcommand{\OPEN}{\textcolor{red}{\textbf{[OPEN]}}}
+\newcommand{\WHY}{\textit{\textcolor{blue}{Why:\ }}}
+
+\theoremstyle{definition}
+\newtheorem*{goal}{Goal}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+
+\title{\textbf{The cubic size bound: current proof state}\\[2pt]
+\large the proved chain, the single open lemma, and exactly why it resists}
+\author{Secretary working note --- all numeric facts machine-validated}
+\date{2026-06-16}
+
+\begin{document}\maketitle
+
+\section{Symbols (every function defined once, recursively)}\label{sec:notation}
+
+Regexes: $\zero,\one,$ char $c$, sequence $r_1\seq r_2$, alternation $\sum_i r_i$, star $r^{*}$. An \emph{atom} $a$ is a
+char, alternation or star (non-$\seq$, non-unit).
+
+\begin{description}[leftmargin=2.2em,style=nextline,itemsep=3pt]
+
+\item[$\rs r$ \rm(size)] $\rs\zero=\rs\one=\rs c=1,\ \rs{r_1r_2}=1+\rs{r_1}+\rs{r_2},\ \rs{\sum rs}=1+\sum\rs{r_i},\ \rs{r^{*}}=1+\rs r$.
+
+\item[$\rss X$ \rm(set size)] $\sum_{x\in X}\rs x$ over the \emph{distinct} members of a finite set/list $X$.
+
+\item[$\Strong$ \rm(strong normaliser; ``rsimpStrong\_raw'')] simplify bottom-up, plugging sequences with $\sigt$ (so the
+guarded $a^{*}\seq a^{*}\to a^{*}$ fires at every level), and idempotent-collapse stars:
+\[
+\Strong\zero=\zero,\ \ \Strong\one=\one,\ \ \Strong c=c,\qquad
+\Strong(r_1r_2)=\sigt(\Strong r_1,\,\Strong r_2),\qquad
+\Strong(\textstyle\sum rs)=\mathsf A\bigl(\mathrm{flat}(\mathrm{map}\,\Strong\,rs)\bigr),
+\]
+\[
+\Strong(r^{*})=\bigl(\text{case }\Strong r\text{ of }\ \zero\Rightarrow\one\ \mid\ \one\Rightarrow\one\ \mid\ s^{*}\Rightarrow s^{*}\ \mid\ s\Rightarrow s^{*}\bigr)
+\]
+($\mathsf A$ flattens, dedupes and rebuilds an alternation). The single collapse $a^{*}\seq a^{*}\to a^{*}$ --- realised by
+$\sigt$ in the sequence case, recursively --- is the source of all the difficulty below.
+
+\item[$\sig(h,k)$ \rm(weak plug: ``$h$ then $k$'')] does all sequencing; \textbf{never} collapses $a^{*}\seq a^{*}$:
+\[
+\sig(\zero,k)=\zero,\quad \sig(\one,k)=k,\quad \sig(r_1\seq r_2,k)=\sig\!\bigl(r_1,\sig(r_2,k)\bigr),\quad
+\sig(a,\zero)=\zero,\ \sig(a,\one)=a,\ \sig(a,k)=a\seq k.
+\]
+$\sig(p,\one)$ \emph{canonicalises} $p$ alone (right-associate, erase units, absorb $\zero$; e.g.\ $\sig((ab)c,\one)=a(bc)$,
+$\sig(a\one,\one)=a$).
+
+\item[$\sigt(h,k)$ \rm(strong plug: ``rsimp7\_SEQ\_atom'')] $\sig$ \emph{plus} the guarded $a^{*}\seq a^{*}\to a^{*}$
+collapse applied \textbf{only at the top head}: $\sigt(a^{*},a^{*})=a^{*}$, $\sigt(a^{*},a^{*}\seq k)=a^{*}\seq k$, and
+$\sigt(h,k)=\sig(h,k)$ otherwise. So $\sigt$ sits between $\sig$ (no collapse) and $\Strong$ (collapses everywhere) ---
+it collapses just the leading star pair.
+
+\item[$\dpar k$ \rm(frontier)] split the top alternation of $k$ into its branches ($\dpar\zero=\emptyset$,
+$\dpar(\sum rs)=\bigcup\dpar r_i$, else $\{k\}$).
+
+\item[$\dlf(x)$ \rm(open one regex to linear forms; ``row\_dlforms'')]
+\[
+\dlf(\zero)=\emptyset,\quad \dlf(\textstyle\sum rs)=\textstyle\bigcup_{q}\dlf(q),\quad
+\dlf\bigl((\textstyle\sum ps)\seq k\bigr)=\textstyle\bigcup_{p\in ps}\dlf(\sigt(p,k)),\quad \dlf(r)=\dpar r\ \ (\text{otherwise}).
+\]
+Distribute a top alternation, and an alternation-headed sequence's branches over the tail via $\sigt$; bottom out at the
+frontier. (This is the \emph{only} other place $a^{*}\seq a^{*}$ can collapse --- via $\sigt$ in the $\seq$ case.)
+
+\item[$\opn(x)$, $\front(k)$ \rm(opened size of one regex / of a frontier)]
+$\opn(x):=\rss{\dlf(\Strong x)}$ (strong-simplify, open, dedupe, sum sizes);\quad
+$\front(k):=\rss{\bigcup_{q\in\dpar k}\dlf(\Strong q)}$.
+
+\item[$\Dc_c(r)$ \rm(Antimirov derivative list)] the partial-derivative ``rows'', sequencing by $\sig$:
+\[
+\Dc_c\zero=\Dc_c\one=[],\quad \Dc_c(\text{char }d)=[\one\text{ if }d{=}c\text{ else }],\quad \Dc_c(\textstyle\sum rs)=\textstyle\bigoplus_i\Dc_c(r_i),
+\]
+\[
+\Dc_c(r_1r_2)=[\sig(p,r_2)\mid p\in\Dc_c(r_1)]\ \oplus\ (\Dc_c(r_2)\text{ if }r_1\text{ nullable}),\qquad
+\Dc_c(r^{*})=[\sig(p,r^{*})\mid p\in\Dc_c(r)].
+\]
+
+\item[$\Dch_c(r)$ \rm(canonicalised rows)] $:=[\sig(p,\one)\mid p\in\Dc_c(r)]$ --- every row put in canonical form so the
+dedup below actually merges associativity/unit variants (keeping the row set small).
+
+\item[$\Front(r,s)$ \rm(normalised front; ``afactored1'')] read the whole string $s$ with \emph{no} $\Strong$: starting
+from $[r]$, apply for each letter $c$ the normalised step $\nu_c(\rho):=\mathrm{dedup}\bigl(\mathrm{flat}\bigcup_{q\in\rho}\Dch_c(q)\bigr)$,
+\[
+\Front(r,\eps)=[r],\qquad \Front(r,\,c\!:\!s)=\Front\bigl(\text{root of }\nu_c([r])\ \text{etc.}\bigr)\ \ =\ \ \nu_{c_n}\!\circ\cdots\circ\nu_{c_1}([r]).
+\]
+
+\item[$\dstep_c(\rho)$ \rm(one strong step; ``rpder\_strong\_rows\_raw'')] derive+canonicalise each row, strong-simplify with
+$\Strong$, flatten, strong-prune with $\Prune$, flatten, dedupe:
+\[
+\dstep_c(\rho):=\mathrm{dedup}\Bigl(\mathrm{flat}\;\Prune\bigl(\mathrm{flat}\textstyle\bigcup_{q\in\rho}[\,\Strong(x)\mid x\in\Dch_c(q)\,]\bigr)\Bigr).
+\]
+
+\item[$\Prune(\rho)$ \rm(strong prune; ``rsimpStrong\_prune\_rows\_raw'')] scan $\rho$ left-to-right keeping the pruned rows
+seen so far, replacing each row by its pruning against all earlier ones (rows are \emph{shrunk, never dropped}). The only
+non-trivial pairwise rule fires on two rows \emph{sharing a right factor} $k$:
+$\bigl((\textstyle\sum lrs)\seq k,\ (\textstyle\sum rrs)\seq k\bigr)\ \mapsto\ \sigt\bigl(\textstyle\sum(rrs\setminus lrs),\,k\bigr)$
+--- delete from the later row's head-alternation the branches already present in the earlier one ($rrs\setminus lrs$);
+every other pair leaves the later row unchanged. Language-preserving and size-non-increasing.
+
+\item[$\opens(\rho)$ \rm(open a row list; ``row\_dlformss'')] $\opens(\rho):=\bigcup_{q\in\rho}\dlf(q)$.
+
+\item[$\pot(r,k)$ \rm(potential)] an over-approximation of the opened size of $r$'s derivative universe against $k$,
+defined to recurse on $r$ and bound it from above ($\rss{\SOL(r)}\le\pot(r,\one)$, proved):
+\[
+\pot(\zero,k)=1,\quad \pot(\one,k)=1+\opn(k)+\front(k),\quad \pot(\text{char }c,k)=\opn(\sig(c,k))+1+\opn(k)+\front(k),
+\]
+\[
+\pot(r_1r_2,k)=\pot(r_1,\sig(r_2,k))+\pot(r_2,k),\quad
+\pot(\textstyle\sum rs,k)=1+\opn(\sig(\textstyle\sum rs,k))+\textstyle\sum_{q}\pot(q,k),
+\]
+\[
+\pot(r^{*},k)=\underbrace{\opn(\sig(r^{*},k))}_{\text{head}}+\underbrace{\pot\bigl(r,\sig(r^{*},k)\bigr)}_{\text{body: $r$ against its own star}} .
+\]
+
+\item[$\SOL(r)$ \rm(strong-opened universe; ``strong\_opened\_live\_row\_universe'')] open (via $\dlf\circ\Strong$) every
+regex of $r$'s derivative universe $\mathcal D(r)$:
+\[
+\SOL(r):=\textstyle\bigcup_{p\in\mathcal D(r)}\dlf(\Strong p),\qquad
+\mathcal D(r):=\{\zero,\one,r\}\,\cup\,\mathrm{paths}(r)\,\cup\,\dpar r\,\cup\,\textstyle\bigcup_{q\in\mathrm{paths}(r)}\dpar q,
+\]
+where $\mathrm{paths}(r)$ is the (finite) set of continuations reachable by repeatedly deriving $r$. Proved static facts:
+$\#\mathcal D(r)\le\rs r+2$ (linear) and each member has size $\le(\rs r+2)^2$ (quadratic) --- the linear$\times$quadratic
+that the cubic budget rests on. $\rss{\SOL(r)}$ is what the Gate must bound.
+
+\item[$\tr(r)$ \rm(trace), $\wt_k$ \rm(event cost)] the explicit event-list expansion of $\pot(r^{*},\cdot)$, with the
+continuation tracked as a prefix stack $xs$ that $\mathrm{ap}$ instantiates:
+\[
+\mathrm{ap}(a,[],k)=\sig(a^{*},k),\qquad \mathrm{ap}(a,\,x\!:\!xs,\,k)=\sig\bigl(x,\mathrm{ap}(a,xs,k)\bigr).
+\]
+Events are $\mathrm{AU}$ (unit), $\mathrm{AO}\,xs$ (open), $\mathrm{AF}\,xs$ (frontier), with cost
+$\wt_k(\mathrm{AU})=1$, $\wt_k(\mathrm{AO}\,xs)=\opn(\mathrm{ap}(r,xs,k))$,
+$\wt_k(\mathrm{AF}\,xs)=\rss{\bigcup_{q\in\dpar(\mathrm{ap}(r,xs,k))}\dlf(\Strong q)}$. The trace $\mathrm{at}$ mirrors
+$\pot$, pushing the right part onto the stack:
+\[
+\mathrm{at}(\zero,xs)=[\mathrm{AU}],\quad \mathrm{at}(\one,xs)=[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],\quad
+\mathrm{at}(c,xs)=\mathrm{AO}(c\!:\!xs)\#[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],
+\]
+\[
+\mathrm{at}(\textstyle\sum rs,xs)=\mathrm{AU}\#\mathrm{AO}(\textstyle\sum rs\!:\!xs)\#\textstyle\bigoplus_q\mathrm{at}(q,xs),\quad
+\mathrm{at}(pq,xs)=\mathrm{at}(p,\,q\!:\!xs)\oplus\mathrm{at}(q,xs),\quad
+\mathrm{at}(r^{*},xs)=\mathrm{AO}(r^{*}\!:\!xs)\#\mathrm{at}(r,\,r^{*}\!:\!xs);
+\]
+$\tr(r):=\mathrm{AO}\,[]\ \#\ \mathrm{at}(r,[])$, with the \emph{proved identity} $\pot(r^{*},k)=\sum_{e\in\tr(r)}\wt_k(e)$.
+
+\item[\rm minor list operations] $\mathrm{flat}$ flattens nested alternations and drops $\zero$s; $\mathrm{dedup}$ keeps
+the first occurrence of each row; $\oplus$/$\bigoplus$ is list append/concat; ``$r$ nullable'' means $r$ matches
+$\eps$; $rrs\setminus lrs$ drops from $rrs$ the entries already occurring in $lrs$.
+
+\end{description}
+
+\section{The goal, and why it is cubic}
+
+In the clean fragment (classical regexes, normal form, no bounded repetition): read $s$, take \emph{one} strong step on
+the next letter $c$, open the resulting rows and sum their sizes. The thesis target is that this is cubic in $\rs r$,
+uniformly in $s$:
+\[
+\boxed{\ \rss{\,\opens\!\bigl(\dstep_c(\Front(r,s))\bigr)\,}\ \le\ 2\,(\rs r+3)^3\ }
+\tag{Gate}
+\]
+\WHY a cubic ceiling independent of $\rs s$ makes the lexer's space polynomial in the regex regardless of input length;
+it is the crux. \emph{Design note:} $\Front(r,s)$ is the cheap $\Strong$-free accumulation (the D~law and the static cubic
+front are proved on it); the $\Strong$ collapse $a^{*}\seq a^{*}\to a^{*}$ and the pruning are applied \emph{once}, only in
+the final $\dstep_c$. So $\Strong$'s collapse --- and the global cancellation it induces --- live only at that last step,
+and that is the wall (\S\ref{sec:open}--\S\ref{sec:why}).
+
+\section{The proved chain (top to bottom)}\label{sec:chain}
+
+All machine-checked, no \texttt{sorry}. Each line is justified by the one below it.
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=5pt]
+
+\item \GREEN\ \textbf{Gate $\Leftarrow$ root potential.} The next-step opened rows lie inside $\SOL(r)$ (monotonicity),
+and $\rss{\SOL(r)}\le\pot(r,\one)$ is proved, so the Gate follows from $\pot(r,\one)\le 2(\rs r+3)^3$.
+\WHY trade a statement about an opened \emph{set} for a recursively-defined numeric \emph{upper bound} $\pot$ that
+recurses cleanly on the regex.
+
+\item \GREEN\ \textbf{The cube-shell.} For all $r,k$:\ $\pot(r,k)\le(\rs r+\rs k)^3-(\rs k)^3$ (CS); at $k=\one$,
+$\pot(r,\one)\le(\rs r+1)^3-1\le2(\rs r+3)^3$, closing step 1.
+\WHY (CS) is a difference of cubes --- it telescopes additively, hence is provable by induction on $r$.
+
+\item \GREEN\ (except one case) \textbf{The cube-shell induction (on $r$).} $\zero,\one,$ char are leaves;
+$\sum$ and $r_1r_2$ compose the children's shells --- \emph{all proved}. The one open constructor is $r^{*}$.
+\WHY the $r^{*}$ recursion feeds the body $r$ against an \emph{inflated} continuation (step 5), so the naive use of (CS)
+as the body's hypothesis overshoots by ${\approx}7\times$ and cannot close that case.
+
+\item \GREEN\ \textbf{$r^{*}$ case $\Leftarrow$ the affine envelope.} With $M:=\rs{r^{*}}=1+\rs r$, it suffices to prove
+\[
+\pot(r^{*},k)\ \le\ M^3+3M^2\,\rs k.\tag{Env}
+\]
+Indeed $M^3+3M^2\rs k\le(M+\rs k)^3-(\rs k)^3$ (leftover $3M(\rs k)^2\ge0$), so (Env)$\Rightarrow$(CS) at $r^{*}$.
+\WHY (Env) is \emph{linear in $\rs k$}, where (CS) is quadratic; (Env) is the tight statement at $r^{*}$. It is
+machine-validated true ($0$ violations).
+
+\item \GREEN\ \textbf{Unfolding $r^{*}$.} $\pot(r^{*},k)=\opn(\sig(r^{*},k))+\pot(r,\sig(r^{*},k))$. The head is harmless;
+the \textbf{body} opens $r$ against $\sig(r^{*},k)=r^{*}\seq k$, its own star re-entry, with continuation inflated by ${\approx}M$.
+\WHY the heart of the difficulty: the body is opened against a continuation containing a copy of its own star. The opened
+size does \emph{not} grow with the inflation (the re-entry saturates via $a^{*}\seq a^{*}\to a^{*}$, used helpfully), but
+capturing that is the open problem.
+
+\item \GREEN\ \textbf{(Env) $\Leftarrow$ a per-event certificate.} By the trace identity $\pot(r^{*},k)=\sum_{e\in\tr(r)}\wt_k(e)$.
+Given $a_1,a_B:\text{events}\to\mathbb N$ with
+\[
+\text{(affine)}\ \wt_k(e)\le a_1(e)+a_B(e)(\rs k-1),\quad
+\text{(slope)}\ \textstyle\sum_e a_B(e)\le 3M^2,\quad
+\text{(intercept)}\ \textstyle\sum_e a_1(e)\le M^3+3M^2,
+\]
+the certificate proves (Env).
+\WHY splits (Env) into a continuation-slope and a continuation-free intercept, each a single sum.
+
+\item \GREEN\ \textbf{Slope solved.} $a_B$ a row/frontier count per event gives $\sum_e a_B(e)\le3M^2$.
+\WHY $k$ sits at the \emph{tail} of every opened row (behind the single anchor $r^{*}$), so it adds size linearly.
+
+\item \GREEN\ \textbf{Intercept reduced to a single anchor.} Take $a_1(e):=\wt_{\,\text{char }c}(e)$ for a fixed char $c$:
+one fixed tail dominates every size-$1$ tail per event (so (affine) holds), and then
+$\sum_e a_1(e)=\pot(r^{*},\text{char }c)$ by the trace identity.
+\WHY dissolves a multiplicity trap (a per-event max over all size-$1$ tails over-counts); one fixed tail collapses the
+intercept sum back to one potential value.
+
+\item \GREEN\ \textbf{Event count is linear.} $\rs{\tr(q)}\le 4\rs q$ (length of the trace).
+\WHY the linear factor: the intercept is \emph{(linearly many events)} $\times$ \emph{(per-event opened size)}, and we
+must show this product is cubic.
+
+\end{enumerate}
+
+\section{The single open lemma}\label{sec:open}
+
+The entire Gate is proved \emph{modulo one scalar inequality} --- the intercept of step 8, the \emph{anchor}:
+\[
+\boxed{\ \pot(r^{*},\,\text{char }c)\ \le\ M^3+3M^2\ }
+\qquad\Bigl(=\ \textstyle\sum_{e\in\tr(r)}\wt_{\,\text{char }c}(e)\ \le\ M^3+3M^2\Bigr),\quad M=1+\rs r.
+\tag{$\star$}
+\]
+\OPEN. Machine-validated true: $0$ violations over an \emph{exhaustive} enumeration of all in-regime terms up to
+$\rs r=9$ ($\approx8.7\times10^5$ cases); worst ratio $0.95$ at $M=2$ ($19\le20$), slacker for larger $M$ (true value
+${\approx}0.5\times$ budget). Unfolding $r^{*}$, ($\star$) is the \emph{body saturation}
+$\pot(r,\sig(r^{*},\text{char }c))\le M^3+3M^2-\opn(\sig(r^{*},\text{char }c))$: the body opened against its own star
+re-entry, budgeted at the \emph{original} (size-$1$) tail, not the inflated one.
+
+\section{Why ($\star$) resists --- a global cancellation}\label{sec:why}
+
+($\star$) is $\sum_{\text{events}}(\text{opened size})\le M^3+3M^2$, with the event count linear (step 9) and each opened
+size $\le$ quadratic. Naively ``linear $\times$ quadratic $=$ cubic'' --- yet every \emph{structural} bound (holding
+pointwise at each event/node/row) overshoots, while the true sum is ${\approx}0.5\times$ the budget:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\textbf{candidate bound} & \textbf{ratio to budget} & \textbf{fate}\\\hline
+true value $\sum_e\wt_{\,c}(e)$ & ${\approx}0.5$ & what we must bound\\
+crude (events $\times$ max event cost) & ${\approx}1.5\times$ & overshoots\\
+saturated per-event cap $(M{+}1)M\times4\rs r$ & ${\approx}4\times$ & overshoots\\
+generic quadratic opening $\mathrm{Suc}(sz)\cdot sz$ & ${\approx}7\times$ & overshoots\\
+tight body invariant $(\rs q{+}1)(M{+}1)M$ & $1.0$ pointwise & does \emph{not} telescope ($\sum$: $1+\text{cap}\cdot|rs|\le\text{cap}$ false)\\
+deduped universe $\rss{\text{rows}(r^{*})}$ & ${\approx}0.2$ (cubic!) & per-row multiplicity reaches $18$; no injection\\
+\end{tabular}
+\end{center}
+
+\textbf{Diagnosis.} The sum is small only by a \textbf{global cancellation}: events opening \emph{many} rows have
+\emph{small} per-row cost; events with \emph{few} rows have \emph{large} cost; high-multiplicity rows are small. Size and
+multiplicity are \emph{anti-correlated}. A structural induction must bound the worst case \emph{at every event at once},
+so it charges high multiplicity and high size simultaneously and overshoots. \textbf{No \texttt{rsize}/count
+structural-induction invariant sees this cancellation.} (Hence the clean ``deduped universe is cubic'', ratio $0.2$,
+does not help: the trace charges some rows $18\times$, and the multiplicity-weighted sum has no injection into the
+deduped set.) On exactly ($\star$): $8{+}$ external rounds, a $4$-agent design panel (a confident \emph{false} bound,
+caught), and three formalisation attempts --- all structural, all overshoot.
+
+\section{The shape of a correct proof: the amortised precedent}\label{sec:amort}
+
+The sibling problem --- the row \emph{count} being linear (the ``D~law'') --- had the same flavour and \emph{was} cracked,
+not by structural induction but by a \textbf{simultaneous induction on two mutually-supporting invariants}: a
+boundary-strengthened bound $T$ and a strict credit $S$ (with $\mathrm{acc}$ the accumulator, $\mathrm{zw}(r)=\#\text{letters}+\#\text{stars}\le\rs r$):
+\[
+T:\ \#\bigl((\dpar\sig(r,k)\cup\mathrm{acc}(r,k))\setminus\dpar k\bigr)\le\mathrm{zw}(r),
+\quad
+S:\ \mathrm{zw}(r)>0\Rightarrow 1+\#\bigl(\mathrm{acc}(r,k)\setminus\dpar k\bigr)\le\mathrm{zw}(r).
+\]
+$S$ is the amortisation: a constructor may add a boundary row no \emph{local} cap can absorb, but it is paid by the
+strict spare credit carried in the strengthened $T$, and $T\wedge S$ (one induction) gives the count bound.
+\WHY a global ``adds-but-pays'' cancellation is captured by carrying a credit in a strengthened invariant, not by a
+pointwise bound.
+
+\textbf{The analogue we need (open).} A \emph{size} version of $T+S$: a potential $\Phi$ on the state
+$(\text{root }r^{*},\ \text{sub-term }q,\ \text{boundary})$ plus a strict \emph{size}-credit, so the per-event opened size
+is paid by the drop of $\Phi$ across the trace, telescoping to $\le M^3+3M^2$ at the root, and surviving (i) the $\sum$
+case (where pointwise caps fail) by spending the credit once, and (ii) the star re-entry by the boundary being idempotent
+at the anchor. No concrete such $\Phi$ has yet been exhibited.
+
+\section{Where the proof can go}
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+\item \textbf{Build the amortised $\Phi$ (\S\ref{sec:amort}) concretely} and verify it telescopes and stays $\le M^3+3M^2$
+--- the direct analogue of the (successful) count proof; the most promising untried route.
+\item \textbf{Rethink the opening/$\pot$ definitions} so the cancellation becomes a \emph{local} invariant (then a
+structural induction suffices) --- it may be the honest answer if no $\Phi$ on the current $\pot$ is local.
+\item \textbf{Treat ($\star$) as a validated lemma} --- exhaustively checked ($0/8.7\times10^5$); the rest of the Gate is
+fully proved on top of it.
+\end{enumerate}
+
+\paragraph{One-line status.} The clean-fragment cubic Gate is proved \emph{except} the single scalar
+$\pot(r^{*},\text{char }c)\le M^3+3M^2$ --- true, exhaustively validated, provably beyond structural induction because it
+encodes a global size$\times$multiplicity cancellation; the route that fits is the size analogue of the $T+S$ amortised
+argument that already cracked the row count.
+
+\end{document}
