@@ -11115,6 +11115,62 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
   here for Secretary sharpening / a Pro micro-ask (target = the UNCONDITIONAL envelope, with the
   small-M caveat above baked in).
 
+## 2026-06-16 WORKER-A: CRUX = WALL (the saturation/intercept) — Pro-ready handoff + assembly plan
+
+Guards: `no_cheat` GREEN (0 sorry in my file); my commits touched ONLY
+`active/AntimirovFactoredTransition.thy` + this file (worker-permitted). The
+statement/bounty/role guard errors are all PRE-EXISTING working-tree files
+(BackRefLang/GeneralRegexBound moved to base/ in the modularization;
+RESTART_PROMPTS/SUPER_LINEAR_PATTERNS/witness_gen/STATUS_MATH.* modified before
+this session) — NOT introduced by the RSTAR work.
+
+### THE ONE OPEN OBLIGATION (closes the gate unconditionally)
+```
+strong_opened_live_acc_potential_RSTAR_affine_envelope:
+  "strong_opened_live_acc_potential (RSTAR r) k
+     <= (rsize(RSTAR r))^3 + 3 * (rsize(RSTAR r))^2 * rsize k"      (ALL r,k)
+```
+Discharging the `env` assumption of `strong_opened_live_acc_potential_cube_shell`
+/ `_root_cubic` / `actual_gate_from_cube_shell` makes the whole cubic gate GREEN.
+UNCONDITIONALLY TRUE (WORKER-A: 0/20000, incl. non-S-fixed + small M).
+
+### Assembly plan worked out (the AFFINE route, via the now-green pot_trace)
+- pot(STAR r,k) = sum_list (map event_cost (pot_trace (STAR r) k))   [pot_trace_sound, GREEN].
+- STRUCTURE FACT (clean, provable): `length (pot_trace r k)` is INDEPENDENT of k — every
+  constructor adds a fixed event count and recurses on substructure. Call it L(r). Hence the
+  event MULTISET shape is k-fixed; only the continuations inside the EO/EF events carry k, always
+  at the TAIL behind the single r* anchor (sig(STAR r) k = RSEQ (RSTAR r) k; deeper conts are
+  ctx . r* . k). => pot(STAR r,k) = A(r) + B(r)*rsize k EXACTLY affine (matches the 0/437 affine
+  observation; here is WHY).
+- VALIDATED FOUNDATION (WORKER-A, 0/40000, seed 23): tail-affine OPENING
+  `opn(rsimp4_SEQ_atom x k) <= opn(rsimp4_SEQ_atom x RONE) + (rsize x + 1) * rsize k`
+  (slope rsize x+1; the C=nrows variants FAIL, C=rsize x FAILS 4233, C=Suc(rsize x) is the clean
+  one). Need the analogous tail-affine FRONT bound. These give B(r) <= 3M^2 (slope = sum of
+  per-event slopes (rsize ctx+1) over L(r) events, each ctx of rsize O(M), L(r)=O(M) => O(M^2)).
+- THE WALL = the INTERCEPT A(r) <= M^3 (equivalently ROOT pot(STAR r,RONE) <= M^3, or via @33391
+  `_RSTAR_RONE_linear_split` pot r (r*) <= M^3-M). This is the saturation. It is a statement about
+  the recursive POTENTIAL, which OVER-approximates the set ledger (@34905 `rsize_set(SOLR_acc) <=
+  pot`, the WRONG direction to inherit). The static star-universe facts bound the SET not pot:
+  @37190 `card_apder_rows_clean_le_rsize_plus_2` (<= M+2 rows), @31364 `apder_rows_member_size_
+  quadratic` (each row <= (M+2)^2), @22761 quadratic opening. Linear x quadratic = cubic = the
+  right ORDER for M^3, but the pot->set BRIDGE is missing. The body-against-r* unrolling must be
+  shown to SATURATE (the accumulated r* prefix collapses under S as the body peels) so the summed
+  head terms stay within M^3 rather than growing ~ (2M)^3. This is the genuine open math.
+- ⚠ SMALL-M CAVEAT (WORKER-A finding, must be in any Pro ask): ROOT<=M^3 / SLOPE<=3M^2 / SAT are
+  FALSE for M in {2,3,4} (rsize(rstar)<5); only the SUM (envelope) holds there by slack. So either
+  prove the envelope WITHOUT the additive ROOT+SLOPE split, or dispatch M in {2,3,4} as finite
+  base cases (where pot(STAR r,k) is computable directly / the cube-shell holds by the green
+  leaf machinery on the small body).
+
+### Recommendation
+The skeleton is locked (gate GREEN modulo `env`). The intercept/saturation (A<=M^3 with the
+pot->set bridge) is the lone remaining nut and is a good GPT Pro micro-ask: "bound the recursive
+potential pot r (r*) <= M^3 - M by a saturation argument (the r* prefix collapses under S during
+the body unroll), routed through @37190/@31364/@22761; note rsize_set<=pot is the wrong direction
+and ROOT<=M^3 is false for M<5 so handle small M separately." WORKER-A will pick up the Pro design
+or a sharpened sketch when it lands in STEER; meanwhile HOLDING on the crux (no false-forcing per
+MAINLINE 6.11).
+
 ## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
 
 - Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
