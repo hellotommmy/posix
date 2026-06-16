@@ -37811,4 +37811,56 @@ proof -
   finally show ?thesis by simp
 qed
 
+(* ----- the assembly: the RSTAR affine envelope follows from an ------- *)
+(* ----- abstract size-1 certificate (aA1, aB) satisfying the ---------- *)
+(* ----- per-event affine bound + the two aggregate scalar bounds. ----- *)
+
+lemma sum_list_map_affine:
+  fixes f g :: "'a \<Rightarrow> nat"
+  shows "sum_list (map (\<lambda>e. f e + g e * c) es) =
+    sum_list (map f es) + sum_list (map g es) * c"
+  by (induct es) (auto simp add: algebra_simps)
+
+lemma RSTAR_affine_envelope_from_certificate:
+  fixes aA1 aB :: "aevt \<Rightarrow> nat"
+  assumes affine: "\<And>e. e \<in> set (rstar_atrace r) \<Longrightarrow>
+      aevt_cost r k e \<le> aA1 e + aB e * (rsize k - 1)"
+    and A1sum: "sum_list (map aA1 (rstar_atrace r)) \<le>
+        (rsize (RSTAR r)) ^ 3 + 3 * (rsize (RSTAR r))\<^sup>2"
+    and Bsum: "sum_list (map aB (rstar_atrace r)) \<le>
+        3 * (rsize (RSTAR r))\<^sup>2"
+    and free: "rntimes_free (RSTAR r)"
+    and leg: "legacy_rrexp (RSTAR r)"
+  shows "strong_opened_live_acc_potential (RSTAR r) k \<le>
+      (rsize (RSTAR r)) ^ 3 + 3 * (rsize (RSTAR r))\<^sup>2 * rsize k"
+proof -
+  let ?M = "rsize (RSTAR r)"
+  let ?n = "rsize k"
+  have npos: "1 \<le> ?n" by (rule size_geq1)
+  have sound: "strong_opened_live_acc_potential (RSTAR r) k =
+      sum_list (map (aevt_cost r k) (rstar_atrace r))"
+    by (rule rstar_atrace_sound[OF free leg])
+  have step1: "sum_list (map (aevt_cost r k) (rstar_atrace r)) \<le>
+      sum_list (map (\<lambda>e. aA1 e + aB e * (?n - 1)) (rstar_atrace r))"
+    by (rule sum_list_mono) (use affine in auto)
+  have step2: "sum_list (map (\<lambda>e. aA1 e + aB e * (?n - 1)) (rstar_atrace r)) =
+      sum_list (map aA1 (rstar_atrace r)) +
+        sum_list (map aB (rstar_atrace r)) * (?n - 1)"
+    by (rule sum_list_map_affine)
+  have step3:
+      "sum_list (map aA1 (rstar_atrace r)) +
+         sum_list (map aB (rstar_atrace r)) * (?n - 1) \<le>
+       (?M ^ 3 + 3 * ?M\<^sup>2) + 3 * ?M\<^sup>2 * (?n - 1)"
+    by (rule add_le_mono[OF A1sum mult_right_mono[OF Bsum]]) simp
+  have "strong_opened_live_acc_potential (RSTAR r) k \<le>
+      (?M ^ 3 + 3 * ?M\<^sup>2) + 3 * ?M\<^sup>2 * (?n - 1)"
+    using sound step1 step2 step3 by simp
+  also have "... = ?M ^ 3 + 3 * ?M\<^sup>2 * ?n"
+  proof -
+    obtain m where m: "?n = Suc m" using npos by (cases ?n) auto
+    show ?thesis by (simp add: m algebra_simps)
+  qed
+  finally show ?thesis .
+qed
+
 end
