@@ -11092,3 +11092,67 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
 - REMAINING OPEN (the crux): `strong_opened_live_acc_potential (RSTAR r') k' <=
   (rsize(RSTAR r'))^3 + 3*(rsize(RSTAR r'))^2 * rsize k'`. Validated 0-viol (STEER): splits via
   ROOT `A(r')<=M^3` + SLOPE `B(r')<=3M^2`. Next phase.
+
+## 2026-06-16 WORKER-A-EXEC: FAIL-STOP-REPORT on the CRUX (RSTAR affine envelope) — exact stuck goal + ask
+
+- The safe skeleton above is GREEN/committed/pushed (62b5de8; .thy skeleton already on origin at 5cf3e98).
+  The gate closes the moment the ONE envelope lemma below is proved unconditionally.
+- EXACT OPEN OBLIGATION (the single hypothesis `env` of `actual_gate_from_cube_shell`):
+    lemma strong_opened_live_acc_potential_RSTAR_affine_envelope:
+      "strong_opened_live_acc_potential (RSTAR r) k <=
+        (rsize (RSTAR r))^3 + 3 * (rsize (RSTAR r))^2 * rsize k"   (unconditional, all r k)
+  Unfolding the pot def (@33045), with M = rsize(RSTAR r) = Suc(rsize r), this is:
+    HEAD + BODY <= M^3 + 3*M^2*rsize k       where
+    HEAD = rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)))   [the star root layer]
+    BODY = strong_opened_live_acc_potential r (rsimp4_SEQ_atom (RSTAR r) k)          [body opened at r*.k]
+- WHY IT IS NOT A ONE-LINER (confirmed by file study, matches RSTAR_CUBE_SHELL_SKETCH "honest caveat"):
+  * IMPORTANT CORRECTION to the "HEAD is easy" framing: the AFFINE envelope RHS `M^3 + 3*M^2*K` has
+    NO K^2 term. The generic HEAD bound `strong_opened_live_acc_root_charge_quadratic` (@33343),
+    HEAD <= Suc(Suc(M+K))*Suc(M+K), is QUADRATIC in K (contains K^2) and therefore is TOO LOOSE to fit
+    under the affine envelope for large K. The affine envelope can only hold because the ACTUAL star
+    root layer `rsize_set(row_dlforms(S(rsimp4_SEQ_atom (RSTAR r) k)))` is LINEAR in rsize k (k sits
+    at the tail behind the single r* anchor; the sketch's "k at the tail adds rows linearly"). So even
+    HEAD needs the k-at-tail LINEARITY lemma — it is NOT covered by the existing generic quadratic
+    facts. (HEAD <= top-shell-layer is fine for the CUBE-shell, which keeps the K^2; it is NOT fine for
+    the AFFINE envelope. The two targets differ exactly in the K^2 term.)
+  * BODY is the CRUX. The cube-shell IH (my driver) only gives the NAIVE
+      BODY = pot r (r*.k) <= (rsize r + rsize(r*.k))^3 - rsize(r*.k)^3,
+    with rsize(r*.k) ~ M+rsize k, i.e. ~ (rsize r + M + K)^3 - (M+K)^3 ~ 7*M^3 — TOO LOOSE (need ~2*M^3).
+    The needed tight bound is the SATURATION `pot r (r*.k) <= (M+K)^3 - K^3` (sketch SAT, ratio<=0.806),
+    i.e. opening the body against its OWN star continuation costs only the body's k-shell; the r* prefix
+    is absorbed. This is a statement about the RECURSIVE potential, and `pot >= rsize_set(universe)`
+    (@34905, WRONG direction) so it does NOT inherit from the set-subset lemma
+    `strong_opened_live_row_universe_acc_RSTAR_subset` (@33132) alone.
+- BLOCKER (genuine open math, NOT a tactic wall): proving BODY-saturation needs NEW infrastructure that
+  does not exist in the file (grep: no affine/slope/intercept/tail-linearity lemma). The two candidate
+  engines from the sketch are both greenfield multi-lemma developments:
+    (SLOPE) a tail-monotonicity/linearity lemma: pot r opened at (cont.k) grows only LINEARLY in rsize k
+            (k sits behind the saturating r* prefix), summed over the body's opening trace -> B(r)<=3M^2.
+    (ROOT)  pot r (RSTAR r) <= M^3 - M  (via @33391 RONE split), from the static star-universe facts
+            `card_apder_rows_clean_le_rsize_plus_2` (@37190, <=M+2 rows) x
+            `apder_rows_member_size_quadratic` (@31364, each row <=(M+2)^2) — but these bound the
+            UNIVERSE SET, and pot over-approximates it, so a potential-vs-set bridge for the star body
+            is still required.
+- PER BRIEF (do NOT invent + grind a numeric sub-claim without Secretary validation): I am NOT
+  fabricating a tail-linearity statement and sinking proof effort. ASK to SECRETARY:
+  (Q1) Please validate on the witness family (witness_gen.py / scratch_cubeshell_*.py) a PRECISE
+       Isabelle-statable tail-linearity lemma for `pot` that yields SLOPE, e.g.
+         pot r (rsimp4_SEQ_atom c (rsimp4_SEQ_atom (RSTAR r) k))
+           <= pot r (rsimp4_SEQ_atom c (RSTAR r)) + 3*M^2*rsize k     (or the right shape),
+       so general-k reduces to ROOT (k=RONE). If a clean k-linear recurrence on `pot` holds, post it.
+  (Q2) Please confirm/sharpen the ROOT statement `pot r (RSTAR r) <= M^3 - M` and whether a
+       potential<=universe-set bridge holds FOR THE STAR BODY specifically (it fails in general, @34905),
+       e.g. does `pot r (RSTAR r) <= rsize_set(strong_opened_live_row_universe_acc r (RSTAR r)) + (linear)`
+       hold, letting the static cubic facts close ROOT?
+  (Q3) The UNIFYING sub-claim worth validating first (drives both HEAD and SLOPE): is the STAR ROOT
+       LAYER linear in rsize k? i.e. validate
+         rsize_set(row_dlforms(rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)))
+           <= c1*M + c2*M*rsize k   (some small c1,c2; observed-linear, no k^2)
+       on the witness family. If TRUE with explicit constants, that is an Isabelle-statable linearity
+       brick I can prove (likely by `rsimp4_SEQ_atom`/`rsimpStrong_raw` shape analysis) and it kills the
+       K^2 obstruction for HEAD; the same k-at-tail mechanism then drives SLOPE for the BODY.
+  Either a validated SLOPE recurrence + a validated ROOT bridge, or a single validated combined
+  saturation recurrence (or the Q3 star-root-layer linearity brick), would let me formalize the
+  envelope. Without one I would be guessing, which the brief forbids.
+- STATUS: build GREEN, no sorry, skeleton committed+pushed. HOLDING on the crux pending Secretary
+  validation of the SLOPE/ROOT sub-statements (or a GPT Pro micro-design on the BODY saturation).
