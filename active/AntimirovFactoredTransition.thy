@@ -37353,4 +37353,37 @@ proof -
   then show ?thesis by simp
 qed
 
+(* ==================================================================== *)
+(* WORKER-A : RSTAR cube-shell.  The cube-shell invariant               *)
+(*   pot r k <= (rsize r + rsize k)^3 - (rsize k)^3                      *)
+(* has GREEN constructor cases for RONE/RCHAR/RALTS/RSEQ; the RSTAR      *)
+(* case is the single open step.  Pro's validated strategy: bound the   *)
+(* star potential by the AFFINE envelope  pot(RSTAR r) k <= M^3+3M^2*n   *)
+(* (M = rsize(RSTAR r), n = rsize k), then close the shell by pure cube  *)
+(* arithmetic:  M^3 + 3M^2 n <= (M+n)^3 - n^3   (leftover 3 M n^2 >= 0). *)
+(* ==================================================================== *)
+
+lemma affine_envelope_imp_cube_shell:
+  fixes M n :: nat
+  shows "M ^ 3 + 3 * M\<^sup>2 * n \<le> (M + n) ^ 3 - n ^ 3"
+proof -
+  have "(M + n) ^ 3 - n ^ 3 = M ^ 3 + 3 * M\<^sup>2 * n + 3 * M * n\<^sup>2"
+    by (rule cube_shell_add)
+  then show ?thesis by simp
+qed
+
+lemma strong_opened_live_acc_potential_RSTAR_cube_shell:
+  assumes env: "strong_opened_live_acc_potential (RSTAR r) k \<le>
+      (rsize (RSTAR r)) ^ 3 + 3 * (rsize (RSTAR r))\<^sup>2 * rsize k"
+  shows "strong_opened_live_acc_potential (RSTAR r) k \<le>
+      (rsize (RSTAR r) + rsize k) ^ 3 - (rsize k) ^ 3"
+proof -
+  have bridge:
+      "(rsize (RSTAR r)) ^ 3 + 3 * (rsize (RSTAR r))\<^sup>2 * rsize k \<le>
+        (rsize (RSTAR r) + rsize k) ^ 3 - (rsize k) ^ 3"
+    by (rule affine_envelope_imp_cube_shell)
+  show ?thesis
+    by (rule le_trans[OF env bridge])
+qed
+
 end
