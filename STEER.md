@@ -224,3 +224,16 @@ Plug (i)(ii)(iii) into @37824 → envelope → cube_shell → root → bridge �
 the RCHAR-dominates-size-1 tail-monotonicity, and the single anchor `pot(RSTAR r)(RCHAR c) ≤ M^3+3M^2`.
 **WORKER-A: HOLD A1 tonight (do not edit the .thy) — the Secretary is running a bounded autonomous worker on it to test
 the overnight loop. If that worker stalls, A resumes in the morning with this design.**
+
+### ⚠ DESIGN-PANEL false green CAUGHT (2026-06-16). Saturation STILL uncracked. Autonomous loop bounded-STOPPED.
+The in-house invariant design panel "converged" on f(r,cont)=R^3+3R^2K (R=rsize r,K=rsize cont) claiming E=0 envelope.
+**Secretary re-verification REFUTED it: 14245 envelope violations + 19993/38857 SAT violations** — f's R^3 intercept is
+too small at SMALL r (a char has pot~6 > f=4); the panel agents likely tested only star-bodies, not all subterms.
+f DOES telescope RSEQ (0/4804) and is tight at RSTAR, but it is NOT a true envelope, so it's dead. The real bracket
+stands: intercept big enough for the small-r envelope vs small enough for RSTAR tightness — no rsize-only f is both
+AND inductive (the cont-inflation sigma(RSTAR r)cont / sigma r2 cont defeats every tight rsize-only envelope; the
+saturation is a SEPARATE induction on pot, not an f-step). The body-against-its-own-star SATURATION remains uncracked
+by 8+ Pro verdicts + the autoworker + the design panel. **Autonomous loop STOPPED (bounded: 2 iterations). Next = a
+sharp external Pro round on the saturation, or human insight — NOT more auto-grinding. WORKER-A: continue HOLD; the
+gate stays GREEN-modulo the RSTAR saturation.** Substrate/assembly/slope + single-tail aA1 (multiplicity dissolved)
+all stand; the lone wall is obligation B's body term.
