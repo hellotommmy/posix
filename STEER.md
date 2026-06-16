@@ -237,3 +237,17 @@ by 8+ Pro verdicts + the autoworker + the design panel. **Autonomous loop STOPPE
 sharp external Pro round on the saturation, or human insight — NOT more auto-grinding. WORKER-A: continue HOLD; the
 gate stays GREEN-modulo the RSTAR saturation.** Substrate/assembly/slope + single-tail aA1 (multiplicity dissolved)
 all stand; the lone wall is obligation B's body term.
+
+### ✅ verdict_saturation VALIDATED VIABLE (2026-06-16) — anchored-trace; boundary absorption is DEAD CODE. Worker mobilized.
+Secretary validated Pro's anchored-trace (workflow whalug4yw + cross-impl + EXHAUSTIVE enum to rsize 9, 868k cases):
+V1 push-sound=0, V2=0, V3=0. TWO de-risking findings: (1) **V2 is an EQUALITY** pot(RSTAR r)(RCHAR c) =
+sum_list(map (acost r (RCHAR c)) (rstar_atraceS r)) — trace soundness is a STRUCTURAL IDENTITY (each pot clause ↔
+atraceS clause). (2) the apush BOUNDARY rule (S x = RSTAR r → AHere) is **provably DEAD CODE**: atraceS only pushes
+SUBTERMS of the body, so rsize(S x) ≤ rsize(x) < rsize(RSTAR r); the branch never fires. Discharge it as UNREACHABLE via
+a subterm-size lemma — NOT the false global self-star absorption (that was verdict_root's refuted trap; here the local
+rule is provably inert). So the astack machinery is inert and the REAL remaining content = the CHARGE-CUBIC
+`sum_list(map (acost r (RCHAR c)) (rstar_atraceS r)) ≤ M³+3M²` (validated 0/868k), proved by charging the (linear-many)
+trace events to the cubic static star-universe (apder_rows(RSTAR r): @37190 linear count × @31364 quad size × @22761
+quad opening). **Secretary autonomous worker mobilized to formalize. WORKER-A: continue HOLD.** Likely path: land V2
+(identity) + boundary-unreachable + scaffold green, then the charge-cubic is the lone Isabelle lemma — clean if
+#events×quadratic ≤ cubic works, else fail-stop on the exact charge-cubic goal (the multiplicity-aware tagged charge).
