@@ -37557,4 +37557,112 @@ proof -
     by (rule actual_gate_bridge_from_strong_opened_live_potential[OF clean pot])
 qed
 
+(* ==================================================================== *)
+(* Pro's pot_trace substrate: flatten the recursive potential into a    *)
+(* flat list of charge events (Unit / Open x / Front x).  Soundness     *)
+(* pot r k = sum of event costs holds on the legacy NTIMES-free         *)
+(* fragment (the four non-legacy constructors are vacuous there).       *)
+(* Validated: pot_trace_sound 0/949 mismatches.                          *)
+(* ==================================================================== *)
+
+datatype pot_event = EU | EO rrexp | EF rrexp
+
+fun event_cost :: "pot_event \<Rightarrow> nat" where
+  "event_cost EU = 1"
+| "event_cost (EO x) = rsize_set (row_dlforms (rsimpStrong_raw x))"
+| "event_cost (EF x) =
+    rsize_set (row_dlformss_set (rsimpStrong_raw ` rfrontier x))"
+
+fun pot_trace :: "rrexp \<Rightarrow> rrexp \<Rightarrow> pot_event list" where
+  "pot_trace RZERO k = [EU]"
+| "pot_trace RONE k = [EU, EO k, EF k]"
+| "pot_trace (RCHAR c) k =
+    [EO (rsimp4_SEQ_atom (RCHAR c) k), EU, EO k, EF k]"
+| "pot_trace (RALTS rs) k =
+    EU # EO (rsimp4_SEQ_atom (RALTS rs) k) #
+      concat (map (\<lambda>q. pot_trace q k) rs)"
+| "pot_trace (RSEQ r1 r2) k =
+    pot_trace r1 (rsimp4_SEQ_atom r2 k) @ pot_trace r2 k"
+| "pot_trace (RSTAR r) k =
+    EO (rsimp4_SEQ_atom (RSTAR r) k) #
+      pot_trace r (rsimp4_SEQ_atom (RSTAR r) k)"
+| "pot_trace (RNTIMES r n) k = []"
+| "pot_trace (RBACKREF4 r1 r2 r3 r4 cs) k = []"
+| "pot_trace (RHALF r cs rep) k = []"
+| "pot_trace (RRESIDUE cs rep) k = []"
+
+lemma sum_list_event_cost_concat_pot_trace:
+  assumes "\<forall>q \<in> set rs.
+      sum_list (map event_cost (pot_trace q k)) =
+        strong_opened_live_acc_potential q k"
+  shows "sum_list (map event_cost
+      (concat (map (\<lambda>q. pot_trace q k) rs))) =
+    sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs)"
+  using assms by (induct rs) auto
+
+lemma pot_trace_sound:
+  assumes "rntimes_free r" and "legacy_rrexp r"
+  shows "strong_opened_live_acc_potential r k =
+    sum_list (map event_cost (pot_trace r k))"
+  using assms
+proof (induct r arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  have mem: "\<forall>q \<in> set rs.
+      sum_list (map event_cost (pot_trace q k)) =
+        strong_opened_live_acc_potential q k"
+    using RALTS by auto
+  have "strong_opened_live_acc_potential (RALTS rs) k =
+      1 + rsize_set (row_dlforms (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RALTS rs) k))) +
+      sum_list (map (\<lambda>q. strong_opened_live_acc_potential q k) rs)"
+    by simp
+  also have "... =
+      1 + rsize_set (row_dlforms (rsimpStrong_raw
+            (rsimp4_SEQ_atom (RALTS rs) k))) +
+      sum_list (map event_cost
+        (concat (map (\<lambda>q. pot_trace q k) rs)))"
+    by (simp add: sum_list_event_cost_concat_pot_trace[OF mem])
+  also have "... = sum_list (map event_cost (pot_trace (RALTS rs) k))"
+    by simp
+  finally show ?case .
+next
+  case (RSEQ r1 r2)
+  have e1: "sum_list (map event_cost
+      (pot_trace r1 (rsimp4_SEQ_atom r2 k))) =
+        strong_opened_live_acc_potential r1 (rsimp4_SEQ_atom r2 k)"
+    by (rule sym, rule RSEQ.hyps(1)) (use RSEQ.prems in auto)
+  have e2: "sum_list (map event_cost (pot_trace r2 k)) =
+        strong_opened_live_acc_potential r2 k"
+    by (rule sym, rule RSEQ.hyps(2)) (use RSEQ.prems in auto)
+  show ?case by (simp add: e1 e2)
+next
+  case (RSTAR r0)
+  have e: "sum_list (map event_cost
+      (pot_trace r0 (rsimp4_SEQ_atom (RSTAR r0) k))) =
+        strong_opened_live_acc_potential r0 (rsimp4_SEQ_atom (RSTAR r0) k)"
+    by (rule sym, rule RSTAR.hyps) (use RSTAR.prems in auto)
+  show ?case by (simp add: e)
+next
+  case (RNTIMES r0 n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r0 cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 end
