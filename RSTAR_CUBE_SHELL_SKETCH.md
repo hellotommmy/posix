@@ -65,7 +65,34 @@ simultaneously; (b) bounding `pot r (r*·k)` by the star-universe potential `pot
 potential-monotonicity/idempotency lemma under the `r*` prefix; (c) a direct cube-shell-with-saturation IH that tracks
 the collapsing prefix. This is the real open math — well-isolated and TRUE, but not a one-liner.
 
+## Refinement (2026-06-16): the AFFINE structure splits the crux into two scalar lemmas
+Empirically, **`pot(RSTAR r, k)` is EXACTLY affine in `rsize k`** (0 non-affine / 437 S-fixed `r*`, incl. the witness
+chains; second differences identically 0):
+```
+pot(RSTAR r, k) = A(r) + B(r)·rsize k          (M := rsize(RSTAR r))
+```
+The star prefix `r*` in every recursive continuation **linearizes** the `k`-dependence — this *is* the saturation,
+made precise (the quadratic `k`-interaction the naive IH feared never materialises). Validated scalar bounds (0
+violations / 437):
+```
+ROOT :  A(r) ≤ M³            (intercept; the star's own opened universe is cubic)
+SLOPE:  B(r) ≤ 3·M²          (continuation enters linearly, slope ≤ 3M²; observed max 0.52·M²)
+```
+These two close the RSTAR cube-shell by **pure cube arithmetic**, for ALL `k`:
+```
+pot(RSTAR r,k) = A(r)+B(r)·n ≤ M³ + 3M²·n ≤ (M+n)³ − n³        (since (M+n)³−n³ = M³+3M²n+3Mn² ≥ M³+3M²n),  n:=rsize k
+```
+So the RSTAR step reduces to two **scalar** obligations, much sharper than the original SAT:
+- **SLOPE lemma** (new, the easy half): `pot(RSTAR r, k) ≤ pot(RSTAR r, RONE) + 3M²·(rsize k − 1)` — the continuation
+  contributes at most `3M²` per unit size. Provable from the affine/tail structure (`k` sits behind the saturating
+  `r*` prefix); this is what reduces general-`k` to the root.
+- **ROOT lemma** (the remaining core): `pot(RSTAR r, RONE) ≤ M³` (equivalently, via `_RSTAR_RONE_linear_split` @33391,
+  `pot r (r*) ≤ M³ − M`). Still a statement about the recursive potential, but now a SINGLE scalar at the fixed root
+  continuation — no longer a family over `k`. This is the genuine remaining nut; route via the static star-universe
+  facts (@37190 linear count, @31364 quadratic size) applied to the potential's body-against-`r*` unrolling.
+
 ## Recommended attack
-SAT is now a single, true, well-characterized lemma — a good GPT Pro design target (the saturation/idempotency
-argument), or a careful WORKER-A attempt with this sketch. HEAD + the assembling induction are routine once SAT lands.
-Probes (reproduce the validation): `/tmp/cube_shell_probe.py`, `/tmp/cube_shell_sweep.py`, `/tmp/sat_focus.py`.
+The RSTAR cube-shell is now: HEAD (easy, @33427 analogue) + SLOPE (easy, affine/tail) + ROOT (the one scalar core)
++ cube arithmetic. ROOT (`pot(RSTAR r, RONE) ≤ M³`) is a good GPT Pro design target, or a WORKER-A attempt with this
+sketch; everything else is routine. Probes (reproduce the validation): `/tmp/cube_shell_probe.py`,
+`/tmp/cube_shell_sweep.py`, `/tmp/sat_focus.py`, `/tmp/pot_form.py` (affine), `/tmp/affine_bounds.py` (ROOT/SLOPE).

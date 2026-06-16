@@ -47,10 +47,15 @@ doubles the body contribution; needs a DIRECT saturation argument (the body-agai
 the star's own universe, not the IH product). **DE-RISKED (Secretary, see `RSTAR_CUBE_SHELL_SKETCH.md`):** RSTAR
 cube-shell decomposes (0-viol/15059) into HEAD (≤ top shell layer — EASY, direct analogue of GREEN
 `strong_opened_live_acc_RALTS_root_shell_large` @33427) + **SAT** `pot r (r*·k) ≤ (rsize r+rsize k)³−(rsize k)³` (the
-saturation; TRUE 0/15k, ratio max 0.806). SAT is the lone real crux. CAVEAT: SAT is about the recursive POTENTIAL
-(over-approximates the set), so it does NOT fall out of the set-subset lemmas (@33132) alone — needs a saturation/
-idempotency argument on the potential recursion. **A + agents: still HOLD execution — awaiting user decision (Pro
-design on SAT vs A attempt with the sketch). Do NOT touch child_ok/drain.**
+saturation; TRUE 0/15k, ratio max 0.806). **SHARPENED (2026-06-16, secretary): `pot(RSTAR r, k)` is EXACTLY AFFINE
+in `rsize k`** (0 non-affine/437 incl. witness chains; the `r*` prefix linearizes the continuation — that IS the
+saturation), so `pot(RSTAR r,k)=A(r)+B(r)·rsize k` and the RSTAR cube-shell splits into TWO SCALAR bounds +
+cube-arithmetic: **ROOT** `A(r) ≤ M³` and **SLOPE** `B(r) ≤ 3M²` (M=rsize(RSTAR r); both 0-viol/437, slope margin
+0.52). Then `A+B·n ≤ M³+3M²n ≤ (M+n)³−n³` closes it for ALL k. SLOPE is the easy half (continuation enters linearly);
+**ROOT** `pot(RSTAR r, RONE) ≤ M³` (≡ `pot r (r*) ≤ M³−M` via `_RSTAR_RONE_linear_split` @33391) is the lone scalar
+core — route via the static star-universe facts (@37190 linear count, @31364 quadratic size). Full plan +
+refinement in `RSTAR_CUBE_SHELL_SKETCH.md`. **A + agents: still HOLD execution — awaiting user decision (Pro design
+on the ROOT scalar vs A attempt with the sketch). Do NOT touch child_ok/drain.**
 
 ---
 
@@ -87,6 +92,12 @@ it (all tested, all fail). **BUT** `rsize_set(strong_child_drain) ≤ (rsize p+3
 - ⚠ METHODOLOGY FIX (mandatory): every future validation gate MUST include the witness-family generator
   (`witness_family()` in `scratch_childok_drainbudget_A.py`) targeting the nested-SEQ-chain-opened-at-star* structure,
   NOT just `rand_clean`. Two "validated TRUE" claims were sampling artifacts of this exact blind spot.
+  ✅ NOW ENFORCED IN CODE (2026-06-16, secretary): canonical shared guard `witness_gen.py`
+  (re-exports the witness family + the 3 named CEs + `mixed_samples`/`gate_report` + a
+  `confirm_named_ces()` regression check). The `cand3` G2 gate is rewired to it as a FALSITY
+  DETECTOR (must find violations; 0 ⇒ sampler blind ⇒ abort) and no longer prints "all gates
+  GREEN" off a `rand_clean` blind spot. Named-CE repro: `python scratch_ctxbound_target_FALSE_repro.py`
+  (CE2 47>46, CE1 64>60, CHILDOK 99>96). New gates: `from witness_gen import gate_report, mixed_samples`.
 
 ---
 
