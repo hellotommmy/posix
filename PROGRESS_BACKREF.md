@@ -11336,3 +11336,59 @@ grind pending the charge spec; can proceed on the B half if blessed.
   envelope. Without one I would be guessing, which the brief forbids.
 - STATUS: build GREEN, no sorry, skeleton committed+pushed. HOLDING on the crux pending Secretary
   validation of the SLOPE/ROOT sub-statements (or a GPT Pro micro-design on the BODY saturation).
+
+## 2026-06-16 AUTOWORKER (Secretary's overnight A1 worker): FAIL-STOP on the single-tail anchor — obligation B is the same saturation wall; no sorry left, build GREEN
+
+CLAIMING (none landed — fail-stop): I did NOT edit active/AntimirovFactoredTransition.thy. The build is GREEN
+(Posix_Antimirov cached 4s, no sorry). I only ran a removed scratch theory of `by eval` oracle tests; ROOT and the
+.thy are unchanged from HEAD (3e596ae).
+
+WHAT I DID: Worked the corrected single-tail A1 design from STEER (aA1 e = aevt_cost r (RCHAR ''a'') e). Confirmed the
+ASSEMBLY interface is sound: `RSTAR_affine_envelope_from_certificate` (@37824) closes the gate from a certificate
+(aA1,aB) with (i) per-event affine, (ii) `sum aA1 = pot(RSTAR r)(RCHAR a)` by `rstar_atrace_sound`, (iii) `sum aB<=3M^2`.
+The single-tail anchor genuinely DISSOLVES the per-event MULTIPLICITY nut at the interface (no per-event max; the no-go
+lemma in verdict_a1.md does not apply). The two real obligations reduce exactly as the brief says:
+  A. TAIL-MONOTONICITY (size-1): opn(S(aplug r xs k)) <= opn(S(aplug r xs (RCHAR a))) for size-1 k, per event.
+  B. SINGLE ANCHOR: pot (RSTAR r) (RCHAR a) <= M^3 + 3*M^2   (M = rsize(RSTAR r)).
+
+WHY I FAIL-STOPPED (B is the documented open math, not plumbing):
+- By the pot def, pot(RSTAR r)(RCHAR a) = opn(σ(RSTAR r)(RCHAR a)) + **pot r (σ(RSTAR r)(RCHAR a))**. The second term
+  is a BODY bound `pot r cont` with cont = σ(RSTAR r)(RCHAR a), rsize cont <= M+1. So B REQUIRES bounding the body's
+  opened potential against a star-prefixed continuation — i.e. the SAME saturation that defeated WORKER-A + 8 Pro verdicts.
+- The named static-fact route (card_apder_rows_clean_le_rsize_plus_2 @37190 × apder_rows_member_size_quadratic @31364 ×
+  quad opening @22761 = cubic) bounds the static UNIVERSE SET, but the file only has `rsize_set(universe) <= pot`
+  (@34905, @35010) — the WRONG direction. There is NO `pot <= universe` and NO `pot = universe` (grepped). pot strictly
+  over-counts (re-charges opened rows at every constructor). So the static cubic facts do NOT bound pot directly; the
+  multiplicity-aware pot→universe bridge is exactly the missing content.
+- Pro's only concrete proof route for this (verdict_root.md §3, `rsimpStrong_self_star_absorb_open`) is REFUTED
+  (STEER caveat: 483/508 false). The brief itself forbids it.
+
+NEW CONCRETE DATUM (from removed scratch `by eval` oracle tests — all TRUE, exact computation, not sampling):
+- Candidate clean telescoping body bound **C1: `pot r cont <= Suc(rsize r) * (rsize cont + 3)^2`** (linear count ×
+  quadratic continuation) HOLDS POINTWISE on the cube-shell killer families: body = (a+1)·(a+1)·(a·a*) and
+  a*·b*·c·c*, opened both at their own star tail (cont = σ(RSTAR body) a) and at a char tail, and on the RSEQ
+  LEFT-CHILD substep. The whole anchor `pot(RSTAR killer) a <= M^3+3M^2` also holds by eval.
+- **BUT C1 does NOT telescope through RSEQ.** The induction step
+    pot(RSEQ r1 r2) cont = pot r1 (σ r2 cont) + pot r2 cont
+  has the left child opened against the INFLATED continuation σ r2 cont (rsize <= Suc(rsize r2 + rsize cont)), so the
+  IH gives `Suc(rsize r1)·(rsize r2 + rsize cont + 4)^2` which exceeds the target `(rsize r1+rsize r2+2)·(rsize cont+3)^2`.
+  The cont-inflation is the precise obstruction: C1 is a true UPPER ENVELOPE but is not an inductive INVARIANT. The
+  reason the real value stays small (eval shows C1_killer_left's true pot is far below the loose IH bound) is the S-
+  collapse of the inflated continuation's rows — i.e. the saturation — which an IH on rsize cannot see.
+- This pins the open math precisely: we need an invariant f(r,cont) that (a) bounds pot, (b) telescopes through RSEQ/
+  RALTS WITHOUT cont-inflation (unlike C1), (c) gives f(RSTAR r, RCHAR a) <= M^3+3M^2 (unlike the cube-shell, which
+  telescopes but yields ~7M^3 at RSTAR). The cube-shell and C1 bracket the target but neither is both inductive and tight.
+
+ASK TO SECRETARY (validate on the witness family BEFORE any worker grinds — methodology rule):
+  Find/validate a STRENGTHENED INVARIANT that is BOTH inductive (survives the RSEQ cont-inflation step using only the
+  IH bound, not the real value) AND tight at RSTAR (<= M^3+3M^2 at RCHAR a). Concretely: does a "shell with a static-
+  universe cap" form telescope, e.g. f(r,cont) = min( cube-shell(r,cont), Suc(rsize r)·(rsize cont+3)^2 )? Or a charge
+  that subtracts the saturated star-prefix size on each RSTAR re-entry? The decisive numeric test is the RSEQ STEP
+  inequality stated purely in the candidate-bound algebra (LHS = f-bound(r1, σ r2 cont) + f-bound(r2, cont), RHS =
+  f-bound(RSEQ r1 r2, cont)); it must hold for ALL clean r1,r2,cont, not just pointwise pot values. Without a validated
+  inductive invariant I would be guessing, which the brief forbids.
+
+STATUS: build GREEN, no sorry, nothing committed to the .thy. Substrate + assembly + certificate interface all already
+GREEN (WORKER-A). The lone open lemma is the single anchor B (= the body saturation), unchanged in difficulty by the
+single-tail simplification (which only fixed the interface multiplicity, not the underlying pot cubic bound). I am
+NOT fabricating an invariant; HOLDING per fail-stop discipline.
