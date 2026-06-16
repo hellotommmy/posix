@@ -11070,6 +11070,51 @@ the literal verdict2 §4 containments STEER assigns me are FALSE.
     trace_B<=3M^2 SLOPE). Validated 0-viol (STEER). Will post the exact stuck goal here if I wall.
 - A-EXCLUSIVE lane per STEER; no other agent on RSTAR/driver/gate. Will commit small + push.
 
+## 2026-06-16 WORKER-A: SAFE SKELETON LANDED & GREEN — gate closed MODULO one envelope lemma
+
+- Five bricks landed (no sorry, build GREEN ~25s each, all pushed; HEAD a441196, driver/gate
+  5cf3e98, cube-arith 149b644, pot_trace ed823bf):
+  1. `affine_envelope_imp_cube_shell` (nat): `M^3 + 3*M^2*n <= (M+n)^3 - n^3`.
+  2. `strong_opened_live_acc_potential_RSTAR_cube_shell` (RSTAR cube-shell FROM the envelope).
+  3. `strong_opened_live_acc_RSTAR_root_shell_large` (HEAD; @33427 analogue, exact transcription).
+  4. `strong_opened_live_acc_potential_cube_shell` (DRIVER, induct r): RONE/RCHAR/RALTS/RSEQ via
+     the green cube-shells, RSTAR via the envelope assumption, NTIMES/backref/half/residue vacuous
+     (rntimes_free+legacy_rrexp guards). Then `..._root_cubic` (k:=RONE, via
+     `cube_shell_RONE_le_double_cubic`) and `actual_gate_from_cube_shell` -> feeds
+     `actual_gate_bridge_from_strong_opened_live_potential` (@35221). **THE WHOLE CUBIC GATE IS NOW
+     GREEN given a single assumption `env`.**
+  5. `pot_event`/`event_cost`/`pot_trace`/`pot_trace_sound` (Pro substrate; legacy NTIMES-free
+     fragment; helper `sum_list_event_cost_concat_pot_trace`).
+- THE ONE OPEN OBLIGATION (discharges the gate unconditionally):
+  `strong_opened_live_acc_potential (RSTAR r) k <= (rsize(RSTAR r))^3 + 3*(rsize(RSTAR r))^2 * rsize k`
+  for ALL r,k (this is the `env` assumption of bricks 2/4/gate). Naming it
+  `strong_opened_live_acc_potential_RSTAR_affine_envelope` and discharging `env` closes everything.
+
+- ⚠ NEW VALIDATION FINDING (WORKER-A probes, seeds 7/11, 20-30k each, r ARBITRARY not S-fixed) —
+  sharpens the Pro target and CORRECTS a hidden guard:
+  * **The envelope is UNCONDITIONALLY TRUE**: `pot(STAR r,k) <= M^3+3M^2*rsize k` 0/20000 incl.
+    small M and non-S-fixed r. Likewise the RSTAR cube-shell `pot(STAR r,k) <= (M+K)^3-K^3` 0/20000.
+    => my driver's UNCONDITIONAL `env` (no S=fixpoint guard) is SOUND to target. Good news: no
+    S-fixed guard needs threading through the driver.
+  * **BUT Pro's scalar split is NOT unconditional** — it was validated only for rsize(rstar)>=5
+    (`scratch_cubeshell_verify_verdict_root.py` line 59 `rsize(rstar)>=5`). Unconditionally:
+    ROOT `pot(STAR r,RONE)<=M^3` FAILS 6055/30000 (worst M=2: 11>8); SLOPE
+    `pot(*,k)-pot(*,1)<=3M^2(K-1)` FAILS 7736/30000; SAT/BODY `pot(r, r*.k)<=(B+K)^3-K^3` FAILS
+    2797/30000 (worst B=K=1: 15>7). All failures concentrate at SMALL M (2..4) where the envelope
+    SUM still holds by slack (cross-subsidy). So a faithful envelope proof via ROOT+SLOPE (or
+    HEAD+SAT) must ALSO dispatch M in {2,3,4} as base cases, OR avoid the additive split.
+  * HEAD `opn(sig(STAR r)k) <= (n+1)^3-n^3` (n=B+K) is 0-viol AND now GREEN in Isabelle
+    (`strong_opened_live_acc_RSTAR_root_shell_large`), but it carries a `K^2` term so it is too
+    loose for the LINEAR-in-K envelope by itself — the envelope needs an AFFINE-in-(rsize k) bound
+    on the per-event opening cost (k always sits at the TAIL behind r*).
+  * Net: the genuine remaining math = a TAIL-AFFINE opening bound
+    `opn(x . k) <= A_x + (#rows of x)*(rsize k + 1)` (k appended at the tail adds rows linearly),
+    summed over the <=M trace events whose continuations are `ctx . r* . k`. Probes:
+    `scratch_cubeshell_verify_verdict_root.py` (+ my two inline probes, seeds 7/11).
+- NEXT (WORKER-A): attempt the tail-affine opening lemma; if it walls, post the exact stuck goal
+  here for Secretary sharpening / a Pro micro-ask (target = the UNCONDITIONAL envelope, with the
+  small-M caveat above baked in).
+
 ## 2026-06-16 WORKER-A-EXEC: SAFE SKELETON GREEN — gate is now GREEN MODULO the RSTAR affine envelope
 
 - Build GREEN (Posix_Antimirov, content-hash cached 3s; no-cheat guard PASS, no sorry).
