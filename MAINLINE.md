@@ -56,6 +56,30 @@ Vocabulary (fixed, do not rename):
 
 ## 2. Where the Proof Stands (as of 2026-06-14 — D law PROVEN; §5 drain ARITHMETIC done/green; context-cover infra + static lemmas + RCHAR/RSEQ ctx cases green; the #3/#4 cover PROOFS go via GPT Pro verdict5 WEAK-CARRIER skeleton (`GPT_PRO_GATE_BRIDGE_VERDICT4.md`) — a proof-only `weak_child_drain` (non-collapsing rsimp4 plug) + injective indexed-slot charge, mutual P/Q induction — VALIDATED at depth≥5 (~660k checks, 0 in-fragment violations, both CEs covered). #3/#4 UN-GATED, implementing. Two caveats: weak acc must be S-FREE; guards must be `S p=p`. Lemma `strong_child_drain_potential` green = §4 blocker CLOSED, then §7.)
 
+> **⛔ SUPERSEDED (2026-06-16) — the per-step drain-budget route below is DEAD; the live
+> route is the CUBE-SHELL potential bound (see STEER.md).** Adversarial re-validation with a
+> *structured* witness family (not `rand_clean`) reproduced two independent in-regime
+> counterexamples that refute BOTH per-step budget targets at depth≥5:
+> - TIGHT: `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k` is FALSE.
+>   CE2 (rsize19): `p = 1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`, `k=c*` → 47 > 46.
+>   CE1 (rsize18): `p=(((((a+1)·b)+1)·((1+a)·(c·b*)))+c)`, `k=b*` → 64 > 60.
+> - LOOSE / `child_ok`: `rsize_set(strong_child_drain p k) ≤ drain_child_budget p k` is ALSO
+>   FALSE. CHILDOK (rsize22): `p=(((((a+1)·b)+1)·((((a+1)·b)+1)·(a·b*)))+c)`, `k=b*` → 99 > 96.
+> - **`drain_child_budget` is NOT "proven".** `child_okD` (@32981) only *unfolds the
+>   assumption* `child_ok p`; nothing discharges `child_ok` unconditionally, and it is false
+>   in-regime. So neither (a) "switch the target to `drain_child_budget`" nor (b) "add a
+>   per-slot capacity fix to the ctx_bound ledger" rescues the route — the overshoot exceeds
+>   even the looser quadratic budget and grows with chain depth.
+> - The "0-violation > 10⁵ samples" that made both bounds look TRUE was a SAMPLING ARTIFACT:
+>   `rand_clean` essentially never builds the killer (nested `SEQ(ALTS[pre,1], … SEQ(atom,
+>   star*))` opened at `k=star*`, which re-doubles `star*→star*·star*` each frame). The
+>   witness family finds CEs at ~11% (ctx_bound) / ~4.7% (drain_child_budget) on every seed.
+> - Reproduce: `python scratch_ctxbound_target_FALSE_repro.py` (named CEs) and
+>   `python witness_gen.py` (witness family + regression anchors). Every future drain-budget
+>   gate MUST import `witness_gen`; a `rand_clean`-only gate is no longer acceptable.
+> - The rest of §2 (verdict4 ledger / verdict5 weak-carrier / `master_cover` / child_ok) is
+>   KEPT FOR HISTORY ONLY. Do not implement it. See §4 entry 11 and STEER.md for the live route.
+
 - **CARD half: done, one-degree.** `card_row_dlformss_le_rsizes` and
   `card_row_dlformss_rpder_strong_rows_raw_le_generated` — distinct opened
   rows of the actual output are at most the generated total size.
@@ -236,10 +260,18 @@ Vocabulary (fixed, do not rename):
   **mutual P/Q induction** (P=strong, Q=weak). VALIDATED depth≥5 (~660k checks, 0 in-fragment
   violations; W1 weak cover, W2/W3 RALTS bridge, W4/W5 RSTAR bridge; both CEs covered).
   ⚠ two caveats: weak acc S-FREE; guards `S p=p` (not just nf). Stack + lanes: STEER.md.
-- **Current narrow instruction:** implement the verdict5 stack (STEER.md): weak carrier +
-  `weak_child_drain_charge`/`_ctx_bound`, then #3 RALTS, #4 RSTAR, then the mutual-induction
-  #5 + corollary #6 + §7. Pre-validated — go straight to Isabelle, re-sample only if a
-  statement changes. Do NOT use the BOXED additive acc-split (line 34844) for #3, nor the
+- **Current narrow instruction (2026-06-16):** the per-step drain-budget route (verdict4
+  ledger + verdict5 weak-carrier + `child_ok`) is REFUTED (see the SUPERSEDED banner at the
+  top of §2 and §4 entry 11). The live route is the **cube-shell potential bound** in STEER.md:
+  the gate already reduces (all-green, no `sorry`) via `actual_gate_bridge_from_strong_opened_live_potential`
+  (@35221) + `rsize_set_strong_opened_live_row_universe_le_potential` (@35010) to the cube-shell
+  invariant `strong_opened_live_acc_potential r k ≤ (rsize r+rsize k)³ − (rsize k)³`. Leaves +
+  RALTS + RSEQ cube-shell steps are GREEN; the ONE open piece is the **RSTAR cube-shell step**
+  (the SAT saturation crux — `RSTAR_CUBE_SHELL_SKETCH.md`). All agents currently HOLD on the
+  Isabelle side pending the user's design decision on SAT. Do NOT start any `child_ok` /
+  ctx_bound / per-step-budget proof. ⛔ HISTORICAL (do not implement): the verdict5 stack —
+  weak carrier + `weak_child_drain_charge`/`_ctx_bound`, #3 RALTS, #4 RSTAR, mutual-induction
+  #5 + corollary #6. Do NOT use the BOXED additive acc-split (line 34844), nor the
   dead per-child membership. Do NOT re-attempt: the verbatim
   subset target, the opened-boundary/liveness original-root carriers, the square-sum
   or list-cost routes, the falsified unary/potential strengthenings, the old zwidth
@@ -296,6 +328,18 @@ Vocabulary (fixed, do not rename):
    value CE (`STAR (STAR (CH a))` on `a`); it is a recognition gate only.
 10. **`row_dlforms ⊆ apder_frontier`** — inclusion false; linear forms split
     `(a+b)c` while the whole-residual frontier stores `(a+b)c` and `c`.
+11. **Per-step drain budgets — BOTH refuted in-regime (2026-06-16).** Neither
+    `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k` (TIGHT) nor
+    `… ≤ drain_child_budget p k` (LOOSE / `child_ok`) holds at depth≥5. Named CEs: CE2
+    (47>46), CE1 (64>60) break ctx_bound; CHILDOK rsize22 (99>96) breaks drain_child_budget
+    too. `child_okD` @32981 only assumes `child_ok` — it is not a proof; nothing discharges
+    `child_ok`, which is false. The overshoot grows ~quadratically with chain depth, so no
+    constant / fixed multiplier / per-slot capacity fix to the ledger closes it. The whole
+    verdict4-ledger + verdict5-weak-carrier + `master_cover` + `child_ok` family is dead. The
+    deception datum (rand_clean 0/>10⁵ vs witness-family ~11%/~4.7%) is the reason this
+    survived 9 refuted routes. Use the cube-shell potential bound instead (STEER.md). Repro:
+    `scratch_ctxbound_target_FALSE_repro.py`, `witness_gen.py`. CE families in
+    `SUPER_LINEAR_PATTERNS.md`.
 
 If a plan needs one of these, stop and write the blocker in
 `PROGRESS_BACKREF.md` instead of working around it silently.

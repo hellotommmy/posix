@@ -11471,3 +11471,58 @@ STATUS: build GREEN, no sorry. BRICK1 (event-count) committed + pushed. Substrat
 certificate interface + slope all already GREEN. The lone open lemma = the ANCHOR pot(RSTAR r)(RCHAR c) <= M^3+3M^2
 (the body saturation), unchanged in difficulty. HOLDING the charge-cubic per fail-stop discipline; not fabricating an
 unvalidated invariant. Probes: scratch_chargecubic_probe{1..15}.py, scratch_chargecubic_final.py.
+
+---
+
+## DIRECT-UNIVERSE CUBIC (cubic/ lane) — Phase 1 GREEN brick landed; Phase 2 (L3) FAIL-STOP. 2026-06-17
+
+WORKER (single-owner, both cubic/ files this pass). Build `Posix_Cubic` GREEN, 0 sorry, ~6s.
+
+PHASE 1 — DONE, GREEN. The GATE is proven MODULO L3 (carried as an `assumes` hypothesis), in
+`cubic/DirectUniverseCubic.thy`:
+  - L1 needed NO new lemma: `rsize_set_UN_le` @537 already IS the finite-union subadditivity of rsize_set.
+  - `universe_le_cubic` [assumes apder_clean r + L3-on-apder_rows] :
+      `rsize_set (apder_strong_dlfrontier r) <= 2*(rsize r+3)^3`.
+    Chain: unfold `apder_strong_dlfrontier r = (UN q:apder_rows r. row_dlforms (rsimpStrong_raw q))`
+    (rsimpStrong_dlform_closure_def) -> `rsize_set_UN_le` -> per-term L3 `(rsize r+2)^2` -> constant-sum
+    `card(apder_rows r)*(rsize r+2)^2` -> `card_apder_rows_clean_le_rsize_plus_2` @37190 (card <= rsize r+2)
+    -> cube arith `(n+2)^3 <= 2(n+3)^3`. (Two tiny arith helpers added: cube_plus2_le_two_cube_plus3,
+    card_times_quadratic_le_cube.)
+  - `actual_gate_from_direct_universe` [assumes apder_clean r + L3] :
+      `rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <= 2*(rsize r+3)^3`.
+    = the GATE. Uses gate-rows inclusion
+    `row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier` @19490 +
+    `rsize_set_mono` @403 + `universe_le_cubic`.
+
+  ARCHITECTURE CORRECTION vs the route doc: the assembly is over `apder_rows r` (the DEDUP'd Antimirov
+  rows, the union defining `apder_strong_dlfrontier r`), NOT the full `partial_derivative_live_row_universe r`
+  (= D r). Reason: `card(D r)` is only QUADRATIC (it is the path/frontier universe;
+  `rsizes_distinct_frontier_universe_cubic` uses card <= (rsize r+2)^2), so the route-doc step
+  "card(D r) <= rsize r+2" is FALSE for the full D r — that linear card holds only for `apder_rows r`
+  (`card_apder_rows_clean_le_rsize_plus_2`). The gate rows ARE contained in the `apder_rows r` union
+  (@19490), so the cube lands cleanly there.
+
+PHASE 2 — L3 `member_opened_quadratic` : BLOCKED / FAIL-STOP (no sorry, file `cubic/DirectUniverseCubic_L3.thy`
+GREEN with the goal recorded in a comment). Target:
+    apder_nf r ==> q : apder_rows r ==> rsize_set (row_dlforms (rsimpStrong_raw q)) <= (rsize r+2)^2.
+The two available per-member static facts compose only to a QUARTIC:
+  (A) `rsize_set_row_dlforms_rsimpStrong_raw_quadratic` @22761 : opened(p) <= Suc(rsize p)*rsize p
+      (quadratic in MEMBER size; @22761 is quadratic-in-`rsize p`, the member's own size).
+  (B) `apder_rows_member_size_quadratic` @31364 : member rsize <= Suc((rsize r+2)^2) (quadratic-in-ROOT, TIGHT
+      — members are stacked-rsimp4_SEQ_atom path continuations, `apder_terms_member_size_quadratic` @2920).
+  (A)o(B) = Suc(Suc((rsize r+2)^2))*Suc((rsize r+2)^2) ~ (rsize r+2)^4. Target (rsize r+2)^2. Gap = a full
+  (rsize r+2)^2 factor; no monotone/linarith composition bridges it.
+Alternative (card-of-opened-set, the @9433 `card<=B, member<=B^2 => B^3` pattern) ALSO blocked:
+  - it needs a LINEAR card of the opened set; the deep-frontier linear card is EXPLICITLY FALSE for general
+    input (@10074-10086, RNTIMES/RSTAR-RONE branches), and
+  - `apder_strong_dlfrontier r ⊄ apder_deep_frontier r` (@11415/11433), so the deep-frontier machinery
+    cannot be borrowed for the strong frontier at all.
+Provenance fact CONFIRMED but useless directly: `row_dlforms (rsimpStrong_raw q) ⊆ strong_opened_live_row_universe r`
+for q:apder_rows r (via `apder_strong_dlfrontier_subset_strong_opened_live` @35158) — bounding opened(q) by the
+whole universe is circular (the universe rsize_set is what the gate bounds).
+DIAGNOSIS: same size x multiplicity cancellation that walls the pot route, re-appearing at PER-MEMBER
+granularity. (A) is quadratic-in-member exactly when the strong opening duplicates a tail across many
+alternation heads; (B)'s member is quadratic-in-root only for deep continuations — but a quadratic-in-root
+member strong-collapses so its opening is small; the two extremes never co-occur. Capturing that needs a
+structural/amortized argument on q's shape, NOT the static facts. Per route-doc §6 discipline: did NOT fall
+back to the loose composition, did NOT add sorry. STOP.

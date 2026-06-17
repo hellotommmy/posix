@@ -24,3 +24,13 @@ session Posix_Antimirov in "active" = "Posix_Base" +
   theories
     "AntimirovFactoredTransition"
     "AntimirovNormalFrontier"
+
+(* DIRECT-UNIVERSE CUBIC ROUTE (2026-06-17) — fast leaf over the Posix_Antimirov heap, in cubic/.
+   Edits to the cubic theories rebuild ONLY this leaf (Antimirov loads from heap, ~seconds), so the
+   workers iterate fast and never recompile the 37k-line active file.
+   Build this lane with:  scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic. *)
+session Posix_Cubic in "cubic" = "Posix_Antimirov" +
+  options [document = false]
+  theories
+    "DirectUniverseCubic_L3"
+    "DirectUniverseCubic"

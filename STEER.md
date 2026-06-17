@@ -15,6 +15,92 @@ Self-sync protocol (every agent, every turn):
 
 ---
 
+# 🔴🔴 CONCURRENCY NOTICE (2026-06-17) — YOU ARE ONE OF 4 PARALLEL AGENTS. READ BEFORE EDITING.
+
+**Four agents run CONCURRENTLY right now. You are one of them.**
+- **A / B / C** (3 agents) all prove the SAME single remaining lemma
+  `card_apder_strong_dlfrontier_le` : `card (apder_strong_dlfrontier r) ≤ Suc (rsize r)`, each from a
+  DIFFERENT angle (A = D-law transfer @37145/@37058; B = diff-card telescope @5541+; C = structural
+  induction on the frontier). Three of you targeting one lemma is DELIBERATE — first GREEN proof wins.
+- **D** — the `→r'` rewriting-relation route (independent fallback; see `DIRECT_UNIVERSE_CUBIC_ROUTE.md` §6).
+
+**ANTI-COLLISION (mandatory):**
+1. **The green brick ALREADY EXISTS** in `cubic/DirectUniverseCubic.thy` — the Gate is proven modulo
+   EXACTLY this one card lemma (8 lemmas, 0 sorry: `universe_le_cubic_rowlevel`,
+   `actual_gate_from_direct_universe_rowlevel`, `per_row_size_le_quadratic`, `budget_suc_quad_le_cube`,
+   `card_times_quadratic_le_cube`, …). **DO NOT reprove ANY of it.** Only APPEND the card lemma + the
+   `cubic_gate_unconditional` corollary (see `FINISH_HERE.md`).
+2. **Stay on YOUR OWN branch.** Do NOT all push to `codex/backref-values`. Open a separate PR / report
+   your proof-text. The human + Secretary integrate the winner — you do NOT merge into the shared branch.
+3. Never touch another lemma; never add `sorry`/`oops`/`admit`. Once your build is green WITH the card
+   lemma, STOP and report — do not keep grinding alternatives.
+4. **If your checkout lacks `cubic/DirectUniverseCubic.thy` or `FINISH_HERE.md`, you are on a STALE base.**
+   `origin/codex/backref-values` now carries the green brick + `cubic/` + `ROOT` (session `Posix_Cubic`)
+   + the route docs. Rebase onto it before working. Build your lane: `-Session Posix_Cubic`.
+
+---
+
+# ⭐⭐ CURRENT ROUTE (2026-06-17) — DIRECT-UNIVERSE CUBIC. This banner SUPERSEDES every dated section below.
+
+**READ THIS FIRST, EVERY TURN. If you just came out of a compaction/summary: your objective is in THIS
+banner, not in any older section, memory, or half-remembered problem. The whole `pot` programme is
+PAUSED.**
+
+**The pivot (validated 0 violations / 10,092 regexes incl. all known killers — see
+`DIRECT_UNIVERSE_CUBIC_ROUTE.md`):** the Gate's real target is `‖U(r)‖ =
+rsize_set(strong_opened_live_row_universe r)`. It is DIRECTLY cubic (worst 0.04× the cube). `pot`
+over-approximates it by **up to 21×** — that 21× is the entire reason the old anchor resisted. So we
+bound `‖U(r)‖` directly via the Antimirov decomposition and rewire the bridge. NO pot, NO trace, NO
+multiplicity, NO injection.
+
+**STATUS (2026-06-17 night):** GREEN BRICK landed — `cubic/DirectUniverseCubic.thy` proves the GATE
+`actual_gate_from_direct_universe` modulo ONE hypothesis, building over the deduped Antimirov rows
+`apder_strong_dlfrontier r = (⋃ q∈apder_rows r. row_dlforms (rsimpStrong_raw q))` (card `apder_rows`
+linear @37190; gate-rows inclusion @19490; L1 = `rsize_set_UN_le` @537). The **PER-MEMBER** L3
+(`opened(q) ≤ (|r|+2)²` for q∈apder_rows) is BLOCKED — composes to quartic (same cancellation, per-member).
+
+**UPDATE (2026-06-17, Secretary landed directly — subagents were hitting transient API 500s):** the
+row-level assembly is GREEN in `cubic/DirectUniverseCubic.thy` — `per_row_size_le_quadratic`,
+`universe_le_cubic_rowlevel`, `actual_gate_from_direct_universe_rowlevel` (+ `budget_suc_quad_le_cube`)
+all build (0 sorry). **The ENTIRE GATE is now proven modulo ONE count bound:**
+`card (apder_strong_dlfrontier r) ≤ Suc (rsize r)`. That is the ONLY remaining open lemma. Discharge it
+→ `actual_gate_from_direct_universe_rowlevel[OF clean <card>]` is the unconditional cubic Gate.
+
+**LIVE ROUTE = ROW-LEVEL (avoids the cancellation; validated 0/6174):** bound `rsize_set` by
+**COUNT × PER-ROW-SIZE**, each separately bounded:
+`rsize_set(apder_strong_dlfrontier r) = Σ_{x} rsize x ≤ card(apder_strong_dlfrontier r)·(|r|+2)²
+≤ (|r|+1)·(|r|+2)² ≤ 2(|r|+3)³`, via
+(i) **PER-ROW** `x∈apder_strong_dlfrontier r ⟹ rsize x ≤ (|r|+2)²` — EASY: `row_dlforms_member_size_le_rsize`
+@5902 + `apder_rows_member_size_quadratic` @31364; and
+(ii) **CARD-LINEAR** `card(apder_strong_dlfrontier r) ≤ |r|+1` — the crux, but it is a COUNT, and the
+linear ROW COUNT was already cracked (D-law `D_law_clean` @37145, `apder_T_bound`/`apder_S_bound` @37058).
+This makes `universe_le_cubic` UNCONDITIONAL → the Gate closes with NO open lemma.
+
+**⛔ DEAD — DO NOT WORK ON ANY OF THESE (they are the old fixation traps):** `pot(r*,char c) ≤ M³+3M²`
+(the charge-cubic anchor); the affine envelope / cube-shell / RSTAR cube-shell; the amortised potential
+Φ / `aA1` intercept; `ctx_bound`; `child_ok`; `drain_child_budget`; `master_cover`; the weak carrier.
+If the lemma you are about to touch is in this list, or mentions `pot`/`potential`/`cube_shell`/`aevt`/
+`atrace` as the THING TO BOUND, **STOP** — you have drifted to a dead target.
+
+**LANES (fast leaf session `Posix_Cubic` in `cubic/`, ~10s rebuilds, loads the Antimirov heap; build a
+lane with `scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic`. Both theories share this
+session — KEEP YOUR FILE GREEN AT ALL TIMES or you break the other lane's build):**
+- **WORKER-CODEX** owns `cubic/DirectUniverseCubic_L3.thy` — ONLY lemma **L3** `member_opened_quadratic`
+  (per-member opening ≤ `(rsize r+2)^2`, TIGHT/provenance — see budget trap). Prompt:
+  `WORKER_CODEX_PROMPT.md`. Claim L3 in PROGRESS.
+- **WORKER-OPUS** owns `cubic/DirectUniverseCubic.thy` — **L1** (subadditivity) + **ASSEMBLE**
+  `universe_le_cubic` (carry L3 as `assumes`) + **BRIDGE** `actual_gate_from_direct_universe`. Bridge is
+  EASY: monotonicity @35179 + `rsize_set_mono` @403 + `finite_strong_opened_live_row_universe` @33059
+  (simp). Prompt: `WORKER_OPUS_PROMPT.md`. Land L1 + the conditional assembly + bridge first (green with
+  L3 as hypothesis), discharge once Codex lands L3.
+- **SECRETARY** validates every NEW numeric sub-claim on the witness family before you grind it; ask.
+
+**SELF-CHECK before any edit (anti-drift):** post one line in PROGRESS answering: (1) my lane's CURRENT
+objective per this banner; (2) the exact lemma name I will edit; (3) confirm it is NOT in the DEAD list.
+If you cannot, re-read this banner. No `sorry`/`oops`/`admit` ever. Fail-stop + report exact goal state.
+
+---
+
 ## ✅ RESUME (2026-06-14) — build modularization LANDED & GREEN (~104s → ~28-40s)
 RESUME your lanes below. ONE-TIME setup, each agent:
 1. `git pull --rebase --autostash` (you'll receive the file moves).
