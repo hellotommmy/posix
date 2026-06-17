@@ -51,3 +51,12 @@ per-row size is quadratic with leading coeff 1, so card coeff > 2 fails). Re-val
 Prove SUM, then `cubic_gate_modulo_sum[OF clean SUM]` IS the unconditional cubic Gate. SUM is a pure
 opened-row COUNT (D-law @37145 / `card_row_dlforms_..._diff_le` @5541 domain), structurally immune to the
 a*.a* membership wall.
+
+## ⚠ INDUCTION SHAPE (Secretary) — plain `induct r` does NOT prove SUM/EXCESS. (2 lane-A stubs failed this way.)
+`apder_terms`/`apder_rows`/`apder_term_frontier_acc` recurse via CONTINUATION-CHANGING `rsimp4_SEQ_atom`
+plugs (RSEQ: `Terms(r1·r2) = σ4(_,r2)`Terms(r1) ∪ Terms(r2)`; RSTAR: `σ4(_,r*)`Terms(r)`). A plain `induct r`
+yields an IH about r1,r2 SEPARATELY — useless for the σ4-PLUGGED term set, so `by (induct r) (simp/auto …)`
+will NOT close the RSEQ/RSTAR/RALTS cases. You MUST induct on a CONTINUATION-PARAMETRIZED statement:
+generalise over the continuation k and induct on `apder_term_frontier_acc r k` (@1739) — the way the PROVEN
+`card_apder_terms_le_awidth` @1870 and the D-law @37145 do it. Do NOT submit a plain-`induct r` one-liner
+for the crux; build-verify before committing.
