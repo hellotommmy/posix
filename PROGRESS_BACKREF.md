@@ -11526,3 +11526,23 @@ alternation heads; (B)'s member is quadratic-in-root only for deep continuations
 member strong-collapses so its opening is small; the two extremes never co-occur. Capturing that needs a
 structural/amortized argument on q's shape, NOT the static facts. Per route-doc §6 discipline: did NOT fall
 back to the loose composition, did NOT add sorry. STOP.
+
+## ===== 2026-06-17 FRESH RESTART (Secretary) — clean canonical base for NEW agents =====
+ENTRY POINT for every new agent: **AGENT_BRIEF.md** (complete current context). Then FINISH_HERE.md /
+DIRECT_UNIVERSE_CUBIC_ROUTE.md for depth.
+STATE: clean-fragment cubic Gate is GREEN (0 sorry) modulo ONE count lemma
+  `card_apder_strong_dlfrontier_le : card (apder_strong_dlfrontier r) <= Suc (rsize r)`.
+cubic/DirectUniverseCubic.thy = 33 GREEN lemmas (build `-Session Posix_Cubic`, 0 sorry): the 8-lemma
+  row-level brick (Gate via COUNT x PER-ROW-SIZE) + ~25 card-scaffold lemmas (the `strong_apder_acc`
+  accumulator: `apder_strong_dlfrontier r ⊆ strong_apder_acc r RONE`, per-ctor subset lemmas, and card
+  telescoping lemmas). NEW agents APPEND the card lemma + `cubic_gate_unconditional` on top of these.
+ROUTE: bypassed the pot/cancellation wall — bound the actual universe directly, size split into
+  (linear row COUNT) x (per-row quadratic). Per-member opening bound is DEAD (quartic). The COUNT is the
+  remaining half (same flavour as the already-cracked D-law).
+WORKTREE MODEL (Strategy A): each agent in its OWN worktree/branch (codex/card-{a,b,c}, codex/rewrite-d);
+  edit only your worktree; APPEND-ONLY to cubic/ (never delete the 33 green lemmas); no sorry; commit to
+  YOUR branch + report; do NOT push to codex/backref-values. Winner's card lemma is cherry-picked into
+  codex/backref-values by the human/Secretary; losing worktrees/branches deleted.
+DEAD ROUTES: pot/cube-shell/Φ; per-member opening; deep-frontier card; ctx_bound/child_ok/drain.
+D-lane (→r' rewrite fallback): rewrite/RewriteFallback.thy + session Posix_Rewrite_Fallback (in "rewrite"
+  = Posix_Base). Relation skeleton + language preservation GREEN; derivative-commutation theorem not yet.

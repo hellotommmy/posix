@@ -34,3 +34,11 @@ session Posix_Cubic in "cubic" = "Posix_Antimirov" +
   theories
     "DirectUniverseCubic_L3"
     "DirectUniverseCubic"
+
+(* REWRITE FALLBACK LANE (2026-06-17) — independent Ch5/Ch6-style near-identity
+   rewrite relation for the step-wise-strong vs once-strong derivative route.
+   Build with: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback. *)
+session Posix_Rewrite_Fallback in "rewrite" = "Posix_Base" +
+  options [document = false]
+  theories
+    "RewriteFallback"
