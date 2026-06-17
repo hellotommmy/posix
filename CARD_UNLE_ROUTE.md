@@ -41,3 +41,13 @@ Reproduce: `posix-codex/scratch_card_terms_bridge.py`.
    NOT card×max.
 
 This is a COUNT argument (card_UN_le + D-law), structurally disjoint from the a*.a* membership wall.
+
+## ===== STATUS UPDATE (Secretary) — Gate now GREEN modulo ONE count lemma =====
+The assembly + card_UN_le step + ROWS are DONE (green in base). `cubic_gate_modulo_sum` reduces the WHOLE
+cubic Gate to the SINGLE lemma:
+  **SUM: `(∑ q∈apder_rows r. card (row_dlforms (rsimpStrong_raw q))) ≤ 2 * rsize r + 2`**  (apder_clean r).
+⚠ CONSTANT CORRECTION: it must be `2*rsize r + 2` (NOT 4n+4 — the cubic budget has leading coeff 2 and the
+per-row size is quadratic with leading coeff 1, so card coeff > 2 fails). Re-validated 0/186528 at 2n+2.
+Prove SUM, then `cubic_gate_modulo_sum[OF clean SUM]` IS the unconditional cubic Gate. SUM is a pure
+opened-row COUNT (D-law @37145 / `card_row_dlforms_..._diff_le` @5541 domain), structurally immune to the
+a*.a* membership wall.

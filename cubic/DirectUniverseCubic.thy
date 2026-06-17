@@ -690,4 +690,144 @@ proof -
   finally show ?thesis .
 qed
 
+subsection \<open>ASSEMBLY -- the Gate GREEN modulo exactly two COUNT bounds (ROWS, SUM)\<close>
+
+text \<open>
+  This brick reduces the whole clean-fragment Gate to TWO clean COUNT sub-lemmas, carried
+  here as hypotheses (both validated 0-violation; both pure counts, neither needing
+  membership/distribution, so structurally disjoint from the a*.a* collapse wall):
+
+  \<^item> ROWS: @{term "card (apder_rows r) \<le> 2 * rsize r + 2"}  (C1, worst ratio 1.00).
+  \<^item> SUM:  @{term "(\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))
+              \<le> 2 * rsize r + 2"}  (validated 0/186528 incl. the a*.a*/RALTS killers).
+
+  The TRIVIAL `card_UN_le` step (no membership argument) bridges SUM to the card of the
+  strong dlfrontier; the looser-constant cubic budget then lands the Gate.  We carry the
+  count constants at @{term "2 * rsize r + 2"}: this is the LARGEST linear card the cubic
+  budget tolerates -- per-row size is quadratic @{term "Suc ((rsize r + 2)\<^sup>2)"} (leading
+  coeff 1), and @{term "2 * (rsize r + 3) ^ 3"} has leading coeff 2, so a card coefficient
+  of 2 closes (with slack @{term "8 * (rsize r)\<^sup>2 + 36 * rsize r + 44"}) while coefficient
+  4 would NOT.  Both ROWS and SUM hold 0-viol at this tighter constant.
+\<close>
+
+text \<open>Step 1: the trivial @{thm card_UN_le} step (an a*.a*-proof COUNT bound).\<close>
+
+lemma card_apder_strong_dlfrontier_le_sum:
+  "card (apder_strong_dlfrontier r) \<le>
+    (\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))"
+proof -
+  have fin: "finite (apder_rows r)"
+    by (rule finite_apder_rows)
+  have "card (apder_strong_dlfrontier r) =
+      card (\<Union>q \<in> apder_rows r. row_dlforms (rsimpStrong_raw q))"
+    by (simp add: apder_strong_dlfrontier_def rsimpStrong_dlform_closure_def)
+  also have "... \<le> (\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))"
+    by (rule card_UN_le[OF fin])
+  finally show ?thesis .
+qed
+
+text \<open>Step 2a: the looser-constant cubic budget arithmetic (linear x quadratic = cubic).\<close>
+
+lemma budget_two_lin_quad_le_cube:
+  fixes n :: nat
+  shows "(2 * n + 2) * Suc ((n + 2)\<^sup>2) \<le> 2 * (n + 3) ^ 3"
+proof -
+  have "2 * (n + 3) ^ 3 =
+      (2 * n + 2) * Suc ((n + 2)\<^sup>2) + (8 * n\<^sup>2 + 36 * n + 44)"
+    by (simp add: power2_eq_square power3_eq_cube algebra_simps)
+  then show ?thesis by linarith
+qed
+
+text \<open>Step 2b: generalised copies of the row-level gate accepting the looser linear
+  card @{term "2 * rsize r + 2"} (the existing @{thm universe_le_cubic_rowlevel} /
+  @{thm actual_gate_from_direct_universe_rowlevel} use @{term "Suc (rsize r)"}; these
+  add the linear variant alongside, without touching the green originals).\<close>
+
+lemma universe_le_cubic_rowlevel_lin:
+  assumes clean: "apder_clean r"
+    and CARD: "card (apder_strong_dlfrontier r) \<le> 2 * rsize r + 2"
+  shows "rsize_set (apder_strong_dlfrontier r) \<le> 2 * (rsize r + 3) ^ 3"
+proof -
+  have nf: "apder_nf r" using clean unfolding apder_clean_def by simp
+  have fin: "finite (apder_strong_dlfrontier r)" by simp
+  show ?thesis
+  proof (rule rsize_set_le_card_member_budgetI[OF fin CARD])
+    fix q assume "q \<in> apder_strong_dlfrontier r"
+    then show "rsize q \<le> Suc ((rsize r + 2)\<^sup>2)"
+      by (rule per_row_size_le_quadratic[OF nf])
+  next
+    show "(2 * rsize r + 2) * Suc ((rsize r + 2)\<^sup>2) \<le> 2 * (rsize r + 3) ^ 3"
+      by (rule budget_two_lin_quad_le_cube)
+  qed
+qed
+
+lemma actual_gate_from_direct_universe_rowlevel_lin:
+  assumes clean: "apder_clean r"
+    and CARD: "card (apder_strong_dlfrontier r) \<le> 2 * rsize r + 2"
+  shows "rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have nf: "apder_nf r" using clean unfolding apder_clean_def by simp
+  have sub: "row_dlformss (rpder_strong_rows_raw c (afactored1 r s)) \<subseteq>
+      apder_strong_dlfrontier r"
+    by (rule row_dlformss_rpder_strong_rows_raw_afactored1_subset_apder_strong_dlfrontier[OF nf])
+  have "rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+      rsize_set (apder_strong_dlfrontier r)"
+    by (rule rsize_set_mono) (use sub in auto)
+  also have "... \<le> 2 * (rsize r + 3) ^ 3"
+    by (rule universe_le_cubic_rowlevel_lin[OF clean CARD])
+  finally show ?thesis .
+qed
+
+text \<open>Step 2c: assemble step 1 + the SUM count bound into a linear card bound.\<close>
+
+lemma card_apder_strong_dlfrontier_le_lin:
+  assumes clean: "apder_clean r"
+    and ROWS: "card (apder_rows r) \<le> 2 * rsize r + 2"
+    and SUM: "(\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))
+        \<le> 2 * rsize r + 2"
+  shows "card (apder_strong_dlfrontier r) \<le> 2 * rsize r + 2"
+proof -
+  have "card (apder_strong_dlfrontier r) \<le>
+      (\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))"
+    by (rule card_apder_strong_dlfrontier_le_sum)
+  also have "... \<le> 2 * rsize r + 2"
+    by (rule SUM)
+  finally show ?thesis .
+qed
+
+text \<open>The CONDITIONAL Gate: GREEN modulo exactly the two COUNT hypotheses ROWS, SUM.\<close>
+
+theorem cubic_gate_modulo_counts:
+  assumes clean: "apder_clean r"
+    and ROWS: "card (apder_rows r) \<le> 2 * rsize r + 2"
+    and SUM: "(\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))
+        \<le> 2 * rsize r + 2"
+  shows "rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have CARD: "card (apder_strong_dlfrontier r) \<le> 2 * rsize r + 2"
+    by (rule card_apder_strong_dlfrontier_le_lin[OF clean ROWS SUM])
+  show ?thesis
+    by (rule actual_gate_from_direct_universe_rowlevel_lin[OF clean CARD])
+qed
+
+text \<open>
+  ROWS is already proven (@{thm card_apder_rows_clean_le_rsize_plus_2}: card (apder_rows r) <= rsize r + 2
+  <= 2*rsize r + 2). So the WHOLE cubic Gate reduces to the SINGLE count lemma SUM below.
+\<close>
+
+theorem cubic_gate_modulo_sum:
+  assumes clean: "apder_clean r"
+    and SUM: "(\<Sum>q \<in> apder_rows r. card (row_dlforms (rsimpStrong_raw q)))
+        \<le> 2 * rsize r + 2"
+  shows "rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) \<le>
+    2 * (rsize r + 3) ^ 3"
+proof -
+  have ROWS: "card (apder_rows r) \<le> 2 * rsize r + 2"
+    using card_apder_rows_clean_le_rsize_plus_2[OF clean] by linarith
+  show ?thesis
+    by (rule cubic_gate_modulo_counts[OF clean ROWS SUM])
+qed
+
 end
