@@ -145,4 +145,60 @@ proof -
   finally show ?thesis .
 qed
 
+text \<open>
+  DIAGNOSTIC (2026-06-17, lane RW-1 / D, the @{text "\<rightarrow>r'"} derivative-commutation angle).
+
+  The thesis Ch.5 rewrite-relation method proves commutation with the derivative
+  only UP TO the simplifier: @{term "rsimp (rder x (rsimp r)) = rsimp (rder x r)"}
+  (\<open>ClosedForms.thy\<close>, proved via the @{text "h\<leadsto>"} system + \<open>rsimp_idem\<close>).  That
+  proof crucially needs the simplifier to be (a) idempotent and (b)
+  derivative-commuting.  @{const rsimp} has both.
+
+  @{const rsimpStrong_raw} (the simplifier this lane's @{const rprime_rel} is built
+  on) has NEITHER: it is already recorded as non-idempotent
+  (\<open>rsimpStrong_raw_not_idempotent\<close>, \<open>AntimirovFactoredTransition.thy\<close>; witness a
+  nested star), and the lemma below records that it does not commute with the
+  derivative along @{const rprime_step} either.  For the single @{thm [source]
+  rprime_step.seq_alts_expand} redex
+  @{term "r = RSEQ (RALTS [RSTAR (RCHAR b), RCHAR b]) (RCHAR b)"} we have
+  @{term "rprime_step r s"} yet the two strong-simplified derivatives differ
+  (the @{text r}-side keeps the @{text "(a* + 1)\<cdot>a"} factor; the @{text s}-side
+  prunes a row, so even @{term rsize} differs: 8 vs 7).
+
+  Consequence: ``@{text "\<rightarrow>r'"} commutes with the derivative'' is FALSE as framed
+  for @{const rsimpStrong_raw}.  This was machine-checked exhaustively on the
+  witness corpus (\<open>scratch_rprime_commute_validate.py\<close>): the relation-level
+  commutation @{term "rprime_step r s \<longrightarrow> rprime_rewrites (rder c r) (rder c s)"},
+  its closure, and the simp-modulo form all fail; even augmenting @{const
+  rprime_step} with every @{text "h\<leadsto>"} structural rule only reaches the target
+  on 33% of redexes (the @{const rsimp7_SEQ_atom} normalization baked into the
+  expand rule prevents reaching @{term "rder c s"} exactly).  Salvaging the lane
+  needs a strong simplifier with @{const rsimp}'s algebraic properties
+  (idempotent + derivative-commuting), or a transport that avoids commutation.
+\<close>
+
+lemma rprime_step_not_der_commute_modulo_rsimpStrong_raw:
+  fixes b :: char
+  shows "rprime_step
+           (RSEQ (RALTS [RSTAR (RCHAR b), RCHAR b]) (RCHAR b))
+           (RALTS (map (\<lambda>q. rsimp7_SEQ_atom q (RCHAR b)) [RSTAR (RCHAR b), RCHAR b]))"
+    and "rsimpStrong_raw (rder b (RSEQ (RALTS [RSTAR (RCHAR b), RCHAR b]) (RCHAR b)))
+         \<noteq> rsimpStrong_raw
+              (rder b (RALTS (map (\<lambda>q. rsimp7_SEQ_atom q (RCHAR b))
+                                  [RSTAR (RCHAR b), RCHAR b])))"
+proof -
+  show "rprime_step
+          (RSEQ (RALTS [RSTAR (RCHAR b), RCHAR b]) (RCHAR b))
+          (RALTS (map (\<lambda>q. rsimp7_SEQ_atom q (RCHAR b)) [RSTAR (RCHAR b), RCHAR b]))"
+    by (rule rprime_step.seq_alts_expand)
+next
+  show "rsimpStrong_raw (rder b (RSEQ (RALTS [RSTAR (RCHAR b), RCHAR b]) (RCHAR b)))
+         \<noteq> rsimpStrong_raw
+              (rder b (RALTS (map (\<lambda>q. rsimp7_SEQ_atom q (RCHAR b))
+                                  [RSTAR (RCHAR b), RCHAR b])))"
+    by (simp add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom.simps
+        rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+        rsimpStrong_prune_pair_raw_def Let_def)
+qed
+
 end
