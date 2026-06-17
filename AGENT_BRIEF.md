@@ -22,6 +22,27 @@ Validated TRUE numerically: `card(apder_strong_dlfrontier r) \<le> rsize r + 1`,
 fails / 6174 on the clean fragment. A looser linear bound `\<le> a*rsize r + b` also works (then loosen
 `universe_le_cubic_rowlevel`'s CARD hypothesis + `budget_suc_quad_le_cube`).
 
+## ⛏ LEARN FROM EXISTING RESULTS FIRST — do NOT hard-think a proof from scratch, do NOT dead-end alone
+This problem is ALREADY largely solved in the literature + this repo. Your proof must be **ASSEMBLED from
+existing results**, not invented from first principles. Before grinding ANY new lemma:
+1. **The PhD thesis** `file:///C:/Users/Chengsong/Downloads/PhDThesisChengsongTan.pdf` (Tan, KCL 2023):
+   - Ch.5 §5.3 — the rewrite relation `⤳`: size-non-increasing, and **commutes with derivative**
+     (`r⤳r' ⟹ r\c ⤳* r'\c`). This is the template for the `→r'` lane (D).
+   - Ch.6 §6.3–6.4 — **closed forms** (`r\_rsimps s = rsimp(∑ deduped terms)`) and how their size is bounded.
+   - Ch.7 §7.1 + §7.1.1 — `bsimpStrong`/`bdersStrong`; Conjecture 3 (embed into PDER); **Property 9
+     (Antimirov): `‖PDER_Σ*(r)‖ ≤ O(|r|³)`**, formalized by Wu et al. in the AFP entry **Myhill-Nerode**
+     (https://www.isa-afp.org/entries/Myhill-Nerode.html).
+2. **Antimirov's partial derivatives**: the number of DISTINCT partial derivatives is LINEAR in `|r|`
+   (total PDER size cubic). **Our card lemma IS that linear count.** It is already echoed by the proven
+   **D-law** (`D_law_clean` @37145, `apder_T_bound`/`apder_S_bound`/`T_and_S` @37058) + the static facts in
+   `active/AntimirovFactoredTransition.thy`. Start from these, do not re-derive the count from zero.
+3. **This repo already has ~25 green card-scaffold lemmas + dozens of static `card_*`/`apder_*`/`*_frontier_*`
+   facts.** ALWAYS grep before inventing: `grep -nE "^lemma .*(card|apder|frontier|rsize)" active/AntimirovFactoredTransition.thy`.
+**RULE:** find the relevant EXISTING result (thesis lemma shape / Antimirov's count / a proven `.thy`
+lemma) and build on it. If your angle stalls, RE-READ the relevant thesis section or grep more existing
+lemmas — do NOT grind a dead-end in isolation. Fail-stop + name the exact existing result you think is
+missing.
+
 ## STATE — already GREEN in `cubic/DirectUniverseCubic.thy` (33 lemmas, 0 sorry). DO NOT reprove / delete.
 - The **8-lemma green brick** reduces the Gate to the CARD bound via COUNT × PER-ROW-SIZE
   (`per_row_size_le_quadratic`, `universe_le_cubic_rowlevel`, `actual_gate_from_direct_universe_rowlevel`,
