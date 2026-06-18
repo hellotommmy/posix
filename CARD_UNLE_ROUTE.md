@@ -60,3 +60,18 @@ will NOT close the RSEQ/RSTAR/RALTS cases. You MUST induct on a CONTINUATION-PAR
 generalise over the continuation k and induct on `apder_term_frontier_acc r k` (@1739) — the way the PROVEN
 `card_apder_terms_le_awidth` @1870 and the D-law @37145 do it. Do NOT submit a plain-`induct r` one-liner
 for the crux; build-verify before committing.
+
+## ⛔ AMORTIZED POTENTIAL (GPT-Pro design, 2026-06-18) — STRUCTURAL/TELESCOPING COUNT ROUTE IS DEAD.
+Validated Pro's amortized-potential design (Phi/Psi, continuation-RELATIVE loose/strict costs; credit
+strict-loose=fresh∈{0,1}). The GLOBAL bound Psi(r,k)<=|r| is TRUE (0/300k incl a*.a*/RALTS killers) and at
+k=1 covers EXCESS (EXCESS<=Phi(r,1)<=Psi(r,1)<=|r|, 0 viol) — a potential EXISTS. BUT the per-constructor
+INDUCTION does NOT close: after fixing Pro's root double-count AND giving the natural +1 constructor slack,
+the RALTS step Psi(ALTS rs,k) vs ΣPsi(ri,k) still leaks, and the leak GROWS ~LINEARLY in |r|
+(max overshoot by |r|: 100→17, 300→33, 500→40, ~2090→86; SEQ tops ~14). Pro's SEQ no-leak (§5.3) is stated
+BACKWARDS (bigger boundary removes MORE ⟹ loose(k2)≤loose(k), not ≥) and fails 8k+.
+⟹ NO structural/telescoping/amortized COUNT bound can close SUM/EXCESS — RALTS super-additivity is UNBOUNDED.
+The linear count is a GLOBAL dedup fact. The ONLY survivor is a GLOBAL INJECTION (Antimirov/Glushkov
+positions = card-1's AFP route): card(U(r)) ≤ awidth(r)+1 ≤ |r|+1 by ONE injection over the whole tree,
+plugged into the green universe_le_cubic_rowlevel_lin. De-risk workflow running; verdict pending.
+DEAD (do NOT retry): card-a D-law telescope, card-b diff-card telescope, card-2 amortized/EXCESS telescope —
+ALL per-constructor, ALL hit growing RALTS super-additivity. Validator: posix-codex/scratch_pro_amortized_validate.py.
