@@ -8,6 +8,37 @@ exact definitions — do NOT work from approximate/remembered semantics (a prior
 the collapsing tail). The state summary is in the attached CARD_FRONTIER.md.
 
 ============================================================================================
+0. PROTOTYPE & SELF-VALIDATE IN PYTHON BEFORE YOU ANSWER (mandatory)
+============================================================================================
+You have a Python tool — USE IT. Do NOT return a paper proof you have not run: the previous external attempt failed
+precisely because its construction (a "collapsing-tail" ledger) was never tested and was false on a size-12 regex.
+Procedure:
+  1. Build a FAITHFUL Python model of the functions in DEFINITIONS.txt (use the EXACT equations). At minimum: the
+     rrexp datatype (ZERO/ONE/CHAR/SEQ/ALTS/STAR suffice on the clean fragment); rsize; rsimp4_SEQ_atom (sigma4);
+     rsimp7_SEQ_atom (sigma7 — collapses ONLY a leading a*.a*); rflts; rdistinct; rsimp_ALTs; the prune chain
+     (rprune_eq_against -> rsimpStrong_prune_pair_raw -> rsimpStrong_prune_against_rows_raw ->
+     rsimpStrong_prune_rows_acc_raw -> rsimpStrong_prune_rows_raw); rsimpStrong_raw (S); rfrontier; row_dlforms (dl);
+     rsimpStrong_dlform_closure; apder_terms; apder_frontier; apder_rows; apder_term_frontier_acc; strong_apder_acc;
+     apder_strong_dlfrontier. SANITY-CHECK the model: card(apder_strong_dlfrontier r) <= rsize r + 1 must hold with
+     0 violations, and the named CEs below must reproduce in your model. If your model disagrees, fix the model first.
+  2. Encode your proposed injection / charge / invariant as Python and TEST it on: (a) exhaustive small regexes
+     (rsize up to ~10); (b) the witness family — nested SEQ(ALTS[pre,1], ... SEQ(atom, star*)) opened at k = star*,
+     and stars-against-stars; (c) these named REGRESSION counterexamples (encode them and confirm your construction
+     survives each):
+       - SAA RALTS leak (rsize 7): r = ALTS[ONE, SEQ(STAR b, STAR a)], k = STAR a.
+         (strong_apder_acc (ALTS rs) k keeps up to 4 uncollapsed ...(s*.s*) rows present in NO child.)
+       - collapsing-tail over-approx CE (rsize 12):
+         r = SEQ(ALTS[ONE, SEQ(ALTS[CHAR a, ONE], STAR a), CHAR a], STAR a)
+         (U(r) contains the UNCOLLAPSED rows a*.a* and a.(a*.a*) -- a re-running-S tail loses them).
+       - Tail2 unreachable-continuation leak: the SEQ step holds on REACHABLE k but leaks at standalone k = SEQ(STAR b, STAR b).
+       - awidth refutation: r = ALTS[ONE, STAR(ALTS[STAR(CHAR c), ONE])] has card(U)=3 > awidth+1=2 (so do NOT target awidth+1).
+  3. ITERATE: when your construction has a counterexample, find the SMALLEST one, diagnose, and REVISE — repeat until
+     0 violations across (a)+(b)+(c) AND (for an injection) injectivity holds with 0 collisions.
+  4. ONLY THEN write the Isabelle lemma chain. In your answer, REPORT the Python validation: the exact predicate(s)
+     you tested, the sample space/size, that it found 0 counterexamples (incl. the named CEs), and any case your model
+     could not cover. A construction you did not run in Python will be rejected.
+
+============================================================================================
 1. THE OPEN LEMMA
 ============================================================================================
   lemma card_apder_strong_dlfrontier_le:

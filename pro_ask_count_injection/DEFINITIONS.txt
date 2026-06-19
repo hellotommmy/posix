@@ -5,6 +5,11 @@ Regex datatype rrexp constructors: RZERO, RONE, RCHAR c, RSEQ r1 r2, RALTS rs (r
 RSTAR r, RNTIMES r n, RBACKREF4 .., RHALF .., RRESIDUE .. . On the clean fragment (apder_clean) only
 RZERO/RONE/RCHAR/RSEQ/RALTS/RSTAR occur (RNTIMES/backref-family excluded by rntimes_free + apder_nf).
 
+OPAQUE (you do NOT need their internals): `afactored1 r s` and `rpder_strong_rows_raw c rs` are the lexer's
+derivative-rows functions; they appear ONLY in the final Gate corollary actual_gate_from_direct_universe_rowlevel
+(§D), which is a GREEN black-box that consumes your count bound. Your target lemma card_apder_strong_dlfrontier_le
+does NOT mention them. So treat them as opaque; prove only the count, and the Gate follows.
+
 ==========================================================================================
 A. CORE SIMPLIFIER / SEQUENCING FUNCTIONS
 ==========================================================================================
@@ -284,6 +289,71 @@ definition apder_clean :: "rrexp \<Rightarrow> bool" where
 (* legacy_rrexp = no backref/half/residue constructors; apder_zero_budget_trivial = a minor well-formedness
    flag. The two that matter for the count argument are rntimes_free (RNTIMES-free) and apder_nf (normal form).
    So you may freely assume r is built only from RZERO/RONE/RCHAR/RSEQ/RALTS/RSTAR, in apder_nf. *)
+
+==========================================================================================
+C2. AUXILIARY MEASURES & PREDICATES (referenced in the statements above/below)
+==========================================================================================
+
+(* active/AntimirovFactoredTransition.thy:380  -- ||X|| : opened-set SIZE = sum of rsize over a finite set *)
+definition rsize_set :: "rrexp set \<Rightarrow> nat" where
+  "rsize_set U = (\<Sum>q \<in> U. rsize q)"
+
+(* base/BasicIdentities.thy:640  -- "not a top-level alternation" *)
+fun nonalt :: "rrexp \<Rightarrow> bool" where
+  "nonalt (RALTS  rs) = False"
+| "nonalt r = True"
+
+(* base/GeneralRegexBound.thy:3884  -- "not a top-level sequence" *)
+fun rnonseq :: "rrexp \<Rightarrow> bool" where
+  "rnonseq (RSEQ r1 r2) = False"
+| "rnonseq r = True"
+
+(* active/AntimirovFactoredTransition.thy:29681  -- odfront k = open the frontier of k (NON-strong); used in §E *)
+definition odfront :: "rrexp \<Rightarrow> rrexp set" where
+  "odfront k = row_dlformss_set (rfrontier k)"
+
+(* base/GeneralRegexBound.thy:50  -- classical regexes (no backref/half/residue); component of apder_clean *)
+fun legacy_rrexp :: "rrexp \<Rightarrow> bool" where
+  "legacy_rrexp RZERO = True"
+| "legacy_rrexp RONE = True"
+| "legacy_rrexp (RCHAR c) = True"
+| "legacy_rrexp (RALTS rs) = (\<forall>r \<in> set rs. legacy_rrexp r)"
+| "legacy_rrexp (RSEQ r1 r2) = (legacy_rrexp r1 \<and> legacy_rrexp r2)"
+| "legacy_rrexp (RSTAR r) = legacy_rrexp r"
+| "legacy_rrexp (RNTIMES r n) = legacy_rrexp r"
+| "legacy_rrexp (RBACKREF4 r1 r2 r3 r4 cs) = False"
+| "legacy_rrexp (RHALF r cs rep) = False"
+| "legacy_rrexp (RRESIDUE cs rep) = False"
+
+(* active/AntimirovFactoredTransition.thy:29669  -- the "weight" = #letters + #stars. The GREEN root count is
+   card(apder_rows r) <= apder_zw2 r + 2 <= rsize r + 2 (rntimes-free). *)
+fun apder_zw2 :: "rrexp \<Rightarrow> nat" where
+  "apder_zw2 RZERO = 0"
+| "apder_zw2 RONE = 0"
+| "apder_zw2 (RCHAR c) = 1"
+| "apder_zw2 (RALTS rs) = sum_list (map apder_zw2 rs)"
+| "apder_zw2 (RSEQ r1 r2) = apder_zw2 r1 + apder_zw2 r2"
+| "apder_zw2 (RSTAR r) = Suc (apder_zw2 r)"
+| "apder_zw2 (RNTIMES r n) = n * Suc (apder_zw2 r)"
+| "apder_zw2 (RBACKREF4 r1 r2 r3 r4 cs) = 0"
+| "apder_zw2 (RHALF r cs rep) = 0"
+| "apder_zw2 (RRESIDUE cs rep) = 0"
+
+(* active/AntimirovFactoredTransition.thy:31500  -- non-triviality flag (component of apder_clean): on the clean
+   fragment it just forces every alternation to have positive weight. NOT relevant to the injection design. *)
+fun apder_zero_budget_trivial :: "rrexp \<Rightarrow> bool" where
+  "apder_zero_budget_trivial RZERO = True"
+| "apder_zero_budget_trivial RONE = True"
+| "apder_zero_budget_trivial (RCHAR c) = True"
+| "apder_zero_budget_trivial (RALTS rs) =
+    (apder_zw2 (RALTS rs) \<noteq> 0 \<and> (\<forall>q \<in> set rs. apder_zero_budget_trivial q))"
+| "apder_zero_budget_trivial (RSEQ r1 r2) =
+    (apder_zero_budget_trivial r1 \<and> apder_zero_budget_trivial r2)"
+| "apder_zero_budget_trivial (RSTAR r) = apder_zero_budget_trivial r"
+| "apder_zero_budget_trivial (RNTIMES r n) = False"
+| "apder_zero_budget_trivial (RBACKREF4 r1 r2 r3 r4 cs) = False"
+| "apder_zero_budget_trivial (RHALF r cs rep) = False"
+| "apder_zero_budget_trivial (RRESIDUE cs rep) = False"
 
 ==========================================================================================
 D. THE CARRIER + GREEN LEMMAS TO CITE  (statements; all proved, no sorry)

@@ -1,0 +1,47 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=1.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=single,
+  framesep=4pt,
+  xleftmargin=3pt,
+  aboveskip=4pt, belowskip=4pt,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  literate={—}{{---}}1 {§}{{\S}}1,
+}
+
+\title{\textbf{pro\_ask\_count\_injection --- review copy}\\[2pt]
+\large the GPT-5.5 ask + the verbatim Isabelle definitions it ships with}
+\author{Secretary working note --- 2026-06-19}
+\date{}
+
+\begin{document}
+\maketitle
+
+This PDF is for human review of the self-contained GPT ask in
+\texttt{posix-codex/pro\_ask\_count\_injection/}. It reproduces, \emph{verbatim and unedited}, the two files the
+external model receives: \texttt{PROMPT.txt} (the ask) and \texttt{DEFINITIONS.txt} (every function + cited green
+lemma, copied from the Isabelle source with file:line). The third attachment \texttt{CARD\_FRONTIER.md} (the one-page
+state summary) is plain markdown and is not reproduced here.
+
+\bigskip
+\section*{1.\quad The ask --- \texttt{PROMPT.txt}}
+\lstinputlisting{PROMPT.txt}
+
+\clearpage
+\section*{2.\quad Verbatim definitions + green-lemma statements --- \texttt{DEFINITIONS.txt}}
+\lstinputlisting{DEFINITIONS.txt}
+
+\end{document}
