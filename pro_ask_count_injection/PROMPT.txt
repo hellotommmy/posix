@@ -1,7 +1,12 @@
 ROLE: Proof architect for an Isabelle/HOL cubic size-bound proof of a POSIX regex lexer. The WHOLE Gate is GREEN
-(0 sorry) except ONE linear row-COUNT lemma, now pinned to a single cross-prune step. I need a CONCRETE,
-Isabelle-formalizable lemma chain that closes it. Do not ask clarifying questions; design the proof (or prove no such
-chain exists and characterize exactly what a correct proof must track).
+(0 sorry) except ONE linear row-COUNT lemma, now pinned to a single cross-prune step. I need a CONCRETE DESIGN that
+closes it (or a precise argument that no such design exists, and what a correct proof must track).
+
+YOU DO NOT NEED TO WRITE OR MACHINE-CHECK ISABELLE. We do the Isabelle formalization ourselves. Your deliverable is:
+(1) the DESIGN (the injection / charge / invariant, in plain math + prose); (2) the precise RECURSIVE DEFINITIONS of
+every new function you introduce (in the same total-recursive style as DEFINITIONS.txt, by cases on the rrexp
+constructors, so we can transcribe them directly); (3) PYTHON EVIDENCE that it has no counterexamples (see §0). The
+verification you CAN and MUST do is the Python check — do not hand back an untested idea.
 
 EVERY function and cited lemma below is given VERBATIM (with file:line) in the attached DEFINITIONS.txt. Use those
 exact definitions — do NOT work from approximate/remembered semantics (a prior attempt failed precisely by mis-modeling
@@ -34,9 +39,10 @@ Procedure:
        - awidth refutation: r = ALTS[ONE, STAR(ALTS[STAR(CHAR c), ONE])] has card(U)=3 > awidth+1=2 (so do NOT target awidth+1).
   3. ITERATE: when your construction has a counterexample, find the SMALLEST one, diagnose, and REVISE — repeat until
      0 violations across (a)+(b)+(c) AND (for an injection) injectivity holds with 0 collisions.
-  4. ONLY THEN write the Isabelle lemma chain. In your answer, REPORT the Python validation: the exact predicate(s)
-     you tested, the sample space/size, that it found 0 counterexamples (incl. the named CEs), and any case your model
-     could not cover. A construction you did not run in Python will be rejected.
+  4. ONLY THEN write up the design (§3). In your answer, REPORT the Python validation: the exact predicate(s) you
+     tested, the sample space/size, that it found 0 counterexamples (incl. the named CEs), and any case your model
+     could not cover. A design you did not run in Python will be rejected. (Include the Python code, or enough of it
+     that we can re-run it.)
 
 ============================================================================================
 1. THE OPEN LEMMA
@@ -94,9 +100,17 @@ NOT the count. Give EITHER:
   (c) a proof that NO such injection/invariant is definable, with the minimal extra structure a correct proof must
       carry (a prune-order index? a provenance tag on rows?).
 
-State every lemma as a precise Isabelle statement, naming the induction variable and the continuation parameter, and
-say which DEFINITIONS.txt §D green facts each step uses. With the RALTS step, the induction closes, then
-card(U r) <= Suc(rsize r) follows via apder_strong_dlfrontier_subset_strong_apder_acc_RONE + card_le_Suc_card_Diff_singleton,
-and the Gate via actual_gate_from_direct_universe_rowlevel.
+Deliver, concretely:
+  (1) DESIGN: the injection / charge / invariant, in plain math + prose — what maps to what, why injective/why the
+      +1 slack suffices, how the cross-pruned ...(s*.s*) survivors are accounted for. Name the induction variable and
+      the continuation parameter, and say which DEFINITIONS.txt §D green facts each step would use.
+  (2) RECURSIVE DEFINITIONS: for every NEW function you introduce (e.g. the ledger/charge map, an injection key, or a
+      reachable-continuation predicate P(k)), give its full recursive definition by cases on the rrexp constructors
+      (RZERO/RONE/RCHAR/RSEQ/RALTS/RSTAR), total, in the SAME style as DEFINITIONS.txt — so we can transcribe it
+      directly into Isabelle. (Pseudocode / math is fine; precise Isabelle syntax is welcome but NOT required.)
+  (3) PYTHON EVIDENCE (§0): your model + the validated predicate(s), 0 counterexamples incl. the named CEs.
+We then formalize it. Once the RALTS step holds, the induction closes and card(U r) <= Suc(rsize r) follows via
+apder_strong_dlfrontier_subset_strong_apder_acc_RONE + card_le_Suc_card_Diff_singleton, and the Gate via
+actual_gate_from_direct_universe_rowlevel — so you only need the RALTS step (or whichever of (a)/(b)/(c) you take).
 
 ATTACHMENTS: DEFINITIONS.txt (verbatim defs + green-lemma statements — READ THIS), CARD_FRONTIER.md (state summary).

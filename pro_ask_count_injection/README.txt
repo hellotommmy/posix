@@ -12,10 +12,12 @@ HOW TO USE
      - DEFINITIONS.txt  — every function + cited green lemma, VERBATIM from the source (this is what makes the ask
                           truly self-contained; the model must use these exact defs, not approximate ones).
      - CARD_FRONTIER.md — the one-page state summary.
-4. ENABLE the model's Python/code-interpreter tool. PROMPT.txt §0 makes it MANDATORY for the model to build a
-   faithful Python model of the definitions, test its proposed injection/invariant on the witness family + the
-   named counterexamples, ITERATE until 0 violations, and only then write the Isabelle chain (reporting what it
-   validated). This is the fix for the previous attempt, which returned an untested (and false) construction.
+4. ENABLE the model's Python/code-interpreter tool. The model does NOT need to write or machine-check Isabelle (we
+   formalize). PROMPT.txt §0 makes it MANDATORY to build a faithful Python model of the definitions, test its proposed
+   injection/invariant on the witness family + the named counterexamples, ITERATE until 0 violations, and only then
+   write up the DESIGN + the RECURSIVE DEFINITIONS of any new function it introduces (reporting what it validated +
+   the Python code). The deliverable is design + recursive defs + Python evidence — NOT an Isabelle proof. This is the
+   fix for the previous attempt, which returned an untested (and false) construction.
 5. Save the reply as verdict_count_injection.md in this folder.
 
 VALIDATION DISCIPLINE (important — two past "validated TRUE" claims here were sampling artifacts)
