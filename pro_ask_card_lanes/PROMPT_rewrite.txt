@@ -1,0 +1,45 @@
+ROLE: Proof architect for an Isabelle/HOL cubic size-bound proof of a POSIX regex lexer. The WHOLE Gate is
+GREEN (0 sorry) except one count lemma, but I want an INDEPENDENT route that SIDESTEPS the count entirely:
+the thesis Ch5/Ch6 near-identity rewrite that transports a closed-form cubic size bound. Do not ask clarifying
+questions; design the concrete Isabelle lemma chain and name the exact closed-form bound to cite.
+
+=== THE TWO OBJECTS ===
+  r1 = rders_simpStrong r s   -- step-wise strongest-simp-with-prune at EVERY derivative step (the actual
+                                 algorithm). Def: rders_simpStrong r [] = r;
+                                 rders_simpStrong r (c#s) = rders_simpStrong (rsimpStrong (rder c r)) s.
+  r2 = rsimpStrong_raw (rders r s)   -- derive RAW, apply strong-simp-with-prune ONCE at the end (controllable
+                                 via the Ch6 closed forms).
+Both already rewrite-relate to the raw derivative. S = rsimpStrong_raw is size-non-increasing
+(rsize (S r) <= rsize r) and RL-preserving (RL (S r) = RL r).
+
+=== EXISTING SUBSTRATE (Isabelle, already GREEN) ===
+A near-identity rewrite is partly built in rewrite/RewriteFallback.thy:
+  rprime_step (inductive; closed-form toggles seq-of-alts <-> alts-of-seqs + context rules; size-non-increasing),
+  rprime_rewrites (its reflexive-transitive closure), rprime_rewrites_preserves_RL,
+  rprime_rel r s == (EX u. rprime_rewrites (S r) u AND rprime_rewrites (S s) u)  (reflexive, symmetric, RL-preserving),
+  RL_RALTS_map_rsimp7_SEQ_atom (the core closed-form RL fact).
+Caveat from a Python probe: a naive ->r' "does NOT commute with the derivative" as first posed -- so the
+commutation must be stated via the CLOSURE (rprime_rewrites), not single-step equality, and may need the
+rsimp7/rsimp4 normalization handled carefully in the SEQ-nullable case.
+
+=== WHAT I WANT ===
+The concrete formalizable chain:
+  (1) rprime_step_commutes_with_rder:  rprime_step r s ==> ALL c. rprime_rewrites (rder c r) (rder c s)
+      -- give the case analysis (esp. seq_alts_expand and the SEQ nullable branch), citing
+         rder_rsimp_ALTs_commute and RL_RALTS_map_rsimp7_SEQ_atom; pin down exactly why the closure (not
+         single-step) is needed and that it holds.
+  (2) rprime_rewrites_commutes_with_rders (induction on the string).
+  (3) rders_simpStrong_rprime_rel:  apder_clean r ==> rprime_rel (rders_simpStrong r s) (rsimpStrong_raw (rders r s))
+      -- this needs S idempotence (S (S x) = S x); state it and whether it must be proven.
+  (4) rsize transport: rprime_rel x y AND <size bound on y> ==> <size bound on x>, using size-non-increasing
+      steps; then bound r2 = rsimpStrong_raw (rders r s) by the Ch6 CLOSED-FORM cubic bound.
+  (5) NAME the exact closed-form lemma to cite (in base/FBound.thy / base/ClosedFormsBounds.thy) that bounds
+      rsize (rsimpStrong_raw (rders r s)) -- or the closest existing bound and the scaling lemma needed to hit
+      2*(rsize r + 3)^3; do NOT reprove the closed-form bound.
+  (6) the final assembly to the Gate target rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+      <= 2*(rsize r+3)^3 (or directly a cubic bound on rders_simpStrong that the Gate consumes).
+State each lemma as a precise Isabelle statement with its proof skeleton; flag the one or two genuinely hard
+steps. If ->r' fundamentally cannot commute (even via the closure) so this route is dead, prove that and say
+what breaks.
+
+ATTACH (optional): CARD_FRONTIER.md; the file rewrite/RewriteFallback.thy if the session supports attachments.

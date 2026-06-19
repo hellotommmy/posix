@@ -1,0 +1,42 @@
+ROLE: Proof architect for an Isabelle/HOL cubic size-bound proof of a POSIX regex lexer. The WHOLE Gate is
+GREEN (0 sorry) except ONE linear row-COUNT lemma. I want a GLOBAL position/Glushkov injection giving a LINEAR
+count bound, sidestepping the per-constructor recurrence that walls every structural route. Do not ask
+clarifying questions; design the concrete Isabelle lemma chain.
+
+=== THE OPEN LEMMA ===
+  card (U r) <= a * rsize r + b   for some constants a,b   (apder_clean r;  any LINEAR bound closes the Gate;
+  card(U r) <= rsize r + 1 is the tightest, but a*awidth+b or a*rsize+b is equally fine for the cube).
+  U r := apder_strong_dlfrontier r = (UN q : apder_rows r. dl (S q)).
+Notation: S=rsimpStrong_raw (strong normaliser, a*.a*->a* collapse); dl=row_dlforms (open to linear rows);
+  apder_rows r = {r} U rfrontier r U (UN t:apder_terms r. rfrontier t); apder_terms r = Antimirov partial-
+  derivative terms; apder_awidth r = alphabetic width (number of letter-occurrences-ish).
+GREEN facts: card(apder_terms r) <= apder_awidth r; apder_awidth r <= rsize r (rntimes-free);
+  card(apder_rows r) <= rsize r + 2; U(ALTS rs) SUBSET (UN q. U q).
+
+=== WHY a GLOBAL injection (per-constructor is dead) ===
+Every per-constructor / telescoping / amortized count carrier is super-additive at the RSEQ-strong cross-prune
+(the SET-level rsimpStrong_ALTs_raw keeps uncollapsed ...(c*.c*) rows), so the count's RALTS/RSEQ recurrence
+leaks. The thesis (Property 9, AFP Myhill-Nerode) bounds the partial-derivative universe by O(awidth) via a
+GLOBAL injection into positions, not a recurrence. I want that for the STRONG-opened universe U(r).
+
+CONSTRAINTS / known traps:
+  * U(r) is NOT a subset of apder_terms r, NOR of the deep frontier (strong-opened rows are derivs-of-derivs).
+  * the tight `card(U r) <= awidth r + 1` is likely FALSE (candidate CE r = 1 + (c*+1)*: card(U)=3 > awidth+1=2),
+    so target a LINEAR bound with room, e.g. card(U r) <= awidth r + rsize r + c, or <= 2*rsize r + c.
+  * a per-row sum card(UN) <= sum card is QUADRATIC -- dead. Must be a SET-level injection of the WHOLE U(r).
+
+=== WHAT I WANT ===
+A definable injective key  pos : row -> P(r)  (P(r) a position/term set with card(P r) linear in rsize r),
+injective on U(r), formalizable in Isabelle. Specifically:
+  (1) propose the position set P(r) and the key `pos` (e.g. leftmost-letter-position of the row's head, or the
+      Antimirov-term provenance of the row, robust to the a*.a* collapse);
+  (2) state  inj_on pos (U r)  and  pos ` U r SUBSET P r  as Isabelle lemmas, with the induction/closure that
+      proves them (how does the key survive S's collapse and the SET-level alternation prune?);
+  (3) give  card (P r) <= <linear>  (cite card_apder_terms_le_awidth / awidth <= rsize), and assemble
+      card (U r) <= card (P r) <= <linear>;
+  (4) name where the collapse a*.a*->a* could make two distinct rows share a position (the injectivity risk)
+      and show the key distinguishes them, OR prove no global position key is injective on U(r) and say what
+      that implies (then this lane is dead and the count-injection lane is the only path).
+State every lemma precisely (Isabelle syntax), name the induction variable, cite the GREEN facts each step uses.
+
+ATTACH (optional): CARD_FRONTIER.md (full state + green-brick line numbers).

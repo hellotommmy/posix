@@ -1,0 +1,52 @@
+ROLE: Proof architect for an Isabelle/HOL cubic size-bound proof of a POSIX regex lexer. The WHOLE Gate is
+GREEN (0 sorry) except ONE linear row-COUNT lemma. I need a CONCRETE, Isabelle-formalizable strategy for the
+hard core of the count route. Do not ask clarifying questions; design the lemma chain (or prove no such chain
+exists and say exactly what a correct proof must track).
+
+=== THE OPEN LEMMA ===
+  card (U r) <= rsize r + 1        (apder_clean r;  any LINEAR bound a*rsize r + b also closes the Gate)
+where  U r := apder_strong_dlfrontier r = (UN q : apder_rows r. dl (S q)).
+Notation (all real Isabelle functions):
+  S      = rsimpStrong_raw       -- strong normaliser; collapses a*.a* -> a* (via sigma7), idempotent stars.
+  dl     = row_dlforms           -- opens one regex to its linear "rows": dl 0={}, dl(ALTS rs)=U dl,
+           dl((ALTS ps).k)=U_{p} dl(sigma7 p k), else dl r = rfrontier r (top-alternation split).
+  sigma4 = rsimp4_SEQ_atom        -- WEAK sequence plug, NO collapse:  sigma4(SEQ r s)k=sigma4 r(sigma4 s k),
+           sigma4 1 k=k, sigma4 0 k=0, sigma4 a 0=0, sigma4 a 1=a, sigma4 a k=a.k.
+  sigma7 = rsimp7_SEQ_atom        -- like sigma4 PLUS top-head only:  sigma7 a* a* = a*, sigma7 a* (a*.k)=a*.k.
+  rsimpStrong_ALTs_raw            -- the SET-level strong simp of an alternation list (flatten+dedup+rebuild),
+                                     applied inside S(ALTS rs); it can prune the alternation AS A SET.
+  apder_rows r = {r} U rfrontier r U (UN t : apder_terms r. rfrontier t)   (the deduped Antimirov rows).
+GREEN facts you may cite: card(apder_rows r) <= rsize r + 2; the RALTS clean subset
+  U(ALTS rs) SUBSET (UN q:set rs. U q); and an RSTAR clean subset
+  U(STAR r) SUBSET insert (S(STAR r)) ((%x. S(sigma4 x (STAR r))) ` U r)  with card(U(STAR r)) <= Suc(card(U r)).
+
+=== THE WALL (this is what you must crack) ===
+The per-constructor card induction is GREEN at RALTS and RSTAR but BLOCKED at RSEQ. There is NO clean subset
+  U(SEQ a b) SUBSET {prepend-image of U a} UNION U b
+because the cross-row rsimpStrong_ALTs_raw SET-prune KEEPS uncollapsed rows like  ...(c*.c*)  that the per-row
+S would collapse -- so a survivor row of U(SEQ a b) has no opened-row pre-image on the right side (~0.02% of
+cases leak). The inequality  card(U(SEQ a b)) <= card(U a) + card(U b)  is TRUE but holds only by a GLOBAL
+CANCELLATION (the extra left-side survivors are exactly offset by rows the right factor's prune removes).
+
+REFUTED -- do NOT re-propose:
+  * the false subset  dl (S q) SUBSET S ` dl q  (opening-then-collapsing vs collapsing-then-opening differ);
+  * U r SUBSET S ` Uun r  (Uun = the unsimplified universe; same cross-prune leak, ~56/66833);
+  * per-row size bounds (compose to quartic); the deep-frontier (U is NOT a subset of it);
+  * pure structural / D-law telescopes of the count (leak at exactly this RSEQ step).
+
+=== WHAT I WANT ===
+A definable INJECTION or TRANSPORT LEDGER that absorbs the RSEQ cross-prune at the BRANCH-REGEX level (before
+opening), giving  card(U(SEQ a b)) <= card(U a) + card(U b)  (hence the linear count by induction). One candidate
+already on the table is a continuation-parametric ledger Led r k with Fresh r k = Led r k - dl(S k) and
+card(Fresh r k) <= rsize r, whose crux Isabelle lemmas are a BRANCH-ORIGIN fact
+  (x : dl(sigma7 (rsimpStrong_ALTs_raw xs) K)  ==>  EX y:set xs. x : dl(sigma7 y K))
+and a branch-level plug transport  (x : dl(sigma7 (S r)(S k)) ==> x : dl(S (sigma4 r k))).
+Please EITHER (a) give the complete, formalizable proof of those two branch-level lemmas (the real difficulty is
+ALTs_raw_origin: an opened row of a SET-pruned strong alternation must have a branch origin under the SAME
+continuation) and confirm they close card(Fresh r k) <= rsize r at the RSEQ and RALTS cases; OR (b) give a
+cleaner injection U(SEQ a b) ↪ U a (+) U b directly. State every lemma as a precise Isabelle statement, name the
+induction variable and the continuation parameter, and say which GREEN facts each step uses. If the cross-prune
+admits NO definable injection, prove that and characterize the minimal extra structure (a prune-order index? a
+provenance tag on rows?) a correct proof must carry.
+
+ATTACH (optional): CARD_FRONTIER.md (full state + green-brick line numbers).
