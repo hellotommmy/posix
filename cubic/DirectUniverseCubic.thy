@@ -432,4 +432,262 @@ proof
   qed
 qed
 
+lemma row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE:
+  assumes nf: "apder_nf k"
+  shows "row_dlforms (rsimpStrong_raw k) \<subseteq> strong_apder_acc RONE k"
+proof -
+  have flat: "set (rflts [k]) \<subseteq> rfrontier k"
+    using rtail_nf_rflts_singleton_eq_rfrontier
+      [OF apder_nf_imp_rtail_nf[OF nf]]
+    by simp
+  have "row_dlforms (rsimpStrong_raw k) \<subseteq>
+      rsimpStrong_dlform_closure (rfrontier k)"
+    by (rule row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+        [OF flat])
+  then show ?thesis
+    by (simp add: strong_apder_acc_def)
+qed
+
+lemma rsimpStrong_raw_rsimp4_SEQ_atom_RCHAR:
+  "rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k) =
+    rsimp4_SEQ_atom (RCHAR c) (rsimpStrong_raw k)"
+  by (cases k) simp_all
+
+lemma card_strong_apder_acc_RCHAR_root_diff_base_le:
+  assumes nf: "apder_nf k"
+  shows "card
+    (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) -
+      strong_apder_acc RONE k) \<le> rsize (RCHAR c)"
+proof -
+  have base: "row_dlforms (rsimpStrong_raw k) \<subseteq> strong_apder_acc RONE k"
+    by (rule row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF nf])
+  have sub:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) -
+        strong_apder_acc RONE k \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) -
+        row_dlforms (rsimpStrong_raw k)"
+    using base by auto
+  have "card
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) -
+        strong_apder_acc RONE k) \<le>
+      card
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RCHAR c) k)) -
+        row_dlforms (rsimpStrong_raw k))"
+    by (rule card_mono) (use sub in auto)
+  also have "... =
+      card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) (rsimpStrong_raw k)) -
+        row_dlforms (rsimpStrong_raw k))"
+    by (simp add: rsimpStrong_raw_rsimp4_SEQ_atom_RCHAR)
+  also have "... \<le> rsize (RCHAR c)"
+    by (rule card_row_dlforms_rsimp4_diff_le)
+  finally show ?thesis .
+qed
+
+lemma card_strong_apder_acc_RSTAR_root_diff_base_le:
+  assumes nf: "apder_nf k"
+  shows "card
+    (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+      strong_apder_acc RONE k) \<le>
+    rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)))"
+proof -
+  have "card
+      (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+        strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)))"
+    by (rule card_mono) auto
+  also have "... \<le>
+      rsize_set (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)))"
+    by (rule card_le_rsize_set) simp
+  finally show ?thesis .
+qed
+
+lemma strong_apder_acc_RONE_sigma_subset:
+  "strong_apder_acc RONE (rsimp4_SEQ_atom r k) \<subseteq>
+    strong_apder_acc r k"
+  by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+
+lemma row_dlforms_rsimpStrong_raw_sigma_subset_strong_apder_acc:
+  assumes clean_q: "apder_clean q"
+    and clean_k: "apder_clean k"
+  shows "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom q k)) \<subseteq>
+    strong_apder_acc q k"
+proof -
+  let ?m = "rsimp4_SEQ_atom q k"
+  have clean_m: "apder_clean ?m"
+    by (rule sigma_clean[OF clean_q clean_k])
+  have flat: "set (rflts [?m]) \<subseteq> rfrontier ?m"
+    using rtail_nf_rflts_singleton_eq_rfrontier
+      [OF apder_nf_imp_rtail_nf[of ?m]]
+      clean_m unfolding apder_clean_def by simp
+  have "row_dlforms (rsimpStrong_raw ?m) \<subseteq>
+      rsimpStrong_dlform_closure (rfrontier ?m)"
+    by (rule row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+        [OF flat])
+  also have "... \<subseteq> strong_apder_acc q k"
+    unfolding strong_apder_acc_def
+    by (rule rsimpStrong_dlform_closure_mono) auto
+  finally show ?thesis .
+qed
+
+lemma rsimpStrong_dlform_closure_RALTS_sigma_frontier_subset:
+  assumes clean_r: "apder_clean (RALTS rs)"
+    and clean_k: "apder_clean k"
+  shows "rsimpStrong_dlform_closure
+      (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+    rsimpStrong_dlform_closure
+      (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+    strong_apder_acc RONE k \<union>
+    (\<Union>q \<in> set rs. strong_apder_acc q k)"
+  by blast
+
+lemma strong_apder_acc_RALTS_subset:
+  assumes nf: "\<forall>q \<in> set rs. apder_nf q"
+    and clean_k: "apder_clean k"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    rsimpStrong_dlform_closure
+      (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+    (\<Union>q \<in> set rs. strong_apder_acc q k)"
+proof
+  fix x
+  assume x: "x \<in> strong_apder_acc (RALTS rs) k"
+  then obtain p where p:
+      "p \<in> rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<union>
+        apder_term_frontier_acc (RALTS rs) k"
+      "x \<in> row_dlforms (rsimpStrong_raw p)"
+    by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+  have p_src:
+      "p \<in> rfrontier (rsimp4_SEQ_atom (RALTS rs) k) \<or>
+       p \<in> apder_term_frontier_acc (RALTS rs) k"
+    using p(1) by blast
+  then consider
+      (front) "p \<in> rfrontier (rsimp4_SEQ_atom (RALTS rs) k)"
+    | (acc) "p \<in> apder_term_frontier_acc (RALTS rs) k"
+    by blast
+  then show "x \<in>
+      rsimpStrong_dlform_closure
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+      (\<Union>q \<in> set rs. strong_apder_acc q k)"
+  proof cases
+    case front
+    have root_subset:
+      "row_dlforms (rsimpStrong_raw p) \<subseteq>
+        rsimpStrong_dlform_closure
+          (rfrontier (rsimp4_SEQ_atom (RALTS rs) k))"
+      by (rule row_dlforms_rsimpStrong_raw_self_closure[OF front])
+    then show ?thesis
+      using p by blast
+  next
+    case acc
+    then obtain q where q: "q \<in> set rs"
+        and pq: "p \<in> apder_term_frontier_acc q k"
+      by auto
+    have "row_dlforms (rsimpStrong_raw p) \<subseteq> strong_apder_acc q k"
+      unfolding strong_apder_acc_def
+      by (rule row_dlforms_rsimpStrong_raw_self_closure) (use pq in auto)
+    then show ?thesis
+      using p q by blast
+  qed
+qed
+
+lemma row_dlformss_set_rsimpStrong_raw_rfrontier_subset_strong_apder_acc_RONE:
+  "row_dlformss_set (rsimpStrong_raw ` rfrontier k) \<subseteq>
+    strong_apder_acc RONE k"
+  by (auto simp add: row_dlformss_set_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def)
+
+lemma card_strong_apder_acc_RCHAR_diff_base_le:
+  assumes nf: "apder_nf k"
+  shows "card (strong_apder_acc (RCHAR c) k -
+      strong_apder_acc RONE k) \<le> rsize (RCHAR c)"
+proof -
+  let ?Root = "row_dlforms (rsimpStrong_raw
+    (rsimp4_SEQ_atom (RCHAR c) k))"
+  let ?Front = "row_dlformss_set (rsimpStrong_raw ` rfrontier k)"
+  let ?Base = "strong_apder_acc RONE k"
+  have acc_sub: "strong_apder_acc (RCHAR c) k \<subseteq> ?Root \<union> ?Front"
+    by (rule strong_apder_acc_RCHAR_subset)
+  have front_sub: "?Front \<subseteq> ?Base"
+    by (rule row_dlformss_set_rsimpStrong_raw_rfrontier_subset_strong_apder_acc_RONE)
+  have diff_sub: "strong_apder_acc (RCHAR c) k - ?Base \<subseteq>
+      ?Root - ?Base"
+    using acc_sub front_sub by auto
+  have "card (strong_apder_acc (RCHAR c) k - ?Base) \<le>
+      card (?Root - ?Base)"
+    by (rule card_mono) (use diff_sub in auto)
+  also have "... \<le> rsize (RCHAR c)"
+    by (rule card_strong_apder_acc_RCHAR_root_diff_base_le[OF nf])
+  finally show ?thesis .
+qed
+
+lemma card_Un_Diff_le:
+  "card ((A \<union> B) - C) \<le> card (A - C) + card (B - C)"
+proof -
+  have "card ((A \<union> B) - C) =
+      card ((A - C) \<union> (B - C))"
+    by (simp add: Un_Diff)
+  also have "... \<le> card (A - C) + card (B - C)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma card_Un_Diff_telescope_le:
+  assumes finA: "finite A"
+    and finB: "finite B"
+    and mid: "M \<subseteq> B"
+  shows "card ((A \<union> B) - C) \<le> card (A - M) + card (B - C)"
+proof -
+  have sub: "(A \<union> B) - C \<subseteq> (A - M) \<union> (B - C)"
+    using mid by auto
+  have fin_rhs: "finite ((A - M) \<union> (B - C))"
+    using finA finB by auto
+  have "card ((A \<union> B) - C) \<le>
+      card ((A - M) \<union> (B - C))"
+    by (rule card_mono[OF fin_rhs sub])
+  also have "... \<le> card (A - M) + card (B - C)"
+    by (rule card_Un_le)
+  finally show ?thesis .
+qed
+
+lemma row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_self_RONE:
+  assumes nf: "apder_nf q"
+  shows "row_dlforms (rsimpStrong_raw q) \<subseteq> strong_apder_acc q RONE"
+proof -
+  have sig: "rsimp4_SEQ_atom q RONE = q"
+    by (rule sigma_RONE_id_nf[OF nf])
+  have flat: "set (rflts [q]) \<subseteq> rfrontier q"
+    using rtail_nf_rflts_singleton_eq_rfrontier
+      [OF apder_nf_imp_rtail_nf[OF nf]]
+    by simp
+  have "row_dlforms (rsimpStrong_raw q) \<subseteq>
+      rsimpStrong_dlform_closure (rfrontier q)"
+    by (rule row_dlforms_rsimpStrong_raw_subset_dlform_closure_rflts_single
+        [OF flat])
+  also have "... \<subseteq> strong_apder_acc q RONE"
+    unfolding strong_apder_acc_def
+    by (simp add: sig, rule rsimpStrong_dlform_closure_mono) auto
+  finally show ?thesis .
+qed
+
+lemma card_apder_strong_dlfrontier_RALTS_diff_RONE_le:
+  assumes each: "\<And>q. q \<in> set rs \<Longrightarrow>
+    card (apder_strong_dlfrontier q - {RONE}) \<le> rsize q"
+  shows "card (apder_strong_dlfrontier (RALTS rs) - {RONE}) \<le>
+    rsizes rs"
+proof -
+  have sub: "apder_strong_dlfrontier (RALTS rs) - {RONE} \<subseteq>
+      (\<Union>q \<in> set rs. apder_strong_dlfrontier q - {RONE})"
+    using apder_strong_dlfrontier_RALTS_subset[of rs] by auto
+  have "card (apder_strong_dlfrontier (RALTS rs) - {RONE}) \<le>
+      card (\<Union>q \<in> set rs. apder_strong_dlfrontier q - {RONE})"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le>
+      (\<Sum>q \<in> set rs. card (apder_strong_dlfrontier q - {RONE}))"
+    by (rule card_UN_le) auto
+  also have "... \<le> (\<Sum>q \<in> set rs. rsize q)"
+    by (rule sum_mono) (use each in auto)
+  also have "... \<le> rsizes rs"
+    by (rule sum_set_le_sum_list_nat)
+  finally show ?thesis .
+qed
+
 end

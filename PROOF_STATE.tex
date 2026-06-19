@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[a4paper,margin=2.2cm]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{array}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage[expansion=false]{microtype}
@@ -32,6 +33,7 @@
 \newcommand{\zero}{\mathbf 0}
 \newcommand{\eps}{\varepsilon}
 \newcommand{\GREEN}{\textcolor{green!55!black}{\textbf{[proved]}}}
+\newcommand{\VALID}{\textcolor{orange!85!black}{\textbf{[validated, not yet formalised]}}}
 \newcommand{\OPEN}{\textcolor{red}{\textbf{[OPEN]}}}
 \newcommand{\WHY}{\textit{\textcolor{blue}{Why:\ }}}
 
@@ -40,7 +42,7 @@
 \setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
 
 \title{\textbf{The cubic size bound: current proof state}\\[2pt]
-\large the proved chain, the single open lemma, and exactly why it resists}
+\large the formalised chain, the open envelope and its validated scalar crux, and why it resists}
 \author{Secretary working note --- all numeric facts machine-validated}
 \date{2026-06-16}
 
@@ -71,10 +73,10 @@ guarded $a^{*}\seq a^{*}\to a^{*}$ fires at every level), and idempotent-collaps
 $\sigt$ in the sequence case, recursively --- is the source of all the difficulty below.
 
 \item[$\sig(h,k)$ \rm(weak plug: ``$h$ then $k$'')] does all sequencing; \textbf{never} collapses $a^{*}\seq a^{*}$:
-\[
-\sig(\zero,k)=\zero,\quad \sig(\one,k)=k,\quad \sig(r_1\seq r_2,k)=\sig\!\bigl(r_1,\sig(r_2,k)\bigr),\quad
-\sig(a,\zero)=\zero,\ \sig(a,\one)=a,\ \sig(a,k)=a\seq k.
-\]
+\begin{gather*}
+\sig(\zero,k)=\zero,\quad \sig(\one,k)=k,\quad \sig(r_1\seq r_2,k)=\sig\!\bigl(r_1,\sig(r_2,k)\bigr),\\
+\sig(a,\zero)=\zero,\quad \sig(a,\one)=a,\quad \sig(a,k)=a\seq k.
+\end{gather*}
 $\sig(p,\one)$ \emph{canonicalises} $p$ alone (right-associate, erase units, absorb $\zero$; e.g.\ $\sig((ab)c,\one)=a(bc)$,
 $\sig(a\one,\one)=a$).
 
@@ -86,11 +88,11 @@ it collapses just the leading star pair.
 \item[$\dpar k$ \rm(frontier)] split the top alternation of $k$ into its branches ($\dpar\zero=\emptyset$,
 $\dpar(\sum rs)=\bigcup\dpar r_i$, else $\{k\}$).
 
-\item[$\dlf(x)$ \rm(open one regex to linear forms; ``row\_dlforms'')]
-\[
-\dlf(\zero)=\emptyset,\quad \dlf(\textstyle\sum rs)=\textstyle\bigcup_{q}\dlf(q),\quad
-\dlf\bigl((\textstyle\sum ps)\seq k\bigr)=\textstyle\bigcup_{p\in ps}\dlf(\sigt(p,k)),\quad \dlf(r)=\dpar r\ \ (\text{otherwise}).
-\]
+\item[$\dlf(x)$ \rm(open one regex to linear forms; ``row\_dlforms'')] by cases on the top constructor:
+\begin{gather*}
+\dlf(\zero)=\emptyset,\quad \dlf(\textstyle\sum rs)=\textstyle\bigcup_{q}\dlf(q),\quad \dlf(r)=\dpar r\ \ (\text{otherwise}),\\
+\dlf\bigl((\textstyle\sum ps)\seq k\bigr)=\textstyle\bigcup_{p\in ps}\dlf(\sigt(p,k)).
+\end{gather*}
 Distribute a top alternation, and an alternation-headed sequence's branches over the tail via $\sigt$; bottom out at the
 frontier. (This is the \emph{only} other place $a^{*}\seq a^{*}$ can collapse --- via $\sigt$ in the $\seq$ case.)
 
@@ -110,10 +112,12 @@ $\front(k):=\rss{\bigcup_{q\in\dpar k}\dlf(\Strong q)}$.
 \item[$\Dch_c(r)$ \rm(canonicalised rows)] $:=[\sig(p,\one)\mid p\in\Dc_c(r)]$ --- every row put in canonical form so the
 dedup below actually merges associativity/unit variants (keeping the row set small).
 
-\item[$\Front(r,s)$ \rm(normalised front; ``afactored1'')] read the whole string $s$ with \emph{no} $\Strong$: starting
-from $[r]$, apply for each letter $c$ the normalised step $\nu_c(\rho):=\mathrm{dedup}\bigl(\mathrm{flat}\bigcup_{q\in\rho}\Dch_c(q)\bigr)$,
+\item[$\Front(r,s)$ \rm(normalised front; ``afactored1'')] read the whole string $s$ with \emph{no} $\Strong$, threading the
+\emph{row-list} (never collapsing it between letters): starting from $[r]$, apply for each letter $c$ the normalised step
+$\nu_c(\rho):=\mathrm{dedup}\bigl(\mathrm{flat}\bigcup_{q\in\rho}\Dch_c(q)\bigr)$. Writing $G$ for the list-stepping (``afactored\_steps''),
 \[
-\Front(r,\eps)=[r],\qquad \Front(r,\,c\!:\!s)=\Front\bigl(\text{root of }\nu_c([r])\ \text{etc.}\bigr)\ \ =\ \ \nu_{c_n}\!\circ\cdots\circ\nu_{c_1}([r]).
+G(\rho,\eps)=\rho,\qquad G(\rho,\,c\!:\!s)=G\bigl(\nu_c(\rho),\,s\bigr),\qquad
+\Front(r,s):=G([r],s)\ =\ \nu_{c_n}\!\circ\cdots\circ\nu_{c_1}([r])\quad(s=c_1\cdots c_n).
 \]
 
 \item[$\dstep_c(\rho)$ \rm(one strong step; ``rpder\_strong\_rows\_raw'')] derive+canonicalise each row, strong-simplify with
@@ -122,12 +126,22 @@ $\Strong$, flatten, strong-prune with $\Prune$, flatten, dedupe:
 \dstep_c(\rho):=\mathrm{dedup}\Bigl(\mathrm{flat}\;\Prune\bigl(\mathrm{flat}\textstyle\bigcup_{q\in\rho}[\,\Strong(x)\mid x\in\Dch_c(q)\,]\bigr)\Bigr).
 \]
 
-\item[$\Prune(\rho)$ \rm(strong prune; ``rsimpStrong\_prune\_rows\_raw'')] scan $\rho$ left-to-right keeping the pruned rows
-seen so far, replacing each row by its pruning against all earlier ones (rows are \emph{shrunk, never dropped}). The only
-non-trivial pairwise rule fires on two rows \emph{sharing a right factor} $k$:
-$\bigl((\textstyle\sum lrs)\seq k,\ (\textstyle\sum rrs)\seq k\bigr)\ \mapsto\ \sigt\bigl(\textstyle\sum(rrs\setminus lrs),\,k\bigr)$
---- delete from the later row's head-alternation the branches already present in the earlier one ($rrs\setminus lrs$);
-every other pair leaves the later row unchanged. Language-preserving and size-non-increasing.
+\item[$\Prune(\rho)$ \rm(strong prune; ``rsimpStrong\_prune\_rows\_raw'')] $\Prune(\rho):=\Prune_{\!*}([],\rho)$ --- a
+left-to-right scan with an accumulator $\mathit{sn}$ of the rows already pruned:
+\[
+\Prune_{\!*}(\mathit{sn},[])=[],\qquad
+\Prune_{\!*}(\mathit{sn},\,r\!:\!\rho)=\bigl(\text{let }r'=\pi^{*}(\mathit{sn},r)\ \text{in}\ r'\#\Prune_{\!*}(r'\!:\!\mathit{sn},\rho)\bigr).
+\]
+Prune one row against all earlier ones, then the pairwise rule (sharing a right factor $k$):
+\[
+\pi^{*}([],r)=r,\qquad \pi^{*}(x\!:\!xs,\,r)=\pi^{*}\bigl(xs,\,\pi(x,r)\bigr),
+\]
+\[
+\pi(e,l)=\begin{cases}\sigt\bigl(\textstyle\sum(rrs\setminus lrs),\,k\bigr)&\text{if }\ e=(\textstyle\sum lrs)\seq k,\ \ l=(\textstyle\sum rrs)\seq k,\\[2pt] l&\text{otherwise.}\end{cases}
+\]
+where $rrs\setminus lrs$ keeps the branches of $rrs$ not occurring in $lrs$ ($[]\mapsto[]$; $r\!:\!rs\mapsto$ drop $r$ if
+$r\in lrs$, else keep $r$), and $\textstyle\sum$ rebuilds the alternation. So a row is \emph{shrunk, never dropped}
+(length-preserving); the rule is language-preserving and size-non-increasing.
 
 \item[$\opens(\rho)$ \rm(open a row list; ``row\_dlformss'')] $\opens(\rho):=\bigcup_{q\in\rho}\dlf(q)$.
 
@@ -151,7 +165,7 @@ regex of $r$'s derivative universe $\mathcal D(r)$:
 \mathcal D(r):=\{\zero,\one,r\}\,\cup\,\mathrm{paths}(r)\,\cup\,\dpar r\,\cup\,\textstyle\bigcup_{q\in\mathrm{paths}(r)}\dpar q,
 \]
 where $\mathrm{paths}(r)$ is the (finite) set of continuations reachable by repeatedly deriving $r$. Proved static facts:
-$\#\mathcal D(r)\le\rs r+2$ (linear) and each member has size $\le(\rs r+2)^2$ (quadratic) --- the linear$\times$quadratic
+$\#\mathcal D(r)\le\rs r+2$ (linear) and each member has size $\le(\rs r+2)^2+1$ (quadratic) --- the linear$\times$quadratic
 that the cubic budget rests on. $\rss{\SOL(r)}$ is what the Gate must bound.
 
 \item[$\tr(r)$ \rm(trace), $\wt_k$ \rm(event cost)] the explicit event-list expansion of $\pot(r^{*},\cdot)$, with the
@@ -163,15 +177,13 @@ Events are $\mathrm{AU}$ (unit), $\mathrm{AO}\,xs$ (open), $\mathrm{AF}\,xs$ (fr
 $\wt_k(\mathrm{AU})=1$, $\wt_k(\mathrm{AO}\,xs)=\opn(\mathrm{ap}(r,xs,k))$,
 $\wt_k(\mathrm{AF}\,xs)=\rss{\bigcup_{q\in\dpar(\mathrm{ap}(r,xs,k))}\dlf(\Strong q)}$. The trace $\mathrm{at}$ mirrors
 $\pot$, pushing the right part onto the stack:
-\[
-\mathrm{at}(\zero,xs)=[\mathrm{AU}],\quad \mathrm{at}(\one,xs)=[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],\quad
-\mathrm{at}(c,xs)=\mathrm{AO}(c\!:\!xs)\#[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],
-\]
-\[
-\mathrm{at}(\textstyle\sum rs,xs)=\mathrm{AU}\#\mathrm{AO}(\textstyle\sum rs\!:\!xs)\#\textstyle\bigoplus_q\mathrm{at}(q,xs),\quad
-\mathrm{at}(pq,xs)=\mathrm{at}(p,\,q\!:\!xs)\oplus\mathrm{at}(q,xs),\quad
+\begin{gather*}
+\mathrm{at}(\zero,xs)=[\mathrm{AU}],\qquad \mathrm{at}(\one,xs)=[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],\\
+\mathrm{at}(c,xs)=\mathrm{AO}(c\!:\!xs)\#[\mathrm{AU},\mathrm{AO}\,xs,\mathrm{AF}\,xs],\qquad
+\mathrm{at}(pq,xs)=\mathrm{at}(p,\,q\!:\!xs)\oplus\mathrm{at}(q,xs),\\
+\mathrm{at}(\textstyle\sum rs,xs)=\mathrm{AU}\#\mathrm{AO}(\textstyle\sum rs\!:\!xs)\#\textstyle\bigoplus_q\mathrm{at}(q,xs),\\
 \mathrm{at}(r^{*},xs)=\mathrm{AO}(r^{*}\!:\!xs)\#\mathrm{at}(r,\,r^{*}\!:\!xs);
-\]
+\end{gather*}
 $\tr(r):=\mathrm{AO}\,[]\ \#\ \mathrm{at}(r,[])$, with the \emph{proved identity} $\pot(r^{*},k)=\sum_{e\in\tr(r)}\wt_k(e)$.
 
 \item[\rm minor list operations] $\mathrm{flat}$ flattens nested alternations and drops $\zero$s; $\mathrm{dedup}$ keeps
@@ -195,9 +207,12 @@ front are proved on it); the $\Strong$ collapse $a^{*}\seq a^{*}\to a^{*}$ and t
 the final $\dstep_c$. So $\Strong$'s collapse --- and the global cancellation it induces --- live only at that last step,
 and that is the wall (\S\ref{sec:open}--\S\ref{sec:why}).
 
-\section{The proved chain (top to bottom)}\label{sec:chain}
+\section{The chain (top to bottom)}\label{sec:chain}
 
-All machine-checked, no \texttt{sorry}. Each line is justified by the one below it.
+Each line is justified by the one below it. Steps 1--6 and 9 are machine-checked (no \texttt{sorry}); the whole chain is
+formalised \emph{modulo one hypothesis}, the affine envelope $\mathrm{env}$ of step~4, carried explicitly by the gate lemma
+\texttt{actual\_gate\_from\_cube\_shell}. Steps 7--8 --- the reduction of $\mathrm{env}$ to the single scalar ($\star$) ---
+are machine-validated but \textbf{not yet formalised} (see the colour key).
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=5pt]
 
@@ -231,22 +246,25 @@ capturing that is the open problem.
 
 \item \GREEN\ \textbf{(Env) $\Leftarrow$ a per-event certificate.} By the trace identity $\pot(r^{*},k)=\sum_{e\in\tr(r)}\wt_k(e)$.
 Given $a_1,a_B:\text{events}\to\mathbb N$ with
-\[
-\text{(affine)}\ \wt_k(e)\le a_1(e)+a_B(e)(\rs k-1),\quad
-\text{(slope)}\ \textstyle\sum_e a_B(e)\le 3M^2,\quad
+\begin{gather*}
+\text{(affine)}\ \wt_k(e)\le a_1(e)+a_B(e)(\rs k-1),\\
+\text{(slope)}\ \textstyle\sum_e a_B(e)\le 3M^2,\qquad
 \text{(intercept)}\ \textstyle\sum_e a_1(e)\le M^3+3M^2,
-\]
-the certificate proves (Env).
+\end{gather*}
+the certificate proves (Env) --- lemma \texttt{RSTAR\_affine\_envelope\_from\_certificate}, proved but currently
+\emph{unused}: it is never instantiated, because its slope/affine hypotheses are exactly steps 7--8, which are not yet
+formalised. So the gate still carries $\mathrm{env}$ as an open hypothesis.
 \WHY splits (Env) into a continuation-slope and a continuation-free intercept, each a single sum.
 
-\item \GREEN\ \textbf{Slope solved.} $a_B$ a row/frontier count per event gives $\sum_e a_B(e)\le3M^2$.
+\item \VALID\ \textbf{Slope.} $a_B$ a row/frontier count per event should give $\sum_e a_B(e)\le3M^2$.
 \WHY $k$ sits at the \emph{tail} of every opened row (behind the single anchor $r^{*}$), so it adds size linearly.
+\emph{Validated, but no concrete $a_B$ and no slope lemma exist in the source yet.}
 
-\item \GREEN\ \textbf{Intercept reduced to a single anchor.} Take $a_1(e):=\wt_{\,\text{char }c}(e)$ for a fixed char $c$:
+\item \VALID\ \textbf{Intercept reduced to a single anchor.} Take $a_1(e):=\wt_{\,\text{char }c}(e)$ for a fixed char $c$:
 one fixed tail dominates every size-$1$ tail per event (so (affine) holds), and then
-$\sum_e a_1(e)=\pot(r^{*},\text{char }c)$ by the trace identity.
+$\sum_e a_1(e)=\pot(r^{*},\text{char }c)$ by the trace identity --- collapsing the intercept to ($\star$).
 \WHY dissolves a multiplicity trap (a per-event max over all size-$1$ tails over-counts); one fixed tail collapses the
-intercept sum back to one potential value.
+intercept sum back to one potential value. \emph{Validated; the per-event affine domination is not yet a formal lemma.}
 
 \item \GREEN\ \textbf{Event count is linear.} $\rs{\tr(q)}\le 4\rs q$ (length of the trace).
 \WHY the linear factor: the intercept is \emph{(linearly many events)} $\times$ \emph{(per-event opened size)}, and we
@@ -254,15 +272,23 @@ must show this product is cubic.
 
 \end{enumerate}
 
-\section{The single open lemma}\label{sec:open}
+\section{The open piece: the envelope, and its validated scalar crux}\label{sec:open}
 
-The entire Gate is proved \emph{modulo one scalar inequality} --- the intercept of step 8, the \emph{anchor}:
+\textbf{What the formalised chain actually carries open} is the affine envelope $\mathrm{env}$ (step 4), a single hypothesis
+of the gate lemma, quantified over \emph{every} clean star sub-term and \emph{every} continuation:
+\[
+\mathrm{env}:\quad \pot(r^{*},k)\ \le\ M^3+3M^2\,\rs k\qquad(\text{all clean }r^{*},\text{ all }k),\quad M=1+\rs r.
+\]
+The proved-but-unused certificate (step 6) shows $\mathrm{env}\Leftarrow(\text{slope})\wedge(\text{affine})\wedge(\text{intercept})$.
+Steps 7--8 (\VALID) supply the slope and pick the single fixed tail, collapsing the intercept to the \emph{anchor} ---
+$\mathrm{env}$ at its hardest instance $\rs k=1$:
 \[
 \boxed{\ \pot(r^{*},\,\text{char }c)\ \le\ M^3+3M^2\ }
 \qquad\Bigl(=\ \textstyle\sum_{e\in\tr(r)}\wt_{\,\text{char }c}(e)\ \le\ M^3+3M^2\Bigr),\quad M=1+\rs r.
 \tag{$\star$}
 \]
-\OPEN. Machine-validated true: $0$ violations over an \emph{exhaustive} enumeration of all in-regime terms up to
+\OPEN\ (scalar), and the bridge $(\star)+\text{slope}+\text{affine}\Rightarrow\mathrm{env}$ still needs formalising (steps 7--8).
+($\star$) is machine-validated true: $0$ violations over an \emph{exhaustive} enumeration of all in-regime terms up to
 $\rs r=9$ ($\approx8.7\times10^5$ cases); worst ratio $0.95$ at $M=2$ ($19\le20$), slacker for larger $M$ (true value
 ${\approx}0.5\times$ budget). Unfolding $r^{*}$, ($\star$) is the \emph{body saturation}
 $\pot(r,\sig(r^{*},\text{char }c))\le M^3+3M^2-\opn(\sig(r^{*},\text{char }c))$: the body opened against its own star
@@ -275,7 +301,7 @@ size $\le$ quadratic. Naively ``linear $\times$ quadratic $=$ cubic'' --- yet ev
 pointwise at each event/node/row) overshoots, while the true sum is ${\approx}0.5\times$ the budget:
 
 \begin{center}\small
-\begin{tabular}{lll}
+\begin{tabular}{ll@{\quad}>{\raggedright\arraybackslash}p{5.6cm}}
 \textbf{candidate bound} & \textbf{ratio to budget} & \textbf{fate}\\\hline
 true value $\sum_e\wt_{\,c}(e)$ & ${\approx}0.5$ & what we must bound\\
 crude (events $\times$ max event cost) & ${\approx}1.5\times$ & overshoots\\
@@ -311,7 +337,7 @@ strict spare credit carried in the strengthened $T$, and $T\wedge S$ (one induct
 pointwise bound.
 
 \textbf{The analogue we need (open).} A \emph{size} version of $T+S$: a potential $\Phi$ on the state
-$(\text{root }r^{*},\ \text{sub-term }q,\ \text{boundary})$ plus a strict \emph{size}-credit, so the per-event opened size
+(root~$r^{*}$, sub-term~$q$, boundary) plus a strict \emph{size}-credit, so the per-event opened size
 is paid by the drop of $\Phi$ across the trace, telescoping to $\le M^3+3M^2$ at the root, and surviving (i) the $\sum$
 case (where pointwise caps fail) by spending the credit once, and (ii) the star re-entry by the boundary being idempotent
 at the anchor. No concrete such $\Phi$ has yet been exhibited.
@@ -324,12 +350,14 @@ at the anchor. No concrete such $\Phi$ has yet been exhibited.
 \item \textbf{Rethink the opening/$\pot$ definitions} so the cancellation becomes a \emph{local} invariant (then a
 structural induction suffices) --- it may be the honest answer if no $\Phi$ on the current $\pot$ is local.
 \item \textbf{Treat ($\star$) as a validated lemma} --- exhaustively checked ($0/8.7\times10^5$); the rest of the Gate is
-fully proved on top of it.
+then proved \emph{modulo formalising} the (also validated) slope and single-tail affine steps that lift ($\star$) to the
+full envelope $\mathrm{env}$ --- and the certificate that consumes them is already proved.
 \end{enumerate}
 
-\paragraph{One-line status.} The clean-fragment cubic Gate is proved \emph{except} the single scalar
-$\pot(r^{*},\text{char }c)\le M^3+3M^2$ --- true, exhaustively validated, provably beyond structural induction because it
-encodes a global size$\times$multiplicity cancellation; the route that fits is the size analogue of the $T+S$ amortised
-argument that already cracked the row count.
+\paragraph{One-line status.} The clean-fragment cubic Gate is formalised \emph{modulo the affine envelope} $\mathrm{env}$;
+a proved (but as-yet unused) certificate reduces $\mathrm{env}$ --- via a machine-validated slope bound and single-tail
+affine step that still need formalising --- to the single scalar $\pot(r^{*},\text{char }c)\le M^3+3M^2$, itself
+exhaustively validated and provably beyond structural induction (a global size$\times$multiplicity cancellation). The route
+that fits is the size analogue of the $T+S$ amortised argument that cracked the row count.
 
 \end{document}

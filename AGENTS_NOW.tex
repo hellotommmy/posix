@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+
+% ---------- notation (same spirit as PROOF_STATE.tex) ----------
+\newcommand{\rs}[1]{\lvert #1\rvert}                 % regex size  |r|
+\newcommand{\rss}[1]{\lVert #1\rVert}                % opened set size  ||X|| = sum of |x|
+\newcommand{\card}[1]{\##1}                           % cardinality (row COUNT)
+\newcommand{\Strong}{\mathsf{S}}                     % strong normaliser  (rsimpStrong_raw)
+\newcommand{\sigf}{\sigma_{\!4}}                     % rsimp4_SEQ_atom  (weak plug, NO a* a* collapse)
+\newcommand{\sigs}{\sigma_{\!7}}                     % rsimp7_SEQ_atom  (top-head a* a* collapse)
+\newcommand{\dlf}{\mathrm{dl}}                       % row_dlforms  (open one regex to linear forms)
+\newcommand{\dpar}{\partial}                         % rfrontier  (top-alternation split)
+\newcommand{\Terms}{\mathcal{T}}                     % apder_terms  (Antimirov terms)
+\newcommand{\Rows}{\mathcal{A}}                      % apder_rows
+\newcommand{\Univ}{\mathcal{U}}                      % apder_strong_dlfrontier  (the gate universe)
+\newcommand{\Gate}{\mathsf{Gate}}
+\newcommand{\seq}{\cdot}\newcommand{\one}{\mathbf 1}\newcommand{\zero}{\mathbf 0}
+\newcommand{\GREEN}{\textcolor{green!55!black}{\textbf{[green]}}}
+\newcommand{\OPEN}{\textcolor{red}{\textbf{[open]}}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+
+\title{\textbf{What each agent is currently proving}\\[2pt]
+\large POSIX cubic bound --- live proof state, 2026-06-18}
+\author{Secretary working note}\date{}
+
+\begin{document}\maketitle
+
+\section{Notation}
+$\rs r$ regex size; $\card X$ cardinality (a row \emph{count}); $\rss X=\sum_{x\in X}\rs x$ (opened
+\emph{size}). $\Strong$ = strong simplifier (collapses $a^{*}\seq a^{*}\!\to a^{*}$); $\sigf$ = weak
+sequence plug (\emph{no} collapse); $\dlf(x)$ opens one regex to its linear forms; $\dpar k$ the frontier.
+The Antimirov structures:
+\[
+\Terms(r):\quad \Terms(c)=\{\one\},\quad
+\Terms(r_1r_2)=\bigl(\lambda p.\sigf(p,r_2)\bigr)\,\Terms(r_1)\ \cup\ \Terms(r_2),\quad
+\Terms(r^{*})=\bigl(\lambda p.\sigf(p,r^{*})\bigr)\,\Terms(r),
+\]
+\[
+\Rows(r)=\{r\}\cup\dpar r\cup\!\!\bigcup_{t\in\Terms(r)}\!\!\dpar t,\qquad
+\boxed{\ \Univ(r)=\bigcup_{q\in\Rows(r)}\dlf(\Strong q)\ }\quad(\text{the strong-opened gate universe}).
+\]
+
+\section{The goal and the GREEN chain (reductions all machine-checked, $0$ sorry)}
+The clean-fragment thesis target, uniformly in the input $s$:
+\[
+\Gate:\qquad \rss{\Theta(\Delta_c(\mathsf F(r,s)))}\ \le\ 2\,(\rs r+3)^3 .
+\]
+It has been reduced, green, to a single \emph{count}:
+\begin{align}
+&\GREEN\quad \Theta(\Delta_c(\mathsf F(r,s)))\subseteq \Univ(r)
+   &&\text{(gate rows lie in the universe)}\\
+&\GREEN\quad \rss{\Univ(r)}\ \le\ \card{\Univ(r)}\cdot \mathrm{Suc}((\rs r+2)^2)
+   &&\text{(each row has size $\le(\rs r{+}2)^2$; \emph{count}$\times$\emph{per-row})}\\
+&\GREEN\quad \card{\Univ(r)}\ \le\ \sum_{q\in\Rows(r)}\card{\dlf(\Strong q)}\ (=:\ \mathrm{SUM})
+   &&\text{(}\card{\textstyle\bigcup}\le\textstyle\sum\card{},\ \text{card\_UN\_le)}\\
+&\GREEN\quad \card{\Rows(r)}\ \le\ \rs r+2
+   &&\text{(ROWS; the proven @37190)}\\
+&\GREEN\quad \mathrm{SUM}\le 2\rs r+2\ \Longrightarrow\ \Gate
+   &&\text{(\texttt{cubic\_gate\_modulo\_sum})}
+\end{align}
+So the \textbf{entire Gate is green modulo one of the two equivalent count lemmas}:
+\[
+\boxed{\ \mathrm{SUM}:\ \sum_{q\in\Rows(r)}\card{\dlf(\Strong q)}\ \le\ 2\rs r+2\ }
+\qquad\Longleftrightarrow\qquad
+\boxed{\ \mathrm{EXCESS}:\ \sum_{q\in\Rows(r)}\bigl(\card{\dlf(\Strong q)}-1\bigr)\ \le\ \rs r\ }
+\]
+(equivalence: $\mathrm{SUM}=\mathrm{EXCESS}+\card{\Rows(r)}\le \mathrm{EXCESS}+(\rs r+2)$; the
+$\mathrm{SUM}\!\leftrightarrow\!\mathrm{EXCESS}$ bridge is \GREEN, due to lane card-2). Both are pure
+\emph{counts} (no membership), so the $a^{*}\seq a^{*}$ collapse wall that killed the per-child
+distribution route \emph{cannot} apply. Numerically: $\mathrm{SUM}\le 2\rs r+2$ holds $0/186528$ and
+$\mathrm{EXCESS}\le\rs r$ holds $0/309763$ (incl.\ the $a^{*}\seq a^{*}$/RALTS killers).
+
+\section{What each agent is proving \emph{right now}}
+All target the one open count; the green reductions above turn any of these into the finished Gate.
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=3pt]
+\item[\textbf{card-a} (Codex) \OPEN] $\mathrm{SUM}\le 2\rs r+2$ \emph{via the D-law}. Structured induction
+  on $r$; bridge $\sum_{q}\card{\dlf(\Strong q)}$ to the proven linear opened-row count
+  (\texttt{D\_law\_clean} @37145, $\texttt{T\_and\_S}$ @37058).
+\item[\textbf{card-b} (Codex) \OPEN] $\mathrm{SUM}$ \emph{via diff-card telescope}. The increment family
+  $\card{\dlf(\sigf(r_1,k))\setminus\cdots}\le \rs{r_1}$ (@5541) summed/telescoped over $\Rows(r)$ so the
+  total collapses linearly --- not $\card{\Rows}\cdot\max$ (that is quadratic).
+\item[\textbf{card-c} (Codex) \OPEN] $\mathrm{SUM}$ \emph{via terms/awidth induction}. Split $\Rows(r)$ by
+  $\Terms(r)$ and induct mirroring the proven $\card{\Terms(r)}\le\mathrm{awidth}(r)$ (@1870, by
+  \texttt{card\_image\_le} --- \emph{no} per-child distribution), most terms opening to $O(1)$ rows.
+\item[\textbf{card-1} (Claude) \OPEN] $\card{\Univ(r)}\le \rs r+1$ \emph{directly, via Antimirov
+  positions}. Inject each opened row into a character-position of $r$ (\#positions $\le$ awidth$+1$),
+  adapting AFP \texttt{Myhill-Nerode}; closes via $\texttt{universe\_le\_cubic\_rowlevel\_lin}$, bypassing SUM.
+\item[\textbf{card-2} (Claude) \OPEN, closest] $\mathrm{EXCESS}:\ \sum_{q\in\Rows(r)}(\card{\dlf(\Strong
+  q)}-1)\le\rs r$. The $\mathrm{SUM}\!\to\!\mathrm{EXCESS}$ split is already \GREEN; this isolates the
+  ``extra rows beyond one per element'' (alternation branching), $\le\rs r$. Validated $0.69\times$.
+\item[\textbf{sec-sum} (Secretary's Claude) \OPEN] read-only vetting of \emph{which} existing count
+  (@37145 / @5541) actually bridges to $\mathrm{SUM}$ on the clean fragment, then formalises the winner;
+  guarded against reviving the deep-frontier card ($\Univ(r)\not\subseteq$ deep frontier).
+\item[\textbf{rw-1,\,rw-2,\,rewrite-d} (\,$\leadsto_{r'}$ fallback, secondary\,)] independent route: a
+  size-non-increasing rewrite relating $r\backslash_{\mathsf{bders}\Strong}s$ and
+  $\Strong(r\backslash_{\mathsf{bders}}s)$ (thesis Ch.5/6). rw-1 found $\leadsto_{r'}$ does \emph{not}
+  commute with the derivative as posed; rw-2 has a green per-step quadratic size bound.
+\end{description}
+
+\medskip
+\textbf{One line:} the cubic Gate is green except one validated linear \emph{count}
+$\sum_{q\in\Rows(r)}\card{\dlf(\Strong q)}\le 2\rs r+2$ (equivalently $\mathrm{EXCESS}\le\rs r$); six
+agents attack it from disjoint angles, card-2 leading via the sharper $\mathrm{EXCESS}$ form.
+\end{document}

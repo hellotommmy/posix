@@ -11526,3 +11526,38 @@ alternation heads; (B)'s member is quadratic-in-root only for deep continuations
 member strong-collapses so its opening is small; the two extremes never co-occur. Capturing that needs a
 structural/amortized argument on q's shape, NOT the static facts. Per route-doc §6 discipline: did NOT fall
 back to the loose composition, did NOT add sorry. STOP.
+
+## 2026-06-17 WORKER-D (Codex rewrite fallback): CLAIM rprime relation lane; NOT touching card lemma / dead pot routes
+
+CLAIM: D-lane independent `→r'` rewrite fallback from `DIRECT_UNIVERSE_CUBIC_ROUTE.md` §6. Exact current
+objective: define and validate the near-identity closed-form rewrite relation relating
+`rders_simpStrong r s` to `rsimpStrong_raw (rders r s)`. Exact Isabelle target now being edited:
+`rewrite/RewriteFallback.thy`, lemmas `rprime_step`, `rprime_rewrites`, `rprime_rel`,
+`rprime_step_preserves_RL`, `rprime_rel_preserves_RL`. Confirmed NOT in the STEER dead list:
+no `pot`/`potential`/`cube_shell`/`aevt`/`atrace`/`ctx_bound`/`child_ok`/`drain_child_budget` target,
+and not touching `card_apder_strong_dlfrontier_le` (A/B/C lane).
+
+RESULT (green, no sorry): new session `Posix_Rewrite_Fallback` in `rewrite/` builds EXIT 0. Checked
+relation substrate:
+  `rprime_step r s ==> RL r = RL s` and
+  `rprime_rel r s ==> RL r = RL s`
+where `rprime_step` is the closed-form toggle
+  `RSEQ (RALTS rs) k <-> RALTS (map (%q. rsimp7_SEQ_atom q k) rs)`
+under ALTS/SEQ/STAR contexts, and `rprime_rel` means both `rsimpStrong_raw` sides rewrite to a common
+opened closed form. Plain gloss: closed-form factoring preserves language.
+
+VALIDATION FIRST gate: `python scratch_rewrite_fallback_validate.py` EXIT 0 on 6371 S-fixed regexes
+from `scratch_direct_universe_cubic.py` + `witness_gen.py`, 121 words each; 770891 route pairs checked.
+Candidate `Rlin` (recursive closed-form expansion after `rsimpStrong_raw`) had 0 failures for:
+  route relation, derivative closure on route pairs, step-strong/raw derivative square, Sraw closure on route
+  pairs, and primitive derivative checks. Size delta stayed small:
+  worst `|rsize(rders_simpStrong r s) - rsize(rsimpStrong_raw (rders r s))|/(rsize r+3)^3 = 0.023`
+  (diff 23, `r=((a.a)*.a)*`, `s=aaa`). Stricter candidates are FALSE and recorded by the script:
+  `Sraw x = Sraw y` fails first at `r=(a.(a*.a))*`, `s=aa`; one-level `row_dlforms(Sraw x)` fails first at
+  `r=((((a+1).((b*+1).((a+1).(a.(a.c*)))))+a).c*)`, `s=ba`. Next safe step: formalize the recursive
+  closed-form expansion/closure that corresponds to `Rlin`, then prove derivative commutation; do not use
+  the false stricter relations.
+
+BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback` EXIT 0;
+`powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
+`rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.

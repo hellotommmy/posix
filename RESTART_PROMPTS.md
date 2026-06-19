@@ -10,6 +10,20 @@ implementation phase). Everything below that is SUPERSEDED but kept for referenc
 
 ---
 
+> **⛔ ALL PROMPTS BELOW ARE SUPERSEDED (2026-06-16) — DO NOT PASTE THEM.**
+> The entire per-step drain-budget route they implement (verdict4 context-cover ledger
+> `ctx_bound`, verdict5 weak-carrier, `master_cover`, `child_ok`) is REFUTED. Both the tight
+> `rsize_set(strong_child_drain p k) ≤ ctx_bound(drain_ctxs p) k` (CE2 47>46, CE1 64>60) and
+> the loose `≤ drain_child_budget` / `child_ok` (CHILDOK rsize22 99>96) are FALSE in-regime at
+> depth≥5; `child_okD` @32981 only *assumes* `child_ok`, it does not prove it. The prior
+> "0-violation > 10⁵ samples" was a `rand_clean` sampling artifact (witness family finds CEs at
+> ~11%). The live route is the **cube-shell potential bound** — see `STEER.md` (top section) and
+> `RSTAR_CUBE_SHELL_SKETCH.md`. Agents currently HOLD pending the user's SAT design decision.
+> Reproduce the refutation with `python scratch_ctxbound_target_FALSE_repro.py` / `python
+> witness_gen.py`. The blocks below are kept ONLY as history of a dead route.
+
+---
+
 ## CURRENT-CYCLE PROMPTS (2026-06-14, verdict4 context-cover — IMPLEMENTATION)
 
 State: the verdict4 context-cover route is VALIDATED (depth≥5, zero violations).

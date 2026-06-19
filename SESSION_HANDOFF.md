@@ -9,14 +9,23 @@ design verdicts to workers, but **VALIDATE every design before any worker grinds
 **WITNESS family (NOT random)**, including small M, using the faithful Python model. No `sorry`/`oops`/`admit` ever lands;
 workers fail-stop + report; single-owner `.thy` editing; commit small. You do not edit the `.thy` yourself.
 
-## Where the proof stands — ONE lemma from done
-The entire clean-fragment cubic **Gate is GREEN** (no sorry) EXCEPT one scalar inequality (the "anchor" / "charge-cubic"):
-> **`pot(RSTAR r)(RCHAR c) ≤ M³ + 3·M²`**  (M = rsize(RSTAR r) = 1+rsize r).
+## Where the proof stands — formalised modulo the affine envelope
+The clean-fragment cubic chain is formalised (no sorry) **modulo ONE hypothesis**: the **affine envelope**
+> **`env`: pot(RSTAR r) k ≤ M³ + 3·M²·rsize k**  (all clean star sub-terms, all k; M = rsize(RSTAR r) = 1+rsize r),
 
-It is **machine-validated TRUE** — 0 violations, *exhaustive* enumeration to rsize 9 (≈8.7×10⁵ cases), worst ratio 0.95 at
-M=2. From it, the already-GREEN chain (single-tail certificate → cube-shell driver → root → gate bridge) closes the Gate.
-The full top-down proved chain + the open lemma + why it resists is in **`PROOF_STATE.pdf`** (read it; ~5 pages, all
-notation defined). Equivalent form: the **affine envelope** `pot(RSTAR r) k ≤ M³+3M²·rsize k`.
+carried explicitly by the gate lemma `actual_gate_from_cube_shell` @37552 (comment: "GREEN modulo the single RSTAR affine
+envelope"). A **proved-but-UNUSED** certificate `RSTAR_affine_envelope_from_certificate` @37824 (never referenced again in
+the file) shows `env ⟸ slope(Σ aB ≤ 3M²) ∧ affine(per-event) ∧ intercept`. The **slope and single-tail affine are
+machine-validated but NOT formalised** — no concrete `aB`, no slope lemma, the certificate is never instantiated. Under the
+single fixed tail the intercept collapses to the scalar **anchor / charge-cubic**:
+> **`(⋆)  pot(RSTAR r)(RCHAR c) ≤ M³ + 3·M²`**  (= env at rsize k = 1, its hardest instance).
+
+(⋆) is **machine-validated TRUE** — 0 violations, *exhaustive* to rsize 9 (≈8.7×10⁵ cases), worst ratio 0.95 at M=2. So
+closing the Gate needs: formalise slope + single-tail affine (validated) **and** prove (⋆); the certificate then consumes
+them. The genuinely-GREEN parts (conditional on `env`): the cube-shell reduction + non-RSTAR constructor shells + root_cubic
++ gate bridge @35010/@35221/@36275, the trace substrate + `rstar_atrace_sound` @37788, `length_atrace_le_4_rsize` @37884,
+and the certificate lemma itself. Full corrected top-down state is in **`PROOF_STATE.pdf`** (read it; ~6 pages, all notation
+defined; colour key: [proved] / [validated, not yet formalised] / [OPEN]).
 
 ## The wall (why the last lemma resists)
 A **global size×multiplicity cancellation**: trace events that open *many* rows have *small* per-row cost; events with

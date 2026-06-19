@@ -37,6 +37,20 @@ Self-sync protocol (every agent, every turn):
 4. **If your checkout lacks `cubic/DirectUniverseCubic.thy` or `FINISH_HERE.md`, you are on a STALE base.**
    `origin/codex/backref-values` now carries the green brick + `cubic/` + `ROOT` (session `Posix_Cubic`)
    + the route docs. Rebase onto it before working. Build your lane: `-Session Posix_Cubic`.
+5. **⚠ SHARED WORKING TREE — this is happening RIGHT NOW.** Several of you are editing the SAME physical
+   `cubic/DirectUniverseCubic.thy` in ONE tree and clobbering each other ("the lemma changed under me /
+   was weakened to a more natural form" = another agent overwrote you). Git branches do NOT isolate you
+   when the working directory is shared. HARD RULE from now on:
+   - **The 8 green-brick lemmas are LOCKED and CONFIRMED INTACT** (`cube_plus2_le_two_cube_plus3`,
+     `card_times_quadratic_le_cube`, `universe_le_cubic`, `actual_gate_from_direct_universe`,
+     `budget_suc_quad_le_cube`, `per_row_size_le_quadratic`, `universe_le_cubic_rowlevel`,
+     `actual_gate_from_direct_universe_rowlevel`). NEVER delete or modify them. APPEND ONLY.
+   - **Only ONE agent (the CARD-lane owner) may edit `cubic/DirectUniverseCubic.thy`.** Every OTHER
+     card-angle agent: prove your attempt in YOUR OWN new file `cubic/CardAttempt_<B|C>.thy` (own
+     `theory`, own `Posix_CardX` session in ROOT) — or just REPORT your proof-text and STOP touching the
+     shared file. The D-lane is already correctly isolated in `rewrite/RewriteFallback.thy`.
+   - Target remains ONLY: `card_apder_strong_dlfrontier_le` (`card (apder_strong_dlfrontier r) ≤ Suc
+     (rsize r)`) + `cubic_gate_unconditional` (the discharge in `FINISH_HERE.md`).
 
 ---
 

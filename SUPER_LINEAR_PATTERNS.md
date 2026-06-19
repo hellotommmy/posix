@@ -456,3 +456,46 @@ the inclusion HOLD but unpayable — RALTS has zero slack: `apder_zw2 (RALTS rs)
 and `open_pot (RALTS rs)` are exactly `Σ` over children
 (`AntimirovFactoredTransition.thy:29673, 29702`). (C-DRAIN-1 is written with star
 body `a`; equivalently `rs=[b·c*,1]`, `k=c*` — the star-body letter is immaterial.)
+
+---
+
+## CTX-BUDGET — nested-SEQ-chain-opened-at-star* breaks BOTH per-step drain budgets (2026-06-16)
+
+These refute the per-step budget targets for `strong_child_drain` — both the TIGHT
+linear-slot ledger `ctx_bound(drain_ctxs p) k` and the LOOSE quadratic
+`drain_child_budget p k = open_pot p + zw2 p·(1+rsize k)` (= `child_ok`). Unlike C-DRAIN
+(where the *bound* was true and only the inclusion failed), here the **budget itself is
+false** in-regime (`S p = p`, `S k = k`, clean, depth≥5).
+
+The **witness family**: a nested SEQ chain `SEQ(ALTS[pre,1], … SEQ(atom, star*))` opened at
+the star continuation `k = star*`. Each frame re-doubles `star* → star*·star*`, stacking
+uncollapsed S-shadow long rows multiplicatively. `rsimpStrong` collapses only the top head,
+so the buried doubled stars survive as distinct rows.
+
+- **CE2 (rsize19, smallest ctx_bound break)** — `p = 1+((1+((1+a)·a)+((c+1)·(c+1)))·c*)`,
+  `k = c*`. `rsize_set(strong_child_drain) = 47 > ctx_bound = 46` (drain_child_budget = 60
+  holds). repr p = `('ALTS',(('O',),('SEQ',('ALTS',(('O',),('SEQ',('ALTS',(('O',),('C','a'))),('C','a')),('SEQ',('ALTS',(('C','c'),('O',))),('ALTS',(('C','c'),('O',)))))),('STAR',('C','c')))))`.
+- **CE1 (rsize18)** — `p = (((((a+1)·b)+1)·((1+a)·(c·b*)))+c)`, `k = b*`.
+  `rsize_set(strong_child_drain) = 64 > ctx_bound = 60` (drain_child_budget = 74 holds).
+- **CHILDOK (rsize22, breaks the LOOSE budget too)** —
+  `p = (((((a+1)·b)+1)·((((a+1)·b)+1)·(a·b*)))+c)`, `k = b*`.
+  `rsize_set(strong_child_drain) = 99 > drain_child_budget = 96` (and > ctx_bound 79). The
+  extra nesting frame vs CE1 pushes the overshoot past the quadratic budget; the overshoot
+  grows ~quadratically with chain depth, so no constant / fixed multiplier / per-slot
+  capacity patch closes it.
+
+**Deception datum (the whole point):** under flat `rand_clean` depth-5..7 sampling the
+violation rate is ~1/1.2M — every 20k–40k gate reported **0 violations**, and both bounds
+were believed "machine-validated TRUE over >10⁵ samples". The structured witness family finds
+CEs at **~11%** (ctx_bound) / **~4.7%** (drain_child_budget) on every seed. Two separate
+"validated TRUE" claims were artifacts of this one blind spot. Engine lesson: a fuzzer that
+only grows terms randomly will never build the opened-at-its-own-star chain that makes strong
+simplification's row-doubling visible; you must *direct* the generator at `SEQ(…, atom·star*)`
+opened at `star*`.
+
+Pedigree: secretary-reproduced 2026-06-16 against the faithful models (`scratch_rowcount_check`
++ `drain_rowcount_check`) with both the .thy-transcribed `drain_ctxs`/`ctx_bound` and
+`drain_child_budget`. Repro: `python scratch_ctxbound_target_FALSE_repro.py` (named CEs) and
+`python witness_gen.py` (family + regression anchors). Note: `child_okD`
+(`AntimirovFactoredTransition.thy:32981`) only *assumes* `child_ok`; it is not a proof, so the
+.thy was never inconsistent — the dead route was simply never discharged.
