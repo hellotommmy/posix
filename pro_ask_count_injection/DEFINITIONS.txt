@@ -110,12 +110,51 @@ fun rnullable :: "rrexp \<Rightarrow> bool" where
 | "rnullable (RHALF r cs rep) = (rnullable r \<and> cs = [])"
 | "rnullable (RRESIDUE cs rep) = (cs = [])"
 
-NOTE: rsimpStrong_prune_rows_raw (the cross-row pruning scan used inside rsimpStrong_ALTs_raw) is a
-left-to-right scan that, for two rows sharing a right factor k of the form ((SUM lrs).k, (SUM rrs).k),
-deletes from the later row's head-alternation the branches already present in the earlier one
-(language-preserving, size-non-increasing). Its full def is in base/GeneralRegexBound.thy ~@18163-18240; its
-key property for us: it can SET-prune an alternation and leave a survivor row (e.g. ...(s*.s*)) that a
-per-row S would have collapsed. (Ask if you need its verbatim text.)
+-- the cross-row pruning scan used inside rsimpStrong_ALTs_raw, VERBATIM (5 functions, dependency order):
+
+(* base/GeneralRegexBound.thy:17015  -- branch-set difference: keep the rrs-branches NOT in lrs (covered = lrs) *)
+fun rprune_eq_against :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rprune_eq_against covered [] = []"
+| "rprune_eq_against covered (r # rs) =
+    (if r \<in> set covered
+     then rprune_eq_against covered rs
+     else r # rprune_eq_against covered rs)"
+
+(* base/GeneralRegexBound.thy:18163  -- the PAIRWISE rule: fires ONLY when both rows are (RALTS lrs).k1 and
+   (RALTS rrs).k2 with the SAME right factor k1 = k2; deletes from the later row's head-alternation the branches
+   already in the earlier one, then re-plugs via sigma7. Every other pair leaves the LATER row unchanged. *)
+definition rsimpStrong_prune_pair_raw :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpStrong_prune_pair_raw earlier later =
+    (case (earlier, later) of
+      (RSEQ (RALTS lrs) k1, RSEQ (RALTS rrs) k2) \<Rightarrow>
+        if k1 = k2
+        then rsimp7_SEQ_atom (rsimp_ALTs (rprune_eq_against lrs rrs)) k2
+        else later
+    | _ \<Rightarrow> later)"
+
+(* base/GeneralRegexBound.thy:18227  -- prune ONE row against ALL earlier rows (fold the pairwise rule over seen) *)
+fun rsimpStrong_prune_against_rows_raw :: "rrexp list \<Rightarrow> rrexp \<Rightarrow> rrexp" where
+  "rsimpStrong_prune_against_rows_raw [] r = r"
+| "rsimpStrong_prune_against_rows_raw (x # xs) r =
+    rsimpStrong_prune_against_rows_raw xs (rsimpStrong_prune_pair_raw x r)"
+
+(* base/GeneralRegexBound.thy:18233  -- left-to-right scan; the accumulator 'seen' collects the PRUNED rows r'
+   (NOT the originals), and rows are shrunk-never-dropped (length-preserving). *)
+fun rsimpStrong_prune_rows_acc_raw :: "rrexp list \<Rightarrow> rrexp list \<Rightarrow> rrexp list" where
+  "rsimpStrong_prune_rows_acc_raw seen [] = []"
+| "rsimpStrong_prune_rows_acc_raw seen (r # rs) =
+    (let r' = rsimpStrong_prune_against_rows_raw seen r
+     in r' # rsimpStrong_prune_rows_acc_raw (r' # seen) rs)"
+
+(* base/GeneralRegexBound.thy:18239  -- entry point (start with empty seen) *)
+definition rsimpStrong_prune_rows_raw :: "rrexp list \<Rightarrow> rrexp list" where
+  "rsimpStrong_prune_rows_raw rs = rsimpStrong_prune_rows_acc_raw [] rs"
+
+(* KEY PROPERTY (why this is the wall): the pairwise rule only DELETES branches already present in an earlier row
+   (rows shrunk, never dropped; language-preserving; size-non-increasing). The deletion is at the head-alternation
+   SET level and the re-plug uses sigma7, which collapses ONLY a leading a*.a*. So a row of the form ...(s*.s*)
+   whose head is NOT a leading a* can SURVIVE the prune UNCOLLAPSED -- this cross-prune residual has no per-row-S
+   pre-image, which is exactly why U(SEQ ..)/SAA(RALTS ..) admit no clean subset. *)
 
 ==========================================================================================
 B. OPENING / FRONTIER / STRONG UNIVERSE
