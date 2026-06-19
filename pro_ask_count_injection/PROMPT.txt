@@ -87,8 +87,13 @@ remaining step is the LEAKY RALTS one, which has NO clean subset:
   GOAL STEP:  card( strong_apder_acc (RALTS rs) k  -  strong_apder_acc RONE k )
                  <=  ( SUM_{q in set rs} card( strong_apder_acc q k  -  strong_apder_acc RONE k ) )  +  1.
 
-The numeric inequality holds 0-violations (incl. the a*.a* killers); the obstruction is a DEFINABLE injection/charge,
-NOT the count. Give EITHER:
+CORRECTION (2026-06-19, after a Pro round + our re-validation): the "+1" form above is FALSE — for n independent
+branches q_i = (x_i*.a*) under k = a*, the parent has 2n non-base rows but the child sum is n, so 2n <= n+1 fails for
+n >= 2 (CE: rs=[b*.a*, c*.a*], k=a*, LHS 4 > RHS 3). The per-branch tail-collapse (x*.a*).a* -> x*.(a*.a*) needs a
+LINEAR per-branch debt, not a single +1. BUT the route is NOT dead: the GLOBAL bound
+card(strong_apder_acc r RONE - strong_apder_acc RONE RONE) <= rsize r HOLDS WITH ~5x SLACK (the doubling only occurs
+at intermediate continuations, not at the top k=RONE). So the obstruction is the per-step DECOMPOSITION, not the
+truth of the count. Give EITHER:
   (a) a definable injection / transport LEDGER from the LHS prune-residual rows to the per-child RHS counts (+1 slack),
       operating at the BRANCH-REGEX level (transport a strong row to its SOURCE BRANCH under the same continuation,
       BEFORE opening — analogous to a branch-origin lemma for rsimpStrong_ALTs_raw: every opened row of a SET-pruned

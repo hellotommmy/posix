@@ -1,0 +1,40 @@
+FOLLOW-UP (paste into the SAME session — keep your Python model). Your counterexample is CORRECT and important;
+thank you. We reproduced it independently with a faithful model:
+  - ALTS[b*.a*, c*.a*], k=a*  ->  LHS=4 > RHS=3.
+  - n-branch family ALTS[x_i*.a*]_{i<n}, k=a*  ->  parent 2n vs child-sum+1 = n+1, fails for all n>=2.
+So the requested "+1" SAA RALTS step is genuinely FALSE (our PROMPT mis-stated it — it had only been tested on a
+single branch, where +1 does repair it). Good catch.
+
+BUT the route is NOT dead, and this is the key new fact for you:
+
+  *** The GLOBAL bound HOLDS, with ~5x slack. ***
+  At the TOP continuation k = RONE,  card(strong_apder_acc r RONE - strong_apder_acc RONE RONE) <= rsize r  holds
+  comfortably. Measured (our model):
+     flat ALTS[x_i*.a*]_{i<n}    : card = n+1     vs rsize = 5n+1
+     SEQ(ALTS[x_i*.a*]_{i<n}, a*): card = 2n+1    vs rsize = 5n+4
+  and card(U r) <= rsize r + 1 holds 0/30000 (prior exhaustive). The x*.(a*.a*) tail-doubling appears ONLY at
+  intermediate continuations (k = a*), NOT at the top (k = RONE) — so the global count is fine. The obstruction is
+  purely the per-step RALTS DECOMPOSITION being too tight, not the truth of the bound. There is lots of slack to spend.
+
+WHAT WE NEED NOW (all Python-validated before you answer — you have the model):
+  (1) A corrected RALTS step. Either:
+      (a) a CONCRETE, RECURSIVE  ralts_tail_debt rs k  (total, by cases on the rrexp constructors) such that
+          card(SAA(ALTS rs) k - SAA RONE k)  <=  (SUM q in set rs. card(SAA q k - SAA RONE k))  +  ralts_tail_debt rs k
+          holds with 0 violations (test the n-branch families AND nested SEQ(ALTS_n, a*) AND the witness family); OR
+      (b) a looser-but-telescoping per-step RALTS bound that exploits the ~5x global slack (e.g. charge each branch its
+          own contribution rather than a single shared slot) and still telescopes.
+  (2) THE DECISIVE CHECK: verify the ACCUMULATED debt keeps the GLOBAL bound LINEAR. I.e. run the full induction
+      (k starts at RONE, then k := rsimp4_SEQ_atom r2 k at RSEQ-left and rsimp4_SEQ_atom (RSTAR r) k at RSTAR) and
+      confirm the resulting closed bound is  card(SAA r RONE - base) <= c * rsize r + d  with concrete small c, d and
+      0 violations on: exhaustive clean regexes (rsize <= ~9, alphabet {a,b,c}), the witness family, and the
+      n-branch / nested families above. Report the tightest (c, d) you can certify.
+  (3) Then give: the recursive definition of ralts_tail_debt (or the restructured carrier), the per-step lemma
+      statements, and the global telescoping argument — design + recursive defs only, Python-checked. We formalize.
+  (4) If the accumulated debt turns out SUPER-LINEAR despite the slack (so SAA cannot telescope), say so explicitly
+      and instead give the concrete plan for the DIRECT U lane: U(r) = apder_strong_dlfrontier r is RALTS-clean
+      (apder_strong_dlfrontier_RALTS_subset), so there the wall is the RSEQ step
+      card(U(SEQ r1 r2)) <= card(U r1) + card(U r2)  by a global-cancellation / per-occurrence-debt argument — give the
+      same kind of recursive debt + Python validation for that.
+
+Same discipline as before: build it in Python, find the smallest counterexample to each attempt, iterate to 0
+violations, and report the predicate(s) + sample space + the Python code. Do not return an untested construction.
