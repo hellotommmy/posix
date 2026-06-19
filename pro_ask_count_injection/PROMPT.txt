@@ -1,0 +1,71 @@
+ROLE: Proof architect for an Isabelle/HOL cubic size-bound proof of a POSIX regex lexer. The WHOLE Gate is GREEN
+(0 sorry) except ONE linear row-COUNT lemma, now pinned to a single cross-prune step. I need a CONCRETE,
+Isabelle-formalizable lemma chain that closes it. Do not ask clarifying questions; design the proof (or prove no such
+chain exists and characterize exactly what a correct proof must track).
+
+EVERY function and cited lemma below is given VERBATIM (with file:line) in the attached DEFINITIONS.txt. Use those
+exact definitions — do NOT work from approximate/remembered semantics (a prior attempt failed precisely by mis-modeling
+the collapsing tail). The state summary is in the attached CARD_FRONTIER.md.
+
+============================================================================================
+1. THE OPEN LEMMA
+============================================================================================
+  lemma card_apder_strong_dlfrontier_le:
+    assumes "apder_clean r"
+    shows   "card (apder_strong_dlfrontier r) \<le> Suc (rsize r)"     (* a LINEAR row COUNT *)
+Write U(r) := apder_strong_dlfrontier r = rsimpStrong_dlform_closure (apder_rows r)
+            = (UN q : apder_rows r. row_dlforms (rsimpStrong_raw q)).
+Any LINEAR bound (card (U r) <= a * rsize r + b) also closes the Gate (loosen the downstream budget). A QUADRATIC
+bound does NOT (it makes the Gate quartic). Discharging this lemma feeds actual_gate_from_direct_universe_rowlevel
+(DEFINITIONS.txt §D) and the cubic Gate becomes unconditional. The bound is machine-validated TRUE (0 violations,
+tightest slack 0).
+
+============================================================================================
+2. THE WALL (validated; do NOT re-propose a clean subset)
+============================================================================================
+Three independent prover agents converged on this. The clean-subset induction is dead on BOTH natural carriers, each
+leaking at exactly ONE constructor via the SAME a*.a* cross-prune (the SET-level rsimpStrong_ALTs_raw prune inside
+rsimpStrong_raw keeps uncollapsed rows like ...(s*.s*) that a per-row S would collapse):
+  * U(r) = apder_strong_dlfrontier r is RALTS-clean (apder_strong_dlfrontier_RALTS_subset, GREEN) but RSEQ/RSTAR-LEAKY.
+  * SAA(r,k) = strong_apder_acc r k (the strong closure of the sigma4 carrier; it DISTRIBUTES over its carrier set,
+    so RCHAR/RSEQ/RSTAR carrier splits are CLEAN SUBSETS — see strong_apder_acc_{RSEQ,RSTAR,RCHAR}_subset, GREEN) but
+    is RALTS-under-continuation LEAKY: strong_apder_acc (RALTS rs) k  is NOT  SUBSET of (UN q. strong_apder_acc q k)
+    (smallest CE r=(1 + b*.a*), k=a*; the prune keeps up to 4 uncollapsed ...(s*.s*) rows present in no child).
+So no single carrier closes by card_mono on a subset.
+
+REFUTED routes (do NOT re-propose): the false dl(S q) SUBSET S`dl q; U r SUBSET S`Uun r (~56/66833 leak);
+per-row size bounds (quartic); the deep frontier (U is NOT a subset of it); the awidth+1 injection (FALSE: r=(1+(c*+1)*)
+gives card(U)=3 > awidth+1=2, every position key collides); the opened_boundary_forms transfer (it is sigma4 / NON-strong
+— see the GREEN refutation rsimpStrong_dlform_closure_opened_boundary_carrier_false in DEFINITIONS.txt §E); the rewrite
+route ->r' (does not commute with the derivative without the full ~1000-line Ch5 rewrite system).
+
+============================================================================================
+3. WHAT I WANT (pick the SAA carrier; 3 of 4 constructor diff-steps already clean)
+============================================================================================
+On the SAA carrier the diff-card induction card(strong_apder_acc r k - strong_apder_acc RONE k) <= rsize r has CLEAN,
+already-written steps for RCHAR (card_strong_apder_acc_RCHAR_diff_base_le), RSEQ (via card_Un_Diff_telescope_le +
+strong_apder_acc_RSEQ_subset + strong_apder_acc_RONE_sigma_subset), and RSTAR (telescope + a root-<=-1 lemma). The ONE
+remaining step is the LEAKY RALTS one, which has NO clean subset:
+
+  GOAL STEP:  card( strong_apder_acc (RALTS rs) k  -  strong_apder_acc RONE k )
+                 <=  ( SUM_{q in set rs} card( strong_apder_acc q k  -  strong_apder_acc RONE k ) )  +  1.
+
+The numeric inequality holds 0-violations (incl. the a*.a* killers); the obstruction is a DEFINABLE injection/charge,
+NOT the count. Give EITHER:
+  (a) a definable injection / transport LEDGER from the LHS prune-residual rows to the per-child RHS counts (+1 slack),
+      operating at the BRANCH-REGEX level (transport a strong row to its SOURCE BRANCH under the same continuation,
+      BEFORE opening — analogous to a branch-origin lemma for rsimpStrong_ALTs_raw: every opened row of a SET-pruned
+      strong alternation has a branch origin), accounting for the cross-pruned ...(s*.s*) survivors; OR
+  (b) a "reachable clean-plug continuation" invariant P(k) that holds of every k the induction actually reaches
+      (top k = RONE, then k := rsimp4_SEQ_atom r2 k / rsimp4_SEQ_atom (RSTAR r) k down the recursion) and is strong
+      enough that the RALTS step holds under P(k) — the leak is ONLY on UNREACHABLE standalone continuations
+      (e.g. k = b*.b*), so a precise reachability invariant threaded through the induction would avoid it; OR
+  (c) a proof that NO such injection/invariant is definable, with the minimal extra structure a correct proof must
+      carry (a prune-order index? a provenance tag on rows?).
+
+State every lemma as a precise Isabelle statement, naming the induction variable and the continuation parameter, and
+say which DEFINITIONS.txt §D green facts each step uses. With the RALTS step, the induction closes, then
+card(U r) <= Suc(rsize r) follows via apder_strong_dlfrontier_subset_strong_apder_acc_RONE + card_le_Suc_card_Diff_singleton,
+and the Gate via actual_gate_from_direct_universe_rowlevel.
+
+ATTACHMENTS: DEFINITIONS.txt (verbatim defs + green-lemma statements — READ THIS), CARD_FRONTIER.md (state summary).
