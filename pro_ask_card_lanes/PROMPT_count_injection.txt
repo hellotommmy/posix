@@ -34,6 +34,26 @@ REFUTED -- do NOT re-propose:
   * per-row size bounds (compose to quartic); the deep-frontier (U is NOT a subset of it);
   * pure structural / D-law telescopes of the count (leak at exactly this RSEQ step).
 
+=== PINNED TARGET (2026-06-19: three independent prover agents converged exactly here) ===
+The clean-subset induction is now PROVEN dead on BOTH natural carriers, each leaking at exactly ONE constructor via the
+SAME a*.a* cross-prune:
+  - U(r) = apder_strong_dlfrontier r is RALTS-clean (U(ALTS rs) SUBSET UN_q U q, green) but RSEQ/RSTAR-LEAKY.
+  - SAA(r,k) = strong_apder_acc r k = rsimpStrong_dlform_closure of the sigma4 carrier
+      = (UN p : (rfrontier(sigma4 r k) UNION apder_term_frontier_acc r k). dl(S p));
+    this DISTRIBUTES over its carrier set, giving CLEAN RCHAR/RSEQ/RSTAR diff-steps (already written in Isabelle:
+    card(SAA r k - SAA RONE k) telescopes), but is RALTS-under-continuation LEAKY:
+      SAA(ALTS rs, k)  NOT SUBSET  UN_q SAA(q,k)   (smallest CE r=(1 + b*.a*), k=a*; the SET-level rsimpStrong_ALTs_raw
+      prune keeps uncollapsed ...(s*.s*) rows present in NO child, up to 4 of them).
+PICK THE SAA CARRIER (3 of 4 constructors already clean) and prove the ONE remaining step by a NON-SUBSET cross-prune
+injection / charge:
+   card( SAA(ALTS rs, k) - SAA(RONE, k) )  <=  ( SUM_{q in set rs} card( SAA(q,k) - SAA(RONE,k) ) ) + 1.
+The numeric bound holds 0-viol (incl. the a*.a* killers); the obstruction is a DEFINABLE injection, not the count.
+With this single step, card(SAA r k - SAA RONE k) <= rsize r closes by induction, then card(U r) <= rsize r + 1 and the
+Gate follow immediately (via card_le_Suc_card_Diff_singleton, apder_strong_dlfrontier SUBSET SAA r RONE, and the
+row-level gate assembly). NOTE: a universally-k-quantified induction must also survive UNREACHABLE raw continuations
+(e.g. k = b*.b*) where a naive per-step bound leaks; either give a charge robust to those, or a precise "k is a reachable
+clean-plug continuation" invariant that the induction can carry.
+
 === WHAT I WANT ===
 A definable INJECTION or TRANSPORT LEDGER that absorbs the RSEQ cross-prune at the BRANCH-REGEX level (before
 opening), giving  card(U(SEQ a b)) <= card(U a) + card(U b)  (hence the linear count by induction). One candidate
