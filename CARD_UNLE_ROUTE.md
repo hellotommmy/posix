@@ -75,3 +75,22 @@ positions = card-1's AFP route): card(U(r)) ≤ awidth(r)+1 ≤ |r|+1 by ONE inj
 plugged into the green universe_le_cubic_rowlevel_lin. De-risk workflow running; verdict pending.
 DEAD (do NOT retry): card-a D-law telescope, card-b diff-card telescope, card-2 amortized/EXCESS telescope —
 ALL per-constructor, ALL hit growing RALTS super-additivity. Validator: posix-codex/scratch_pro_amortized_validate.py.
+
+## ✅✅ WIN ROUTE FOUND (Secretary, 2026-06-19) — card(U) by AFP-style card induction, COLLAPSE-PROOF.
+card(apder_strong_dlfrontier r) ≤ |r|+1 (≤2|r|+2) IS provable — the AFP Myhill-Nerode structural CARD
+induction applied DIRECTLY to U_strong, with NO injectivity, so the a*.a* collapse is IRRELEVANT.
+KEY INSIGHT (resolves the whole impasse): `card_image_le : card (f ` A) ≤ card A` holds for ANY f — the
+collapse only MERGES rows, which can never INCREASE a count. The old-memory / recon "a*.a* breaks the
+injection" worry was about EQUALITY; an UPPER bound needs only ≤. And card(U) dedups via `card_Un_le`
+(card(⋃ Aᵢ) ≤ Σ card Aᵢ), unlike the DEAD SUM (per-row sum, no dedup → RALTS super-additive, overshoot grew
+to 86). The card recurrences have overshoot FLAT ZERO across |r| up to 62462.
+VALIDATED DECOMPOSITIONS (0 viol incl a*.a*/RALTS killers, scale-confirmed):
+  RALTS:  U(ALTS rs) ⊆ ⋃_i U(ri)                    [CLEAN subset → card_Un_le; THE OLD WALL IS GONE]
+  RSEQ:   card(U(SEQ a b)) ≤ card(U a) + card(U b)  [U(SEQ a b) ⊆ Timess(U a) b ∪ U b ; card_image_le+card_Un_le]
+  RSTAR:  card(U(STAR a)) ≤ 1 + card(U a)           [U(STAR a) ⊆ Timess(U a)(Star a) ∪ base ; card_image_le]
+  ⟹ telescopes to card(U r) ≤ |r|+1 ⟹ universe_le_cubic_rowlevel_lin[CARD≤2|r|+2] ⟹ actual_gate... ⟹ GATE.
+This IS the AFP proof shape (card_pderivs_lang_UNIV1_le_awidth: `induct r`; card_Un_le @Plus; Timess_eq_image
++ card_image_le @Times/Star). The GREEN @1870 card_apder_terms_le_awidth is the SAME machinery at the terms
+layer — EXTEND it from apder_terms to the opened dlforms (row_dlforms ∘ rsimpStrong_raw). Worker = card-1.
+DEAD (do NOT retry): SUM/EXCESS telescope, amortized potential (Φ/Ψ), ANY position-injection needing
+injectivity in the SIMPLIFIED universe. Validator: posix-codex card-recurrence probes + scratch_pro_amortized_validate.py.
