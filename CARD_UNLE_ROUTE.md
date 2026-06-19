@@ -94,3 +94,20 @@ This IS the AFP proof shape (card_pderivs_lang_UNIV1_le_awidth: `induct r`; card
 layer — EXTEND it from apder_terms to the opened dlforms (row_dlforms ∘ rsimpStrong_raw). Worker = card-1.
 DEAD (do NOT retry): SUM/EXCESS telescope, amortized potential (Φ/Ψ), ANY position-injection needing
 injectivity in the SIMPLIFIED universe. Validator: posix-codex card-recurrence probes + scratch_pro_amortized_validate.py.
+
+## ⚠ CORRECTION (Secretary, 2026-06-19 later) — the "clean subset" WIN premise is WRONG for RSEQ-strong.
+The card RECURRENCES are TRUE (validated, 0 viol), and RALTS (green @19053) + RSTAR (new clean subset found by
+claude/card-1, 0/200k) DO have clean subsets. BUT the formalizer (claude/card-1 @38eed8e) proved RSEQ has NO
+clean subset in the STRONG universe: U(SEQ a b) ⊄ {prepend-image of U a} ∪ U b — leaks ~0.02% (uncollapsed
+…·(c*·c*) rows kept by the cross-row rsimpStrong_ALTs_raw set-prune; per-row S collapses them, the set-prune
+does NOT). card(U(SEQ a b)) ≤ card(U a)+card(U b) holds only by GLOBAL CANCELLATION — card_image_le/card_mono
+cannot capture it per-row.
+PARTIAL ESCAPE (Secretary): the RSEQ subset IS clean in the UNSIMPLIFIED universe Uun (open WITHOUT
+rsimpStrong_raw) with the σ4=rsimp4_SEQ_atom prepend: Uun(SEQ a b) ⊆ {σ4(x,b):x∈Uun a} ∪ Uun b (0 viol; raw
+SEQ prepend leaks 29k). So card(Uun r) ≤ |r|+1 IS cleanly provable (the green @1870 machinery, all 3 ctors).
+REMAINING HARD GAP = the bridge card(U_strong r) ≤ card(Uun r): TRUE (0 viol) but NO clean subset (U_strong ⊄
+S`Uun 56/66833, ⊄ Uun 184, per-q rdl(S q)⊄S`rdl(q) 56 — same cross-prune obstacle, leaks at |r|~697+). Needs a
+DEFINABLE INJECTION U_strong ↪ Uun over the prune order, OR a transport/ledger booking leaked a*·a* rows against
+the rows lost to collapse. SAME a*·a* cross-prune wall as verdict7/8/cand2-4/child_ok, now isolated to ONE
+inequality. The card BOUND is TRUE; the clean proof is blocked here. NOT a clean win — OPEN at the bridge.
+Validators: posix-codex scratch_pro_amortized_validate.py + the bridge/RSEQ-subset probes.
