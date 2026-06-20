@@ -122,6 +122,29 @@ lemma single_root_RSEQ_RCHAR_card_le_one:
       rsimpStrong_prune_pair_raw_def Let_def)
   by (metis card_row_dlforms_rsimp4_SEQ_atom_RCHAR_s4_s4_le_Suc0)+
 
+lemma seq_head_core_RCHAR_le_rsize:
+  "card ((single_root (RSEQ (RCHAR c) t) k \<union>
+           single_term (RCHAR c) (rsimp4_SEQ_atom t k))
+          - (B k \<union> B (rsimp4_SEQ_atom t k)))
+    \<le> rsize (RCHAR c)"
+proof -
+  have sub:
+    "(single_root (RSEQ (RCHAR c) t) k \<union>
+       single_term (RCHAR c) (rsimp4_SEQ_atom t k))
+      - (B k \<union> B (rsimp4_SEQ_atom t k))
+     \<subseteq> single_root (RSEQ (RCHAR c) t) k"
+    by auto
+  have "card ((single_root (RSEQ (RCHAR c) t) k \<union>
+           single_term (RCHAR c) (rsimp4_SEQ_atom t k))
+          - (B k \<union> B (rsimp4_SEQ_atom t k)))
+    \<le> card (single_root (RSEQ (RCHAR c) t) k)"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule single_root_RSEQ_RCHAR_card_le_one)
+  finally show ?thesis
+    by simp
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
