@@ -11561,3 +11561,43 @@ Candidate `Rlin` (recursive closed-form expansion after `rsimpStrong_raw`) had 0
 BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback` EXIT 0;
 `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
 `rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.
+
+---
+
+## L1 lane (claude-L1, race vs GPT cover) — 2026-06-21, Claude Opus
+
+TARGET: `strong_apder_acc_RALTS_singleton_cover :
+  strong_apder_acc (RALTS rs) k ⊆ (⋃ q∈set rs. strong_apder_acc (RALTS [q]) k)`.
+File `r1cover/Card_Route1_Cover.thy`, session `Posix_Card_Route1_Cover`. Build green (exit 0),
+no sorry. Commit d6c861a.
+
+DONE (green, committed): L1 is REDUCED to a single bridge inclusion. New lemmas:
+- `rsimpStrong_dlform_closure_rfrontier_RALTS_seq_eq` — generic-k (k∉{RZERO,RONE}) ROOT carrier
+  normalisation: Cclos(rfrontier(s4(RALTS rs)k)) = row_dlforms(S(RSEQ(RALTS rs)k)).
+- `strong_apder_acc_RALTS_singleton_cover_if_root_split` — proves ALL of L1 from one hypothesis
+  `root_split`:
+    Cclos(rfrontier(s4(RALTS rs)k))
+      ⊆ (⋃ q∈set rs. row_dlforms(S(s4(RALTS[q])k)))            (branch ROOT carriers)
+        ∪ Cclos(apder_term_frontier_acc (RALTS rs) k).         (parent ACC closure)
+  Both RHS targets are already GREEN-covered: branch roots by the in-file
+  `row_dlforms_singleton_root_subset_strong_apder_acc`; parent acc closure by the in-file
+  `strong_apder_acc_RALTS_terms_singleton_cover`. So `root_split` is the LONE open goal; the
+  two-carrier split + final assembly are closed.
+
+OPEN (the wall): `root_split` = the [VALIDATED, TRUE >12M] B1/B2 statement. B1 (surviving
+branch-root origin → branch root carrier) is the easy half. B2 is the wall: a cross-prune
+σ7-collapse row with NO root origin (a bare RONE-headed-tail escape `s7 tail K`, or a self-star
+`s7(RSTAR s)(RSTAR s)=RSTAR s`) must be routed into the parent ACC closure. Verified by hand on the
+CE rs=[(a+b)·a*,(a+1)·a*], k=a*: the prune drops a's head to RONE, `s7 RONE a* = a*` escapes; a* is
+NOT in any branch ROOT but IS in branch (a+1)·a*'s ACC (apder_terms gives a*∈apder_terms, acc row
+RSEQ a* a*, S collapses to a*). The escape→acc routing needs a NOT-YET-EXISTING bridge between the
+strong-simplifier row structure (head branches / tails of `rsimpStrong_raw q`) and `apder_terms q` /
+`apder_term_frontier_acc q k`. The coarse in-file prune helpers
+(`row_dlforms_rsimp7_prune_pair_subset_later_or_suffix`) over-approximate the escape as the whole
+`row_dlforms K`, which is NOT ⊆ the cover (fails when branches are all stars, no char branch), so
+they are insufficient — a SHARP escape (only the collapse rows) routed via the apder_terms bridge is
+required. The file already carries the intended invariants `singleton_saa_ok` / `singleton_saa_key_credit`
+(the latter is exactly the B2 escape-credit) — proving their pipeline preservation is the same bridge.
+NOTE: under apder_nf (which downstream seq_head_core supplies) each branch S q is a single non-alt
+row so the within-branch prune vanishes and only the cross-prune escape remains — an nf-conditional
+`root_split` is the realistic next milestone and is downstream-sufficient.
