@@ -347,4 +347,75 @@ proof (induction r k rule: rsimp4_SEQ_atom.induct)
   finally show ?case by simp
 qed (simp_all split: rrexp.split)
 
+
+section \<open>Size bound for nplug (needed for the opening's termination)\<close>
+
+lemma sum_rsize_seq_factors:
+  "sum_list (map rsize (seq_factors r)) + length (seq_factors r) = Suc (rsize r)"
+  by (induction r) auto
+
+lemma rsize_mk_seq:
+  "xs \<noteq> [] \<Longrightarrow> Suc (rsize (mk_seq xs)) = sum_list (map rsize xs) + length xs"
+  by (induction xs rule: mk_seq.induct) auto
+
+lemma drop_ones_sum_rsize: "sum_list (map rsize (drop_ones xs)) \<le> sum_list (map rsize xs)"
+  by (induction xs rule: drop_ones.induct) auto
+
+lemma fold_stars_sum_rsize: "sum_list (map rsize (fold_stars xs)) \<le> sum_list (map rsize xs)"
+  by (induction xs rule: fold_stars.induct) (auto split: if_splits)
+
+lemma rsize_ge_1: "Suc 0 \<le> rsize r"
+  by (induction r) auto
+
+lemma one_le_sum_rsize:
+  assumes "xs \<noteq> []" shows "Suc 0 \<le> sum_list (map rsize xs)"
+proof -
+  obtain a ys where axs: "xs = a # ys" using assms by (cases xs) auto
+  have "Suc 0 \<le> rsize a" by (rule rsize_ge_1)
+  also have "rsize a \<le> sum_list (map rsize xs)" using axs by simp
+  finally show ?thesis .
+qed
+
+lemma norm_seq_sum_rsize: "sum_list (map rsize (norm_seq xs)) \<le> sum_list (map rsize xs)"
+proof (cases "RZERO \<in> set xs")
+  case True
+  then have "xs \<noteq> []" by auto
+  then have "Suc 0 \<le> sum_list (map rsize xs)" by (rule one_le_sum_rsize)
+  then show ?thesis using True by (simp add: norm_seq_def)
+next
+  case False
+  then show ?thesis
+    using fold_stars_sum_rsize[of "drop_ones xs"] drop_ones_sum_rsize[of xs]
+    by (simp add: norm_seq_def)
+qed
+
+lemma norm_seq_length_le: "length (norm_seq xs) \<le> length xs"
+proof (cases "RZERO \<in> set xs")
+  case True then show ?thesis by (cases xs) (auto simp: norm_seq_def)
+next
+  case False then show ?thesis
+    using fold_stars_length[of "drop_ones xs"] drop_ones_length[of xs]
+    by (simp add: norm_seq_def)
+qed
+
+lemma rsize_nplug_le: "rsize (nplug r k) \<le> rsize r + rsize k + 1"
+proof -
+  let ?xs = "seq_factors r @ seq_factors k"
+  have S: "sum_list (map rsize ?xs) + length ?xs = Suc (rsize r) + Suc (rsize k)"
+    using sum_rsize_seq_factors[of r] sum_rsize_seq_factors[of k] by simp
+  show ?thesis
+  proof (cases "norm_seq ?xs = []")
+    case True then show ?thesis by (simp add: nplug_def)
+  next
+    case False
+    have "Suc (rsize (nplug r k))
+            = sum_list (map rsize (norm_seq ?xs)) + length (norm_seq ?xs)"
+      using False by (simp add: nplug_def rsize_mk_seq)
+    also have "... \<le> sum_list (map rsize ?xs) + length ?xs"
+      using norm_seq_sum_rsize[of ?xs] norm_seq_length_le[of ?xs] by simp
+    also have "... = Suc (rsize r) + Suc (rsize k)" using S by simp
+    finally show ?thesis by simp
+  qed
+qed
+
 end
