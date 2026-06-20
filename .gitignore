@@ -18,3 +18,5 @@ CUBIC_OPEN_PROBLEM.log
 # keep out of git status and the role-guard's changed-file check)
 scratch_*.py
 agent_hunt_pipeline/projects/posix-backref/fable_partial.md
+.isa_home/
+*.isa_home/

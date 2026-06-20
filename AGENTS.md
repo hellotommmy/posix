@@ -1,3 +1,9 @@
+# ⭐ THIS WORKTREE'S TASK — ROUTE-1 LANE: L1 SAA-level singleton cover (read ROUTE_COVER.md FIRST)
+
+You are in the `card/route1-cover` worktree (ONE lane of a parallel route-1 formalization). **Read `ROUTE_COVER.md` (repo root) FIRST** — prove your one lemma into `r1cover/Card_Route1_Cover.thy`, build `-Session Posix_Card_Route1_Cover`, NO sorry, fail-stop + report. Use the proof-level steers in ROUTE_COVER.md; do NOT use the verdicts' broken routes. The general rules below still apply.
+
+---
+
 # Agent Instructions
 
 This repository runs a controlled Agent Hunt style workflow, currently aimed

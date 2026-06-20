@@ -42,3 +42,10 @@ session Posix_Rewrite_Fallback in "rewrite" = "Posix_Base" +
   options [document = false]
   theories
     "RewriteFallback"
+
+(* ROUTE-1 LANE cover (2026-06-20) — L1 SAA-level singleton cover. Child of Posix_Cubic.
+   Build: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1_Cover *)
+session Posix_Card_Route1_Cover in "r1cover" = "Posix_Cubic" +
+  options [document = false]
+  theories
+    "Card_Route1_Cover"
