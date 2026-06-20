@@ -11561,3 +11561,68 @@ Candidate `Rlin` (recursive closed-form expansion after `rsimpStrong_raw`) had 0
 BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback` EXIT 0;
 `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
 `rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.
+
+---
+
+## 2026-06-21 CLAUDE LANE SEQ (route1) — NEW SHORT ROUTE: entire gate count reduced to ONE general-k RALTS lemma; seq_head_core is a DEAD WALL. GREEN, 0 sorry.
+
+WHERE: branch `claude/route1-seq`, file `r1seq/Card_Route1_Seq.thy`, session `Posix_Card_Route1_Seq`
+(child of Posix_Cubic). Commit d0c4151, pushed. Build EXIT 0.
+
+PLAIN-MATH RESULT (all GREEN, 0 sorry, modulo ONE hypothesis named RALTS_diff):
+  (1) star_root_diff_base_le_one  [UNCONDITIONAL leaf]:
+        card( row_dlforms(S(s4(RSTAR r) k)) - strong_apder_acc RONE k ) <= 1.
+      i.e. the strong-opened STAR boundary adds at most one row over the base. (This is the
+      closure-level >=1 boundary the old plan wanted; the file previously only had the
+      rsize_set version card_strong_apder_acc_RSTAR_root_diff_base_le.)
+  (2) card_strong_apder_acc_diff_base_le  [general-k D bound; assumes RALTS_diff]:
+        apder_clean r ==> apder_nf k ==>
+          card( strong_apder_acc r k - strong_apder_acc RONE k ) <= rsize r.
+      Proof = induction on r. RZERO/RONE trivial; RCHAR = green
+      card_strong_apder_acc_RCHAR_diff_base_le; RSEQ and RSTAR use the GREEN reassoc-CLEAN
+      carrier subsets strong_apder_acc_{RSEQ,RSTAR}_subset + the telescope
+      card_Un_Diff_telescope_le + strong_apder_acc_RONE_sigma_subset + (RSTAR) the new (1).
+      RALTS is the cross-prune-LEAKY constructor and is carried as the hypothesis RALTS_diff.
+  (3) card_apder_strong_dlfrontier_le  [assumes RALTS_diff]:
+        apder_clean r ==> card( apder_strong_dlfrontier r ) <= Suc(rsize r).
+      = THE one open gate-count lemma (DEFINITIONS.txt §D). From (2) at k=RONE +
+      green bridge apder_strong_dlfrontier_subset_strong_apder_acc_RONE +
+      strong_apder_acc_RONE_RONE={RONE} + card_le_Suc_card_Diff_singleton.
+  (4) actual_gate_route1_seq  [assumes RALTS_diff]:
+        apder_clean r ==> rsize_set(row_dlformss(rpder_strong_rows_raw c (afactored1 r s)))
+                            <= 2*(rsize r+3)^3.
+      = the FULL cubic gate, via the green actual_gate_from_direct_universe_rowlevel[OF (3)].
+
+NET: the WHOLE route-1 cubic gate now reduces to the SINGLE remaining lemma
+  RALTS_diff:  apder_nf (RALTS rs) ==> apder_nf k ==>
+       card( strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k ) <= rsize (RALTS rs).
+This BYPASSES seq_head_core_le_rsize / singleton_size_nf / boundary_term_absorb / the whole
+G3+G4 chain (verdict_G3/G4). They are not needed on this route.
+
+WHY seq_head_core_le_rsize (my originally-assigned target) is a DEAD WALL — adversarially
+checked (scratch_seq_head_*.py against the faithful model in pro_ask_round2/secretary_validator.py):
+ - The target IS TRUE (0 viol / 8000) but every natural induction route is FALSE:
+     single_root(RSEQ a b) k = single_root a (s4 b k)   -- head-reassoc: FALSE (151/8000; CE
+       a=((b*+a*).(c+(a.a))), b=((a*).a*)*, k=(a*.(a*.b*)*)). Fails for ALL head types incl CHAR.
+     single_root(RSEQ(RSEQ h1 h2)t)k = single_root(RSEQ h1 (RSEQ h2 t))k  -- tail-reassoc: ~0.1% FALSE.
+     single_root(q,k) = closure(rfrontier(s4 q k))  -- root-unwrap: FALSE for q=RSEQ (145/5000),
+       TRUE for CHAR/STAR/ALT. So core(h,t,k) is NOT contained in strong_apder_acc h (s4 t k)
+       (card core > card(A h m - B m) on 134/12000). The single_root of a SEQ does not
+       reassociate because rsimp7 (sigma7) collapses a leading a*.a* at the SEQ-vs-k boundary
+       only in the non-reassociated form; this is exactly the documented cross-prune wall.
+ - The D-bound route AVOIDS this by working with the FULL carrier strong_apder_acc (whose
+   per-constructor subsets are green & reassoc-clean), not single_root.
+
+ON RALTS_diff (the remaining nut — COVER lane):
+ - The clean cover  strong_apder_acc(RALTS rs)k ⊆ Bk ∪ (⋃ q. strong_apder_acc q k)  is FALSE
+   (224/15000; CE rs=[c*.b, c*.a*, (a+c+b).a*, c], k=a**.(b.c)*) — cross-prune residual rows.
+ - The EXISTING green card_apder_strong_dlfrontier_RALTS_diff_RONE_le (cubic:671) is the U-carrier
+   RALTS cover but only at the implicit k=RONE; it does NOT give RALTS_diff, which needs GENERAL k
+   (nested RALTS appears as a RSEQ-head / RSTAR-body, e.g. (a+b).c, (a+b)*, so the recursion
+   feeds it non-RONE continuations). So RALTS_diff = the general-k strong_apder_acc RALTS
+   cover-diff. Recommend the COVER lane target THIS exact statement; landing it makes (2)/(3)/(4)
+   UNCONDITIONAL and closes the entire route-1 gate.
+ - D_general itself (the full card(A r k - B k) <= rsize r incl RALTS) is validated 0/15000 and
+   the final card(U r) <= Suc(rsize r) is 0/6000, so RALTS_diff is TRUE; it is the lone wall.
+
+NEXT: hand RALTS_diff to the cover lane. seq_head_core_le_rsize can be retired on this route.
