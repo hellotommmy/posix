@@ -286,3 +286,114 @@ NOT overclaim — mark validated-but-unproved as [VALIDATED], never [PROVED].
 
 Deliverable: complete compilable LaTeX source + the PDF.
 ```
+
+---
+
+# CLAUDE lanes (run in parallel with the GPT/Codex lanes)
+
+Three Claude-Code worktrees mirror the three crux lanes and RACE them: first lane to land its lemma
+green wins, the Secretary merges. Same repo, separate worktrees = safe "same-folder" collaboration
+(shared git object store, private heaps, no live file conflict). Open a **Claude Code** session
+(`claude` CLI) with CWD = the listed worktree and paste the KICKOFF block. First build per worktree
+is a cold ~3–7 min private-heap chain rebuild. Priorities: **S1** (the GPT bnd lane is stuck) and
+**L1** (cover is grinding) are where Claude adds the most; **seq** is a race/backup (GPT seq is
+already advancing). Full skeletons + validation evidence live in
+`C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\ROUTE1_CRUX_STATUS.md`.
+
+## ▶ Claude Lane L1 — `posix-route1\claude-L1`  (races GPT cover)
+- File `r1cover\Card_Route1_Cover.thy` · Session `Posix_Card_Route1_Cover`
+- Build:
+```
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-L1/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-L1 && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Cover"
+```
+- KICKOFF (paste into a Claude Code session opened in posix-route1\claude-L1):
+```
+You are a Claude Code worker on the L1 lane, RACING the GPT cover lane (first to land green wins;
+the Secretary merges). CWD is this worktree. Theory r1cover/Card_Route1_Cover.thy, session
+Posix_Card_Route1_Cover. Build ONLY with the private-heap command in ROUTE1_LAUNCHPAD.md (first
+build is a cold ~3–7 min chain rebuild). Rules: hand-proof-first (sanity-check the skeleton before
+tactic-grinding), NO sorry, build green, fail-stop + report the exact open goal. Full skeleton +
+evidence: C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\ROUTE1_CRUX_STATUS.md (§L1).
+
+TARGET: strong_apder_acc_RALTS_singleton_cover :
+  "strong_apder_acc (RALTS rs) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k)"
+L1 is TRUE (>12M validated; 0 viol incl the cross-prune wall family). Prove by fix-(a), TWO carriers
+of SAA = Cclos(rfrontier(s4 r k) ∪ acc r k):
+ - acc/term carrier distributes EXACTLY per branch (already green in file) ⇒ covered.
+ - root/rfrontier carrier, CASE ON k: RZERO/RONE reuse the green base lemmas; general k → carrier
+   row_dlforms(S(RSEQ(RALTS rs)k)); split each element y:
+     (B1) y has a surviving branch-root-origin → that branch's root carrier. Prune is
+          SHRINK-NEVER-DROP / first-occurrence (rprune_eq_against drops only covered head-alts,
+          rflts, rdistinct); dl distributes over the pruned ALT head.
+     (B2) y is a cross-prune-collapsed s* with NO root origin → route to the ACC carrier (NOT a
+          branch root — that mis-attribution is the dead device): a branch ending (..)·s* has acc
+          row s*·s*, Cclos opens S(s*·s*)=s*={s*}. Escape set ⊆ {RSTAR s} ⊆ ⋃_q acc-carrier.
+ Membership-chasing (intro/elim on ⋃, set(rflts..), set(rdistinct..)) + explicit acc witness for B2.
+ Do NOT use any root-only device (dl_le_pruned_altseq / singleton_source_ok) — FALSE here (295/78457).
+Commit green; report which carrier/case is done and what's left.
+```
+
+## ▶ Claude Lane S1 — `posix-route1\claude-S1`  (races GPT bnd; HIGH priority — bnd is stuck)
+- File `r1bnd\Card_Route1_Bnd.thy` · Session `Posix_Card_Route1_Bnd`
+- Build:
+```
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-S1/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-S1 && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Bnd"
+```
+- KICKOFF:
+```
+You are a Claude Code worker on the S1 lane, RACING the GPT bnd lane (which is stuck on a doomed
+card-EQUALITY refactor — do NOT repeat it). CWD is this worktree. Theory r1bnd/Card_Route1_Bnd.thy,
+session Posix_Card_Route1_Bnd. Build ONLY with the private-heap command in ROUTE1_LAUNCHPAD.md.
+Rules: hand-proof-first, NO sorry, build green, fail-stop + report. Full skeleton:
+C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\ROUTE1_CRUX_STATUS.md (§S1).
+
+The PLAIN subset is FALSE for RSEQ-root t (CE t=a·a*, k=a*: LHS has the σ7-COLLAPSED row a·a*,
+single_root has the UNcollapsed a·(a*·a*); distinct, neither contains the other ⇒ card_mono cannot
+rescue). ABANDON card-equality (sets differ; card X=card B ⇏ card(X∪C)=card(B∪C)). The CARD form is
+TRUE (0/14.7k). Prove it with an ASYMMETRIC two-pronged split:
+
+lemma boundary_excess_RSEQ_subset_image:   (* RSEQ-root ONLY; 0/5768 *)
+  assumes "is_RSEQ t"
+  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
+           ⊆ rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)"
+  (* then card_image_le. The S-image FAILS for ALTS-root (96 viol) — do NOT use it uniformly. *)
+
+lemma boundary_excess_nonseq_subset:        (* non-RSEQ; PLAIN subset holds, 0 viol *)
+  assumes "rnonseq t"
+  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
+           ⊆ single_root t k - strong_apder_acc RONE k"
+  by (cases t; cases k; simp_all add: strong_apder_acc_def single_root_def
+       rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def
+       rsimp4_SEQ_atom.simps(1) rfrontier.simps Let_def split: rrexp.splits)
+  (* the ~100 RZERO-root subgoals close via rsimp4_SEQ_atom RZERO k = RZERO + rfrontier RZERO = {} *)
+
+Then boundary_excess_le_root_excess = (cases t): RSEQ via image + card_image_le, others via plain +
+card_mono. Land boundary_term_absorb on top (consumes only the card form). Commit green; report.
+```
+
+## ▶ Claude Lane SEQ — `posix-route1\claude-seq`  (races GPT seq; backup)
+- File `r1seq\Card_Route1_Seq.thy` · Session `Posix_Card_Route1_Seq`
+- Build:
+```
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-seq/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/claude-seq && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Seq"
+```
+- KICKOFF:
+```
+You are a Claude Code worker on the SEQ lane, racing the GPT seq lane (which has already landed the
+RCHAR helper + star base identity — pull the latest and continue, don't redo). CWD is this worktree.
+Theory r1seq/Card_Route1_Seq.thy, session Posix_Card_Route1_Seq. Build ONLY with the private-heap
+command in ROUTE1_LAUNCHPAD.md. Rules: hand-proof-first, NO sorry, build green, fail-stop + report.
+Full skeleton: C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\ROUTE1_CRUX_STATUS.md (§seq_head_core).
+
+TARGET seq_head_core_le_rsize is TRUE and TIGHT (0/~14M; charge rsize h, NOT D1 — the collapsed-
+continuation recurrence is the false trap). Induction on h, arbitrary t k:
+ - RZERO/RONE: trivial (single_term={}, single_root singleton/empty).
+ - RCHAR c: single_term(RCHAR c)(s4 t k)=B(s4 t k) (absorbed); residual single_root(RSEQ(RCHAR c)t)k
+   is a singleton (RCHAR-headed SEQ never distributes through row_dlforms) ⇒ ≤1. Discharge spurious
+   RNTIMES/RRESIDUE via legacy_rrexp/rntimes_free, not auto.  [already partly landed by GPT — reuse]
+ - RSEQ h1 h2: reassociate s4(RSEQ h1 h2)c=s4 h1(s4 h2 c); h1 via IH(≤rsize h1) + h2 via
+   boundary_term_absorb (assume it) + single_term_RSEQ; Suc node slack absorbs the extra row.
+ - RALTS rs: use the L1 cover (assume it) → Σ rsize branches < rsize(RALTS rs).
+ - RSTAR r: star_single_root_eq_B + star_boundary_shift_le_one (already landed) + child IH.
+Report the assumed deps (boundary_term_absorb, L1). Commit green; report.
+```
