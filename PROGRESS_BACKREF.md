@@ -11580,3 +11580,22 @@ CHECKED, GREEN, no sorry:
 - L2 star boundary helper: `apder_nf k ==> card(A(RONE, s4(RSTAR r,k)) - A(RONE,k)) <= 1`. Plain gloss: star plug adds at most one base-boundary row.
 
 NEXT SMALLEST STEP: prove L1 non-unit root cover for `s4(RALTS rs,k)=RSEQ(RALTS rs) k`; independently start S1-backed `boundary_term_absorb` for L2. Do NOT use the verdict_G2 `dl_le_pruned_altseq/singleton_source_ok` route; the failed direct branch-carrier and singleton-row bridge attempts were removed.
+
+## 2026-06-20 ROUTE-1 CARD lane (Codex): S1 nonseq/nonalt helper batch GREEN
+
+BRANCH: `card/route1-formalize`.
+
+FILES CHANGED: `card/Card_Route1.thy` (+ helper lemmas only).
+
+BUILD: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1`
+EXIT 0.
+
+CHECKED, GREEN, no sorry:
+- Narrow singleton-normalization helper: `q ~= RZERO ==> nonalt q ==> rsimpStrong_ALTs_raw [q] = q`. Plain gloss: one non-alt row is stable under the strong ALTS wrapper.
+- S1 base/atomic/star helpers:
+  `card(A(RONE, s4(t,k)) - A(RONE,k)) <= card(single_root t k - A(RONE,k))`
+  for `t = RZERO`, `RONE`, `RCHAR c`, `RSTAR r`, `RNTIMES r n`, `RBACKREF4 r1 r2 r3 r4 cs`, `RHALF r cs rep`, and `RRESIDUE cs rep`.
+- S1 summary helper for the finished constructor family:
+  `rnonseq t ==> nonalt t ==> card(A(RONE, s4(t,k)) - A(RONE,k)) <= card(single_root t k - A(RONE,k))`.
+
+NEXT SMALLEST STEP: finish S1 for the structural cases `RSEQ` and `RALTS` (the latter should use the corrected L1 SAA-level cover), then derive `boundary_term_absorb` via S1 plus the genuine-term disjointness. L1 non-unit root cover remains the other open helper; direct broad `cases k; auto` was removed after causing a proof-script blow-up, not a counterexample.

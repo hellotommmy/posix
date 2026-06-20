@@ -232,4 +232,127 @@ next
   finally show ?thesis .
 qed
 
+lemma boundary_excess_le_single_root_RZERO:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom RZERO k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root RZERO k - strong_apder_acc RONE k)"
+  by (simp add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def)
+
+lemma boundary_excess_le_single_root_RONE:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom RONE k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root RONE k - strong_apder_acc RONE k)"
+  by simp
+
+lemma rsimpStrong_ALTs_raw_single_RCHAR [simp]:
+  "rsimpStrong_ALTs_raw [RCHAR c] = RCHAR c"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma rsimpStrong_ALTs_raw_single_nonzero_nonalt [simp]:
+  assumes "q \<noteq> RZERO"
+    and "nonalt q"
+  shows "rsimpStrong_ALTs_raw [q] = q"
+  using assms
+  by (cases q) (simp_all add: rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma boundary_excess_le_single_root_RCHAR:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RCHAR c) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RCHAR c) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma boundary_excess_le_single_root_RNTIMES:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RNTIMES r n) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RNTIMES r n) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma boundary_excess_le_single_root_RBACKREF4:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RBACKREF4 r1 r2 r3 r4 cs) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RBACKREF4 r1 r2 r3 r4 cs) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma boundary_excess_le_single_root_RHALF:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RHALF r cs rep) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RHALF r cs rep) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma boundary_excess_le_single_root_RRESIDUE:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RRESIDUE cs rep) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RRESIDUE cs rep) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma boundary_excess_le_single_root_RSTAR:
+  "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root (RSTAR r) k - strong_apder_acc RONE k)"
+  unfolding single_root_def strong_apder_acc_def
+    rsimpStrong_dlform_closure_def
+  by (cases "rsimpStrong_raw r"; cases k)
+    (auto simp add: rsimp7_SEQ_atom_def)
+
+lemma boundary_excess_le_single_root_nonseq_nonalt:
+  assumes "rnonseq t"
+    and "nonalt t"
+  shows "card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+      strong_apder_acc RONE k) \<le>
+    card (single_root t k - strong_apder_acc RONE k)"
+  using assms
+proof (cases t)
+  case RZERO
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RZERO)
+next
+  case RONE
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RONE)
+next
+  case (RCHAR c)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RCHAR)
+next
+  case (RSEQ t1 t2)
+  then show ?thesis
+    using assms by simp
+next
+  case (RALTS rs)
+  then show ?thesis
+    using assms by simp
+next
+  case (RSTAR r)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RSTAR)
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RNTIMES)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RBACKREF4)
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RHALF)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    by (rule ssubst) (rule boundary_excess_le_single_root_RRESIDUE)
+qed
+
 end
