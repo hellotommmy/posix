@@ -772,6 +772,92 @@ proof -
 qed
 
 (* ===================================================================== *)
+(* COVER ROOT reduced to the per-tagged-row SAA invariant.  Using the       *)
+(* provenance scaffold, the parent ROOT opening decomposes into the strong   *)
+(* openings of the tagged final rows; if each tagged row (q,t) opens into    *)
+(* its origin branch's full carrier strong_apder_acc (RALTS[q]) k, the whole *)
+(* cover root follows.  This isolates the open wall to exactly `inv` (the    *)
+(* B1/B2 escape routing), for the generic tail S k \<notin> {RZERO,RONE}.            *)
+(* ===================================================================== *)
+
+lemma cover_root_from_tagged_invariant:
+  assumes Sk0: "rsimpStrong_raw k \<noteq> RZERO"
+    and Sk1: "rsimpStrong_raw k \<noteq> RONE"
+    and inv: "\<And>q t. (q, t) \<in> set (tagged_Strong_ALTs_rows rs) \<Longrightarrow>
+        row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+          strong_apder_acc (RALTS [q]) k"
+  shows "row_dlforms (rsimpStrong_raw (RSEQ (RALTS rs) k)) \<subseteq>
+           (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof -
+  define ROWS where "ROWS = map snd (tagged_Strong_ALTs_rows rs)"
+  have rows_eq:
+    "ROWS = rdistinct
+       (rflts (rsimpStrong_prune_rows_raw (rflts (map rsimpStrong_raw rs)))) {}"
+    unfolding ROWS_def by (rule map_snd_tagged_Strong_ALTs_rows)
+  have nf_map: "\<forall>t \<in> set (map rsimpStrong_raw rs). rtail_nf t"
+    using rtail_nf_rsimpStrong_raw by auto
+  have nf_flat1: "\<forall>t \<in> set (rflts (map rsimpStrong_raw rs)). rtail_nf t"
+    by (rule rtail_nf_rflts[OF nf_map])
+  have nf_prune:
+    "\<forall>t \<in> set (rsimpStrong_prune_rows_raw
+        (rflts (map rsimpStrong_raw rs))). rtail_nf t"
+    by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF nf_flat1])
+  have nf_flat2:
+    "\<forall>t \<in> set (rflts (rsimpStrong_prune_rows_raw
+        (rflts (map rsimpStrong_raw rs)))). rtail_nf t"
+    by (rule rtail_nf_rflts[OF nf_prune])
+  have rows_nf: "\<forall>t \<in> set ROWS. rtail_nf t"
+    using rows_eq nf_flat2 set_rdistinct_subset[of "rflts (rsimpStrong_prune_rows_raw
+        (rflts (map rsimpStrong_raw rs)))" _ "{}"]
+    by auto
+  have step1:
+    "rsimpStrong_raw (RSEQ (RALTS rs) k) =
+       rsimp7_SEQ_atom (rsimp_ALTs ROWS) (rsimpStrong_raw k)"
+    by (simp add: rsimpStrong_ALTs_raw_def map_snd_tagged_Strong_ALTs_rows ROWS_def)
+  have sub_RALTS:
+    "row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs ROWS) (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom (RALTS ROWS) (rsimpStrong_raw k))"
+    by (rule row_dlforms_rsimp7_rsimp_ALTs_subset_RALTS[OF subset_refl rows_nf])
+  have eqK:
+    "rsimp4_SEQ_atom (RALTS ROWS) (rsimpStrong_raw k) =
+       RSEQ (RALTS ROWS) (rsimpStrong_raw k)"
+    using Sk0 Sk1 by (cases "rsimpStrong_raw k") auto
+  have open_eq:
+    "row_dlforms (rsimp7_SEQ_atom (RALTS ROWS) (rsimpStrong_raw k)) =
+       (\<Union>t \<in> set ROWS. row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)))"
+    by (simp add: rsimp7_SEQ_atom_RALTS eqK)
+  have each:
+    "(\<Union>t \<in> set ROWS. row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k))) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+  proof (rule UN_least)
+    fix t assume tin: "t \<in> set ROWS"
+    then obtain p where p: "p \<in> set (tagged_Strong_ALTs_rows rs)" "snd p = t"
+      unfolding ROWS_def by auto
+    obtain q where pq: "p = (q, t)" using p(2) by (cases p) auto
+    have q_in: "q \<in> set rs"
+      using tagged_Strong_ALTs_rows_origin p(1) pq by simp
+    have "row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+      using inv p(1) pq by simp
+    then show "row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+        (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+      using q_in by blast
+  qed
+  have "row_dlforms (rsimpStrong_raw (RSEQ (RALTS rs) k)) =
+      row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs ROWS) (rsimpStrong_raw k))"
+    by (rule arg_cong[where f = row_dlforms, OF step1])
+  also have "... \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RALTS ROWS) (rsimpStrong_raw k))"
+    by (rule sub_RALTS)
+  also have "... =
+      (\<Union>t \<in> set ROWS. row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)))"
+    by (rule open_eq)
+  also have "... \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    by (rule each)
+  finally show ?thesis .
+qed
+
+(* ===================================================================== *)
 (* L1 REDUCED TO ONE BRIDGE.  The two-carrier split (Carriers I/II) makes   *)
 (* the singleton cover follow GREEN from a single inclusion `root_split`:    *)
 (* the ROOT carrier of the parent lands in (the branch ROOT carriers) UNION  *)
