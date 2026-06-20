@@ -375,6 +375,26 @@ directive in the PROGRESS tail.
 Full text: `agent_hunt_pipeline/projects/posix-backref/CLAUDE.md`. The
 high-yield core:
 
+★. **Adversarial hand-proof BEFORE Python, before formalizing (admin rule,
+   2026-06-20).** After decomposing a goal into hypothesis steps, for EACH
+   step FIRST: (a) attempt the proof BY HAND — walk the actual induction /
+   set-algebra, noting where it gets *unnatural*, which definition SHAPE it
+   leans on, which case is fragile; (b) deliberately try to BREAK it — build a
+   purpose-made MINIMAL counterexample driven by the definition shapes (σ7
+   collapses ONLY a leading `a*·a*`; `rsimpStrong_ALTs_raw` prunes at the SET
+   level; the `a*·a*` boundary; two branches sharing one star tail; a nullable
+   head exposing the continuation). Only steps that pass BOTH (a *natural*
+   hand-proof AND survival of a deliberate adversarial construction) are worth
+   Python-confirming at scale and worth formalizing — if the best case isn't
+   "every step goes through naturally," the plan isn't ready to execute.
+   **Python CONFIRMS the hand-analysis (catches what you missed) + enforces
+   the witness-family discipline; it NEVER substitutes for understanding — a
+   "0 violations" with no hand-proof is a RED FLAG, not a green light.** Every
+   refuted hypothesis here (ctx_bound 47>46, child_ok 99>96, the SAA-RALTS
+   "+1" 2n>n+1, the per-branch `D(ALTS[q])≤D(q)+1` on `(1+a*)·b*`) had a SIMPLE
+   shape-driven CE that hand-analysis kills in minutes; Python-only sampling
+   burned whole sessions returning false `0/10⁵`. Bake this into every
+   `pro_ask` prompt and worker instruction. (Memory: `feedback-adversarial-handproof-first`.)
 0. **Report in plain math, not jargon (admin requirement, 2026-06-13).**
    Every `CHECKED` note in the PROGRESS tail must state the result as a math
    inequality/identity in plain notation (e.g. `card(apder_rows r) <= rsize r
