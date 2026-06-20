@@ -52,3 +52,4 @@ session Posix_Norm in "cubic/Normalized" = "Posix_Base" +
   theories
     "NormalizedAppend"
     "NormalizedStrong"
+    "NormalizedOpening"
