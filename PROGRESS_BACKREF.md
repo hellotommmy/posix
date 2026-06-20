@@ -11634,3 +11634,33 @@ to be covered by the reassociated carrier
 plus the two term-frontier pieces. This is exactly singleton L2 / seq-head territory, not safe spine glue.
 The failed candidate was removed; file remains green. Next step should wait for the bnd/seq lane singleton L2 bridge
 or add it as an explicit fourth assumption if Secretary wants the global/target/gate spine forced through.
+
+## 2026-06-20 ROUTE-1 CARD spine lane (Codex): D1 aliases + RSTAR singleton step GREEN; exact L2 blocked at nested ALTS bridge
+
+BRANCH: `card/route1-formalize`.
+
+FILES CHANGED: `card/Card_Route1.thy`, `PROGRESS_BACKREF.md`.
+
+BUILD: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1`
+EXIT 0.  `python .\agent_hunt_pipeline\scripts\backref_no_cheat_guard.py` OK.
+
+CHECKED, GREEN, no sorry:
+- Added `D1 q k = D (RALTS [q]) k`.
+- Added D1-form RSEQ recurrence:
+  assuming the bnd/seq lane shapes of `boundary_term_absorb` and `seq_head_core_le_rsize`,
+  `D1 (RSEQ r1 r2) k <= rsize r1 + D1 r2 k`.
+- Added RSTAR singleton recurrence:
+  `apder_nf r ==> apder_nf k ==> D1 (RSTAR r) k <= 1 + D1 r (rsimp4_SEQ_atom (RSTAR r) k)`,
+  using the already-green `star_boundary_shift_le_one`.
+
+FAIL-STOP for exact L2 assembly from only A/B/C:
+the `RALTS` case of exact singleton L2 needs the nested wrapper bridge
+  `strong_apder_acc (RALTS [RALTS rs]) k <= strong_apder_acc (RALTS rs) k`
+or at least the corresponding branch-union cover.  A minimal direct attempt was removed after the build left 8
+non-unit-continuation root subgoals.  First subgoal is the `k = RCHAR x3` case: rows opened from the singleton-wrapped
+strong-ALTS root
+  `rsimp7_SEQ_atom (rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows_raw (rflts [rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows_raw (rflts (map rsimpStrong_raw rs)))) {})]))) {})) (RCHAR x3)`
+must be shown to lie in the unwrapped root
+  `rsimp7_SEQ_atom (rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows_raw (rflts (map rsimpStrong_raw rs)))) {})) (RCHAR x3)`
+modulo the term-frontier exclusions.  This is a strong-ALTS nested cover/idempotence bridge, not derivable from the
+three current spine assumptions by set/card bookkeeping alone.

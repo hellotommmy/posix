@@ -14,6 +14,9 @@ subsection \<open>Helper definitions (pre-verified to build; reuse these)\<close
 definition D :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
   "D r k = card (strong_apder_acc r k - strong_apder_acc RONE k)"
 
+definition D1 :: "rrexp \<Rightarrow> rrexp \<Rightarrow> nat" where
+  "D1 q k = D (RALTS [q]) k"
+
 definition single_root :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "single_root q k =
      rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS [q]) k))"
@@ -383,6 +386,18 @@ lemma card_RSTAR_root_row_diff_base_le_one:
     strong_apder_acc_RONE_s4_RSTAR_eq_root_row[of r k]
   by simp
 
+lemma single_root_RSTAR_eq_boundary:
+  "single_root (RSTAR r) k =
+    strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k)"
+  unfolding single_root_def strong_apder_acc_RONE_eq_closure_rfrontier
+  by (cases k; cases "rsimpStrong_raw r")
+    (auto simp add: rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+
+lemma single_term_subset_singleton_RALTS:
+  "single_term q k - strong_apder_acc RONE k \<subseteq>
+    strong_apder_acc (RALTS [q]) k - strong_apder_acc RONE k"
+  by (auto simp add: strong_apder_acc_single_RALTS_decomp)
+
 lemma card_strong_apder_acc_singleton_RSEQ_rec_spine:
   assumes boundary_term_absorb:
     "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
@@ -431,6 +446,79 @@ proof -
   qed
   finally show ?thesis
     by (simp add: D_def)
+qed
+
+lemma D1_RSEQ_step_spine:
+  assumes boundary_term_absorb:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term t k - strong_apder_acc RONE k)) \<le>
+      D1 t k"
+    and seq_head_core_le_rsize:
+    "\<And>h t k. apder_nf h \<Longrightarrow> apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+          single_term h (rsimp4_SEQ_atom t k)) -
+        (strong_apder_acc RONE k \<union>
+          strong_apder_acc RONE (rsimp4_SEQ_atom t k))) \<le> rsize h"
+    and nf1: "apder_nf r1"
+    and nf2: "apder_nf r2"
+    and nfk: "apder_nf k"
+  shows "D1 (RSEQ r1 r2) k \<le> rsize r1 + D1 r2 k"
+proof -
+  have bnd_D:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term t k - strong_apder_acc RONE k)) \<le>
+      D (RALTS [t]) k"
+    using boundary_term_absorb by (simp add: D1_def)
+  have "D (RALTS [RSEQ r1 r2]) k \<le>
+      rsize r1 + D (RALTS [r2]) k"
+    by (rule card_strong_apder_acc_singleton_RSEQ_rec_spine
+        [OF bnd_D seq_head_core_le_rsize nf1 nf2 nfk])
+  then show ?thesis
+    by (simp add: D1_def)
+qed
+
+lemma D1_RSTAR_step_spine:
+  assumes nfr: "apder_nf r"
+    and nfk: "apder_nf k"
+  shows "D1 (RSTAR r) k \<le>
+    1 + D1 r (rsimp4_SEQ_atom (RSTAR r) k)"
+proof -
+  let ?c = "rsimp4_SEQ_atom (RSTAR r) k"
+  let ?A = "strong_apder_acc (RALTS [RSTAR r]) k"
+  let ?B = "strong_apder_acc RONE k"
+  let ?Bc = "strong_apder_acc RONE ?c"
+  let ?T = "single_term r ?c"
+  have decomp: "?A = ?Bc \<union> ?T"
+    unfolding strong_apder_acc_single_RALTS_decomp
+      single_root_RSTAR_eq_boundary single_term_def
+      rsimpStrong_dlform_closure_def
+    by auto
+  have cover: "?A - ?B \<subseteq> (?Bc - ?B) \<union> (?T - ?Bc)"
+    using decomp by auto
+  have card_cover: "card (?A - ?B) \<le>
+      card ((?Bc - ?B) \<union> (?T - ?Bc))"
+    by (rule card_mono) (use cover in auto)
+  also have "... \<le> card (?Bc - ?B) + card (?T - ?Bc)"
+    by (rule card_Un_le)
+  also have "... \<le> 1 + D1 r ?c"
+  proof (rule add_mono)
+    show "card (?Bc - ?B) \<le> 1"
+      by (rule star_boundary_shift_le_one[OF nfk])
+    have term_sub: "?T - ?Bc \<subseteq>
+        strong_apder_acc (RALTS [r]) ?c - ?Bc"
+      using single_term_subset_singleton_RALTS[of r ?c] by auto
+    have "card (?T - ?Bc) \<le>
+        card (strong_apder_acc (RALTS [r]) ?c - ?Bc)"
+      by (rule card_mono) (use term_sub in auto)
+    then show "card (?T - ?Bc) \<le> D1 r ?c"
+      by (simp add: D1_def D_def)
+  qed
+  finally show ?thesis
+    by (simp add: D1_def D_def)
 qed
 
 lemma card_strong_apder_acc_RALTS_diff_base_le_size_budget_spine:
