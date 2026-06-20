@@ -42,3 +42,10 @@ session Posix_Rewrite_Fallback in "rewrite" = "Posix_Base" +
   options [document = false]
   theories
     "RewriteFallback"
+
+(* ROUTE-1 LANE seq (2026-06-20) — seq_head_core_le_rsize. Child of Posix_Cubic.
+   Build: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1_Seq *)
+session Posix_Card_Route1_Seq in "r1seq" = "Posix_Cubic" +
+  options [document = false]
+  theories
+    "Card_Route1_Seq"

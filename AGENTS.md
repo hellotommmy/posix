@@ -1,3 +1,9 @@
+# ⭐ THIS WORKTREE'S TASK — ROUTE-1 LANE: seq_head_core_le_rsize (read ROUTE_SEQ.md FIRST)
+
+You are in the `card/route1-seq` worktree (ONE lane of a parallel route-1 formalization). **Read `ROUTE_SEQ.md` (repo root) FIRST** — prove your one lemma into `r1seq/Card_Route1_Seq.thy`, build `-Session Posix_Card_Route1_Seq`, NO sorry, fail-stop + report. Use the proof-level steers in ROUTE_SEQ.md; do NOT use the verdicts' broken routes. The general rules below still apply.
+
+---
+
 # Agent Instructions
 
 This repository runs a controlled Agent Hunt style workflow, currently aimed
