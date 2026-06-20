@@ -411,10 +411,21 @@ high-yield core:
 3. **No idle waiting.** Do not wait for the other agent unless
    `scripts\codex-proof-workers.ps1 -Action Check` shows a live worker or
    `git status --short` shows tracked edits in your target region.
-4. **One Isabelle build at a time.** Use
-   `scripts\codex-isabelle-build-posix.ps1 -TimeoutSeconds 300` (it takes the
-   global build lock). `SQLITE_CONSTRAINT_PRIMARYKEY` = build-database
-   collision, not a false theorem.
+4. **One Isabelle build at a time (serial), or PRIVATE HEAPS (parallel).**
+   For a SINGLE build use `scripts\codex-isabelle-build-posix.ps1
+   -TimeoutSeconds 300` (per-session mutex). **For PARALLEL lanes (multiple
+   worktrees/Codex building concurrently) EACH lane MUST set its OWN
+   `ISABELLE_HOME_USER=<worktree>\.isa_home`** — concurrent builds against the
+   SHARED heap store corrupt each other's PARENT heaps (`Posix_Cubic FAILED ...
+   "parent ... saved state does not match"`, `SQLITE_CONSTRAINT_PRIMARYKEY`,
+   "Duplicate export", rc127). The `.ps1` mutex keys on session NAME so it does
+   NOT serialize different leaf sessions — they each rebuild the shared parent
+   and clobber it. Private-home fix VALIDATED (a lane built green in its private
+   store while another built on the shared store). First private build ~2min
+   (rebuilds the chain); then isolated + fast. gitignore `.isa_home/`. Bake the
+   private-home build command into every parallel-lane brief. (Memory:
+   `posix-parallel-build-private-heaps`.) `SQLITE_CONSTRAINT_PRIMARYKEY` is a
+   build-database collision, not a false theorem.
 5. **Red background shell = proof failure, not shell failure.** Read the
    first `*** Failed to finish proof` block, change ONE small named lemma,
    rebuild. Never queue a second build while the first failing goal is
