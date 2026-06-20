@@ -1,0 +1,36 @@
+ROLE: Proof architect for an Isabelle/HOL cubic-bound proof (POSIX regex lexer). Produce a formalization-ready
+proof of ONE lemma — the "branch-origin singleton cover" (L1 in the attached DESIGN.md). You CAN run Python (use it
+to validate every claim) but you do NOT write or machine-check Isabelle — we formalize from your design. Deliver:
+the proof argument + any recursive helper definitions + Python evidence + a step-by-step Isabelle proof SKELETON
+(which lemma/induction, which green facts from DEFINITIONS.txt each step uses). Read DESIGN.md and DEFINITIONS.txt
+(model the functions EXACTLY).
+
+THE LEMMA (L1):
+  strong_apder_acc (RALTS rs) k  SUBSET  (UN q in set rs. strong_apder_acc (RALTS [q]) k).
+Equivalently, with A(r,k)=strong_apder_acc r k: A(ALTS rs,k) subset of the union of the singleton-alt carriers.
+This REPLACES the false child-carrier cover A(ALTS rs,k) subset (UN q. A(q,k)).
+
+WHY it should hold (make this rigorous): strong_apder_acc r k = rsimpStrong_dlform_closure(rfrontier(s4 r k) UNION
+apder_term_frontier_acc r k) = (UN p in that carrier. row_dlforms(S p)). For r = RALTS rs, the carrier members are
+(i) the parent root rfrontier(s4 (RALTS rs) k) and (ii) apder_term_frontier_acc (RALTS rs) k = (UN q. atf q k). Each
+opened parent ROW comes from row_dlforms(S p) for some carrier member p; and S of an alternation
+(rsimpStrong_ALTs_raw on rflts(map S ..)) only flattens (rflts), dedups (rdistinct), and prunes head-branches that an
+EARLIER row already covers (the pairwise rule deletes covered branches via rprune_eq_against) — it NEVER creates a row
+with no source branch. So every such row also appears when that single source branch is taken alone, i.e. in
+A(RALTS[q], k) for the originating branch q.
+
+WHAT TO DELIVER:
+1. A precise BRANCH-ORIGIN argument. The clean way is a PROVENANCE-TAGGED model: define tagged versions of the prune
+   pipeline (tag every row with its source branch through rflts / the pairwise prune / rdistinct), and prove every
+   tagged output row keeps a branch tag whose singleton-alt carrier contains it. Give the recursive definitions of the
+   tagged functions (tagged_rflts, tagged_prune, tagged_rdistinct, etc., by cases) and the key invariant.
+2. PYTHON EVIDENCE: implement the tagged model; verify on exhaustive small + the witness family + many multi-branch
+   alts (incl. all branches sharing one star tail, the n-branch killers) that EVERY row of A(ALTS rs,k) has a branch
+   origin q whose A(ALTS[q],k) contains it — 0 orphans. Report counts. Hunt for an orphan row first (if one exists,
+   L1 is false — report the smallest CE).
+3. ISABELLE PROOF SKELETON: state L1 and the helper lemmas, name the induction variable / case split, and cite the
+   exact DEFINITIONS.txt facts (the prune-scan only deletes covered branches; rflts/rdistinct preserve membership;
+   row_dlforms / rsimpStrong_dlform_closure unfolding). Pseudocode/Isar sketch is fine; we transcribe.
+
+Discipline: validate in Python before asserting; report the predicate, the space covered, 0 orphans (or the CE), and
+include the Python. A design you did not run will be rejected.

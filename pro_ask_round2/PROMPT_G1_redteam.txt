@@ -1,0 +1,29 @@
+ROLE: Adversarial red-team for an Isabelle/HOL cubic-bound proof (POSIX regex lexer). A design for the last open
+lemma has passed an initial Python validation (see attached DESIGN.md). YOUR ONLY JOB IS TO BREAK IT. Find a
+counterexample to ANY load-bearing claim, or certify (with hard numbers) that none exists up to a large bound. You
+have a Python tool — use it heavily. You do NOT need Isabelle. Do not be constructive; be a destroyer.
+
+Read DESIGN.md (the design) and DEFINITIONS.txt (every function, verbatim — model these EXACTLY).
+
+Build a faithful Python model of the DEFINITIONS.txt functions (rrexp; rsize; s4=rsimp4_SEQ_atom;
+s7=rsimp7_SEQ_atom; the prune chain rprune_eq_against/rsimpStrong_prune_*; S=rsimpStrong_raw; rfrontier;
+dl=row_dlforms; rsimpStrong_dlform_closure; apder_terms/apder_frontier/apder_rows; apder_term_frontier_acc;
+strong_apder_acc; apder_strong_dlfrontier; apder_nf/apder_clean). Sanity-check against the named facts in DESIGN.md.
+
+Then HAMMER each of these predicates (D(r,k)=card(strong_apder_acc r k - strong_apder_acc RONE k)):
+  (L1) cover         : strong_apder_acc (ALTS rs) k  SUBSET  (UN q in set rs. strong_apder_acc (ALTS[q]) k)
+  (L2) singleton-size: apder_nf q, apder_nf k  ==>  D(ALTS[q], k) <= rsize q
+  (STEP) RALTS budget: D(ALTS rs, k) <= sum(rsize q for q in set rs)
+  (GLOBAL) D(r,k=RONE) <= rsize r ;  and the stronger D(r,k) <= rsize r for reachable k
+  (TARGET) card(apder_strong_dlfrontier r) <= rsize r + 1
+Search MUCH harder than a uniform sweep — this is where prior "0 violations" turned out to be sampling artifacts:
+  - exhaustive over ALL apder_nf/clean normal forms up to rsize 12-14 (alphabets {a,b}, {a,b,c});
+  - the WITNESS family: nested SEQ(ALTS[pre, 1], ... SEQ(atom, star*)) opened at k=star*; stars-against-stars
+    x*.y* under k=y*; deep chains of these; many branches all sharing the same star tail;
+  - adversarial/targeted search: for L2, enumerate q that maximize D(ALTS[q],k)/rsize q over many k (especially
+    k a star or a seq-of-stars); for L1, enumerate rs where parent prune produces residual rows, and check origin;
+  - continuations k drawn from the ACTUAL reachable set (k starts RONE, then s4 r2 k / s4 (RSTAR r) k down the
+    recursion) AND from arbitrary clean k (to also probe the universally-quantified statements).
+Report: for EACH predicate, the largest space you covered (counts) and either the SMALLEST counterexample (full
+regex + k + the offending cardinalities + which rows cause it) or "0 / N". Include your Python harness. If you find
+a CE to L2 or L1, that is the most valuable possible result — dig until you find the smallest, and diagnose WHY.

@@ -1,0 +1,34 @@
+ROLE: Proof architect for an Isabelle/HOL cubic-bound proof (POSIX regex lexer). Assemble the COMPLETE, near-mechanical
+proof of the target lemma from the two key lemmas L1 (cover) and L2 (singleton-size), which you may ASSUME as given
+(they are being proved separately). You CAN run Python (use it for a final independent global re-validation) but you
+do NOT write or machine-check Isabelle — we formalize from your skeleton. Read DESIGN.md and DEFINITIONS.txt.
+
+ASSUME (proved elsewhere):
+  L1:  strong_apder_acc (RALTS rs) k SUBSET (UN q:set rs. strong_apder_acc (RALTS[q]) k)
+  L2:  apder_nf q ==> apder_nf k ==> card(strong_apder_acc (RALTS[q]) k - strong_apder_acc RONE k) <= rsize q
+
+DELIVER a step-by-step Isabelle proof SKELETON (Isar-style pseudocode, citing exact green facts from DEFINITIONS.txt)
+for the full chain, so our formalization is transcription:
+  1. RALTS step  card_strong_apder_acc_RALTS_diff_base_le_size_budget:
+        from L1 + card_UN_le + L2 (+ apder_nf RALTS gives per-branch apder_nf q):
+        D(RALTS rs,k) <= card((UN q. A(RALTS[q],k)) - B(k)) <= SUM_q card(A(RALTS[q],k) - B(k)) <= SUM_q rsize q.
+     State the exact set-algebra step ( (UN_i X_i) - C = UN_i (X_i - C) ; card_UN_le ; card_mono ; finiteness ).
+  2. global induction  card_strong_apder_acc_diff_base_le_rsize: D(r,k) <= rsize r, induction on r, cases:
+        RZERO/RONE (0); RCHAR (card_strong_apder_acc_RCHAR_diff_base_le); RSEQ (strong_apder_acc_RSEQ_subset +
+        strong_apder_acc_RONE_sigma_subset + card_Un_Diff_telescope_le); RSTAR (strong_apder_acc_RSTAR_subset + a
+        root-row <= 1 lemma); RALTS (step 1). Show each case stays <= rsize r, naming the IH and the k-update.
+        Spell out the RSTAR root-row-<=-1 helper precisely (card(rho(RSTAR r)k - B(k)) <= 1), the only new sub-lemma.
+  3. final  card_apder_strong_dlfrontier_le: from apder_strong_dlfrontier r SUBSET strong_apder_acc r RONE
+        (apder_strong_dlfrontier_subset_strong_apder_acc_RONE), strong_apder_acc RONE RONE = {RONE}
+        (strong_apder_acc_RONE_RONE), card_le_Suc_card_Diff_singleton, and step 2 at k=RONE.
+  4. the discharge corollary  cubic_gate_unconditional via actual_gate_from_direct_universe_rowlevel.
+For EACH step give: the precise Isabelle statement, the proof tactic outline, and the exact DEFINITIONS.txt lemma names
+used. Flag any sub-lemma not in DEFINITIONS.txt that we must also prove (e.g. the RSTAR root-row bound; finiteness
+side-conditions; the `(UN X_i) - C` set identity), and give its statement.
+
+Also: PYTHON — run one final independent GLOBAL check that the WHOLE chain's bound is sound: card(apder_strong_dlfrontier r)
+<= rsize r + 1 over exhaustive clean nf up to the largest size you can, the witness family, and the n-branch/nested
+families; report counts + 0 violations (or a CE). Include the harness.
+
+Discipline: cite only real DEFINITIONS.txt lemma names (do not invent); validate the global bound in Python; report what
+remains genuinely open (which sub-lemmas) so we can scope the Isabelle work precisely.

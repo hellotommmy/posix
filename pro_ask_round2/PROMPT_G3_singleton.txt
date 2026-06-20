@@ -1,0 +1,35 @@
+ROLE: Proof architect for an Isabelle/HOL cubic-bound proof (POSIX regex lexer). Produce a formalization-ready
+proof of the CRUX lemma — the "singleton-size bound" (L2 in the attached DESIGN.md). You CAN run Python (use it to
+validate AND to hunt counterexamples) but you do NOT write or machine-check Isabelle — we formalize from your design.
+Deliver: the proof (an induction), any recursive helper definitions, Python evidence, and an Isabelle proof SKELETON.
+Read DESIGN.md and DEFINITIONS.txt (model the functions EXACTLY).
+
+THE LEMMA (L2 -- this is the new crux; the whole linear bound rests on it):
+  assumes apder_nf q  and  apder_nf k
+  shows   D(RALTS [q], k) <= rsize q
+where D(r,k) = card (strong_apder_acc r k - strong_apder_acc RONE k). Note q is a SINGLE nonalt branch (q is not a
+top-level RALTS), and the singleton alternation RALTS[q] is opened under continuation k. The hard phenomenon it must
+absorb: the tail-doubling (x*.a*).a* -> x*.(a*.a*) (when q ends in a star and k matches), which makes one branch
+produce two parent rows -- L2 says the branch's own rsize pays for them.
+
+WHAT TO DELIVER:
+1. THE INDUCTION. Prove L2 by induction on q (cases RZERO/RONE/RCHAR/RSEQ/RSTAR; q nonalt so no top-level RALTS,
+   but its subterms may be alternations). For each constructor, give the exact bound on D(RALTS[q],k) in terms of the
+   sub-results, and show it stays <= rsize q. The continuation k is a parameter that CHANGES in the IH (k := s4 r2 k
+   at RSEQ-left, s4 (RSTAR r) k at RSTAR) -- state the IH with k universally quantified (or with the precise
+   reachable-k condition if universal fails). Identify exactly where the rsize slack is spent (the +1 per constructor;
+   the star/seq syntactic cost paying for the s*.s* residual).
+2. Decompose D(RALTS[q],k) explicitly: strong_apder_acc (RALTS[q]) k = rsimpStrong_dlform_closure(rfrontier(s4 (RALTS[q]) k)
+   UNION apder_term_frontier_acc (RALTS[q]) k); unfold what rows arise (the root row dl(S(s4 (RALTS[q]) k)) and the
+   term-frontier rows atf q k opened strongly). Give the per-constructor row accounting.
+3. PYTHON: first HUNT for a counterexample to L2 across exhaustive small + the witness family + adversarial q,k that
+   maximize D(RALTS[q],k) - rsize q (especially q ending in stars, k a star/seq-of-stars, deep nesting). Report the
+   max of D(RALTS[q],k) - rsize q you find and 0 violations (or the smallest CE). THEN validate each per-constructor
+   inductive step's inequality separately (so the induction is Python-checked step by step, not just end-to-end).
+4. ISABELLE PROOF SKELETON: the lemma + the induction + each case, citing DEFINITIONS.txt green facts
+   (card_strong_apder_acc_RCHAR_diff_base_le, strong_apder_acc_RSEQ_subset, strong_apder_acc_RSTAR_subset,
+   strong_apder_acc_RONE_sigma_subset, card_Un_Diff_telescope_le, etc.) where they apply. Pseudocode/Isar sketch is fine.
+
+Discipline: Python-validate (and CE-hunt) before asserting; report predicate, space covered, 0 violations (or the CE),
+and include the Python. A construction you did not run will be rejected. If L2 is FALSE, that is critical -- report the
+smallest CE and what weaker-but-still-linear bound (if any) survives.
