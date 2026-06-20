@@ -11601,3 +11601,69 @@ required. The file already carries the intended invariants `singleton_saa_ok` / 
 NOTE: under apder_nf (which downstream seq_head_core supplies) each branch S q is a single non-alt
 row so the within-branch prune vanishes and only the cross-prune escape remains — an nf-conditional
 `root_split` is the realistic next milestone and is downstream-sufficient.
+
+---
+
+## L1 lane (claude-L1) — 2026-06-21 night, Claude Opus — REDUCED TO ONE ROW-LEVEL INVARIANT `inv`
+
+Build green (exit 0), NO sorry, through commit 237fcba. File r1cover/Card_Route1_Cover.thy,
+session Posix_Card_Route1_Cover.
+
+NEW GREEN (committed since the earlier reduction-to-root_split entry):
+- TAGGED PROVENANCE SCAFFOLD (sound; verdict_G2 §1): tagged_rflts / tagged_prune_pair_raw /
+  tagged_prune_against_rows_raw / tagged_prune_rows_raw / tagged_rdistinct /
+  tagged_Strong_ALTs_rows, with projections map_snd_* (the tagged pipeline's snd-projection
+  equals the real rsimpStrong_raw (RALTS rs) row pipeline), fst-subset lemmas, and
+  tagged_Strong_ALTs_rows_origin (every tag q is a parent branch, q ∈ set rs).
+- ACC routing bricks (closure distributes over RALTS; child acc-closure ⊆ strong carrier;
+  singleton acc = bare-branch acc).
+- cover_root_from_tagged_invariant: for generic tail (rsimpStrong_raw k ∉ {RZERO,RONE}), the
+  parent ROOT opening is covered by ⋃_q strong_apder_acc (RALTS[q]) k AS SOON AS the per-row
+  invariant `inv` holds. Proof = scaffold projection + rsimp_ALTs->RALTS opening
+  (row_dlforms_rsimp7_rsimp_ALTs_subset_RALTS, rtail_nf of rows via the prune nf chain
+  rtail_nf_rsimpStrong_raw/rtail_nf_rflts/rtail_nf_rsimpStrong_prune_rows_raw/set_rdistinct_subset)
+  + per-row origin routing.
+- strong_apder_acc_RALTS_singleton_cover_from_inv: in the generic regime (k AND
+  rsimpStrong_raw k ∉ {RZERO,RONE}) the FULL singleton cover follows from `inv` alone
+  (cover_root_from_tagged_invariant for the ROOT + green TERM carrier).
+
+THE LONE OPEN GOAL is now `inv`:
+  ⋀q t. (q,t) ∈ set (tagged_Strong_ALTs_rows rs) ⟹
+    row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) ⊆ strong_apder_acc (RALTS [q]) k
+plus the degenerate tails k or (S k) ∈ {RZERO,RONE} (k∈{RZERO,RONE} already green via
+strong_apder_acc_RALTS_singleton_cover_RZERO/RONE; the S k∈{RZERO,RONE} with k∉{RZERO,RONE}
+edge — k essentially nullable-only / empty — is a small open degenerate case routable through
+the no-tail row_dlforms_rsimpStrong_raw_RALTS_subsetI).
+
+`inv` = the [VALIDATED] B1/B2 statement at ROW level (each tagged final row of the
+strong-pruned alternation opens, against S k, into its origin branch's carrier). It is proved
+by tracking the invariant through the tagged pipeline (initial rows + tagged_rflts +
+tagged_prune + tagged_rdistinct). The WALL is the tagged_prune step (and, equivalently, the
+initial-rows step for branches whose S q is itself an alternation — the within-branch prune):
+a cross/within-prune sigma7 COLLAPSE row (bare RSTAR s, or a RONE-headed tail escape
+s7 tail (S k)) with no branch-ROOT origin must be routed into the branch ACC carrier. The
+in-file coarse prune helper (row_dlforms_rsimp7_prune_pair_subset_later_or_suffix) over-
+approximates the escape as ALL of row_dlforms (S k), which is NOT ⊆ a branch carrier (fails
+when no branch contributes rfrontier k to its acc) — so a SHARP escape lemma is needed.
+
+DISCHARGING FACTS (workflow-mapped, all green/exist):
+- apder_term_frontier_acc_eq (active:1978):
+    apder_term_frontier_acc q k = (⋃p∈apder_terms q. rfrontier (rsimp4_SEQ_atom p k))
+- apder_terms (RSTAR s) = (λp. rsimp4_SEQ_atom p (RSTAR s)) ` apder_terms s ;
+  apder_terms (RCHAR c) = {RONE} ; apder_terms (RALTS rs) = ⋃ apder_terms ;
+  apder_terms (RSEQ a b) = (λp. rsimp4_SEQ_atom p b) ` apder_terms a ∪ apder_terms b.
+- rtail_nf_apder_terms / apder_nf_apder_terms / apder_terms_RONE_image_rtail_nf (active ~2913/2825/3084).
+- rsimpStrong_dlform_closureI (active:11531) ; rsimp7_SEQ_atom (RSTAR s)(RSTAR s)=RSTAR s (σ7 self-collapse, BasicIdentities:414).
+
+THE MISSING CONNECTOR (the single hard lemma, GAP): the prune sigma7 escape from a row of
+S q is rsimp4_SEQ_atom p (S k) for some p ∈ apder_terms q  (so by apder_term_frontier_acc_eq +
+rsimpStrong_dlform_closureI it lands in rsimpStrong_dlform_closure (apder_term_frontier_acc q k)
+⊆ strong_apder_acc (RALTS[q]) k). Prove this (sharp per-pair escape, or directly by induction on
+q mirroring the apder_terms recursion with the σ7 star-absorb branch), then `inv` follows by
+pipeline tracking and the cover closes via strong_apder_acc_RALTS_singleton_cover_from_inv.
+
+NOTE on a tempting FALSE shortcut: routing the parent ROOT into the BRANCH ROOTS only
+(Cclos(rfrontier(s4(RALTS rs)k)) ⊆ ⋃_q row_dlforms(S(s4(RALTS[q])k)))) is the dead root-only
+device — FALSE: the bare-star a* escape (CE rs=[(a+b)·a*,(a+1)·a*], k=a*) is in the parent root
+closure but in NO branch root (verified by hand twice). It is only in a branch ACC. A
+research-synthesis pass briefly proposed this as "L1+L2, low risk" — do NOT take it.
