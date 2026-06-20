@@ -37,7 +37,7 @@ Induction on `h` (cases RZERO/RONE/RCHAR/RSEQ/RALTS), `arbitrary: t k`. This lem
 Do NOT use the shared `.ps1` build — it shares the heap store with the other lanes and WILL corrupt it. Use your OWN
 private heap (first build ~2min; then seconds):
 ```
-& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export ISABELLE_HOME_USER=/cygdrive/c/Users/Chengsong/Documents/posix-route1/seq/.isa_home && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/seq && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Seq"
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/seq/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/seq && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Seq"
 ```
 Exit 0 = green.
 
