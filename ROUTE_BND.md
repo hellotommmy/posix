@@ -39,7 +39,7 @@ Prove `boundary_term_absorb` **VIA S1**, NOT a raw injection. Useful facts:
 Do NOT use the shared `.ps1` build — it shares the heap store with the other lanes and WILL corrupt it. Use your OWN
 private heap (first build ~2min; then seconds):
 ```
-& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export ISABELLE_HOME_USER=/cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd/.isa_home && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Bnd"
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Bnd"
 ```
 Exit 0 = green.
 
