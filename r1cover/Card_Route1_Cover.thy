@@ -586,6 +586,174 @@ definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> boo
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
 
 (* ===================================================================== *)
+(* TAGGED PROVENANCE SCAFFOLD (sound; verdict_G2 §1).  Each row carries its  *)
+(* origin branch q so the cross-prune sigma7 escape can be routed to q's ACC *)
+(* carrier.  Projections show the tagged pipeline mirrors the real           *)
+(* rsimpStrong_raw (RALTS rs) row list; origin shows every tag is a branch.  *)
+(* ===================================================================== *)
+
+type_synonym tagged_row = "rrexp \<times> rrexp"
+
+fun tagged_rflts :: "tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_rflts [] = []"
+| "tagged_rflts ((q, RZERO) # xs) = tagged_rflts xs"
+| "tagged_rflts ((q, RALTS ys) # xs) = map (\<lambda>y. (q, y)) ys @ tagged_rflts xs"
+| "tagged_rflts ((q, t) # xs) = (q, t) # tagged_rflts xs"
+
+lemma map_snd_tagged_rflts:
+  "map snd (tagged_rflts xs) = rflts (map snd xs)"
+  by (induction xs rule: tagged_rflts.induct) (auto simp add: comp_def)
+
+lemma fst_tagged_rflts_subset:
+  "set (map fst (tagged_rflts xs)) \<subseteq> set (map fst xs)"
+  by (induction xs rule: tagged_rflts.induct) auto
+
+definition tagged_prune_pair_raw :: "tagged_row \<Rightarrow> tagged_row \<Rightarrow> tagged_row" where
+  "tagged_prune_pair_raw earlier later =
+     (fst later, rsimpStrong_prune_pair_raw (snd earlier) (snd later))"
+
+fun tagged_prune_against_rows_raw :: "tagged_row list \<Rightarrow> tagged_row \<Rightarrow> tagged_row" where
+  "tagged_prune_against_rows_raw [] r = r"
+| "tagged_prune_against_rows_raw (x # xs) r =
+     tagged_prune_against_rows_raw xs (tagged_prune_pair_raw x r)"
+
+fun tagged_prune_rows_acc_raw :: "tagged_row list \<Rightarrow> tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_prune_rows_acc_raw seen [] = []"
+| "tagged_prune_rows_acc_raw seen (r # rs) =
+     (let r' = tagged_prune_against_rows_raw seen r
+      in r' # tagged_prune_rows_acc_raw (r' # seen) rs)"
+
+definition tagged_prune_rows_raw :: "tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_prune_rows_raw rs = tagged_prune_rows_acc_raw [] rs"
+
+lemma snd_tagged_prune_pair_raw:
+  "snd (tagged_prune_pair_raw e r) =
+     rsimpStrong_prune_pair_raw (snd e) (snd r)"
+  by (simp add: tagged_prune_pair_raw_def)
+
+lemma fst_tagged_prune_pair_raw:
+  "fst (tagged_prune_pair_raw e r) = fst r"
+  by (simp add: tagged_prune_pair_raw_def)
+
+lemma snd_tagged_prune_against_rows_raw:
+  "snd (tagged_prune_against_rows_raw seen r) =
+     rsimpStrong_prune_against_rows_raw (map snd seen) (snd r)"
+  by (induction seen arbitrary: r)
+    (simp_all add: snd_tagged_prune_pair_raw tagged_prune_pair_raw_def)
+
+lemma fst_tagged_prune_against_rows_raw:
+  "fst (tagged_prune_against_rows_raw seen r) = fst r"
+  by (induction seen arbitrary: r)
+    (simp_all add: fst_tagged_prune_pair_raw)
+
+lemma map_snd_tagged_prune_rows_acc_raw:
+  "map snd (tagged_prune_rows_acc_raw seen rs) =
+     rsimpStrong_prune_rows_acc_raw (map snd seen) (map snd rs)"
+  by (induction rs arbitrary: seen)
+    (simp_all add: Let_def snd_tagged_prune_against_rows_raw)
+
+lemma map_snd_tagged_prune_rows_raw:
+  "map snd (tagged_prune_rows_raw rs) =
+     rsimpStrong_prune_rows_raw (map snd rs)"
+  by (simp add: tagged_prune_rows_raw_def rsimpStrong_prune_rows_raw_def
+      map_snd_tagged_prune_rows_acc_raw)
+
+lemma fst_tagged_prune_rows_acc_raw_subset:
+  "set (map fst (tagged_prune_rows_acc_raw seen rs)) \<subseteq> set (map fst rs)"
+proof (induction rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  have "fst (tagged_prune_against_rows_raw seen r) = fst r"
+    by (rule fst_tagged_prune_against_rows_raw)
+  then show ?case
+    using Cons.IH[of "tagged_prune_against_rows_raw seen r # seen"]
+    by (auto simp add: Let_def)
+qed
+
+lemma fst_tagged_prune_rows_raw_subset:
+  "set (map fst (tagged_prune_rows_raw rs)) \<subseteq> set (map fst rs)"
+  unfolding tagged_prune_rows_raw_def
+  by (rule fst_tagged_prune_rows_acc_raw_subset)
+
+fun tagged_rdistinct :: "tagged_row list \<Rightarrow> rrexp set \<Rightarrow> tagged_row list" where
+  "tagged_rdistinct [] acc = []"
+| "tagged_rdistinct ((q, t) # xs) acc =
+     (if t \<in> acc
+      then tagged_rdistinct xs acc
+      else (q, t) # tagged_rdistinct xs ({t} \<union> acc))"
+
+lemma map_snd_tagged_rdistinct:
+  "map snd (tagged_rdistinct xs acc) = rdistinct (map snd xs) acc"
+  by (induction xs arbitrary: acc) auto
+
+lemma fst_tagged_rdistinct_subset:
+  "set (map fst (tagged_rdistinct xs acc)) \<subseteq> set (map fst xs)"
+  by (induction xs acc rule: tagged_rdistinct.induct) auto
+
+definition tagged_Strong_ALTs_rows :: "rrexp list \<Rightarrow> tagged_row list" where
+  "tagged_Strong_ALTs_rows rs =
+     tagged_rdistinct
+       (tagged_rflts
+         (tagged_prune_rows_raw
+           (tagged_rflts (map (\<lambda>q. (q, rsimpStrong_raw q)) rs))))
+       {}"
+
+lemma map_snd_tagged_Strong_ALTs_rows:
+  "map snd (tagged_Strong_ALTs_rows rs) =
+     rdistinct
+       (rflts
+         (rsimpStrong_prune_rows_raw
+           (rflts (map rsimpStrong_raw rs))))
+       {}"
+  unfolding tagged_Strong_ALTs_rows_def
+  by (simp add: map_snd_tagged_rdistinct map_snd_tagged_rflts
+      map_snd_tagged_prune_rows_raw comp_def)
+
+lemma rsimpStrong_raw_RALTS_tagged_rows:
+  "rsimpStrong_raw (RALTS rs) =
+     rsimp_ALTs (map snd (tagged_Strong_ALTs_rows rs))"
+  by (simp add: rsimpStrong_ALTs_raw_def map_snd_tagged_Strong_ALTs_rows)
+
+lemma tagged_Strong_ALTs_rows_origin:
+  assumes "(q, t) \<in> set (tagged_Strong_ALTs_rows rs)"
+  shows "q \<in> set rs"
+proof -
+  have "q \<in> set (map fst (tagged_Strong_ALTs_rows rs))"
+    using assms by (metis fst_conv image_eqI list.set_map)
+  also have "set (map fst (tagged_Strong_ALTs_rows rs)) \<subseteq>
+      set (map fst (map (\<lambda>q. (q, rsimpStrong_raw q)) rs))"
+    unfolding tagged_Strong_ALTs_rows_def
+    using fst_tagged_rdistinct_subset fst_tagged_rflts_subset
+      fst_tagged_prune_rows_raw_subset by (meson subset_trans)
+  also have "... = set rs" by (simp add: comp_def)
+  finally show ?thesis .
+qed
+
+(* ===================================================================== *)
+(* Routing bricks for the ACC carrier (Carrier I).                          *)
+(* ===================================================================== *)
+
+(* parent ACC closure distributes over the RALTS branches *)
+lemma rsimpStrong_dlform_closure_apder_term_frontier_acc_RALTS_distrib:
+  "rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS rs) k) =
+     (\<Union>q \<in> set rs. rsimpStrong_dlform_closure (apder_term_frontier_acc q k))"
+  by (auto simp add: rsimpStrong_dlform_closure_def)
+
+(* the ACC closure of any r is contained in its strong carrier *)
+lemma rsimpStrong_dlform_closure_apder_term_frontier_acc_subset_strong_apder_acc:
+  "rsimpStrong_dlform_closure (apder_term_frontier_acc q k) \<subseteq> strong_apder_acc q k"
+  unfolding strong_apder_acc_def
+  by (rule rsimpStrong_dlform_closure_mono) auto
+
+(* singleton ACC carrier coincides with the bare-branch ACC carrier *)
+lemma strong_apder_acc_RALTS_singleton_acc_eq:
+  "rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS [q]) k) =
+     rsimpStrong_dlform_closure (apder_term_frontier_acc q k)"
+  by simp
+
+(* ===================================================================== *)
 (* GENERIC-k normalisation of the ROOT carrier.  For k \<notin> {RZERO,RONE} the   *)
 (* sigma4 plug freezes to RSEQ (RALTS rs) k whose rfrontier is the single   *)
 (* row, so the strong-dl closure of the ROOT carrier is just the strong     *)
