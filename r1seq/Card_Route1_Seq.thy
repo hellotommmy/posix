@@ -145,6 +145,27 @@ proof -
     by simp
 qed
 
+lemma rsimpStrong_ALTs_raw_singleton_RONE [simp]:
+  "rsimpStrong_ALTs_raw [RONE] = RONE"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma rsimpStrong_ALTs_raw_singleton_RSTAR [simp]:
+  "rsimpStrong_ALTs_raw [RSTAR r] = RSTAR r"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma rsimpStrong_ALTs_raw_rflts_single_rsimpStrong_RSTAR [simp]:
+  "rsimpStrong_ALTs_raw (rflts [rsimpStrong_raw (RSTAR r)]) =
+    rsimpStrong_raw (RSTAR r)"
+  by (cases "rsimpStrong_raw r") simp_all
+
+lemmas rsimpStrong_ALTs_raw_rflts_single_rsimpStrong_RSTAR_simps [simp] =
+  rsimpStrong_ALTs_raw_rflts_single_rsimpStrong_RSTAR[simplified]
+
+lemma star_single_root_eq_B:
+  "single_root (RSTAR r) k = B (rsimp4_SEQ_atom (RSTAR r) k)"
+  unfolding single_root_def B_alt rsimpStrong_dlform_closure_def
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
