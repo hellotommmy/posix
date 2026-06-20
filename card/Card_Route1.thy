@@ -45,4 +45,191 @@ fun ralts_size_budget :: "rrexp list \<Rightarrow> nat" where
 (* Append the lemmas below this line.                                     *)
 (* ===================================================================== *)
 
+lemma strong_apder_acc_RALTS_terms_singleton_cover:
+  "rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS rs) k) \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+  unfolding strong_apder_acc_def rsimpStrong_dlform_closure_def
+  by auto
+
+lemma strong_apder_acc_RALTS_root_singleton_cover_RZERO:
+  "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) RZERO)) \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) RZERO)"
+  by (simp add: rsimpStrong_dlform_closure_def)
+
+lemma strong_apder_acc_RALTS_root_singleton_cover_RONE:
+  "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) RONE)) \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) RONE)"
+  unfolding strong_apder_acc_def rsimpStrong_dlform_closure_def
+  by (induction rs) auto
+
+lemma finite_single_root [simp]:
+  "finite (single_root q k)"
+  by (simp add: single_root_def)
+
+lemma finite_single_term [simp]:
+  "finite (single_term q k)"
+  by (simp add: single_term_def)
+
+lemma strong_apder_acc_single_RALTS_decomp:
+  "strong_apder_acc (RALTS [q]) k = single_root q k \<union> single_term q k"
+  unfolding strong_apder_acc_def single_root_def single_term_def
+    rsimpStrong_dlform_closure_def
+  by auto
+
+lemma strong_apder_acc_RONE_eq_closure_rfrontier:
+  "strong_apder_acc RONE k = rsimpStrong_dlform_closure (rfrontier k)"
+  by (simp add: strong_apder_acc_def)
+
+lemma card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one:
+  "card (row_dlforms (rsimp7_SEQ_atom (RSTAR r) k)) \<le> 1"
+  by (cases k) (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits)
+
+lemma star_boundary_shift_le_one:
+  assumes nfk: "apder_nf k"
+  shows "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le> 1"
+proof (cases "rsimpStrong_raw r")
+  case RZERO
+  have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) \<subseteq>
+      strong_apder_acc RONE k"
+    using RZERO row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF nfk]
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def)
+  have empty: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k = {}"
+    using sub by auto
+  have card0: "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) = 0"
+    using empty by simp
+  show ?thesis
+    using card0 by linarith
+next
+  case RONE
+  have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) \<subseteq>
+      strong_apder_acc RONE k"
+    using RONE row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF nfk]
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def)
+  have empty: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k = {}"
+    using sub by auto
+  have card0: "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) = 0"
+    using empty by simp
+  show ?thesis
+    using card0 by linarith
+next
+  case (RSTAR s)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR s) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR s) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RCHAR c)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RCHAR c)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RCHAR c)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RSEQ x1 x2)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RSEQ x1 x2)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RSEQ x1 x2)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RALTS xs)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RALTS xs)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RALTS xs)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RNTIMES x1 x2)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RNTIMES x1 x2)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RNTIMES x1 x2)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RBACKREF4 x1 x2 x3 x4 x5)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RBACKREF4 x1 x2 x3 x4 x5)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RBACKREF4 x1 x2 x3 x4 x5)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RHALF x1 x2 x3)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RHALF x1 x2 x3)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RHALF x1 x2 x3)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+next
+  case (RRESIDUE x1 x2)
+  then have sub: "strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RSTAR (RRESIDUE x1 x2)) (rsimpStrong_raw k))"
+    by (cases k) (auto simp add: strong_apder_acc_RONE_eq_closure_rfrontier
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+  have "card (strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k) -
+      strong_apder_acc RONE k) \<le>
+      card (row_dlforms (rsimp7_SEQ_atom (RSTAR (RRESIDUE x1 x2)) (rsimpStrong_raw k)))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimp7_SEQ_atom_RSTAR_le_one)
+  finally show ?thesis .
+qed
+
 end

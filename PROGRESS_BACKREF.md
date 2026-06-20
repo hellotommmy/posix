@@ -11561,3 +11561,22 @@ Candidate `Rlin` (recursive closed-form expansion after `rsimpStrong_raw`) had 0
 BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback` EXIT 0;
 `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
 `rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.
+
+---
+
+## 2026-06-20 ROUTE-1 CARD lane (Codex): first helper batch GREEN
+
+BRANCH: `card/route1-formalize`.
+
+FILES CHANGED: `card/Card_Route1.thy` (+ helper lemmas only).
+
+BUILD: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1`
+EXIT 0 after transient heap/SQLite contention reruns.
+
+CHECKED, GREEN, no sorry:
+- L1 term helper: `C(apder_term_frontier_acc (RALTS rs) k) <= (UN q:set rs. A(RALTS[q],k))`. Plain gloss: ALTS term rows distribute to singleton carriers.
+- L1 root boundary helpers: root cover for `k=0` is empty; root cover for `k=1` follows by `rfrontiers` list induction. Plain gloss: trivial/unit root cases covered.
+- L2 decomposition helpers: `A(RALTS[q],k) = single_root q k Un single_term q k`, `A(RONE,k)=C(rfrontier k)`, and finiteness of `single_root/single_term`. Plain gloss: singleton carrier split exposed.
+- L2 star boundary helper: `apder_nf k ==> card(A(RONE, s4(RSTAR r,k)) - A(RONE,k)) <= 1`. Plain gloss: star plug adds at most one base-boundary row.
+
+NEXT SMALLEST STEP: prove L1 non-unit root cover for `s4(RALTS rs,k)=RSEQ(RALTS rs) k`; independently start S1-backed `boundary_term_absorb` for L2. Do NOT use the verdict_G2 `dl_le_pruned_altseq/singleton_source_ok` route; the failed direct branch-carrier and singleton-row bridge attempts were removed.
