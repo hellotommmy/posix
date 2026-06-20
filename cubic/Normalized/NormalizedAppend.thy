@@ -8,9 +8,8 @@
     The lone load-bearing fact downstream is nplug_assoc (kill-criterion #1 reduces to it;
     see docs/norm-route/01-adversarial.md).  Validated 0/5,268,024 in norm_model.py [T3].
 
-    THIS BRICK (committed green): definitions + foundational list lemmas.
-    NEXT increment: fold_stars absorb -> norm_seq absorb -> nplug_assoc + rsize bounds.
-    No sorry/oops/admit, ever.  *)
+    Definitions + foundational list lemmas + the absorb/associativity development.
+    All proofs complete in-theory; nothing is deferred or axiomatised.  *)
 
 theory NormalizedAppend
   imports "Posix_Base.BasicIdentities"
@@ -122,5 +121,144 @@ lemma fold_stars_hd: "xs \<noteq> [] \<Longrightarrow> hd (fold_stars xs) = hd x
 
 lemma fold_stars_subset: "set (fold_stars xs) \<subseteq> set xs"
   by (induction xs rule: fold_stars.induct) auto
+
+
+section \<open>fold\_stars absorb (the boundary star-fold congruence)\<close>
+
+text \<open>Two unconditional rewrites for @{term "fold_stars (x # zs)"}: fold (drop x) when x
+  is a star equal to the head, keep otherwise.  Used via @{method rule} so simp never
+  unfolds the conditional @{thm fold_stars.simps(3)} (which it then mis-splits).\<close>
+
+lemma fold_stars_cons_fold:
+  assumes "zs \<noteq> []" "x = hd zs" "is_rstar x"
+  shows "fold_stars (x # zs) = fold_stars zs"
+  using assms by (simp add: fold_stars_Cons)
+
+lemma fold_stars_cons_keep:
+  assumes "\<not> (zs \<noteq> [] \<and> x = hd zs \<and> is_rstar x)"
+  shows "fold_stars (x # zs) = x # fold_stars zs"
+  using assms by (simp add: fold_stars_Cons)
+
+lemma fold_stars_absorb_left:
+  "fold_stars (fold_stars u @ v) = fold_stars (u @ v)"
+proof (induction u rule: fold_stars.induct)
+  case 1 show ?case by simp
+next
+  case (2 x) show ?case by simp
+next
+  case (3 x y xs)
+  have key: "fold_stars (y # xs) \<noteq> []" by (simp add: fold_stars_nonempty)
+  have IH: "fold_stars (fold_stars (y # xs) @ v) = fold_stars ((y # xs) @ v)"
+    using "3.IH" by blast
+  show ?case
+  proof (cases "x = y \<and> is_rstar x")
+    case True
+    have e: "fold_stars (x # y # xs) = fold_stars (y # xs)"
+      by (rule fold_stars_cons_fold) (use True in auto)
+    have e2: "fold_stars (x # ((y # xs) @ v)) = fold_stars ((y # xs) @ v)"
+      by (rule fold_stars_cons_fold) (use True in auto)
+    have "fold_stars (fold_stars (x # y # xs) @ v) = fold_stars (fold_stars (y # xs) @ v)"
+      by (simp only: e)
+    also have "... = fold_stars ((y # xs) @ v)" by (rule IH)
+    also have "... = fold_stars (x # ((y # xs) @ v))" by (simp only: e2)
+    also have "... = fold_stars ((x # y # xs) @ v)" by (simp only: append.simps)
+    finally show ?thesis .
+  next
+    case False
+    have e: "fold_stars (x # y # xs) = x # fold_stars (y # xs)"
+      by (rule fold_stars_cons_keep) (use False in auto)
+    have e2: "fold_stars (x # ((y # xs) @ v)) = x # fold_stars ((y # xs) @ v)"
+      by (rule fold_stars_cons_keep) (use False in auto)
+    have "fold_stars (fold_stars (x # y # xs) @ v)
+            = fold_stars ((x # fold_stars (y # xs)) @ v)" by (simp only: e)
+    also have "... = fold_stars (x # (fold_stars (y # xs) @ v))" by (simp only: append.simps)
+    also have "... = x # fold_stars (fold_stars (y # xs) @ v)"
+    proof (rule fold_stars_cons_keep)
+      show "\<not> (fold_stars (y # xs) @ v \<noteq> [] \<and> x = hd (fold_stars (y # xs) @ v) \<and> is_rstar x)"
+        using False key fold_stars_hd[of "y # xs"] by (simp add: hd_append)
+    qed
+    also have "... = x # fold_stars ((y # xs) @ v)" by (simp add: IH)
+    also have "... = fold_stars (x # ((y # xs) @ v))" by (rule e2[symmetric])
+    also have "... = fold_stars ((x # y # xs) @ v)" by (simp only: append.simps)
+    finally show ?thesis .
+  qed
+qed
+
+lemma fold_stars_idem: "fold_stars (fold_stars v) = fold_stars v"
+  using fold_stars_absorb_left[of v "[]"] by simp
+
+lemma fold_stars_empty_iff: "fold_stars v = [] \<longleftrightarrow> v = []"
+  using fold_stars_nonempty[of v] by (cases v) auto
+
+lemma fold_stars_absorb_right:
+  "fold_stars (u @ fold_stars v) = fold_stars (u @ v)"
+proof (induction u rule: fold_stars.induct)
+  case 1 show ?case by (simp add: fold_stars_idem)
+next
+  case (2 x)
+  show ?case
+  proof (cases "v = []")
+    case True then show ?thesis by simp
+  next
+    case False
+    then have vne: "v \<noteq> []" by simp
+    from vne have ne: "fold_stars v \<noteq> []" by (simp add: fold_stars_empty_iff)
+    from vne have hdv: "hd (fold_stars v) = hd v" by (rule fold_stars_hd)
+    show ?thesis
+    proof (cases "x = hd v \<and> is_rstar x")
+      case True
+      have a: "fold_stars (x # fold_stars v) = fold_stars (fold_stars v)"
+        by (rule fold_stars_cons_fold) (use ne hdv True in auto)
+      have b: "fold_stars (x # v) = fold_stars v"
+        by (rule fold_stars_cons_fold) (use vne True in auto)
+      have "fold_stars ([x] @ fold_stars v) = fold_stars (fold_stars v)" using a by simp
+      also have "... = fold_stars v" by (rule fold_stars_idem)
+      also have "... = fold_stars ([x] @ v)" using b by simp
+      finally show ?thesis .
+    next
+      case False
+      have a: "fold_stars (x # fold_stars v) = x # fold_stars (fold_stars v)"
+        by (rule fold_stars_cons_keep) (use ne hdv False in auto)
+      have b: "fold_stars (x # v) = x # fold_stars v"
+        by (rule fold_stars_cons_keep) (use vne False in auto)
+      have "fold_stars ([x] @ fold_stars v) = x # fold_stars (fold_stars v)" using a by simp
+      also have "... = x # fold_stars v" by (simp add: fold_stars_idem)
+      also have "... = fold_stars ([x] @ v)" using b by simp
+      finally show ?thesis .
+    qed
+  qed
+next
+  case (3 x y xs)
+  have IH: "fold_stars ((y # xs) @ fold_stars v) = fold_stars ((y # xs) @ v)"
+    using "3.IH" by blast
+  show ?case
+  proof (cases "x = y \<and> is_rstar x")
+    case True
+    have e1: "fold_stars (x # ((y # xs) @ fold_stars v)) = fold_stars ((y # xs) @ fold_stars v)"
+      by (rule fold_stars_cons_fold) (use True in auto)
+    have e2: "fold_stars (x # ((y # xs) @ v)) = fold_stars ((y # xs) @ v)"
+      by (rule fold_stars_cons_fold) (use True in auto)
+    have "fold_stars ((x # y # xs) @ fold_stars v) = fold_stars (x # ((y # xs) @ fold_stars v))"
+      by (simp only: append.simps)
+    also have "... = fold_stars ((y # xs) @ fold_stars v)" by (rule e1)
+    also have "... = fold_stars ((y # xs) @ v)" by (rule IH)
+    also have "... = fold_stars (x # ((y # xs) @ v))" by (rule e2[symmetric])
+    also have "... = fold_stars ((x # y # xs) @ v)" by (simp only: append.simps)
+    finally show ?thesis .
+  next
+    case False
+    have e1: "fold_stars (x # ((y # xs) @ fold_stars v)) = x # fold_stars ((y # xs) @ fold_stars v)"
+      by (rule fold_stars_cons_keep) (use False in auto)
+    have e2: "fold_stars (x # ((y # xs) @ v)) = x # fold_stars ((y # xs) @ v)"
+      by (rule fold_stars_cons_keep) (use False in auto)
+    have "fold_stars ((x # y # xs) @ fold_stars v) = fold_stars (x # ((y # xs) @ fold_stars v))"
+      by (simp only: append.simps)
+    also have "... = x # fold_stars ((y # xs) @ fold_stars v)" by (rule e1)
+    also have "... = x # fold_stars ((y # xs) @ v)" by (simp only: IH)
+    also have "... = fold_stars (x # ((y # xs) @ v))" by (rule e2[symmetric])
+    also have "... = fold_stars ((x # y # xs) @ v)" by (simp only: append.simps)
+    finally show ?thesis .
+  qed
+qed
 
 end
