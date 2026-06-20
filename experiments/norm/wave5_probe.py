@@ -565,3 +565,217 @@ def stageF():
 
 if __name__ == '__main__':
     stageF()
+
+
+# ============================================================================
+# STAGE G -- adversarial hunt for Claim L failure: an N-fiber with >=2 non-normal
+# rows (= two different junction positions collapsing to the same v). Targets the
+# nullable-telescope shape + rich multi-star continuations + larger/random r.
+# Reframed question: is max-non-normal-per-fiber BOUNDED (ideally 1), or growing?
+# ============================================================================
+import random
+
+def fiber_mult(r, k):
+    SAA = strong_apder_acc(r, k)
+    by = {}
+    for x in SAA:
+        if N(x) != x:
+            by.setdefault(N(x), []).append(x)
+    if not by: return 0, None
+    v, rows = max(by.items(), key=lambda kv: len(kv[1]))
+    return len(rows), (v, rows)
+
+# rich continuations: multi-factor sequences of distinct stars / chars (where two
+# different junctions could collapse to one v)
+def rich_conts():
+    a,b,c,d = (STAR(CH('a')),STAR(CH('b')),STAR(CH('c')),STAR(CH('d')))
+    return [ONE, CH('a'), a, b,
+            SEQ(a,a), SEQ(a,SEQ(a,a)), SEQ(a,b), SEQ(b,a), SEQ(a,SEQ(b,c)),
+            SEQ(a,SEQ(a,b)), SEQ(b,SEQ(a,a)), SEQ(a,SEQ(b,CH('d'))),
+            SEQ(a,SEQ(b,SEQ(c,d))), SEQ(b,SEQ(b,a)), SEQ(a,SEQ(a,SEQ(b,b)))]
+
+# nullable-telescope constructions: reach a prefix at multiple cut points
+def telescope_candidates():
+    a,b,c,d = (STAR(CH('a')),STAR(CH('b')),STAR(CH('c')),STAR(CH('d')))
+    o = ONE
+    cs = []
+    # (1+b*).(a*.(1+a*).c*)   etc -- nullable stars that may double at 2 spots
+    cs.append(SEQ(ALT([o,b]), SEQ(a, SEQ(ALT([o,a]), c))))
+    cs.append(SEQ(ALT([o,b]), SEQ(a, SEQ(a, c))))
+    cs.append(SEQ(ALT([o,SEQ(b,a)]), SEQ(a, SEQ(ALT([o,SEQ(a,c)]), c))))
+    cs.append(SEQ(ALT([o,a]), SEQ(ALT([o,a]), SEQ(a, b))))      # triple-nullable a*
+    cs.append(SEQ(ALT([o,a]), SEQ(b, SEQ(ALT([o,b]), c))))
+    cs.append(SEQ(ALT([o,SEQ(a,b)]), SEQ(ALT([o,SEQ(b,c)]), d)))
+    cs.append(SEQ(b, SEQ(ALT([o,a]), SEQ(a, SEQ(ALT([o,c]), c)))))
+    cs.append(SEQ(ALT([o,a]), SEQ(a, SEQ(ALT([o,b]), SEQ(b, c)))))
+    return cs
+
+def rand_clean(maxsize, alphabet="abcd"):
+    import random as _r
+    def gen(budget):
+        if budget <= 1 or _r.random() < 0.25:
+            return _r.choice([CH(ch) for ch in alphabet])
+        ch = _r.random()
+        if ch < 0.4 and budget >= 4:
+            l = _r.randint(1, budget-3); return SEQ(gen(l), gen(budget-1-l))
+        if ch < 0.7 and budget >= 3:
+            n = _r.randint(2, 3)
+            parts = [gen(max(1,(budget-1)//n)) for _ in range(n)]
+            # ensure nonalt branches
+            parts = [p if not is_alt(p) else CH('a') for p in parts]
+            return ALT(parts)
+        return STAR(gen(budget-1))
+    from norm_model import apder_nf
+    for _ in range(200):
+        r = gen(maxsize)
+        if apder_nf(r) and rsize(r) >= maxsize-3:
+            return r
+    return CH('a')
+
+def stageG():
+    banner('[G] adversarial hunt for Claim L failure (max non-normal per N-fiber > 1)')
+    conts = rich_conts()
+    gmax = 1; worst = None
+
+    print("  (G1) telescope candidates x rich conts:")
+    for r in telescope_candidates():
+        for k in conts:
+            m, wit = fiber_mult(r, k)
+            if m > gmax:
+                gmax = m; worst = (r, k, wit)
+    print(f"      max so far = {gmax}")
+
+    print("  (G2) exhaustive clean r (rsize<=9) x rich conts ...")
+    regs = clean_regexes(9)
+    n = 0
+    for r in regs:
+        for k in conts:
+            m, wit = fiber_mult(r, k); n += 1
+            if m > gmax: gmax = m; worst = (r, k, wit)
+    print(f"      checked {n}; max so far = {gmax}")
+
+    print("  (G3) random clean r rsize 10..14 (8000 samples) x rich conts ...")
+    random.seed(12345)
+    n3 = 0
+    for _ in range(8000):
+        r = rand_clean(random.randint(10, 14))
+        for k in conts:
+            m, wit = fiber_mult(r, k); n3 += 1
+            if m > gmax: gmax = m; worst = (r, k, wit)
+    print(f"      checked {n3}; GLOBAL max non-normal-per-fiber = {gmax}")
+
+    print()
+    if gmax >= 2:
+        r, k, wit = worst
+        print(f"  *** CLAIM L FAILS: r={pp(r)}  k={pp(k)}")
+        print(f"      N-value {pp(wit[0])} has {gmax} non-normal rows:")
+        for x in wit[1]:
+            print(f"         {pp(x)}")
+        print("  => normality-bit injection NOT injective. Need bounded-mult tag (still linear")
+        print("     IF gmax is a CONSTANT) or the route weakens. Check if gmax grows with rsize.")
+    else:
+        print("  Claim L HOLDS on ALL probed (telescope + exhaustive rsize<=9 + random rsize<=14).")
+        print("  Strongly supports <=1 non-normal per fiber. Still needs the rigorous hand-proof")
+        print("  of step (iv) before formalizing.")
+
+if __name__ == '__main__':
+    stageG()
+
+
+# ============================================================================
+# STAGE H -- locate the duplication: at which spine position does the surviving
+# s*.s* sit? If it is ALWAYS forced (e.g. exactly one protector factor before it),
+# then v determines the non-normal row uniquely => Claim L proven structurally.
+# ============================================================================
+def dup_index_in_spine(x):
+    """return list of fac-indices i where fac(x)[i]==fac(x)[i+1] and both are stars
+       (top spine only); plus the head factors before the first such site."""
+    from norm_model import fac, is_star
+    f = fac(x)
+    idxs = [i for i in range(len(f)-1) if f[i] == f[i+1] and is_star(f[i])]
+    return f, idxs
+
+def stageH():
+    banner('[H] position of the surviving duplication on the spine (top-level fac)')
+    conts = rich_conts()
+    regs = clean_regexes(9)
+    from collections import Counter
+    headcount = Counter()   # number of factors before the (first top-level) dup site
+    deep = 0; topcount = 0; nonnormal = 0
+    examples = {}
+    for r in regs:
+        for k in conts:
+            for x in strong_apder_acc(r, k):
+                if N(x) == x: continue
+                nonnormal += 1
+                f, idxs = dup_index_in_spine(x)
+                if idxs:
+                    topcount += 1
+                    i = idxs[0]
+                    headcount[i] += 1
+                    if i not in examples and len(examples) < 12:
+                        examples[i] = (pp(x), pp(N(x)))
+                else:
+                    # the duplication is NOT on the top spine -- it is nested inside a
+                    # factor (e.g. inside a star body or an alt branch). record it.
+                    deep += 1
+    print(f"  non-normal rows: {nonnormal};  with TOP-spine dup: {topcount};  nested-only dup: {deep}")
+    print(f"  distribution of #head-factors-before-dup (top spine):")
+    for i in sorted(headcount):
+        ex = examples.get(i, ('',''))
+        print(f"     headlen={i}: count={headcount[i]:>5}   e.g. x={ex[0]}  N(x)={ex[1]}")
+    print()
+    if deep == 0 and set(headcount) == {1}:
+        print("  => EVERY non-normal row = [one head factor] . [s* . s*] . [rest], dup ALWAYS at")
+        print("     spine index 1.  Then v = N(x) fixes the row (double the factor at index 1)")
+        print("     => <=1 non-normal per fiber.  CLAIM L would be STRUCTURALLY PROVEN.")
+    elif deep == 0:
+        print(f"  => dup always on top spine but headlen varies over {sorted(headcount)};")
+        print("     uniqueness needs: for a fixed v, only ONE headlen is realized in the carrier.")
+    else:
+        print(f"  => {deep} rows have the dup NESTED inside a factor (not top spine).")
+        print("     Need to recurse: the nested factor is itself a non-normal sub-row.")
+
+if __name__ == '__main__':
+    stageH()
+
+
+# ============================================================================
+# STAGE I -- is the surviving duplication ALWAYS the TRAILING factor of the spine?
+# If x = w . s* . s*  with N(x) = w . s*  (last factor of N(x) is a star, doubled),
+# then N(x) determines x  =>  Claim L proven. Hunt for ANY non-trailing dup.
+# ============================================================================
+def stageI():
+    banner('[I] is the duplication ALWAYS trailing?  (x = w.s*.s*, dup = last two factors)')
+    from norm_model import fac, is_star
+    conts = rich_conts()
+    bad = []; ck = 0; trailing = 0
+    # exhaustive rsize<=9 + random rsize<=14
+    regs = clean_regexes(9)
+    pool = [(r,k) for r in regs for k in conts]
+    import random; random.seed(7)
+    for _ in range(4000):
+        pool.append((rand_clean(random.randint(10,14)), random.choice(conts)))
+    for r, k in pool:
+        for x in strong_apder_acc(r, k):
+            if N(x) == x: continue
+            f = fac(x); ck += 1
+            dup = [i for i in range(len(f)-1) if f[i]==f[i+1] and is_star(f[i])]
+            # trailing iff the (single) dup is the last two factors
+            if dup == [len(f)-2]:
+                trailing += 1
+            else:
+                bad.append((r,k,x,dup,len(f)))
+    print(f"  checked {ck} non-normal rows; trailing-dup = {trailing}; NON-trailing = {len(bad)}")
+    if bad:
+        r,k,x,dup,L = min(bad, key=lambda t: rsize(t[2]))
+        print(f"  *** non-trailing dup: x={pp(x)} dup@{dup} of {L} factors; from r={pp(r)} k={pp(k)}")
+        print(f"      N(x)={pp(N(x))}.  => Claim L NOT reducible to 'double the last factor'.")
+    else:
+        print("  EVERY non-normal row has its dup TRAILING: x = w.s*.s*, N(x)=w.s*.")
+        print("  => the map  (non-normal x) -> N(x)  is INVERTIBLE (x = N(x) with last star")
+        print("     doubled), hence INJECTIVE: at most one non-normal row per N-fiber.")
+        print("  *** CLAIM L reduces to a CLEAN structural lemma about strong_apder_acc rows. ***")
+
+if __name__ == '__main__':
+    stageI()

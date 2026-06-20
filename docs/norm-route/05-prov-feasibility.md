@@ -39,16 +39,34 @@ them: N **collapses** the survivor (`b*·(a*·a*) ↦ b*·a*`) and a single bit 
 copy, because the lost multiplicity is provably **≤ 2** (≤1 normal + ≤1 non-normal per fiber).
 The debt is computed from `N r_i` **locally**, never from the cross-prune.
 
-## ⚠ The linchpin that MUST get a rigorous hand-proof (do NOT formalize before this)
+## ⚠ The linchpin = Claim L — robust, but the easy proof is REFUTED (it is the new crux)
 **Claim L:** for clean r,k, `strong_apder_acc r k` holds ≤ 1 non-normal row per N-value.
-Plausible argument: (i) S/σ7 collapses every *leading* adjacent-equal-star pair; (ii) the only
-surviving pair in an opened row is the single boundary where a non-collapsible head protects a
-continuation whose leading star equals the source's trailing star — one σ4 boundary, one pair;
-(iii) hence one duplication site, position fixed by the head; (iv) two non-normal rows with the
-same N-value would need the same head-protected boundary ⇒ equal. **Step (iv) is not yet
-rigorous** — "0 violations exhaustive to rsize 8" is exactly the kind of result this project has
-been burned by (ctx_bound, child_ok). Treat as RED until the hand-proof closes (iv), and re-run
-the hunt at rsize ≥ 11 and on more witness variants.
+Equivalently: `N` restricted to the non-normal rows of the carrier is injective. If L holds,
+the non-normal rows inject (via `N`) into the clean linear universe `nacc`, so **#debt is
+linear** (the otherwise-hard count) and the linear card bound follows.
+
+**Deep hunt (extended):** L holds on **2.8M+ checks** — exhaustive clean r ≤ rsize 9 × RICH
+multi-star continuations (2 707 350), random r ≤ rsize 14 (120 000), AND nullable-**telescope**
+constructions built specifically to realise two junctions for one `v`. Max non-normal-per-fiber
+= **1** everywhere.
+
+**Model verified faithful:** the surprising leading-dup row `a*·a*·b*` (∈ carrier of
+`((1+a)·a*+b)·(a*·b*)`) is CORRECT per the verbatim defs — a RALTS-headed factor makes σ7 fall
+through to the WEAK σ4 plug, which builds `a*·a*` uncollapsed deep in the row_dlforms recursion,
+and the nullable `1` branch exposes it leading. So the data is trustworthy.
+
+**The clean structural proof is DEAD.** I conjectured the dup is always trailing (⇒ `x = N(x)`
+with last star doubled ⇒ L). **Refuted:** dups occur at varying spine positions — 30 723 are
+NON-trailing (incl. leading; headlen ∈ {0,1,2}). So `v` alone does NOT fix the dup position;
+L holds only because the *carrier* realises a single doubling per `v` — a derivative-path
+property, not a syntactic one.
+
+**Honest status:** L is the most robust card-bound lead this project has had (every prior route
+was refuted; L survives every adversarial probe), BUT it is **UNPROVEN** and the obvious proof
+failed. A real proof likely needs the **Antimirov partial-derivative position** structure (each
+non-normal row ↔ a unique active star-junction; thesis Ch7 / AFP). Treat as RED: do not
+formalize the bit-injection until L (or a bounded-multiplicity weakening) is hand-proved or sent
+to Pro as a focused micro-ask. Re-hunt at rsize ≥ 16 opportunistically.
 
 ## If L holds, the Wave plan SIMPLIFIES dramatically
 - Drop the `prov` datatype; Wave 5 = prove Claim L + the bit-injection card bound.
