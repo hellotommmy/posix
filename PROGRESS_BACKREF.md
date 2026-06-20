@@ -11599,3 +11599,38 @@ CHECKED, GREEN, no sorry:
   `rnonseq t ==> nonalt t ==> card(A(RONE, s4(t,k)) - A(RONE,k)) <= card(single_root t k - A(RONE,k))`.
 
 NEXT SMALLEST STEP: finish S1 for the structural cases `RSEQ` and `RALTS` (the latter should use the corrected L1 SAA-level cover), then derive `boundary_term_absorb` via S1 plus the genuine-term disjointness. L1 non-unit root cover remains the other open helper; direct broad `cases k; auto` was removed after causing a proof-script blow-up, not a counterexample.
+
+## 2026-06-20 ROUTE-1 CARD lane (Codex): conditional spine to RSEQ recurrence + RALTS budget GREEN; fail-stop before global
+
+BRANCH: `card/route1-formalize`.
+
+FILES CHANGED: `card/Card_Route1.thy` (+ conditional spine helpers only).
+
+BUILD: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1`
+EXIT 0.
+
+CHECKED, GREEN, no sorry:
+- Mechanical spine glue:
+  `ralts_size_budget rs = rsizes rs`,
+  `(\<Sum>q \<in> set rs. rsize q) <= ralts_size_budget rs`,
+  `A(RONE, s4(RSTAR r,k)) = row_dlforms(S(s4(RSTAR r,k)))`,
+  and the derived root-row diff bound
+  `apder_nf k ==> card(row_dlforms(S(s4(RSTAR r,k))) - A(RONE,k)) <= 1`.
+- Conditional RSEQ singleton recurrence:
+  assuming `boundary_term_absorb` and `seq_head_core_le_rsize` in the bnd/seq lane shapes,
+  `D (RALTS [RSEQ r1 r2]) k <= rsize r1 + D (RALTS [r2]) k`.
+- Conditional RALTS budget step:
+  assuming `L1_cover` and per-branch singleton bounds,
+  `D (RALTS rs) k <= ralts_size_budget rs`.
+
+FAIL-STOP before global induction: to feed the RALTS case of the global induction without proving full singleton L2,
+I tried the weaker branch bridge
+  `q ~= RZERO ==> nonalt q ==> A(RALTS [q],k) <= A(q,k)`.
+It is not a one-line mechanical fact: the first failed build left 18 subgoals, with the first obstruction in the
+`q = RSEQ x41 x42`, `k = RRESIDUE x101 x102` branch, needing rows opened from
+  `rsimp7_SEQ_atom (rsimpStrong_ALTs_raw (rflts [rsimp4_SEQ_atom (S x41) (S x42)])) (RRESIDUE x101 x102)`
+to be covered by the reassociated carrier
+  `rfrontier (rsimp4_SEQ_atom x41 (rsimp4_SEQ_atom x42 (RRESIDUE x101 x102)))`
+plus the two term-frontier pieces. This is exactly singleton L2 / seq-head territory, not safe spine glue.
+The failed candidate was removed; file remains green. Next step should wait for the bnd/seq lane singleton L2 bridge
+or add it as an explicit fourth assumption if Secretary wants the global/target/gate spine forced through.
