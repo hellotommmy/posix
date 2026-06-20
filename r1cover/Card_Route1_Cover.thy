@@ -904,12 +904,59 @@ proof -
 qed
 
 (* ===================================================================== *)
-(* TARGET (still OPEN: needs `root_split` above).                           *)
-(*   lemma strong_apder_acc_RALTS_singleton_cover:                          *)
-(*     "strong_apder_acc (RALTS rs) k                                       *)
-(*        \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"                  *)
-(* Discharge `root_split` (the B1/B2 escape bridge) and apply               *)
-(* strong_apder_acc_RALTS_singleton_cover_if_root_split.                    *)
+(* FULL cover from the single per-row invariant `inv` (generic k and S k).   *)
+(* Assembles the ROOT (cover_root_from_tagged_invariant, via the generic-k    *)
+(* frontier normalisation) with the green TERM carrier.  This reduces L1 (in  *)
+(* the generic regime) to EXACTLY `inv`: every tagged final row opens into    *)
+(* its origin branch's full carrier.                                          *)
+(* ===================================================================== *)
+
+lemma strong_apder_acc_RALTS_singleton_cover_from_inv:
+  assumes k0: "k \<noteq> RZERO" and k1: "k \<noteq> RONE"
+    and Sk0: "rsimpStrong_raw k \<noteq> RZERO" and Sk1: "rsimpStrong_raw k \<noteq> RONE"
+    and inv: "\<And>q t. (q, t) \<in> set (tagged_Strong_ALTs_rows rs) \<Longrightarrow>
+        row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+          strong_apder_acc (RALTS [q]) k"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof -
+  have root:
+    "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    using cover_root_from_tagged_invariant[OF Sk0 Sk1 inv]
+    by (simp add: rsimpStrong_dlform_closure_rfrontier_RALTS_seq_eq[OF k0 k1])
+  have terms:
+    "rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS rs) k) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    by (rule strong_apder_acc_RALTS_terms_singleton_cover)
+  show ?thesis
+    unfolding strong_apder_acc_def
+    using root terms
+    by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+qed
+
+(* ===================================================================== *)
+(* TARGET — strong_apder_acc_RALTS_singleton_cover — remains OPEN.           *)
+(* It is now reduced to a SINGLE goal, `inv`:                                *)
+(*   \<And>q t. (q,t) \<in> set (tagged_Strong_ALTs_rows rs) \<Longrightarrow>                     *)
+(*     row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k))                   *)
+(*       \<subseteq> strong_apder_acc (RALTS [q]) k                                    *)
+(* (plus the degenerate tails k or S k \<in> {RZERO,RONE}, handled by the green   *)
+(* base lemmas / no-tail row_dlforms_rsimpStrong_raw_RALTS_subsetI).         *)
+(*                                                                            *)
+(* `inv` is the [VALIDATED] B1/B2 statement at row level: each tagged final  *)
+(* row of the strong-pruned alternation opens (against S k) into its origin   *)
+(* branch's carrier.  B1 (surviving root) is the easy half; B2 is the wall:   *)
+(* a cross-prune sigma7-collapse row (bare RSTAR s, or a RONE-headed tail     *)
+(* escape) must route into the branch ACC carrier.  The discharging fact is   *)
+(* apder_term_frontier_acc_eq:                                                *)
+(*   apder_term_frontier_acc q k = (\<Union>p\<in>apder_terms q. rfrontier (rsimp4_SEQ_atom p k)) *)
+(* together with apder_terms (RSTAR s) = (\<lambda>p. rsimp4_SEQ_atom p (RSTAR s)) ` apder_terms s; *)
+(* the missing connector (GAP) is: the prune sigma7 escape from a row of S q  *)
+(* is rsimp4_SEQ_atom p (S k) for some p \<in> apder_terms q.  This is the lone   *)
+(* remaining hard lemma; prove it, then `inv` follows by pipeline tracking    *)
+(* over tagged_Strong_ALTs_rows and the cover closes via                      *)
+(* strong_apder_acc_RALTS_singleton_cover_from_inv.                          *)
 (* ===================================================================== *)
 
 end
