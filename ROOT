@@ -42,3 +42,12 @@ session Posix_Rewrite_Fallback in "rewrite" = "Posix_Base" +
   options [document = false]
   theories
     "RewriteFallback"
+
+(* ROUTE-2 / N-ROUTE (2026-06-20) — normalized append + normalizer; fast leaf over the
+   frozen Posix_Base heap (only needs rrexp + rsize from BasicIdentities), in cubic/Normalized/.
+   Isolated session name => own build DB => safe alongside the primary lanes.
+   Build with: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Norm. *)
+session Posix_Norm in "cubic/Normalized" = "Posix_Base" +
+  options [document = false]
+  theories
+    "NormalizedAppend"
