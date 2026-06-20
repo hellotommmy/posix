@@ -414,8 +414,11 @@ high-yield core:
 4. **One Isabelle build at a time (serial), or PRIVATE HEAPS (parallel).**
    For a SINGLE build use `scripts\codex-isabelle-build-posix.ps1
    -TimeoutSeconds 300` (per-session mutex). **For PARALLEL lanes (multiple
-   worktrees/Codex building concurrently) EACH lane MUST set its OWN
-   `ISABELLE_HOME_USER=<worktree>\.isa_home`** — concurrent builds against the
+   worktrees/Codex building concurrently) EACH lane MUST redirect its heap store
+   to a private dir via a private `USER_HOME` (and `HOME`)** —
+   `USER_HOME=<worktree>\.isa_home` moves `ISABELLE_HOME_USER`+`ISABELLE_HEAPS`
+   under it (setting `ISABELLE_HOME_USER`/`ISABELLE_HEAPS` directly may be IGNORED
+   by `etc/settings`). Concurrent builds against the
    SHARED heap store corrupt each other's PARENT heaps (`Posix_Cubic FAILED ...
    "parent ... saved state does not match"`, `SQLITE_CONSTRAINT_PRIMARYKEY`,
    "Duplicate export", rc127). The `.ps1` mutex keys on session NAME so it does
