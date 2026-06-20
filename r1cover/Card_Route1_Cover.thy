@@ -585,9 +585,77 @@ definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> boo
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
 
-(* TARGET (prove below; statement + steer in ROUTE_COVER.md):
-   lemma strong_apder_acc_RALTS_singleton_cover:
-     "strong_apder_acc (RALTS rs) k \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
-   Prove at the SAA level (fix-(a)); do NOT use the false dl_le_pruned_altseq route. *)
+(* ===================================================================== *)
+(* GENERIC-k normalisation of the ROOT carrier.  For k \<notin> {RZERO,RONE} the   *)
+(* sigma4 plug freezes to RSEQ (RALTS rs) k whose rfrontier is the single   *)
+(* row, so the strong-dl closure of the ROOT carrier is just the strong     *)
+(* opening of that one row.                                                  *)
+(* ===================================================================== *)
+
+lemma rsimpStrong_dlform_closure_rfrontier_RALTS_seq_eq:
+  assumes "k \<noteq> RZERO" and "k \<noteq> RONE"
+  shows "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) k))
+       = row_dlforms (rsimpStrong_raw (RSEQ (RALTS rs) k))"
+proof -
+  have "rsimp4_SEQ_atom (RALTS rs) k = RSEQ (RALTS rs) k"
+    using assms by (cases k) auto
+  then show ?thesis
+    by (simp add: rsimpStrong_dlform_closure_def)
+qed
+
+(* ===================================================================== *)
+(* L1 REDUCED TO ONE BRIDGE.  The two-carrier split (Carriers I/II) makes   *)
+(* the singleton cover follow GREEN from a single inclusion `root_split`:    *)
+(* the ROOT carrier of the parent lands in (the branch ROOT carriers) UNION  *)
+(* (the parent ACC closure).  Both targets are already covered:              *)
+(*   - branch roots      : row_dlforms_singleton_root_subset_strong_apder_acc *)
+(*   - parent acc closure: strong_apder_acc_RALTS_terms_singleton_cover       *)
+(* so this lemma discharges everything EXCEPT `root_split`.                   *)
+(*                                                                            *)
+(* `root_split` is exactly the [VALIDATED, TRUE >12M] B1/B2 statement:        *)
+(* every opened parent ROOT row y either (B1) has a surviving branch-root     *)
+(* origin -> a branch root carrier; or (B2) is a cross-prune sigma7-collapsed *)
+(* bare star `RSTAR s` with NO root origin -> the ACC carrier (a branch       *)
+(* ending in a star sequence has an acc row  RSEQ (RSTAR s) (RSTAR s),  whose *)
+(* strong opening collapses to RSTAR s, yielding the singleton {RSTAR s}).    *)
+(* It is the lone open goal; the rest of L1 is closed here.                   *)
+(* ===================================================================== *)
+
+lemma strong_apder_acc_RALTS_singleton_cover_if_root_split:
+  assumes root_split:
+    "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+      (\<Union>q \<in> set rs.
+         row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))) \<union>
+      rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS rs) k)"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof -
+  have terms:
+    "rsimpStrong_dlform_closure (apder_term_frontier_acc (RALTS rs) k) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    by (rule strong_apder_acc_RALTS_terms_singleton_cover)
+  have branch_roots:
+    "(\<Union>q \<in> set rs.
+        row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    using row_dlforms_singleton_root_subset_strong_apder_acc by fast
+  have root:
+    "rsimpStrong_dlform_closure (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    using root_split branch_roots terms by blast
+  show ?thesis
+    unfolding strong_apder_acc_def
+    using root terms
+    by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+qed
+
+(* ===================================================================== *)
+(* TARGET (still OPEN: needs `root_split` above).                           *)
+(*   lemma strong_apder_acc_RALTS_singleton_cover:                          *)
+(*     "strong_apder_acc (RALTS rs) k                                       *)
+(*        \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"                  *)
+(* Discharge `root_split` (the B1/B2 escape bridge) and apply               *)
+(* strong_apder_acc_RALTS_singleton_cover_if_root_split.                    *)
+(* ===================================================================== *)
 
 end
