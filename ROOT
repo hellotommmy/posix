@@ -42,3 +42,10 @@ session Posix_Rewrite_Fallback in "rewrite" = "Posix_Base" +
   options [document = false]
   theories
     "RewriteFallback"
+
+(* ROUTE-1 LANE bnd (2026-06-20) — S1 + boundary_term_absorb. Child of Posix_Cubic.
+   Build: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1_Bnd *)
+session Posix_Card_Route1_Bnd in "r1bnd" = "Posix_Cubic" +
+  options [document = false]
+  theories
+    "Card_Route1_Bnd"

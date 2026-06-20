@@ -1,3 +1,9 @@
+# ⭐ THIS WORKTREE'S TASK — ROUTE-1 LANE: S1 + boundary_term_absorb (read ROUTE_BND.md FIRST)
+
+You are in the `card/route1-bnd` worktree (ONE lane of a parallel route-1 formalization). **Read `ROUTE_BND.md` (repo root) FIRST** — prove your one lemma into `r1bnd/Card_Route1_Bnd.thy`, build `-Session Posix_Card_Route1_Bnd`, NO sorry, fail-stop + report. Use the proof-level steers in ROUTE_BND.md; do NOT use the verdicts' broken routes. The general rules below still apply.
+
+---
+
 # Agent Instructions
 
 This repository runs a controlled Agent Hunt style workflow, currently aimed
