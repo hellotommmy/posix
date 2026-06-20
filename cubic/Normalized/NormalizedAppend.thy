@@ -261,4 +261,155 @@ next
   qed
 qed
 
+
+section \<open>norm\_seq absorb and the associativity of nplug\<close>
+
+lemma drop_ones_id: "RONE \<notin> set zs \<Longrightarrow> drop_ones zs = zs"
+  by (induction zs rule: drop_ones.induct) auto
+
+lemma fold_stars_no_one: "RONE \<notin> set zs \<Longrightarrow> RONE \<notin> set (fold_stars zs)"
+  using fold_stars_subset[of zs] by auto
+
+lemma norm_seq_no_zero: "RZERO \<notin> set xs \<Longrightarrow> RZERO \<notin> set (norm_seq xs)"
+  using fold_stars_subset[of "drop_ones xs"] drop_ones_subset[of xs]
+  by (auto simp: norm_seq_def)
+
+lemma norm_seq_atomic:
+  assumes "\<forall>x \<in> set zs. \<not> is_rseq x"
+  shows "\<forall>x \<in> set (norm_seq zs). \<not> is_rseq x"
+proof (cases "RZERO \<in> set zs")
+  case True then show ?thesis by (simp add: norm_seq_def)
+next
+  case False
+  have "set (norm_seq zs) \<subseteq> set zs"
+    using False fold_stars_subset[of "drop_ones zs"] drop_ones_subset[of zs]
+    by (auto simp: norm_seq_def)
+  thus ?thesis using assms by auto
+qed
+
+text \<open>The unit and zero collapse is invariant under a trailing/leading RONE.\<close>
+lemma norm_seq_append_one: "norm_seq (ys @ [RONE]) = norm_seq ys"
+  by (simp add: norm_seq_def drop_ones_append)
+
+text \<open>When @{term xs} carries no RZERO, dropping ones after normalising is the same
+  as the bare star-fold of the unit-free list.\<close>
+lemma drop_ones_norm_seq:
+  assumes "RZERO \<notin> set xs"
+  shows "drop_ones (norm_seq xs) = fold_stars (drop_ones xs)"
+proof -
+  have "norm_seq xs = fold_stars (drop_ones xs)" using assms by (simp add: norm_seq_def)
+  moreover have "RONE \<notin> set (fold_stars (drop_ones xs))"
+    by (rule fold_stars_no_one[OF drop_ones_no_one])
+  ultimately show ?thesis by (simp add: drop_ones_id)
+qed
+
+lemma norm_seq_absorb_left: "norm_seq (norm_seq xs @ ys) = norm_seq (xs @ ys)"
+proof (cases "RZERO \<in> set xs")
+  case True
+  then have "norm_seq xs = [RZERO]" "RZERO \<in> set (xs @ ys)" by (auto simp: norm_seq_def)
+  then show ?thesis by (simp add: norm_seq_def)
+next
+  case noxs: False
+  show ?thesis
+  proof (cases "RZERO \<in> set ys")
+    case True
+    then have "RZERO \<in> set (norm_seq xs @ ys)" "RZERO \<in> set (xs @ ys)" by auto
+    then show ?thesis by (simp add: norm_seq_def)
+  next
+    case noys: False
+    have nz1: "RZERO \<notin> set (norm_seq xs @ ys)"
+      using norm_seq_no_zero[OF noxs] noys by simp
+    have nz2: "RZERO \<notin> set (xs @ ys)" using noxs noys by simp
+    have "norm_seq (norm_seq xs @ ys) = fold_stars (drop_ones (norm_seq xs) @ drop_ones ys)"
+      using nz1 by (simp add: norm_seq_def drop_ones_append)
+    also have "... = fold_stars (fold_stars (drop_ones xs) @ drop_ones ys)"
+      using noxs by (simp add: drop_ones_norm_seq)
+    also have "... = fold_stars (drop_ones xs @ drop_ones ys)"
+      by (rule fold_stars_absorb_left)
+    also have "... = norm_seq (xs @ ys)"
+      using nz2 by (simp add: norm_seq_def drop_ones_append)
+    finally show ?thesis .
+  qed
+qed
+
+lemma norm_seq_absorb_right: "norm_seq (xs @ norm_seq ys) = norm_seq (xs @ ys)"
+proof (cases "RZERO \<in> set ys")
+  case True
+  then have "norm_seq ys = [RZERO]" "RZERO \<in> set (xs @ ys)" by (auto simp: norm_seq_def)
+  then show ?thesis by (simp add: norm_seq_def)
+next
+  case noys: False
+  show ?thesis
+  proof (cases "RZERO \<in> set xs")
+    case True
+    then have "RZERO \<in> set (xs @ norm_seq ys)" "RZERO \<in> set (xs @ ys)" by auto
+    then show ?thesis by (simp add: norm_seq_def)
+  next
+    case noxs: False
+    have nz1: "RZERO \<notin> set (xs @ norm_seq ys)"
+      using norm_seq_no_zero[OF noys] noxs by simp
+    have nz2: "RZERO \<notin> set (xs @ ys)" using noxs noys by simp
+    have "norm_seq (xs @ norm_seq ys) = fold_stars (drop_ones xs @ drop_ones (norm_seq ys))"
+      using nz1 by (simp add: norm_seq_def drop_ones_append)
+    also have "... = fold_stars (drop_ones xs @ fold_stars (drop_ones ys))"
+      using noys by (simp add: drop_ones_norm_seq)
+    also have "... = fold_stars (drop_ones xs @ drop_ones ys)"
+      by (rule fold_stars_absorb_right)
+    also have "... = norm_seq (xs @ ys)"
+      using nz2 by (simp add: norm_seq_def drop_ones_append)
+    finally show ?thesis .
+  qed
+qed
+
+text \<open>Re-splitting a rebuilt sequence and re-normalising is the same as normalising the
+  original factor list (the stray RONE from the empty rebuild is absorbed by norm\_seq).\<close>
+lemma norm_seq_sfms_left:
+  assumes "\<forall>x \<in> set xs. \<not> is_rseq x"
+  shows "norm_seq (seq_factors (mk_seq xs) @ ys) = norm_seq (xs @ ys)"
+proof (cases "xs = []")
+  case True then show ?thesis
+    by (simp add: seq_factors_mk_seq[OF assms] norm_seq_cons_one)
+next
+  case False then show ?thesis by (simp add: seq_factors_mk_seq[OF assms])
+qed
+
+lemma norm_seq_sfms_right:
+  assumes "\<forall>x \<in> set xs. \<not> is_rseq x"
+  shows "norm_seq (ys @ seq_factors (mk_seq xs)) = norm_seq (ys @ xs)"
+proof (cases "xs = []")
+  case True then show ?thesis
+    by (simp add: seq_factors_mk_seq[OF assms] norm_seq_append_one)
+next
+  case False then show ?thesis by (simp add: seq_factors_mk_seq[OF assms])
+qed
+
+theorem nplug_assoc: "nplug (nplug r k) h = nplug r (nplug k h)"
+proof -
+  have ar: "\<forall>x \<in> set (seq_factors r). \<not> is_rseq x" using seq_factors_atomic by blast
+  have ak: "\<forall>x \<in> set (seq_factors k). \<not> is_rseq x" using seq_factors_atomic by blast
+  have ah: "\<forall>x \<in> set (seq_factors h). \<not> is_rseq x" using seq_factors_atomic by blast
+  have arl: "\<forall>x \<in> set (norm_seq (seq_factors r @ seq_factors k)). \<not> is_rseq x"
+    by (rule norm_seq_atomic) (use ar ak in auto)
+  have akl: "\<forall>x \<in> set (norm_seq (seq_factors k @ seq_factors h)). \<not> is_rseq x"
+    by (rule norm_seq_atomic) (use ak ah in auto)
+  have "nplug (nplug r k) h
+        = mk_seq (norm_seq (seq_factors (mk_seq (norm_seq (seq_factors r @ seq_factors k)))
+                            @ seq_factors h))"
+    by (simp add: nplug_def)
+  also have "... = mk_seq (norm_seq (norm_seq (seq_factors r @ seq_factors k) @ seq_factors h))"
+    by (simp add: norm_seq_sfms_left[OF arl])
+  also have "... = mk_seq (norm_seq ((seq_factors r @ seq_factors k) @ seq_factors h))"
+    by (simp add: norm_seq_absorb_left)
+  also have "... = mk_seq (norm_seq (seq_factors r @ (seq_factors k @ seq_factors h)))"
+    by simp
+  also have "... = mk_seq (norm_seq (seq_factors r @ norm_seq (seq_factors k @ seq_factors h)))"
+    by (simp add: norm_seq_absorb_right)
+  also have "... = mk_seq (norm_seq (seq_factors r
+                     @ seq_factors (mk_seq (norm_seq (seq_factors k @ seq_factors h)))))"
+    by (simp add: norm_seq_sfms_right[OF akl])
+  also have "... = nplug r (nplug k h)"
+    by (simp add: nplug_def)
+  finally show ?thesis .
+qed
+
 end
