@@ -34,7 +34,7 @@ Do NOT use the shared `scripts\codex-isabelle-build-posix.ps1` — it shares the
 parallel lanes and WILL corrupt it (`Posix_Cubic FAILED ... parent saved state does not match`). Use your OWN private
 heap. Run this exact command (first build ~2min builds the chain in your private store; then iterations are seconds):
 ```
-& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export ISABELLE_HOME_USER=/cygdrive/c/Users/Chengsong/Documents/posix-route1/cover/.isa_home && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/cover && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Cover"
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/cover/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/cover && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Cover"
 ```
 Exit 0 = green.
 
