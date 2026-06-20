@@ -35,6 +35,14 @@ session Posix_Cubic in "cubic" = "Posix_Antimirov" +
     "DirectUniverseCubic_L3"
     "DirectUniverseCubic"
 
+(* ROUTE-1 FORMALIZATION LANE (2026-06-20) — the validated singleton-cover linear row-count.
+   Child of Posix_Cubic (green base loads from heap; only Card_Route1 recompiles).
+   Build: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1 *)
+session Posix_Card_Route1 in "card" = "Posix_Cubic" +
+  options [document = false]
+  theories
+    "Card_Route1"
+
 (* REWRITE FALLBACK LANE (2026-06-17) — independent Ch5/Ch6-style near-identity
    rewrite relation for the step-wise-strong vs once-strong derivative route.
    Build with: scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback. *)

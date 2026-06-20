@@ -1,3 +1,13 @@
+# ⭐ THIS WORKTREE'S TASK — ROUTE-1 FORMALIZATION (read ROUTE1.md FIRST)
+
+You are in the `card/route1-formalize` worktree. **Read `ROUTE1.md` (repo root) FIRST** — it is your task:
+formalize the Secretary-validated singleton-cover linear row-count into `card/Card_Route1.thy`, build
+`-Session Posix_Card_Route1`, NO `sorry`, fail-stop + report. The two proof-level corrections (L1 via SAA-cover,
+L2 `boundary_term_absorb` via S1) are in ROUTE1.md — follow them; do NOT use the verdicts' broken routes. The
+general rules below still apply.
+
+---
+
 # Agent Instructions
 
 This repository runs a controlled Agent Hunt style workflow, currently aimed
