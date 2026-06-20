@@ -1,0 +1,26 @@
+[ Prepend this block to EVERY pro_ask PROMPT.txt, and state it in every worker/agent instruction.
+  It is a hard project rule (MAINLINE §6 ★; memory feedback-adversarial-handproof-first). ]
+
+METHODOLOGY — ADVERSARIAL HAND-ANALYSIS FIRST (mandatory):
+Before relying on Python or proposing a step for formalization, for EACH hypothesis step:
+1. Attempt the proof BY HAND — walk the actual induction / set-algebra, and state explicitly WHERE it gets
+   unnatural, which DEFINITION SHAPE each step leans on, and which case is fragile. For any `card(...) <= ...`
+   that is NOT a plain subset, name the INJECTION and check whether two distinct left-hand rows can collide onto
+   one right-hand row (a collision falsifies the card bound).
+2. Deliberately TRY TO BREAK each step — construct a MINIMAL counterexample driven by the definition shapes:
+   σ7 collapses ONLY a leading a*·a*; rsimpStrong_ALTs_raw prunes at the SET level (rows shrunk, never dropped);
+   the a*·a* boundary; two branches sharing one star tail; a nullable head exposing the continuation; an
+   intermediate (possibly unreachable) continuation k. Ask: "what is the smallest shape that makes this step's
+   worst case bite?"
+3. Only steps that pass BOTH — a NATURAL hand-proof AND survival of a deliberate adversarial construction — are
+   worth Python-confirming and worth proposing. If the best case is not "every step goes through naturally," say so
+   and report where it strains.
+4. Python CONFIRMS the hand-analysis (and catches what you missed); it NEVER substitutes for it. A "0 violations"
+   with no hand-proof is a RED FLAG, not a green light. Report, per step: the hand argument, where it is fragile,
+   the injection (if any) and its no-collision argument, and THEN the Python evidence (predicate + space covered +
+   the smallest CE or 0/N) with the harness.
+
+Rationale: every false hypothesis in this project so far (ctx_bound 47>46, child_ok 99>96, the SAA-RALTS "+1"
+2n>n+1 at two branches, the per-branch D(ALTS[q])≤D(q)+1 on (1+a*)·b*) had a SIMPLE definition-shape-driven
+counterexample, and Python sampling repeatedly returned a false "0 / 10^5" because it never targeted that shape.
+Hand adversarial analysis kills these in minutes; Python-only loops burned whole sessions.
