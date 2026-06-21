@@ -1320,6 +1320,92 @@ next
   qed (use Cons.prems a_def tail_ok in auto)
 qed
 
+lemma tagged_Strong_ALTs_rows_preserves_singleton_saa_ok_if_suffix:
+  assumes base_ok:
+      "\<forall>q \<in> set rs. singleton_saa_ok q (rsimpStrong_raw q)"
+    and suffix:
+      "\<forall>q \<in> set rs. (\<forall>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [q]) k)"
+  shows "\<forall>qt \<in> set (tagged_Strong_ALTs_rows rs).
+    singleton_saa_ok (fst qt) (snd qt)"
+proof -
+  let ?raw = "map (\<lambda>q. (q, rsimpStrong_raw q)) rs"
+  let ?init = "tagged_rflts ?raw"
+  let ?pruned = "tagged_prune_rows_raw ?init"
+  let ?flat = "tagged_rflts ?pruned"
+  have raw_ok: "\<forall>qt \<in> set ?raw.
+      singleton_saa_ok (fst qt) (snd qt)"
+    using base_ok by auto
+  have raw_snd_nf: "\<forall>t \<in> set (map snd ?raw). rtail_nf t"
+    using rtail_nf_rsimpStrong_raw by auto
+  have init_nf: "\<forall>qt \<in> set ?init. rtail_nf (snd qt)"
+  proof
+    fix qt
+    assume qt: "qt \<in> set ?init"
+    have "snd qt \<in> set (map snd ?init)"
+      using qt by force
+    then have "snd qt \<in> set (rflts (map snd ?raw))"
+      by (simp add: map_snd_tagged_rflts)
+    then show "rtail_nf (snd qt)"
+      using rtail_nf_rflts[OF raw_snd_nf] by blast
+  qed
+  have init_ok: "\<forall>qt \<in> set ?init.
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_rflts_preserves_singleton_saa_ok
+        [OF raw_ok init_nf])
+  have init_suffix: "\<forall>qt \<in> set ?init.
+      (\<forall>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst qt]) k)"
+  proof
+    fix qt
+    assume qt: "qt \<in> set ?init"
+    have "fst qt \<in> set (map fst ?raw)"
+      using fst_tagged_rflts_subset[of ?raw] qt by force
+    then have q_in: "fst qt \<in> set rs"
+      by auto
+    show "\<forall>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst qt]) k"
+      using suffix q_in by blast
+  qed
+  have pruned_ok: "\<forall>qt \<in> set ?pruned.
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_prune_rows_raw_preserves_singleton_saa_ok_if_suffix
+        [OF init_ok init_nf init_suffix])
+  have init_snd_nf: "\<forall>t \<in> set (map snd ?init). rtail_nf t"
+    using init_nf by auto
+  have pruned_snd_nf:
+      "\<forall>t \<in> set (map snd ?pruned). rtail_nf t"
+  proof -
+    have "\<forall>t \<in> set (rsimpStrong_prune_rows_raw (map snd ?init)).
+        rtail_nf t"
+      by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF init_snd_nf])
+    then show ?thesis
+      by (simp add: map_snd_tagged_prune_rows_raw)
+  qed
+  have flat_nf: "\<forall>qt \<in> set ?flat. rtail_nf (snd qt)"
+  proof
+    fix qt
+    assume qt: "qt \<in> set ?flat"
+    have "snd qt \<in> set (map snd ?flat)"
+      using qt by force
+    then have "snd qt \<in> set (rflts (map snd ?pruned))"
+      by (simp add: map_snd_tagged_rflts)
+    then show "rtail_nf (snd qt)"
+      using rtail_nf_rflts[OF pruned_snd_nf] by blast
+  qed
+  have flat_ok: "\<forall>qt \<in> set ?flat.
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_rflts_preserves_singleton_saa_ok
+        [OF pruned_ok flat_nf])
+  have final_ok:
+      "\<forall>qt \<in> set (tagged_rdistinct ?flat {}).
+        singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_rdistinct_preserves_singleton_saa_ok[OF flat_ok])
+  show ?thesis
+    using final_ok
+    by (simp add: tagged_Strong_ALTs_rows_def)
+qed
+
 lemma rsimpStrong_dlform_closure_rfrontier_RALTS_seq_eq:
   assumes "k \<noteq> RZERO" and "k \<noteq> RONE"
   shows "rsimpStrong_dlform_closure
