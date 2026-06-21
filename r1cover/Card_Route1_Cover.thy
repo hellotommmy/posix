@@ -1033,6 +1033,33 @@ proof
       (simp_all add: rsimpStrong_raw_rsimp4_SEQ_atom_RCHAR)
 qed
 
+lemma singleton_saa_key_credit_RZERO_raw:
+  "singleton_saa_key_credit RZERO (rsimpStrong_raw RZERO)"
+  by (simp add: singleton_saa_key_credit_def)
+
+lemma singleton_saa_key_credit_RONE_raw:
+  "singleton_saa_key_credit RONE (rsimpStrong_raw RONE)"
+  by (simp add: singleton_saa_key_credit_def)
+
+lemma singleton_saa_key_credit_RCHAR_raw:
+  "singleton_saa_key_credit (RCHAR c) (rsimpStrong_raw (RCHAR c))"
+  by (simp add: singleton_saa_key_credit_def)
+
+lemma singleton_saa_scan_ok_RZERO_raw:
+  "singleton_saa_scan_ok RZERO (rsimpStrong_raw RZERO)"
+  using singleton_saa_ok_RZERO_raw singleton_saa_key_credit_RZERO_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
+lemma singleton_saa_scan_ok_RONE_raw:
+  "singleton_saa_scan_ok RONE (rsimpStrong_raw RONE)"
+  using singleton_saa_ok_RONE_raw singleton_saa_key_credit_RONE_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
+lemma singleton_saa_scan_ok_RCHAR_raw:
+  "singleton_saa_scan_ok (RCHAR c) (rsimpStrong_raw (RCHAR c))"
+  using singleton_saa_ok_RCHAR_raw singleton_saa_key_credit_RCHAR_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
 lemma singleton_saa_ok_prune_pair_raw_if_suffix:
   assumes ok: "singleton_saa_ok q later"
     and later_nf: "rtail_nf later"
