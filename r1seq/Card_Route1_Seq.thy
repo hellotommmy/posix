@@ -629,6 +629,11 @@ lemma boundary_RSTAR_le_rsize_from_child:
       (single_term (RSTAR r) k - B k)) \<le> rsize (RSTAR r)"
   using boundary_RSTAR_step[OF assms(1,2)] assms(3) by simp
 
+lemma single_root_RSEQ_RSTAR_root_shift_RZERO [simp]:
+  "card (single_root (RSEQ (RSTAR r) t) RZERO -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<le> 1"
+  by (simp add: single_root_def B_alt rsimpStrong_dlform_closure_def)
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
