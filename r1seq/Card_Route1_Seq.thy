@@ -165,6 +165,25 @@ lemma seq_head_core_RONE_le_rsize_from_root_diff:
       \<le> rsize RONE"
   using root_diff by simp
 
+lemma seq_head_core_RONE_counterexample:
+  fixes a b :: char
+  defines "t \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b]) (RSTAR (RCHAR a))"
+  defines "k \<equiv> RSTAR (RCHAR a)"
+  assumes "a \<noteq> b"
+  shows
+    "apder_nf RONE"
+    "apder_nf t"
+    "apder_nf k"
+    "card ((single_root (RSEQ RONE t) k \<union>
+             single_term RONE (rsimp4_SEQ_atom t k))
+            - (B k \<union> B (rsimp4_SEQ_atom t k))) = 2"
+    "rsize RONE = 1"
+  using assms
+  by (simp_all add: t_def k_def single_root_def rsimpStrong_dlform_closure_def
+      B_alt
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
