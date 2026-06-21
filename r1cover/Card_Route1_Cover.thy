@@ -1391,6 +1391,57 @@ next
   qed
 qed
 
+lemma strong_apder_acc_RALTS_singleton_cover_if_root_split:
+  assumes root_split:
+      "rsimpStrong_dlform_closure
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+       (\<Union>q \<in> set rs.
+          row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))) \<union>
+       rsimpStrong_dlform_closure
+        (apder_term_frontier_acc (RALTS rs) k)"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof -
+  have terms:
+      "rsimpStrong_dlform_closure
+        (apder_term_frontier_acc (RALTS rs) k) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    by (rule strong_apder_acc_RALTS_terms_singleton_cover)
+  have branch_roots:
+      "(\<Union>q \<in> set rs.
+        row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+  proof
+    fix x
+    assume "x \<in> (\<Union>q \<in> set rs.
+        row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k)))"
+    then obtain q where q: "q \<in> set rs"
+      "x \<in> row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))"
+      by blast
+    have "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k)) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+      by (rule row_dlforms_singleton_root_subset_strong_apder_acc)
+    then have "x \<in> strong_apder_acc (RALTS [q]) k"
+      using q by blast
+    then show "x \<in> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+      using q by blast
+  qed
+  have root:
+      "rsimpStrong_dlform_closure
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<subseteq>
+       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    using root_split branch_roots terms by blast
+  have split:
+      "strong_apder_acc (RALTS rs) k =
+       rsimpStrong_dlform_closure
+        (rfrontier (rsimp4_SEQ_atom (RALTS rs) k)) \<union>
+       rsimpStrong_dlform_closure
+        (apder_term_frontier_acc (RALTS rs) k)"
+    by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_Un)
+  show ?thesis
+    using root terms by (simp add: split)
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_COVER.md):
    lemma strong_apder_acc_RALTS_singleton_cover:
      "strong_apder_acc (RALTS rs) k \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
