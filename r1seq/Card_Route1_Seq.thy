@@ -979,6 +979,118 @@ proof -
     by simp
 qed
 
+lemma D1_boundary_le_rsize_from_head_suc_L1_RALTS_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    and ralts_boundary:
+    "\<And>rs k. legacy_rrexp (RALTS rs) \<Longrightarrow> rntimes_free (RALTS rs) \<Longrightarrow>
+      apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom (RALTS rs) k) - B k) \<union>
+        (single_term (RALTS rs) k - B k)) \<le> rsize (RALTS rs)"
+    and clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q" "apder_nf k"
+  shows
+    "D1 q k \<le> rsize q \<and>
+      card ((B (rsimp4_SEQ_atom q k) - B k) \<union>
+        (single_term q k - B k)) \<le> rsize q"
+  using clean
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    using D1_RZERO_le_rsize[of k] boundary_RZERO_le_rsize[of k] by simp
+next
+  case RONE
+  then show ?case
+    using D1_RONE_le_rsize[of k] boundary_RONE_le_rsize[of k] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using D1_RCHAR_le_rsize[of k c] boundary_RCHAR_le_rsize[of k c] by simp
+next
+  case (RSEQ q1 q2)
+  let ?c = "rsimp4_SEQ_atom q2 k"
+  have nf_c: "apder_nf ?c"
+    using RSEQ.prems by (intro apder_nf_s4) auto
+  have ih1:
+    "D1 q1 ?c \<le> rsize q1 \<and>
+      card ((B (rsimp4_SEQ_atom q1 ?c) - B ?c) \<union>
+        (single_term q1 ?c - B ?c)) \<le> rsize q1"
+    using RSEQ.IH(1)[OF _ _ _ nf_c] RSEQ.prems by auto
+  have ih2:
+    "D1 q2 k \<le> rsize q2 \<and>
+      card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+        (single_term q2 k - B k)) \<le> rsize q2"
+    using RSEQ.IH(2) RSEQ.prems by auto
+  have sh:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+      single_term q1 (rsimp4_SEQ_atom q2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom q2 k))) \<le> Suc (rsize q1)"
+    using RSEQ.prems by (intro seq_head) auto
+  have d1_seq: "D1 (RSEQ q1 q2) k \<le> rsize (RSEQ q1 q2)"
+  proof -
+    have "D1 (RSEQ q1 q2) k \<le> Suc (rsize q1) + rsize q2"
+      by (rule D1_RSEQ_step_from_head_boundary_budgets)
+        (use sh ih2 in simp_all)
+    then show ?thesis
+      by simp
+  qed
+  have bnd_seq:
+    "card ((B (rsimp4_SEQ_atom (RSEQ q1 q2) k) - B k) \<union>
+      (single_term (RSEQ q1 q2) k - B k)) \<le> rsize (RSEQ q1 q2)"
+    by (rule boundary_RSEQ_le_rsize_from_children)
+      (use ih1 ih2 in simp_all)
+  show ?case
+    using d1_seq bnd_seq by simp
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+    using RALTS.IH RALTS.prems by auto
+  have d1_alts: "D1 (RALTS rs) k \<le> rsize (RALTS rs)"
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches[OF L1 branch])
+  have bnd_alts:
+    "card ((B (rsimp4_SEQ_atom (RALTS rs) k) - B k) \<union>
+      (single_term (RALTS rs) k - B k)) \<le> rsize (RALTS rs)"
+    using RALTS.prems by (intro ralts_boundary) auto
+  show ?case
+    using d1_alts bnd_alts by simp
+next
+  case (RSTAR q)
+  let ?c = "rsimp4_SEQ_atom (RSTAR q) k"
+  have nf_c: "apder_nf ?c"
+    using RSTAR.prems by (intro apder_nf_s4) auto
+  have ih:
+    "D1 q ?c \<le> rsize q \<and>
+      card ((B (rsimp4_SEQ_atom q ?c) - B ?c) \<union>
+        (single_term q ?c - B ?c)) \<le> rsize q"
+    using RSTAR.IH[OF _ _ _ nf_c] RSTAR.prems by auto
+  have d1_star: "D1 (RSTAR q) k \<le> rsize (RSTAR q)"
+    by (rule D1_RSTAR_le_rsize_from_child) (use RSTAR.prems ih in auto)
+  have bnd_star:
+    "card ((B (rsimp4_SEQ_atom (RSTAR q) k) - B k) \<union>
+      (single_term (RSTAR q) k - B k)) \<le> rsize (RSTAR q)"
+    by (rule boundary_RSTAR_le_rsize_from_child) (use RSTAR.prems ih in auto)
+  show ?case
+    using d1_star bnd_star by simp
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma seq_head_core_RALTS_le_rsize_from_cover_and_branches:
   fixes rs t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
