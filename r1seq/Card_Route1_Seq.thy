@@ -858,6 +858,14 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RSEQ_RCHAR_RCHAR_RCHAR:
+  "card (single_root (RSEQ (RSTAR (RCHAR d)) (RSEQ (RCHAR c) (RCHAR e))) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR (RCHAR d))
+        (rsimp4_SEQ_atom (RSEQ (RCHAR c) (RCHAR e)) (RCHAR a)))) \<le> 1"
+  by (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+    rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+    split: if_splits intro!: card_subset_singleton_le_one)
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
