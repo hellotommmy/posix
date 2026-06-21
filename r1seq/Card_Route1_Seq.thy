@@ -1430,6 +1430,77 @@ lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_RAL
       rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       split: if_splits intro!: card_subset_singleton_le_one)
 
+lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_from_tail_cases_clean:
+  assumes rseq_tail:
+    "\<And>u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
+      rntimes_free (RSEQ u1 u2) \<Longrightarrow> apder_nf (RSEQ u1 u2) \<Longrightarrow>
+      card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RSEQ u1 u2)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RSEQ u1 u2)]) (RCHAR a)))) \<le> 1"
+    and ralts_tail:
+    "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RALTS rs)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RALTS rs)]) (RCHAR a)))) \<le> 1"
+    and clean: "legacy_rrexp u" "rntimes_free u" "apder_nf u"
+      "u \<noteq> RZERO" "u \<noteq> RONE"
+  shows "card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) u])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) u]) (RCHAR a)))) \<le> 1"
+  using clean
+proof (cases u)
+  case RZERO
+  then show ?thesis using clean by simp
+next
+  case RONE
+  then show ?thesis using clean by simp
+next
+  case (RCHAR e)
+  have leaf:
+    "card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RCHAR e)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RCHAR e)]) (RCHAR a)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_RCHAR)
+  show ?thesis using RCHAR leaf by simp
+next
+  case (RSEQ u1 u2)
+  have leaf:
+    "card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RSEQ u1 u2)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RSEQ u1 u2)]) (RCHAR a)))) \<le> 1"
+    by (rule rseq_tail) (use RSEQ clean in simp_all)
+  show ?thesis using RSEQ leaf by simp
+next
+  case (RALTS rs)
+  have leaf:
+    "card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RALTS rs)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RALTS rs)]) (RCHAR a)))) \<le> 1"
+    by (rule ralts_tail) (use RALTS clean in simp_all)
+  show ?thesis using RALTS leaf by simp
+next
+  case (RSTAR e)
+  have leaf:
+    "card (single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RSTAR e)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RSTAR e)]) (RCHAR a)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_RSTAR)
+  show ?thesis using RSTAR leaf by simp
+next
+  case (RNTIMES e n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 u1 u2 u3 u4 cs)
+  then show ?thesis using clean by simp
+next
+  case (RHALF e cs rep)
+  then show ?thesis using clean by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using clean by simp
+qed
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
