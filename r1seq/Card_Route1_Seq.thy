@@ -191,6 +191,53 @@ lemma star_single_root_eq_B:
   unfolding single_root_def B_alt rsimpStrong_dlform_closure_def
   by (cases k) (auto simp add: rsimp7_SEQ_atom_def)
 
+lemma card_subset_singleton_le_one:
+  assumes "S \<subseteq> {x}"
+  shows "card S \<le> 1"
+proof -
+  have "card S \<le> card {x}"
+    by (rule card_mono) (use assms in auto)
+  then show ?thesis by simp
+qed
+
+lemma card_row_dlforms_rsimpStrong_rsimp4_RSTAR_diff_le_one:
+  "card (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+      row_dlforms (rsimpStrong_raw k)) \<le> 1"
+proof -
+  have sub: "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+      row_dlforms (rsimpStrong_raw k) \<subseteq>
+      {rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)}"
+    by (cases k; cases "rsimpStrong_raw r"; cases "rsimpStrong_raw k")
+      (auto simp add: rsimp7_SEQ_atom_def split: rrexp.splits if_splits)
+  show ?thesis
+    by (rule card_subset_singleton_le_one[OF sub])
+qed
+
+lemma B_rsimp4_RSTAR_eq_row_dlforms:
+  "B (rsimp4_SEQ_atom (RSTAR r) k) =
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k))"
+  unfolding B_alt rsimpStrong_dlform_closure_def
+  by (cases k) simp_all
+
+lemma star_boundary_shift_le_one:
+  assumes "apder_nf r" "apder_nf k"
+  shows "card (B (rsimp4_SEQ_atom (RSTAR r) k) - B k) \<le> 1"
+proof -
+  have base: "row_dlforms (rsimpStrong_raw k) \<subseteq> B k"
+    by (rule row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms(2)])
+  have sub: "B (rsimp4_SEQ_atom (RSTAR r) k) - B k \<subseteq>
+      row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+      row_dlforms (rsimpStrong_raw k)"
+    using base by (auto simp add: B_rsimp4_RSTAR_eq_row_dlforms)
+  have "card (B (rsimp4_SEQ_atom (RSTAR r) k) - B k) \<le>
+      card (row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR r) k)) -
+        row_dlforms (rsimpStrong_raw k))"
+    by (rule card_mono) (use sub in auto)
+  also have "... \<le> 1"
+    by (rule card_row_dlforms_rsimpStrong_rsimp4_RSTAR_diff_le_one)
+  finally show ?thesis .
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
