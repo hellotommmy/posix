@@ -1501,6 +1501,46 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma seq_head_core_RSTAR_le_rsize_from_root_boundary_child:
+  fixes r t k
+  defines "c \<equiv> rsimp4_SEQ_atom t k"
+  defines "d \<equiv> rsimp4_SEQ_atom (RSTAR r) c"
+  assumes root_boundary:
+    "card ((single_root (RSEQ (RSTAR r) t) k - B d) \<union>
+      (B d - (B k \<union> B c))) \<le> 1"
+    and child: "D1 r d \<le> rsize r"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR r)"
+proof -
+  let ?Root = "single_root (RSEQ (RSTAR r) t) k"
+  let ?Base = "B k \<union> B c"
+  let ?Shift = "(?Root - B d) \<union> (B d - ?Base)"
+  have target_sub:
+    "(?Root \<union> single_term (RSTAR r) c) - ?Base \<subseteq>
+      ?Shift \<union> (single_term r d - B d)"
+    by (auto simp add: d_def)
+  have target_card:
+    "card ((?Root \<union> single_term (RSTAR r) c) - ?Base) \<le>
+      card (?Shift \<union> (single_term r d - B d))"
+    by (rule card_mono) (use target_sub in auto)
+  also have "... \<le> card ?Shift + card (single_term r d - B d)"
+    by (rule card_Un_le)
+  also have "... \<le> 1 + D1 r d"
+  proof -
+    have term_bound: "card (single_term r d - B d) \<le> D1 r d"
+      unfolding D1_def
+      by (rule card_mono) (auto simp add: A_single_decomp)
+    show ?thesis
+      using root_boundary term_bound by simp
+  qed
+  also have "... \<le> rsize (RSTAR r)"
+    using child by simp
+  finally show ?thesis
+    unfolding c_def .
+qed
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
