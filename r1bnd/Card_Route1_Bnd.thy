@@ -100,21 +100,46 @@ lemma boundary_excess_RZERO_subset:
   "boundary_excess RZERO k \<subseteq> root_excess RZERO k"
   by (cases k; simp_all add: boundary_excess_defs split: rrexp.splits)
 
+lemma boundary_missing_RZERO:
+  "boundary_excess RZERO k - root_excess RZERO k
+      \<subseteq> rsimpStrong_raw ` (root_excess RZERO k - boundary_excess RZERO k)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RZERO_subset])
+
 lemma boundary_excess_RONE_subset:
   "boundary_excess RONE k \<subseteq> root_excess RONE k"
   by (cases k; simp_all add: boundary_excess_defs split: rrexp.splits)
+
+lemma boundary_missing_RONE:
+  "boundary_excess RONE k - root_excess RONE k
+      \<subseteq> rsimpStrong_raw ` (root_excess RONE k - boundary_excess RONE k)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RONE_subset])
 
 lemma boundary_excess_RCHAR_subset:
   "boundary_excess (RCHAR c) k \<subseteq> root_excess (RCHAR c) k"
   by (cases k; simp_all add: boundary_excess_defs split: rrexp.splits)
 
+lemma boundary_missing_RCHAR:
+  "boundary_excess (RCHAR c) k - root_excess (RCHAR c) k
+      \<subseteq> rsimpStrong_raw ` (root_excess (RCHAR c) k - boundary_excess (RCHAR c) k)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RCHAR_subset])
+
 lemma boundary_excess_RALTS_RZERO_subset:
   "boundary_excess (RALTS rs) RZERO \<subseteq> root_excess (RALTS rs) RZERO"
   by (simp add: boundary_excess_defs split: rrexp.splits)
 
+lemma boundary_missing_RALTS_RZERO:
+  "boundary_excess (RALTS rs) RZERO - root_excess (RALTS rs) RZERO
+      \<subseteq> rsimpStrong_raw ` (root_excess (RALTS rs) RZERO - boundary_excess (RALTS rs) RZERO)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RALTS_RZERO_subset])
+
 lemma boundary_excess_RALTS_RONE_subset:
   "boundary_excess (RALTS rs) RONE \<subseteq> root_excess (RALTS rs) RONE"
   by (simp add: boundary_excess_defs split: rrexp.splits)
+
+lemma boundary_missing_RALTS_RONE:
+  "boundary_excess (RALTS rs) RONE - root_excess (RALTS rs) RONE
+      \<subseteq> rsimpStrong_raw ` (root_excess (RALTS rs) RONE - boundary_excess (RALTS rs) RONE)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RALTS_RONE_subset])
 
 (* TARGETS (prove below; statements + steer in ROUTE_BND.md):
    (S1)  card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
