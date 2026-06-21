@@ -650,6 +650,22 @@ next
   qed
 qed
 
+lemma row_dlforms_rsimp7_member_subset_RALTS:
+  assumes t: "t \<in> set ts"
+    and nf: "rtail_nf t"
+  shows "row_dlforms (rsimp7_SEQ_atom t K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom (RALTS ts) K)"
+proof (cases K)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  have stable: "rsimp7_SEQ_atom t RONE = t"
+    by (rule rtail_nf_RONE_stable7[OF nf])
+  then show ?thesis
+    using t RONE stable by auto
+qed (use t in \<open>auto simp add: rsimp7_SEQ_atom_def\<close>)
+
 type_synonym tagged_row = "rrexp \<times> rrexp"
 
 lemma map_snd_map_Pair [simp]:
@@ -903,6 +919,23 @@ definition singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> 
 definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
+
+lemma singleton_saa_ok_flatten:
+  assumes ok: "singleton_saa_ok q (RALTS xs)"
+    and x: "x \<in> set xs"
+    and nf: "rtail_nf x"
+  shows "singleton_saa_ok q x"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have "row_dlforms (rsimp7_SEQ_atom x (rsimpStrong_raw k)) \<subseteq>
+      row_dlforms (rsimp7_SEQ_atom (RALTS xs) (rsimpStrong_raw k))"
+    by (rule row_dlforms_rsimp7_member_subset_RALTS[OF x nf])
+  also have "... \<subseteq> strong_apder_acc (RALTS [q]) k"
+    using ok unfolding singleton_saa_ok_def by blast
+  finally show "row_dlforms (rsimp7_SEQ_atom x (rsimpStrong_raw k)) \<subseteq>
+      strong_apder_acc (RALTS [q]) k" .
+qed
 
 (* TARGET (prove below; statement + steer in ROUTE_COVER.md):
    lemma strong_apder_acc_RALTS_singleton_cover:
