@@ -1772,6 +1772,46 @@ proof -
         [OF clean(1) clean(4) _ root_shift child]) simp
 qed
 
+lemma seq_head_core_RSTAR_le_rsize_RCHAR_from_tail_cases_clean:
+  assumes rseq_tail:
+    "\<And>t1 t2. legacy_rrexp (RSEQ t1 t2) \<Longrightarrow>
+      rntimes_free (RSEQ t1 t2) \<Longrightarrow> apder_nf (RSEQ t1 t2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RSEQ t1 t2)) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RSEQ t1 t2) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RSEQ t1 t2) (RCHAR a))) -
+          (B (RCHAR a) \<union> B (rsimp4_SEQ_atom (RSEQ t1 t2) (RCHAR a))))) \<le> 1"
+    and ralts_tail:
+    "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS rs)) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS rs) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS rs) (RCHAR a))) -
+          (B (RCHAR a) \<union> B (rsimp4_SEQ_atom (RALTS rs) (RCHAR a))))) \<le> 1"
+    and child:
+    "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a))) \<le> rsize r"
+    and clean: "legacy_rrexp t" "rntimes_free t" "apder_nf t"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) (RCHAR a) \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom t (RCHAR a)))) \<le>
+      rsize (RSTAR r)"
+proof -
+  have root_boundary:
+    "card ((single_root (RSEQ (RSTAR r) t) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom t (RCHAR a))))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RCHAR_from_tail_cases_clean
+        [OF rseq_tail ralts_tail clean])
+  show ?thesis
+    by (rule seq_head_core_RSTAR_le_rsize_from_root_boundary_child
+        [OF root_boundary child])
+qed
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_RZERO_from_child:
   assumes child:
     "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO)) \<le> rsize r"
