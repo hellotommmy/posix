@@ -1366,6 +1366,31 @@ proof -
     using root terms by (simp add: split)
 qed
 
+lemma strong_apder_acc_RALTS_singleton_cover_if_tagged_inv:
+  assumes inv: "\<And>q t. (q, t) \<in> set (tagged_Strong_ALTs_rows rs) \<Longrightarrow>
+      row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof (cases "k = RZERO")
+  case True
+  then show ?thesis
+    by (simp add: strong_apder_acc_RALTS_singleton_cover_RZERO)
+next
+  case k0: False
+  show ?thesis
+  proof (cases "k = RONE")
+    case True
+    then show ?thesis
+      by (simp add: strong_apder_acc_RALTS_singleton_cover_RONE)
+  next
+    case False
+    then show ?thesis
+      by (rule strong_apder_acc_RALTS_singleton_cover_from_inv
+          [OF k0 _ inv])
+  qed
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_COVER.md):
    lemma strong_apder_acc_RALTS_singleton_cover:
      "strong_apder_acc (RALTS rs) k \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
