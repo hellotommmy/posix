@@ -742,6 +742,47 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma required_seq_head_core_le_rsize_from_cases_nf_seq:
+  assumes rone_diff:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (single_root (RSEQ RONE t) k -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    and rseq_case:
+    "\<And>r1 r2 t k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSEQ r1 r2) t) k \<union>
+        single_term (RSEQ r1 r2) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSEQ r1 r2)"
+    and rstar_case:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR r)"
+    and ralts_cover:
+    "\<And>rs t k. single_root (RSEQ (RALTS rs) t) k \<union>
+      single_term (RALTS rs) (rsimp4_SEQ_atom t k)
+      \<subseteq> (\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union>
+        single_term q (rsimp4_SEQ_atom t k))"
+    and clean: "legacy_rrexp h" "rntimes_free h" "apder_nf (RSEQ h t)" "apder_nf k"
+  shows
+    "card ((single_root (RSEQ h t) k \<union>
+             single_term h (rsimp4_SEQ_atom t k)) -
+            (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize h"
+proof -
+  have h_nf: "apder_nf h" and t_nf: "apder_nf t"
+    and h_nz: "h \<noteq> RZERO" and h_no: "h \<noteq> RONE"
+    using clean by auto
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_clean
+        [OF rone_diff rseq_case rstar_case ralts_cover
+          clean(1) clean(2) h_nf h_nz h_no t_nf clean(4)])
+qed
+
 lemma D1_singleton_le_rsize_from_seq_head_boundary_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
