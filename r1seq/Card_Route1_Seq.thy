@@ -315,6 +315,41 @@ lemma D1_RSTAR_le_rsize_from_child:
   shows "D1 (RSTAR r) k \<le> rsize (RSTAR r)"
   using D1_RSTAR_step[OF assms(1,2)] assms(3) by simp
 
+lemma D1_RSEQ_step_from_seq_head_and_boundary:
+  fixes r1 r2 k
+  defines "c \<equiv> rsimp4_SEQ_atom r2 k"
+  assumes seq_head:
+    "card ((single_root (RSEQ r1 r2) k \<union> single_term r1 c) -
+      (B k \<union> B c)) \<le> rsize r1"
+    and boundary:
+    "card ((B c - B k) \<union> (single_term r2 k - B k)) \<le> D1 r2 k"
+  shows "D1 (RSEQ r1 r2) k \<le> rsize r1 + D1 r2 k"
+proof -
+  let ?Root = "single_root (RSEQ r1 r2) k"
+  let ?T1 = "single_term r1 c"
+  let ?T2 = "single_term r2 k"
+  have decomp:
+    "A (RALTS [RSEQ r1 r2]) k = ?Root \<union> ?T1 \<union> ?T2"
+    by (auto simp add: A_single_decomp c_def)
+  have incl:
+    "A (RALTS [RSEQ r1 r2]) k - B k \<subseteq>
+      ((?Root \<union> ?T1) - (B k \<union> B c)) \<union>
+      ((B c - B k) \<union> (?T2 - B k))"
+    using decomp by auto
+  have "D1 (RSEQ r1 r2) k \<le>
+      card (((?Root \<union> ?T1) - (B k \<union> B c)) \<union>
+        ((B c - B k) \<union> (?T2 - B k)))"
+    unfolding D1_def
+    by (rule card_mono) (use incl in auto)
+  also have "... \<le>
+      card ((?Root \<union> ?T1) - (B k \<union> B c)) +
+      card ((B c - B k) \<union> (?T2 - B k))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize r1 + D1 r2 k"
+    using seq_head boundary by simp
+  finally show ?thesis .
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
