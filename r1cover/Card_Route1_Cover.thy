@@ -1001,6 +1001,44 @@ lemma tagged_prune_pair_raw_preserves_singleton_saa_ok_if_suffix:
     [OF ok later_nf suffix]
   by (simp add: tagged_prune_pair_raw_def)
 
+lemma singleton_saa_ok_prune_against_rows_raw_if_suffix:
+  assumes ok: "singleton_saa_ok q t"
+    and t_nf: "rtail_nf t"
+    and suffix:
+      "\<And>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+  shows "singleton_saa_ok q
+    (rsimpStrong_prune_against_rows_raw seen t)"
+  using ok t_nf
+proof (induct seen arbitrary: t)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  let ?t' = "rsimpStrong_prune_pair_raw x t"
+  have t'_ok: "singleton_saa_ok q ?t'"
+    by (rule singleton_saa_ok_prune_pair_raw_if_suffix
+        [OF Cons.prems(1) Cons.prems(2) suffix])
+  have t'_nf: "rtail_nf ?t'"
+    by (rule rtail_nf_rsimpStrong_prune_pair_raw[OF Cons.prems(2)])
+  show ?case
+    by simp (rule Cons.hyps[OF t'_ok t'_nf])
+qed
+
+lemma tagged_prune_against_rows_raw_preserves_singleton_saa_ok_if_suffix:
+  assumes ok: "singleton_saa_ok (fst later) (snd later)"
+    and later_nf: "rtail_nf (snd later)"
+    and suffix:
+      "\<And>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst later]) k"
+  shows "singleton_saa_ok
+    (fst (tagged_prune_against_rows_raw seen later))
+    (snd (tagged_prune_against_rows_raw seen later))"
+  using singleton_saa_ok_prune_against_rows_raw_if_suffix
+    [OF ok later_nf suffix, of "map snd seen"]
+  by (simp add: fst_tagged_prune_against_rows_raw
+      map_snd_tagged_prune_against_rows_raw)
+
 lemma singleton_saa_ok_flatten:
   assumes ok: "singleton_saa_ok q (RALTS xs)"
     and x: "x \<in> set xs"
