@@ -570,6 +570,112 @@ lemma row_dlforms_singleton_acc_member_subset_strong_apder_acc:
   using assms
   by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
 
+lemma apder_term_frontier_accI_local:
+  assumes p_term: "p \<in> apder_terms q"
+    and front: "x \<in> rfrontier (rsimp4_SEQ_atom p k)"
+  shows "x \<in> apder_term_frontier_acc q k"
+  using p_term front
+proof (induct q arbitrary: p k x)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then obtain q where q: "q \<in> set rs" "p \<in> apder_terms q"
+    by auto
+  have "x \<in> apder_term_frontier_acc q k"
+    by (rule RALTS.hyps[OF q RALTS.prems(2)])
+  then show ?case
+    using q by auto
+next
+  case (RSEQ q1 q2)
+  from RSEQ.prems(1) consider
+      (left) p0 where "p0 \<in> apder_terms q1"
+        "p = rsimp4_SEQ_atom p0 q2"
+    | (right) "p \<in> apder_terms q2"
+    by auto
+  then show ?case
+  proof cases
+    case (left p0)
+    have front':
+        "x \<in> rfrontier
+          (rsimp4_SEQ_atom p0 (rsimp4_SEQ_atom q2 k))"
+      using RSEQ.prems(2) left
+      by (simp add: rsimp4_SEQ_atom_assoc[symmetric])
+    have "x \<in> apder_term_frontier_acc q1
+        (rsimp4_SEQ_atom q2 k)"
+      by (rule RSEQ.hyps(1)[OF left(1) front'])
+    then show ?thesis by simp
+  next
+    case right
+    have "x \<in> apder_term_frontier_acc q2 k"
+      by (rule RSEQ.hyps(2)[OF right RSEQ.prems(2)])
+    then show ?thesis by simp
+  qed
+next
+  case (RSTAR q)
+  then obtain p0 where p0: "p0 \<in> apder_terms q"
+    "p = rsimp4_SEQ_atom p0 (RSTAR q)"
+    by auto
+  have front':
+      "x \<in> rfrontier
+        (rsimp4_SEQ_atom p0 (rsimp4_SEQ_atom (RSTAR q) k))"
+    using RSTAR.prems(2) p0
+    by (simp add: rsimp4_SEQ_atom_assoc[symmetric])
+  show ?case
+    by (simp add: RSTAR.hyps[OF p0(1) front'])
+next
+  case (RNTIMES q n)
+  then obtain m p0 where mp0:
+      "m \<in> {..<n}"
+      "p0 \<in> apder_terms q"
+      "p = rsimp4_SEQ_atom p0 (RNTIMES q m)"
+    by auto
+  have front':
+      "x \<in> rfrontier
+        (rsimp4_SEQ_atom p0 (rsimp4_SEQ_atom (RNTIMES q m) k))"
+    using RNTIMES.prems(2) mp0
+    by (simp add: rsimp4_SEQ_atom_assoc[symmetric])
+  have "x \<in> apder_term_frontier_acc q
+      (rsimp4_SEQ_atom (RNTIMES q m) k)"
+    by (rule RNTIMES.hyps[OF mp0(2) front'])
+  then show ?case
+    using mp0 by auto
+qed simp_all
+
+lemma rfrontier_rsimp4_SEQ_atom_RSTAR_selfI:
+  assumes "rsimp4_SEQ_atom (RSTAR s) k \<noteq> RZERO"
+  shows "rsimp4_SEQ_atom (RSTAR s) k \<in>
+    rfrontier (rsimp4_SEQ_atom (RSTAR s) k)"
+  using assms
+  by (cases k) auto
+
+lemma row_dlforms_RSTAR_apder_term_subset_saa:
+  assumes star_term: "RSTAR s \<in> apder_terms q"
+  shows "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof (cases "rsimp4_SEQ_atom (RSTAR s) k = RZERO")
+  case True
+  then show ?thesis
+    by simp
+next
+  case nonzero: False
+  have front:
+      "rsimp4_SEQ_atom (RSTAR s) k \<in>
+       rfrontier (rsimp4_SEQ_atom (RSTAR s) k)"
+    by (rule rfrontier_rsimp4_SEQ_atom_RSTAR_selfI[OF nonzero])
+  have acc:
+      "rsimp4_SEQ_atom (RSTAR s) k \<in> apder_term_frontier_acc q k"
+    by (rule apder_term_frontier_accI_local[OF star_term front])
+  show ?thesis
+    by (rule row_dlforms_singleton_acc_member_subset_strong_apder_acc[OF acc])
+qed
+
 lemma row_dlforms_RALTS_singleton_roots_subset_cover:
   "row_dlforms
       (rsimpStrong_raw
