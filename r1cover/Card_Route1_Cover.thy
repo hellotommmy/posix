@@ -1630,6 +1630,58 @@ proof -
     using credit tail_cover by blast
 qed
 
+lemma singleton_saa_ok_prune_pair_raw_shared_RSTAR_if_scan_ok:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and ok: "singleton_saa_ok q later"
+    and key: "singleton_saa_key_credit q later"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "singleton_saa_ok q (rsimpStrong_prune_pair_raw earlier later)"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  let ?ps = "rprune_eq_against lrs rrs"
+  let ?C = "strong_apder_acc (RALTS [q]) k"
+  have ps_sub: "set ?ps \<subseteq> set rrs"
+    by (rule rprune_eq_against_set_subset_local)
+  have one_credit:
+      "rsimp_ALTs ?ps = RONE \<Longrightarrow>
+       row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ?ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq> ?C"
+    by (rule row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit
+        [OF _ ps_sub _ star_fix])
+      (use key later in auto)
+  have star_credit:
+      "rsimp_ALTs ?ps = RSTAR s \<Longrightarrow>
+       row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ?ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq> ?C"
+    by (rule row_dlforms_rsimp_ALTs_RSTAR_self_subset_saa_if_key_credit
+        [OF _ ps_sub _ star_fix])
+      (use key later in auto)
+  have split:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimpStrong_prune_pair_raw earlier later)
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k)) \<union> ?C"
+    by (rule row_dlforms_rsimp7_prune_pair_shared_RSTAR_tail_subset_later_or_credit
+        [OF earlier later rrs_props one_credit star_credit])
+  have later_cover:
+      "row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k)) \<subseteq> ?C"
+    using ok unfolding singleton_saa_ok_def by blast
+  show "row_dlforms
+      (rsimp7_SEQ_atom (rsimpStrong_prune_pair_raw earlier later)
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+    using split later_cover by blast
+qed
+
 lemma tagged_Strong_ALTs_rows_singleton_saa_ok:
   assumes qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows [q])"
   shows "singleton_saa_ok q t"
