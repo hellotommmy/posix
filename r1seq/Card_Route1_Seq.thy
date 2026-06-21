@@ -629,6 +629,63 @@ lemma boundary_RSTAR_le_rsize_from_child:
       (single_term (RSTAR r) k - B k)) \<le> rsize (RSTAR r)"
   using boundary_RSTAR_step[OF assms(1,2)] assms(3) by simp
 
+lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
+  fixes r t k
+  defines "c \<equiv> rsimp4_SEQ_atom t k"
+  defines "d \<equiv> rsimp4_SEQ_atom (RSTAR r) c"
+  assumes nf: "apder_nf r" "apder_nf t" "apder_nf k"
+    and root_shift:
+    "card (single_root (RSEQ (RSTAR r) t) k - B d) \<le> 1"
+    and child: "D1 r d \<le> rsize r"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RSTAR r))"
+proof -
+  let ?Root = "single_root (RSEQ (RSTAR r) t) k"
+  let ?Base = "B k \<union> B c"
+  have nf_c: "apder_nf c"
+    unfolding c_def using nf by (intro apder_nf_s4) auto
+  have target_sub:
+    "(?Root \<union> single_term (RSTAR r) c) - ?Base \<subseteq>
+      (?Root - B d) \<union> ((single_term r d \<union> B d) - ?Base)"
+    by (auto simp add: d_def)
+  have target_card:
+    "card ((?Root \<union> single_term (RSTAR r) c) - ?Base) \<le>
+      card ((?Root - B d) \<union> ((single_term r d \<union> B d) - ?Base))"
+    by (rule card_mono) (use target_sub in auto)
+  also have "... \<le> card (?Root - B d) +
+      card ((single_term r d \<union> B d) - ?Base)"
+    by (rule card_Un_le)
+  also have "... \<le> card (?Root - B d) +
+      (card (single_term r d - B d) + card (B d - ?Base))"
+  proof -
+    have "card ((single_term r d \<union> B d) - ?Base) \<le>
+        card (single_term r d - B d) + card (B d - ?Base)"
+      by (rule card_Un_Diff_telescope_le) auto
+    then show ?thesis by simp
+  qed
+  also have "... \<le> 1 + (D1 r d + 1)"
+  proof -
+    have term_bound: "card (single_term r d - B d) \<le> D1 r d"
+      unfolding D1_def
+      by (rule card_mono) (auto simp add: A_single_decomp)
+    have bd_sub: "B d - ?Base \<subseteq> B d - B c"
+      by auto
+    have "card (B d - ?Base) \<le> card (B d - B c)"
+      by (rule card_mono) (use bd_sub in auto)
+    also have "... \<le> 1"
+      unfolding d_def by (rule star_boundary_shift_le_one[OF nf(1) nf_c])
+    finally have boundary_bound: "card (B d - ?Base) \<le> 1" .
+    show ?thesis
+      using root_shift term_bound boundary_bound by simp
+  qed
+  also have "... \<le> Suc (rsize (RSTAR r))"
+    using child by simp
+  finally show ?thesis
+    unfolding c_def .
+qed
+
 lemma D1_RSTAR_le_rsize_from_child:
   assumes "apder_nf r" "apder_nf k"
     and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
