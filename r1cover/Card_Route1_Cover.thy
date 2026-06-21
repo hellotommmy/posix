@@ -1154,6 +1154,51 @@ lemma tagged_prune_against_rows_raw_preserves_singleton_saa_ok_if_suffix:
   by (simp add: fst_tagged_prune_against_rows_raw
       map_snd_tagged_prune_against_rows_raw)
 
+lemma tagged_prune_rows_acc_raw_preserves_singleton_saa_ok_if_suffix:
+  assumes ok: "\<forall>qt \<in> set rs. singleton_saa_ok (fst qt) (snd qt)"
+    and nf: "\<forall>qt \<in> set rs. rtail_nf (snd qt)"
+    and suffix: "\<forall>qt \<in> set rs.
+      (\<forall>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst qt]) k)"
+  shows "\<forall>qt \<in> set (tagged_prune_rows_acc_raw seen rs).
+    singleton_saa_ok (fst qt) (snd qt)"
+  using ok nf suffix
+proof (induct rs arbitrary: seen)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons r rs)
+  let ?r' = "tagged_prune_against_rows_raw seen r"
+  have r_ok: "singleton_saa_ok (fst r) (snd r)"
+    using Cons.prems by simp
+  have r_nf: "rtail_nf (snd r)"
+    using Cons.prems by simp
+  have r_suffix:
+      "\<And>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst r]) k"
+    using Cons.prems by simp
+  have r'_ok: "singleton_saa_ok (fst ?r') (snd ?r')"
+    by (rule tagged_prune_against_rows_raw_preserves_singleton_saa_ok_if_suffix
+        [OF r_ok r_nf r_suffix])
+  have tail_ok: "\<forall>qt \<in> set (tagged_prune_rows_acc_raw (?r' # seen) rs).
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using r'_ok tail_ok by (simp add: Let_def)
+qed
+
+lemma tagged_prune_rows_raw_preserves_singleton_saa_ok_if_suffix:
+  assumes ok: "\<forall>qt \<in> set rs. singleton_saa_ok (fst qt) (snd qt)"
+    and nf: "\<forall>qt \<in> set rs. rtail_nf (snd qt)"
+    and suffix: "\<forall>qt \<in> set rs.
+      (\<forall>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst qt]) k)"
+  shows "\<forall>qt \<in> set (tagged_prune_rows_raw rs).
+    singleton_saa_ok (fst qt) (snd qt)"
+  unfolding tagged_prune_rows_raw_def
+  by (rule tagged_prune_rows_acc_raw_preserves_singleton_saa_ok_if_suffix
+      [OF ok nf suffix])
+
 lemma singleton_saa_ok_flatten:
   assumes ok: "singleton_saa_ok q (RALTS xs)"
     and x: "x \<in> set xs"
