@@ -141,6 +141,117 @@ lemma boundary_missing_RALTS_RONE:
       \<subseteq> rsimpStrong_raw ` (root_excess (RALTS rs) RONE - boundary_excess (RALTS rs) RONE)"
   by (rule boundary_missing_from_subset[OF boundary_excess_RALTS_RONE_subset])
 
+lemma rsimpStrong_raw_RALTS_single_RSTAR:
+  "rsimpStrong_raw (RALTS [RSTAR r]) = rsimpStrong_raw (RSTAR r)"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma rsimpStrong_ALTs_raw_single_RSTAR:
+  "rsimpStrong_ALTs_raw (rflts [rsimpStrong_raw (RSTAR r)]) =
+     rsimpStrong_raw (RSTAR r)"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RZERO_eq_boundary:
+  "single_root (RSTAR r) RZERO =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) RZERO)"
+  by (simp add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def)
+
+lemma single_root_RSTAR_RONE_eq_boundary:
+  "single_root (RSTAR r) RONE =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) RONE)"
+  by (simp add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_raw_RALTS_single_RSTAR)
+
+lemma single_root_RSTAR_RCHAR_eq_boundary:
+  "single_root (RSTAR r) (RCHAR c) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RCHAR c))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RSEQ_eq_boundary:
+  "single_root (RSTAR r) (RSEQ k1 k2) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RSEQ k1 k2))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RALTS_eq_boundary:
+  "single_root (RSTAR r) (RALTS ks) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RALTS ks))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RSTAR_eq_boundary:
+  "single_root (RSTAR r) (RSTAR s) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RSTAR s))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+
+lemma single_root_RSTAR_RNTIMES_eq_boundary:
+  "single_root (RSTAR r) (RNTIMES s n) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RNTIMES s n))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RBACKREF4_eq_boundary:
+  "single_root (RSTAR r) (RBACKREF4 r1 r2 r3 r4 cs) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RBACKREF4 r1 r2 r3 r4 cs))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RHALF_eq_boundary:
+  "single_root (RSTAR r) (RHALF s cs rep) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RHALF s cs rep))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_RRESIDUE_eq_boundary:
+  "single_root (RSTAR r) (RRESIDUE cs rep) =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) (RRESIDUE cs rep))"
+  by (cases "rsimpStrong_raw r";
+      simp_all add: single_root_def strong_apder_acc_def
+      rsimpStrong_dlform_closure_def rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def)
+
+lemma single_root_RSTAR_eq_boundary:
+  "single_root (RSTAR r) k =
+     strong_apder_acc RONE (rsimp4_SEQ_atom (RSTAR r) k)"
+  by (cases k)
+     (simp_all add: single_root_RSTAR_RZERO_eq_boundary
+        single_root_RSTAR_RONE_eq_boundary
+        single_root_RSTAR_RCHAR_eq_boundary
+        single_root_RSTAR_RSEQ_eq_boundary
+        single_root_RSTAR_RALTS_eq_boundary
+        single_root_RSTAR_RSTAR_eq_boundary
+        single_root_RSTAR_RNTIMES_eq_boundary
+        single_root_RSTAR_RBACKREF4_eq_boundary
+        single_root_RSTAR_RHALF_eq_boundary
+        single_root_RSTAR_RRESIDUE_eq_boundary)
+
+lemma boundary_excess_RSTAR_subset:
+  "boundary_excess (RSTAR r) k \<subseteq> root_excess (RSTAR r) k"
+  by (simp add: boundary_excess_def root_excess_def single_root_RSTAR_eq_boundary)
+
+lemma boundary_missing_RSTAR:
+  "boundary_excess (RSTAR r) k - root_excess (RSTAR r) k
+      \<subseteq> rsimpStrong_raw ` (root_excess (RSTAR r) k - boundary_excess (RSTAR r) k)"
+  by (rule boundary_missing_from_subset[OF boundary_excess_RSTAR_subset])
+
 (* TARGETS (prove below; statements + steer in ROUTE_BND.md):
    (S1)  card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
            <= card (single_root t k - strong_apder_acc RONE k)
