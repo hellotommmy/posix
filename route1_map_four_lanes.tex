@@ -1,0 +1,204 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\rsz}{\operatorname{rsize}}
+\newcommand{\card}{\operatorname{card}}
+\newcommand{\dlf}{\operatorname{dl}}
+\newcommand{\rf}{\operatorname{rf}}
+\newcommand{\acc}{\operatorname{acc}}
+\newcommand{\Sstrong}{S}
+\newcommand{\sfour}{\sigma_4}
+\newcommand{\sseven}{\sigma_7}
+\newcommand{\Aacc}{A}
+\newcommand{\Bbase}{B}
+\newcommand{\Dexc}{D}
+\newcommand{\Uuniv}{U}
+\newcommand{\sr}{\operatorname{sr}}
+\newcommand{\st}{\operatorname{st}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\zero}{\mathbf{0}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+
+\title{Route-1 Cubic Size Bound:\\How the Four Lanes Fit Together}
+\author{Connecting map — COVER / BND / SEQ / FORMALIZE}
+\date{2026-06-21}
+\begin{document}
+\maketitle
+
+\section*{0.\quad Orientation}
+There are \emph{two independent} results about the strong simplifier $\Sstrong=\code{rsimpStrong\_raw}$:
+\textbf{(i) correctness} (the strong lexer returns the POSIX value) and
+\textbf{(ii) the cubic size bound}. They are proved \emph{separately}; (i) may inspire (ii)'s design but is
+\emph{not} assumed by it. \textbf{This note maps only track (ii)} and shows where each of the four Codex
+lanes sits inside its decomposition. Every box below names the exact Isabelle lemma so each lane's own
+summary can be located in the whole.
+
+\medskip
+\textbf{Primitives (self-contained).} All equations are the verbatim Isabelle definitions, in symbols.
+Regexes $r,t,k$ over $\Sigma$ on the clean fragment:
+\[
+r\;::=\;\zero\mid\one\mid c\,(c\in\Sigma)\mid r\!\cdot\! t\mid \code{RALTS}\,rs\ (rs\text{ a list})\mid r^{*},
+\]
+with $\rsz\zero=\rsz\one=\rsz c=1$, $\ \rsz(\code{RALTS}\,rs)=1+\sum_i\rsz(rs_i)$, $\ \rsz(r\!\cdot\! t)=1+\rsz r+\rsz t$,
+$\ \rsz(r^{*})=1+\rsz r$, and set-size $\rsz_{\mathrm s}(V)=\sum_{q\in V}\rsz q$. $\code{apder\_nf}$ = structural
+normal form (no $\zero/\one$ factor in a sequence, no nested/redundant alternation); $\code{apder\_clean}=
+\code{apder\_nf}$ on this fragment — the regime one may assume.
+
+\textbf{Frontier} $\rf$ (split a top alternation, else a singleton):
+\[
+\rf(\zero)=\varnothing,\qquad \rf(\code{RALTS}\,rs)=\textstyle\bigcup_i\rf(rs_i),\qquad \rf(r)=\{r\}\ \text{otherwise}.
+\]
+\textbf{Plugs} $\sfour$ (weak), $\sseven$ (strong): $\sfour(r,k)$ appends continuation $k$ after the sequence-atom $r$,
+right-associating and eliding units/zeros,
+\[
+\sfour(\one,k)=k,\quad \sfour(\zero,k)=\zero,\quad \sfour(r_1\!\cdot\! r_2,k)=\sfour(r_1,\sfour(r_2,k)),\quad
+\sfour(h,\one)=h,\ \ \sfour(h,k)=h\!\cdot\! k
+\]
+for $h$ a char/$\code{RALTS}$/${}^{*}$-headed atom (and $\sfour(h,\zero)=\zero$). The strong plug adds one collapse:
+\[
+\sseven(a^{*},a^{*})=a^{*},\quad \sseven(a^{*},a^{*}\!\cdot\! k)=a^{*}\!\cdot\! k,\quad \sseven=\sfour\ \text{otherwise}.
+\]
+\textbf{Strong normaliser} $\Sstrong=\code{rsimpStrong\_raw}$ (recursive); $\Sstrong\,\zero=\zero,\ \Sstrong\,\one=\one,\ \Sstrong\,c=c$, and
+\[
+\Sstrong(r_1\!\cdot\! r_2)=\sseven(\Sstrong r_1,\Sstrong r_2),\quad
+\Sstrong(\code{RALTS}\,rs)=\mathrm{pr}\big(\mathrm{flat}(\langle\Sstrong\,rs_i\rangle_i)\big),\quad
+\Sstrong(r^{*})=\begin{cases}\one,&\Sstrong r\in\{\zero,\one\}\\ (\Sstrong r)^{*},&\text{else}\end{cases}
+\]
+where $\mathrm{pr}$ is the \emph{set-level cross-row prune}: in a later row $(\code{RALTS}\,lrs)\!\cdot\! k$ it deletes the
+head-branches already present in an earlier row with the \emph{same} $k$, re-plugging by $\sseven$. $\mathrm{pr}$ only
+\emph{shrinks} rows; its leftover ``$s^{*}\!\cdot\! s^{*}$'' survivors (uncollapsed, since $\sseven$ collapses only a
+\emph{leading} equal-star) are the recurring wall.
+
+\textbf{Opening} $\dlf=\code{row\_dlforms}$ (a regex $\to$ its set of linear rows):
+\[
+\dlf(\zero)=\varnothing,\ \ \dlf(\code{RALTS}\,rs)=\textstyle\bigcup_i\dlf(rs_i),\ \
+\dlf\big((\code{RALTS}\,ps)\!\cdot\! k\big)=\textstyle\bigcup_p\dlf(\sseven(p,k)),\ \ \dlf(r)=\rf(r)\ \text{else.}
+\]
+\textbf{Strong opening of a set} $\ C(V)=\bigcup_{p\in V}\dlf(\Sstrong\,p)\ $ ($\Sstrong$ \emph{inside} the union
+$\Rightarrow$ $C$ distributes over $V$).
+
+\textbf{Term-frontier accumulator} $\acc=\code{apder\_term\_frontier\_acc}$ (continuation-parametric):
+\[
+\acc(\zero,k)=\acc(\one,k)=\varnothing,\quad \acc(c,k)=\rf(k),\quad \acc(\code{RALTS}\,rs,k)=\textstyle\bigcup_i\acc(rs_i,k),
+\]
+\[
+\acc(r_1\!\cdot\! r_2,k)=\acc(r_1,\sfour(r_2,k))\cup\acc(r_2,k),\qquad \acc(r^{*},k)=\acc\big(r,\sfour(r^{*},k)\big).
+\]
+\textbf{Antimirov rows} $\ \code{apder\_rows}\,r=\{r\}\cup\rf(r)\cup\bigcup_{q\in\,\code{apder\_terms}\,r}\rf(q)\ $ (the
+deduped one-step row index set), and the \textbf{target universe} $\Uuniv(r)=C(\code{apder\_rows}\,r)$.
+
+\medskip
+\textbf{Carrier, base, singletons, excess (the single letters used below).}
+\[
+\Aacc(r,k)=C\big(\rf(\sfour(r,k))\cup\acc(r,k)\big)\ \ (=\code{strong\_apder\_acc}),\qquad \Bbase(k)=\Aacc(\one,k),
+\]
+\[
+\sr(q,k)=C\big(\rf(\sfour(\code{RALTS}[q],k))\big),\quad \st(q,k)=C(\acc(q,k)),\quad \Aacc(\code{RALTS}[q],k)=\sr(q,k)\cup\st(q,k),
+\]
+\[
+\Dexc(r,k)=\card\big(\Aacc(r,k)\setminus\Bbase(k)\big),\qquad \Dexc_1(q,k)=\Dexc(\code{RALTS}[q],k).
+\]
+The final-theorem wrappers $\code{afactored1}$, $\code{rpder\_strong\_rows\_raw}$, $\code{row\_dlformss}$ are
+\emph{opaque}: they occur only inside the green gate black-box (\S3) and are used nowhere else here.
+
+\section*{1.\quad The final theorem (the top)}
+\[
+\rsz\!\big(\code{row\_dlformss}\ (\code{rpder\_strong\_rows\_raw}\ c\ (\code{afactored1}\ r\ s))\big)\;\le\;2\,(\rsz r+3)^3 .
+\]
+Plain words: open every one-step strong-pruned derivative row, dedupe, and the total size is cubic in $\rsz r$.
+
+\section*{2.\quad The gate: reduce ``cubic'' to one \emph{linear} count}
+\code{DirectUniverseCubic.thy} is \emph{green} except for one obligation. With the universe
+$\Uuniv(r)=\code{apder\_strong\_dlfrontier}\ r=C(\code{apder\_rows}\ r)$, the proved gate lemmas
+(\code{actual\_gate\_from\_direct\_universe\_rowlevel}, \code{universe\_le\_cubic\_rowlevel},
+\code{per\_row\_size\_le\_quadratic}) give the final theorem \emph{provided}
+\[
+\boxed{\ \code{card\_apder\_strong\_dlfrontier\_le}:\quad \card\,\Uuniv(r)\ \le\ \rsz r+1\ }\tag{G}
+\]
+(each member has \emph{quadratic} size; cubic $=$ quadratic size $\times$ \emph{linear} count). Everything below
+is the proof of the single linear-count obligation (G). \textbf{Any} linear bound $C\!\cdot\!\rsz r+D$ also closes it.
+
+\section*{3.\quad Bridge: from $\Uuniv$ to the excess counter $\Dexc$}
+Three green facts collapse (G) to a statement about $\Dexc$ at continuation $k=\one$:
+\[
+\Uuniv(r)\subseteq \Aacc(r,\one)\ \ (\code{\dots\_subset\_strong\_apder\_acc\_RONE}),\quad
+\Aacc(\one,\one)=\{\one\}\ (\code{strong\_apder\_acc\_RONE\_RONE}),
+\]
+\[
+\Rightarrow\quad \card\,\Uuniv(r)\ \le\ \card\,\Aacc(r,\one)\ \le\ 1+\Dexc(r,\one)
+\quad(\code{card\_le\_Suc\_card\_Diff\_singleton}).
+\]
+So (G) follows from the \textbf{global excess bound}
+\[
+\boxed{\ \code{card\_strong\_apder\_acc\_diff\_base\_le\_rsize}:\quad \Dexc(r,k)\ \le\ \rsz r\quad\text{(all }k\text{)}\ }\tag{$\Delta$}
+\]
+
+\section*{4.\quad The decomposition (how $(\Delta)$ splits down to the four lanes)}
+$(\Delta)$ is proved by induction on $r$ (arbitrary $k$):
+\begin{itemize}
+\item $\code{RZERO}/\code{RONE}/\code{RCHAR}$: base cases ($\Dexc\le \rsz$ directly).
+\item $\code{RSEQ}\,r_1 r_2$: the \textbf{RSEQ recurrence} (below).
+\item $\code{RALTS}\,rs$: the \textbf{RALTS budget} $\ \Dexc(\code{RALTS}\,rs,k)\le \sum_{q\in rs}\rsz q\ $
+      (\code{\dots\_size\_budget\_spine}), which needs \textbf{L1} $+$ \textbf{L2}.
+\item $\code{RSTAR}\,r$: two star helpers (root-row $\le 1$; the $\sfour(\code{RSTAR})$ frontier identity).
+\end{itemize}
+
+\textbf{L2 (singleton size).} $\ \boxed{\Dexc_1(q,k)\le \rsz q}\ $ (\code{card\_strong\_apder\_acc\_singleton\_RALTS\_diff\_base\_le\_rsize}),
+by induction on $q$. Its $\code{RSEQ}$ case is exactly the
+\[
+\textbf{RSEQ recurrence:}\qquad \Dexc_1(\code{RSEQ}\,r_1 r_2,\,k)\ \le\ \rsz r_1+\Dexc_1(r_2,k)
+\quad(\code{\dots\_RSEQ\_rec\_spine}),
+\]
+and \emph{that} recurrence is what consumes the two boundary lemmas \textbf{S1} and \textbf{seq\_head}. Its
+$\code{RALTS}$ case re-uses \textbf{L1}.
+
+\medskip
+\textbf{The three leaf obligations the lanes own:}
+\[
+\begin{aligned}
+\textbf{L1 (cover):}\quad & \Aacc(\code{RALTS}\,rs,k)\ \subseteq\ \textstyle\bigcup_{q\in rs}\Aacc(\code{RALTS}[q],k).\\[2pt]
+\textbf{S1 (boundary absorb):}\quad & \card\!\big((\Aacc(\one,\sfour(t,k))\!\setminus\!\Bbase(k))\cup(\st(t,k)\!\setminus\!\Bbase(k))\big)\le \Dexc_1(t,k).\\[2pt]
+\textbf{seq\_head:}\quad & \card\!\big((\sr(\code{RSEQ}\,h\,t,k)\cup\st(h,\sfour(t,k)))\setminus(\Bbase(k)\cup\Bbase(\sfour(t,k)))\big)\le \rsz h.
+\end{aligned}
+\]
+
+\medskip
+\textbf{Top-to-leaf chain, one line:}
+\[
+\text{cubic}\ \xLeftarrow{\;\text{gate}\;}\ (\mathrm{G})\ \xLeftarrow{\;\text{bridge}\;}\ (\Delta)\ \xLeftarrow{\;\text{ind. }r\;}\ \{\text{RSEQ rec},\ \text{RALTS budget},\ \text{RSTAR}\}\ \xLeftarrow{}\ \{\textbf{L1},\ \textbf{L2}\}\ \xLeftarrow{\;\text{ind. }q\;}\ \{\textbf{S1},\ \textbf{seq\_head},\ \textbf{L1}\}.
+\]
+
+\section*{5.\quad The four lanes, placed in the map}
+\renewcommand{\arraystretch}{1.35}
+\begin{center}\small
+\begin{tabular}{@{}>{\bfseries}l p{0.30\linewidth} p{0.40\linewidth}@{}}
+\toprule
+Lane & Proves (Isabelle) & Role / method \\
+\midrule
+COVER & \code{strong\_apder\_acc\_RALTS\_singleton\_cover} (\textbf{L1}) &
+Feeds the \emph{RALTS budget}. Method: fix-(a), two carriers; the cross-prune-collapsed $s^{*}$ escapes are
+recovered by the \emph{acc} carrier, not a branch root. \\
+BND & \code{boundary\_term\_absorb} via \textbf{S1} &
+Feeds the \emph{RSEQ recurrence}. Method: the plain subset is false for $\code{RSEQ}$-root; use the asymmetric
+split (RSEQ$\to$$\Sstrong$-image $+$ \code{card\_image\_le}; non-RSEQ$\to$plain $+$ \code{card\_mono}). \\
+SEQ & \code{seq\_head\_core\_le\_rsize} (\textbf{seq\_head}) &
+Feeds the \emph{RSEQ recurrence}. Method: charge $\rsz h$; \code{single\_root\_RSEQ\_RCHAR\_card\_le\_one}
+helper; induction on $h$ (uses \textbf{L1} on the RALTS-head case). \\
+FORMALIZE & the \emph{spine}: bridge, $(\Delta)$ induction, RSEQ-rec assembly, RALTS budget, RSTAR helpers, $\Rightarrow$ (G) &
+Assembles \S3--\S4 on \code{assumes} for L1/S1/seq\_head, swapping each in as its lane lands it. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{6.\quad Dependencies / merge order}
+\code{COVER}(L1) and \code{BND}(S1) are independent leaves $\Rightarrow$ land in parallel first.
+\code{SEQ} depends on \emph{both} (its RSEQ step uses S1; its RALTS-head case uses L1).
+\code{FORMALIZE} integrates all three; once L1, S1, seq\_head are green it discharges every \code{assumes},
+proves $(\Delta)\Rightarrow$(G)$\Rightarrow$ the cubic theorem. Status (track ii): the spine and many helpers are
+\emph{green}; L1 / S1 / seq\_head are \emph{validated with proof skeletons}, in formalization.
+\end{document}

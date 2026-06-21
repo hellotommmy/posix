@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\newcommand{\der}{\partial}
+\newcommand{\sz}[1]{\lVert #1\rVert}
+\newcommand{\nl}{\nu}
+\newcommand{\rw}{\rightsquigarrow}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\zero}{\mathbf{0}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\begin{document}
+\begin{center}\large\bfseries Why pushing the strong simplifier through derivatives is not free\end{center}
+
+\textbf{Symbols.}
+Regexes $r,t$ over $\Sigma$: $\ \zero,\ \one,\ c\,(c\in\Sigma),\ r\!\cdot\! t,\ r{+}t,\ r^{*}$.
+Derivative $\der_c$ and word-derivative $\der_s$:
+\[
+\der_c c=\one,\quad \der_c d=\zero\,(d\neq c),\quad \der_c\one=\der_c\zero=\zero,\quad
+\der_c(r{+}t)=\der_c r+\der_c t,
+\]
+\[
+\der_c(r\!\cdot\! t)=\der_c r\!\cdot\! t+[\nl r]\,\der_c t,\qquad
+\der_c(r^{*})=\der_c r\!\cdot\! r^{*},\qquad
+\der_\varepsilon=\mathrm{id},\quad \der_{cs}=\der_s\circ\der_c,
+\]
+with $[\nl r]$ present iff $r$ is nullable, and size $\sz{\cdot}$.
+
+Two simplifiers:
+\[
+\begin{aligned}
+w &: \text{the \emph{verified weak} simplifier — the one the proven-correct lexer iterates;}\\
+S &: \text{the \emph{strong} simplifier whose universe the cubic bound measures.}
+\end{aligned}
+\]
+$S$ is strictly stronger than $w$: on top of $w$'s rules it elides units $\one\!\cdot\! k\mapsto k$,
+\textbf{collapses adjacent equal stars} $a^{*}\!\cdot\! a^{*}\mapsto a^{*}$, and prunes alternation branches
+\emph{set-wise}. $S$ preserves the \emph{language} but \emph{not} the POSIX value.
+
+\textbf{The real object vs.\ the measured object.}
+The verified lexer's regex after reading $s=c_1\cdots c_n$ is
+\[
+D_s(r)\;=\;(w\circ\der_{c_n})\circ\cdots\circ(w\circ\der_{c_1})\,(r).
+\]
+The cubic bound instead measures the \emph{strong} object $S(\der_s r)$ (abstracting the row-set it really bounds).
+To make the bound apply to the real lexer one needs the one-directional size domination
+\[
+\boxed{\;\sz{D_s(r)}\;\le\;\sz{S(\der_s r)}\qquad\text{for all }r,s.\;}\tag{$\star$}
+\]
+
+\textbf{The only cheap proof of $(\star)$ = a one-step simulation.}
+Induct on $s$, pushing $S$ past one derivative at a time. Since
+$D_{cs}(r)=D_s\!\big(w(\der_c r)\big)$ while $S(\der_{cs}r)=S\!\big(\der_c(\der_s r)\big)$,
+the induction closes \emph{iff} $S$ almost commutes with $\der_c$:
+\[
+\der_c(S\,r)\;\rw^{*}\;S(\der_c r)\tag{C}
+\]
+($\der$ of a strong normal form rewrites, in the verified order $\rw$, down to the strong normal form of the $\der$).
+
+\textbf{(C) is false already at the smallest term.}
+Let $r=b\!\cdot\! c$ with $b\neq c$, and differentiate by $b$:
+\[
+S\,r=b\!\cdot\! c,\qquad \der_b(S\,r)=\der_b(b\!\cdot\! c)=\one\!\cdot\! c,
+\]
+\[
+\der_b r=\one\!\cdot\! c,\qquad S(\der_b r)=S(\one\!\cdot\! c)=c.
+\]
+Hence
+\[
+\der_b(S\,r)=\one\!\cdot\! c\;\neq\;c=S(\der_b r),
+\]
+and the near-identity step relation $\rw$ has no rule $\one\!\cdot\! k\rw k$ at this position, so $\one\!\cdot\! c\not\rw^{*}c$.
+Thus (C) fails. \emph{(This is the documented minimal refutation of \texttt{rprime\_step}'s commutation.)}
+
+\textbf{Why it cannot be cheaply patched.}
+$\der_c$ does \emph{not} preserve strong normal forms: $\der_b(b\!\cdot\! c)=\one\!\cdot\! c$ is not $S$-normal.
+Re-normalising after each $\der$ requires the \emph{full} $S$ again, not a local step $\rw$.
+Closing $\rw$ under full $S$-normalisation makes it the entire verified rewrite system \emph{on top of} $S$ —
+i.e.\ re-proving the strong simplifier correct through derivatives, which \emph{is} the original problem, not a free lemma.
+
+\textbf{The deeper instance — the $a^{*}a^{*}$ wall.}
+$S$'s signature rule $a^{*}\!\cdot\! a^{*}\mapsto a^{*}$ fires only at a sequence \emph{top}.
+$\der_c$ splits sequences and re-exposes buried subterms, so it \emph{moves the redex}:
+one side collapses an $a^{*}a^{*}$ that the other leaves buried under a leading factor.
+This is the same collapse asymmetry that has defeated every strong-vs-weak inclusion in this project.
+Therefore even $(\star)$ — which needs only a one-directional \emph{inequality}, not (C) as an equality —
+is not free, and must be falsification-tested before further work rests on it.
+\end{document}
