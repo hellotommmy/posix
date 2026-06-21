@@ -1586,6 +1586,105 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_RCHAR_from_tail_cases_clean:
+  assumes rseq_tail:
+    "\<And>u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
+      rntimes_free (RSEQ u1 u2) \<Longrightarrow> apder_nf (RSEQ u1 u2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))))) \<le> 1"
+    and ralts_tail:
+    "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RALTS rs)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))))) \<le> 1"
+    and clean: "legacy_rrexp u" "rntimes_free u" "apder_nf u"
+      "u \<noteq> RZERO" "u \<noteq> RONE"
+  shows "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) u])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) u]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) u]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) u]) (RCHAR a))))) \<le> 1"
+  using clean
+proof (cases u)
+  case RZERO
+  then show ?thesis using clean by simp
+next
+  case RONE
+  then show ?thesis using clean by simp
+next
+  case (RCHAR e)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RCHAR e)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RCHAR e)]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RCHAR e)]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RCHAR e)]) (RCHAR a))))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_RCHAR_RCHAR)
+  show ?thesis using RCHAR leaf by simp
+next
+  case (RSEQ u1 u2)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))))) \<le> 1"
+    by (rule rseq_tail) (use RSEQ clean in simp_all)
+  show ?thesis using RSEQ leaf by simp
+next
+  case (RALTS rs)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RALTS rs)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))))) \<le> 1"
+    by (rule ralts_tail) (use RALTS clean in simp_all)
+  show ?thesis using RALTS leaf by simp
+next
+  case (RSTAR e)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RSTAR e)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSTAR e)]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSTAR e)]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSTAR e)]) (RCHAR a))))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_RCHAR_RSTAR)
+  show ?thesis using RSTAR leaf by simp
+next
+  case (RNTIMES e n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 u1 u2 u3 u4 cs)
+  then show ?thesis using clean by simp
+next
+  case (RHALF e cs rep)
+  then show ?thesis using clean by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using clean by simp
+qed
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_from_left_cases_clean:
   assumes rchar_rseq_tail:
     "\<And>c u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
