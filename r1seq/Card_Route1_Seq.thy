@@ -89,6 +89,16 @@ lemma single_term_RSEQ [simp]:
     single_term r1 (rsimp4_SEQ_atom r2 k) \<union> single_term r2 k"
   by (simp add: single_term_def rsimpStrong_dlform_closure_def)
 
+lemma single_term_RSTAR [simp]:
+  "single_term (RSTAR r) k =
+    single_term r (rsimp4_SEQ_atom (RSTAR r) k)"
+  by (simp add: single_term_def)
+
+lemma single_term_RALTS [simp]:
+  "single_term (RALTS rs) k =
+    (\<Union>q \<in> set rs. single_term q k)"
+  by (simp add: single_term_def rsimpStrong_dlform_closure_def)
+
 lemma rsimpStrong_ALTs_raw_Nil [simp]:
   "rsimpStrong_ALTs_raw [] = RZERO"
   by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
