@@ -137,6 +137,16 @@ lemma seq_head_core_RZERO_le_rsize:
     \<le> rsize RZERO"
   by simp
 
+lemma D1_RZERO_le_rsize:
+  "D1 RZERO k \<le> rsize RZERO"
+proof -
+  have "D1 RZERO k = card (A RZERO k - B k)"
+    by (simp add: D1_def)
+  also have "... = 0"
+    by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+  finally show ?thesis by simp
+qed
+
 lemma card_row_dlforms_rsimp4_SEQ_atom_RCHAR_le_one [simp]:
   "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k)) \<le> 1"
   by (cases k) auto
@@ -192,6 +202,13 @@ proof -
   finally show ?thesis
     by simp
 qed
+
+lemma D1_RCHAR_le_rsize:
+  assumes "apder_nf k"
+  shows "D1 (RCHAR c) k \<le> rsize (RCHAR c)"
+  unfolding D1_def
+  using card_strong_apder_acc_RCHAR_diff_base_le[OF assms, of c]
+  by simp
 
 lemma rsimpStrong_ALTs_raw_singleton_RONE [simp]:
   "rsimpStrong_ALTs_raw [RONE] = RONE"
