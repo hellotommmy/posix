@@ -736,6 +736,15 @@ lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RZERO [simp]:
     (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
       rsimp7_SEQ_atom_def)
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RCHAR_RZERO [simp]:
+  "card ((single_root (RSEQ (RSTAR r) RZERO) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom RZERO (RCHAR a))))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def)
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RONE:
   "card (single_root (RSEQ (RSTAR r) RONE) (RCHAR a) -
       B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RONE (RCHAR a)))) \<le> 1"
