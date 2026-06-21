@@ -558,6 +558,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma singleton_acc_closure_subset_strong_apder_acc:
+  "rsimpStrong_dlform_closure (apder_term_frontier_acc q k) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+  by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+
+lemma row_dlforms_singleton_acc_member_subset_strong_apder_acc:
+  assumes "p \<in> apder_term_frontier_acc q k"
+  shows "row_dlforms (rsimpStrong_raw p) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+  using assms
+  by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+
 lemma row_dlforms_RALTS_singleton_roots_subset_cover:
   "row_dlforms
       (rsimpStrong_raw
