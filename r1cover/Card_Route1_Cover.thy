@@ -937,6 +937,78 @@ proof
       strong_apder_acc (RALTS [q]) k" .
 qed
 
+lemma tagged_rdistinct_preserves_singleton_saa_ok:
+  assumes ok: "\<forall>qt \<in> set xs. singleton_saa_ok (fst qt) (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rdistinct xs acc).
+    singleton_saa_ok (fst qt) (snd qt)"
+  using ok
+proof (induct xs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons qt xs)
+  then show ?case
+    by (cases qt) auto
+qed
+
+lemma tagged_rflts_preserves_singleton_saa_ok:
+  assumes ok: "\<forall>qt \<in> set xs. singleton_saa_ok (fst qt) (snd qt)"
+    and nf: "\<forall>qt \<in> set (tagged_rflts xs). rtail_nf (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rflts xs).
+    singleton_saa_ok (fst qt) (snd qt)"
+  using ok nf
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  obtain q t where a_def: "a = (q, t)"
+    by (cases a) auto
+  have tail_nf: "\<forall>qt \<in> set (tagged_rflts xs). rtail_nf (snd qt)"
+  proof
+    fix qt
+    assume qt: "qt \<in> set (tagged_rflts xs)"
+    have "qt \<in> set (tagged_rflts (a # xs))"
+      using a_def qt by (cases t) auto
+    then show "rtail_nf (snd qt)"
+      using Cons.prems by blast
+  qed
+  have tail_ok: "\<forall>qt \<in> set (tagged_rflts xs).
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule Cons.hyps) (use Cons.prems tail_nf in auto)
+  show ?case
+  proof (cases t)
+    case RZERO
+    then show ?thesis
+      using a_def RZERO tail_ok by simp
+  next
+    case (RALTS ys)
+    have alt_ok: "singleton_saa_ok q (RALTS ys)"
+      using Cons.prems a_def RALTS by simp
+    have ys_nf: "\<forall>y \<in> set ys. rtail_nf y"
+    proof
+      fix y
+      assume y: "y \<in> set ys"
+      have "(q, y) \<in> set (tagged_rflts (a # xs))"
+        using a_def RALTS y by simp
+      then have "rtail_nf (snd (q, y))"
+        using Cons.prems by blast
+      then show "rtail_nf y"
+        by simp
+    qed
+    have ys_ok: "\<forall>y \<in> set ys. singleton_saa_ok q y"
+    proof
+      fix y
+      assume y: "y \<in> set ys"
+      show "singleton_saa_ok q y"
+        by (rule singleton_saa_ok_flatten[OF alt_ok y])
+          (use ys_nf y in auto)
+    qed
+    show ?thesis
+      using a_def RALTS ys_ok tail_ok by auto
+  qed (use Cons.prems a_def tail_ok in auto)
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_COVER.md):
    lemma strong_apder_acc_RALTS_singleton_cover:
      "strong_apder_acc (RALTS rs) k \<subseteq> (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
