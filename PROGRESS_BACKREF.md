@@ -11601,3 +11601,16 @@ refutes the proposed RSEQ image branch as stated and should be reconciled with a
 claiming that branch is validated. Do not record this as "S1 false"; the cardinal S1 target remains
 unrefuted. The temporary negative witness built green under the private USER_HOME heap, was removed,
 and the final session still builds green. Detailed lane note: `ROUTE_BND_S1_FINDINGS.md`.
+
+FOLLOW-UP same lane: switched to cardinal-only repair. Added green substrate in
+`r1bnd/Card_Route1_Bnd.thy`: `boundary_excess`, `root_excess`,
+`card_le_if_missing_in_image`, finite lemmas for both excess sets, and small non-RSEQ
+constructor subset leaves (`RZERO`, `RONE`, `RCHAR`, plus `RALTS` for continuation
+`RZERO`/`RONE`). Private `USER_HOME` build remains green.
+
+Temporary sanity checks (added, built, removed) were green for the three requested witnesses:
+old plain-subset failure is paid by `Y-X` via `rsimpStrong_raw`; ad485d1's `bad` row is in
+`X \<inter> Y` and disappears from `X-Y`; a non-RSEQ `RCHAR` sample has `X-Y={}`. No refined
+counterexample found from these checks. Broad one-shot proofs for all non-RSEQ and all RSEQ
+constructors timed out as proof scripts, so they were not committed; continue by smaller
+constructor lemmas, not by the old full S-image branch.

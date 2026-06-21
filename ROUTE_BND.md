@@ -35,7 +35,7 @@ Prove `boundary_term_absorb` **VIA S1**, NOT a raw injection. Useful facts:
   are disjoint from genuine term rows (0 coincidences measured). S1 is collision-free BY CONSTRUCTION (it is a single
   `card_mono`-style inequality between two excess sets), so no injection bookkeeping is needed.
 
-### 2026-06-21 correction: helper-only refutation, not S1 false
+### 2026-06-21 correction: cardinal-only repair, not full S-image
 
 Do **not** record the following as a refutation of S1 or `boundary_term_absorb`: the cardinal S1 target is
 still unrefuted here.  What has been Isabelle-refuted is only the stronger helper
@@ -60,6 +60,29 @@ bad =
 The temporary proof showed `bad` is in the boundary excess but not in the
 `rsimpStrong_raw` image of the root excess.  Therefore do not spend more proof time on that image-subset
 branch as stated; reconcile this RSEQ-root witness before reinstating any S-image/card_image_le steer.
+
+Current repair target: use the cardinal-only missing-row form.  Write
+
+```isabelle
+X t k = strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
+Y t k = single_root t k - strong_apder_acc RONE k
+```
+
+First prove/use the finite-set card lemma:
+
+```isabelle
+finite X \<Longrightarrow> finite Y \<Longrightarrow> X - Y \<subseteq> f ` (Y - X) \<Longrightarrow> card X \<le> card Y
+```
+
+Then target only:
+
+```isabelle
+X t k - Y t k \<subseteq> rsimpStrong_raw ` (Y t k - X t k)
+```
+
+Do **not** try to prove `X t k \<subseteq> Y t k`, and do **not** try to prove
+`X t k \<subseteq> rsimpStrong_raw ` Y t k`.  For non-RSEQ constructors, plain subset
+may discharge `X-Y={}`; for RSEQ, prove only the missing-row image statement.
 
 ## BUILD — ISOLATED HEAP (required; the other lanes build concurrently)
 Do NOT use the shared `.ps1` build — it shares the heap store with the other lanes and WILL corrupt it. Use your OWN

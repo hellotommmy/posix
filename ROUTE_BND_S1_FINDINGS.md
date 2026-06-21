@@ -8,11 +8,16 @@ Session: `Posix_Card_Route1_Bnd`
 
 ## Current green local helpers
 
-The worktree currently has a small helper edit in `r1bnd/Card_Route1_Bnd.thy`:
+The worktree has green helper edits in `r1bnd/Card_Route1_Bnd.thy`:
 
 - `finite_single_root`
 - `finite_single_term`
 - `strong_apder_acc_singleton_decomp`
+- `boundary_excess` / `root_excess` definitions for the cardinal-only repair
+- `card_le_if_missing_in_image`
+- `finite_boundary_excess` / `finite_root_excess`
+- small constructor subset leaves: `RZERO`, `RONE`, `RCHAR`, and `RALTS` with
+  continuation `RZERO` or `RONE`
 
 The session builds green with the private `USER_HOME` heap command from `ROUTE_BND.md`.
 
@@ -61,3 +66,20 @@ The exact `t,k` above should be reconciled before the lane spends more proof tim
 that image-subset branch.
 
 Final state after removing the temporary witness: `Posix_Card_Route1_Bnd` builds green.
+
+## Cardinal-only repair sanity checks
+
+Temporary Isabelle checks, added only for validation and then removed, were green for:
+
+1. `t = RSEQ (RCHAR a) (RSTAR (RCHAR a))`, `k = RSTAR (RCHAR a)`.
+   This is the old plain-subset failure.  The refined missing-row condition
+   "X-Y is contained in the `rsimpStrong_raw` image of Y-X" holds on this witness.
+2. `t = RSEQ (RCHAR a) (RALTS [RSEQ (RCHAR a) (RSTAR (RCHAR a))])`,
+   `k = RSTAR (RCHAR a)`.  The previous `bad` row lies in `X \<inter> Y`, so it
+   disappears from `X-Y`; the refined missing-row condition holds on this witness.
+3. A non-RSEQ sample `t = RCHAR a`, `k = RSTAR (RCHAR a)`.  Here `X \<subseteq> Y` and
+   `X-Y = {}`.
+
+The broad one-shot formalizations were deliberately not kept: both full non-RSEQ
+case-simp and arbitrary RSEQ case-simp timed out as proof scripts.  The next proof
+step should continue splitting the refined target into small constructor lemmas.
