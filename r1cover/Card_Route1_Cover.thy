@@ -678,6 +678,24 @@ lemma rsimp_ALTs_RSTAR_member:
   using assms
   by (cases xs; cases "tl xs") auto
 
+lemma row_dlforms_RONE_tail_credit:
+  "row_dlforms (rsimp7_SEQ_atom RONE (rsimpStrong_raw k)) \<subseteq>
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom RONE k))"
+  by simp
+
+lemma row_dlforms_RSTAR_tail_credit_fix:
+  assumes star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "row_dlforms (rsimp7_SEQ_atom (RSTAR s) (rsimpStrong_raw k)) \<subseteq>
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+proof (cases k)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  then show ?thesis
+    using star_fix by (simp add: rsimp7_SEQ_atom_def)
+qed (use star_fix in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+
 type_synonym tagged_row = "rrexp \<times> rrexp"
 
 lemma map_snd_map_Pair [simp]:
