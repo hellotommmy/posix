@@ -73,6 +73,18 @@ lemma finite_root_excess [simp]:
   "finite (root_excess t k)"
   by (simp add: root_excess_def)
 
+lemma boundary_excess_le_root_excess_if_missing:
+  assumes "boundary_excess t k - root_excess t k
+      \<subseteq> rsimpStrong_raw ` (root_excess t k - boundary_excess t k)"
+  shows "card (boundary_excess t k) \<le> card (root_excess t k)"
+  by (rule card_le_if_missing_in_image[OF finite_boundary_excess finite_root_excess assms])
+
+lemma boundary_missing_from_subset:
+  assumes "boundary_excess t k \<subseteq> root_excess t k"
+  shows "boundary_excess t k - root_excess t k
+      \<subseteq> rsimpStrong_raw ` (root_excess t k - boundary_excess t k)"
+  using assms by auto
+
 lemma strong_apder_acc_singleton_decomp:
   "strong_apder_acc (RALTS [q]) k = single_root q k \<union> single_term q k"
   by (simp add: strong_apder_acc_def single_root_def single_term_def
