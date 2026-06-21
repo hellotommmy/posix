@@ -1031,6 +1031,38 @@ proof -
     unfolding c_def .
 qed
 
+lemma seq_head_core_RSTAR_le_Suc_rsize_RCHAR_from_tail_cases_clean:
+  assumes rseq_tail:
+    "\<And>t1 t2. legacy_rrexp (RSEQ t1 t2) \<Longrightarrow>
+      rntimes_free (RSEQ t1 t2) \<Longrightarrow> apder_nf (RSEQ t1 t2) \<Longrightarrow>
+      card (single_root (RSEQ (RSTAR r) (RSEQ t1 t2)) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RSEQ t1 t2) (RCHAR a)))) \<le> 1"
+    and ralts_tail:
+    "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card (single_root (RSEQ (RSTAR r) (RALTS rs)) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS rs) (RCHAR a)))) \<le> 1"
+    and child:
+    "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a))) \<le> rsize r"
+    and clean: "apder_nf r" "legacy_rrexp t" "rntimes_free t" "apder_nf t"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) (RCHAR a) \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom t (RCHAR a)))) \<le>
+      Suc (rsize (RSTAR r))"
+proof -
+  have root_shift:
+    "card (single_root (RSEQ (RSTAR r) t) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t (RCHAR a)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_shift_RCHAR_from_tail_cases_clean
+        [OF rseq_tail ralts_tail clean(2,3,4)])
+  show ?thesis
+    by (rule seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child
+        [OF clean(1) clean(4) _ root_shift child]) simp
+qed
+
 lemma D1_RSTAR_le_rsize_from_child:
   assumes "apder_nf r" "apder_nf k"
     and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
