@@ -9,6 +9,27 @@ Open this session with CWD = `C:\Users\Chengsong\Documents\AIPV2026Notes\posix-c
 From here you can read every charter/status doc, `git log`/`git branch -a` every Route-1 branch, and
 reach the lane worktrees by path under `C:\Users\Chengsong\Documents\posix-route1\`.
 
+## Division of labor (you run CONCURRENTLY with the Claude secretary) — ROLE SPLIT, honor strictly
+**YOU (Codex) own ALL Isabelle execution + integration:**
+- steer the four GPT lanes (cover/bnd/seq/formalize); treat the `claude-*` racer worktrees as extra
+  executors of the same crux skeletons (whoever lands a crux green first wins);
+- run ALL Isabelle builds / build-verification, each in its lane's private `.isa_home`;
+- be the SINGLE integrator — merge green crux lemmas into `formalize`'s `card/Card_Route1.thy`, discharging
+  the matching `assumes`;
+- push ONLY `card/route1-*` and `card/route1-formalize` (and via the lane agents). `git pull --rebase
+  --autostash` before every push.
+
+**The Claude secretary owns strategy + adversarial verification:** settling/falsifying cruxes via
+multi-agent workflows, producing the proof skeletons in `ROUTE1_CRUX_STATUS.md`, the docs/map/status/charter,
+and memory. It pushes ONLY the docs branch `codex/rewrite-fallback-d`. It does NOT touch any lane `.thy`,
+does NOT merge, does NOT run the lane Isabelle builds.
+
+**Interface & anti-collision:** disjoint push targets (you → lane/formalize; Claude → docs) ⇒ no git races;
+disjoint build ownership (you → all Isabelle; Claude → Python/logic only) ⇒ no heap contention. Claude hands
+you validated proof skeletons; you formalize + build-verify + merge. **If a skeleton turns out wrong
+in-Isabelle, fail-stop and report it to the user** (so Claude can re-settle it) — never silently improvise a
+refuted route.
+
 ## 0. Read first (in this order), then you have the whole route
 1. `MAINLINE.md` — the charter (target theorem, proof state, dead routes, rules).
 2. `ROUTE1_CRUX_STATUS.md` — the three cruxes (L1 / S1 / seq_head): verdicts + proof skeletons.
