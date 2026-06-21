@@ -443,6 +443,16 @@ lemma D1_RCHAR_le_rsize:
   using card_strong_apder_acc_RCHAR_diff_base_le[OF assms, of c]
   by simp
 
+lemma boundary_RZERO_le_rsize:
+  "card ((B (rsimp4_SEQ_atom RZERO k) - B k) \<union>
+    (single_term RZERO k - B k)) \<le> rsize RZERO"
+  by (simp add: B_alt rsimpStrong_dlform_closure_def)
+
+lemma boundary_RONE_le_rsize:
+  "card ((B (rsimp4_SEQ_atom RONE k) - B k) \<union>
+    (single_term RONE k - B k)) \<le> rsize RONE"
+  by simp
+
 lemma boundary_RCHAR_le_rsize:
   assumes "apder_nf k"
   shows
