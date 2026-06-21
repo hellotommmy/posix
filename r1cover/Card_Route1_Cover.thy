@@ -1108,6 +1108,21 @@ lemma singleton_saa_key_credit_RCHAR_raw:
   "singleton_saa_key_credit (RCHAR c) (rsimpStrong_raw (RCHAR c))"
   by (simp add: singleton_saa_key_credit_def)
 
+lemma singleton_saa_key_credit_RBACKREF4_raw:
+  "singleton_saa_key_credit (RBACKREF4 r1 r2 r3 r4 cs)
+    (rsimpStrong_raw (RBACKREF4 r1 r2 r3 r4 cs))"
+  by (simp add: singleton_saa_key_credit_def)
+
+lemma singleton_saa_key_credit_RHALF_raw:
+  "singleton_saa_key_credit (RHALF r cs rep)
+    (rsimpStrong_raw (RHALF r cs rep))"
+  by (simp add: singleton_saa_key_credit_def)
+
+lemma singleton_saa_key_credit_RRESIDUE_raw:
+  "singleton_saa_key_credit (RRESIDUE cs rep)
+    (rsimpStrong_raw (RRESIDUE cs rep))"
+  by (simp add: singleton_saa_key_credit_def)
+
 lemma singleton_saa_scan_ok_RZERO_raw:
   "singleton_saa_scan_ok RZERO (rsimpStrong_raw RZERO)"
   using singleton_saa_ok_RZERO_raw singleton_saa_key_credit_RZERO_raw
@@ -1121,6 +1136,24 @@ lemma singleton_saa_scan_ok_RONE_raw:
 lemma singleton_saa_scan_ok_RCHAR_raw:
   "singleton_saa_scan_ok (RCHAR c) (rsimpStrong_raw (RCHAR c))"
   using singleton_saa_ok_RCHAR_raw singleton_saa_key_credit_RCHAR_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
+lemma singleton_saa_scan_ok_RBACKREF4_raw:
+  "singleton_saa_scan_ok (RBACKREF4 r1 r2 r3 r4 cs)
+    (rsimpStrong_raw (RBACKREF4 r1 r2 r3 r4 cs))"
+  using singleton_saa_ok_RBACKREF4_raw singleton_saa_key_credit_RBACKREF4_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
+lemma singleton_saa_scan_ok_RHALF_raw:
+  "singleton_saa_scan_ok (RHALF r cs rep)
+    (rsimpStrong_raw (RHALF r cs rep))"
+  using singleton_saa_ok_RHALF_raw singleton_saa_key_credit_RHALF_raw
+  by (simp add: singleton_saa_scan_ok_def)
+
+lemma singleton_saa_scan_ok_RRESIDUE_raw:
+  "singleton_saa_scan_ok (RRESIDUE cs rep)
+    (rsimpStrong_raw (RRESIDUE cs rep))"
+  using singleton_saa_ok_RRESIDUE_raw singleton_saa_key_credit_RRESIDUE_raw
   by (simp add: singleton_saa_scan_ok_def)
 
 lemma singleton_saa_ok_prune_pair_raw_if_suffix:
