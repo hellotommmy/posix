@@ -217,6 +217,65 @@ proof -
     using nf_h nf_t nf_k budget by blast
 qed
 
+lemma seq_head_core_RALTS_RONE_counterexample:
+  fixes a b c :: char
+  defines "h \<equiv> RALTS [RONE]"
+  defines "t \<equiv> RSEQ (RALTS [RCHAR a, RCHAR b, RCHAR c]) (RSTAR (RCHAR a))"
+  defines "k \<equiv> RSTAR (RCHAR a)"
+  assumes "a \<noteq> b" "a \<noteq> c" "b \<noteq> c"
+  shows
+    "apder_nf h"
+    "apder_nf t"
+    "apder_nf (RSEQ h t)"
+    "apder_nf k"
+    "card ((single_root (RSEQ h t) k \<union>
+             single_term h (rsimp4_SEQ_atom t k))
+            - (B k \<union> B (rsimp4_SEQ_atom t k))) = 3"
+    "rsize h = 2"
+  using assms
+  by (simp_all add: h_def t_def k_def single_root_def rsimpStrong_dlform_closure_def
+      B_alt
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+
+lemma seq_head_core_le_rsize_nf_seq_false:
+  "\<exists>h t k. apder_nf (RSEQ h t) \<and> apder_nf k \<and>
+    rsize h <
+      card ((single_root (RSEQ h t) k \<union> single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k)))"
+proof -
+  let ?a = "CHR ''a''"
+  let ?b = "CHR ''b''"
+  let ?c = "CHR ''c''"
+  let ?h = "RALTS [RONE]"
+  let ?t = "RSEQ (RALTS [RCHAR ?a, RCHAR ?b, RCHAR ?c]) (RSTAR (RCHAR ?a))"
+  let ?k = "RSTAR (RCHAR ?a)"
+  have neq: "?a \<noteq> ?b" "?a \<noteq> ?c" "?b \<noteq> ?c"
+    by simp_all
+  have nf_seq: "apder_nf (RSEQ ?h ?t)"
+    using seq_head_core_RALTS_RONE_counterexample(3)[OF neq] by simp
+  have nf_k: "apder_nf ?k"
+    using seq_head_core_RALTS_RONE_counterexample(4)[OF neq] by simp
+  have core:
+    "card ((single_root (RSEQ ?h ?t) ?k \<union>
+             single_term ?h (rsimp4_SEQ_atom ?t ?k))
+            - (B ?k \<union> B (rsimp4_SEQ_atom ?t ?k))) = 3"
+    using seq_head_core_RALTS_RONE_counterexample(5)[OF neq] by simp
+  have size: "rsize ?h = 2"
+    using seq_head_core_RALTS_RONE_counterexample(6)[OF neq] by simp
+  have budget:
+    "rsize ?h <
+      card ((single_root (RSEQ ?h ?t) ?k \<union>
+             single_term ?h (rsimp4_SEQ_atom ?t ?k))
+            - (B ?k \<union> B (rsimp4_SEQ_atom ?t ?k)))"
+    using core size by simp
+  show ?thesis
+    apply (rule exI[of _ ?h])
+    apply (rule exI[of _ ?t])
+    apply (rule exI[of _ ?k])
+    using nf_seq nf_k budget by simp
+qed
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
