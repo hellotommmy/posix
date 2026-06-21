@@ -950,6 +950,57 @@ definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> boo
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
 
+lemma singleton_saa_ok_prune_pair_raw_if_suffix:
+  assumes ok: "singleton_saa_ok q later"
+    and later_nf: "rtail_nf later"
+    and suffix:
+      "\<And>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+  shows "singleton_saa_ok q
+    (rsimpStrong_prune_pair_raw earlier later)"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have K_nf: "rtail_nf (rsimpStrong_raw k)"
+    by (rule rtail_nf_rsimpStrong_raw)
+  have split:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimpStrong_prune_pair_raw earlier later)
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k)) \<union>
+       row_dlforms (rsimpStrong_raw k)"
+    by (rule row_dlforms_rsimp7_prune_pair_subset_later_or_suffix
+        [OF later_nf K_nf])
+  have later:
+      "row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    using ok unfolding singleton_saa_ok_def by blast
+  have suff:
+      "row_dlforms (rsimpStrong_raw k) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule suffix)
+  show "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimpStrong_prune_pair_raw earlier later)
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+    using split later suff by blast
+qed
+
+lemma tagged_prune_pair_raw_preserves_singleton_saa_ok_if_suffix:
+  assumes ok: "singleton_saa_ok (fst later) (snd later)"
+    and later_nf: "rtail_nf (snd later)"
+    and suffix:
+      "\<And>k. row_dlforms (rsimpStrong_raw k) \<subseteq>
+        strong_apder_acc (RALTS [fst later]) k"
+  shows "singleton_saa_ok
+    (fst (tagged_prune_pair_raw earlier later))
+    (snd (tagged_prune_pair_raw earlier later))"
+  using singleton_saa_ok_prune_pair_raw_if_suffix
+    [OF ok later_nf suffix]
+  by (simp add: tagged_prune_pair_raw_def)
+
 lemma singleton_saa_ok_flatten:
   assumes ok: "singleton_saa_ok q (RALTS xs)"
     and x: "x \<in> set xs"
