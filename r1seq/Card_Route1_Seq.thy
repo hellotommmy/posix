@@ -774,6 +774,103 @@ lemma single_root_RSEQ_RSTAR_root_boundary_RONE_RSTAR:
       rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       split: if_splits intro!: card_subset_singleton_le_one)
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RONE_from_tail_cases_clean:
+  assumes rseq_tail:
+    "\<And>t1 t2. legacy_rrexp (RSEQ t1 t2) \<Longrightarrow>
+      rntimes_free (RSEQ t1 t2) \<Longrightarrow> apder_nf (RSEQ t1 t2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RSEQ t1 t2)) RONE -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RSEQ t1 t2) RONE))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RSEQ t1 t2) RONE)) -
+          (B RONE \<union> B (rsimp4_SEQ_atom (RSEQ t1 t2) RONE)))) \<le> 1"
+    and ralts_tail:
+    "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS rs)) RONE -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS rs) RONE))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS rs) RONE)) -
+          (B RONE \<union> B (rsimp4_SEQ_atom (RALTS rs) RONE)))) \<le> 1"
+    and clean: "legacy_rrexp t" "rntimes_free t" "apder_nf t"
+  shows "card ((single_root (RSEQ (RSTAR r) t) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom t RONE)))) \<le> 1"
+  using clean
+proof (cases t)
+  case RZERO
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) RZERO) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom RZERO RONE)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RONE_RZERO)
+  show ?thesis using RZERO leaf by simp
+next
+  case RONE
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) RONE) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RONE RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RONE RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom RONE RONE)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RONE_RONE)
+  show ?thesis using RONE leaf by simp
+next
+  case (RCHAR c)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RCHAR c)) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RCHAR c) RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RCHAR c) RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom (RCHAR c) RONE)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RONE_RCHAR)
+  show ?thesis using RCHAR leaf by simp
+next
+  case (RSEQ t1 t2)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RSEQ t1 t2)) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RSEQ t1 t2) RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RSEQ t1 t2) RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom (RSEQ t1 t2) RONE)))) \<le> 1"
+    by (rule rseq_tail) (use RSEQ clean in simp_all)
+  show ?thesis using RSEQ leaf by simp
+next
+  case (RALTS rs)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RALTS rs)) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS rs) RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS rs) RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom (RALTS rs) RONE)))) \<le> 1"
+    by (rule ralts_tail) (use RALTS clean in simp_all)
+  show ?thesis using RALTS leaf by simp
+next
+  case (RSTAR s)
+  have leaf:
+    "card ((single_root (RSEQ (RSTAR r) (RSTAR s)) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom (RSTAR s) RONE)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RONE_RSTAR)
+  show ?thesis using RSTAR leaf by simp
+next
+  case (RNTIMES s n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 t1 t2 t3 t4 cs)
+  then show ?thesis using clean by simp
+next
+  case (RHALF s cs rep)
+  then show ?thesis using clean by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using clean by simp
+qed
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RZERO [simp]:
   "card (single_root (RSEQ (RSTAR r) RZERO) (RCHAR a) -
       B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO (RCHAR a)))) \<le> 1"
