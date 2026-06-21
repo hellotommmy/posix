@@ -184,6 +184,39 @@ lemma seq_head_core_RONE_counterexample:
       rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
 
+lemma seq_head_core_le_rsize_unrestricted_false:
+  "\<exists>h t k. apder_nf h \<and> apder_nf t \<and> apder_nf k \<and>
+    rsize h <
+      card ((single_root (RSEQ h t) k \<union> single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k)))"
+proof -
+  let ?a = "CHR ''a''"
+  let ?b = "CHR ''b''"
+  let ?t = "RSEQ (RALTS [RCHAR ?a, RCHAR ?b]) (RSTAR (RCHAR ?a))"
+  let ?k = "RSTAR (RCHAR ?a)"
+  have neq: "?a \<noteq> ?b"
+    by simp
+  have nf_t: "apder_nf ?t"
+    using seq_head_core_RONE_counterexample(2)[OF neq] by simp
+  have nf_k: "apder_nf ?k"
+    using seq_head_core_RONE_counterexample(3)[OF neq] by simp
+  have core:
+    "card ((single_root (RSEQ RONE ?t) ?k \<union>
+             single_term RONE (rsimp4_SEQ_atom ?t ?k))
+            - (B ?k \<union> B (rsimp4_SEQ_atom ?t ?k))) = 2"
+    using seq_head_core_RONE_counterexample(4)[OF neq] by simp
+  have nf_h: "apder_nf RONE"
+    by simp
+  have budget:
+    "rsize RONE <
+      card ((single_root (RSEQ RONE ?t) ?k \<union>
+             single_term RONE (rsimp4_SEQ_atom ?t ?k))
+            - (B ?k \<union> B (rsimp4_SEQ_atom ?t ?k)))"
+    using core by simp
+  show ?thesis
+    using nf_h nf_t nf_k budget by blast
+qed
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
