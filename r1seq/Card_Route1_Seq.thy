@@ -730,6 +730,66 @@ proof -
     using child by simp
 qed
 
+lemma boundary_RSEQ_step_from_boundary_children:
+  fixes r1 r2 k
+  defines "c \<equiv> rsimp4_SEQ_atom r2 k"
+  assumes left:
+    "card ((B (rsimp4_SEQ_atom r1 c) - B c) \<union>
+      (single_term r1 c - B c)) \<le> H"
+    and right:
+    "card ((B c - B k) \<union> (single_term r2 k - B k)) \<le> K"
+  shows
+    "card ((B (rsimp4_SEQ_atom (RSEQ r1 r2) k) - B k) \<union>
+      (single_term (RSEQ r1 r2) k - B k)) \<le> H + K"
+proof -
+  let ?A = "B (rsimp4_SEQ_atom r1 c) \<union> single_term r1 c"
+  let ?B = "B c \<union> single_term r2 k"
+  have target_sub:
+    "(B (rsimp4_SEQ_atom (RSEQ r1 r2) k) - B k) \<union>
+      (single_term (RSEQ r1 r2) k - B k) \<subseteq> (?A \<union> ?B) - B k"
+    by (auto simp add: c_def)
+  have telescope:
+    "card ((?A \<union> ?B) - B k) \<le> card (?A - B c) + card (?B - B k)"
+    by (rule card_Un_Diff_telescope_le) auto
+  have A_eq:
+    "?A - B c =
+      (B (rsimp4_SEQ_atom r1 c) - B c) \<union> (single_term r1 c - B c)"
+    by auto
+  have B_eq:
+    "?B - B k = (B c - B k) \<union> (single_term r2 k - B k)"
+    by auto
+  have "card ((B (rsimp4_SEQ_atom (RSEQ r1 r2) k) - B k) \<union>
+      (single_term (RSEQ r1 r2) k - B k)) \<le> card ((?A \<union> ?B) - B k)"
+    by (rule card_mono) (use target_sub in auto)
+  also have "... \<le> card (?A - B c) + card (?B - B k)"
+    by (rule telescope)
+  also have "... \<le> H + K"
+    using left right by (simp add: A_eq B_eq)
+  finally show ?thesis .
+qed
+
+lemma boundary_RSEQ_le_rsize_from_children:
+  fixes r1 r2 k
+  assumes left:
+    "card ((B (rsimp4_SEQ_atom r1 (rsimp4_SEQ_atom r2 k)) -
+        B (rsimp4_SEQ_atom r2 k)) \<union>
+      (single_term r1 (rsimp4_SEQ_atom r2 k) -
+        B (rsimp4_SEQ_atom r2 k))) \<le> rsize r1"
+    and right:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> rsize r2"
+  shows
+    "card ((B (rsimp4_SEQ_atom (RSEQ r1 r2) k) - B k) \<union>
+      (single_term (RSEQ r1 r2) k - B k)) \<le> rsize (RSEQ r1 r2)"
+proof -
+  have "card ((B (rsimp4_SEQ_atom (RSEQ r1 r2) k) - B k) \<union>
+      (single_term (RSEQ r1 r2) k - B k)) \<le> rsize r1 + rsize r2"
+    by (rule boundary_RSEQ_step_from_boundary_children)
+      (use left right in simp_all)
+  then show ?thesis
+    by simp
+qed
+
 lemma D1_RSEQ_le_rsize_from_combined_head_boundary:
   fixes r1 r2 k
   defines "c \<equiv> rsimp4_SEQ_atom r2 k"
