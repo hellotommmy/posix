@@ -981,6 +981,38 @@ next
     by (cases qt) auto
 qed
 
+lemma tagged_rdistinct_preserves_singleton_saa_key_credit:
+  assumes ok: "\<forall>qt \<in> set xs. singleton_saa_key_credit (fst qt) (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rdistinct xs acc).
+    singleton_saa_key_credit (fst qt) (snd qt)"
+  using ok
+proof (induct xs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons qt xs)
+  then show ?case
+    by (cases qt) auto
+qed
+
+lemma tagged_rdistinct_preserves_singleton_saa_scan_ok:
+  assumes ok: "\<forall>qt \<in> set xs. singleton_saa_scan_ok (fst qt) (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rdistinct xs acc).
+    singleton_saa_scan_ok (fst qt) (snd qt)"
+proof -
+  have ok_saa: "\<forall>qt \<in> set (tagged_rdistinct xs acc).
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_rdistinct_preserves_singleton_saa_ok)
+      (use ok in \<open>auto simp add: singleton_saa_scan_ok_def\<close>)
+  have ok_credit: "\<forall>qt \<in> set (tagged_rdistinct xs acc).
+      singleton_saa_key_credit (fst qt) (snd qt)"
+    by (rule tagged_rdistinct_preserves_singleton_saa_key_credit)
+      (use ok in \<open>auto simp add: singleton_saa_scan_ok_def\<close>)
+  show ?thesis
+    using ok_saa ok_credit
+    by (auto simp add: singleton_saa_scan_ok_def)
+qed
+
 lemma tagged_rflts_preserves_singleton_saa_ok:
   assumes ok: "\<forall>qt \<in> set xs. singleton_saa_ok (fst qt) (snd qt)"
     and nf: "\<forall>qt \<in> set (tagged_rflts xs). rtail_nf (snd qt)"
