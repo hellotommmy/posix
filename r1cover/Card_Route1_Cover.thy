@@ -994,6 +994,10 @@ lemma rsimpStrong_ALTs_raw_single_RONE [simp]:
   "rsimpStrong_ALTs_raw [RONE] = RONE"
   by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
 
+lemma rsimpStrong_ALTs_raw_single_RCHAR [simp]:
+  "rsimpStrong_ALTs_raw [RCHAR c] = RCHAR c"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
 lemma singleton_saa_ok_RZERO_raw:
   "singleton_saa_ok RZERO (rsimpStrong_raw RZERO)"
   by (simp add: singleton_saa_ok_def rsimp7_SEQ_atom_def)
@@ -1010,6 +1014,23 @@ proof
   show "row_dlforms (rsimp7_SEQ_atom (rsimpStrong_raw RONE)
       (rsimpStrong_raw k)) \<subseteq> strong_apder_acc (RALTS [RONE]) k"
     using root by (cases k) simp_all
+qed
+
+lemma singleton_saa_ok_RCHAR_raw:
+  "singleton_saa_ok (RCHAR c) (rsimpStrong_raw (RCHAR c))"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have root:
+      "row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [RCHAR c]) k)) \<subseteq>
+       strong_apder_acc (RALTS [RCHAR c]) k"
+    by (rule row_dlforms_singleton_root_subset_strong_apder_acc)
+  show "row_dlforms (rsimp7_SEQ_atom (rsimpStrong_raw (RCHAR c))
+      (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [RCHAR c]) k"
+    using root by (cases k)
+      (simp_all add: rsimpStrong_raw_rsimp4_SEQ_atom_RCHAR)
 qed
 
 lemma singleton_saa_ok_prune_pair_raw_if_suffix:
