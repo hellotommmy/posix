@@ -18,7 +18,7 @@ $ErrorActionPreference = 'Stop'
 $Repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $IsabelleHome = 'C:\Users\Chengsong\Isabelle2025-2'
 $Bash = Join-Path $IsabelleHome 'contrib\cygwin\bin\bash.exe'
-$PrivateHome = 'C:\Users\Chengsong\Documents\norm-home'
+$PrivateHome = 'C:\Users\Chengsong\Documents\norm-home-codex'
 
 function Convert-ToCygPath([string]$Path) {
   $Full = (Resolve-Path -LiteralPath $Path).Path

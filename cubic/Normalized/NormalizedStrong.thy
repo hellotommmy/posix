@@ -323,6 +323,28 @@ lemma nplug_RONE_nstrong [simp]: "nplug RONE (nstrong r) = nstrong r"
 lemma nplug_RONE_nonseq [simp]: "\<not> is_rseq w \<Longrightarrow> nplug w RONE = w"
   by (rule nplug_RONE_right[OF seqcanon_nonseq])
 
+lemma nplug_RONE_nonseq_left [simp]: "\<not> is_rseq w \<Longrightarrow> nplug RONE w = w"
+  by (rule nplug_RONE_left[OF seqcanon_nonseq])
+
+lemma nplug_nplug_RONE [simp]: "nplug (nplug r k) RONE = nplug r k"
+  by (rule nplug_RONE_right[OF seqcanon_nplug])
+
+lemma nplug_same_nstrong_RSTAR [simp]:
+  "nplug (nstrong (RSTAR r)) (nstrong (RSTAR r)) = nstrong (RSTAR r)"
+  by (cases "nstrong r") (simp_all add: nplug_def norm_seq_def)
+
+lemma nplug_nstrong_RSTAR_absorb_left [simp]:
+  "nplug (nstrong (RSTAR r)) (nplug (nstrong (RSTAR r)) k) =
+    nplug (nstrong (RSTAR r)) k"
+proof -
+  have "nplug (nstrong (RSTAR r)) (nplug (nstrong (RSTAR r)) k) =
+      nplug (nplug (nstrong (RSTAR r)) (nstrong (RSTAR r))) k"
+    by (rule nplug_assoc[symmetric])
+  also have "... = nplug (nstrong (RSTAR r)) k"
+    by (cases "nstrong r") (simp_all add: nplug_def norm_seq_def)
+  finally show ?thesis .
+qed
+
 text \<open>The one stubborn leaf: @{term "nalts (map nstrong rs)"} may itself be a sequence,
   so it needs the goodN/seqcanon route rather than @{thm nplug_RONE_nonseq}.\<close>
 lemma seqcanon_nalts_nstrong: "seqcanon (nalts (map nstrong rs))"
@@ -346,6 +368,58 @@ proof (induction r k rule: rsimp4_SEQ_atom.induct)
     by (rule nplug_assoc[symmetric])
   finally show ?case by simp
 qed (simp_all split: rrexp.split)
+
+lemma nstrong_rsimp7_shadow:
+  "nstrong (rsimp7_SEQ_atom r k) = nplug (nstrong r) (nstrong k)"
+proof (cases r)
+  case (RSTAR p)
+  note r_eq = RSTAR
+  show ?thesis
+  proof (cases k)
+    case RONE
+    have unit: "nplug (nstrong (RSTAR p)) RONE = nstrong (RSTAR p)"
+      by (cases "nstrong p") (simp_all add: nplug_def norm_seq_def)
+    show ?thesis using r_eq RONE unit
+      by (simp add: rsimp7_SEQ_atom_def)
+  next
+    case (RSTAR q)
+    note k_eq = RSTAR
+    show ?thesis
+    proof (cases "p = q")
+      case True
+      have dup: "nplug (nstrong (RSTAR p)) (nstrong (RSTAR p)) = nstrong (RSTAR p)"
+        by (cases "nstrong p") (simp_all add: nplug_def norm_seq_def)
+      show ?thesis using r_eq k_eq True dup
+        by (simp add: rsimp7_SEQ_atom_def)
+    next
+      case False
+      show ?thesis using r_eq k_eq False
+        by (simp add: rsimp7_SEQ_atom_def nstrong_rsimp4_shadow)
+    qed
+  next
+    case (RSEQ k1 k2)
+    note k_eq = RSEQ
+    show ?thesis
+    proof (cases k1)
+      case (RSTAR q)
+      note k1_eq = RSTAR
+      show ?thesis
+      proof (cases "p = q")
+        case True
+        have dup:
+          "nplug (nstrong (RSTAR p)) (nplug (nstrong (RSTAR p)) (nstrong k2)) =
+            nplug (nstrong (RSTAR p)) (nstrong k2)"
+          by (rule nplug_nstrong_RSTAR_absorb_left)
+        show ?thesis using r_eq k_eq k1_eq True dup
+          by (simp add: rsimp7_SEQ_atom_def)
+      next
+        case False
+        show ?thesis using r_eq k_eq k1_eq False
+          by (simp add: rsimp7_SEQ_atom_def nstrong_rsimp4_shadow)
+      qed
+    qed (use r_eq k_eq in \<open>simp_all add: rsimp7_SEQ_atom_def nstrong_rsimp4_shadow\<close>)
+  qed (use r_eq in \<open>simp_all add: rsimp7_SEQ_atom_def nstrong_rsimp4_shadow\<close>)
+qed (simp_all add: rsimp7_SEQ_atom_def nstrong_rsimp4_shadow nplug_assoc)
 
 
 section \<open>Size bound for nplug (needed for the opening's termination)\<close>
