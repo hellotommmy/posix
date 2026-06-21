@@ -803,6 +803,75 @@ proof -
     by simp
 qed
 
+lemma boundary_le_rsize_from_D1_RALTS_clean:
+  assumes d1:
+    "\<And>q k. legacy_rrexp q \<Longrightarrow> rntimes_free q \<Longrightarrow>
+      apder_nf q \<Longrightarrow> apder_nf k \<Longrightarrow> D1 q k \<le> rsize q"
+    and ralts_boundary:
+    "\<And>rs k. legacy_rrexp (RALTS rs) \<Longrightarrow> rntimes_free (RALTS rs) \<Longrightarrow>
+      apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom (RALTS rs) k) - B k) \<union>
+        (single_term (RALTS rs) k - B k)) \<le> rsize (RALTS rs)"
+    and clean: "legacy_rrexp t" "rntimes_free t" "apder_nf t" "apder_nf k"
+  shows
+    "card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+      (single_term t k - B k)) \<le> rsize t"
+  using clean
+proof (induction t arbitrary: k)
+  case RZERO
+  then show ?case
+    using boundary_RZERO_le_rsize[of k] by simp
+next
+  case RONE
+  then show ?case
+    using boundary_RONE_le_rsize[of k] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using boundary_RCHAR_le_rsize[of k c] by simp
+next
+  case (RSEQ t1 t2)
+  let ?c = "rsimp4_SEQ_atom t2 k"
+  have nf_c: "apder_nf ?c"
+    using RSEQ.prems by (intro apder_nf_s4) auto
+  have left:
+    "card ((B (rsimp4_SEQ_atom t1 ?c) - B ?c) \<union>
+      (single_term t1 ?c - B ?c)) \<le> rsize t1"
+    using RSEQ.IH(1)[OF _ _ _ nf_c] RSEQ.prems by auto
+  have right:
+    "card ((B (rsimp4_SEQ_atom t2 k) - B k) \<union>
+      (single_term t2 k - B k)) \<le> rsize t2"
+    using RSEQ.IH(2) RSEQ.prems by auto
+  show ?case
+    by (rule boundary_RSEQ_le_rsize_from_children[OF left right])
+next
+  case (RALTS rs)
+  then show ?case
+    by (intro ralts_boundary) auto
+next
+  case (RSTAR t)
+  let ?c = "rsimp4_SEQ_atom (RSTAR t) k"
+  have nf_c: "apder_nf ?c"
+    using RSTAR.prems by (intro apder_nf_s4) auto
+  have child: "D1 t ?c \<le> rsize t"
+    using RSTAR.prems nf_c by (intro d1) auto
+  show ?case
+    by (rule boundary_RSTAR_le_rsize_from_child)
+      (use RSTAR.prems child in auto)
+next
+  case (RNTIMES t n)
+  then show ?case by simp
+next
+  case (RBACKREF4 t1 t2 t3 t4 cs)
+  then show ?case by simp
+next
+  case (RHALF t cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma D1_RSEQ_le_rsize_from_combined_head_boundary:
   fixes r1 r2 k
   defines "c \<equiv> rsimp4_SEQ_atom r2 k"
