@@ -278,6 +278,37 @@ proof -
   finally show ?thesis .
 qed
 
+lemma D1_RSTAR_step:
+  assumes "apder_nf r" "apder_nf k"
+  shows "D1 (RSTAR r) k \<le> 1 + D1 r (rsimp4_SEQ_atom (RSTAR r) k)"
+proof -
+  let ?c = "rsimp4_SEQ_atom (RSTAR r) k"
+  have root: "single_root (RSTAR r) k = B ?c"
+    by (rule star_single_root_eq_B)
+  have decomp:
+    "A (RALTS [RSTAR r]) k = B ?c \<union> single_term r ?c"
+    using A_single_decomp[of "RSTAR r" k] root by simp
+  have telescope:
+    "card ((single_term r ?c \<union> B ?c) - B k) \<le>
+      card (single_term r ?c - B ?c) + card (B ?c - B k)"
+    by (rule card_Un_Diff_telescope_le) auto
+  have term_bound:
+    "card (single_term r ?c - B ?c) \<le> D1 r ?c"
+    unfolding D1_def
+    by (rule card_mono) (auto simp add: A_single_decomp)
+  have boundary: "card (B ?c - B k) \<le> 1"
+    by (rule star_boundary_shift_le_one[OF assms])
+  have "D1 (RSTAR r) k =
+      card ((single_term r ?c \<union> B ?c) - B k)"
+    by (simp add: D1_def decomp Un_commute)
+  also have "... \<le> card (single_term r ?c - B ?c) + card (B ?c - B k)"
+    by (rule telescope)
+  also have "... \<le> D1 r ?c + 1"
+    using term_bound boundary by simp
+  finally show ?thesis
+    by simp
+qed
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
