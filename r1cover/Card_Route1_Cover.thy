@@ -1256,6 +1256,70 @@ definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> boo
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
 
+lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
+  assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
+    and ps_sub: "set ps \<subseteq> set rows"
+    and alt_one: "rsimp_ALTs ps = RONE"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have one_in_rows: "RONE \<in> set rows"
+    using rsimp_ALTs_RONE_member[OF alt_one] ps_sub by blast
+  have tail_cover:
+      "row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    using key one_in_rows
+    unfolding singleton_saa_key_credit_def
+    by blast
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RONE_star_tail_credit_fix
+        [OF alt_one star_fix])
+  show ?thesis
+    using credit tail_cover by blast
+qed
+
+lemma row_dlforms_rsimp_ALTs_RSTAR_self_subset_saa_if_key_credit:
+  assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
+    and ps_sub: "set ps \<subseteq> set rows"
+    and alt_star: "rsimp_ALTs ps = RSTAR s"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have star_in_rows: "RSTAR s \<in> set rows"
+    using rsimp_ALTs_RSTAR_member[OF alt_star] ps_sub by blast
+  have tail_cover:
+      "row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    using key star_in_rows
+    unfolding singleton_saa_key_credit_def
+    by blast
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RSTAR_self_credit_fix
+        [OF alt_star star_fix])
+  show ?thesis
+    using credit tail_cover by blast
+qed
+
 lemma tagged_Strong_ALTs_rows_singleton_saa_ok:
   assumes qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows [q])"
   shows "singleton_saa_ok q t"
