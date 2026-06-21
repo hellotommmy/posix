@@ -729,6 +729,13 @@ next
     by (simp add: single_root_def B_alt)
 qed
 
+lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RZERO [simp]:
+  "card (single_root (RSEQ (RSTAR r) RZERO) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO (RCHAR a)))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def)
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
