@@ -1063,6 +1063,44 @@ proof -
         [OF clean(1) clean(4) _ root_shift child]) simp
 qed
 
+lemma seq_head_core_RSTAR_le_Suc_rsize_RZERO_from_child:
+  assumes child:
+    "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO)) \<le> rsize r"
+    and clean: "apder_nf r" "apder_nf t"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) RZERO \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t RZERO)) -
+        (B RZERO \<union> B (rsimp4_SEQ_atom t RZERO))) \<le>
+      Suc (rsize (RSTAR r))"
+proof -
+  have root_shift:
+    "card (single_root (RSEQ (RSTAR r) t) RZERO -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_shift_RZERO)
+  show ?thesis
+    by (rule seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child
+        [OF clean(1) clean(2) _ root_shift child]) simp
+qed
+
+lemma seq_head_core_RSTAR_le_Suc_rsize_RONE_from_child:
+  assumes child:
+    "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RONE)) \<le> rsize r"
+    and clean: "apder_nf r" "apder_nf t"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) RONE \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom t RONE))) \<le>
+      Suc (rsize (RSTAR r))"
+proof -
+  have root_shift:
+    "card (single_root (RSEQ (RSTAR r) t) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RONE))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_shift_RONE_nf_t[OF clean(2)])
+  show ?thesis
+    by (rule seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child
+        [OF clean(1) clean(2) _ root_shift child]) simp
+qed
+
 lemma D1_RSTAR_le_rsize_from_child:
   assumes "apder_nf r" "apder_nf k"
     and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
