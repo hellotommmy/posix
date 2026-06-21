@@ -775,6 +775,60 @@ lemma row_dlforms_rsimp_ALTs_RSTAR_self_credit_fix:
   using alt_star row_dlforms_RSTAR_tail_credit_fix[OF star_fix, of k]
   by (simp add: rsimp7_SEQ_atom_def)
 
+lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_acc:
+  assumes alt_one: "rsimp_ALTs ps = RONE"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+    and acc: "rsimp4_SEQ_atom (RSTAR s) k \<in> apder_term_frontier_acc q k"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RONE_star_tail_credit_fix
+        [OF alt_one star_fix])
+  have acc_cover:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_singleton_acc_member_subset_strong_apder_acc
+        [OF acc])
+  show ?thesis
+    using credit acc_cover by blast
+qed
+
+lemma row_dlforms_rsimp_ALTs_RSTAR_self_subset_saa_if_acc:
+  assumes alt_star: "rsimp_ALTs ps = RSTAR s"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+    and acc: "rsimp4_SEQ_atom (RSTAR s) k \<in> apder_term_frontier_acc q k"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RSTAR_self_credit_fix
+        [OF alt_star star_fix])
+  have acc_cover:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_singleton_acc_member_subset_strong_apder_acc
+        [OF acc])
+  show ?thesis
+    using credit acc_cover by blast
+qed
+
 type_synonym tagged_row = "rrexp \<times> rrexp"
 
 lemma map_snd_map_Pair [simp]:
