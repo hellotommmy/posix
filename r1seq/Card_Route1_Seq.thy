@@ -575,6 +575,47 @@ proof -
     by simp
 qed
 
+lemma boundary_RSTAR_step:
+  assumes "apder_nf r" "apder_nf k"
+  shows
+    "card ((B (rsimp4_SEQ_atom (RSTAR r) k) - B k) \<union>
+      (single_term (RSTAR r) k - B k))
+      \<le> 1 + D1 r (rsimp4_SEQ_atom (RSTAR r) k)"
+proof -
+  let ?c = "rsimp4_SEQ_atom (RSTAR r) k"
+  have telescope:
+    "card ((single_term r ?c \<union> B ?c) - B k) \<le>
+      card (single_term r ?c - B ?c) + card (B ?c - B k)"
+    by (rule card_Un_Diff_telescope_le) auto
+  have term_bound:
+    "card (single_term r ?c - B ?c) \<le> D1 r ?c"
+    unfolding D1_def
+    by (rule card_mono) (auto simp add: A_single_decomp)
+  have boundary: "card (B ?c - B k) \<le> 1"
+    by (rule star_boundary_shift_le_one[OF assms])
+  have boundary_sub:
+    "(B ?c - B k) \<union> (single_term (RSTAR r) k - B k) \<subseteq>
+      (single_term r ?c \<union> B ?c) - B k"
+    by auto
+  have "card ((B ?c - B k) \<union> (single_term (RSTAR r) k - B k)) \<le>
+      card ((single_term r ?c \<union> B ?c) - B k)"
+    by (rule card_mono) (use boundary_sub in auto)
+  also have "... \<le> card (single_term r ?c - B ?c) + card (B ?c - B k)"
+    by (rule telescope)
+  also have "... \<le> D1 r ?c + 1"
+    using term_bound boundary by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma boundary_RSTAR_le_rsize_from_child:
+  assumes "apder_nf r" "apder_nf k"
+    and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
+  shows
+    "card ((B (rsimp4_SEQ_atom (RSTAR r) k) - B k) \<union>
+      (single_term (RSTAR r) k - B k)) \<le> rsize (RSTAR r)"
+  using boundary_RSTAR_step[OF assms(1,2)] assms(3) by simp
+
 lemma D1_RSTAR_le_rsize_from_child:
   assumes "apder_nf r" "apder_nf k"
     and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
