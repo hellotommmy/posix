@@ -11561,3 +11561,36 @@ Candidate `Rlin` (recursive closed-form expansion after `rsimpStrong_raw`) had 0
 BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Rewrite_Fallback` EXIT 0;
 `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
 `rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.
+
+## 2026-06-22 Route-1 SEQ lane (Codex): D1/boundary assembly green; head-core route corrected
+
+BRANCH: `card/route1-seq`. FILE: `r1seq/Card_Route1_Seq.thy`. Session `Posix_Card_Route1_Seq`.
+
+GREEN COMMITS (private heap build after each meaningful theory step; latest checkpoint also green):
+`36d219f` suc-head D1 assembly; `f5fc6c9` RCHAR combined budget case; `63b4389` RCHAR boundary budget;
+`6fecebc` empty boundary leaves; `699fa8a` RSTAR boundary step; `c88fbc4` RSEQ boundary telescope;
+`9ddc784` checked RALTS boundary-cover trap; `5cf8f5f` combined budget from suc-head + boundary-rsize;
+`0cbc557` D1 induction from boundary-rsize; `aeaa0ab` conditional boundary-rsize assembly;
+`831049f` mutual D1/boundary assembly; `5c70e04` required-head mutual assembly; `82f9fd2` required head cases narrowed;
+`87c2190` RALTS/RSTAR head interface; `601fdfc` RSTAR head root-shift split.
+
+MATH STATUS: original `seq_head_core_le_rsize` is checked false (earlier witnesses remain in the theory). The live
+route is now the corrected slack form: for clean RSEQ left heads, D1 and boundary both close if (i) L1 singleton cover,
+(ii) required head-suc for only reachable nonseq non-0/1 heads, and (iii) RALTS-boundary-rsize are supplied. In symbols,
+the main green interface is
+`D1 q k <= rsize q` AND
+`card((B(s4 q k)-B k) ∪ (single_term q k-B k)) <= rsize q`
+under L1 + required head-suc + RALTS-boundary. Required head-suc has been narrowed to RALTS-head and RSTAR-head only;
+RCHAR is green and RZERO/RONE/RSEQ heads are unreachable in the clean RSEQ-left position.
+
+CHECKED TRAP: the naive RALTS boundary branch cover is false already at
+`q = a·a*`, `k = a*`: `boundary(RALTS [q], k) ⊄ boundary(q,k)`.
+So do not use branch-boundary subset as the RALTS-boundary proof.
+
+BUILD: private USER_HOME command from `ROUTE_SEQ.md`, not the shared `.ps1`:
+`isabelle build -d . Posix_Card_Route1_Seq` with
+`USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/seq/.isa_home`; latest run EXIT 0.
+
+NEXT SMALLEST STEP: prove the RSTAR head `root_shift` brick
+`card(single_root(RSEQ(RSTAR r)t)k - B(s4(RSTAR r)(s4 t k))) <= 1`
+or attack the remaining RALTS-boundary-rsize obligation directly. Avoid the checked-false branch-boundary cover.
