@@ -1264,6 +1264,87 @@ next
   then show ?case by simp
 qed
 
+lemma D1_singleton_le_rsize_from_seq_head_suc_boundary_rsize_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> rsize t"
+    and clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q" "apder_nf k"
+  shows "D1 q k \<le> rsize q"
+  using clean
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    using D1_RZERO_le_rsize[of k] by simp
+next
+  case RONE
+  then show ?case
+    using D1_RONE_le_rsize[of k] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using D1_RCHAR_le_rsize[of k c] by simp
+next
+  case (RSEQ q1 q2)
+  have sh:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+      single_term q1 (rsimp4_SEQ_atom q2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom q2 k))) \<le> Suc (rsize q1)"
+    using RSEQ.prems by (intro seq_head) auto
+  have bnd:
+    "card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+      (single_term q2 k - B k)) \<le> rsize q2"
+    using RSEQ.prems by (intro boundary) auto
+  have combined:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+        single_term q1 (rsimp4_SEQ_atom q2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom q2 k))) +
+      card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+        (single_term q2 k - B k))
+      \<le> rsize (RSEQ q1 q2)"
+    by (rule combined_RSEQ_le_rsize_from_head_suc_boundary_rsize[OF sh bnd])
+  show ?case
+    by (rule D1_RSEQ_le_rsize_from_combined_head_boundary)
+      (use combined in simp)
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+    using RALTS.IH RALTS.prems by auto
+  show ?case
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches[OF L1 branch])
+next
+  case (RSTAR q)
+  let ?c = "rsimp4_SEQ_atom (RSTAR q) k"
+  have nf_c: "apder_nf ?c"
+    using RSTAR.prems by (intro apder_nf_s4) auto
+  have child: "D1 q ?c \<le> rsize q"
+    using RSTAR.IH[OF _ _ _ nf_c] RSTAR.prems by auto
+  show ?case
+    using D1_RSTAR_le_rsize_from_child[of q k] RSTAR.prems child by auto
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma D1_singleton_le_rsize_from_required_seq_head_boundary_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
