@@ -1244,13 +1244,15 @@ definition singleton_saa_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" wh
     (\<forall>k. row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
       strong_apder_acc (RALTS [q]) k)"
 
-definition singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
-  "singleton_saa_key_credit q t \<longleftrightarrow>
-    (\<forall>rows tail k.
-      t = RSEQ (RALTS rows) tail \<longrightarrow>
-      (RONE \<in> set rows \<or> (\<exists>s. tail = RSTAR s \<and> RSTAR s \<in> set rows)) \<longrightarrow>
-      row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom tail k)) \<subseteq>
-        strong_apder_acc (RALTS [q]) k)"
+fun singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "singleton_saa_key_credit q (RALTS rows) =
+    (\<forall>t \<in> set rows. singleton_saa_key_credit q t)"
+| "singleton_saa_key_credit q (RSEQ (RALTS rows) tail) =
+    ((RONE \<in> set rows \<or>
+      (\<exists>s. tail = RSTAR s \<and> RSTAR s \<in> set rows)) \<longrightarrow>
+      (\<forall>k. row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom tail k)) \<subseteq>
+        strong_apder_acc (RALTS [q]) k))"
+| "singleton_saa_key_credit q t = True"
 
 definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
   "singleton_saa_scan_ok q t \<longleftrightarrow>
@@ -1274,8 +1276,7 @@ proof -
         (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
        strong_apder_acc (RALTS [q]) k"
     using key one_in_rows
-    unfolding singleton_saa_key_credit_def
-    by blast
+    by simp
   have credit:
       "row_dlforms
         (rsimp7_SEQ_atom
@@ -1306,8 +1307,7 @@ proof -
         (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
        strong_apder_acc (RALTS [q]) k"
     using key star_in_rows
-    unfolding singleton_saa_key_credit_def
-    by blast
+    by simp
   have credit:
       "row_dlforms
         (rsimp7_SEQ_atom
@@ -1466,30 +1466,30 @@ lemma singleton_saa_ok_RRESIDUE_raw:
 
 lemma singleton_saa_key_credit_RZERO_raw:
   "singleton_saa_key_credit RZERO (rsimpStrong_raw RZERO)"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_key_credit_RONE_raw:
   "singleton_saa_key_credit RONE (rsimpStrong_raw RONE)"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_key_credit_RCHAR_raw:
   "singleton_saa_key_credit (RCHAR c) (rsimpStrong_raw (RCHAR c))"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_key_credit_RBACKREF4_raw:
   "singleton_saa_key_credit (RBACKREF4 r1 r2 r3 r4 cs)
     (rsimpStrong_raw (RBACKREF4 r1 r2 r3 r4 cs))"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_key_credit_RHALF_raw:
   "singleton_saa_key_credit (RHALF r cs rep)
     (rsimpStrong_raw (RHALF r cs rep))"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_key_credit_RRESIDUE_raw:
   "singleton_saa_key_credit (RRESIDUE cs rep)
     (rsimpStrong_raw (RRESIDUE cs rep))"
-  by (simp add: singleton_saa_key_credit_def)
+  by simp
 
 lemma singleton_saa_scan_ok_RZERO_raw:
   "singleton_saa_scan_ok RZERO (rsimpStrong_raw RZERO)"
@@ -1777,6 +1777,46 @@ next
     show ?thesis
       using a_def RALTS ys_ok tail_ok by auto
   qed (use Cons.prems a_def tail_ok in auto)
+qed
+
+lemma tagged_rflts_preserves_singleton_saa_key_credit:
+  assumes ok:
+      "\<forall>qt \<in> set xs. singleton_saa_key_credit (fst qt) (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rflts xs).
+    singleton_saa_key_credit (fst qt) (snd qt)"
+  using ok
+proof (induct xs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  obtain q t where a_def: "a = (q, t)"
+    by (cases a) auto
+  have tail_ok: "\<forall>qt \<in> set (tagged_rflts xs).
+      singleton_saa_key_credit (fst qt) (snd qt)"
+    by (rule Cons.hyps) (use Cons.prems in auto)
+  show ?case
+    using Cons.prems a_def tail_ok
+    by (cases t) auto
+qed
+
+lemma tagged_rflts_preserves_singleton_saa_scan_ok:
+  assumes ok: "\<forall>qt \<in> set xs. singleton_saa_scan_ok (fst qt) (snd qt)"
+    and nf: "\<forall>qt \<in> set (tagged_rflts xs). rtail_nf (snd qt)"
+  shows "\<forall>qt \<in> set (tagged_rflts xs).
+    singleton_saa_scan_ok (fst qt) (snd qt)"
+proof -
+  have ok_saa: "\<forall>qt \<in> set (tagged_rflts xs).
+      singleton_saa_ok (fst qt) (snd qt)"
+    by (rule tagged_rflts_preserves_singleton_saa_ok)
+      (use ok nf in \<open>auto simp add: singleton_saa_scan_ok_def\<close>)
+  have ok_key: "\<forall>qt \<in> set (tagged_rflts xs).
+      singleton_saa_key_credit (fst qt) (snd qt)"
+    by (rule tagged_rflts_preserves_singleton_saa_key_credit)
+      (use ok in \<open>auto simp add: singleton_saa_scan_ok_def\<close>)
+  show ?thesis
+    using ok_saa ok_key
+    by (auto simp add: singleton_saa_scan_ok_def)
 qed
 
 lemma tagged_Strong_ALTs_rows_preserves_singleton_saa_ok_if_suffix:
