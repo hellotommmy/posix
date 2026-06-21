@@ -736,6 +736,24 @@ next
     by (simp add: single_root_def B_alt)
 qed
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RONE_RZERO:
+  "card ((single_root (RSEQ (RSTAR r) RZERO) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RZERO RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom RZERO RONE)))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def)
+
+lemma single_root_RSEQ_RSTAR_root_boundary_RONE_RONE:
+  "card ((single_root (RSEQ (RSTAR r) RONE) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RONE RONE))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom RONE RONE)) -
+        (B RONE \<union> B (rsimp4_SEQ_atom RONE RONE)))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def)
+
 lemma single_root_RSEQ_RSTAR_root_boundary_RONE_RCHAR:
   "card ((single_root (RSEQ (RSTAR r) (RCHAR c)) RONE -
       B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RCHAR c) RONE))) \<union>
