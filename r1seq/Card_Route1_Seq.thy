@@ -88,6 +88,47 @@ next
   then show ?case by (cases k) auto
 qed
 
+lemma rsimp4_SEQ_atom_RONE_nf:
+  assumes "apder_nf r"
+  shows "rsimp4_SEQ_atom r RONE = r"
+  using assms
+proof (induction r)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by simp
+next
+  case (RSEQ r1 r2)
+  have r2_id: "rsimp4_SEQ_atom r2 RONE = r2"
+    using RSEQ by simp
+  have "rsimp4_SEQ_atom r1 r2 = RSEQ r1 r2"
+    using RSEQ by (cases r1; cases r2) auto
+  then show ?case
+    using r2_id by simp
+next
+  case (RALTS rs)
+  then show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case by simp
+next
+  case (RNTIMES r n)
+  then show ?case by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by simp
+next
+  case (RHALF r cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma single_term_RZERO [simp]: "single_term RZERO k = {}"
   by (simp add: single_term_def rsimpStrong_dlform_closure_def)
 
@@ -633,6 +674,60 @@ lemma single_root_RSEQ_RSTAR_root_shift_RZERO [simp]:
   "card (single_root (RSEQ (RSTAR r) t) RZERO -
       B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<le> 1"
   by (simp add: single_root_def B_alt rsimpStrong_dlform_closure_def)
+
+lemma single_root_RSEQ_RSTAR_root_shift_RONE_nf_t:
+  assumes "apder_nf t"
+  shows "card (single_root (RSEQ (RSTAR r) t) RONE -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RONE))) \<le> 1"
+  using assms
+proof (cases t)
+  case RZERO
+  then show ?thesis
+    by (cases "rsimpStrong_raw r")
+      (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+        rsimp7_SEQ_atom_def)
+next
+  case RONE
+  then show ?thesis
+    by (cases "rsimpStrong_raw r")
+      (simp_all add: single_root_def B_alt rsimpStrong_dlform_closure_def
+        rsimp7_SEQ_atom_def)
+next
+  case (RCHAR c)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RSEQ t1 t2)
+  have t_id: "rsimp4_SEQ_atom (RSEQ t1 t2) RONE = RSEQ t1 t2"
+    using assms RSEQ by (intro rsimp4_SEQ_atom_RONE_nf) simp
+  show ?thesis
+    using RSEQ t_id
+    by (simp add: single_root_def B_alt t_id)
+next
+  case (RALTS rs)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RSTAR t)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RNTIMES t n)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RBACKREF4 t1 t2 t3 t4 cs)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RHALF t cs rep)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    by (simp add: single_root_def B_alt)
+qed
 
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
