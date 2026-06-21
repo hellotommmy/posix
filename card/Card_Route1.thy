@@ -571,9 +571,9 @@ proof (rule card_strong_apder_acc_RALTS_diff_base_le_size_budget_spine
 qed
 
 lemma card_strong_apder_acc_diff_base_le_rsize_spine:
-  assumes ralts_budget:
+  assumes ralts_diff:
     "\<And>rs k. apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
-      D (RALTS rs) k \<le> ralts_size_budget rs"
+      D (RALTS rs) k \<le> rsize (RALTS rs)"
     and clean: "apder_clean r"
     and nfk: "apder_nf k"
   shows "D r k \<le> rsize r"
@@ -638,10 +638,8 @@ next
   case (RALTS rs)
   have nf_r: "apder_nf (RALTS rs)"
     using RALTS.prems(1) by (simp add: apder_clean_def)
-  have budget: "D (RALTS rs) k \<le> ralts_size_budget rs"
-    by (rule ralts_budget[OF nf_r RALTS.prems(2)])
-  then show ?case
-    by (simp add: ralts_size_budget_eq_rsizes)
+  show ?case
+    by (rule ralts_diff[OF nf_r RALTS.prems(2)])
 next
   case (RSTAR r)
   let ?ks = "rsimp4_SEQ_atom (RSTAR r) k"
@@ -741,6 +739,60 @@ proof -
     by (rule actual_gate_from_direct_universe_rowlevel[OF clean cardU])
 qed
 
+subsection \<open>Short integration route: reduce the spine to general-k RALTS diff\<close>
+
+lemma card_strong_apder_acc_diff_base_le_rsize_from_RALTS_diff_spine:
+  assumes RALTS_diff:
+    "\<And>rs k. apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k)
+        \<le> rsize (RALTS rs)"
+    and clean: "apder_clean r"
+    and nfk: "apder_nf k"
+  shows "D r k \<le> rsize r"
+proof (rule card_strong_apder_acc_diff_base_le_rsize_spine[OF _ clean nfk])
+  fix rs k
+  assume nfrs: "apder_nf (RALTS rs)"
+    and nfk': "apder_nf k"
+  have "card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k)
+      \<le> rsize (RALTS rs)"
+    by (rule RALTS_diff[OF nfrs nfk'])
+  then show "D (RALTS rs) k \<le> rsize (RALTS rs)"
+    by (simp add: D_def)
+qed
+
+lemma card_apder_strong_dlfrontier_le_from_RALTS_diff_spine:
+  assumes RALTS_diff:
+    "\<And>rs k. apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k)
+        \<le> rsize (RALTS rs)"
+    and clean: "apder_clean r"
+  shows "card (apder_strong_dlfrontier r) \<le> Suc (rsize r)"
+proof (rule card_apder_strong_dlfrontier_le_spine[OF _ clean])
+  fix r k
+  assume clean': "apder_clean r"
+    and nfk: "apder_nf k"
+  show "D r k \<le> rsize r"
+    by (rule card_strong_apder_acc_diff_base_le_rsize_from_RALTS_diff_spine
+        [OF RALTS_diff clean' nfk])
+qed
+
+corollary cubic_gate_unconditional_from_RALTS_diff_spine:
+  assumes RALTS_diff:
+    "\<And>rs k. apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k)
+        \<le> rsize (RALTS rs)"
+    and clean: "apder_clean r"
+  shows "rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s)))
+    \<le> 2 * (rsize r + 3) ^ 3"
+proof (rule cubic_gate_unconditional_spine[OF _ clean])
+  fix r k
+  assume clean': "apder_clean r"
+    and nfk: "apder_nf k"
+  show "D r k \<le> rsize r"
+    by (rule card_strong_apder_acc_diff_base_le_rsize_from_RALTS_diff_spine
+        [OF RALTS_diff clean' nfk])
+qed
+
 lemma card_strong_apder_acc_diff_base_le_rsize_from_L1_D1_spine:
   assumes L1_cover:
     "\<And>rs k. strong_apder_acc (RALTS rs) k \<subseteq>
@@ -756,9 +808,11 @@ proof (rule card_strong_apder_acc_diff_base_le_rsize_spine
   fix rs k
   assume nfrs: "apder_nf (RALTS rs)"
     and nfk': "apder_nf k"
-  show "D (RALTS rs) k \<le> ralts_size_budget rs"
+  have "D (RALTS rs) k \<le> ralts_size_budget rs"
     by (rule card_strong_apder_acc_RALTS_diff_base_le_size_budget_from_D1_spine
         [OF L1_cover singleton_bound nfrs nfk'])
+  then show "D (RALTS rs) k \<le> rsize (RALTS rs)"
+    by (simp add: ralts_size_budget_eq_rsizes)
 qed
 
 lemma card_apder_strong_dlfrontier_le_from_L1_D1_spine:

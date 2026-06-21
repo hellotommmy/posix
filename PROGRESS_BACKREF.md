@@ -11698,3 +11698,42 @@ REMAINING SWAP-IN POINT:
 exact singleton L2 `!!q k. apder_nf q ==> apder_nf k ==> D1 q k <= rsize q`.  Once the bnd/seq/cover lanes supply it,
 Secretary can feed it plus `L1_cover` into `cubic_gate_unconditional_from_L1_D1_spine`.  No attempt was made here to
 prove the nested ALTS bridge or L1 non-unit cover.
+
+## 2026-06-21 ROUTE-1 CARD integration lane (Codex): seq short route wired; gate now modulo one general-k RALTS diff
+
+BRANCH: `card/route1-formalize`.
+
+INPUT CHECKED: inspected `claude/route1-seq` commit `d0c4151`, which reports
+`Posix_Card_Route1_Seq` build EXIT 0 for the short route.  Did not merge the seq worktree file; copied only the
+mechanical spine shape into `card/Card_Route1.thy`.
+
+FILES CHANGED: `card/Card_Route1.thy`, `PROGRESS_BACKREF.md`.
+
+BUILD:
+`export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/formalize/.isa_home; export HOME=$USER_HOME; isabelle build -d . Posix_Card_Route1`
+EXIT 0.  `python .\agent_hunt_pipeline\scripts\backref_no_cheat_guard.py` OK.
+
+CHECKED, GREEN, no sorry:
+- Generalized the global spine's RALTS input from the older list-budget hypothesis
+  `D (RALTS rs) k <= ralts_size_budget rs`
+  to the weaker/natural constructor-size hypothesis
+  `D (RALTS rs) k <= rsize (RALTS rs)`.
+  Plain gloss: RALTS case may spend the ALTS constructor cell.
+- Added the seq-lane short-route entry point:
+  assuming
+  `!!rs k. apder_nf (RALTS rs) ==> apder_nf k ==>
+     card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k) <= rsize (RALTS rs)`,
+  proved
+  `apder_clean r ==> apder_nf k ==> D r k <= rsize r`.
+- From that, proved the target wrapper
+  `apder_clean r ==> card (apder_strong_dlfrontier r) <= Suc (rsize r)`,
+  and the cubic gate wrapper through `actual_gate_from_direct_universe_rowlevel`.
+- The older L1+D1 entry point remains green: its list-budget RALTS step implies the generalized RALTS-size input.
+
+NEW REMAINING SWAP-IN POINT:
+`RALTS_diff` exactly:
+`!!rs k. apder_nf (RALTS rs) ==> apder_nf k ==>
+   card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k) <= rsize (RALTS rs)`.
+Once COVER lands this general-k RALTS diff as a true lemma, feed it to
+`cubic_gate_unconditional_from_RALTS_diff_spine`.  The old singleton L2/seq_head_core route is no longer required for
+the gate on this spine, though its old wrappers are preserved.
