@@ -276,6 +276,19 @@ proof -
     using nf_seq nf_k budget by simp
 qed
 
+lemma boundary_RALTS_singleton_branch_cover_false:
+  fixes a :: char
+  defines "q \<equiv> RSEQ (RCHAR a) (RSTAR (RCHAR a))"
+  defines "k \<equiv> RSTAR (RCHAR a)"
+  shows "\<not>
+    ((B (rsimp4_SEQ_atom (RALTS [q]) k) - B k) \<union>
+      (single_term (RALTS [q]) k - B k) \<subseteq>
+     (B (rsimp4_SEQ_atom q k) - B k) \<union>
+      (single_term q k - B k))"
+  by (simp add: q_def k_def B_alt single_term_def
+      rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
