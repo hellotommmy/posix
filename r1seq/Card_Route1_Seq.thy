@@ -525,6 +525,41 @@ proof -
     by simp
 qed
 
+lemma seq_head_core_RALTS_le_rsize_from_cover_and_branches:
+  fixes rs t k
+  defines "c \<equiv> rsimp4_SEQ_atom t k"
+  assumes cover:
+    "single_root (RSEQ (RALTS rs) t) k \<union> single_term (RALTS rs) c
+      \<subseteq> (\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union> single_term q c)"
+    and branches:
+    "\<And>q. q \<in> set rs \<Longrightarrow>
+      card ((single_root (RSEQ q t) k \<union> single_term q c) -
+        (B k \<union> B c)) \<le> rsize q"
+  shows
+    "card ((single_root (RSEQ (RALTS rs) t) k \<union>
+             single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+            (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize (RALTS rs)"
+proof -
+  let ?Base = "B k \<union> B c"
+  let ?F = "\<lambda>q. single_root (RSEQ q t) k \<union> single_term q c"
+  have diff_sub:
+    "(single_root (RSEQ (RALTS rs) t) k \<union> single_term (RALTS rs) c) -
+       ?Base \<subseteq> (\<Union>q \<in> set rs. ?F q) - ?Base"
+    using cover by auto
+  have card_c: "card ((single_root (RSEQ (RALTS rs) t) k \<union>
+             single_term (RALTS rs) c) - ?Base) \<le>
+      card ((\<Union>q \<in> set rs. ?F q) - ?Base)"
+    by (rule card_mono) (use diff_sub in auto)
+  also have sum_bound: "... \<le> sum_list (map rsize rs)"
+    by (rule card_UN_list_Diff_le_sum_rsize) (erule branches)
+  finally have "card ((single_root (RSEQ (RALTS rs) t) k \<union>
+             single_term (RALTS rs) c) - ?Base) \<le> sum_list (map rsize rs)" .
+  then show ?thesis
+    unfolding c_def by simp
+qed
+
 lemma D1_singleton_le_rsize_from_seq_head_boundary_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
