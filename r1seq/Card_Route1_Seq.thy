@@ -1239,6 +1239,64 @@ proof -
     unfolding c_def by simp
 qed
 
+lemma required_seq_head_suc_from_RALTS_RSTAR_cases_clean:
+  assumes ralts_case:
+    "\<And>rs t k. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RALTS rs) t) k \<union>
+        single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RALTS rs))"
+    and rstar_case:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RSTAR r))"
+    and clean:
+    "legacy_rrexp h" "rntimes_free h" "apder_nf h" "rnonseq h"
+    "h \<noteq> RZERO" "h \<noteq> RONE" "apder_nf t" "apder_nf k"
+  shows
+    "card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+  using clean
+proof (cases h)
+  case RZERO
+  then show ?thesis using clean by simp
+next
+  case RONE
+  then show ?thesis using clean by simp
+next
+  case (RCHAR c)
+  then show ?thesis
+    using seq_head_core_RCHAR_le_rsize[of c t k] by simp
+next
+  case (RSEQ h1 h2)
+  then show ?thesis using clean by simp
+next
+  case (RALTS rs)
+  then show ?thesis
+    using ralts_case[of rs t k] clean by simp
+next
+  case (RSTAR r)
+  then show ?thesis
+    using rstar_case[of r t k] clean by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis using clean by simp
+next
+  case (RHALF r cs rep)
+  then show ?thesis using clean by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using clean by simp
+qed
+
 lemma required_seq_head_core_le_rsize_from_cases_clean:
   assumes rone_diff:
     "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
