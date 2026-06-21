@@ -838,6 +838,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma combined_RSEQ_le_rsize_from_head_suc_boundary_rsize:
+  assumes seq_head:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+      single_term r1 (rsimp4_SEQ_atom r2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom r2 k))) \<le> Suc (rsize r1)"
+    and boundary:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> rsize r2"
+  shows
+    "card ((single_root (RSEQ r1 r2) k \<union>
+        single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+      card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+        (single_term r2 k - B k))
+      \<le> rsize (RSEQ r1 r2)"
+  using seq_head boundary by simp
+
 lemma card_UN_list_Diff_le_sum_rsize:
   assumes "\<And>q. q \<in> set rs \<Longrightarrow> card (F q - C) \<le> rsize q"
   shows "card ((\<Union>q \<in> set rs. F q) - C) \<le> sum_list (map rsize rs)"
