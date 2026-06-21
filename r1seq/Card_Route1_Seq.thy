@@ -137,6 +137,23 @@ lemma seq_head_core_RZERO_le_rsize:
     \<le> rsize RZERO"
   by simp
 
+lemma seq_head_core_RONE_le_rsize_from_root_subset:
+  assumes root_sub:
+    "single_root (RSEQ RONE t) k \<subseteq> B (rsimp4_SEQ_atom t k)"
+  shows
+    "card ((single_root (RSEQ RONE t) k \<union>
+             single_term RONE (rsimp4_SEQ_atom t k))
+            - (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize RONE"
+proof -
+  let ?c = "rsimp4_SEQ_atom t k"
+  have root_empty:
+    "single_root (RSEQ RONE t) k - (B k \<union> B ?c) = {}"
+    using root_sub by auto
+  show ?thesis
+    by (simp add: root_empty)
+qed
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
