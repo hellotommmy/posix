@@ -183,9 +183,10 @@ Lane & Proves (Isabelle) & Role / method \\
 COVER & \code{strong\_apder\_acc\_RALTS\_singleton\_cover} (\textbf{L1}) &
 Feeds the \emph{RALTS budget}. Method: fix-(a), two carriers; the cross-prune-collapsed $s^{*}$ escapes are
 recovered by the \emph{acc} carrier, not a branch root. \\
-BND & \code{boundary\_term\_absorb} via \textbf{S1} &
-Feeds the \emph{RSEQ recurrence}. Method: the plain subset is false for $\code{RSEQ}$-root; use the asymmetric
-split (RSEQ$\to$$\Sstrong$-image $+$ \code{card\_image\_le}; non-RSEQ$\to$plain $+$ \code{card\_mono}). \\
+BND & \code{boundary\_term\_absorb} via \textbf{S1} (\emph{OPEN}) &
+Feeds the \emph{RSEQ recurrence}. The card target $\card X\le\card Y$ is OPEN: the asymmetric
+$\Sstrong$-image repair was REFUTED (ad485d1) even for RSEQ-root; a missing-image repair
+$X\setminus Y\subseteq\Sstrong\text{-image}(Y\setminus X)$ is proposed but unvalidated. \\
 SEQ & \code{seq\_head\_core\_le\_rsize} (\textbf{seq\_head}) &
 Feeds the \emph{RSEQ recurrence}. Method: charge $\rsz h$; \code{single\_root\_RSEQ\_RCHAR\_card\_le\_one}
 helper; induction on $h$ (uses \textbf{L1} on the RALTS-head case). \\

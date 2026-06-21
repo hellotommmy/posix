@@ -76,32 +76,17 @@ The PLAIN subset is FALSE for RSEQ-root t (min CE t=a·a*, k=a*: LHS has the σ7
 single_root has the UNcollapsed a·(a*·a*); distinct rows, neither contains the other ⇒ card_mono
 CANNOT rescue). ABANDON the card-EQUALITY refactor (sets differ; and card X=card B does NOT give
 card(X∪C)=card(B∪C) — that `sub` step was invalid). The CARD form is TRUE (0/14.7k all ctors).
-Prove it with an ASYMMETRIC two-pronged split:
-
-lemma boundary_excess_RSEQ_subset_image:        (* RSEQ-root ONLY; validates 0/5768 *)
-  assumes "is_RSEQ t"
-  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
-           ⊆ rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)"
-  (* then card_image_le gives the card bound for the SEQ case.
-     The S-IMAGE form FAILS for ALTS-root (S over-collapses, 96 viol) — do NOT use it uniformly. *)
-
-lemma boundary_excess_nonseq_subset:             (* non-RSEQ; PLAIN subset HOLDS, 0 viol *)
-  assumes "rnonseq t"
-  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
-           ⊆ single_root t k - strong_apder_acc RONE k"
-  by (cases t; cases k;
-      simp_all add: strong_apder_acc_def single_root_def rsimpStrong_dlform_closure_def
-                    rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def
-                    rsimp4_SEQ_atom.simps(1) rfrontier.simps Let_def
-        split: rrexp.splits)
-  (* the ~100 leftover RZERO-root × all-k subgoals close because rsimp4_SEQ_atom RZERO k = RZERO and
-     rfrontier RZERO = {} make BOTH sides empty — adding rsimp4_SEQ_atom.simps(1)+rfrontier.simps
-     discharges them. That is exactly what stalled the (induction t; cases k)(simp_all). *)
-
-Then boundary_excess_le_root_excess = (cases t): RSEQ via the image lemma + card_image_le; all other
-branches via boundary_excess_nonseq_subset + card_mono. boundary_term_absorb is then sound as
-written — it consumes ONLY the card form S1. (If `is_RSEQ`/`rnonseq` predicates aren't in scope, use
-the existing rnonseq from DEFINITIONS and a cases on the RSEQ constructor.)
+⚠ S1 IS CURRENTLY OPEN — no validated route. The card target is
+  card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
+    <= card (single_root t k - strong_apder_acc RONE k).
+REFUTED (commit ad485d1): the "S-image subset" X ⊆ rsimpStrong_raw`(Y) is FALSE EVEN for RSEQ-root, so
+the old asymmetric (RSEQ→S-image + card_image_le / non-SEQ→plain) split is DEAD — do NOT attempt it (the
+old "0/5768 validated" was a coverage-gap artifact). A new repair (X−Y ⊆ S-image(Y−X) +
+card_le_of_missing_image) is PROPOSED but NOT yet validated — do NOT grind it into Isabelle either.
+For now: keep the 3 landed helpers (finite_single_root, finite_single_term,
+strong_apder_acc_singleton_decomp); do NOT land S1/boundary_term_absorb on a guessed route; FAIL-STOP +
+report. The Secretary (Claude) is falsification-probing the new repair and will hand you a VALIDATED
+skeleton via ROUTE1_CRUX_STATUS.md §S1 before you formalize.
 ```
 
 ---
@@ -223,8 +208,9 @@ GOAL: a self-contained LaTeX document (article, amsmath/amsthm), compiled to PDF
   3. The singleton-cover design — L1 (SAA-level singleton cover), L2 (boundary_term_absorb via S1;
      seq_head_core), the RSEQ recurrence D1(SEQ r1 r2)k ≤ rsize r1 + D1 r2 k, the RALTS budget step,
      the global induction, the bridge to card ≤ rsize+1.
-  4. Crux status (from ROUTE1_CRUX_STATUS.md) — L1 cover [VALIDATED TRUE], S1 (plain subset FALSE,
-     card form TRUE via the asymmetric RSEQ-image / non-SEQ-plain split) [VALIDATED], seq_head_core
+  4. Crux status (from ROUTE1_CRUX_STATUS.md) — L1 cover [VALIDATED TRUE], S1 (plain subset FALSE;
+     card target card X ≤ card Y still OPEN — the asymmetric S-image repair was REFUTED in ad485d1, a
+     missing-image repair X−Y ⊆ S-image(Y−X) is proposed but unvalidated) [OPEN], seq_head_core
      [VALIDATED TRUE & tight]. Explain the cross-prune wall (σ7 collapses a leading a*·a*→a* but the
      set-level prune keeps uncollapsed (s*·s*) survivors) and how each crux handles it.
   5. Formalization status, per lemma — green vs in-progress on the lanes.
@@ -350,25 +336,15 @@ C:\Users\Chengsong\Documents\AIPV2026Notes\posix-codex\ROUTE1_CRUX_STATUS.md (§
 The PLAIN subset is FALSE for RSEQ-root t (CE t=a·a*, k=a*: LHS has the σ7-COLLAPSED row a·a*,
 single_root has the UNcollapsed a·(a*·a*); distinct, neither contains the other ⇒ card_mono cannot
 rescue). ABANDON card-equality (sets differ; card X=card B ⇏ card(X∪C)=card(B∪C)). The CARD form is
-TRUE (0/14.7k). Prove it with an ASYMMETRIC two-pronged split:
-
-lemma boundary_excess_RSEQ_subset_image:   (* RSEQ-root ONLY; 0/5768 *)
-  assumes "is_RSEQ t"
-  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
-           ⊆ rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)"
-  (* then card_image_le. The S-image FAILS for ALTS-root (96 viol) — do NOT use it uniformly. *)
-
-lemma boundary_excess_nonseq_subset:        (* non-RSEQ; PLAIN subset holds, 0 viol *)
-  assumes "rnonseq t"
-  shows "strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
-           ⊆ single_root t k - strong_apder_acc RONE k"
-  by (cases t; cases k; simp_all add: strong_apder_acc_def single_root_def
-       rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def
-       rsimp4_SEQ_atom.simps(1) rfrontier.simps Let_def split: rrexp.splits)
-  (* the ~100 RZERO-root subgoals close via rsimp4_SEQ_atom RZERO k = RZERO + rfrontier RZERO = {} *)
-
-Then boundary_excess_le_root_excess = (cases t): RSEQ via image + card_image_le, others via plain +
-card_mono. Land boundary_term_absorb on top (consumes only the card form). Commit green; report.
+⚠ S1's PROOF ROUTE is REFUTED — do NOT grind. The "S-image subset" X ⊆ rsimpStrong_raw`(Y) is FALSE
+even for RSEQ-root (commit ad485d1; the old "0/5768" was a coverage-gap artifact), so the old asymmetric
+(RSEQ→S-image / non-SEQ→plain) split is DEAD. The card target
+  card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
+    <= card (single_root t k - strong_apder_acc RONE k)
+is OPEN. A new repair (X−Y ⊆ S-image(Y−X) + card_le_of_missing_image) is PROPOSED but NOT yet validated —
+do NOT grind it. Keep the 3 landed helpers, FAIL-STOP + report; the Secretary (Claude) is
+falsification-probing the repair and will supply a VALIDATED skeleton via ROUTE1_CRUX_STATUS.md §S1
+before you formalize.
 ```
 
 ## ▶ Claude Lane SEQ — `posix-route1\claude-seq`  (races GPT seq; backup)

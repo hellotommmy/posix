@@ -51,13 +51,13 @@ dead root-only device `singleton_source_ok` / `dl_le_pruned_altseq` (false 295/7
 
 ---
 
-## S1 — boundary-excess / `boundary_term_absorb`  `[VALIDATED]`
+## S1 — boundary-excess / `boundary_term_absorb`  `[card target OPEN — image repair REFUTED (ad485d1)]`
 
 The **PLAIN subset** `A(RONE, s4 t k) ⊆ single_root t k ∪ B k` is **FALSE for RSEQ-root t**
 (min CE t=`a·a*`, k=`a*`: LHS has the σ7-collapsed row `a·a*`, single_root has the uncollapsed
 `a·(a*·a*)`; distinct rows, neither contains the other ⇒ `card_mono` cannot rescue — the a*·a*
 σ7 depth-of-collapse mismatch). The **CARD inequality** that `boundary_term_absorb` actually needs
-is **TRUE** (0/14.7k all constructors):
+is the still-**OPEN / unrefuted** target (validated 0/14.7k, but validation alone is suspect here — see the refutation below):
 
 ```
 card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
@@ -65,7 +65,31 @@ card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
 ```
 
 The bnd lane's card-EQUALITY refactor was doomed (sets differ; and `card X = card B` ⇏
-`card(X∪C)=card(B∪C)`). **Fix = ASYMMETRIC two-pronged split:**
+`card(X∪C)=card(B∪C)`).
+
+⚠ **REFUTED & SUPERSEDED (commit `ad485d1`).** Notation: X = boundary excess =
+`strong_apder_acc RONE (rsimp4_SEQ_atom t k) − strong_apder_acc RONE k`; Y = root excess =
+`single_root t k − strong_apder_acc RONE k`; S = `rsimpStrong_raw`; write S-image(Z) for the Isabelle
+image of Z under S. The card target `card X ≤ card Y` is still **OPEN / unrefuted**.
+
+**REFUTED:** the S-image subset `X ⊆ S-image(Y)` is FALSE **even for RSEQ-root** (counterexample in
+commit `ad485d1`). The earlier "0/5768 validated" was a coverage-gap artifact — same sampling trap as
+route-2's M=1. So `card_image_le` via `X ⊆ S-image(Y)` is DEAD. Do NOT re-propose the asymmetric
+RSEQ→S-image / non-SEQ→plain split.
+
+**NEW PROPOSED REPAIR — NOT yet validated; the Secretary (Claude) is falsification-probing it. Do NOT
+grind it into Isabelle until that probe confirms it (else it is the same "grind an unvalidated route"
+mistake).**
+```
+X − Y  ⊆  S-image(Y − X)        -- the part of X missing from Y = S-image of the part of Y missing from X
+card_le_of_missing_image :  finite X ⟹ finite Y ⟹ (X − Y) ⊆ S-image(Y − X) ⟹ card X ≤ card Y
+   -- a surjection (Y − X) ↠ (X − Y) via S gives card(X−Y) ≤ card(Y−X), hence card X ≤ card Y
+```
+
+**BND theory state (ad485d1):** only 3 helpers landed — `finite_single_root`, `finite_single_term`,
+`strong_apder_acc_singleton_decomp`. S1 and `boundary_term_absorb` are still comment targets, not landed.
+
+**Original two-pronged fix below — DEAD, do not revive (record only):**
 - RSEQ-root → **S-image subset** `A−B ⊆ rsimpStrong_raw \` (single_root−B)` (0/5768) + `card_image_le`.
   (The S-image FAILS for ALTS-root — S over-collapses, 96 viol — so it must NOT be used uniformly.)
 - non-RSEQ (`rnonseq t`) → **plain subset** holds (0 viol), `(cases t; cases k; simp_all …)`;

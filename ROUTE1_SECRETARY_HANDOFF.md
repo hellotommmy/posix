@@ -53,9 +53,12 @@ size-domination route is not the plan). Only prove track (ii) — the size bound
 - **L1 (cover)** `strong_apder_acc (RALTS rs) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k)` — TRUE
   (>12M checks). Proof: fix-(a), two carriers; cross-prune-collapsed `s*` escapes routed through the
   **acc** carrier, NOT a branch root (root-only device is FALSE — do not re-propose).
-- **S1 (boundary_term_absorb)** — the PLAIN subset is FALSE for RSEQ-root; the CARD form is TRUE via an
-  ASYMMETRIC split (RSEQ→S-image + `card_image_le`; non-RSEQ→plain + `card_mono`). The card-EQUALITY
-  refactor is dead.
+- **S1 (boundary_term_absorb)** — the PLAIN subset is FALSE for RSEQ-root; the CARD target `card X ≤ card Y`
+  is **OPEN**. ⚠ The asymmetric S-image repair (`X ⊆ S-image(Y)`) is **REFUTED even for RSEQ-root** (commit
+  `ad485d1`; the old "0/5768" was a coverage artifact). A new repair (`X−Y ⊆ S-image(Y−X)` +
+  `card_le_of_missing_image`) is PROPOSED but UNVALIDATED — the Claude secretary is probing it; do NOT
+  formalize S1 on any guessed route until a validated skeleton lands in `ROUTE1_CRUX_STATUS.md §S1`. The
+  card-EQUALITY refactor is also dead.
 - **seq_head_core** — TRUE & tight; charge `rsize h` (NOT the collapsed-continuation recurrence D1).
 
 ## 3. The lanes you supervise (each its own worktree, branch, session, private heap)
