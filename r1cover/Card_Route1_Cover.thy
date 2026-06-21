@@ -990,6 +990,28 @@ definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> boo
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
 
+lemma rsimpStrong_ALTs_raw_single_RONE [simp]:
+  "rsimpStrong_ALTs_raw [RONE] = RONE"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma singleton_saa_ok_RZERO_raw:
+  "singleton_saa_ok RZERO (rsimpStrong_raw RZERO)"
+  by (simp add: singleton_saa_ok_def rsimp7_SEQ_atom_def)
+
+lemma singleton_saa_ok_RONE_raw:
+  "singleton_saa_ok RONE (rsimpStrong_raw RONE)"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have root:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [RONE]) k)) \<subseteq>
+       strong_apder_acc (RALTS [RONE]) k"
+    by (rule row_dlforms_singleton_root_subset_strong_apder_acc)
+  show "row_dlforms (rsimp7_SEQ_atom (rsimpStrong_raw RONE)
+      (rsimpStrong_raw k)) \<subseteq> strong_apder_acc (RALTS [RONE]) k"
+    using root by (cases k) simp_all
+qed
+
 lemma singleton_saa_ok_prune_pair_raw_if_suffix:
   assumes ok: "singleton_saa_ok q later"
     and later_nf: "rtail_nf later"
