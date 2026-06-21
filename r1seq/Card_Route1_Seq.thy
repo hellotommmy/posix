@@ -751,6 +751,24 @@ lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RCHAR:
       rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       split: if_splits intro!: card_subset_singleton_le_one)
 
+lemma single_root_RSEQ_RSTAR_root_shift_body_RZERO_RCHAR_RSTAR:
+  assumes "rsimpStrong_raw r = RZERO"
+  shows "card (single_root (RSEQ (RSTAR r) (RSTAR s)) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) (RCHAR a)))) \<le> 1"
+  using assms by (cases "rsimpStrong_raw s")
+    (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      split: if_splits intro!: card_subset_singleton_le_one)
+
+lemma single_root_RSEQ_RSTAR_root_shift_body_RONE_RCHAR_RSTAR:
+  assumes "rsimpStrong_raw r = RONE"
+  shows "card (single_root (RSEQ (RSTAR r) (RSTAR s)) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) (RCHAR a)))) \<le> 1"
+  using assms by (cases "rsimpStrong_raw s")
+    (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      split: if_splits intro!: card_subset_singleton_le_one)
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
