@@ -1003,6 +1003,14 @@ lemma rsimpStrong_ALTs_raw_single_RCHAR [simp]:
   "rsimpStrong_ALTs_raw [RCHAR c] = RCHAR c"
   by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
 
+lemma rsimpStrong_ALTs_raw_single_nonalt:
+  assumes "nonalt r" and "r \<noteq> RZERO"
+  shows "rsimpStrong_ALTs_raw [r] = r"
+  using assms
+  by (cases r)
+    (simp_all add: rsimpStrong_ALTs_raw_def
+      rsimpStrong_prune_rows_raw_def rsimpStrong_prune_pair_raw_def)
+
 lemma singleton_saa_ok_RZERO_raw:
   "singleton_saa_ok RZERO (rsimpStrong_raw RZERO)"
   by (simp add: singleton_saa_ok_def rsimp7_SEQ_atom_def)
