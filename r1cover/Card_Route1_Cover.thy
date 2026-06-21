@@ -1046,6 +1046,56 @@ proof
       (simp_all add: rsimpStrong_raw_rsimp4_SEQ_atom_RCHAR)
 qed
 
+lemma singleton_saa_ok_raw_self_nonalt:
+  assumes strong: "rsimpStrong_raw q = q"
+    and tail_nf: "rtail_nf q"
+    and nonalt: "nonalt q"
+    and nonzero: "q \<noteq> RZERO"
+  shows "singleton_saa_ok q q"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have root:
+      "row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_singleton_root_subset_strong_apder_acc)
+  have flat: "rflts [q] = [q]"
+    using nonalt nonzero by (cases q) simp_all
+  have alt_raw: "rsimpStrong_ALTs_raw (rflts [q]) = q"
+    using nonalt nonzero
+    by (simp add: flat rsimpStrong_ALTs_raw_single_nonalt)
+  show "row_dlforms (rsimp7_SEQ_atom q (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+  proof (cases k)
+    case RONE
+    have stable: "rsimp7_SEQ_atom q RONE = q"
+      by (rule rtail_nf_RONE_stable7[OF tail_nf])
+    show ?thesis
+      using root strong alt_raw RONE stable by simp
+  qed (use root strong alt_raw in
+      \<open>simp_all add: rsimpStrong_ALTs_raw_single_nonalt\<close>)
+qed
+
+lemma singleton_saa_ok_RBACKREF4_raw:
+  "singleton_saa_ok (RBACKREF4 r1 r2 r3 r4 cs)
+    (rsimpStrong_raw (RBACKREF4 r1 r2 r3 r4 cs))"
+  using singleton_saa_ok_raw_self_nonalt
+    [of "RBACKREF4 r1 r2 r3 r4 cs"]
+  by simp
+
+lemma singleton_saa_ok_RHALF_raw:
+  "singleton_saa_ok (RHALF r cs rep)
+    (rsimpStrong_raw (RHALF r cs rep))"
+  using singleton_saa_ok_raw_self_nonalt[of "RHALF r cs rep"]
+  by simp
+
+lemma singleton_saa_ok_RRESIDUE_raw:
+  "singleton_saa_ok (RRESIDUE cs rep)
+    (rsimpStrong_raw (RRESIDUE cs rep))"
+  using singleton_saa_ok_raw_self_nonalt[of "RRESIDUE cs rep"]
+  by simp
+
 lemma singleton_saa_key_credit_RZERO_raw:
   "singleton_saa_key_credit RZERO (rsimpStrong_raw RZERO)"
   by (simp add: singleton_saa_key_credit_def)
