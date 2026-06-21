@@ -35,6 +35,19 @@ lemma A_single_decomp:
   by (simp add: strong_apder_acc_def single_root_def single_term_def
       rsimpStrong_dlform_closure_def)
 
+lemma A_single_RZERO_eq [simp]:
+  "A (RALTS [RZERO]) k = A RZERO k"
+  unfolding strong_apder_acc_def
+  by (cases k)
+    (simp_all add: rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma A_single_RCHAR_eq [simp]:
+  "A (RALTS [RCHAR c]) k = A (RCHAR c) k"
+  unfolding strong_apder_acc_def
+  by (cases k) (auto simp add: rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
 lemma B_alt:
   "B k = rsimpStrong_dlform_closure (rfrontier k)"
   by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
