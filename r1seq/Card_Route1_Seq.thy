@@ -443,6 +443,29 @@ lemma D1_RCHAR_le_rsize:
   using card_strong_apder_acc_RCHAR_diff_base_le[OF assms, of c]
   by simp
 
+lemma boundary_RCHAR_le_rsize:
+  assumes "apder_nf k"
+  shows
+    "card ((B (rsimp4_SEQ_atom (RCHAR c) k) - B k) \<union>
+      (single_term (RCHAR c) k - B k)) \<le> rsize (RCHAR c)"
+proof -
+  have sub:
+    "B (rsimp4_SEQ_atom (RCHAR c) k) \<subseteq> A (RALTS [RCHAR c]) k"
+    by (cases k)
+      (auto simp add: B_alt strong_apder_acc_def
+        rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+        rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+  have "card (B (rsimp4_SEQ_atom (RCHAR c) k) - B k) \<le>
+      card (A (RALTS [RCHAR c]) k - B k)"
+    by (rule card_mono) (use sub in auto)
+  also have "... = D1 (RCHAR c) k"
+    by (simp add: D1_def)
+  also have "... \<le> rsize (RCHAR c)"
+    by (rule D1_RCHAR_le_rsize[OF assms])
+  finally show ?thesis
+    by simp
+qed
+
 lemma rsimpStrong_ALTs_raw_singleton_RONE [simp]:
   "rsimpStrong_ALTs_raw [RONE] = RONE"
   by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
