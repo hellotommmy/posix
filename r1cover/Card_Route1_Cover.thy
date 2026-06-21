@@ -1522,6 +1522,21 @@ next
   qed
 qed
 
+lemma strong_apder_acc_RALTS_singleton_cover_if_tagged_saa_ok:
+  assumes ok: "\<forall>qt \<in> set (tagged_Strong_ALTs_rows rs).
+    singleton_saa_ok (fst qt) (snd qt)"
+  shows "strong_apder_acc (RALTS rs) k \<subseteq>
+    (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+proof (rule strong_apder_acc_RALTS_singleton_cover_if_tagged_inv)
+  fix q t
+  assume qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows rs)"
+  have "singleton_saa_ok q t"
+    using ok qt by force
+  then show "row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+      strong_apder_acc (RALTS [q]) k"
+    unfolding singleton_saa_ok_def by blast
+qed
+
 lemma strong_apder_acc_RALTS_singleton_cover_if_root_split:
   assumes root_split:
       "rsimpStrong_dlform_closure
