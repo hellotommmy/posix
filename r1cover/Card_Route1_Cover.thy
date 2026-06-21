@@ -935,6 +935,58 @@ proof -
     using credit acc_cover by blast
 qed
 
+lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_term:
+  assumes alt_one: "rsimp_ALTs ps = RONE"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+    and star_term: "RSTAR s \<in> apder_terms q"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RONE_star_tail_credit_fix
+        [OF alt_one star_fix])
+  have acc_cover:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_RSTAR_apder_term_subset_saa[OF star_term])
+  show ?thesis
+    using credit acc_cover by blast
+qed
+
+lemma row_dlforms_rsimp_ALTs_RSTAR_self_subset_saa_if_term:
+  assumes alt_star: "rsimp_ALTs ps = RSTAR s"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+    and star_term: "RSTAR s \<in> apder_terms q"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+proof -
+  have credit:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))"
+    by (rule row_dlforms_rsimp_ALTs_RSTAR_self_credit_fix
+        [OF alt_star star_fix])
+  have acc_cover:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_RSTAR_apder_term_subset_saa[OF star_term])
+  show ?thesis
+    using credit acc_cover by blast
+qed
+
 type_synonym tagged_row = "rrexp \<times> rrexp"
 
 lemma map_snd_map_Pair [simp]:
