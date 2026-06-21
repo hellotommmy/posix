@@ -426,6 +426,48 @@ next
   qed
 qed
 
+lemma row_dlforms_rsimp7_prune_pair_shared_RSTAR_tail_subset_later_or_credit:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and rrs_props: "\<forall>q \<in> set rrs.
+      rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and one_credit:
+      "rsimp_ALTs (rprune_eq_against lrs rrs) = RONE \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom
+              (rsimp_ALTs (rprune_eq_against lrs rrs)) (RSTAR s)) K) \<subseteq> C"
+    and star_credit:
+      "rsimp_ALTs (rprune_eq_against lrs rrs) = RSTAR s \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom
+              (rsimp_ALTs (rprune_eq_against lrs rrs)) (RSTAR s)) K) \<subseteq> C"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom (rsimpStrong_prune_pair_raw earlier later) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom later K) \<union> C"
+proof (cases "rprune_eq_against lrs rrs = []")
+  case True
+  then show ?thesis
+    using earlier later
+    by (simp add: rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+next
+  case nonempty: False
+  have pruned: "set (rprune_eq_against lrs rrs) \<subseteq> set rrs"
+    by (rule rprune_eq_against_set_subset_local)
+  have nested:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom
+            (rsimp_ALTs (rprune_eq_against lrs rrs)) (RSTAR s)) K) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS rrs) (RSTAR s)) K) \<union> C"
+    by (rule row_dlforms_rsimp7_nested_altseq_RSTAR_tail_subset_later_or_credit
+        [OF pruned rrs_props one_credit star_credit])
+  show ?thesis
+    using earlier later nonempty nested
+    by (simp add: rsimpStrong_prune_pair_raw_def)
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
