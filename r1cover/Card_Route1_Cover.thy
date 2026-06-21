@@ -281,6 +281,83 @@ next
   then show ?case by (cases k) simp_all
 qed
 
+lemma row_dlforms_rsimp7_assoc_RSTAR_tail_nonstar_head_subset:
+  assumes a_nf: "rtail_nf a"
+    and a0: "a \<noteq> RZERO"
+    and a1: "a \<noteq> RONE"
+    and no_star: "\<And>r. a \<noteq> RSTAR r"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom (rsimp7_SEQ_atom a (RSTAR s)) K) \<subseteq>
+    row_dlforms
+      (rsimp7_SEQ_atom a (rsimp4_SEQ_atom (RSTAR s) K))"
+proof -
+  have mid_not_star:
+      "\<And>r. rsimp4_SEQ_atom a (RSTAR s) \<noteq> RSTAR r"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR
+        [OF a_nf a0 a1]) simp_all
+  have first_eq:
+      "rsimp7_SEQ_atom a (RSTAR s) =
+       rsimp4_SEQ_atom a (RSTAR s)"
+    using no_star
+    by (cases a) (simp_all add: rsimp7_SEQ_atom_def)
+  have second_eq:
+      "rsimp7_SEQ_atom (rsimp4_SEQ_atom a (RSTAR s)) K =
+       rsimp4_SEQ_atom (rsimp4_SEQ_atom a (RSTAR s)) K"
+    using mid_not_star
+  proof (cases "rsimp4_SEQ_atom a (RSTAR s)")
+    case (RSTAR r)
+    then show ?thesis
+      using mid_not_star[of r] by simp
+  qed (simp_all add: rsimp7_SEQ_atom_def)
+  have left_eq:
+      "rsimp7_SEQ_atom (rsimp7_SEQ_atom a (RSTAR s)) K =
+       rsimp4_SEQ_atom (rsimp4_SEQ_atom a (RSTAR s)) K"
+    by (simp add: first_eq second_eq)
+  have right_eq:
+      "rsimp7_SEQ_atom a (rsimp4_SEQ_atom (RSTAR s) K) =
+       rsimp4_SEQ_atom a (rsimp4_SEQ_atom (RSTAR s) K)"
+    using no_star
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using no_star[of r] by simp
+  qed (simp_all add: rsimp7_SEQ_atom_def)
+  show ?thesis
+    by (simp add: left_eq right_eq rsimp4_SEQ_atom_assoc)
+qed
+
+lemma row_dlforms_rsimp7_assoc_RSTAR_tail_no_escape_subset:
+  assumes a_nf: "rtail_nf a"
+    and a_ne_one: "a \<noteq> RONE"
+    and a_ne_self: "a \<noteq> RSTAR s"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom (rsimp7_SEQ_atom a (RSTAR s)) K) \<subseteq>
+    row_dlforms
+      (rsimp7_SEQ_atom a (rsimp4_SEQ_atom (RSTAR s) K))"
+proof (cases "a = RZERO")
+  case True
+  then show ?thesis by (simp add: rsimp7_SEQ_atom_def)
+next
+  case a0: False
+  show ?thesis
+  proof (cases "\<exists>r. a = RSTAR r")
+    case True
+    then obtain r where r: "a = RSTAR r"
+      by blast
+    have "r \<noteq> s"
+      using a_ne_self r by auto
+    then show ?thesis
+      using r by (cases K)
+        (auto simp add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case no_star: False
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSTAR_tail_nonstar_head_subset
+          [OF a_nf a0 a_ne_one])
+        (use no_star in blast)
+  qed
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
