@@ -220,6 +220,67 @@ next
   then show ?case by (cases k) simp_all
 qed
 
+lemma rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR:
+  assumes p_nf: "rtail_nf p"
+    and p0: "p \<noteq> RZERO"
+    and p1: "p \<noteq> RONE"
+    and k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+  shows "rsimp4_SEQ_atom p k \<noteq> RSTAR s"
+  using p_nf p0 p1 k0 k1
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by (cases k) simp_all
+next
+  case (RSEQ p1 p2)
+  have p1_nf: "rtail_nf p1"
+    using RSEQ.prems by simp
+  have p1_0: "p1 \<noteq> RZERO"
+    using RSEQ.prems by simp
+  have p1_1: "p1 \<noteq> RONE"
+    using RSEQ.prems by simp
+  have p2_nf: "rtail_nf p2"
+    using RSEQ.prems by simp
+  have p2_0: "p2 \<noteq> RZERO"
+    using RSEQ.prems by simp
+  have p2_1: "p2 \<noteq> RONE"
+    using RSEQ.prems by simp
+  have tail_nonunit:
+      "rsimp4_SEQ_atom p2 k \<noteq> RZERO \<and>
+       rsimp4_SEQ_atom p2 k \<noteq> RONE"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1 RSEQ.prems(4,5)])
+  have head_not_star:
+      "rsimp4_SEQ_atom p1 (rsimp4_SEQ_atom p2 k) \<noteq> RSTAR s"
+    by (rule RSEQ.hyps(1)[OF p1_nf p1_0 p1_1])
+      (use tail_nonunit in auto)
+  then show ?case by simp
+next
+  case (RALTS rs)
+  then show ?case by (cases k) simp_all
+next
+  case (RSTAR r)
+  then show ?case by (cases k) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case by (cases k) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (cases k) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case by (cases k) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (cases k) simp_all
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
