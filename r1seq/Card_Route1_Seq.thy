@@ -309,6 +309,12 @@ proof -
     by simp
 qed
 
+lemma D1_RSTAR_le_rsize_from_child:
+  assumes "apder_nf r" "apder_nf k"
+    and "D1 r (rsimp4_SEQ_atom (RSTAR r) k) \<le> rsize r"
+  shows "D1 (RSTAR r) k \<le> rsize (RSTAR r)"
+  using D1_RSTAR_step[OF assms(1,2)] assms(3) by simp
+
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
    lemma seq_head_core_le_rsize:
      assumes "apder_nf h" "apder_nf t" "apder_nf k"
