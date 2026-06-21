@@ -17,6 +17,19 @@ definition single_term :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" wh
   "single_term q k =
      rsimpStrong_dlform_closure (apder_term_frontier_acc q k)"
 
+lemma finite_single_root [simp]:
+  "finite (single_root q k)"
+  by (simp add: single_root_def)
+
+lemma finite_single_term [simp]:
+  "finite (single_term q k)"
+  by (simp add: single_term_def)
+
+lemma strong_apder_acc_singleton_decomp:
+  "strong_apder_acc (RALTS [q]) k = single_root q k \<union> single_term q k"
+  by (simp add: strong_apder_acc_def single_root_def single_term_def
+      rsimpStrong_dlform_closure_def)
+
 (* TARGETS (prove below; statements + steer in ROUTE_BND.md):
    (S1)  card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
            <= card (single_root t k - strong_apder_acc RONE k)

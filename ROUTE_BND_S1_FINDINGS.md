@@ -16,17 +16,19 @@ The worktree currently has a small helper edit in `r1bnd/Card_Route1_Bnd.thy`:
 
 The session builds green with the private `USER_HOME` heap command from `ROUTE_BND.md`.
 
-## Negative result: the RSEQ image skeleton is false
+## Negative result: [REFUTED helper only] uniform_S_image_boundary_subset
 
-The proposed RSEQ half of the S1 skeleton was:
+The refuted helper is the stronger image-subset statement:
 
 ```isabelle
 strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
   \<subseteq> rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)
 ```
 
-This statement is false.  A temporary Isabelle lemma, added only for verification and
-then removed, proved the following witness under the private heap build:
+This helper is false.  This does **not** refute the S1 cardinal inequality, and
+does **not** refute `boundary_term_absorb`.  A temporary Isabelle lemma, added
+only for verification and then removed, proved the following witness under the
+private heap build:
 
 ```isabelle
 fixes a
@@ -51,5 +53,11 @@ by (simp_all add: t_def k_def bad_def strong_apder_acc_def single_root_def
 
 Consequently the `rsimpStrong_raw` image route plus `card_image_le` cannot prove S1.
 This is a fail-stop result for that skeleton, not a new route.
+
+Important classification: this witness is `RSEQ`-root, since the top constructor of
+`t` is `RSEQ`.  Thus it also refutes the proposed RSEQ image branch as stated; this
+contradicts any route status claiming that branch is validated for all RSEQ roots.
+The exact `t,k` above should be reconciled before the lane spends more proof time on
+that image-subset branch.
 
 Final state after removing the temporary witness: `Posix_Card_Route1_Bnd` builds green.

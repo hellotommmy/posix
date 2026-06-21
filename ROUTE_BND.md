@@ -35,6 +35,32 @@ Prove `boundary_term_absorb` **VIA S1**, NOT a raw injection. Useful facts:
   are disjoint from genuine term rows (0 coincidences measured). S1 is collision-free BY CONSTRUCTION (it is a single
   `card_mono`-style inequality between two excess sets), so no injection bookkeeping is needed.
 
+### 2026-06-21 correction: helper-only refutation, not S1 false
+
+Do **not** record the following as a refutation of S1 or `boundary_term_absorb`: the cardinal S1 target is
+still unrefuted here.  What has been Isabelle-refuted is only the stronger helper
+`uniform_S_image_boundary_subset`:
+
+```isabelle
+strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
+  \<subseteq> rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)
+```
+
+The checked witness is RSEQ-root:
+
+```isabelle
+t = RSEQ (RCHAR a) (RALTS [RSEQ (RCHAR a) (RSTAR (RCHAR a))])
+k = RSTAR (RCHAR a)
+bad =
+  RSEQ (RCHAR a)
+    (RSEQ (RCHAR a)
+      (RSEQ (RSTAR (RCHAR a)) (RSTAR (RCHAR a))))
+```
+
+The temporary proof showed `bad` is in the boundary excess but not in the
+`rsimpStrong_raw` image of the root excess.  Therefore do not spend more proof time on that image-subset
+branch as stated; reconcile this RSEQ-root witness before reinstating any S-image/card_image_le steer.
+
 ## BUILD — ISOLATED HEAP (required; the other lanes build concurrently)
 Do NOT use the shared `.ps1` build — it shares the heap store with the other lanes and WILL corrupt it. Use your OWN
 private heap (first build ~2min; then seconds):

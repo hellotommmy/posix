@@ -11562,17 +11562,20 @@ BUILDS: `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_
 `powershell -File scripts\codex-isabelle-build-posix.ps1 -Session Posix_Cubic` EXIT 0. Keyword check over
 `rewrite/RewriteFallback.thy` and the validation script finds no `sorry`/`oops`/`admit`/axiom markers.
 
-## 2026-06-21 ROUTE-1 BND lane (Codex): S1 skeleton RSEQ image split is FALSE; fail-stop
+## 2026-06-21 ROUTE-1 BND lane (Codex): [REFUTED helper only] uniform_S_image_boundary_subset
 
 Branch `card/route1-bnd`, file `r1bnd/Card_Route1_Bnd.thy`, session `Posix_Card_Route1_Bnd`.
 Current local helper edit remains green under the private heap command from `ROUTE_BND.md`:
 `finite_single_root`, `finite_single_term`, and `strong_apder_acc_singleton_decomp`.
 
-NEGATIVE RESULT (Isabelle-verified with a temporary lemma, then removed): the prescribed RSEQ image half
-of the S1 skeleton is false:
+NEGATIVE RESULT (Isabelle-verified with a temporary lemma, then removed): the stronger helper
+`uniform_S_image_boundary_subset` is false:
 
     strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k
       \<subseteq> rsimpStrong_raw ` (single_root t k - strong_apder_acc RONE k)
+
+This is a helper-only refutation. It does NOT refute the S1 cardinal inequality and does NOT
+refute `boundary_term_absorb`.
 
 Counterexample, for any character `a`:
 
@@ -11593,6 +11596,8 @@ using only unfolding/simp:
 `rsimpStrong_ALTs_raw_def`, `rsimpStrong_prune_rows_raw_def`,
 `rsimpStrong_prune_pair_raw_def`, `rsimp7_SEQ_atom_def`, `Let_def`.
 
-Conclusion: do not spend further proof time on the RSEQ `rsimpStrong_raw` image split plus
-`card_image_le`. The temporary negative witness built green under the private USER_HOME heap, was
-removed, and the final session still builds green. Detailed lane note: `ROUTE_BND_S1_FINDINGS.md`.
+Classification: this is an RSEQ-root witness (`t` has top constructor `RSEQ`). Therefore it also
+refutes the proposed RSEQ image branch as stated and should be reconciled with any route status
+claiming that branch is validated. Do not record this as "S1 false"; the cardinal S1 target remains
+unrefuted. The temporary negative witness built green under the private USER_HOME heap, was removed,
+and the final session still builds green. Detailed lane note: `ROUTE_BND_S1_FINDINGS.md`.
