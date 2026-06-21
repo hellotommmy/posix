@@ -793,6 +793,25 @@ proof (rule cubic_gate_unconditional_spine[OF _ clean])
         [OF RALTS_diff clean' nfk])
 qed
 
+lemma RALTS_diff_from_L1_D1_spine:
+  assumes L1_cover:
+    "\<And>rs k. strong_apder_acc (RALTS rs) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and singleton_bound:
+    "\<And>q k. apder_nf q \<Longrightarrow> apder_nf k \<Longrightarrow>
+      D1 q k \<le> rsize q"
+    and nfrs: "apder_nf (RALTS rs)"
+    and nfk: "apder_nf k"
+  shows "card (strong_apder_acc (RALTS rs) k - strong_apder_acc RONE k)
+    \<le> rsize (RALTS rs)"
+proof -
+  have "D (RALTS rs) k \<le> ralts_size_budget rs"
+    by (rule card_strong_apder_acc_RALTS_diff_base_le_size_budget_from_D1_spine
+        [OF L1_cover singleton_bound nfrs nfk])
+  then show ?thesis
+    by (simp add: D_def ralts_size_budget_eq_rsizes)
+qed
+
 lemma card_strong_apder_acc_diff_base_le_rsize_from_L1_D1_spine:
   assumes L1_cover:
     "\<And>rs k. strong_apder_acc (RALTS rs) k \<subseteq>

@@ -11737,3 +11737,20 @@ NEW REMAINING SWAP-IN POINT:
 Once COVER lands this general-k RALTS diff as a true lemma, feed it to
 `cubic_gate_unconditional_from_RALTS_diff_spine`.  The old singleton L2/seq_head_core route is no longer required for
 the gate on this spine, though its old wrappers are preserved.
+
+## 2026-06-22 ROUTE-1 CARD integration lane (Codex): RALTS_diff dependency clarified
+
+BRANCH: `card/route1-formalize`.
+
+CORRECTION TO THE PRIOR SWAP-IN NOTE:
+`RALTS_diff` is not a COVER-lane deliverable and should not be proved directly in the formalize lane.  It is an
+integration corollary of:
+- `L1_cover` from the cover lane.
+- `singleton_bound` from the D1 assembler, using BND `boundary_term_absorb` and SEQ `seq_head_core_le_rsize`.
+
+Added the explicit spine hook `RALTS_diff_from_L1_D1_spine`, which derives the general-k RALTS diff from the existing
+`card_strong_apder_acc_RALTS_diff_base_le_size_budget_from_D1_spine` plus `ralts_size_budget_eq_rsizes`.
+
+FORMALIZE LANE STATUS:
+complete modulo upstream `L1_cover` and `singleton_bound`; no attempt should be made here to grind L1/S1/seq or to
+prove `RALTS_diff` directly.
