@@ -11664,3 +11664,37 @@ must be shown to lie in the unwrapped root
   `rsimp7_SEQ_atom (rsimp_ALTs (rdistinct (rflts (rsimpStrong_prune_rows_raw (rflts (map rsimpStrong_raw rs)))) {})) (RCHAR x3)`
 modulo the term-frontier exclusions.  This is a strong-ALTS nested cover/idempotence bridge, not derivable from the
 three current spine assumptions by set/card bookkeeping alone.
+
+## 2026-06-21 ROUTE-1 CARD spine lane (Codex): conditional global/target/gate GREEN
+
+BRANCH: `card/route1-formalize`.
+
+SYNC NOTE: after the user reported another Claude agent may have run in this directory, `git status` showed no tracked
+source edits beyond this lane; only untracked `.isa_home/` was present and left untouched.
+
+FILES CHANGED: `card/Card_Route1.thy`, `PROGRESS_BACKREF.md`.
+
+BUILD: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\codex-isabelle-build-posix.ps1 -Session Posix_Card_Route1`
+EXIT 0.
+
+CHECKED, GREEN, no sorry:
+- Conditional global induction:
+  assuming
+  `!!rs k. apder_nf (RALTS rs) ==> apder_nf k ==> D (RALTS rs) k <= ralts_size_budget rs`,
+  proved `apder_clean r ==> apder_nf k ==> D r k <= rsize r`.
+- Conditional target:
+  from a global count assumption, proved
+  `apder_clean r ==> card (apder_strong_dlfrontier r) <= Suc (rsize r)`.
+- Conditional gate:
+  from a global count assumption, proved
+  `apder_clean r ==> rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) <= 2 * (rsize r + 3)^3`.
+- Mechanical L1+D1 entry points:
+  assuming `L1_cover` and exact singleton bound
+  `!!q k. apder_nf q ==> apder_nf k ==> D1 q k <= rsize q`,
+  proved the RALTS budget, global count, target, and gate wrappers through
+  `cubic_gate_unconditional_from_L1_D1_spine`.
+
+REMAINING SWAP-IN POINT:
+exact singleton L2 `!!q k. apder_nf q ==> apder_nf k ==> D1 q k <= rsize q`.  Once the bnd/seq/cover lanes supply it,
+Secretary can feed it plus `L1_cover` into `cubic_gate_unconditional_from_L1_D1_spine`.  No attempt was made here to
+prove the nested ALTS bridge or L1 non-unit cover.
