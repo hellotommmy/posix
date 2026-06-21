@@ -1,0 +1,166 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.05in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.2em,topsep=0.2em}
+
+\newcommand{\A}{\mathcal A}
+\newcommand{\B}{\mathcal B}
+\newcommand{\sr}{\mathsf{single\_root}}
+\newcommand{\st}{\mathsf{single\_term}}
+\newcommand{\saa}{\mathsf{strong\_apder\_acc}}
+\newcommand{\s}{\sigma_4}
+\newcommand{\Sraw}{S}
+\newcommand{\rsize}{\mathsf{rsize}}
+\newcommand{\D}{D_1}
+\newcommand{\RZERO}{\mathsf{0}}
+\newcommand{\RONE}{\mathsf{1}}
+\newcommand{\RCHAR}{\mathsf{char}}
+\newcommand{\RSEQ}{\mathsf{seq}}
+\newcommand{\RALTS}{\mathsf{alts}}
+\newcommand{\RSTAR}{\mathsf{star}}
+
+\begin{document}
+
+{\Large\bfseries SEQ lane progress note}\\[-0.15em]
+{\small Route-1 / \texttt{Posix\_Card\_Route1\_Seq}, private heap build green}
+
+\vspace{0.6em}
+
+\textbf{The invariant being paid is not a collapsed-continuation recurrence.}
+The target carrier for the lane is the head contribution
+\[
+  \operatorname{card}\Big(
+    \big(\sr(\RSEQ(h,t),k)\cup \st(h,\s(t,k))\big)
+      - \big(\B k\cup \B(\s(t,k))\big)\Big)
+  \le \rsize(h).                                      \tag{SEQ}
+\]
+The useful accounting charges the head size \(\rsize(h)\).  Charging
+\(\D(h,\s(t,k))\) after the continuation has already collapsed is the false
+recurrence: it loses the extra root row that appears in the \(\RSEQ\)-head
+case.
+
+\textbf{The RCHAR case is now a one-row proof.}
+The term component is exactly the new boundary,
+\[
+  \st(\RCHAR(c),\s(t,k))=\B(\s(t,k)),
+\]
+so it disappears after subtracting
+\(\B k\cup \B(\s(t,k))\).  What remains is the root row, and the checked
+lemma is
+\[
+  \operatorname{card}\big(\sr(\RSEQ(\RCHAR(c),t),k)\big)\le 1.      \tag{RCHAR-root}
+\]
+Thus the branch closes immediately:
+\begin{align*}
+  &\operatorname{card}\Big(
+    \big(\sr(\RSEQ(\RCHAR(c),t),k)\cup
+          \st(\RCHAR(c),\s(t,k))\big)
+      -\big(\B k\cup \B(\s(t,k))\big)\Big)\\
+  &\hspace{35mm}\le \rsize(\RCHAR(c)).
+\end{align*}
+This was committed as the RCHAR root helper and the RCHAR head-core case.
+
+\textbf{The star boundary is a one-step simulation, but only after subtraction.}
+The tempting statement
+\[
+  \operatorname{card}\big(\B(\s(\RSTAR(r),k))\big)\le 1
+\]
+is false: when the star collapses to \(\RONE\), the whole old boundary
+\(\B k\) can reappear.  The checked statement is the differential one:
+\[
+  \operatorname{card}\big(\B(\s(\RSTAR(r),k))-\B k\big)\le 1.       \tag{STAR-boundary}
+\]
+The proof first shows the row-level form
+\[
+  \operatorname{card}\Big(
+      \operatorname{row}\big(\Sraw(\s(\RSTAR(r),k))\big)
+      -\operatorname{row}\big(\Sraw(k)\big)\Big)\le 1,
+\]
+then uses the verified inclusion
+\(\operatorname{row}(\Sraw(k))\subseteq \B k\).  The root identity also holds:
+\[
+  \sr(\RSTAR(r),k)=\B(\s(\RSTAR(r),k)).                            \tag{STAR-root}
+\]
+
+\textbf{The singleton-size ledger now has its star and sequence assembly bricks.}
+For singleton carriers
+\[
+  \D(q,k)=\operatorname{card}\big(\A(\RALTS[q],k)-\B k\big),
+\]
+the atom leaves are green:
+\[
+  \D(\RZERO,k)\le \rsize(\RZERO),
+  \qquad
+  \D(\RCHAR(c),k)\le \rsize(\RCHAR(c)).
+\]
+The star recurrence is now checked:
+\[
+  \D(\RSTAR(r),k)
+  \le
+  1+\D\big(r,\s(\RSTAR(r),k)\big).                                \tag{D1-STAR}
+\]
+Hence any child bound
+\(\D(r,\s(\RSTAR(r),k))\le \rsize(r)\)
+immediately gives
+\[
+  \D(\RSTAR(r),k)\le \rsize(\RSTAR(r)).
+\]
+For a sequence head, the set algebra has also been isolated.  Let
+\[
+  c=\s(r_2,k).
+\]
+If the SEQ-head core for \(r_1\) is bounded by \(\rsize(r_1)\), and if the BND
+lane supplies the boundary absorption
+\[
+  \operatorname{card}\big((\B c-\B k)\cup(\st(r_2,k)-\B k)\big)
+  \le \D(r_2,k),
+\]
+then the checked assembly lemma gives
+\[
+  \D(\RSEQ(r_1,r_2),k)\le \rsize(r_1)+\D(r_2,k).                  \tag{D1-SEQ}
+\]
+
+\textbf{What remains is exactly the root-slack and cover work.}
+The unclosed part is not another atom calculation.  It is the structural
+root row in the \(\RSEQ\)-head case, plus the alternation branch cover:
+\[
+  \begin{aligned}
+  \s(\RSEQ(r_1,r_2),k)&=\s(r_1,\s(r_2,k)),\\
+  \sr(\RSEQ(\RSEQ(r_1,r_2),t),k)
+  &\not\equiv
+  \sr(\RSEQ(r_1,\RSEQ(r_2,t)),k)
+  \end{aligned}
+\]
+definitionally.  That extra row is the genuine \(+1\) paid by
+\(\rsize(\RSEQ(r_1,r_2))=1+\rsize(r_1)+\rsize(r_2)\), not a row to be erased
+by reassociation.
+
+The remaining imported dependencies should be stated explicitly when the main
+lemma is assembled:
+\[
+  \text{BND: }\mathsf{boundary\_term\_absorb},
+  \qquad
+  \text{COVER: L1 singleton cover}.
+\]
+The current file is green under the private build command from
+\texttt{ROUTE\_SEQ.md}; no shared heap wrapper was used.
+
+\vfill
+{\footnotesize
+Last green commits: \texttt{0511e87} (RSEQ D1 assembly),
+\texttt{ff7c8b6} (D1 star corollary),
+\texttt{39e4fba} (D1 star step),
+\texttt{62ca737} (star boundary shift),
+\texttt{fbface5}/\texttt{6eff89b} (RCHAR core/root).
+}
+
+\end{document}
