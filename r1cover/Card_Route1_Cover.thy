@@ -81,6 +81,10 @@ lemma rprune_eq_against_set_subset_local:
   "set (rprune_eq_against covered rs) \<subseteq> set rs"
   by (induct rs) auto
 
+lemma rdistinct_set_subset_local:
+  "set (rdistinct xs acc) \<subseteq> set xs"
+  by (induct xs arbitrary: acc) auto
+
 lemma row_dlforms_rsimp7_rsimp_ALTs_subset_RALTS:
   assumes ps: "set ps \<subseteq> set qs"
     and nf: "\<forall>q \<in> set qs. rtail_nf q"
@@ -566,6 +570,321 @@ proof (rule row_dlforms_rsimpStrong_raw_RALTS_subsetI)
   then show "row_dlforms (rsimpStrong_raw p) \<subseteq>
       (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
     using q by blast
+qed
+
+lemma rsimp7_SEQ_atom_RZERO_right [simp]:
+  "rsimp7_SEQ_atom t RZERO = RZERO"
+  by (cases t) (simp_all add: rsimp7_SEQ_atom_def split: prod.splits rrexp.splits)
+
+lemma row_dlforms_rsimp7_rsimp_ALTs_subset_UN:
+  assumes nf: "\<forall>p \<in> set ps. rtail_nf p"
+  shows
+  "row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs ps) K) \<subseteq>
+    (\<Union>p \<in> set ps. row_dlforms (rsimp7_SEQ_atom p K))"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (Cons p ps')
+  note ps_eq0 = Cons
+  then show ?thesis
+  proof (cases ps')
+    case Nil
+    then show ?thesis
+      using Cons by simp
+  next
+    case (Cons q qs)
+    have ps_eq: "ps = p # q # qs"
+      using ps_eq0 Cons by simp
+    have rows_nf: "\<And>r. r \<in> set (p # q # qs) \<Longrightarrow> rtail_nf r"
+      using nf ps_eq by auto
+    show ?thesis
+    proof (cases K)
+      case RONE
+      have stable: "\<And>r. r \<in> set (p # q # qs) \<Longrightarrow>
+          rsimp7_SEQ_atom r RONE = r"
+        by (rule rtail_nf_RONE_stable7) (rule rows_nf)
+      show ?thesis
+        using ps_eq RONE stable by auto
+    qed (use ps_eq in
+        \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+  qed
+qed
+
+lemma row_dlforms_rsimp7_member_subset_rsimp_ALTs:
+  assumes t: "t \<in> set ps"
+    and nf: "\<forall>p \<in> set ps. rtail_nf p"
+  shows "row_dlforms (rsimp7_SEQ_atom t K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs ps) K)"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    using t by simp
+next
+  case (Cons p ps')
+  note ps_eq0 = Cons
+  then show ?thesis
+  proof (cases ps')
+    case Nil
+    then show ?thesis
+      using ps_eq0 t by simp
+  next
+    case (Cons q qs)
+    have ps_eq: "ps = p # q # qs"
+      using ps_eq0 Cons by simp
+    have t_nf: "rtail_nf t"
+      using nf t by blast
+    show ?thesis
+    proof (cases K)
+      case RZERO
+      then show ?thesis
+        by simp
+    next
+      case RONE
+      have stable: "rsimp7_SEQ_atom t RONE = t"
+        by (rule rtail_nf_RONE_stable7[OF t_nf])
+      show ?thesis
+        using ps_eq t RONE stable by auto
+    qed (use ps_eq t in \<open>auto simp add: rsimp7_SEQ_atom_def\<close>)
+  qed
+qed
+
+type_synonym tagged_row = "rrexp \<times> rrexp"
+
+lemma map_snd_map_Pair [simp]:
+  "map snd (map (Pair q) ys) = ys"
+  by (induct ys) simp_all
+
+lemma map_snd_comp_Pair [simp]:
+  "map (snd \<circ> Pair q) ys = ys"
+  by (induct ys) simp_all
+
+lemma map_snd_tagged_initial [simp]:
+  "map snd (map (\<lambda>q. (q, f q)) rs) = map f rs"
+  by (induct rs) simp_all
+
+lemma map_snd_comp_tagged_initial [simp]:
+  "map (snd \<circ> (\<lambda>q. (q, f q))) rs = map f rs"
+  by (induct rs) simp_all
+
+fun tagged_rflts :: "tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_rflts [] = []"
+| "tagged_rflts ((q, RZERO) # xs) =
+    tagged_rflts xs"
+| "tagged_rflts ((q, RALTS ys) # xs) =
+    map (\<lambda>y. (q, y)) ys @ tagged_rflts xs"
+| "tagged_rflts ((q, t) # xs) =
+    (q, t) # tagged_rflts xs"
+
+lemma map_snd_tagged_rflts:
+  "map snd (tagged_rflts xs) = rflts (map snd xs)"
+  by (induct xs rule: tagged_rflts.induct) simp_all
+
+lemma fst_tagged_rflts_subset:
+  "set (map fst (tagged_rflts xs)) \<subseteq> set (map fst xs)"
+  by (induct xs rule: tagged_rflts.induct) auto
+
+definition tagged_prune_pair_raw ::
+  "tagged_row \<Rightarrow> tagged_row \<Rightarrow> tagged_row" where
+  "tagged_prune_pair_raw earlier later =
+    (fst later, rsimpStrong_prune_pair_raw (snd earlier) (snd later))"
+
+fun tagged_prune_against_rows_raw ::
+  "tagged_row list \<Rightarrow> tagged_row \<Rightarrow> tagged_row" where
+  "tagged_prune_against_rows_raw [] r = r"
+| "tagged_prune_against_rows_raw (x # xs) r =
+    tagged_prune_against_rows_raw xs (tagged_prune_pair_raw x r)"
+
+fun tagged_prune_rows_acc_raw ::
+  "tagged_row list \<Rightarrow> tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_prune_rows_acc_raw seen [] = []"
+| "tagged_prune_rows_acc_raw seen (r # rs) =
+    (let r' = tagged_prune_against_rows_raw seen r
+     in r' # tagged_prune_rows_acc_raw (r' # seen) rs)"
+
+definition tagged_prune_rows_raw ::
+  "tagged_row list \<Rightarrow> tagged_row list" where
+  "tagged_prune_rows_raw rs =
+    tagged_prune_rows_acc_raw [] rs"
+
+lemma map_snd_tagged_prune_pair_raw:
+  "snd (tagged_prune_pair_raw e r) =
+    rsimpStrong_prune_pair_raw (snd e) (snd r)"
+  by (simp add: tagged_prune_pair_raw_def)
+
+lemma map_snd_tagged_prune_against_rows_raw:
+  "snd (tagged_prune_against_rows_raw seen r) =
+    rsimpStrong_prune_against_rows_raw (map snd seen) (snd r)"
+  by (induct seen arbitrary: r)
+    (simp_all add: tagged_prune_pair_raw_def)
+
+lemma map_snd_tagged_prune_rows_acc_raw:
+  "map snd (tagged_prune_rows_acc_raw seen rs) =
+    rsimpStrong_prune_rows_acc_raw (map snd seen) (map snd rs)"
+  by (induct rs arbitrary: seen)
+    (simp_all add: Let_def map_snd_tagged_prune_against_rows_raw)
+
+lemma map_snd_tagged_prune_rows_raw:
+  "map snd (tagged_prune_rows_raw rs) =
+    rsimpStrong_prune_rows_raw (map snd rs)"
+  by (simp add: tagged_prune_rows_raw_def
+      rsimpStrong_prune_rows_raw_def
+      map_snd_tagged_prune_rows_acc_raw)
+
+lemma fst_tagged_prune_pair_raw:
+  "fst (tagged_prune_pair_raw e r) = fst r"
+  by (simp add: tagged_prune_pair_raw_def)
+
+lemma fst_tagged_prune_against_rows_raw:
+  "fst (tagged_prune_against_rows_raw seen r) = fst r"
+  by (induct seen arbitrary: r)
+    (simp_all add: tagged_prune_pair_raw_def)
+
+lemma fst_tagged_prune_rows_acc_raw_subset:
+  "set (map fst (tagged_prune_rows_acc_raw seen rs)) \<subseteq>
+    set (map fst rs)"
+  by (induct rs arbitrary: seen)
+    (auto simp add: Let_def fst_tagged_prune_against_rows_raw)
+
+lemma fst_tagged_prune_rows_raw_subset:
+  "set (map fst (tagged_prune_rows_raw xs)) \<subseteq> set (map fst xs)"
+  unfolding tagged_prune_rows_raw_def
+  by (rule fst_tagged_prune_rows_acc_raw_subset)
+
+fun tagged_rdistinct ::
+  "tagged_row list \<Rightarrow> rrexp set \<Rightarrow> tagged_row list" where
+  "tagged_rdistinct [] acc = []"
+| "tagged_rdistinct ((q, t) # xs) acc =
+    (if t \<in> acc
+     then tagged_rdistinct xs acc
+     else (q, t) # tagged_rdistinct xs ({t} \<union> acc))"
+
+lemma map_snd_tagged_rdistinct:
+  "map snd (tagged_rdistinct xs acc) =
+    rdistinct (map snd xs) acc"
+  by (induct xs arbitrary: acc) auto
+
+lemma fst_tagged_rdistinct_subset:
+  "set (map fst (tagged_rdistinct xs acc)) \<subseteq> set (map fst xs)"
+proof (induct xs arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  then show ?case
+    by (cases x) auto
+qed
+
+definition tagged_Strong_ALTs_rows ::
+  "rrexp list \<Rightarrow> tagged_row list" where
+  "tagged_Strong_ALTs_rows rs =
+    tagged_rdistinct
+      (tagged_rflts
+        (tagged_prune_rows_raw
+          (tagged_rflts (map (\<lambda>q. (q, rsimpStrong_raw q)) rs))))
+      {}"
+
+lemma map_snd_tagged_Strong_ALTs_rows:
+  "map snd (tagged_Strong_ALTs_rows rs) =
+    rdistinct
+      (rflts
+        (rsimpStrong_prune_rows_raw
+          (rflts (map rsimpStrong_raw rs))))
+      {}"
+  unfolding tagged_Strong_ALTs_rows_def
+  by (simp add: map_snd_tagged_rdistinct map_snd_tagged_rflts
+      map_snd_tagged_prune_rows_raw)
+
+lemma rsimpStrong_raw_RALTS_tagged_rows:
+  "rsimpStrong_raw (RALTS rs) =
+    rsimp_ALTs (map snd (tagged_Strong_ALTs_rows rs))"
+  by (simp add: rsimpStrong_ALTs_raw_def
+      map_snd_tagged_Strong_ALTs_rows)
+
+lemma tagged_Strong_ALTs_rows_origin:
+  assumes "(q, t) \<in> set (tagged_Strong_ALTs_rows rs)"
+  shows "q \<in> set rs"
+proof -
+  let ?init = "tagged_rflts (map (\<lambda>q. (q, rsimpStrong_raw q)) rs)"
+  let ?pruned = "tagged_prune_rows_raw ?init"
+  let ?flat = "tagged_rflts ?pruned"
+  have rd_sub: "fst ` set (tagged_rdistinct ?flat {}) \<subseteq>
+      fst ` set ?flat"
+    using fst_tagged_rdistinct_subset[of ?flat "{}"] by auto
+  have flat_sub: "fst ` set ?flat \<subseteq> fst ` set ?pruned"
+    using fst_tagged_rflts_subset[of ?pruned] by auto
+  have prune_sub: "fst ` set ?pruned \<subseteq> fst ` set ?init"
+    using fst_tagged_prune_rows_raw_subset[of ?init] by auto
+  have init_sub: "fst ` set ?init \<subseteq> set rs"
+    using fst_tagged_rflts_subset[of "map (\<lambda>q. (q, rsimpStrong_raw q)) rs"]
+    by auto
+  have q_mem: "q \<in> fst ` set (tagged_Strong_ALTs_rows rs)"
+    using assms by force
+  have all_sub:
+      "fst ` set (tagged_Strong_ALTs_rows rs) \<subseteq> set rs"
+    using rd_sub flat_sub prune_sub init_sub
+    unfolding tagged_Strong_ALTs_rows_def
+    by blast
+  then show ?thesis
+    using q_mem by blast
+qed
+
+lemma tagged_Strong_ALTs_rows_snd_rtail_nf:
+  assumes "(q, t) \<in> set (tagged_Strong_ALTs_rows rs)"
+  shows "rtail_nf t"
+proof -
+  let ?base = "rflts (map rsimpStrong_raw rs)"
+  let ?pruned = "rsimpStrong_prune_rows_raw ?base"
+  let ?flat = "rflts ?pruned"
+  let ?rows = "rdistinct ?flat {}"
+  have base_nf: "\<forall>x \<in> set ?base. rtail_nf x"
+  proof (rule rtail_nf_rflts)
+    show "\<forall>x \<in> set (map rsimpStrong_raw rs). rtail_nf x"
+      using rtail_nf_rsimpStrong_raw by auto
+  qed
+  have pruned_nf: "\<forall>x \<in> set ?pruned. rtail_nf x"
+    by (rule rtail_nf_rsimpStrong_prune_rows_raw[OF base_nf])
+  have flat_nf: "\<forall>x \<in> set ?flat. rtail_nf x"
+    by (rule rtail_nf_rflts[OF pruned_nf])
+  have t_tagged: "t \<in> set (map snd (tagged_Strong_ALTs_rows rs))"
+    using assms by force
+  have t_row: "t \<in> set ?rows"
+    using t_tagged by (simp add: map_snd_tagged_Strong_ALTs_rows)
+  have "set ?rows \<subseteq> set ?flat"
+    by (rule rdistinct_set_subset_local)
+  then show ?thesis
+    using flat_nf t_row by blast
+qed
+
+lemma row_dlforms_rsimpStrong_raw_RALTS_tagged_open:
+  "row_dlforms (rsimp7_SEQ_atom (rsimpStrong_raw (RALTS rs)) K) \<subseteq>
+    (\<Union>qt \<in> set (tagged_Strong_ALTs_rows rs).
+      row_dlforms (rsimp7_SEQ_atom (snd qt) K))"
+proof -
+  let ?trs = "tagged_Strong_ALTs_rows rs"
+  have nf: "\<forall>t \<in> set (map snd ?trs). rtail_nf t"
+  proof
+    fix t
+    assume "t \<in> set (map snd ?trs)"
+    then obtain q where "(q, t) \<in> set ?trs"
+      by auto
+    then show "rtail_nf t"
+      by (rule tagged_Strong_ALTs_rows_snd_rtail_nf)
+  qed
+  have opened:
+      "row_dlforms
+        (rsimp7_SEQ_atom (rsimp_ALTs (map snd ?trs)) K) \<subseteq>
+       (\<Union>t \<in> set (map snd ?trs).
+          row_dlforms (rsimp7_SEQ_atom t K))"
+    by (rule row_dlforms_rsimp7_rsimp_ALTs_subset_UN[OF nf])
+  have root_eq:
+      "rsimpStrong_raw (RALTS rs) = rsimp_ALTs (map snd ?trs)"
+    by (rule rsimpStrong_raw_RALTS_tagged_rows)
+  show ?thesis
+    using opened
+    unfolding root_eq
+    by auto
 qed
 
 definition singleton_saa_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
