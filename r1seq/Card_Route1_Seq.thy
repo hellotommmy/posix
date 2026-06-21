@@ -1400,6 +1400,16 @@ proof -
         [OF rchar_rseq_tail rchar_ralts_tail ralts_left rstar_left clean])
 qed
 
+lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_RCHAR:
+  "card (single_root
+      (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RCHAR e)])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS [RCHAR c]) (RCHAR e)]) (RCHAR a)))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      split: if_splits intro!: card_subset_singleton_le_one)
+
 lemma seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child:
   fixes r t k
   defines "c \<equiv> rsimp4_SEQ_atom t k"
