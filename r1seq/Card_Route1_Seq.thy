@@ -2194,6 +2194,121 @@ proof -
         [OF rchar_rseq_tail rchar_ralts_tail ralts_left rstar_left clean])
 qed
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_from_left_tail_cases_clean:
+  assumes rchar_rseq_tail:
+    "\<And>c u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
+      rntimes_free (RSEQ u1 u2) \<Longrightarrow> apder_nf (RSEQ u1 u2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RSEQ u1 u2)]) (RCHAR a))))) \<le> 1"
+    and rchar_ralts_tail:
+    "\<And>c rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RCHAR c) (RALTS rs)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RCHAR c) (RALTS rs)]) (RCHAR a))))) \<le> 1"
+    and rstar_rseq_tail:
+    "\<And>s u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
+      rntimes_free (RSEQ u1 u2) \<Longrightarrow> apder_nf (RSEQ u1 u2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a))))) \<le> 1"
+    and rstar_ralts_tail:
+    "\<And>s rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) (RALTS rs)])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a))))) \<le> 1"
+    and ralts_left:
+    "\<And>rs q2. legacy_rrexp (RSEQ (RALTS rs) q2) \<Longrightarrow>
+      rntimes_free (RSEQ (RALTS rs) q2) \<Longrightarrow> apder_nf (RSEQ (RALTS rs) q2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS rs) q2])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS rs) q2]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS rs) q2]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RALTS rs) q2]) (RCHAR a))))) \<le> 1"
+    and clean: "legacy_rrexp (RSEQ q1 q2)" "rntimes_free (RSEQ q1 q2)"
+      "apder_nf (RSEQ q1 q2)"
+  shows "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ q1 q2])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ q1 q2]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RSEQ q1 q2]) (RCHAR a))) -
+        (B (RCHAR a) \<union>
+          B (rsimp4_SEQ_atom (RALTS [RSEQ q1 q2]) (RCHAR a))))) \<le> 1"
+proof -
+  have rstar_left:
+    "\<And>s q2. legacy_rrexp (RSEQ (RSTAR s) q2) \<Longrightarrow>
+      rntimes_free (RSEQ (RSTAR s) q2) \<Longrightarrow> apder_nf (RSEQ (RSTAR s) q2) \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) q2])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a))))) \<le> 1"
+  proof -
+    fix s q2
+    assume q: "legacy_rrexp (RSEQ (RSTAR s) q2)"
+      "rntimes_free (RSEQ (RSTAR s) q2)" "apder_nf (RSEQ (RSTAR s) q2)"
+    have q2_clean: "legacy_rrexp q2" "rntimes_free q2" "apder_nf q2"
+      "q2 \<noteq> RZERO" "q2 \<noteq> RONE"
+      using q by simp_all
+    have local_rseq:
+      "\<And>u1 u2. legacy_rrexp (RSEQ u1 u2) \<Longrightarrow>
+        rntimes_free (RSEQ u1 u2) \<Longrightarrow> apder_nf (RSEQ u1 u2) \<Longrightarrow>
+        card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)])) (RCHAR a) -
+          B (rsimp4_SEQ_atom (RSTAR r)
+            (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a)))) \<union>
+          (B (rsimp4_SEQ_atom (RSTAR r)
+            (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a))) -
+            (B (RCHAR a) \<union>
+              B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RSEQ u1 u2)]) (RCHAR a))))) \<le> 1"
+      by (rule rstar_rseq_tail)
+    have local_ralts:
+      "\<And>rs. legacy_rrexp (RALTS rs) \<Longrightarrow>
+        rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+        card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) (RALTS rs)])) (RCHAR a) -
+          B (rsimp4_SEQ_atom (RSTAR r)
+            (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a)))) \<union>
+          (B (rsimp4_SEQ_atom (RSTAR r)
+            (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a))) -
+            (B (RCHAR a) \<union>
+              B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) (RALTS rs)]) (RCHAR a))))) \<le> 1"
+      by (rule rstar_ralts_tail)
+    show "card ((single_root (RSEQ (RSTAR r) (RALTS [RSEQ (RSTAR s) q2])) (RCHAR a) -
+        B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a)))) \<union>
+        (B (rsimp4_SEQ_atom (RSTAR r)
+          (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a))) -
+          (B (RCHAR a) \<union>
+            B (rsimp4_SEQ_atom (RALTS [RSEQ (RSTAR s) q2]) (RCHAR a))))) \<le> 1"
+      by (rule single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_RSTAR_from_tail_cases_clean
+          [OF local_rseq local_ralts q2_clean])
+  qed
+  show ?thesis
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RSEQ_from_left_cases_clean
+        [OF rchar_rseq_tail rchar_ralts_tail ralts_left rstar_left clean])
+qed
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RSEQ_RALTS_single_RCHAR:
   "card (single_root
       (RSEQ (RSTAR r) (RALTS [RSEQ (RALTS [RCHAR c]) (RCHAR e)])) (RCHAR a) -
