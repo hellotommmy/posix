@@ -147,6 +147,79 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma D1_RONE_le_rsize:
+  assumes "apder_nf k"
+  shows "D1 RONE k \<le> rsize RONE"
+proof -
+  have sub: "A (RALTS [RONE]) k \<subseteq> B k"
+  proof (cases k)
+    case RZERO
+    then show ?thesis
+      by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+  next
+    case RONE
+    then show ?thesis
+      by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+  next
+    case (RCHAR c)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RSEQ k1 k2)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RALTS ks)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RSTAR k)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RNTIMES k n)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RBACKREF4 k1 k2 k3 k4 cs)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RHALF k cs rep)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  next
+    case (RRESIDUE cs rep)
+    then show ?thesis
+      using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF assms]
+      by (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+          rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  qed
+  have empty: "A (RALTS [RONE]) k - B k = {}"
+    using sub by auto
+  have "D1 RONE k = 0"
+    unfolding D1_def
+    by (simp add: empty)
+  then show ?thesis
+    by simp
+qed
+
 lemma card_row_dlforms_rsimp4_SEQ_atom_RCHAR_le_one [simp]:
   "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k)) \<le> 1"
   by (cases k) auto
@@ -348,6 +421,154 @@ proof -
   also have "... \<le> rsize r1 + D1 r2 k"
     using seq_head boundary by simp
   finally show ?thesis .
+qed
+
+lemma D1_RSEQ_le_rsize_from_seq_head_boundary_child:
+  fixes r1 r2 k
+  assumes seq_head:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+      single_term r1 (rsimp4_SEQ_atom r2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom r2 k))) \<le> rsize r1"
+    and boundary:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> D1 r2 k"
+    and child: "D1 r2 k \<le> rsize r2"
+  shows "D1 (RSEQ r1 r2) k \<le> rsize (RSEQ r1 r2)"
+proof -
+  have "D1 (RSEQ r1 r2) k \<le> rsize r1 + D1 r2 k"
+    by (rule D1_RSEQ_step_from_seq_head_and_boundary)
+      (use seq_head boundary in simp_all)
+  then show ?thesis
+    using child by simp
+qed
+
+lemma card_UN_list_Diff_le_sum_rsize:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow> card (F q - C) \<le> rsize q"
+  shows "card ((\<Union>q \<in> set rs. F q) - C) \<le> sum_list (map rsize rs)"
+  using assms
+proof (induction rs)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons q qs)
+  have split:
+    "((\<Union>x \<in> set (q # qs). F x) - C) =
+      (F q - C) \<union> ((\<Union>x \<in> set qs. F x) - C)"
+    by auto
+  have card_split: "card ((\<Union>x \<in> set (q # qs). F x) - C) \<le>
+      card (F q - C) + card ((\<Union>x \<in> set qs. F x) - C)"
+  proof -
+    have "card ((\<Union>x \<in> set (q # qs). F x) - C) =
+        card ((F q - C) \<union> ((\<Union>x \<in> set qs. F x) - C))"
+      by (subst split) simp
+    also have "... \<le> card (F q - C) +
+        card ((\<Union>x \<in> set qs. F x) - C)"
+      by (rule card_Un_le)
+    finally show ?thesis .
+  qed
+  have q_bound: "card (F q - C) \<le> rsize q"
+    using Cons.prems by simp
+  have qs_bound:
+    "card ((\<Union>x \<in> set qs. F x) - C) \<le> sum_list (map rsize qs)"
+    using Cons.IH Cons.prems by auto
+  show ?case
+    using card_split q_bound qs_bound by simp
+qed
+
+lemma D1_RALTS_le_rsize_from_L1_and_branches:
+  assumes cover:
+    "A (RALTS [RALTS rs]) k \<subseteq> (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and branches:
+    "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+  shows "D1 (RALTS rs) k \<le> rsize (RALTS rs)"
+proof -
+  have diff_sub:
+    "A (RALTS [RALTS rs]) k - B k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k) - B k"
+    using cover by auto
+  have "D1 (RALTS rs) k \<le>
+      card ((\<Union>q \<in> set rs. A (RALTS [q]) k) - B k)"
+    unfolding D1_def
+    by (rule card_mono) (use diff_sub in auto)
+  also have "... \<le> sum_list (map rsize rs)"
+    by (rule card_UN_list_Diff_le_sum_rsize)
+      (use branches in \<open>simp add: D1_def\<close>)
+  finally show ?thesis
+    by simp
+qed
+
+lemma D1_singleton_le_rsize_from_seq_head_boundary_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize h"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q" "apder_nf k"
+  shows "D1 q k \<le> rsize q"
+  using clean
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    using D1_RZERO_le_rsize[of k] by simp
+next
+  case RONE
+  then show ?case
+    using D1_RONE_le_rsize[of k] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using D1_RCHAR_le_rsize[of k c] by simp
+next
+  case (RSEQ q1 q2)
+  have sh:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+      single_term q1 (rsimp4_SEQ_atom q2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom q2 k))) \<le> rsize q1"
+    using RSEQ.prems by (intro seq_head) auto
+  have bnd:
+    "card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+      (single_term q2 k - B k)) \<le> D1 q2 k"
+    using RSEQ.prems by (intro boundary) auto
+  have child: "D1 q2 k \<le> rsize q2"
+    using RSEQ.IH(2) RSEQ.prems by auto
+  show ?case
+    by (rule D1_RSEQ_le_rsize_from_seq_head_boundary_child[OF sh bnd child])
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+    using RALTS.IH RALTS.prems by auto
+  show ?case
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches[OF L1 branch])
+next
+  case (RSTAR q)
+  let ?c = "rsimp4_SEQ_atom (RSTAR q) k"
+  have nf_c: "apder_nf ?c"
+    using RSTAR.prems by (intro apder_nf_s4) auto
+  have child: "D1 q ?c \<le> rsize q"
+    using RSTAR.IH[OF _ _ _ nf_c] RSTAR.prems by auto
+  show ?case
+    using D1_RSTAR_le_rsize_from_child[of q k] RSTAR.prems child by auto
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
 qed
 
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
