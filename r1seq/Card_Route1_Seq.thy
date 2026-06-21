@@ -154,6 +154,17 @@ proof -
     by (simp add: root_empty)
 qed
 
+lemma seq_head_core_RONE_le_rsize_from_root_diff:
+  assumes root_diff:
+    "card (single_root (RSEQ RONE t) k -
+      (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+  shows
+    "card ((single_root (RSEQ RONE t) k \<union>
+             single_term RONE (rsimp4_SEQ_atom t k))
+            - (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize RONE"
+  using root_diff by simp
+
 lemma D1_RZERO_le_rsize:
   "D1 RZERO k \<le> rsize RZERO"
 proof -
