@@ -1297,6 +1297,49 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma D1_boundary_le_rsize_from_RALTS_RSTAR_head_cases_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and ralts_head:
+    "\<And>rs t k. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RALTS rs) t) k \<union>
+        single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RALTS rs))"
+    and rstar_head:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RSTAR r))"
+    and ralts_boundary:
+    "\<And>rs k. legacy_rrexp (RALTS rs) \<Longrightarrow> rntimes_free (RALTS rs) \<Longrightarrow>
+      apder_nf (RALTS rs) \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom (RALTS rs) k) - B k) \<union>
+        (single_term (RALTS rs) k - B k)) \<le> rsize (RALTS rs)"
+    and clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q" "apder_nf k"
+  shows
+    "D1 q k \<le> rsize q \<and>
+      card ((B (rsimp4_SEQ_atom q k) - B k) \<union>
+        (single_term q k - B k)) \<le> rsize q"
+proof -
+  have seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> rnonseq h \<Longrightarrow> h \<noteq> RZERO \<Longrightarrow> h \<noteq> RONE \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    by (rule required_seq_head_suc_from_RALTS_RSTAR_cases_clean
+        [OF ralts_head rstar_head])
+  show ?thesis
+    by (rule D1_boundary_le_rsize_from_required_head_suc_L1_RALTS_clean
+        [OF L1 seq_head ralts_boundary clean])
+qed
+
 lemma required_seq_head_core_le_rsize_from_cases_clean:
   assumes rone_diff:
     "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
