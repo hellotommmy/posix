@@ -358,6 +358,74 @@ next
   qed
 qed
 
+lemma row_dlforms_rsimp7_nested_altseq_RSTAR_tail_subset_later_or_credit:
+  assumes ps: "set ps \<subseteq> set qs"
+    and qs_props: "\<forall>q \<in> set qs.
+      rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and one_credit:
+      "rsimp_ALTs ps = RONE \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s)) K) \<subseteq> C"
+    and star_credit:
+      "rsimp_ALTs ps = RSTAR s \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s)) K) \<subseteq> C"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s)) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS qs) (RSTAR s)) K) \<union> C"
+proof (cases "rsimp_ALTs ps = RONE")
+  case True
+  then show ?thesis
+    using one_credit by blast
+next
+  case not_one: False
+  show ?thesis
+  proof (cases "rsimp_ALTs ps = RSTAR s")
+    case True
+    then show ?thesis
+      using star_credit by blast
+  next
+    case not_star: False
+    have qs_nf: "\<forall>q \<in> set qs. rtail_nf q"
+      using qs_props by blast
+    have ps_props: "\<forall>p \<in> set ps.
+        rtail_nf p \<and> nonalt p \<and> p \<noteq> RZERO"
+      using ps qs_props by blast
+    have a_nf: "rtail_nf (rsimp_ALTs ps)"
+      by (rule rtail_nf_rsimp_ALTs)
+        (use ps_props in auto)
+    have assoc:
+        "row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSTAR s)) K) \<subseteq>
+         row_dlforms
+          (rsimp7_SEQ_atom (rsimp_ALTs ps)
+            (rsimp4_SEQ_atom (RSTAR s) K))"
+      by (rule row_dlforms_rsimp7_assoc_RSTAR_tail_no_escape_subset
+          [OF a_nf not_one not_star])
+    have branch:
+        "row_dlforms
+          (rsimp7_SEQ_atom (rsimp_ALTs ps)
+            (rsimp4_SEQ_atom (RSTAR s) K)) \<subseteq>
+         row_dlforms
+          (rsimp7_SEQ_atom (RALTS qs)
+            (rsimp4_SEQ_atom (RSTAR s) K))"
+      by (rule row_dlforms_rsimp7_rsimp_ALTs_subset_RALTS
+          [OF ps qs_nf])
+    have target_eq:
+        "row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS qs) (RSTAR s)) K) =
+         row_dlforms
+          (rsimp7_SEQ_atom (RALTS qs)
+            (rsimp4_SEQ_atom (RSTAR s) K))"
+      by (simp add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+    show ?thesis
+      using assoc branch target_eq by blast
+  qed
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
