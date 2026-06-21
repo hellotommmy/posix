@@ -1,0 +1,214 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=0.75in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{longtable}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.18}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\green}{\textcolor{green!45!black}{GREEN}}
+\newcommand{\open}{\textcolor{orange!70!black}{OPEN}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE Cover Lane Progress Summary}\\[0.25em]
+  {\large Route-1 L1 SAA-level singleton cover}\\[0.25em]
+  {\small Worktree: \code{C:/Users/Chengsong/Documents/posix-route1/cover}}\\
+  {\small Date: 2026-06-21}
+\end{center}
+
+\section*{Target}
+
+The COVER lane target remains the Isabelle lemma:
+
+\begin{verbatim}
+lemma strong_apder_acc_RALTS_singleton_cover:
+  "strong_apder_acc (RALTS rs) k
+     <= (UN q:set rs. strong_apder_acc (RALTS [q]) k)"
+\end{verbatim}
+
+The proof strategy follows \code{ROUTE\_COVER.md}: work directly at the
+\code{strong\_apder\_acc} carrier level, split the carrier into the term part
+and the root part, and route cross-prune star escapes to the full singleton
+SAA carrier rather than to a root-only singleton source.
+
+\section*{Current Status}
+
+\begin{itemize}
+  \item Latest private-heap Isabelle build is \green.
+  \item Session: \code{Posix\_Card\_Route1\_Cover}.
+  \item Theory file: \code{r1cover/Card\_Route1\_Cover.thy}.
+  \item Worktree is clean after the latest commits.
+  \item No \code{sorry}, \code{oops}, or \code{admit} was introduced.
+\end{itemize}
+
+\section*{Private Build Command Used}
+
+\begin{verbatim}
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc
+"export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/cover/.isa_home
+ && export HOME=\$USER_HOME
+ && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/cover
+ && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle'
+      build -d . Posix_Card_Route1_Cover"
+\end{verbatim}
+
+Latest observed result:
+
+\begin{verbatim}
+Finished Posix_Card_Route1_Cover
+\end{verbatim}
+
+\clearpage
+
+\section*{Green Commits Added}
+
+\begin{longtable}{>{\ttfamily\small}p{0.16\linewidth}p{0.78\linewidth}}
+\textbf{Commit} & \textbf{Contribution}\\
+\hline
+\endhead
+a5ce844 & Added singleton escape tail credits: a direct \code{RONE}
+tail-credit lemma and a guarded \code{RSTAR} tail-credit lemma requiring
+\code{rsimpStrong\_raw (RSTAR s) = RSTAR s}.\\
+4492c47 & Added \code{rsimp\_ALTs} escape witnesses:
+\code{rsimp\_ALTs\_RONE\_member} and
+\code{rsimp\_ALTs\_RSTAR\_member}. These connect collapse cases back to
+actual head branches.\\
+ee3931d & Proved \code{singleton\_saa\_ok} preservation through
+\code{tagged\_rdistinct} and \code{tagged\_rflts}, with the NF side condition
+needed for flattening ALT rows.\\
+d062867 & Added an NF-safe member-to-\code{RALTS} opening lemma and
+\code{singleton\_saa\_ok\_flatten}.\\
+caf0028 & Added tagged strong-ALT bookkeeping and the opening bridge
+\code{row\_dlforms\_rsimpStrong\_raw\_RALTS\_tagged\_open}.\\
+b4c84ea & Added the carrier split helpers: the term carrier cover, the
+\code{RZERO}/\code{RONE} root cases, and singleton-root closure helpers.\\
+\end{longtable}
+
+\section*{Green Lemma Inventory}
+
+The file currently contains the following green building blocks relevant to
+the target:
+
+\begin{longtable}{p{0.26\linewidth}p{0.68\linewidth}}
+\textbf{Area} & \textbf{Green lemmas}\\
+\hline
+\endhead
+Term carrier &
+\code{strong\_apder\_acc\_RALTS\_terms\_singleton\_cover}\\
+Unit root cases &
+\code{strong\_apder\_acc\_RALTS\_root\_RZERO\_singleton\_cover}\\
+&
+\code{strong\_apder\_acc\_RALTS\_root\_RONE\_singleton\_cover}\\
+&
+\code{strong\_apder\_acc\_RALTS\_singleton\_cover\_RZERO}\\
+&
+\code{strong\_apder\_acc\_RALTS\_singleton\_cover\_RONE}\\
+Tagged final rows &
+\code{tagged\_Strong\_ALTs\_rows\_origin}\\
+&
+\code{tagged\_Strong\_ALTs\_rows\_snd\_rtail\_nf}\\
+&
+\code{row\_dlforms\_rsimpStrong\_raw\_RALTS\_tagged\_open}\\
+\code{singleton\_saa\_ok} transport &
+\code{singleton\_saa\_ok\_flatten}\\
+&
+\code{tagged\_rdistinct\_preserves\_singleton\_saa\_ok}\\
+&
+\code{tagged\_rflts\_preserves\_singleton\_saa\_ok}\\
+Escape witnesses and credits &
+\code{rsimp\_ALTs\_RONE\_member}\\
+&
+\code{rsimp\_ALTs\_RSTAR\_member}\\
+&
+\code{row\_dlforms\_RONE\_tail\_credit}\\
+&
+\code{row\_dlforms\_RSTAR\_tail\_credit\_fix}\\
+\end{longtable}
+
+\section*{Important Correction}
+
+The unguarded helper
+
+\begin{verbatim}
+row_dlforms (rsimp7_SEQ_atom (RSTAR s) (rsimpStrong_raw k))
+  <= row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))
+\end{verbatim}
+
+is false without a source/fixpoint condition. A minimal shape is:
+
+\begin{verbatim}
+tail = RSTAR RZERO
+k    = RONE
+\end{verbatim}
+
+The file therefore keeps only the guarded green version:
+
+\begin{verbatim}
+assumes "rsimpStrong_raw (RSTAR s) = RSTAR s"
+shows
+  row_dlforms (rsimp7_SEQ_atom (RSTAR s) (rsimpStrong_raw k))
+    <= row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k))
+\end{verbatim}
+
+This matches the intended B2 proof shape: the star escape must carry a real
+source/fixpoint witness from the strong/pruned row pipeline.
+
+\section*{Open Proof Obligation}
+
+The target lemma itself is still \open. The remaining hard step is the nonunit
+root carrier:
+
+\begin{verbatim}
+row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS rs) k))
+  <= (UN q:set rs. strong_apder_acc (RALTS [q]) k)
+\end{verbatim}
+
+after excluding \code{k = RZERO} and \code{k = RONE}.
+
+The next local lemma should combine the tagged-row opening with the precise
+prune escape characterization:
+
+\begin{itemize}
+  \item B1: surviving root-origin rows are routed by
+    \code{singleton\_saa\_ok}.
+  \item B2: collapsed \code{s*} escape rows are routed through the ACC side
+    using \code{singleton\_saa\_key\_credit}, the \code{rsimp\_ALTs}
+    witnesses, and the guarded \code{RSTAR} tail-credit lemma.
+\end{itemize}
+
+\section*{Next Step}
+
+Prove the precise prune-pair preservation lemma:
+
+\begin{verbatim}
+tagged_prune_pair_raw preserves singleton_saa_ok
+  modulo a key-credit escape case
+\end{verbatim}
+
+The proof should avoid the previously rejected root-only route:
+
+\begin{center}
+  \code{dl\_le\_pruned\_altseq}\\
+  \code{singleton\_source\_ok}
+\end{center}
+
+It should also avoid broad \code{auto} over all regex constructors; the
+attempted wide association lemma timed out and needs constructor-specific
+Isar splitting.
+
+\end{document}
