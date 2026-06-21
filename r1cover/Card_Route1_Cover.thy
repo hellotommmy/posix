@@ -650,6 +650,46 @@ next
   qed
 qed
 
+lemma row_dlforms_rsimp7_single_subset_rsimp_ALTs_rflts:
+  assumes t_nf: "rtail_nf t"
+  shows "row_dlforms (rsimp7_SEQ_atom t K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom (rsimp_ALTs (rflts [t])) K)"
+proof (cases t)
+  case RZERO
+  then show ?thesis by simp
+next
+  case (RALTS xs)
+  show ?thesis
+  proof (cases xs)
+    case Nil
+    then show ?thesis
+      using RALTS by (cases K) simp_all
+  next
+    case (Cons p ps)
+    note xs_eq = Cons
+    then show ?thesis
+    proof (cases ps)
+      case Nil
+      have p_nf: "rtail_nf p"
+        using t_nf RALTS xs_eq Nil by simp
+      then show ?thesis
+      proof (cases K)
+        case RONE
+        have stable: "rsimp7_SEQ_atom p RONE = p"
+          by (rule rtail_nf_RONE_stable7[OF p_nf])
+        show ?thesis
+          using RALTS xs_eq Nil RONE stable by simp
+      qed (use RALTS xs_eq Nil in \<open>simp_all add: rsimp7_SEQ_atom_def\<close>)
+    next
+      case (Cons q qs)
+      have xs_long: "xs = p # q # qs"
+        using xs_eq Cons by simp
+      then show ?thesis
+        using RALTS xs_long by simp
+    qed
+  qed
+qed (simp_all add: rsimp7_SEQ_atom_def)
+
 lemma row_dlforms_rsimp7_member_subset_RALTS:
   assumes t: "t \<in> set ts"
     and nf: "rtail_nf t"
