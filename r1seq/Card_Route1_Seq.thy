@@ -806,6 +806,16 @@ lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RSTAR:
       rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       split: if_splits intro!: card_subset_singleton_le_one)
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RCHAR_RSTAR:
+  "card ((single_root (RSEQ (RSTAR r) (RSTAR s)) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom (RSTAR s) (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom (RSTAR s) (RCHAR a))))) \<le> 1"
+  by (cases "rsimpStrong_raw r"; cases "rsimpStrong_raw s")
+    (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      split: if_splits intro!: card_subset_singleton_le_one)
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_from_tail_cases_clean:
   assumes rseq_tail:
     "\<And>t1 t2. legacy_rrexp (RSEQ t1 t2) \<Longrightarrow>
