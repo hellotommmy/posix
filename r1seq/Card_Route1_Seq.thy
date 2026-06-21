@@ -415,6 +415,27 @@ proof -
     by simp
 qed
 
+lemma combined_RSEQ_RCHAR_le_rsize_from_boundary_rsize:
+  assumes boundary:
+    "card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+      (single_term t k - B k)) \<le> rsize t"
+  shows
+    "card ((single_root (RSEQ (RCHAR c) t) k \<union>
+        single_term (RCHAR c) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) +
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k))
+      \<le> rsize (RSEQ (RCHAR c) t)"
+proof -
+  have head:
+    "card ((single_root (RSEQ (RCHAR c) t) k \<union>
+        single_term (RCHAR c) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RCHAR c)"
+    by (rule seq_head_core_RCHAR_le_rsize)
+  show ?thesis
+    using head boundary by simp
+qed
+
 lemma D1_RCHAR_le_rsize:
   assumes "apder_nf k"
   shows "D1 (RCHAR c) k \<le> rsize (RCHAR c)"
