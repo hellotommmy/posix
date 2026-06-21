@@ -89,6 +89,31 @@ lemma single_term_RSEQ [simp]:
     single_term r1 (rsimp4_SEQ_atom r2 k) \<union> single_term r2 k"
   by (simp add: single_term_def rsimpStrong_dlform_closure_def)
 
+lemma rsimpStrong_ALTs_raw_Nil [simp]:
+  "rsimpStrong_ALTs_raw [] = RZERO"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma rsimpStrong_raw_RALTS_single_RSEQ_RZERO [simp]:
+  "rsimpStrong_raw (RALTS [RSEQ RZERO t]) = RZERO"
+  by (simp add: rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      rsimp7_SEQ_atom_def)
+
+lemma rsimpStrong_raw_RSEQ_RALTS_single_RSEQ_RZERO [simp]:
+  "rsimpStrong_raw (RSEQ (RALTS [RSEQ RZERO t]) k) = RZERO"
+  by (simp add: rsimp7_SEQ_atom_def)
+
+lemma single_root_RSEQ_RZERO [simp]:
+  "single_root (RSEQ RZERO t) k = {}"
+  by (cases k)
+    (simp_all add: single_root_def rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def)
+
+lemma seq_head_core_RZERO_le_rsize:
+  "card ((single_root (RSEQ RZERO t) k \<union>
+           single_term RZERO (rsimp4_SEQ_atom t k))
+          - (B k \<union> B (rsimp4_SEQ_atom t k)))
+    \<le> rsize RZERO"
+  by simp
+
 lemma card_row_dlforms_rsimp4_SEQ_atom_RCHAR_le_one [simp]:
   "card (row_dlforms (rsimp4_SEQ_atom (RCHAR c) k)) \<le> 1"
   by (cases k) auto
