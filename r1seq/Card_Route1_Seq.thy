@@ -675,6 +675,13 @@ lemma single_root_RSEQ_RSTAR_root_shift_RZERO [simp]:
       B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<le> 1"
   by (simp add: single_root_def B_alt rsimpStrong_dlform_closure_def)
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RZERO [simp]:
+  "card ((single_root (RSEQ (RSTAR r) t) RZERO -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO)) -
+        (B RZERO \<union> B (rsimp4_SEQ_atom t RZERO)))) \<le> 1"
+  by (simp add: single_root_def B_alt rsimpStrong_dlform_closure_def)
+
 lemma single_root_RSEQ_RSTAR_root_shift_RONE_nf_t:
   assumes "apder_nf t"
   shows "card (single_root (RSEQ (RSTAR r) t) RONE -
@@ -1829,6 +1836,26 @@ proof -
   show ?thesis
     by (rule seq_head_core_RSTAR_le_Suc_rsize_from_root_shift_child
         [OF clean(1) clean(2) _ root_shift child]) simp
+qed
+
+lemma seq_head_core_RSTAR_le_rsize_RZERO_from_child:
+  assumes child:
+    "D1 r (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO)) \<le> rsize r"
+  shows
+    "card ((single_root (RSEQ (RSTAR r) t) RZERO \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t RZERO)) -
+        (B RZERO \<union> B (rsimp4_SEQ_atom t RZERO))) \<le>
+      rsize (RSTAR r)"
+proof -
+  have root_boundary:
+    "card ((single_root (RSEQ (RSTAR r) t) RZERO -
+      B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r) (rsimp4_SEQ_atom t RZERO)) -
+        (B RZERO \<union> B (rsimp4_SEQ_atom t RZERO)))) \<le> 1"
+    by (rule single_root_RSEQ_RSTAR_root_boundary_RZERO)
+  show ?thesis
+    by (rule seq_head_core_RSTAR_le_rsize_from_root_boundary_child
+        [OF root_boundary child])
 qed
 
 lemma seq_head_core_RSTAR_le_Suc_rsize_RONE_from_child:
