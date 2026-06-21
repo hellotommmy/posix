@@ -1247,6 +1247,18 @@ lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RCHAR:
       rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
       split: if_splits intro!: card_subset_singleton_le_one)
 
+lemma single_root_RSEQ_RSTAR_root_boundary_RCHAR_RALTS_single_RCHAR:
+  "card ((single_root (RSEQ (RSTAR r) (RALTS [RCHAR c])) (RCHAR a) -
+      B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RCHAR c]) (RCHAR a)))) \<union>
+      (B (rsimp4_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RALTS [RCHAR c]) (RCHAR a))) -
+        (B (RCHAR a) \<union> B (rsimp4_SEQ_atom (RALTS [RCHAR c]) (RCHAR a))))) \<le> 1"
+  by (cases "rsimpStrong_raw r")
+    (auto simp add: single_root_def B_alt rsimpStrong_dlform_closure_def
+      rsimp7_SEQ_atom_def rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def
+      split: if_splits intro!: card_subset_singleton_le_one)
+
 lemma single_root_RSEQ_RSTAR_root_shift_RCHAR_RALTS_single_RONE:
   "card (single_root (RSEQ (RSTAR r) (RALTS [RONE])) (RCHAR a) -
       B (rsimp4_SEQ_atom (RSTAR r)
