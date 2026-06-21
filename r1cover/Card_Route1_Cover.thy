@@ -990,6 +990,21 @@ proof -
     by auto
 qed
 
+lemma row_dlforms_singleton_strong_root_open_subset:
+  "row_dlforms
+      (rsimp7_SEQ_atom (rsimpStrong_raw (RALTS [q])) (rsimpStrong_raw k)) \<subseteq>
+    row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))"
+proof (cases k)
+  case RONE
+  have stable:
+      "rsimp7_SEQ_atom (rsimpStrong_raw (RALTS [q])) RONE =
+       rsimpStrong_raw (RALTS [q])"
+    by (rule rtail_nf_RONE_stable7)
+      (rule rtail_nf_rsimpStrong_raw)
+  show ?thesis
+    using RONE stable by simp
+qed simp_all
+
 definition singleton_saa_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
   "singleton_saa_ok q t \<longleftrightarrow>
     (\<forall>k. row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
@@ -1006,6 +1021,49 @@ definition singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> 
 definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
+
+lemma tagged_Strong_ALTs_rows_singleton_saa_ok:
+  assumes qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows [q])"
+  shows "singleton_saa_ok q t"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  let ?trs = "tagged_Strong_ALTs_rows [q]"
+  have t_mem: "t \<in> set (map snd ?trs)"
+    using qt by force
+  have rows_nf: "\<forall>u \<in> set (map snd ?trs). rtail_nf u"
+  proof
+    fix u
+    assume "u \<in> set (map snd ?trs)"
+    then obtain q' where "(q', u) \<in> set ?trs"
+      by auto
+    then show "rtail_nf u"
+      by (rule tagged_Strong_ALTs_rows_snd_rtail_nf)
+  qed
+  have member_open:
+      "row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms
+        (rsimp7_SEQ_atom (rsimp_ALTs (map snd ?trs))
+          (rsimpStrong_raw k))"
+    by (rule row_dlforms_rsimp7_member_subset_rsimp_ALTs
+        [OF t_mem rows_nf])
+  have root_eq:
+      "rsimpStrong_raw (RALTS [q]) = rsimp_ALTs (map snd ?trs)"
+    by (rule rsimpStrong_raw_RALTS_tagged_rows)
+  have root_open:
+      "row_dlforms
+        (rsimp7_SEQ_atom (rsimpStrong_raw (RALTS [q]))
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k))"
+    by (rule row_dlforms_singleton_strong_root_open_subset)
+  have root_carrier:
+      "row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom (RALTS [q]) k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    by (rule row_dlforms_singleton_root_subset_strong_apder_acc)
+  show "row_dlforms (rsimp7_SEQ_atom t (rsimpStrong_raw k)) \<subseteq>
+      strong_apder_acc (RALTS [q]) k"
+    using member_open root_eq root_open root_carrier by auto
+qed
 
 lemma rsimpStrong_ALTs_raw_single_RONE [simp]:
   "rsimpStrong_ALTs_raw [RONE] = RONE"
