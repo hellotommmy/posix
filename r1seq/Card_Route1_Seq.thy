@@ -581,6 +581,41 @@ proof -
     using child by simp
 qed
 
+lemma D1_RSEQ_le_rsize_from_combined_head_boundary:
+  fixes r1 r2 k
+  defines "c \<equiv> rsimp4_SEQ_atom r2 k"
+  assumes combined:
+    "card ((single_root (RSEQ r1 r2) k \<union> single_term r1 c) -
+        (B k \<union> B c)) +
+      card ((B c - B k) \<union> (single_term r2 k - B k))
+      \<le> rsize (RSEQ r1 r2)"
+  shows "D1 (RSEQ r1 r2) k \<le> rsize (RSEQ r1 r2)"
+proof -
+  let ?Root = "single_root (RSEQ r1 r2) k"
+  let ?T1 = "single_term r1 c"
+  let ?T2 = "single_term r2 k"
+  have decomp:
+    "A (RALTS [RSEQ r1 r2]) k = ?Root \<union> ?T1 \<union> ?T2"
+    by (auto simp add: A_single_decomp c_def)
+  have incl:
+    "A (RALTS [RSEQ r1 r2]) k - B k \<subseteq>
+      ((?Root \<union> ?T1) - (B k \<union> B c)) \<union>
+      ((B c - B k) \<union> (?T2 - B k))"
+    using decomp by auto
+  have "D1 (RSEQ r1 r2) k \<le>
+      card (((?Root \<union> ?T1) - (B k \<union> B c)) \<union>
+        ((B c - B k) \<union> (?T2 - B k)))"
+    unfolding D1_def
+    by (rule card_mono) (use incl in auto)
+  also have "... \<le>
+      card ((?Root \<union> ?T1) - (B k \<union> B c)) +
+      card ((B c - B k) \<union> (?T2 - B k))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using combined by simp
+  finally show ?thesis .
+qed
+
 lemma card_UN_list_Diff_le_sum_rsize:
   assumes "\<And>q. q \<in> set rs \<Longrightarrow> card (F q - C) \<le> rsize q"
   shows "card ((\<Union>q \<in> set rs. F q) - C) \<le> sum_list (map rsize rs)"
