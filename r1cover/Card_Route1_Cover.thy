@@ -666,6 +666,18 @@ next
     using t RONE stable by auto
 qed (use t in \<open>auto simp add: rsimp7_SEQ_atom_def\<close>)
 
+lemma rsimp_ALTs_RONE_member:
+  assumes "rsimp_ALTs xs = RONE"
+  shows "RONE \<in> set xs"
+  using assms
+  by (cases xs; cases "tl xs") auto
+
+lemma rsimp_ALTs_RSTAR_member:
+  assumes "rsimp_ALTs xs = RSTAR s"
+  shows "RSTAR s \<in> set xs"
+  using assms
+  by (cases xs; cases "tl xs") auto
+
 type_synonym tagged_row = "rrexp \<times> rrexp"
 
 lemma map_snd_map_Pair [simp]:
