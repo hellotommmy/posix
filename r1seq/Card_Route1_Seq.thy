@@ -3777,6 +3777,137 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma required_seq_head_core_le_rsize_from_cases_L1_clean:
+  assumes rone_diff:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (single_root (RSEQ RONE t) k -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    and rseq_case:
+    "\<And>r1 r2 t k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSEQ r1 r2) t) k \<union>
+        single_term (RSEQ r1 r2) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSEQ r1 r2)"
+    and rstar_case:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR r)"
+    and ralts_root_cover:
+    "\<And>rs t k. single_root (RSEQ (RALTS rs) t) k
+      \<subseteq> ((\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union>
+        single_term q (rsimp4_SEQ_atom t k)) \<union>
+        B k \<union> B (rsimp4_SEQ_atom t k))"
+    and clean:
+    "legacy_rrexp h" "rntimes_free h" "apder_nf h"
+    "h \<noteq> RZERO" "h \<noteq> RONE" "apder_nf t" "apder_nf k"
+  shows
+    "card ((single_root (RSEQ h t) k \<union>
+             single_term h (rsimp4_SEQ_atom t k)) -
+            (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize h"
+  using clean
+proof (cases h)
+  case RZERO
+  then show ?thesis using clean by simp
+next
+  case RONE
+  then show ?thesis using clean by simp
+next
+  case (RCHAR c)
+  then show ?thesis
+    using seq_head_core_RCHAR_le_rsize[of c t k] by simp
+next
+  case (RSEQ r1 r2)
+  then show ?thesis
+    using rseq_case[of r1 r2 t k] clean by simp
+next
+  case (RALTS rs)
+  let ?c = "rsimp4_SEQ_atom t k"
+  have cover:
+    "single_root (RSEQ (RALTS rs) t) k
+      \<subseteq> ((\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union> single_term q ?c) \<union>
+        B k \<union> B ?c)"
+    by (rule ralts_root_cover)
+  have branches:
+    "\<And>q. q \<in> set rs \<Longrightarrow>
+      card ((single_root (RSEQ q t) k \<union> single_term q ?c) -
+        (B k \<union> B ?c)) \<le> rsize q"
+  proof -
+    fix q
+    assume q: "q \<in> set rs"
+    have q_clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q"
+      using RALTS clean q by auto
+    have q_nonalt: "nonalt q"
+      using RALTS clean q by auto
+    have q_nz: "q \<noteq> RZERO"
+      using RALTS clean q by auto
+    show "card ((single_root (RSEQ q t) k \<union> single_term q ?c) -
+        (B k \<union> B ?c)) \<le> rsize q"
+    proof (cases q)
+      case RZERO
+      then show ?thesis using q_nz by simp
+    next
+      case RONE
+      have "card (single_root (RSEQ RONE t) k - (B k \<union> B ?c)) \<le> 1"
+        by (rule rone_diff[OF clean(6,7)])
+      then show ?thesis
+        unfolding RONE by (rule seq_head_core_RONE_le_rsize_from_root_diff)
+    next
+      case (RCHAR c)
+      then show ?thesis
+        using seq_head_core_RCHAR_le_rsize[of c t k] by simp
+    next
+      case (RSEQ s1 s2)
+      then show ?thesis
+        using rseq_case[of s1 s2 t k] q_clean clean by simp
+    next
+      case (RALTS qs)
+      then show ?thesis using q_nonalt by simp
+    next
+      case (RSTAR r)
+      then show ?thesis
+        using rstar_case[of r t k] q_clean clean by simp
+    next
+      case (RNTIMES r n)
+      then show ?thesis using q_clean by simp
+    next
+      case (RBACKREF4 r1 r2 r3 r4 cs)
+      then show ?thesis using q_clean by simp
+    next
+      case (RHALF r cs rep)
+      then show ?thesis using q_clean by simp
+    next
+      case (RRESIDUE cs rep)
+      then show ?thesis using q_clean by simp
+    qed
+  qed
+  show ?thesis
+    unfolding RALTS
+    by (rule seq_head_core_RALTS_le_rsize_from_L1[OF cover branches])
+next
+  case (RSTAR r)
+  then show ?thesis
+    using rstar_case[of r t k] clean by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis using clean by simp
+next
+  case (RHALF r cs rep)
+  then show ?thesis using clean by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis using clean by simp
+qed
+
 lemma required_seq_head_core_le_rsize_from_cases_nf_seq:
   assumes rone_diff:
     "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
