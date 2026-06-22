@@ -118,8 +118,17 @@ t11 family and every def-shape attack (collapse-sibling stacking, position-separ
 lane (the Secretary owns it). The mechanical `card_le_of_card_diff_le` and the `spine/profile/key/counts/lift_compatible`
 defs may be landed NOW; the `inj_on` step waits on (a)/(b).
 
-**BND theory state (ad485d1):** only 3 helpers landed — `finite_single_root`, `finite_single_term`,
-`strong_apder_acc_singleton_decomp`. S1 and `boundary_term_absorb` are still comment targets, not landed.
+**BND theory state (card/route1-bnd @ e0e8f71 — more than the earlier "3 helpers"):** the lane already has a
+substantial GREEN brick set — the generic finite-set combinator `card_le_if_missing_in_image`; finiteness
+(`finite_boundary_excess`/`_root_excess`/`_term_excess`/`finite_single_root`/`_single_term`);
+`strong_apder_acc_singleton_decomp`; and per-constructor leaves `boundary_excess_<C>_subset` + `boundary_missing_<C>`
+for the NON-RSEQ constructors (RZERO/RONE/RCHAR/RALTS-RZERO/RALTS-RONE/RSTAR/RNTIMES/backref/half/residue), which
+discharge `X ⊆ Y` (so `X−Y={}`, image premise vacuous) via `boundary_missing_from_subset`. **KEEP these bricks.**
+⚠ The conditional targets `boundary_excess_le_root_excess_if_missing` / `boundary_term_absorb_if_missing_with_term`
+ride on the missing-IMAGE premise `X−Y ⊆ S-image(Y−X)`, which is **REFUTED for RSEQ-root** (superseded). **Do NOT
+extend the missing-image leaves to RSEQ-root.** The RSEQ-root case now goes through the VALIDATED injection (above) →
+`card(X−Y)≤card(Y−X)` → `card_le_of_card_diff_le`. **No theory proof beyond the generic finite-set combinator may be
+landed unless it builds green** — the `inj_on` / `D_nonempty` / `D_chain` proofs wait on the Secretary's hand-proof.
 
 **Original two-pronged fix below — DEAD, do not revive (record only):**
 - RSEQ-root → **S-image subset** `A−B ⊆ rsimpStrong_raw \` (single_root−B)` (0/5768) + `card_image_le`.
