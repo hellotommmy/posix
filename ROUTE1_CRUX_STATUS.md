@@ -51,7 +51,7 @@ dead root-only device `singleton_source_ok` / `dl_le_pruned_altseq` (false 295/7
 
 ---
 
-## S1 — boundary-excess / `boundary_term_absorb`  `[card target OPEN — image repair REFUTED (ad485d1)]`
+## S1 — boundary-excess / `boundary_term_absorb`  `[card target VALIDATED; injection skeleton FOUND — 2 structural lemmas (D-nonempty, D-chain) to hand-prove next]`
 
 The **PLAIN subset** `A(RONE, s4 t k) ⊆ single_root t k ∪ B k` is **FALSE for RSEQ-root t**
 (min CE t=`a·a*`, k=`a*`: LHS has the σ7-collapsed row `a·a*`, single_root has the uncollapsed
@@ -89,12 +89,34 @@ a SOUND combinator (the already-green `card_le_if_missing_in_image`, or triviall
 ```
 card (X − Y)  ≤  card (Y − X)            -- TRUE, 0 viol / 160k+ clean (apder_nf t,k)
 ```
-**So the one remaining open lemma is `card(X−Y) ≤ card(Y−X)`**, to be proved by a DEFINABLE INJECTION
-`X−Y ↪ Y−X` (lift each collapsed boundary row to its uncollapsed root row by adding the right number of trailing
-star layers — inverse of the σ7 collapse, depth-parameterized, ≥2 layers in general). It is an INJECTION, NOT a
-bijection (strict `<` occurs, e.g. t=`(b*+b)·b*`, k=`b*`: |X−Y|=1<|Y−X|=2) and NOT the map S.
-⚠ This injection is UNVALIDATED — the Secretary will falsification-probe it (collisions) before any lane
-formalizes it. `card_le_of_card_diff_le` itself is mechanical/sound and may be landed now.
+**⚓ THE INJECTION IS VALIDATED — `DEFINABLE-INJECTION-EXISTS` (2026-06-22 probe `wwpa6b1ld`, high confidence;
+ad485d1 + strict-< witnesses reproduced first). FIRST S1 route that SURVIVES — S-image (A) and branch-provenance
+both died here.** The map (closed form; NO depth-sum, NO tie-break needed):
+- on a dl-row (right-nested RSEQ spine `f1·(f2·(…fm))`): `spine` = factor list; `profile` groups it into positions
+  = AtomPos (non-star) | StarRun(body, runlen) (maximal run of EQUAL adjacent stars `s*·s*…`); `key row` = profile
+  with every StarRun runlen reset to 1 (the collapse-invariant skeleton); `counts row` = tuple of StarRun runlens;
+  `lift_compatible x y ≡ key x = key y ∧ list_all2 (≤) (counts x) (counts y)`.
+- `f x = the pointwise-LEAST y ∈ {y ∈ Y−X. lift_compatible x y}` (re-inflate x's σ7-collapsed run(s) to the depth the
+  lazy σ4(RALTS[t],k) opening carries; layers added = counts(y)−counts(x), VARIES per row, ≥1 — recovered, not assumed).
+
+**KEY structural lemma (the breakthrough; load-bearing):** within ANY key-class, two distinct X−Y rows differ in
+EXACTLY ONE star-run count position ⇒ each key-class is a CHAIN (size ≤2) ⇒ `D(x)` has a unique least element ⇒ `f`
+total, single-valued, injective. (Mechanism: σ7 collapses ONLY the LEADING equal-adjacent star-run — one head
+position — so only the branch-fed leading position varies; interior runs come from the shared tail+k, identical
+across branches. ⇒ 0 genuine depth-delta ties, no tie-break, and the "non-definable symmetry" worry is killed.)
+Evidence: 0 UNDEF / 0 NOUNIQUE / 0 NONINJ / 0 card-viol over ~1.14M + 142k + 1.47M nonempty cases incl. the exact
+t11 family and every def-shape attack (collapse-sibling stacking, position-separated double-stars, deep ≥2-layer lifts).
+
+**Formalization chain — hand-prove the 2 structural lemmas FIRST (methodology rule):**
+```
+(a) D(x) nonempty     -- every σ7-collapsed X−Y row lifts to a present Y−X root row
+(b) D(x) is a CHAIN   -- the "exactly-one-position" lemma, from σ7 collapsing only a leading equal-adjacent star-run
+⇒ unique least element ⇒ f : X−Y ↪ Y−X (inj_on) ⇒ card_inj_on_le ⇒ card(X−Y) ≤ card(Y−X)
+⇒ card_le_of_card_diff_le (mechanical; sibling of the green card_le_if_missing_in_image) ⇒ card X ≤ card Y  (= S1)
+```
+⚠ (a)/(b) are VALIDATED + mechanism-explained but **NOT yet hand-proven from σ4/σ7** — that hand-proof is the NEXT
+lane (the Secretary owns it). The mechanical `card_le_of_card_diff_le` and the `spine/profile/key/counts/lift_compatible`
+defs may be landed NOW; the `inj_on` step waits on (a)/(b).
 
 **BND theory state (ad485d1):** only 3 helpers landed — `finite_single_root`, `finite_single_term`,
 `strong_apder_acc_singleton_decomp`. S1 and `boundary_term_absorb` are still comment targets, not landed.

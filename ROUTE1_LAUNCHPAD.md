@@ -344,8 +344,10 @@ even for RSEQ-root (commit ad485d1; the old "0/5768" was a coverage-gap artifact
 (RSEQ→S-image / non-SEQ→plain) split is DEAD. The card target
   card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
     <= card (single_root t k - strong_apder_acc RONE k)
-is OPEN. A new repair (card(X−Y) ≤ card(Y−X) via an injection X−Y↪Y−X (NB: the earlier X−Y⊆S-image(Y−X) is ALSO refuted) + card_le_of_missing_image) is PROPOSED but NOT yet validated —
-do NOT grind it. Keep the 3 landed helpers, FAIL-STOP + report; the Secretary (Claude) is
+is OPEN. The route card(X−Y) ≤ card(Y−X) via a definable injection X−Y↪Y−X is now VALIDATED (least-dominator
+star-run lift, probe wwpa6b1ld; survives where S-image died) — BUT its 2 structural lemmas (D-nonempty, D-chain)
+are NOT yet hand-proven, so do NOT formalize the inj_on yet (you MAY land the mechanical card_le_of_card_diff_le
++ the spine/profile/key/counts defs). Keep the 3 landed helpers, FAIL-STOP + report; the Secretary (Claude) is
 falsification-probing the repair and will supply a VALIDATED skeleton via ROUTE1_CRUX_STATUS.md §S1
 before you formalize.
 ```

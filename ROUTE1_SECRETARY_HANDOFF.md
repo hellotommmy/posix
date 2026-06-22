@@ -58,8 +58,9 @@ size-domination route is not the plan). Only prove track (ii) — the size bound
   `ad485d1`; the old "0/5768" was a coverage artifact). The missing-image repair `X−Y ⊆ S-image(Y−X)` is **ALSO REFUTED** (2026-06-22; S over-collapses, same class).
   LIVE route: `card X ≤ card Y` reduces by the SOUND combinator `card_le_of_card_diff_le` (mechanical — may be
   landed now) to the validated universal fact `card(X−Y) ≤ card(Y−X)`, whose one open piece is a DEFINABLE
-  INJECTION `X−Y ↪ Y−X` (depth-parameterized trailing-star lift, NOT a bijection, NOT S) — still UNVALIDATED,
-  the Claude secretary is probing it. Do NOT formalize the injection on a guessed route until a validated
+  INJECTION `X−Y ↪ Y−X` the least-dominator star-run lift, NOT a bijection, NOT S) — now **VALIDATED** (probe `wwpa6b1ld`, high conf;
+  survives where S-image died). Its 2 structural lemmas — (a) `D(x)` nonempty, (b) `D(x)` is a CHAIN (the
+  "exactly-one-position" lemma) — are the Claude secretary's NEXT hand-proof. Do NOT formalize the injection on a guessed route until a validated
   skeleton lands in `ROUTE1_CRUX_STATUS.md §S1`. The card-EQUALITY refactor is also dead.
 - **seq_head_core** — TRUE & tight; charge `rsize h` (NOT the collapsed-continuation recurrence D1).
 
