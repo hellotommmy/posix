@@ -77,14 +77,24 @@ commit `ad485d1`). The earlier "0/5768 validated" was a coverage-gap artifact �
 route-2's M=1. So `card_image_le` via `X ⊆ S-image(Y)` is DEAD. Do NOT re-propose the asymmetric
 RSEQ→S-image / non-SEQ→plain split.
 
-**NEW PROPOSED REPAIR — NOT yet validated; the Secretary (Claude) is falsification-probing it. Do NOT
-grind it into Isabelle until that probe confirms it (else it is the same "grind an unvalidated route"
-mistake).**
+**⚠ THAT REPAIR IS ALSO REFUTED (2026-06-22 probe; ad485d1 reproduced first).** `X − Y ⊆ S-image(Y − X)` is
+FALSE on the clean (apder_nf) domain, including RSEQ-root — `S = rsimpStrong_raw` OVER-collapses (it folds the
+whole trailing star-nest to ONE star), so it is the WRONG matching map, same class as `X ⊆ S-image(Y)`. Clean
+min CE: t = `(c + a·b*)·b*`, k = `b*·b*` → X−Y = {`a·(b*·b*)`,`c·b*`}, Y−X = {`a·(b*·(b*·b*))`,`c·(b*·b*)`},
+S(Y−X) = {`a·b*`,`c·b*`}; the row `a·(b*·b*)` ∈ X−Y is NOT in S(Y−X). DEAD — do not formalize any S-image route.
+
+**What IS true (the live route, validated):** `card X ≤ card Y` holds (0 viol / 160k+ clean), and it reduces by
+a SOUND combinator (the already-green `card_le_if_missing_in_image`, or trivially
+`card_le_of_card_diff_le : finite X ⟹ finite Y ⟹ card(X−Y) ≤ card(Y−X) ⟹ card X ≤ card Y`) to the universal fact
 ```
-X − Y  ⊆  S-image(Y − X)        -- the part of X missing from Y = S-image of the part of Y missing from X
-card_le_of_missing_image :  finite X ⟹ finite Y ⟹ (X − Y) ⊆ S-image(Y − X) ⟹ card X ≤ card Y
-   -- a surjection (Y − X) ↠ (X − Y) via S gives card(X−Y) ≤ card(Y−X), hence card X ≤ card Y
+card (X − Y)  ≤  card (Y − X)            -- TRUE, 0 viol / 160k+ clean (apder_nf t,k)
 ```
+**So the one remaining open lemma is `card(X−Y) ≤ card(Y−X)`**, to be proved by a DEFINABLE INJECTION
+`X−Y ↪ Y−X` (lift each collapsed boundary row to its uncollapsed root row by adding the right number of trailing
+star layers — inverse of the σ7 collapse, depth-parameterized, ≥2 layers in general). It is an INJECTION, NOT a
+bijection (strict `<` occurs, e.g. t=`(b*+b)·b*`, k=`b*`: |X−Y|=1<|Y−X|=2) and NOT the map S.
+⚠ This injection is UNVALIDATED — the Secretary will falsification-probe it (collisions) before any lane
+formalizes it. `card_le_of_card_diff_le` itself is mechanical/sound and may be landed now.
 
 **BND theory state (ad485d1):** only 3 helpers landed — `finite_single_root`, `finite_single_term`,
 `strong_apder_acc_singleton_decomp`. S1 and `boundary_term_absorb` are still comment targets, not landed.

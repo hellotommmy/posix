@@ -81,7 +81,7 @@ card(X∪C)=card(B∪C) — that `sub` step was invalid). The CARD form is TRUE 
     <= card (single_root t k - strong_apder_acc RONE k).
 REFUTED (commit ad485d1): the "S-image subset" X ⊆ rsimpStrong_raw`(Y) is FALSE EVEN for RSEQ-root, so
 the old asymmetric (RSEQ→S-image + card_image_le / non-SEQ→plain) split is DEAD — do NOT attempt it (the
-old "0/5768 validated" was a coverage-gap artifact). A new repair (X−Y ⊆ S-image(Y−X) +
+old "0/5768 validated" was a coverage-gap artifact). A new repair (card(X−Y) ≤ card(Y−X) via an injection X−Y↪Y−X (NB: the earlier X−Y⊆S-image(Y−X) is ALSO refuted) +
 card_le_of_missing_image) is PROPOSED but NOT yet validated — do NOT grind it into Isabelle either.
 For now: keep the 3 landed helpers (finite_single_root, finite_single_term,
 strong_apder_acc_singleton_decomp); do NOT land S1/boundary_term_absorb on a guessed route; FAIL-STOP +
@@ -213,7 +213,7 @@ GOAL: a self-contained LaTeX document (article, amsmath/amsthm), compiled to PDF
      the global induction, the bridge to card ≤ rsize+1.
   4. Crux status (from ROUTE1_CRUX_STATUS.md) — L1 cover [VALIDATED TRUE], S1 (plain subset FALSE;
      card target card X ≤ card Y still OPEN — the asymmetric S-image repair was REFUTED in ad485d1, a
-     missing-image repair X−Y ⊆ S-image(Y−X) is proposed but unvalidated) [OPEN], seq_head_core
+     missing-image repair card(X−Y) ≤ card(Y−X) via an injection X−Y↪Y−X (NB: the earlier X−Y⊆S-image(Y−X) is ALSO refuted) is proposed but unvalidated) [OPEN], seq_head_core
      [VALIDATED TRUE & tight]. Explain the cross-prune wall (σ7 collapses a leading a*·a*→a* but the
      set-level prune keeps uncollapsed (s*·s*) survivors) and how each crux handles it.
   5. Formalization status, per lemma — green vs in-progress on the lanes.
@@ -344,7 +344,7 @@ even for RSEQ-root (commit ad485d1; the old "0/5768" was a coverage-gap artifact
 (RSEQ→S-image / non-SEQ→plain) split is DEAD. The card target
   card (strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k)
     <= card (single_root t k - strong_apder_acc RONE k)
-is OPEN. A new repair (X−Y ⊆ S-image(Y−X) + card_le_of_missing_image) is PROPOSED but NOT yet validated —
+is OPEN. A new repair (card(X−Y) ≤ card(Y−X) via an injection X−Y↪Y−X (NB: the earlier X−Y⊆S-image(Y−X) is ALSO refuted) + card_le_of_missing_image) is PROPOSED but NOT yet validated —
 do NOT grind it. Keep the 3 landed helpers, FAIL-STOP + report; the Secretary (Claude) is
 falsification-probing the repair and will supply a VALIDATED skeleton via ROUTE1_CRUX_STATUS.md §S1
 before you formalize.

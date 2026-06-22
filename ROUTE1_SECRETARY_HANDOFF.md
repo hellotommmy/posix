@@ -55,10 +55,12 @@ size-domination route is not the plan). Only prove track (ii) — the size bound
   **acc** carrier, NOT a branch root (root-only device is FALSE — do not re-propose).
 - **S1 (boundary_term_absorb)** — the PLAIN subset is FALSE for RSEQ-root; the CARD target `card X ≤ card Y`
   is **OPEN**. ⚠ The asymmetric S-image repair (`X ⊆ S-image(Y)`) is **REFUTED even for RSEQ-root** (commit
-  `ad485d1`; the old "0/5768" was a coverage artifact). A new repair (`X−Y ⊆ S-image(Y−X)` +
-  `card_le_of_missing_image`) is PROPOSED but UNVALIDATED — the Claude secretary is probing it; do NOT
-  formalize S1 on any guessed route until a validated skeleton lands in `ROUTE1_CRUX_STATUS.md §S1`. The
-  card-EQUALITY refactor is also dead.
+  `ad485d1`; the old "0/5768" was a coverage artifact). The missing-image repair `X−Y ⊆ S-image(Y−X)` is **ALSO REFUTED** (2026-06-22; S over-collapses, same class).
+  LIVE route: `card X ≤ card Y` reduces by the SOUND combinator `card_le_of_card_diff_le` (mechanical — may be
+  landed now) to the validated universal fact `card(X−Y) ≤ card(Y−X)`, whose one open piece is a DEFINABLE
+  INJECTION `X−Y ↪ Y−X` (depth-parameterized trailing-star lift, NOT a bijection, NOT S) — still UNVALIDATED,
+  the Claude secretary is probing it. Do NOT formalize the injection on a guessed route until a validated
+  skeleton lands in `ROUTE1_CRUX_STATUS.md §S1`. The card-EQUALITY refactor is also dead.
 - **seq_head_core** — TRUE & tight; charge `rsize h` (NOT the collapsed-continuation recurrence D1).
 
 ## 3. The lanes you supervise (each its own worktree, branch, session, private heap)
