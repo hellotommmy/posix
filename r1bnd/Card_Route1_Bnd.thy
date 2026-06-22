@@ -21,6 +21,8 @@ definition boundary_excess :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set
      strong_apder_acc RONE (rsimp4_SEQ_atom t k) - strong_apder_acc RONE k"
 definition root_excess :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "root_excess t k = single_root t k - strong_apder_acc RONE k"
+definition term_excess :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
+  "term_excess t k = single_term t k - strong_apder_acc RONE k"
 
 lemma card_le_if_missing_in_image:
   fixes X Y :: "'a set"
@@ -73,11 +75,25 @@ lemma finite_root_excess [simp]:
   "finite (root_excess t k)"
   by (simp add: root_excess_def)
 
+lemma finite_term_excess [simp]:
+  "finite (term_excess t k)"
+  by (simp add: term_excess_def)
+
 lemma boundary_excess_le_root_excess_if_missing:
   assumes "boundary_excess t k - root_excess t k
       \<subseteq> rsimpStrong_raw ` (root_excess t k - boundary_excess t k)"
   shows "card (boundary_excess t k) \<le> card (root_excess t k)"
   by (rule card_le_if_missing_in_image[OF finite_boundary_excess finite_root_excess assms])
+
+lemma boundary_term_absorb_if_missing_with_term:
+  assumes "(boundary_excess t k \<union> term_excess t k)
+      - (root_excess t k \<union> term_excess t k)
+      \<subseteq> rsimpStrong_raw `
+        ((root_excess t k \<union> term_excess t k)
+          - (boundary_excess t k \<union> term_excess t k))"
+  shows "card (boundary_excess t k \<union> term_excess t k)
+      \<le> card (root_excess t k \<union> term_excess t k)"
+  by (rule card_le_if_missing_in_image) (use assms in auto)
 
 lemma boundary_missing_from_subset:
   assumes "boundary_excess t k \<subseteq> root_excess t k"
