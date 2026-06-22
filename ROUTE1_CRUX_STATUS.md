@@ -130,5 +130,23 @@ The singleton-cover design is **SOUND**; remaining work is Isabelle formalizatio
 discovery. Land order:
 - **cover (L1)** and **bnd (S1)** are independent leaves → formalize in parallel first.
 - **seq (seq_head_core)** depends on BOTH `boundary_term_absorb` (bnd) and the L1 cover.
-- **formalize (spine)** integrates all three via `assumes`, swapping in the real lemmas as the
-  lanes land them; then assembles `card_apder_strong_dlfrontier_le` and `cubic_gate_unconditional`.
+- **formalize (spine + ASSEMBLER)** integrates all three via `assumes`, swapping in the real lemmas as the
+  lanes land them; then assembles up to `card_apder_strong_dlfrontier_le` and `cubic_gate_unconditional`.
+
+### ⚠ The easily-missed layer: the `singleton_bound` ASSEMBLER (FORMALIZE owns it — NOT a crux lane)
+The three cruxes do NOT by themselves give the singleton size bound. There is a distinct ASSEMBLY layer:
+```
+singleton_bound :  apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q     (D1 q k = card (SAA (RALTS[q]) k − B k))
+```
+proved by **induction on q**, tying together:
+```
+  base cases (RZERO/RONE/RCHAR)
+  + RSEQ step   D1 (RSEQ r1 r2) k ≤ rsize r1 + D1 r2 k     (D1_RSEQ_step_spine; uses boundary_term_absorb + seq_head_core)
+  + RSTAR step  (D1_RSTAR_step_spine)
+  + RALTS step  (rflts-flatten + the RALTS budget  D (RALTS rs) k ≤ Σ rsize,  which uses L1)
+  ⇒ singleton_bound
+```
+The existing `D1_*_step_spine`s do **NOT** auto-produce `singleton_bound` — they must be tied by the q-induction.
+**COVER / BND / SEQ each deliver ONLY their one crux lemma** (L1 / `boundary_term_absorb` / `seq_head_core`);
+**none of them delivers `singleton_bound` or any `RALTS_diff`** — that assembly is FORMALIZE's. Then the global
+`D r k ≤ rsize r` (induction on r) uses `singleton_bound` at the RALTS case, → (G) → cubic.

@@ -67,12 +67,20 @@ size-domination route is not the plan). Only prove track (ii) — the size bound
 | COVER | `cover` | `r1cover\Card_Route1_Cover.thy` | `Posix_Card_Route1_Cover` | L1 |
 | BND | `bnd` | `r1bnd\Card_Route1_Bnd.thy` | `Posix_Card_Route1_Bnd` | S1 |
 | SEQ | `seq` | `r1seq\Card_Route1_Seq.thy` | `Posix_Card_Route1_Seq` | seq_head |
-| FORMALIZE | `formalize` | `card\Card_Route1.thy` | `Posix_Card_Route1` | the spine (assumes L1/S1/seq_head) |
+| FORMALIZE | `formalize` | `card\Card_Route1.thy` | `Posix_Card_Route1` | the spine **+ the `singleton_bound` ASSEMBLER** (assumes L1/S1/seq_head) |
 | claude-L1/S1/seq | `claude-L1` / `claude-S1` / `claude-seq` | (mirror of cover/bnd/seq) | same sessions | race the GPT lanes |
 
 Build a lane ONLY with its **private `USER_HOME`** command (parallel-build isolation — exact commands in
 `ROUTE1_LAUNCHPAD.md`; never the shared `.ps1`, it corrupts parent heaps across lanes). Dependency/merge
 order: COVER(L1) and BND(S1) are independent → land first; SEQ needs both; FORMALIZE integrates all three.
+
+⚠ **The `singleton_bound` ASSEMBLER is a distinct layer FORMALIZE owns — NOT a crux lane.** The three cruxes
+do NOT by themselves give `singleton_bound : apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q`. FORMALIZE proves it
+by **induction on q**, tying base cases + the RSEQ step (`D1_RSEQ_step_spine`; uses `boundary_term_absorb` +
+`seq_head_core`) + the RSTAR step (`D1_RSTAR_step_spine`) + the RALTS step (rflts-flatten + the RALTS budget,
+uses L1). The `D1_*_step_spine`s do NOT auto-produce `singleton_bound`. **COVER/BND/SEQ deliver ONLY their one
+crux lemma — none delivers `singleton_bound` or any `RALTS_diff`; do not let a lane assume otherwise.** (Full
+layer in `ROUTE1_CRUX_STATUS.md` → "the `singleton_bound` ASSEMBLER".)
 
 ## 4. The recurring wall (so you never re-propose a dead route)
 σ7 (`rsimp7_SEQ_atom`) collapses an adjacent equal-star `s*·s*→s*` ONLY at the sequence TOP. `dl`'s

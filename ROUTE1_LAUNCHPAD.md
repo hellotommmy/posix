@@ -163,7 +163,10 @@ assumption shapes (match names/statements so swap-in is mechanical):
 
 Spine to land on top of (A)(B)(C):
  1. RSEQ recurrence  D1 (RSEQ r1 r2) k ≤ rsize r1 + D1 r2 k   (uses C + boundary_term_absorb)
- 2. L2 singleton size  D1 q k ≤ rsize q   (induction on q; RSEQ via 1, RALTS via the budget step + A)
+ 2. the ASSEMBLER `singleton_bound`: D1 q k ≤ rsize q — INDUCTION ON q tying together base cases + step 1
+    (RSEQ, uses C + boundary_term_absorb) + the RSTAR step + the RALTS step (rflts-flatten + budget, uses A).
+    The D1_*_step_spines do NOT auto-give it — YOU assemble it. COVER/BND/SEQ deliver only their one crux,
+    NOT singleton_bound / any RALTS_diff.
  3. RALTS budget step + global  card_strong_apder_acc_diff_base_le_rsize  (induction on r, arbitrary k;
     + the two RSTAR sub-lemmas: card_rho_RSTAR_diff_base_le_1 and the σ4(RSTAR)-singleton-frontier eq)
  4. target  card_apder_strong_dlfrontier_le  (bridge: card U ≤ Suc (rsize r))
