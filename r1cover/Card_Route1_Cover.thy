@@ -1929,6 +1929,38 @@ proof
     using split later_cover by blast
 qed
 
+lemma singleton_saa_ok_prune_pair_raw_shared_RSEQ_if_ok:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSEQ h t)"
+    and later: "later = RSEQ (RALTS rrs) (RSEQ h t)"
+    and ok: "singleton_saa_ok q later"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and tail_nf: "rtail_nf (RSEQ h t)"
+  shows "singleton_saa_ok q (rsimpStrong_prune_pair_raw earlier later)"
+  unfolding singleton_saa_ok_def
+proof
+  fix k
+  have K_nf: "rtail_nf (rsimpStrong_raw k)"
+    by (rule rtail_nf_rsimpStrong_raw)
+  have split:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimpStrong_prune_pair_raw earlier later)
+          (rsimpStrong_raw k)) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k))"
+    by (rule row_dlforms_rsimp7_prune_pair_shared_RSEQ_tail_subset_later
+        [OF earlier later rrs_props tail_nf K_nf])
+  have later_cover:
+      "row_dlforms (rsimp7_SEQ_atom later (rsimpStrong_raw k)) \<subseteq>
+       strong_apder_acc (RALTS [q]) k"
+    using ok unfolding singleton_saa_ok_def by blast
+  show "row_dlforms
+      (rsimp7_SEQ_atom (rsimpStrong_prune_pair_raw earlier later)
+        (rsimpStrong_raw k)) \<subseteq>
+    strong_apder_acc (RALTS [q]) k"
+    using split later_cover by blast
+qed
+
 lemma tagged_Strong_ALTs_rows_singleton_saa_ok:
   assumes qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows [q])"
   shows "singleton_saa_ok q t"
