@@ -2267,6 +2267,68 @@ proof
     using split later_cover by blast
 qed
 
+lemma singleton_saa_ok_prune_pair_raw_if_scan_ok:
+  assumes ok: "singleton_saa_ok q later"
+    and key: "singleton_saa_key_credit q later"
+    and later_nf: "rtail_nf later"
+    and star_fix:
+      "\<And>lrs rrs s. earlier = RSEQ (RALTS lrs) (RSTAR s) \<Longrightarrow>
+        later = RSEQ (RALTS rrs) (RSTAR s) \<Longrightarrow>
+        rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "singleton_saa_ok q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  consider
+    (shared) lrs rrs tail where
+      "earlier = RSEQ (RALTS lrs) tail"
+      "later = RSEQ (RALTS rrs) tail"
+  | (other) "\<not> (\<exists>lrs rrs tail.
+      earlier = RSEQ (RALTS lrs) tail \<and>
+      later = RSEQ (RALTS rrs) tail)"
+    by blast
+  then show ?thesis
+  proof cases
+    case (shared lrs rrs tail)
+    have rrs_props: "\<forall>r \<in> set rrs.
+        rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+      using later_nf shared by simp
+    have tail_nf: "rtail_nf tail"
+      using later_nf shared by simp
+    have tail0: "tail \<noteq> RZERO"
+      using later_nf shared by simp
+    have tail1: "tail \<noteq> RONE"
+      using later_nf shared by simp
+    show ?thesis
+    proof (cases "\<exists>s. tail = RSTAR s")
+      case True
+      then obtain s where s: "tail = RSTAR s"
+        by blast
+      have star_fixed: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+        by (rule star_fix) (use shared s in auto)+
+      show ?thesis
+        by (rule singleton_saa_ok_prune_pair_raw_shared_RSTAR_if_scan_ok
+            [OF _ _ ok key rrs_props star_fixed])
+          (use shared s in auto)
+    next
+      case False
+      have no_star: "\<And>s. tail \<noteq> RSTAR s"
+        using False by blast
+      show ?thesis
+        by (rule singleton_saa_ok_prune_pair_raw_shared_nonstar_if_ok
+            [OF shared(1) shared(2) ok rrs_props tail_nf tail0 tail1
+              no_star])
+    qed
+  next
+    case other
+    have "rsimpStrong_prune_pair_raw earlier later = later"
+      using other
+      unfolding rsimpStrong_prune_pair_raw_def
+      by (cases earlier; cases later) (auto split: rrexp.splits)
+    then show ?thesis
+      using ok by simp
+  qed
+  qed
+
 lemma tagged_Strong_ALTs_rows_singleton_saa_ok:
   assumes qt: "(q, t) \<in> set (tagged_Strong_ALTs_rows [q])"
   shows "singleton_saa_ok q t"
