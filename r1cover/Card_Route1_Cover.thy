@@ -636,6 +636,85 @@ next
 qed (use a_nf in
     \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
 
+lemma row_dlforms_rsimp7_nested_altseq_RSEQ_tail_subset_later:
+  assumes ps: "set ps \<subseteq> set qs"
+    and qs_props: "\<forall>q \<in> set qs.
+      rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and tail_nf: "rtail_nf (RSEQ h t)"
+    and K_nf: "rtail_nf K"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSEQ h t)) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS qs) (RSEQ h t)) K)"
+proof -
+  have qs_nf: "\<forall>q \<in> set qs. rtail_nf q"
+    using qs_props by blast
+  have ps_props: "\<forall>p \<in> set ps.
+      rtail_nf p \<and> nonalt p \<and> p \<noteq> RZERO"
+    using ps qs_props by blast
+  have a_nf: "rtail_nf (rsimp_ALTs ps)"
+    by (rule rtail_nf_rsimp_ALTs)
+      (use ps_props in auto)
+  have assoc:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom (rsimp_ALTs ps) (RSEQ h t)) K) \<subseteq>
+       row_dlforms
+        (rsimp7_SEQ_atom (rsimp_ALTs ps)
+          (rsimp4_SEQ_atom (RSEQ h t) K))"
+    by (rule row_dlforms_rsimp7_assoc_RSEQ_tail_subset
+        [OF a_nf tail_nf K_nf])
+  have branch:
+      "row_dlforms
+        (rsimp7_SEQ_atom (rsimp_ALTs ps)
+          (rsimp4_SEQ_atom (RSEQ h t) K)) \<subseteq>
+       row_dlforms
+        (rsimp7_SEQ_atom (RALTS qs)
+          (rsimp4_SEQ_atom (RSEQ h t) K))"
+    by (rule row_dlforms_rsimp7_rsimp_ALTs_subset_RALTS
+        [OF ps qs_nf])
+  have target_eq:
+      "row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS qs) (RSEQ h t)) K) =
+       row_dlforms
+        (rsimp7_SEQ_atom (RALTS qs)
+          (rsimp4_SEQ_atom (RSEQ h t) K))"
+    by (simp add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  show ?thesis
+    using assoc branch target_eq by blast
+qed
+
+lemma row_dlforms_rsimp7_prune_pair_shared_RSEQ_tail_subset_later:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSEQ h t)"
+    and later: "later = RSEQ (RALTS rrs) (RSEQ h t)"
+    and rrs_props: "\<forall>q \<in> set rrs.
+      rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and tail_nf: "rtail_nf (RSEQ h t)"
+    and K_nf: "rtail_nf K"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom (rsimpStrong_prune_pair_raw earlier later) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom later K)"
+proof (cases "rprune_eq_against lrs rrs = []")
+  case True
+  then show ?thesis
+    using earlier later
+    by (simp add: rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+next
+  case nonempty: False
+  have pruned: "set (rprune_eq_against lrs rrs) \<subseteq> set rrs"
+    by (rule rprune_eq_against_set_subset_local)
+  have nested:
+      "row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimp7_SEQ_atom
+            (rsimp_ALTs (rprune_eq_against lrs rrs)) (RSEQ h t)) K) \<subseteq>
+       row_dlforms (rsimp7_SEQ_atom (RSEQ (RALTS rrs) (RSEQ h t)) K)"
+    by (rule row_dlforms_rsimp7_nested_altseq_RSEQ_tail_subset_later
+        [OF pruned rrs_props tail_nf K_nf])
+  show ?thesis
+    using earlier later nonempty nested
+    by (simp add: rsimpStrong_prune_pair_raw_def)
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
