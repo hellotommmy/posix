@@ -3908,6 +3908,99 @@ next
   then show ?thesis using clean by simp
 qed
 
+lemma seq_head_core_le_rsize_from_L1_cases_clean:
+  assumes rone_diff:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (single_root (RSEQ RONE t) k -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    and rseq_case:
+    "\<And>r1 r2 t k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSEQ r1 r2) t) k \<union>
+        single_term (RSEQ r1 r2) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSEQ r1 r2)"
+    and rstar_case:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR r)"
+    and ralts_root_cover:
+    "\<And>rs t k. single_root (RSEQ (RALTS rs) t) k
+      \<subseteq> ((\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union>
+        single_term q (rsimp4_SEQ_atom t k)) \<union>
+        B k \<union> B (rsimp4_SEQ_atom t k))"
+    and clean:
+    "legacy_rrexp h" "rntimes_free h" "apder_nf h"
+    "apder_nf t" "apder_nf k"
+  shows
+    "card ((single_root (RSEQ h t) k \<union>
+             single_term h (rsimp4_SEQ_atom t k)) -
+            (B k \<union> B (rsimp4_SEQ_atom t k)))
+      \<le> rsize h"
+  using clean
+proof (cases h)
+  case RZERO
+  then show ?thesis
+    by simp
+next
+  case RONE
+  have root_diff:
+    "card (single_root (RSEQ RONE t) k -
+      (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    by (rule rone_diff[OF clean(4,5)])
+  show ?thesis
+    unfolding RONE by (rule seq_head_core_RONE_le_rsize_from_root_diff[OF root_diff])
+next
+  case (RCHAR c)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RCHAR in simp_all)
+next
+  case (RSEQ r1 r2)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RSEQ in simp_all)
+next
+  case (RALTS rs)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RALTS in simp_all)
+next
+  case (RSTAR r)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RSTAR in simp_all)
+next
+  case (RNTIMES r n)
+  then show ?thesis using clean by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RBACKREF4 in simp_all)
+next
+  case (RHALF r cs rep)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RHALF in simp_all)
+next
+  case (RRESIDUE cs rep)
+  show ?thesis
+    by (rule required_seq_head_core_le_rsize_from_cases_L1_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use clean RRESIDUE in simp_all)
+qed
+
 lemma required_seq_head_core_le_rsize_from_cases_nf_seq:
   assumes rone_diff:
     "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
