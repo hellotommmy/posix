@@ -2584,6 +2584,32 @@ lemma tagged_prune_pair_raw_preserves_singleton_saa_ok_if_suffix:
     [OF ok later_nf suffix]
   by (simp add: tagged_prune_pair_raw_def)
 
+lemma tagged_prune_pair_raw_preserves_singleton_saa_ok_if_scan_ok:
+  assumes scan: "singleton_saa_scan_ok (fst later) (snd later)"
+    and later_nf: "rtail_nf (snd later)"
+    and star_fix:
+      "\<And>lrs rrs s.
+        snd earlier = RSEQ (RALTS lrs) (RSTAR s) \<Longrightarrow>
+        snd later = RSEQ (RALTS rrs) (RSTAR s) \<Longrightarrow>
+        rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "singleton_saa_ok
+    (fst (tagged_prune_pair_raw earlier later))
+    (snd (tagged_prune_pair_raw earlier later))"
+proof -
+  have ok: "singleton_saa_ok (fst later) (snd later)"
+    using scan by (simp add: singleton_saa_scan_ok_def)
+  have key: "singleton_saa_key_credit (fst later) (snd later)"
+    using scan by (simp add: singleton_saa_scan_ok_def)
+  have pruned_ok:
+      "singleton_saa_ok (fst later)
+        (rsimpStrong_prune_pair_raw (snd earlier) (snd later))"
+    by (rule singleton_saa_ok_prune_pair_raw_if_scan_ok
+        [OF ok key later_nf])
+      (rule star_fix)
+  show ?thesis
+    using pruned_ok by (simp add: tagged_prune_pair_raw_def)
+qed
+
 lemma singleton_saa_ok_prune_against_rows_raw_if_suffix:
   assumes ok: "singleton_saa_ok q t"
     and t_nf: "rtail_nf t"
