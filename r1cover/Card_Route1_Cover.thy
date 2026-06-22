@@ -574,6 +574,68 @@ next
       (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
 qed
 
+lemma row_dlforms_rsimp7_assoc_RSEQ_tail_subset:
+  assumes a_nf: "rtail_nf a"
+    and tail_nf: "rtail_nf (RSEQ h t)"
+    and K_nf: "rtail_nf K"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom (rsimp7_SEQ_atom a (RSEQ h t)) K) \<subseteq>
+    row_dlforms
+      (rsimp7_SEQ_atom a
+        (rsimp4_SEQ_atom (RSEQ h t) K))"
+proof (cases a)
+  case (RSTAR r)
+  have sub: "row_dlforms
+      (rsimp7_SEQ_atom (rsimp7_SEQ_atom (RSTAR r) (RSEQ h t)) K) \<subseteq>
+    row_dlforms
+      (rsimp7_SEQ_atom (RSTAR r)
+        (rsimp4_SEQ_atom (RSEQ h t) K))"
+    by (rule row_dlforms_rsimp7_assoc_RSTAR_RSEQ_tail_subset
+        [OF tail_nf K_nf])
+  then show ?thesis
+    using RSTAR by simp
+next
+  case (RSEQ a1 a2)
+  have a0: "a \<noteq> RZERO"
+    using RSEQ by simp
+  have a1_ne: "a \<noteq> RONE"
+    using RSEQ by simp
+  have tail0: "RSEQ h t \<noteq> RZERO"
+    by simp
+  have tail1: "RSEQ h t \<noteq> RONE"
+    by simp
+  have mid_not_star:
+      "\<And>s. rsimp4_SEQ_atom a (RSEQ h t) \<noteq> RSTAR s"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR
+        [OF a_nf a0 a1_ne tail0 tail1])
+  have first_eq:
+      "rsimp7_SEQ_atom a (RSEQ h t) =
+       rsimp4_SEQ_atom a (RSEQ h t)"
+    using RSEQ by (simp add: rsimp7_SEQ_atom_def)
+  have second_eq:
+      "rsimp7_SEQ_atom (rsimp4_SEQ_atom a (RSEQ h t)) K =
+       rsimp4_SEQ_atom (rsimp4_SEQ_atom a (RSEQ h t)) K"
+  proof (cases "rsimp4_SEQ_atom a (RSEQ h t)")
+    case (RSTAR s)
+    then show ?thesis
+      using mid_not_star[of s] by simp
+  qed (simp_all add: rsimp7_SEQ_atom_def)
+  have right_eq:
+      "rsimp7_SEQ_atom a (rsimp4_SEQ_atom (RSEQ h t) K) =
+       rsimp4_SEQ_atom a (rsimp4_SEQ_atom (RSEQ h t) K)"
+    using RSEQ by (simp add: rsimp7_SEQ_atom_def)
+  have right_eq':
+      "rsimp7_SEQ_atom a
+        (rsimp4_SEQ_atom h (rsimp4_SEQ_atom t K)) =
+       rsimp4_SEQ_atom a
+        (rsimp4_SEQ_atom h (rsimp4_SEQ_atom t K))"
+    using RSEQ by (simp add: rsimp7_SEQ_atom_def)
+  show ?thesis
+    by (simp add: first_eq second_eq right_eq right_eq'
+        rsimp4_SEQ_atom_assoc)
+qed (use a_nf in
+    \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
