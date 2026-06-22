@@ -715,6 +715,192 @@ next
     by (simp add: rsimpStrong_prune_pair_raw_def)
 qed
 
+lemma rsimp4_SEQ_atom_nonstar_rtail_nf_not_RSTAR:
+  assumes p_nf: "rtail_nf p"
+    and p0: "p \<noteq> RZERO"
+    and p1: "p \<noteq> RONE"
+    and no_star: "\<And>s. p \<noteq> RSTAR s"
+    and K_nf: "rtail_nf K"
+  shows "rsimp4_SEQ_atom p K \<noteq> RSTAR s"
+proof (cases K)
+  case RZERO
+  then show ?thesis by simp
+next
+  case RONE
+  have stable: "rsimp4_SEQ_atom p RONE = p"
+    by (rule rtail_nf_RONE_stable[OF p_nf])
+  then show ?thesis
+    using RONE no_star[of s] by simp
+qed (use p_nf p0 p1 in
+    \<open>auto dest: rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR\<close>)
+
+lemma row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset:
+  assumes a_def: "a = RSEQ a1 a2"
+    and a_nf: "rtail_nf a"
+    and k_nf: "rtail_nf k"
+    and k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+  shows "row_dlforms (rsimp7_SEQ_atom (rsimp7_SEQ_atom a k) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom a (rsimp4_SEQ_atom k K))"
+proof -
+  have a0: "a \<noteq> RZERO"
+    using a_def by simp
+  have a1_ne: "a \<noteq> RONE"
+    using a_def by simp
+  have mid_not_star:
+      "\<And>s. rsimp4_SEQ_atom a k \<noteq> RSTAR s"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR
+        [OF a_nf a0 a1_ne k0 k1])
+  have first_eq:
+      "rsimp7_SEQ_atom a k = rsimp4_SEQ_atom a k"
+    using a_def by (simp add: rsimp7_SEQ_atom_def)
+  have second_eq:
+      "rsimp7_SEQ_atom (rsimp4_SEQ_atom a k) K =
+       rsimp4_SEQ_atom (rsimp4_SEQ_atom a k) K"
+  proof (cases "rsimp4_SEQ_atom a k")
+    case (RSTAR s)
+    then show ?thesis
+      using mid_not_star[of s] by simp
+  qed (simp_all add: rsimp7_SEQ_atom_def)
+  have right_eq:
+      "rsimp7_SEQ_atom a (rsimp4_SEQ_atom k K) =
+       rsimp4_SEQ_atom a (rsimp4_SEQ_atom k K)"
+    using a_def by (simp add: rsimp7_SEQ_atom_def)
+  show ?thesis
+    by (simp add: first_eq second_eq right_eq rsimp4_SEQ_atom_assoc)
+qed
+
+lemma row_dlforms_rsimp7_assoc_nonstar_tail_subset:
+  assumes a_nf: "rtail_nf a"
+    and k_nf: "rtail_nf k"
+    and k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+    and no_star: "\<And>s. k \<noteq> RSTAR s"
+    and K_nf: "rtail_nf K"
+  shows "row_dlforms (rsimp7_SEQ_atom (rsimp7_SEQ_atom a k) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom a (rsimp4_SEQ_atom k K))"
+proof (cases k)
+  case (RSEQ h t)
+  have sub: "row_dlforms
+      (rsimp7_SEQ_atom (rsimp7_SEQ_atom a (RSEQ h t)) K) \<subseteq>
+    row_dlforms
+      (rsimp7_SEQ_atom a
+        (rsimp4_SEQ_atom (RSEQ h t) K))"
+    by (rule row_dlforms_rsimp7_assoc_RSEQ_tail_subset
+        [OF a_nf _ K_nf])
+      (use RSEQ k_nf in simp)
+  then show ?thesis
+    using RSEQ sub by simp
+next
+  case (RSTAR s)
+  then show ?thesis
+    using no_star[of s] by simp
+next
+  case RZERO
+  then show ?thesis
+    using k0 by simp
+next
+  case RONE
+  then show ?thesis
+    using k1 by simp
+next
+  case (RALTS rs)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RALTS
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RALTS in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+next
+  case (RCHAR c)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RCHAR
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RCHAR in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+next
+  case (RNTIMES s n)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RNTIMES
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RNTIMES in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RBACKREF4
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RBACKREF4 in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+next
+  case (RHALF s cs rep)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RHALF
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RHALF in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+next
+  case (RRESIDUE cs rep)
+  show ?thesis
+  proof (cases a)
+    case (RSTAR r)
+    then show ?thesis
+      using RRESIDUE
+      by (cases K)
+        (simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc)
+  next
+    case (RSEQ a1 a2)
+    show ?thesis
+      by (rule row_dlforms_rsimp7_assoc_RSEQ_left_nonunit_tail_subset
+          [OF RSEQ a_nf k_nf k0 k1])
+  qed (use RRESIDUE in
+      \<open>simp_all add: rsimp7_SEQ_atom_def rsimp4_SEQ_atom_assoc\<close>)
+qed
+
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
   assumes k_nf: "rtail_nf k"
     and K_nf: "rtail_nf K"
