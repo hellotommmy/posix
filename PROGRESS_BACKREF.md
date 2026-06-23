@@ -11614,3 +11614,44 @@ old plain-subset failure is paid by `Y-X` via `rsimpStrong_raw`; ad485d1's `bad`
 counterexample found from these checks. Broad one-shot proofs for all non-RSEQ and all RSEQ
 constructors timed out as proof scripts, so they were not committed; continue by smaller
 constructor lemmas, not by the old full S-image branch.
+
+---
+
+## 2026-06-23 ROUTE-1 BND lane (Codex): diff-card bridge landed; S-image routes stay DEAD
+
+Branch `card/route1-bnd`, file `r1bnd/Card_Route1_Bnd.thy`, session
+`Posix_Card_Route1_Bnd`.
+
+Commit `287244f` (`Add BND diff-card bridge and profile defs`) is GREEN under the
+private `USER_HOME` heap command from `ROUTE_BND.md`:
+
+```text
+card_le_of_card_diff_le:
+  finite X ==> finite Y ==> card (X - Y) <= card (Y - X) ==> card X <= card Y
+```
+
+Plain gloss: paying the missing rows on both sides is enough for the whole
+cardinality inequality.
+
+Also added only the definitional interface requested by the live injection route:
+`bnd_spine`, `bnd_profile`, `bnd_key`, `bnd_counts`, and
+`bnd_lift_compatible`. No `inj_on` lemma was attempted. Updated
+`ROUTE_BND_S1_FINDINGS.md` so both `rsimpStrong_raw` S-image routes are marked
+helper-only DEAD; S1 and `boundary_term_absorb` remain unrefuted.
+
+Build:
+```text
+& 'C:\Users\Chengsong\Isabelle2025-2\contrib\cygwin\bin\bash.exe' -lc "export USER_HOME=/cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd/.isa_home && export HOME=\$USER_HOME && cd /cygdrive/c/Users/Chengsong/Documents/posix-route1/bnd && '/cygdrive/c/Users/Chengsong/Isabelle2025-2/bin/isabelle' build -d . Posix_Card_Route1_Bnd"
+```
+Result: GREEN, 0 sorry.
+
+Guard notes: `backref_no_cheat_guard.py` passed. `backref_role_guard.py --role admin`
+passed; `--role worker` is stale for this route-lane worktree and rejects the lane
+theory/doc paths. `backref_bounty_guard.py` and `backref_statement_guard.py` are not
+usable in this split worktree because their frozen pilot artifact paths are absent
+(`BackRefLang.thy`, `BackRefValues.thy`, etc.).
+
+Next smallest safe step: wait for / obtain the Secretary hand-proof of
+`D_nonempty` and `D_chain` for the least-dominator star-run lift, then formalize
+only the first green structural lemma. Do not resume missing-image or broad
+RSEQ/RALTS constructor grinding.
