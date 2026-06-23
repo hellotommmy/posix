@@ -2569,6 +2569,37 @@ proof
     using split later_cover by blast
 qed
 
+lemma singleton_saa_scan_ok_prune_pair_raw_shared_nonstar_if_tail_key:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) tail"
+    and later: "later = RSEQ (RALTS rrs) tail"
+    and scan: "singleton_saa_scan_ok q later"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and tail_nf: "rtail_nf tail"
+    and tail0: "tail \<noteq> RZERO"
+    and tail1: "tail \<noteq> RONE"
+    and no_star: "\<And>s. tail \<noteq> RSTAR s"
+    and tail_key: "singleton_saa_key_credit q tail"
+  shows "singleton_saa_scan_ok q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  have ok: "singleton_saa_ok q later"
+    using scan by (simp add: singleton_saa_scan_ok_def)
+  have pruned_ok:
+      "singleton_saa_ok q
+        (rsimpStrong_prune_pair_raw earlier later)"
+    by (rule singleton_saa_ok_prune_pair_raw_shared_nonstar_if_ok
+        [OF earlier later ok rrs_props tail_nf tail0 tail1 no_star])
+  have pruned_key:
+      "singleton_saa_key_credit q
+        (rsimpStrong_prune_pair_raw earlier later)"
+    by (rule singleton_saa_key_credit_prune_pair_raw_shared_nonstar_if_tail_key
+        [OF earlier later rrs_props tail_nf tail0 tail1 no_star tail_key])
+  show ?thesis
+    using pruned_ok pruned_key
+    by (simp add: singleton_saa_scan_ok_def)
+qed
+
 lemma singleton_saa_ok_prune_pair_raw_if_scan_ok:
   assumes ok: "singleton_saa_ok q later"
     and key: "singleton_saa_key_credit q later"
