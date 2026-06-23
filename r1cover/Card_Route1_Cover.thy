@@ -2096,6 +2096,30 @@ lemma singleton_saa_key_credit_rsimp4_SEQ_atom_nonseq_nonstar_cont:
   using nonseq p1 k0 k1 k_not_star
   by (cases p; cases k) auto
 
+lemma singleton_saa_key_credit_prune_pair_raw_shared_RSTAR_many_if_key:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and key: "singleton_saa_key_credit q later"
+    and pruned: "rprune_eq_against lrs rrs = p # p' # ps"
+  shows "singleton_saa_key_credit q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  let ?xs = "p # p' # ps"
+  have xs_sub: "set ?xs \<subseteq> set rrs"
+    using pruned rprune_eq_against_set_subset_local[of lrs rrs]
+    by simp
+  have tail_cover:
+      "\<forall>k. row_dlforms
+        (rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR s) k)) \<subseteq>
+        strong_apder_acc (RALTS [q]) k"
+    if "RONE \<in> set ?xs \<or> RSTAR s \<in> set ?xs"
+    using key later xs_sub that by auto
+  show ?thesis
+    using earlier later pruned tail_cover
+    by (auto simp add: rsimpStrong_prune_pair_raw_def
+        rsimp7_SEQ_atom_def)
+qed
+
 lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
   assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
     and ps_sub: "set ps \<subseteq> set rows"
