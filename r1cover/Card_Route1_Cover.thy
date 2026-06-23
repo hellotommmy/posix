@@ -2175,6 +2175,44 @@ proof -
           rsimp7_SEQ_atom_def split: if_splits\<close>)
 qed
 
+lemma singleton_saa_key_credit_prune_pair_raw_shared_RSTAR:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and key: "singleton_saa_key_credit q later"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+  shows "singleton_saa_key_credit q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  let ?ps = "rprune_eq_against lrs rrs"
+  show ?thesis
+  proof (cases ?ps)
+    case Nil
+    then show ?thesis
+      using earlier later
+      by (simp add: rsimpStrong_prune_pair_raw_def
+          rsimp7_SEQ_atom_def)
+  next
+    case (Cons p ps')
+    then show ?thesis
+    proof (cases ps')
+      case Nil
+      then have "?ps = [p]"
+        using Cons by simp
+      then show ?thesis
+        by (rule singleton_saa_key_credit_prune_pair_raw_shared_RSTAR_single
+            [OF earlier later rrs_props])
+    next
+      case (Cons p' ps'')
+      then have "?ps = p # p' # ps''"
+        using \<open>?ps = p # ps'\<close> by simp
+      then show ?thesis
+        by (rule singleton_saa_key_credit_prune_pair_raw_shared_RSTAR_many_if_key
+            [OF earlier later key])
+    qed
+  qed
+qed
+
 lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
   assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
     and ps_sub: "set ps \<subseteq> set rows"
