@@ -2213,6 +2213,152 @@ proof -
   qed
 qed
 
+lemma singleton_saa_key_credit_prune_pair_raw_shared_nonstar_if_tail_key:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) tail"
+    and later: "later = RSEQ (RALTS rrs) tail"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and tail_nf: "rtail_nf tail"
+    and tail0: "tail \<noteq> RZERO"
+    and tail1: "tail \<noteq> RONE"
+    and no_star: "\<And>s. tail \<noteq> RSTAR s"
+    and tail_key: "singleton_saa_key_credit q tail"
+  shows "singleton_saa_key_credit q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  let ?ps = "rprune_eq_against lrs rrs"
+  have ps_sub: "set ?ps \<subseteq> set rrs"
+    by (rule rprune_eq_against_set_subset_local)
+  show ?thesis
+  proof (cases ?ps)
+    case Nil
+    then show ?thesis
+      using earlier later
+      by (simp add: rsimpStrong_prune_pair_raw_def
+          rsimp7_SEQ_atom_def)
+  next
+    case (Cons p ps')
+    note ps_eq = Cons
+    have p_props: "p \<in> set rrs \<Longrightarrow>
+        rtail_nf p \<and> nonalt p \<and> p \<noteq> RZERO"
+      using rrs_props by blast
+    then show ?thesis
+    proof (cases ps')
+      case Nil
+      have p_in_ps: "p \<in> set ?ps"
+        using Cons by simp
+      have p_in: "p \<in> set rrs"
+        by (rule subsetD[OF ps_sub p_in_ps])
+      have pp: "rtail_nf p \<and> nonalt p \<and> p \<noteq> RZERO"
+        by (rule p_props[OF p_in])
+      show ?thesis
+      proof (cases p)
+        case RZERO
+        then show ?thesis
+          using pp by simp
+      next
+        case RONE
+        then show ?thesis
+          using earlier later Cons Nil tail_key
+          by (simp add: rsimpStrong_prune_pair_raw_def)
+      next
+        case (RCHAR c)
+        then show ?thesis
+          using earlier later Cons Nil no_star
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def split: if_splits)
+      next
+        case (RSEQ p1 p2)
+        have p_nf: "rtail_nf p"
+          using pp by blast
+        have p1_nonseq: "rnonseq p1"
+          using p_nf RSEQ by simp
+        have p1_1: "p1 \<noteq> RONE"
+          using p_nf RSEQ by simp
+        have p2_nf: "rtail_nf p2"
+          using p_nf RSEQ by simp
+        have p2_0: "p2 \<noteq> RZERO"
+          using p_nf RSEQ by simp
+        have p2_1: "p2 \<noteq> RONE"
+          using p_nf RSEQ by simp
+        let ?k' = "rsimp4_SEQ_atom p2 tail"
+        have k'_0: "?k' \<noteq> RZERO"
+          using rsimp4_SEQ_atom_nonunit_rtail_nf
+            [OF p2_nf p2_0 p2_1 tail0 tail1]
+          by blast
+        have k'_1: "?k' \<noteq> RONE"
+          using rsimp4_SEQ_atom_nonunit_rtail_nf
+            [OF p2_nf p2_0 p2_1 tail0 tail1]
+          by blast
+        have k'_not_star: "\<And>u. ?k' \<noteq> RSTAR u"
+          by (rule rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR
+              [OF p2_nf p2_0 p2_1 tail0 tail1])
+        have credit:
+            "singleton_saa_key_credit q
+              (rsimp4_SEQ_atom p1 ?k')"
+          by (rule singleton_saa_key_credit_rsimp4_SEQ_atom_nonseq_nonstar_cont
+              [OF p1_nonseq p1_1 k'_0 k'_1 k'_not_star])
+        show ?thesis
+          using earlier later Cons Nil RSEQ credit
+          by (simp add: rsimpStrong_prune_pair_raw_def)
+      next
+        case (RALTS rows)
+        then show ?thesis
+          using pp by simp
+      next
+        case (RSTAR r)
+        show ?thesis
+        proof (cases tail)
+          case (RSEQ h t)
+          then show ?thesis
+            using earlier later Cons Nil RSTAR
+            by (cases h)
+              (simp_all add: rsimpStrong_prune_pair_raw_def
+                rsimp7_SEQ_atom_def split: if_splits)
+        qed (use earlier later Cons Nil RSTAR no_star in
+            \<open>simp_all add: rsimpStrong_prune_pair_raw_def
+                rsimp7_SEQ_atom_def split: if_splits\<close>)
+      next
+        case (RNTIMES r n)
+        then show ?thesis
+          using earlier later Cons Nil no_star
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def split: if_splits)
+      next
+        case (RBACKREF4 r1 r2 r3 r4 cs)
+        then show ?thesis
+          using earlier later Cons Nil no_star
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def split: if_splits)
+      next
+        case (RHALF r cs rep)
+        then show ?thesis
+          using earlier later Cons Nil no_star
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def split: if_splits)
+      next
+        case (RRESIDUE cs rep)
+        then show ?thesis
+          using earlier later Cons Nil no_star
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def split: if_splits)
+      qed
+    next
+      case (Cons p' ps'')
+      then show ?thesis
+        using earlier later ps_eq Cons tail0 tail1 no_star
+        by (cases tail)
+          (simp_all add: rsimpStrong_prune_pair_raw_def
+            rsimp7_SEQ_atom_def)
+    qed
+  qed
+qed
+
 lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
   assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
     and ps_sub: "set ps \<subseteq> set rows"
