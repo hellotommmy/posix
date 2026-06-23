@@ -2327,6 +2327,35 @@ proof
     using split later_cover by blast
 qed
 
+lemma singleton_saa_scan_ok_prune_pair_raw_shared_RSTAR:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and scan: "singleton_saa_scan_ok q later"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and star_fix: "rsimpStrong_raw (RSTAR s) = RSTAR s"
+  shows "singleton_saa_scan_ok q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  have ok: "singleton_saa_ok q later"
+    using scan by (simp add: singleton_saa_scan_ok_def)
+  have key: "singleton_saa_key_credit q later"
+    using scan by (simp add: singleton_saa_scan_ok_def)
+  have pruned_ok:
+      "singleton_saa_ok q
+        (rsimpStrong_prune_pair_raw earlier later)"
+    by (rule singleton_saa_ok_prune_pair_raw_shared_RSTAR_if_scan_ok
+        [OF earlier later ok key rrs_props star_fix])
+  have pruned_key:
+      "singleton_saa_key_credit q
+        (rsimpStrong_prune_pair_raw earlier later)"
+    by (rule singleton_saa_key_credit_prune_pair_raw_shared_RSTAR
+        [OF earlier later key rrs_props])
+  show ?thesis
+    using pruned_ok pruned_key
+    by (simp add: singleton_saa_scan_ok_def)
+qed
+
 lemma singleton_saa_ok_prune_pair_raw_shared_RSEQ_if_ok:
   assumes earlier: "earlier = RSEQ (RALTS lrs) (RSEQ h t)"
     and later: "later = RSEQ (RALTS rrs) (RSEQ h t)"
