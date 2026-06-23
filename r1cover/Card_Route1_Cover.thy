@@ -2120,6 +2120,61 @@ proof -
         rsimp7_SEQ_atom_def)
 qed
 
+lemma singleton_saa_key_credit_prune_pair_raw_shared_RSTAR_single:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) (RSTAR s)"
+    and later: "later = RSEQ (RALTS rrs) (RSTAR s)"
+    and rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    and pruned: "rprune_eq_against lrs rrs = [p]"
+  shows "singleton_saa_key_credit q
+    (rsimpStrong_prune_pair_raw earlier later)"
+proof -
+  have p_in: "p \<in> set rrs"
+    using pruned rprune_eq_against_set_subset_local[of lrs rrs]
+    by auto
+  have p_props: "rtail_nf p \<and> nonalt p \<and> p \<noteq> RZERO"
+    using rrs_props p_in by blast
+  show ?thesis
+  proof (cases p)
+    case (RSEQ p1 p2)
+    have p_nf: "rtail_nf p"
+      using p_props by blast
+    have p1_nonseq: "rnonseq p1"
+      using p_nf RSEQ by simp
+    have p1_1: "p1 \<noteq> RONE"
+      using p_nf RSEQ by simp
+    have p2_nf: "rtail_nf p2"
+      using p_nf RSEQ by simp
+    have p2_0: "p2 \<noteq> RZERO"
+      using p_nf RSEQ by simp
+    have p2_1: "p2 \<noteq> RONE"
+      using p_nf RSEQ by simp
+    let ?k' = "rsimp4_SEQ_atom p2 (RSTAR s)"
+    have k'_0: "?k' \<noteq> RZERO"
+      using rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1, of "RSTAR s"]
+      by simp
+    have k'_1: "?k' \<noteq> RONE"
+      using rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1, of "RSTAR s"]
+      by simp
+    have k'_not_star: "\<And>u. ?k' \<noteq> RSTAR u"
+      by (rule rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR
+          [OF p2_nf p2_0 p2_1])
+        simp_all
+    have credit:
+        "singleton_saa_key_credit q
+          (rsimp4_SEQ_atom p1 ?k')"
+      by (rule singleton_saa_key_credit_rsimp4_SEQ_atom_nonseq_nonstar_cont
+          [OF p1_nonseq p1_1 k'_0 k'_1 k'_not_star])
+    show ?thesis
+      using earlier later pruned RSEQ credit
+      by (simp add: rsimpStrong_prune_pair_raw_def)
+  qed (use earlier later pruned p_props in
+      \<open>simp_all add: rsimpStrong_prune_pair_raw_def
+          rsimp7_SEQ_atom_def split: if_splits\<close>)
+qed
+
 lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
   assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
     and ps_sub: "set ps \<subseteq> set rows"
