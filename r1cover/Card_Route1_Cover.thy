@@ -2076,8 +2076,8 @@ fun singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" w
   "singleton_saa_key_credit q (RALTS rows) =
     (\<forall>t \<in> set rows. singleton_saa_key_credit q t)"
 | "singleton_saa_key_credit q (RSEQ (RALTS rows) tail) =
-    ((RONE \<in> set rows \<or>
-      (\<exists>s. tail = RSTAR s \<and> RSTAR s \<in> set rows)) \<longrightarrow>
+    ((\<exists>s. tail = RSTAR s \<and>
+      (RONE \<in> set rows \<or> RSTAR s \<in> set rows)) \<longrightarrow>
       (\<forall>k. row_dlforms (rsimpStrong_raw (rsimp4_SEQ_atom tail k)) \<subseteq>
         strong_apder_acc (RALTS [q]) k))"
 | "singleton_saa_key_credit q t = True"
@@ -2085,6 +2085,16 @@ fun singleton_saa_key_credit :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" w
 definition singleton_saa_scan_ok :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
   "singleton_saa_scan_ok q t \<longleftrightarrow>
     singleton_saa_ok q t \<and> singleton_saa_key_credit q t"
+
+lemma singleton_saa_key_credit_rsimp4_SEQ_atom_nonseq_nonstar_cont:
+  assumes nonseq: "rnonseq p"
+    and p1: "p \<noteq> RONE"
+    and k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+    and k_not_star: "\<And>s. k \<noteq> RSTAR s"
+  shows "singleton_saa_key_credit q (rsimp4_SEQ_atom p k)"
+  using nonseq p1 k0 k1 k_not_star
+  by (cases p; cases k) auto
 
 lemma row_dlforms_rsimp_ALTs_RONE_star_tail_subset_saa_if_key_credit:
   assumes key: "singleton_saa_key_credit q (RSEQ (RALTS rows) (RSTAR s))"
