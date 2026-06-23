@@ -2965,6 +2965,36 @@ proof -
     using pruned_scan by (simp add: tagged_prune_pair_raw_def)
 qed
 
+lemma tagged_prune_pair_raw_preserves_singleton_saa_scan_ok_shared_nonstar_if_tail_key:
+  assumes scan: "singleton_saa_scan_ok (fst later) (snd later)"
+    and earlier: "snd earlier = RSEQ (RALTS lrs) tail"
+    and later: "snd later = RSEQ (RALTS rrs) tail"
+    and later_nf: "rtail_nf (snd later)"
+    and no_star: "\<And>s. tail \<noteq> RSTAR s"
+    and tail_key: "singleton_saa_key_credit (fst later) tail"
+  shows "singleton_saa_scan_ok
+    (fst (tagged_prune_pair_raw earlier later))
+    (snd (tagged_prune_pair_raw earlier later))"
+proof -
+  have rrs_props: "\<forall>r \<in> set rrs.
+      rtail_nf r \<and> nonalt r \<and> r \<noteq> RZERO"
+    using later_nf later by simp
+  have tail_nf: "rtail_nf tail"
+    using later_nf later by simp
+  have tail0: "tail \<noteq> RZERO"
+    using later_nf later by simp
+  have tail1: "tail \<noteq> RONE"
+    using later_nf later by simp
+  have pruned_scan:
+      "singleton_saa_scan_ok (fst later)
+        (rsimpStrong_prune_pair_raw (snd earlier) (snd later))"
+    by (rule singleton_saa_scan_ok_prune_pair_raw_shared_nonstar_if_tail_key
+        [OF earlier later scan rrs_props tail_nf tail0 tail1 no_star
+          tail_key])
+  show ?thesis
+    using pruned_scan by (simp add: tagged_prune_pair_raw_def)
+qed
+
 lemma singleton_saa_ok_prune_against_rows_raw_if_suffix:
   assumes ok: "singleton_saa_ok q t"
     and t_nf: "rtail_nf t"
