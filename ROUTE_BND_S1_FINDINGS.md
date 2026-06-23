@@ -8,16 +8,24 @@ Session: `Posix_Card_Route1_Bnd`
 
 ## Current green local helpers
 
-The worktree has green helper edits in `r1bnd/Card_Route1_Bnd.thy`:
+The worktree has green helper edits in `r1bnd/Card_Route1_Bnd.thy`.
+The latest live route is **not** an S-image route; keep these helpers only as
+banked finite/subset facts unless a later hand-proof reuses them.
 
 - `finite_single_root`
 - `finite_single_term`
 - `strong_apder_acc_singleton_decomp`
 - `boundary_excess` / `root_excess` definitions for the cardinal-only repair
 - `card_le_if_missing_in_image`
-- `finite_boundary_excess` / `finite_root_excess`
+- `card_le_of_card_diff_le`
+- `term_excess`
+- `bnd_spine` / `bnd_profile` / `bnd_key` / `bnd_counts` /
+  `bnd_lift_compatible`
+- `finite_boundary_excess` / `finite_root_excess` / `finite_term_excess`
 - small constructor subset leaves: `RZERO`, `RONE`, `RCHAR`, and `RALTS` with
   continuation `RZERO` or `RONE`
+- `RSTAR` equality/subset/missing leaves
+- vacuous/subset leaves for `RNTIMES`, `RBACKREF4`, `RHALF`, and `RRESIDUE`
 
 The session builds green with the private `USER_HOME` heap command from `ROUTE_BND.md`.
 
@@ -67,7 +75,7 @@ that image-subset branch.
 
 Final state after removing the temporary witness: `Posix_Card_Route1_Bnd` builds green.
 
-## Cardinal-only repair sanity checks
+## Dead route: missing-image repair
 
 Temporary Isabelle checks, added only for validation and then removed, were green for:
 
@@ -82,4 +90,35 @@ Temporary Isabelle checks, added only for validation and then removed, were gree
 
 The broad one-shot formalizations were deliberately not kept: both full non-RSEQ
 case-simp and arbitrary RSEQ case-simp timed out as proof scripts.  The next proof
-step should continue splitting the refined target into small constructor lemmas.
+step at that time was to split the refined target into small constructor lemmas.
+
+This is now superseded.  A later Secretary/Pro probe refuted the refined
+missing-image premise too:
+
+```isabelle
+X t k - Y t k \<subseteq> rsimpStrong_raw ` (Y t k - X t k)
+```
+
+The cause is that `rsimpStrong_raw` over-collapses the trailing star nest.  A
+clean RSEQ-root counterexample is recorded in `ROUTE_BND.md`:
+`t=(c+a·b*)·b*`, `k=b*·b*`, with `a·(b*·b*) \<in> X-Y` but not in the
+`rsimpStrong_raw` image of `Y-X`.
+
+This refutes only the helper route.  It does **not** refute the S1 cardinal
+inequality and does **not** refute `boundary_term_absorb`.
+
+## Live route
+
+The current live target is:
+
+```isabelle
+card (X t k - Y t k) \<le> card (Y t k - X t k)
+```
+
+via a definable injection from `X-Y` into `Y-X`, using the least-dominator
+star-run lift over the `bnd_profile`/`bnd_key`/`bnd_counts` interface.  Do not
+formalize `inj_on` yet.  The injection proof waits for the Secretary hand-proof
+of:
+
+- `D_nonempty`: every `x \<in> X-Y` has a compatible candidate in `Y-X`.
+- `D_chain`: within each key-class, candidates form a chain / unique least.

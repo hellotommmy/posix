@@ -24,6 +24,44 @@ definition root_excess :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" wh
 definition term_excess :: "rrexp \<Rightarrow> rrexp \<Rightarrow> rrexp set" where
   "term_excess t k = single_term t k - strong_apder_acc RONE k"
 
+fun bnd_spine :: "rrexp \<Rightarrow> rrexp list" where
+  "bnd_spine (RSEQ p q) = p # bnd_spine q"
+| "bnd_spine r = [r]"
+
+datatype bnd_profile_pos =
+    AtomPos rrexp
+  | StarRun rrexp nat
+
+fun bnd_profile_push :: "rrexp \<Rightarrow> bnd_profile_pos list \<Rightarrow> bnd_profile_pos list" where
+  "bnd_profile_push (RSTAR r) [] = [StarRun r 1]"
+| "bnd_profile_push (RSTAR r) (StarRun s n # ps) =
+    (if r = s then StarRun s (Suc n) # ps else StarRun r 1 # StarRun s n # ps)"
+| "bnd_profile_push (RSTAR r) (p # ps) = StarRun r 1 # p # ps"
+| "bnd_profile_push r ps = AtomPos r # ps"
+
+definition bnd_profile :: "rrexp \<Rightarrow> bnd_profile_pos list" where
+  "bnd_profile r = rev (fold bnd_profile_push (bnd_spine r) [])"
+
+fun bnd_key_pos :: "bnd_profile_pos \<Rightarrow> bnd_profile_pos" where
+  "bnd_key_pos (AtomPos r) = AtomPos r"
+| "bnd_key_pos (StarRun r n) = StarRun r 1"
+
+definition bnd_key :: "rrexp \<Rightarrow> bnd_profile_pos list" where
+  "bnd_key r = map bnd_key_pos (bnd_profile r)"
+
+fun bnd_counts_profile :: "bnd_profile_pos list \<Rightarrow> nat list" where
+  "bnd_counts_profile [] = []"
+| "bnd_counts_profile (AtomPos r # ps) = bnd_counts_profile ps"
+| "bnd_counts_profile (StarRun r n # ps) = n # bnd_counts_profile ps"
+
+definition bnd_counts :: "rrexp \<Rightarrow> nat list" where
+  "bnd_counts r = bnd_counts_profile (bnd_profile r)"
+
+definition bnd_lift_compatible :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "bnd_lift_compatible x y \<longleftrightarrow>
+     bnd_key x = bnd_key y \<and>
+     list_all2 (\<lambda>m n. m \<le> n) (bnd_counts x) (bnd_counts y)"
+
 lemma card_le_if_missing_in_image:
   fixes X Y :: "'a set"
   assumes "finite X" "finite Y" "X - Y \<subseteq> f ` (Y - X)"
@@ -57,6 +95,37 @@ proof -
     by (rule card_image_le) (use finXY in auto)
   finally show ?thesis
     using X Y by simp
+qed
+
+lemma card_le_of_card_diff_le:
+  fixes X Y :: "'a set"
+  assumes "finite X" "finite Y" "card (X - Y) \<le> card (Y - X)"
+  shows "card X \<le> card Y"
+proof -
+  have finXY: "finite (X \<inter> Y)" "finite (X - Y)" "finite (Y - X)"
+    using assms(1,2) by simp_all
+  have X: "card X = card (X \<inter> Y) + card (X - Y)"
+  proof -
+    have "X = (X \<inter> Y) \<union> (X - Y)"
+      by auto
+    then have "card X = card ((X \<inter> Y) \<union> (X - Y))"
+      by simp
+    also have "... = card (X \<inter> Y) + card (X - Y)"
+      using finXY by (intro card_Un_disjoint) auto
+    finally show ?thesis .
+  qed
+  have Y: "card Y = card (X \<inter> Y) + card (Y - X)"
+  proof -
+    have "Y = (X \<inter> Y) \<union> (Y - X)"
+      by auto
+    then have "card Y = card ((X \<inter> Y) \<union> (Y - X))"
+      by simp
+    also have "... = card (X \<inter> Y) + card (Y - X)"
+      using finXY by (intro card_Un_disjoint) auto
+    finally show ?thesis .
+  qed
+  show ?thesis
+    using assms(3) X Y by simp
 qed
 
 lemma finite_single_root [simp]:
