@@ -208,3 +208,55 @@ the earlier "Y==Yb 0/74.5k" was a generator-coverage artifact). Distribute via R
 star (σ7 collapse fires) vs not (σ4 leaves RSEQ)" — the SAME distinction that bit three earlier S1 statements. 0-viol on
 every sweep but VALIDATE the interior-depth seam induction explicitly before formalizing.
 (Files: %TEMP%\prune\{prune_adv_*.py, prune_fire_decision.py, prune_setlevel_*.py, _routearound_lemma.py}.)
+
+---
+
+## 2026-06-25 E3 SEAM LEMMA — HAND-PROVED, the LAST gap CLOSED (workflow w84vcc7v5)
+Both parts HAND-PROVED (high confidence), 0 CE across millions incl. interior junctions, the collapse boundary, and
+degenerate. **The validated seam skeleton below is what BND formalizes.** ⚠ The first hand-prover shipped a proof whose
+STEP 1 and STEP 3 are literally FALSE (true lemma, wrong mechanism — the recurring trap); the corrected proof and the
+two mandatory corrections are below. Use THIS, not the brittle version.
+
+**THE single load-bearing definitional choice:** pin `kY = rsimp4_SEQ_atom (S tl) (S k)` (the NORMALIZED separated
+continuation). With RAW k the lemma is **FALSE** (key-level CE, ~42% of random). Both X and Y continuations go through S.
+
+**Corrected proof of E3a** (`apder_nf tl`, `apder_nf k`; `kX = S(rsimp4_SEQ_atom tl k)`, `kY = rsimp4_SEQ_atom (S tl) (S k)`):
+- **CLAIM A** (the regime-restricted STEP 1 — NOT the unconditional one): `apder_nf r ⟹ S r has NO internal
+  equal-star run`. (Reason: apder_nf forbids a SEQ left-factor, so σ4 never re-associates an interior `s*·s*` into
+  existence. The unconditional "S removes ALL internal equal-star runs" is FALSE — CE `tl=(b·b*)·b*` ⇒ `S tl = b·(b*·b*)`.)
+- **STEP 2** `raw_spine (rsimp4_SEQ_atom x y) = bnd_spine x @ bnd_spine y` (σ4 is a pure non-collapsing spine concat).
+- ⇒ **CLAIM B**: `kY`'s spine has AT MOST ONE adjacent-equal-star pair, at the seam = (last factor of `S tl`) | (first
+  factor of `S k`), only when their star bodies coincide. `kX` collapses that seam (count −1) iff its left factor is RSTAR.
+- ⇒ `bnd_key kX = bnd_key kY`, `list_all2 (≤) (bnd_counts kX) (bnd_counts kY)`, at most ONE differing index ⇒ `one_pos_le`.
+  Single-position delta is **EXACTLY +1** (never +2 — the digest's +2 used un-normalized spines), junction at ARBITRARY INTERIOR depth.
+- **⚠ DELETE STEP 3** (`kX = S(kY)`): it is FALSE (CE `tl=RALTS[a**·b**], k=b*` ⇒ `kX=a*·(b*·b*) ≠ a*·b* = S(kY)`) and UNUSED.
+- 3-case seam split: (i) interior/unequal stars or non-star x_m ⇒ σ7=σ4 plug ⇒ cX=cY; (ii) equal stars, x_m's left
+  neighbour RSTAR ⇒ σ7 fires, one run −1; (iii) equal stars but left neighbour non-star ⇒ σ7 degrades to σ4 ⇒ cX=cY.
+
+**E3b** (prior proof CORRECT, verified): σ7's collapse-guard is decided by key-visible head data, so `bnd_key kX = bnd_key kY`
+⇒ the collapse fires identically on both sides (asymmetric collapse structurally impossible, 0/500k). Collapse case
+(`σ7 p k = k`) ⇒ goal is the hypothesis; plug case (`σ7 p k = σ4 p k`) ⇒ symmetric prepend of p.
+
+**Isabelle lemma shapes to hand BND:**
+```isabelle
+definition bnd_seam_lift kX kY ≡ bnd_key kX = bnd_key kY ∧ list_all2 (≤) (bnd_counts kX) (bnd_counts kY)
+definition one_pos_le xs ys ≡ list_all2 (≤) xs ys ∧ card {i. i < length xs ∧ xs!i ≠ ys!i} ≤ 1
+
+lemma S_apder_nf_no_internal_equal_star_run:   "apder_nf r ⟹ ¬ has_internal_equal_star_run (bnd_spine (S r))"  -- CLAIM A (NOT unconditional)
+lemma raw_spine_sigma4_append: "x≠RZERO ⟹ x≠RONE ⟹ bnd_spine (rsimp4_SEQ_atom x y) = bnd_spine x @ bnd_spine y"
+lemma E3a_continuation_seam:                    -- pin kY normalized; do NOT use kX=S kY
+  assumes "apder_nf tl" "apder_nf k"
+  defines "kX ≡ S (rsimp4_SEQ_atom tl k)" and "kY ≡ rsimp4_SEQ_atom (S tl) (S k)"
+  shows "bnd_seam_lift kX kY ∧ one_pos_le (bnd_counts kX) (bnd_counts kY)"
+lemma bnd_lift_compatible_rsimp7_same_head_one_pos:   -- E3b
+  assumes "bnd_seam_lift kX kY" "one_pos_le (bnd_counts kX) (bnd_counts kY)" "rtail_nf p"
+  shows "bnd_key (rsimp7_SEQ_atom p kX) = bnd_key (rsimp7_SEQ_atom p kY)"
+    and "one_pos_le (bnd_counts (rsimp7_SEQ_atom p kX)) (bnd_counts (rsimp7_SEQ_atom p kY))"
+```
+Supporting bridge: `bnd_profile_eq_rle_spine` (bnd_key = RLE shape of spine; bnd_counts = run-lengths). E3b helper
+`bnd_key_eq_imp_same_head_guard` (σ7 collapse-guard agrees when keys agree). NO induction on the cross-prune accumulator.
+
+**⇒ S1 chain is now validated end-to-end:** E3a + E3b ⇒ D_nonempty (existence) + D_chain (comparability) ⇒ least-candidate
+injection ⇒ `card(X−Y)≤card(Y−X)` ⇒ `card_le_of_card_diff_le` (GREEN) ⇒ S1. Remaining work = FORMALIZATION (BND), not discovery.
+**Two mandatory corrections for the formalizer:** (1) CLAIM A is `apder_nf`-conditioned, the unconditional STEP 1 is false;
+(2) DELETE STEP 3 (`kX=S kY` is false, unused). Scratch: %TEMP%\e3seam (read-only).

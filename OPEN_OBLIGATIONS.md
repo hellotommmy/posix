@@ -83,7 +83,14 @@ ALL degenerate regimes) but BOTH are **GAP** — their proofs reduce to ONE shar
   branches, never touching the global cross-prune** (RA1: Y−X ⊆ (⋃_q single_root q k)−base; RA2: X−Y ⊆ ⋃_q boundary_excess q k;
   + per-branch base card(Xq−Yq)≤card(Yq−Xq)). ⚠ single_root does NOT distribute per-branch for t=RALTS (cross-prune fires
   across branches) — use RA1/RA2, not naive =. The matching partner of an X−Y row is ALWAYS a per-branch root row (0/209k).
-  ONE gap: the E3 interior-depth seam lemma (the junction StarRun count, σ7-collapse-fires-or-not case split).
+  ✅ E3 SEAM HAND-PROVED (workflow w84vcc7v5, 0 CE / millions incl. interior junctions + collapse boundary + degenerate)
+  — **the LAST gap is CLOSED; S1 is validated END-TO-END.** BND now MOVES FROM STAND-BY TO FORMALIZING the validated
+  skeleton in PRUNE_SCANLIFT_PLAN.md (E3 section): `S_apder_nf_no_internal_equal_star_run` (CLAIM A) +
+  `raw_spine_sigma4_append` + `E3a_continuation_seam` + `bnd_lift_compatible_rsimp7_same_head_one_pos` →
+  D_nonempty/D_chain → least-candidate injection → card_le_of_card_diff_le → S1. ⚠ TWO mandatory corrections: (1) CLAIM A
+  is `apder_nf`-conditioned (the unconditional "S removes all internal equal-star runs" is FALSE, CE tl=(b·b*)·b*);
+  (2) DELETE STEP 3 `kX=S kY` (FALSE, CE tl=RALTS[a**·b**] k=b*; unused). Pin `kY = σ4 (S tl) (S k)` (raw k ⇒ FALSE).
+  Remaining = FORMALIZATION, not discovery.
 ```
 
 ## O3  seq / D1     (lane: SEQ `card/route1-seq`)
