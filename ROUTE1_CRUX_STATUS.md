@@ -115,13 +115,19 @@ t11 family and every def-shape attack (collapse-sibling stacking, position-separ
 **Formalization chain — hand-prove the 2 structural lemmas FIRST (methodology rule):**
 ```
 (a) D(x) nonempty     -- every σ7-collapsed X−Y row lifts to a present Y−X root row
-(b) D(x) is a CHAIN   -- the "exactly-one-position" lemma, from σ7 collapsing only a leading equal-adjacent star-run
+(b) D(x) is a CHAIN   -- "exactly-one-position": the ONE varying run is the branch-JUNCTION run at ARBITRARY INTERIOR depth (NOT the leading run — that wording is FALSE)
 ⇒ unique least element ⇒ f : X−Y ↪ Y−X (inj_on) ⇒ card_inj_on_le ⇒ card(X−Y) ≤ card(Y−X)
 ⇒ card_le_of_card_diff_le (mechanical; sibling of the green card_le_if_missing_in_image) ⇒ card X ≤ card Y  (= S1)
 ```
-⚠ (a)/(b) are VALIDATED + mechanism-explained but **NOT yet hand-proven from σ4/σ7** — that hand-proof is the NEXT
-lane (the Secretary owns it). The mechanical `card_le_of_card_diff_le` and the `spine/profile/key/counts/lift_compatible`
-defs may be landed NOW; the `inj_on` step waits on (a)/(b).
+⚠ HAND-PROOF PROBE w0d8xekkc (2026-06-23): (a)/(b) are BOTH TRUE (0 CE / ~11M incl. all degenerate regimes) but BOTH
+are **GAP** — their proofs reduce to ONE shared open sub-lemma = **PRUNE BRANCH-LIST PRESERVATION**: `S(s4 t k)` and
+`S(s4(RALTS[t])k)` yield the SAME head-branch list `ps'`, continuations differing only at the junction seam (E1/E2/E3).
+This is **the recurring a*·a* cross-prune wall** (`rsimpStrong_prune_rows_acc_raw`, DEFINITIONS.txt:131-156), and it
+**ALSO blocks O1/L1** — so O1 and O2 share ONE hard nut. The injection does NOT avoid the wall; it relocates it into
+these normal-form equalities. **Mechanism CORRECTION:** D_chain's varying run is the branch-junction run at INTERIOR
+depth, not leading (CE t=(b*+c**·b*+c**)·(b**·a*), k=a*·a*: diff at index 1). The mechanical `card_le_of_card_diff_le`
++ the `spine/profile/key/counts/lift_compatible` defs may be landed NOW; `inj_on` waits on the prune lemma.
+(The literal S1 holds — the probe's "rsize-4 CE" was a model error using SAA(t,k)+atf, not SAA(RONE, s4 t k).)
 
 **BND theory state (card/route1-bnd @ e0e8f71 — more than the earlier "3 helpers"):** the lane already has a
 substantial GREEN brick set — the generic finite-set combinator `card_le_if_missing_in_image`; finiteness

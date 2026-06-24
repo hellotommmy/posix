@@ -31,6 +31,8 @@ missing subgoal:
   branch routing: a row of row_dlforms(rsimp7_SEQ_atom t (S k)) for tagged branch (q,t) that, after σ7 collapse
   of an RSTAR tail, has NO root provenance — it must land in the singleton branch's ACC carrier, not a root one.
   (Validated truth + mechanism: ROUTE1_CRUX_STATUS.md §L1 / [[l1-singleton-cover-acc-part-rescue]].)
+  ★ SHARED WITH O2: this branch-routing reduces to the SAME prune branch-list/origin-preservation lemma (S keeps the
+  head-branch list across `rsimpStrong_prune_rows_acc_raw`). Crack that ONE prune lemma ⇒ BOTH O1 and O2 fall.
 ```
 
 ## O2  S1_boundary  (lane: BND `card/route1-bnd`)
@@ -46,12 +48,22 @@ current strongest theorem (@ card/route1-bnd):
   card_le_of_card_diff_le (generic, GREEN) + the injection scaffolding defs
   bnd_spine / bnd_profile / bnd_key / bnd_counts / bnd_lift_compatible. inj_on NOT proven.
 
-missing subgoal D_nonempty / D_chain (HAND-PROVE first, from rsimp4/rsimp7/prune — σ7 collapses ONLY the
-leading equal-adjacent star-run):
-  D_nonempty: ∀ x ∈ X−Y. ∃ y ∈ Y−X. lift_compatible x y   (every collapsed boundary row has a more-expanded
-              root row to pay it — reinflate the leading collapsed star-run).
-  D_chain:    within one key-class, two distinct X−Y rows differ in EXACTLY ONE star-run count position ⇒ the
-              compatible set is a CHAIN ⇒ unique least element ⇒ f : X−Y ↪ Y−X is inj_on.
+missing subgoal (2026-06-23 hand-proof probe w0d8xekkc): D_nonempty + D_chain are BOTH TRUE (0 CE / ~11M incl.
+ALL degenerate regimes) but BOTH are **GAP** — their proofs reduce to ONE shared open sub-lemma:
+  ★ PRUNE BRANCH-LIST PRESERVATION (= the recurring a*·a* cross-prune wall; this ALSO blocks O1):
+    (E1) S (rsimp4_SEQ_atom t k)           = RSEQ (RALTS ps') kX
+    (E2) S (rsimp4_SEQ_atom (RALTS [t]) k) = RSEQ (RALTS ps') kY    -- SAME branch list ps'
+    (E3) bnd_key (s7 p kY)=bnd_key (s7 p kX) ∧ counts(s7 p kX) ≤ counts(s7 p kY)  -- kX,kY differ ONLY at the seam
+  i.e. S preserves the head-branch list across the set-level prune `rsimpStrong_prune_rows_acc_raw`. Strongly
+  evidenced but NOT written equationally; the prune (DEFINITIONS.txt:131-156) is the hard nut. The injection does
+  NOT avoid the wall — it RELOCATES it here. **⇒ the real O2 (and O1) blocker is this prune lemma.**
+  ⚠ MECHANISM CORRECTION (the old "leading run only / count-index-0" wording is FALSE): D_chain's varying run is the
+  BRANCH-JUNCTION run at ARBITRARY INTERIOR depth (a branch's trailing star meets the continuation's head star), NOT
+  the leading run — ~64% of same-key collisions diff at an interior index (CE t=(b*+c**·b*+c**)·(b**·a*), k=a*·a*:
+  diff at index 1). The CONCLUSION is unchanged: exactly ONE position varies ⇒ counts-comparable ⇒ each class is a
+  CHAIN (size ≤2) ⇒ f inj_on. Then ⇒ card_inj_on_le ⇒ card(X−Y)≤card(Y−X) ⇒ card_le_of_card_diff_le (GREEN) ⇒ card X ≤ card Y.
+  (NB the literal S1 with Y=root_excess is TRUE — the "rsize-4 CE" was a model-faithfulness error: SAA(t,k) with atf,
+  not SAA(RONE, s4 t k) which has atf RONE = ∅.)
 ```
 
 ## O3  seq / D1     (lane: SEQ `card/route1-seq`)
