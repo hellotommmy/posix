@@ -32,6 +32,19 @@ datatype bnd_profile_pos =
     AtomPos rrexp
   | StarRun rrexp nat
 
+fun bnd_profile_cons :: "rrexp \<Rightarrow> bnd_profile_pos list \<Rightarrow> bnd_profile_pos list" where
+  "bnd_profile_cons (RSTAR r) [] = [StarRun r 1]"
+| "bnd_profile_cons (RSTAR r) (StarRun s n # ps) =
+    (if r = s then StarRun s (Suc n) # ps else StarRun r 1 # StarRun s n # ps)"
+| "bnd_profile_cons (RSTAR r) (p # ps) = StarRun r 1 # p # ps"
+| "bnd_profile_cons r ps = AtomPos r # ps"
+
+fun bnd_profile_cons7_star :: "rrexp \<Rightarrow> bnd_profile_pos list \<Rightarrow> bnd_profile_pos list" where
+  "bnd_profile_cons7_star r [] = [StarRun r 1]"
+| "bnd_profile_cons7_star r (StarRun s n # ps) =
+    (if r = s then StarRun s n # ps else StarRun r 1 # StarRun s n # ps)"
+| "bnd_profile_cons7_star r (p # ps) = StarRun r 1 # p # ps"
+
 fun bnd_profile_push :: "rrexp \<Rightarrow> bnd_profile_pos list \<Rightarrow> bnd_profile_pos list" where
   "bnd_profile_push (RSTAR r) [] = [StarRun r 1]"
 | "bnd_profile_push (RSTAR r) (StarRun s n # ps) =
@@ -39,12 +52,188 @@ fun bnd_profile_push :: "rrexp \<Rightarrow> bnd_profile_pos list \<Rightarrow> 
 | "bnd_profile_push (RSTAR r) (p # ps) = StarRun r 1 # p # ps"
 | "bnd_profile_push r ps = AtomPos r # ps"
 
-definition bnd_profile :: "rrexp \<Rightarrow> bnd_profile_pos list" where
-  "bnd_profile r = rev (fold bnd_profile_push (bnd_spine r) [])"
+fun bnd_profile :: "rrexp \<Rightarrow> bnd_profile_pos list" where
+  "bnd_profile (RSEQ p q) = bnd_profile_cons p (bnd_profile q)"
+| "bnd_profile (RSTAR r) = [StarRun r 1]"
+| "bnd_profile r = [AtomPos r]"
+
+lemma bnd_profile_cons_nonempty [simp]:
+  "bnd_profile_cons r ps \<noteq> []"
+proof (cases r)
+  case (RSTAR s)
+  then show ?thesis
+  proof (cases ps)
+    case Nil
+    then show ?thesis
+      using RSTAR by simp
+  next
+    case (Cons p ps')
+    then show ?thesis
+      using RSTAR by (cases p) simp_all
+  qed
+qed simp_all
+
+lemma bnd_profile_nonempty [simp]:
+  "bnd_profile r \<noteq> []"
+  by (cases r) simp_all
+
+lemma bnd_profile_single_StarRun_pos:
+  assumes "bnd_profile r = [StarRun s n]"
+  shows "0 < n"
+  using assms
+proof (cases r)
+  case (RSEQ p q)
+  then show ?thesis
+  proof (cases p)
+    case (RSTAR u)
+    obtain h hs where prof: "bnd_profile q = h # hs"
+      using bnd_profile_nonempty[of q] by (cases "bnd_profile q") auto
+    show ?thesis
+      using assms RSEQ RSTAR prof by (cases h) (auto split: if_splits)
+  qed (use assms RSEQ in auto)
+qed (use assms in auto)
+
+lemma bnd_profile_cons_profile_single_StarRun_gt_one:
+  assumes "bnd_profile_cons r (bnd_profile q) = [StarRun s n]"
+  shows "Suc 0 < n"
+proof (cases r)
+  case (RSTAR u)
+  obtain h hs where prof: "bnd_profile q = h # hs"
+    using bnd_profile_nonempty[of q] by (cases "bnd_profile q") auto
+  show ?thesis
+    using assms RSTAR prof
+    by (cases h) (auto dest: bnd_profile_single_StarRun_pos split: if_splits)
+qed (use assms in auto)
+
+lemma bnd_profile_rsimp7_RSTAR_nontriv:
+  assumes "k \<noteq> RZERO" "k \<noteq> RONE"
+  shows "bnd_profile (rsimp7_SEQ_atom (RSTAR r) k) =
+    bnd_profile_cons7_star r (bnd_profile k)"
+  using assms
+proof (cases k)
+  case (RSEQ k1 k2)
+  then show ?thesis
+  proof (cases k1)
+    case (RSTAR s)
+    then show ?thesis
+    proof (cases "bnd_profile k2")
+      case Nil
+      then show ?thesis
+        using bnd_profile_nonempty[of k2] by simp
+    next
+      case (Cons h hs)
+      then show ?thesis
+        using RSEQ RSTAR
+        by (cases h) (auto simp add: rsimp7_SEQ_atom_def split: if_splits)
+    qed
+  qed (simp_all add: rsimp7_SEQ_atom_def)
+qed (simp_all add: rsimp7_SEQ_atom_def)
 
 fun bnd_key_pos :: "bnd_profile_pos \<Rightarrow> bnd_profile_pos" where
   "bnd_key_pos (AtomPos r) = AtomPos r"
 | "bnd_key_pos (StarRun r n) = StarRun r 1"
+
+lemma bnd_key_pos_idem [simp]:
+  "bnd_key_pos (bnd_key_pos p) = bnd_key_pos p"
+  by (cases p) simp_all
+
+lemma map_bnd_key_pos_idem [simp]:
+  "map bnd_key_pos (map bnd_key_pos ps) = map bnd_key_pos ps"
+  by (induction ps) simp_all
+
+lemma map_bnd_key_pos_profile_cons_eq_single_Atom [simp]:
+  "map bnd_key_pos (bnd_profile_cons r ps) = [AtomPos a] \<longleftrightarrow>
+    (case r of RSTAR s \<Rightarrow> False | _ \<Rightarrow> r = a \<and> ps = [])"
+proof (cases r)
+  case (RSTAR s)
+  then show ?thesis
+  proof (cases ps)
+    case Nil
+    then show ?thesis
+      using RSTAR by simp
+  next
+    case (Cons p ps')
+    then show ?thesis
+      using RSTAR by (cases p) simp_all
+  qed
+qed simp_all
+
+lemma map_bnd_key_pos_profile_cons_profile_ne_single_Atom [simp]:
+  "map bnd_key_pos (bnd_profile_cons r (bnd_profile q)) \<noteq> [AtomPos a]"
+  "[AtomPos a] \<noteq> map bnd_key_pos (bnd_profile_cons r (bnd_profile q))"
+proof -
+  show left: "map bnd_key_pos (bnd_profile_cons r (bnd_profile q)) \<noteq> [AtomPos a]"
+  proof
+    assume "map bnd_key_pos (bnd_profile_cons r (bnd_profile q)) = [AtomPos a]"
+    then have "(case r of RSTAR s \<Rightarrow> False | _ \<Rightarrow> r = a \<and> bnd_profile q = [])"
+      by simp
+    then show False
+      by (cases r) simp_all
+  qed
+  show "[AtomPos a] \<noteq> map bnd_key_pos (bnd_profile_cons r (bnd_profile q))"
+  proof
+    assume "[AtomPos a] = map bnd_key_pos (bnd_profile_cons r (bnd_profile q))"
+    then have "map bnd_key_pos (bnd_profile_cons r (bnd_profile q)) = [AtomPos a]"
+      by simp
+    then show False
+      using left by contradiction
+  qed
+qed
+
+lemma map_bnd_key_pos_star_cons_key_pos [simp]:
+  "map bnd_key_pos (bnd_profile_cons (RSTAR r) [bnd_key_pos z]) =
+    map bnd_key_pos (bnd_profile_cons (RSTAR r) [z])"
+  by (cases z) simp_all
+
+lemma map_bnd_key_pos_star_cons_map_key [simp]:
+  "map bnd_key_pos (bnd_profile_cons (RSTAR r) (map bnd_key_pos ps)) =
+    map bnd_key_pos (bnd_profile_cons (RSTAR r) ps)"
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons p ps')
+  then show ?thesis
+    by (cases p) simp_all
+qed
+
+lemma map_bnd_key_pos_star_cons_Cons:
+  assumes "bnd_key_pos p = bnd_key_pos q"
+    and "map bnd_key_pos ps = map bnd_key_pos qs"
+  shows "map bnd_key_pos (bnd_profile_cons (RSTAR r) (p # ps)) =
+    map bnd_key_pos (bnd_profile_cons (RSTAR r) (q # qs))"
+  using assms by (cases p; cases q) (auto split: if_splits)
+
+lemma map_bnd_key_pos_star_cons_cong:
+  assumes "map bnd_key_pos ps = map bnd_key_pos qs"
+  shows "map bnd_key_pos (bnd_profile_cons (RSTAR r) ps) =
+    map bnd_key_pos (bnd_profile_cons (RSTAR r) qs)"
+  using assms
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    using assms by (cases qs) auto
+next
+  case (Cons p ps')
+  have ps_def: "ps = p # ps'"
+    using Cons by simp
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using assms ps_def by auto
+  next
+    case (Cons q qs')
+    have head: "bnd_key_pos p = bnd_key_pos q"
+      using assms ps_def Cons by simp
+    have tail: "map bnd_key_pos ps' = map bnd_key_pos qs'"
+      using assms ps_def Cons by simp
+    show ?thesis
+      using ps_def Cons
+      by (simp add: map_bnd_key_pos_star_cons_Cons[OF head tail])
+  qed
+qed
 
 definition bnd_key :: "rrexp \<Rightarrow> bnd_profile_pos list" where
   "bnd_key r = map bnd_key_pos (bnd_profile r)"
@@ -61,6 +250,341 @@ definition bnd_lift_compatible :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool"
   "bnd_lift_compatible x y \<longleftrightarrow>
      bnd_key x = bnd_key y \<and>
      list_all2 (\<lambda>m n. m \<le> n) (bnd_counts x) (bnd_counts y)"
+
+fun bnd_counts_one_pos_le :: "nat list \<Rightarrow> nat list \<Rightarrow> bool" where
+  "bnd_counts_one_pos_le [] [] = True"
+| "bnd_counts_one_pos_le (m # ms) (n # ns) =
+    (m \<le> n \<and>
+      ((m = n \<and> bnd_counts_one_pos_le ms ns) \<or>
+       (m < n \<and> ms = ns)))"
+| "bnd_counts_one_pos_le _ _ = False"
+
+lemma bnd_counts_one_pos_le_star_cons_key_pos [simp]:
+  assumes "bnd_counts_one_pos_le [Suc 0] (bnd_counts_profile [z])"
+  shows "bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) [bnd_key_pos z]))
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) [z]))"
+  using assms by (cases z) auto
+
+lemma bnd_counts_one_pos_le_star_cons_map_key [simp]:
+  assumes "bnd_counts_one_pos_le
+      (bnd_counts_profile (map bnd_key_pos ps))
+      (bnd_counts_profile ps)"
+  shows "bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) (map bnd_key_pos ps)))
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) ps))"
+  using assms
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    by simp
+next
+  case (Cons p ps')
+  then show ?thesis
+    using assms by (cases p) auto
+qed
+
+lemma bnd_counts_one_pos_le_star_cons_Cons:
+  assumes "bnd_key_pos p = bnd_key_pos q"
+    and "map bnd_key_pos ps = map bnd_key_pos qs"
+    and "bnd_counts_one_pos_le
+      (bnd_counts_profile (p # ps)) (bnd_counts_profile (q # qs))"
+  shows "bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) (p # ps)))
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) (q # qs)))"
+  using assms by (cases p; cases q) (auto split: if_splits)
+
+lemma bnd_counts_one_pos_le_star_cons_cong:
+  assumes key: "map bnd_key_pos ps = map bnd_key_pos qs"
+    and counts: "bnd_counts_one_pos_le
+      (bnd_counts_profile ps) (bnd_counts_profile qs)"
+  shows "bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) ps))
+      (bnd_counts_profile (bnd_profile_cons (RSTAR r) qs))"
+  using key counts
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    using key counts by (cases qs) auto
+next
+  case (Cons p ps')
+  have ps_def: "ps = p # ps'"
+    using Cons by simp
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using key counts ps_def by auto
+  next
+    case (Cons q qs')
+    have head: "bnd_key_pos p = bnd_key_pos q"
+      using key ps_def Cons by simp
+    have tail: "map bnd_key_pos ps' = map bnd_key_pos qs'"
+      using key ps_def Cons by simp
+    have counts': "bnd_counts_one_pos_le
+      (bnd_counts_profile (p # ps')) (bnd_counts_profile (q # qs'))"
+      using counts ps_def Cons by simp
+    show ?thesis
+      using ps_def Cons
+      by (simp add: bnd_counts_one_pos_le_star_cons_Cons[OF head tail counts'])
+  qed
+qed
+
+lemma bnd_profile_cons_profile_single_not_counts_le_one [simp]:
+  assumes "bnd_profile_cons r (bnd_profile q) = [z]"
+  shows "\<not> bnd_counts_one_pos_le (bnd_counts_profile [z]) [Suc 0]"
+proof (cases z)
+  case (AtomPos a)
+  then have "map bnd_key_pos (bnd_profile_cons r (bnd_profile q)) = [AtomPos a]"
+    using assms by simp
+  then have "(case r of RSTAR s \<Rightarrow> False | _ \<Rightarrow> r = a \<and> bnd_profile q = [])"
+    by simp
+  then have False
+    by (cases r) simp_all
+  then show ?thesis
+    by simp
+next
+  case (StarRun s n)
+  then have "bnd_profile_cons r (bnd_profile q) = [StarRun s n]"
+    using assms by simp
+  then have "Suc 0 < n"
+    by (rule bnd_profile_cons_profile_single_StarRun_gt_one)
+  then show ?thesis
+    using StarRun by simp
+qed
+
+lemma bnd_profile_cons7_star_cong:
+  assumes key: "map bnd_key_pos ps = map bnd_key_pos qs"
+    and counts: "bnd_counts_one_pos_le
+      (bnd_counts_profile ps) (bnd_counts_profile qs)"
+  shows "map bnd_key_pos (bnd_profile_cons7_star r ps) =
+      map bnd_key_pos (bnd_profile_cons7_star r qs) \<and>
+    bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons7_star r ps))
+      (bnd_counts_profile (bnd_profile_cons7_star r qs))"
+  using key counts
+proof (cases ps)
+  case Nil
+  then show ?thesis
+    using key counts by (cases qs) auto
+next
+  case (Cons p ps')
+  have ps_def: "ps = p # ps'"
+    using Cons by simp
+  then show ?thesis
+  proof (cases qs)
+    case Nil
+    then show ?thesis
+      using key counts ps_def by auto
+  next
+    case (Cons q qs')
+    show ?thesis
+      using key counts ps_def Cons
+      by (cases p; cases q) (auto split: if_splits)
+  qed
+qed
+
+definition bnd_seam_lift :: "rrexp \<Rightarrow> rrexp \<Rightarrow> bool" where
+  "bnd_seam_lift x y \<longleftrightarrow>
+     bnd_key x = bnd_key y \<and>
+     bnd_counts_one_pos_le (bnd_counts x) (bnd_counts y)"
+
+lemma bnd_counts_list_all2_le_refl [simp]:
+  "list_all2 (\<lambda>m n. m \<le> n) (xs :: nat list) xs"
+  by (induction xs) simp_all
+
+lemma bnd_counts_one_pos_le_refl [simp]:
+  "bnd_counts_one_pos_le xs xs"
+  by (induction xs) simp_all
+
+lemma bnd_counts_one_pos_le_imp_list_all2:
+  assumes "bnd_counts_one_pos_le xs ys"
+  shows "list_all2 (\<lambda>m n. m \<le> n) xs ys"
+  using assms
+  by (induction xs ys rule: bnd_counts_one_pos_le.induct) auto
+
+lemma bnd_seam_lift_imp_lift_compatible:
+  assumes "bnd_seam_lift x y"
+  shows "bnd_lift_compatible x y"
+  using assms bnd_counts_one_pos_le_imp_list_all2
+  by (simp add: bnd_seam_lift_def bnd_lift_compatible_def)
+
+lemma bnd_seam_lift_rsimp4_same_head:
+  assumes "bnd_seam_lift kX kY"
+  shows "bnd_seam_lift
+      (rsimp4_SEQ_atom p kX)
+      (rsimp4_SEQ_atom p kY)"
+  using assms
+proof (induction p arbitrary: kX kY)
+  case RZERO
+  then show ?case
+    by (simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def)
+next
+  case RONE
+  then show ?case
+    by simp
+next
+  case (RCHAR c)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RSEQ p1 p2)
+  have tail:
+    "bnd_seam_lift
+      (rsimp4_SEQ_atom p2 kX)
+      (rsimp4_SEQ_atom p2 kY)"
+    by (rule RSEQ.IH(2)[OF RSEQ.prems])
+  show ?case
+    using RSEQ.IH(1)[OF tail] by simp
+next
+  case (RALTS rs)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        intro: map_bnd_key_pos_star_cons_cong
+          bnd_counts_one_pos_le_star_cons_cong
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        split: rrexp.splits bnd_profile_pos.splits)
+qed
+
+lemma bnd_seam_lift_rsimp7_RSTAR_same_head:
+  assumes "bnd_seam_lift kX kY"
+  shows "bnd_seam_lift
+      (rsimp7_SEQ_atom (RSTAR r) kX)
+      (rsimp7_SEQ_atom (RSTAR r) kY)"
+proof (cases "kX = RZERO \<or> kX = RONE \<or> kY = RZERO \<or> kY = RONE")
+  case True
+  then show ?thesis
+    using assms
+    by (cases kX; cases kY)
+      (auto simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+        rsimp7_SEQ_atom_def split: rrexp.splits bnd_profile_pos.splits)
+next
+  case False
+  then have nz:
+    "kX \<noteq> RZERO" "kX \<noteq> RONE" "kY \<noteq> RZERO" "kY \<noteq> RONE"
+    by auto
+  have lift:
+    "map bnd_key_pos (bnd_profile_cons7_star r (bnd_profile kX)) =
+      map bnd_key_pos (bnd_profile_cons7_star r (bnd_profile kY)) \<and>
+    bnd_counts_one_pos_le
+      (bnd_counts_profile (bnd_profile_cons7_star r (bnd_profile kX)))
+      (bnd_counts_profile (bnd_profile_cons7_star r (bnd_profile kY)))"
+    using assms
+    by (intro bnd_profile_cons7_star_cong)
+      (simp_all add: bnd_seam_lift_def bnd_key_def bnd_counts_def)
+  show ?thesis
+    using lift
+    by (simp add: bnd_seam_lift_def bnd_key_def bnd_counts_def
+      bnd_profile_rsimp7_RSTAR_nontriv[OF nz(1,2)]
+      bnd_profile_rsimp7_RSTAR_nontriv[OF nz(3,4)])
+qed
+
+lemma bnd_seam_lift_rsimp7_same_head:
+  assumes "bnd_seam_lift kX kY"
+  shows "bnd_seam_lift
+      (rsimp7_SEQ_atom p kX)
+      (rsimp7_SEQ_atom p kY)"
+  using assms
+proof (cases p)
+  case RZERO
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of RZERO]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case RONE
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of RONE]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RCHAR c)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RCHAR c"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RSEQ p1 p2)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RSEQ p1 p2"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RALTS rs)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RALTS rs"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RSTAR r)
+  then show ?thesis
+    using bnd_seam_lift_rsimp7_RSTAR_same_head[OF assms] by simp
+next
+  case (RNTIMES r n)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RNTIMES r n"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RBACKREF4 r1 r2 r3 r4 cs"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RHALF r cs rep)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RHALF r cs rep"]
+    by (simp add: rsimp7_SEQ_atom_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?thesis
+    using bnd_seam_lift_rsimp4_same_head[OF assms, of "RRESIDUE cs rep"]
+    by (simp add: rsimp7_SEQ_atom_def)
+qed
+
+lemma bnd_lift_compatible_rsimp7_same_head:
+  assumes "bnd_seam_lift kX kY"
+    and "rtail_nf p"
+  shows "bnd_lift_compatible
+       (rsimp7_SEQ_atom p kX)
+       (rsimp7_SEQ_atom p kY)"
+  by (rule bnd_seam_lift_imp_lift_compatible)
+    (rule bnd_seam_lift_rsimp7_same_head[OF assms(1)])
+
+lemma bnd_counts_one_pos_le_rsimp7_same_head:
+  assumes "bnd_seam_lift kX kY"
+    and "rtail_nf p"
+  shows "bnd_counts_one_pos_le
+      (bnd_counts (rsimp7_SEQ_atom p kX))
+      (bnd_counts (rsimp7_SEQ_atom p kY))"
+  using bnd_seam_lift_rsimp7_same_head[OF assms(1)]
+  by (simp add: bnd_seam_lift_def)
 
 lemma card_le_if_missing_in_image:
   fixes X Y :: "'a set"
