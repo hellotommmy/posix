@@ -4446,6 +4446,84 @@ proof -
         [OF L1 seq_head boundary clean])
 qed
 
+lemma combined_RSEQ_le_rsize_from_boundary_L1_root_cases_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and rone_diff:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (single_root (RSEQ RONE t) k -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    and rseq_case:
+    "\<And>s1 s2 t k. legacy_rrexp (RSEQ s1 s2) \<Longrightarrow>
+      rntimes_free (RSEQ s1 s2) \<Longrightarrow> apder_nf (RSEQ s1 s2) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSEQ s1 s2) t) k \<union>
+        single_term (RSEQ s1 s2) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSEQ s1 s2)"
+    and rstar_case:
+    "\<And>s t k. legacy_rrexp (RSTAR s) \<Longrightarrow>
+      rntimes_free (RSTAR s) \<Longrightarrow> apder_nf (RSTAR s) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR s) t) k \<union>
+        single_term (RSTAR s) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR s)"
+    and ralts_root_cover:
+    "\<And>rs t k. single_root (RSEQ (RALTS rs) t) k
+      \<subseteq> ((\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union>
+        single_term q (rsimp4_SEQ_atom t k)) \<union>
+        B k \<union> B (rsimp4_SEQ_atom t k))"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean:
+    "legacy_rrexp (RSEQ r1 r2)"
+    "rntimes_free (RSEQ r1 r2)"
+    "apder_nf (RSEQ r1 r2)"
+    "apder_nf k"
+  shows
+    "card ((single_root (RSEQ r1 r2) k \<union>
+        single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+      card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+        (single_term r2 k - B k))
+      \<le> rsize (RSEQ r1 r2)"
+proof -
+  have r1_clean: "legacy_rrexp r1" "rntimes_free r1" "apder_nf r1"
+    using clean by auto
+  have r2_clean: "legacy_rrexp r2" "rntimes_free r2" "apder_nf r2"
+    using clean by auto
+  have sh:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+      single_term r1 (rsimp4_SEQ_atom r2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom r2 k))) \<le> rsize r1"
+    by (rule seq_head_core_le_rsize_from_L1_cases_clean
+        [OF rone_diff rseq_case rstar_case ralts_root_cover])
+      (use r1_clean r2_clean clean(4) in simp_all)
+  have bnd_d1:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> D1 r2 k"
+    using r2_clean clean(4) by (intro boundary) auto
+  have child: "D1 r2 k \<le> rsize r2"
+    by (rule D1_singleton_le_rsize_from_seq_head_cases_boundary_L1_root_clean
+        [OF L1 rone_diff rseq_case rstar_case ralts_root_cover boundary])
+      (use r2_clean clean(4) in simp_all)
+  have bnd:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> rsize r2"
+    by (rule le_trans[OF bnd_d1 child])
+  have sh_suc:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+      single_term r1 (rsimp4_SEQ_atom r2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom r2 k))) \<le> Suc (rsize r1)"
+    using sh by simp
+  show ?thesis
+    by (rule combined_RSEQ_le_rsize_from_head_suc_boundary_rsize[OF sh_suc bnd])
+qed
+
 lemma D1_singleton_le_rsize_from_combined_RSEQ_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
@@ -4515,6 +4593,60 @@ next
 next
   case (RRESIDUE cs rep)
   then show ?case by simp
+qed
+
+lemma D1_singleton_le_rsize_from_combined_RSEQ_boundary_L1_root_apder_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and rone_diff:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card (single_root (RSEQ RONE t) k -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> 1"
+    and rseq_case:
+    "\<And>r1 r2 t k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSEQ r1 r2) t) k \<union>
+        single_term (RSEQ r1 r2) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSEQ r1 r2)"
+    and rstar_case:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> rsize (RSTAR r)"
+    and ralts_root_cover:
+    "\<And>rs t k. single_root (RSEQ (RALTS rs) t) k
+      \<subseteq> ((\<Union>q \<in> set rs.
+        single_root (RSEQ q t) k \<union>
+        single_term q (rsimp4_SEQ_atom t k)) \<union>
+        B k \<union> B (rsimp4_SEQ_atom t k))"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean: "apder_clean q" "apder_clean k"
+  shows "D1 q k \<le> rsize q"
+proof -
+  have rseq_combined:
+    "\<And>r1 r2 k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+        card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+          (single_term r2 k - B k))
+        \<le> rsize (RSEQ r1 r2)"
+    by (rule combined_RSEQ_le_rsize_from_boundary_L1_root_cases_clean
+        [OF L1 rone_diff rseq_case rstar_case ralts_root_cover boundary])
+  show ?thesis
+    by (rule D1_singleton_le_rsize_from_combined_RSEQ_L1_clean
+        [OF L1 rseq_combined])
+      (use clean in \<open>simp_all add: apder_clean_def\<close>)
 qed
 
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
