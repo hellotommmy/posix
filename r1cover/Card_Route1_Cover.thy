@@ -220,6 +220,68 @@ next
   then show ?case by (cases k) simp_all
 qed
 
+lemma rsize_lt_rsimp4_SEQ_atom_nonunit_rtail_nf:
+  assumes p_nf: "rtail_nf p"
+    and p0: "p \<noteq> RZERO"
+    and p1: "p \<noteq> RONE"
+    and k0: "k \<noteq> RZERO"
+    and k1: "k \<noteq> RONE"
+  shows "rsize k < rsize (rsimp4_SEQ_atom p k)"
+  using p_nf p0 p1 k0 k1
+proof (induct p arbitrary: k)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by simp
+next
+  case (RCHAR c)
+  then show ?case by (cases k) simp_all
+next
+  case (RSEQ p1 p2)
+  have p1_nf: "rtail_nf p1"
+    using RSEQ.prems by simp
+  have p1_0: "p1 \<noteq> RZERO"
+    using RSEQ.prems by simp
+  have p1_1: "p1 \<noteq> RONE"
+    using RSEQ.prems by simp
+  have p2_nf: "rtail_nf p2"
+    using RSEQ.prems by simp
+  have p2_0: "p2 \<noteq> RZERO"
+    using RSEQ.prems by simp
+  have p2_1: "p2 \<noteq> RONE"
+    using RSEQ.prems by simp
+  let ?u = "rsimp4_SEQ_atom p2 k"
+  have u_nonunit: "?u \<noteq> RZERO \<and> ?u \<noteq> RONE"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1 RSEQ.prems(4,5)])
+  have lt_tail: "rsize k < rsize ?u"
+    by (rule RSEQ.hyps(2)[OF p2_nf p2_0 p2_1 RSEQ.prems(4,5)])
+  have lt_head: "rsize ?u < rsize (rsimp4_SEQ_atom p1 ?u)"
+    by (rule RSEQ.hyps(1)[OF p1_nf p1_0 p1_1])
+      (use u_nonunit in auto)
+  show ?case
+    using lt_tail lt_head by simp
+next
+  case (RALTS rs)
+  then show ?case by (cases k) simp_all
+next
+  case (RSTAR r)
+  then show ?case by (cases k) simp_all
+next
+  case (RNTIMES r n)
+  then show ?case by (cases k) simp_all
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case by (cases k) simp_all
+next
+  case (RHALF r cs rep)
+  then show ?case by (cases k) simp_all
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (cases k) simp_all
+qed
+
 lemma rsimp4_SEQ_atom_nonunit_rtail_nf_not_RSTAR:
   assumes p_nf: "rtail_nf p"
     and p0: "p \<noteq> RZERO"
@@ -984,6 +1046,368 @@ next
   show ?thesis
     using earlier later nonempty nested
     by (simp add: rsimpStrong_prune_pair_raw_def)
+qed
+
+lemma rsimpStrong_prune_pair_raw_not_shared_tail:
+  assumes earlier: "earlier = RSEQ (RALTS lrs) tail"
+    and later: "\<not> (\<exists>rrs. r = RSEQ (RALTS rrs) tail)"
+  shows "rsimpStrong_prune_pair_raw earlier r = r"
+proof (cases r)
+  case (RSEQ h t)
+  show ?thesis
+  proof (cases h)
+    case (RALTS rrs)
+    have "t \<noteq> tail"
+      using later RSEQ RALTS by auto
+    then show ?thesis
+      using earlier RSEQ RALTS
+      by (simp add: rsimpStrong_prune_pair_raw_def)
+  qed (use earlier RSEQ in
+      \<open>simp_all add: rsimpStrong_prune_pair_raw_def\<close>)
+qed (use earlier in
+    \<open>simp_all add: rsimpStrong_prune_pair_raw_def\<close>)
+
+lemma rsimpStrong_prune_against_rows_raw_not_shared_tail:
+  assumes seen: "\<forall>e \<in> set seen. \<exists>lrs. e = RSEQ (RALTS lrs) tail"
+    and later: "\<not> (\<exists>rrs. r = RSEQ (RALTS rrs) tail)"
+  shows "rsimpStrong_prune_against_rows_raw seen r = r"
+  using seen later
+proof (induction seen arbitrary: r)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons e seen)
+  then obtain lrs where e_def: "e = RSEQ (RALTS lrs) tail"
+    by auto
+  have step: "rsimpStrong_prune_pair_raw e r = r"
+    using rsimpStrong_prune_pair_raw_not_shared_tail[OF e_def Cons.prems(2)] .
+  have rest: "rsimpStrong_prune_against_rows_raw seen r = r"
+    using Cons.IH Cons.prems by auto
+  show ?case
+    by (simp add: step rest)
+qed
+
+lemma rsimp7_SEQ_atom_payload_not_same_altseq_tail:
+  assumes p_nf: "rtail_nf p"
+    and p_nonalt: "nonalt p"
+    and p0: "p \<noteq> RZERO"
+    and tail_nf: "rtail_nf tail"
+    and tail0: "tail \<noteq> RZERO"
+    and tail1: "tail \<noteq> RONE"
+  shows "rsimp7_SEQ_atom p tail \<noteq> RSEQ (RALTS rows) tail"
+  using p_nf p_nonalt p0 tail_nf tail0 tail1
+proof (induction p arbitrary: tail rows)
+  case RZERO
+  then show ?case by simp
+next
+  case RONE
+  then show ?case by (cases tail) simp_all
+next
+  case (RCHAR c)
+  then show ?case by (cases tail) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RSEQ p1 p2)
+  have p2_nf: "rtail_nf p2"
+    using RSEQ.prems by simp
+  have p2_0: "p2 \<noteq> RZERO"
+    using RSEQ.prems by simp
+  have p2_1: "p2 \<noteq> RONE"
+    using RSEQ.prems by simp
+  have tail_nonunit:
+      "rsimp4_SEQ_atom p2 tail \<noteq> RZERO \<and>
+       rsimp4_SEQ_atom p2 tail \<noteq> RONE"
+    by (rule rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1 RSEQ.prems(5,6)])
+  have tail_lt:
+      "rsize tail < rsize (rsimp4_SEQ_atom p2 tail)"
+    by (rule rsize_lt_rsimp4_SEQ_atom_nonunit_rtail_nf
+        [OF p2_nf p2_0 p2_1 RSEQ.prems(5,6)])
+  have tail_ne:
+      "rsimp4_SEQ_atom p2 tail \<noteq> tail"
+    using tail_lt by auto
+  show ?case
+    using RSEQ.prems tail_nonunit tail_ne
+    by (cases p1; cases "rsimp4_SEQ_atom p2 tail"; cases tail)
+      (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RALTS ps)
+  then show ?case by simp
+next
+  case (RSTAR r)
+  then show ?case
+    by (cases tail)
+      (simp_all add: rsimp7_SEQ_atom_def split: rrexp.splits)
+next
+  case (RNTIMES r n)
+  then show ?case
+    by (cases tail) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by (cases tail) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by (cases tail) (simp_all add: rsimp7_SEQ_atom_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by (cases tail) (simp_all add: rsimp7_SEQ_atom_def)
+qed
+
+lemma row_dlforms_prune_against_rows_shared_tail_subset_later_or_credit:
+  assumes later: "later = RSEQ (RALTS rrs) tail"
+    and seen: "\<forall>e \<in> set seen. \<exists>lrs. e = RSEQ (RALTS lrs) tail"
+    and rrs_props: "\<forall>q \<in> set rrs.
+      rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+    and tail_nf: "rtail_nf tail"
+    and tail0: "tail \<noteq> RZERO"
+    and tail1: "tail \<noteq> RONE"
+    and K_nf: "rtail_nf K"
+    and one_credit:
+      "\<And>lrs rows s. tail = RSTAR s \<Longrightarrow>
+        set rows \<subseteq> set rrs \<Longrightarrow>
+        rsimp_ALTs (rprune_eq_against lrs rows) = RONE \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom
+              (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s)) K) \<subseteq> C"
+    and star_credit:
+      "\<And>lrs rows s. tail = RSTAR s \<Longrightarrow>
+        set rows \<subseteq> set rrs \<Longrightarrow>
+        rsimp_ALTs (rprune_eq_against lrs rows) = RSTAR s \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimp7_SEQ_atom
+              (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s)) K) \<subseteq> C"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimpStrong_prune_against_rows_raw seen later) K) \<subseteq>
+    row_dlforms (rsimp7_SEQ_atom later K) \<union> C"
+proof -
+  have main:
+      "\<And>rows cur. cur = RSEQ (RALTS rows) tail \<Longrightarrow>
+        set rows \<subseteq> set rrs \<Longrightarrow>
+        (\<forall>q \<in> set rows. rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO) \<Longrightarrow>
+        row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimpStrong_prune_against_rows_raw seen cur) K) \<subseteq>
+        row_dlforms (rsimp7_SEQ_atom cur K) \<union> C"
+    using seen
+  proof (induction seen arbitrary: rows cur)
+    case Nil
+    then show ?case
+      by simp
+  next
+    case (Cons e seen)
+    then obtain lrs where e_def: "e = RSEQ (RALTS lrs) tail"
+      by auto
+    let ?ps = "rprune_eq_against lrs rows"
+    let ?p = "rsimpStrong_prune_pair_raw e cur"
+    have seen_tail: "\<forall>e \<in> set seen. \<exists>lrs. e = RSEQ (RALTS lrs) tail"
+      using Cons.prems by auto
+    have ps_sub_rows: "set ?ps \<subseteq> set rows"
+      by (rule rprune_eq_against_set_subset_local)
+    have ps_sub_rrs: "set ?ps \<subseteq> set rrs"
+      using ps_sub_rows Cons.prems(2) by auto
+    have ps_props: "\<forall>q \<in> set ?ps.
+        rtail_nf q \<and> nonalt q \<and> q \<noteq> RZERO"
+      using ps_sub_rows Cons.prems(3) by auto
+    have step:
+        "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+         row_dlforms (rsimp7_SEQ_atom cur K) \<union> C"
+    proof (cases tail)
+      case (RSEQ h t)
+      have e_RSEQ: "e = RSEQ (RALTS lrs) (RSEQ h t)"
+        using e_def RSEQ by simp
+      have cur_RSEQ: "cur = RSEQ (RALTS rows) (RSEQ h t)"
+        using Cons.prems(1) RSEQ by simp
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_RSEQ_tail_subset_later
+            [OF e_RSEQ cur_RSEQ Cons.prems(3)])
+          (use RSEQ tail_nf K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RSTAR s)
+      have e_star: "e = RSEQ (RALTS lrs) (RSTAR s)"
+        using e_def RSTAR by simp
+      have cur_star: "cur = RSEQ (RALTS rows) (RSTAR s)"
+        using Cons.prems(1) RSTAR by simp
+      have one:
+          "rsimp_ALTs ?ps = RONE \<Longrightarrow>
+           row_dlforms
+            (rsimp7_SEQ_atom
+              (rsimp7_SEQ_atom (rsimp_ALTs ?ps) (RSTAR s)) K) \<subseteq> C"
+        by (rule one_credit[OF RSTAR Cons.prems(2)])
+      have star:
+          "rsimp_ALTs ?ps = RSTAR s \<Longrightarrow>
+           row_dlforms
+            (rsimp7_SEQ_atom
+              (rsimp7_SEQ_atom (rsimp_ALTs ?ps) (RSTAR s)) K) \<subseteq> C"
+        by (rule star_credit[OF RSTAR Cons.prems(2)])
+      show ?thesis
+        by (rule row_dlforms_rsimp7_prune_pair_shared_RSTAR_tail_subset_later_or_credit
+            [OF e_star cur_star Cons.prems(3) one star])
+    next
+      case RZERO
+      then show ?thesis
+        using tail0 by simp
+    next
+      case RONE
+      then show ?thesis
+        using tail1 by simp
+    next
+      case (RCHAR c)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RCHAR tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RALTS rs)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RALTS tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RNTIMES r n)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RNTIMES tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RBACKREF4 r1 r2 r3 r4 cs)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RBACKREF4 tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RHALF r cs rep)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RHALF tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    next
+      case (RRESIDUE cs rep)
+      have pair:
+          "row_dlforms (rsimp7_SEQ_atom ?p K) \<subseteq>
+           row_dlforms (rsimp7_SEQ_atom cur K)"
+        by (rule row_dlforms_rsimp7_prune_pair_shared_nonstar_tail_subset_later
+            [OF e_def Cons.prems(1) Cons.prems(3)])
+          (use RRESIDUE tail_nf tail0 tail1 K_nf in simp_all)
+      then show ?thesis by blast
+    qed
+
+    have rest:
+        "row_dlforms
+          (rsimp7_SEQ_atom
+            (rsimpStrong_prune_against_rows_raw seen ?p) K) \<subseteq>
+         row_dlforms (rsimp7_SEQ_atom ?p K) \<union> C"
+    proof (cases ?ps)
+      case Nil
+      have p_eq: "?p = RZERO"
+        using e_def Cons.prems(1) Nil
+        by (simp add: rsimpStrong_prune_pair_raw_def rsimp7_SEQ_atom_def)
+      have no_tail: "\<not> (\<exists>rows. ?p = RSEQ (RALTS rows) tail)"
+        using p_eq by simp
+      have scan_eq: "rsimpStrong_prune_against_rows_raw seen ?p = ?p"
+        by (rule rsimpStrong_prune_against_rows_raw_not_shared_tail
+            [OF seen_tail no_tail])
+      show ?thesis
+        by (simp add: scan_eq)
+    next
+      case (Cons p ps_tail)
+      then show ?thesis
+      proof (cases ps_tail)
+        case Nil
+        have ps_eq: "?ps = [p]"
+          using Cons Nil by simp
+        have p_in: "p \<in> set rows"
+          using ps_eq ps_sub_rows by auto
+        have p_nf: "rtail_nf p"
+          using Cons.prems(3) p_in by auto
+        have p_nonalt: "nonalt p"
+          using Cons.prems(3) p_in by auto
+        have p0: "p \<noteq> RZERO"
+          using Cons.prems(3) p_in by auto
+        have p_eq: "?p = rsimp7_SEQ_atom p tail"
+          using e_def Cons.prems(1) ps_eq
+          by (simp add: rsimpStrong_prune_pair_raw_def)
+        have no_payload:
+            "\<And>rows. rsimp7_SEQ_atom p tail \<noteq>
+              RSEQ (RALTS rows) tail"
+          by (rule rsimp7_SEQ_atom_payload_not_same_altseq_tail
+              [OF p_nf p_nonalt p0 tail_nf tail0 tail1])
+        have no_tail: "\<not> (\<exists>rows. ?p = RSEQ (RALTS rows) tail)"
+        proof
+          assume "\<exists>rows. ?p = RSEQ (RALTS rows) tail"
+          then obtain rows0 where bad: "?p = RSEQ (RALTS rows0) tail"
+            by blast
+          then have "rsimp7_SEQ_atom p tail = RSEQ (RALTS rows0) tail"
+            using p_eq by simp
+          then show False
+            using no_payload[of rows0] by simp
+        qed
+        have scan_eq: "rsimpStrong_prune_against_rows_raw seen ?p = ?p"
+          by (rule rsimpStrong_prune_against_rows_raw_not_shared_tail
+              [OF seen_tail no_tail])
+        show ?thesis
+          by (simp add: scan_eq)
+      next
+        case (Cons p' ps'')
+        have ps_eq: "?ps = p # p' # ps''"
+          using \<open>?ps = p # ps_tail\<close> Cons by simp
+        have p_eq: "?p = RSEQ (RALTS ?ps) tail"
+          using e_def Cons.prems(1) ps_eq tail0 tail1
+          by (cases tail)
+            (simp_all add: rsimpStrong_prune_pair_raw_def
+              rsimp7_SEQ_atom_def)
+        have ih:
+            "row_dlforms
+              (rsimp7_SEQ_atom
+                (rsimpStrong_prune_against_rows_raw seen ?p) K) \<subseteq>
+             row_dlforms (rsimp7_SEQ_atom ?p K) \<union> C"
+          by (rule Cons.IH[OF p_eq ps_sub_rrs ps_props seen_tail])
+        show ?thesis
+          using ih by blast
+      qed
+    qed
+    show ?case
+    proof
+      fix x
+      assume x_in: "x \<in> row_dlforms
+        (rsimp7_SEQ_atom
+          (rsimpStrong_prune_against_rows_raw (e # seen) cur) K)"
+      then have x_in':
+          "x \<in> row_dlforms
+            (rsimp7_SEQ_atom
+              (rsimpStrong_prune_against_rows_raw seen ?p) K)"
+        by simp
+      then have "x \<in> row_dlforms (rsimp7_SEQ_atom ?p K) \<union> C"
+        using rest by blast
+      then show "x \<in> row_dlforms (rsimp7_SEQ_atom cur K) \<union> C"
+        using step by blast
+    qed
+  qed
+  show ?thesis
+    by (rule main[OF later subset_refl rrs_props])
 qed
 
 lemma row_dlforms_rsimp7_assoc_subset_suffix_rtail_nf:
