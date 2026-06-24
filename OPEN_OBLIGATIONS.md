@@ -38,6 +38,10 @@ missing subgoal:
   rsimpStrong_prune_against_rows_raw, reusing the shared RSEQ/nonstar/RSTAR pair lemmas; report case tail×[]/singleton/≥2).
   Then close tagged_inv via B1 (surviving branch → singleton ROOT carrier) / B2 (collapsed-star escape → singleton ACC
   credit). STOP adding isolated row helpers — fold-lift the existing ones.
+  ✅ DE-RISKED (workflow w03gpr3c2, TRUE-PROVABLE, 0 CE/~3.6M): the cross-prune is CONTINUATION-FREE (it lives inside
+  H:=S(RALTS bs), computed identically in X and Y — firing-level identical). So for genuine ALTS-headed H, `ps_X=ps_Y`
+  via `head_prune_continuation_free` (Layer A) + `σ7_RALTS_head` (Layer B); singleton/OTHER shape uses the whole-row
+  chain lift. This is an ALTERNATIVE to the scan-lift (use whichever formalizes cleaner). ONE gap: the E3 interior-depth seam lemma.
 ```
 
 ## O2  S1_boundary  (lane: BND `card/route1-bnd`)
@@ -74,6 +78,12 @@ ALL degenerate regimes) but BOTH are **GAP** — their proofs reduce to ONE shar
   `bnd_lift_compatible_rsimp7_same_head` (+ `one_pos_le`) → `boundary_missing_has_root_lift_from_prune_scan` (D_nonempty,
   a scan-lift corollary, EXISTENCE before inj_on) → `bnd_candidates_same_key_chain` (D_chain = COMPARABILITY) →
   least-candidate injection ⇒ card(X−Y)≤card(Y−X) ⇒ card_le_of_card_diff_le ⇒ S1. Pair-level is DONE; the fold-lift is the nut.
+  ✅ DE-RISKED + CLEANER ROUTE (workflow w03gpr3c2, 0 viol / 269k+682k exhaustive): RA1/RA2 CANCELLATION — the
+  cross-prune-synthesized rows land in X∩Y and CANCEL in the diff, so **O2 reduces to PER-BRANCH S1 over non-ALT
+  branches, never touching the global cross-prune** (RA1: Y−X ⊆ (⋃_q single_root q k)−base; RA2: X−Y ⊆ ⋃_q boundary_excess q k;
+  + per-branch base card(Xq−Yq)≤card(Yq−Xq)). ⚠ single_root does NOT distribute per-branch for t=RALTS (cross-prune fires
+  across branches) — use RA1/RA2, not naive =. The matching partner of an X−Y row is ALWAYS a per-branch root row (0/209k).
+  ONE gap: the E3 interior-depth seam lemma (the junction StarRun count, σ7-collapse-fires-or-not case split).
 ```
 
 ## O3  seq / D1     (lane: SEQ `card/route1-seq`)

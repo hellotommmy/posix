@@ -169,3 +169,42 @@ scan/spine-level preservation.** The repo already has the pair-level bricks; cov
 but have not formed the fold-lift theorem; bnd's injection scaffold is landed but D_nonempty/D_chain CANNOT be forced
 without the scan/spine theorem. More scattered constructor helpers = spinning; concentrating on the scan-lift = real
 convergence.
+
+---
+
+## 2026-06-25 ADVERSARIAL RECONCILIATION (workflow w03gpr3c2) — the nut is TRUE-PROVABLE, de-risked
+An independent adversarial workflow (faithful model via the ACTUAL `rflts∘rdistinct∘rsimpStrong_prune_rows` chain)
+found **NO counterexample across ~3.6M cases** (incl. all a*·a* / shared-(s*·s*)-tail / deep-nest / SEQ-root threaded).
+**Verdict: TRUE-PROVABLE.** It converges with Pro's plan and adds two cleaner routes + the precise remaining gap.
+
+**WHY the wall does NOT bite (clean structural reason): the cross-prune is CONTINUATION-FREE.** For clean
+`t = RSEQ (RALTS bs) tl`: `S(s4 t k) = σ7(S(RALTS bs), S(s4 tl k))`; the ENTIRE prune lives inside
+`H := S(RALTS bs) = strongALTs(rflts(map S bs))`, which has ZERO dependency on the continuation. So `H` (and every
+`k1=k2` inter-branch deletion) is computed IDENTICALLY in the threaded opening (X) and the separated opening (Y).
+Firing-level trace: 51384 fires in X == 51384 in Y, deleted sets identical across 390668 cases incl. 41480 GENUINE
+inter-branch deletions — the wall is exercised, not vacuous, and still preserved. ⇒ `ps_X = ps_Y = head_branches H`
+automatically (genuine ALTS-headed form). When the prune collapses `H` to a singleton/non-ALT (`rsimp_ALTs[p]=p`
+exposing an inner altseq — Pro's "brittle" case) that is the OTHER shape, handled by the whole-row `bnd_key/counts`
+lift, NOT branch-list equality. So Pro's "no UNIFORM syntactic E1/E2" and this "`ps_X=ps_Y` for genuine ALTS-head" are
+CONSISTENT — split by shape.
+- LAYER A `head_prune_continuation_free`: `S(s4 (RSEQ(RALTS bs) tl) k) = σ7 (S(RALTS bs)) (S(s4 tl k))` (NO induction
+  on the cross-prune accumulator — Layer A confines it inside S(RALTS bs)).
+- LAYER B `σ7_RALTS_head`: `H=RALTS hs ∧ cont≠RZERO ⟹ head_branches(σ7 H cont) = hs` (σ7=σ4 since H not RSTAR-headed).
+
+**Cleaner route-around for O2 — RA1/RA2 CANCELLATION (0 viol / 269k random + 682k EXHAUSTIVE size≤8):** the
+cross-prune-SYNTHESIZED rows land ONLY in X∩Y (collapse matches on BOTH sides) ⇒ they CANCEL in the diffs ⇒ **O2
+reduces to PER-BRANCH S1 over non-ALT branches, never touching the global cross-prune:**
+```
+RA1:  root_excess t k − boundary_excess t k  ⊆  (⋃_q single_root(q,k)) − strong_apder_acc RONE k
+RA2:  boundary_excess t k − root_excess t k   ⊆  ⋃_q boundary_excess(q,k)
+   + per-branch base (q non-ALT): card(Xq−Yq) ≤ card(Yq−Xq)  AND the full injection   (0 viol / 298k)
+⇒ the matching partner of a genuine X−Y row is ALWAYS a per-branch root row, NEVER a cross-prune-synthesized one (0/209k).
+```
+⚠ CORRECTION: `single_root(RALTS bs,k) ≠ ⋃_q single_root(q,k)` (for t=RALTS the cross-prune fires ACROSS t's branches;
+the earlier "Y==Yb 0/74.5k" was a generator-coverage artifact). Distribute via RA1/RA2 (cancellation), not naive per-branch =.
+
+**THE ONE REMAINING GAP (shared by all routes): the E3 seam lemma** — `counts(kX) ≤ counts(kY)` at the junction StarRun
+(at ARBITRARY INTERIOR depth) needs an explicit σ4/σ7 induction with the split "junction star = continuation's leading
+star (σ7 collapse fires) vs not (σ4 leaves RSEQ)" — the SAME distinction that bit three earlier S1 statements. 0-viol on
+every sweep but VALIDATE the interior-depth seam induction explicitly before formalizing.
+(Files: %TEMP%\prune\{prune_adv_*.py, prune_fire_decision.py, prune_setlevel_*.py, _routearound_lemma.py}.)
