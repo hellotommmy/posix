@@ -30,6 +30,16 @@ you validated proof skeletons; you formalize + build-verify + merge. **If a skel
 in-Isabelle, fail-stop and report it to the user** (so Claude can re-settle it) — never silently improvise a
 refuted route.
 
+## ★ Single source of truth + report discipline (read EVERY turn)
+**`OPEN_OBLIGATIONS.md` is the single source of truth** — exactly 4 open obligations (O1 L1_cover, O2 S1_boundary,
+O3 seq/D1, O4 final assembly). Each worker report updates **exactly ONE** obligation with the **EXACT missing
+subgoal / failing branch** — NO "validated / advancing / N green helpers" without naming which obligation's subgoal
+it closes. Python "0 viol" is **NOT** a theorem-statement license (S1 `X⊆S(Y)`, S1 `X−Y⊆S(Y−X)`, seq
+`head_core≤rsize h` all passed huge sweeps then got Isabelle-REFUTED). Hand-prove the structural invariant FIRST;
+**no theory proof beyond a generic finite-set/order combinator may be landed unless it builds GREEN.**
+⚠ seq's bare `seq_head_core_le_rsize` is Isabelle-FALSE — see O3 (pivot to the COMBINED/clean target;
+`D1_singleton_le_rsize_from_combined_RSEQ_L1_clean`). The `formalize` interface still consumes the dead shape (O4).
+
 ## 0. Read first (in this order), then you have the whole route
 1. `MAINLINE.md` — the charter (target theorem, proof state, dead routes, rules).
 2. `ROUTE1_CRUX_STATUS.md` — the three cruxes (L1 / S1 / seq_head): verdicts + proof skeletons.

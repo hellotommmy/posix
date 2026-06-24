@@ -1,5 +1,10 @@
 # Route-1 — Crux Status (2026-06-20)
 
+> **Single source of truth = `OPEN_OBLIGATIONS.md`** (the 4 obligations O1–O4). Workers update exactly ONE
+> obligation per report with the EXACT missing subgoal — NO "validated / advancing / N green helpers" without
+> naming which obligation's subgoal it closes. Python "0 viol" is **NOT** a theorem-statement license: three
+> statements passed huge sweeps then got Isabelle-REFUTED — S1 `X⊆S(Y)`, S1 `X−Y⊆S(Y−X)`, and seq `head_core≤rsize h`.
+
 **Gate state.** `cubic/DirectUniverseCubic.thy` is GREEN (0 sorry) MODULO one linear row-count
 lemma:
 
@@ -141,7 +146,16 @@ landed unless it builds green** — the `inj_on` / `D_nonempty` / `D_chain` proo
 
 ---
 
-## seq_head_core  `[VALIDATED, TRUE & tight]`
+## seq_head_core  `[bare statement FALSE in Isabelle — pivot to COMBINED/clean; see OPEN_OBLIGATIONS O3]`
+
+⚠ **The bare apder_nf statement below is FALSE.** `card/route1-seq` has committed Isabelle counterexamples:
+`seq_head_core_le_rsize_unrestricted_false` (h=`RONE`: rsize h < card) and `seq_head_core_le_rsize_nf_seq_false`
+(h=`RALTS[RONE]`, with apder_nf(RSEQ h t) holding, card 3 > rsize h 2). The earlier "VALIDATED TRUE & tight"
+held ONLY on the non-degenerate clean regime; degenerate unit / singleton-ALT heads break it — the Python sweep
+MISSED them (Pro-point-B: a "0 viol" sweep is not a theorem-statement license). **LIVE target = the COMBINED RSEQ
+budget on the clean domain** — `D1_singleton_le_rsize_from_combined_RSEQ_L1_clean` (head_core(r1,r2,k)+boundary(r2,k)
+≤ rsize(RSEQ r1 r2), under legacy_rrexp ∧ rntimes_free ∧ apder_nf): charge the WHOLE RSEQ, not the per-row head_core.
+The block below is the (refuted) historical bare statement, kept for the charging intuition only.
 
 ```
 assumes apder_nf h, apder_nf t, apder_nf k
