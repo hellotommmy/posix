@@ -88,12 +88,19 @@ exact theorem consumed by formalize:
 
 current plug status after FORMALIZE/Codex build-green edit (`Posix_Card_Route1`, private heap, EXIT 0):
   DONE: removed the formalize singleton adapter that consumed the refuted IDEAL `seq_head_core_le_rsize`
-  shape.  Added the corrected adapter:
+  shape.  Added the corrected assembler:
+    singleton_bound_from_L1_BND_combined_RSEQ_clean_spine
+      assumes L1_cover in the nested RALTS shape needed by the singleton induction,
+      assumes boundary_term_absorb,
+      assumes the seq combined clean theorem
+        combined head-core(r1,r2,k) + boundary(r2,k) ≤ rsize (RSEQ r1 r2),
+      and proves
+        legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q.
+
+  DONE: kept the corrected adapter:
     singleton_bound_from_combined_RSEQ_L1_clean_spine
-      assumes seq-combined theorem output shape
-        (∀ q k. legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q)
-      and apder_clean q, apder_nf k
-      shows D1 q k ≤ rsize q.
+      consumes the already-assembled clean-domain singleton theorem plus apder_clean q, apder_nf k,
+      and shows D1 q k ≤ rsize q.
 
   DONE: domain bridge is GREEN:
     apder_clean_domain_spine :

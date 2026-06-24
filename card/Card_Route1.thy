@@ -527,6 +527,229 @@ lemma apder_clean_domain_spine:
   using assms
   by (simp add: apder_clean_def)
 
+lemma strong_apder_acc_RALTS_single_RZERO [simp]:
+  "strong_apder_acc (RALTS [RZERO]) k = strong_apder_acc RZERO k"
+  unfolding strong_apder_acc_def
+  by (cases k)
+    (simp_all add: rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma strong_apder_acc_RZERO [simp]:
+  "strong_apder_acc RZERO k = {}"
+  by (simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def)
+
+lemma strong_apder_acc_RALTS_single_RCHAR [simp]:
+  "strong_apder_acc (RALTS [RCHAR c]) k = strong_apder_acc (RCHAR c) k"
+  unfolding strong_apder_acc_def
+  by (cases k)
+    (auto simp add: rsimpStrong_dlform_closure_def rsimp7_SEQ_atom_def
+      rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def)
+
+lemma D1_RONE_le_rsize_spine:
+  assumes nfk: "apder_nf k"
+  shows "D1 RONE k \<le> rsize RONE"
+proof -
+  have sub: "strong_apder_acc (RALTS [RONE]) k \<subseteq> strong_apder_acc RONE k"
+    using row_dlforms_rsimpStrong_raw_subset_strong_apder_acc_RONE[OF nfk]
+    by (cases k)
+      (auto simp add: strong_apder_acc_def rsimpStrong_dlform_closure_def
+        rsimpStrong_ALTs_raw_def rsimpStrong_prune_rows_raw_def rsimp7_SEQ_atom_def)
+  have "D1 RONE k = 0"
+    unfolding D1_def D_def
+    using sub by auto
+  then show ?thesis
+    by simp
+qed
+
+lemma D1_RSEQ_le_rsize_from_combined_head_boundary_spine:
+  fixes r1 r2 k
+  assumes combined:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (strong_apder_acc RONE k \<union>
+          strong_apder_acc RONE (rsimp4_SEQ_atom r2 k))) +
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom r2 k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term r2 k - strong_apder_acc RONE k))
+      \<le> rsize (RSEQ r1 r2)"
+  shows "D1 (RSEQ r1 r2) k \<le> rsize (RSEQ r1 r2)"
+proof -
+  let ?c = "rsimp4_SEQ_atom r2 k"
+  let ?A = "strong_apder_acc (RALTS [RSEQ r1 r2]) k"
+  let ?B = "strong_apder_acc RONE k"
+  let ?Bc = "strong_apder_acc RONE ?c"
+  let ?Root = "single_root (RSEQ r1 r2) k"
+  let ?T1 = "single_term r1 ?c"
+  let ?T2 = "single_term r2 k"
+  have decomp: "?A = ?Root \<union> ?T1 \<union> ?T2"
+    unfolding strong_apder_acc_single_RALTS_decomp single_term_def
+      rsimpStrong_dlform_closure_def
+    by auto
+  have incl:
+    "?A - ?B \<subseteq>
+      ((?Root \<union> ?T1) - (?B \<union> ?Bc)) \<union>
+      ((?Bc - ?B) \<union> (?T2 - ?B))"
+    using decomp by auto
+  have "D1 (RSEQ r1 r2) k \<le>
+      card (((?Root \<union> ?T1) - (?B \<union> ?Bc)) \<union>
+        ((?Bc - ?B) \<union> (?T2 - ?B)))"
+    unfolding D1_def D_def
+    by (rule card_mono) (use incl in auto)
+  also have "... \<le>
+      card ((?Root \<union> ?T1) - (?B \<union> ?Bc)) +
+      card ((?Bc - ?B) \<union> (?T2 - ?B))"
+    by (rule card_Un_le)
+  also have "... \<le> rsize (RSEQ r1 r2)"
+    using combined by simp
+  finally show ?thesis .
+qed
+
+lemma card_UN_list_Diff_le_sum_rsize_spine:
+  assumes "\<And>q. q \<in> set rs \<Longrightarrow> card (F q - C) \<le> rsize q"
+  shows "card ((\<Union>q \<in> set rs. F q) - C) \<le> rsizes rs"
+  using assms
+proof (induction rs)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons q qs)
+  have split:
+    "((\<Union>x \<in> set (q # qs). F x) - C) =
+      (F q - C) \<union> ((\<Union>x \<in> set qs. F x) - C)"
+    by auto
+  have "card ((\<Union>x \<in> set (q # qs). F x) - C) \<le>
+      card (F q - C) + card ((\<Union>x \<in> set qs. F x) - C)"
+    by (subst split) (rule card_Un_le)
+  also have "... \<le> rsize q + rsizes qs"
+    by (rule add_mono) (use Cons in auto)
+  finally show ?case
+    by simp
+qed
+
+lemma D1_RALTS_le_rsize_from_L1_and_branches_spine:
+  assumes L1_cover:
+    "strong_apder_acc (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and branches:
+    "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+  shows "D1 (RALTS rs) k \<le> rsize (RALTS rs)"
+proof -
+  have diff_sub:
+    "strong_apder_acc (RALTS [RALTS rs]) k - strong_apder_acc RONE k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k) -
+        strong_apder_acc RONE k"
+    using L1_cover by auto
+  have "D1 (RALTS rs) k \<le>
+      card ((\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k) -
+        strong_apder_acc RONE k)"
+    unfolding D1_def D_def
+    by (rule card_mono) (use diff_sub in auto)
+  also have "... \<le> rsizes rs"
+    by (rule card_UN_list_Diff_le_sum_rsize_spine)
+      (use branches in \<open>simp add: D1_def D_def\<close>)
+  finally show ?thesis
+    by simp
+qed
+
+lemma singleton_bound_from_L1_BND_combined_RSEQ_clean_spine:
+  assumes L1_cover:
+    "\<And>rs k. strong_apder_acc (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and boundary_term_absorb:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term t k - strong_apder_acc RONE k)) \<le>
+      D1 t k"
+    and combined_RSEQ_clean:
+    "\<And>r1 r2 k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (strong_apder_acc RONE k \<union>
+            strong_apder_acc RONE (rsimp4_SEQ_atom r2 k))) +
+        card ((strong_apder_acc RONE (rsimp4_SEQ_atom r2 k) -
+            strong_apder_acc RONE k) \<union>
+          (single_term r2 k - strong_apder_acc RONE k))
+        \<le> rsize (RSEQ r1 r2)"
+    and legacy: "legacy_rrexp q"
+    and free: "rntimes_free q"
+    and nfq: "apder_nf q"
+    and nfk: "apder_nf k"
+  shows "D1 q k \<le> rsize q"
+  using legacy free nfq nfk
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    by (simp add: D1_def D_def)
+next
+  case RONE
+  show ?case
+    by (rule D1_RONE_le_rsize_spine) (use RONE.prems in simp)
+next
+  case (RCHAR c)
+  have nfk': "apder_nf k"
+    using RCHAR.prems by simp
+  show ?case
+    using card_strong_apder_acc_RCHAR_diff_base_le[OF nfk']
+    by (simp add: D1_def D_def)
+next
+  case (RSEQ r1 r2)
+  have combined:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (strong_apder_acc RONE k \<union>
+            strong_apder_acc RONE (rsimp4_SEQ_atom r2 k))) +
+        card ((strong_apder_acc RONE (rsimp4_SEQ_atom r2 k) -
+            strong_apder_acc RONE k) \<union>
+          (single_term r2 k - strong_apder_acc RONE k))
+        \<le> rsize (RSEQ r1 r2)"
+    by (rule combined_RSEQ_clean) (use RSEQ.prems in auto)
+  show ?case
+    by (rule D1_RSEQ_le_rsize_from_combined_head_boundary_spine[OF combined])
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+    using RALTS.IH RALTS.prems by auto
+  show ?case
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches_spine
+        [OF L1_cover branch])
+next
+  case (RSTAR r)
+  let ?c = "rsimp4_SEQ_atom (RSTAR r) k"
+  have nfr: "apder_nf r"
+    using RSTAR.prems by simp
+  have nfk': "apder_nf k"
+    using RSTAR.prems by simp
+  have nfc: "apder_nf ?c"
+    by (rule apder_nf_rsimp4_SEQ_atom[OF _ nfk'])
+      (use nfr in simp)
+  have step: "D1 (RSTAR r) k \<le> 1 + D1 r ?c"
+    by (rule D1_RSTAR_step_spine[OF nfr nfk'])
+  have body: "D1 r ?c \<le> rsize r"
+    by (rule RSTAR.IH) (use RSTAR.prems nfr nfc in auto)
+  show ?case
+    using step body by simp
+next
+  case (RNTIMES r n)
+  then show ?case
+    by simp
+next
+  case (RBACKREF4 r1 r2 r3 r4 cs)
+  then show ?case
+    by simp
+next
+  case (RHALF r cs rep)
+  then show ?case
+    by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case
+    by simp
+qed
+
 lemma singleton_bound_from_combined_RSEQ_L1_clean_spine:
   assumes D1_singleton_le_rsize_from_combined_RSEQ_L1_clean:
     "\<And>q k. legacy_rrexp q \<Longrightarrow> rntimes_free q \<Longrightarrow>
