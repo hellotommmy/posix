@@ -33,6 +33,11 @@ missing subgoal:
   (Validated truth + mechanism: ROUTE1_CRUX_STATUS.md §L1 / [[l1-singleton-cover-acc-part-rescue]].)
   ★ SHARED WITH O2: this branch-routing reduces to the SAME prune branch-list/origin-preservation lemma (S keeps the
   head-branch list across `rsimpStrong_prune_rows_acc_raw`). Crack that ONE prune lemma ⇒ BOTH O1 and O2 fall.
+  ➤ RESOLUTION (Pro 2026-06-25, see PRUNE_SCANLIFT_PLAN.md): pair-level prune facts are DONE; the missing piece is the
+  FOLD/SCAN LIFT `row_dlforms_prune_against_rows_shared_tail_subset_later_or_credit` (induct over
+  rsimpStrong_prune_against_rows_raw, reusing the shared RSEQ/nonstar/RSTAR pair lemmas; report case tail×[]/singleton/≥2).
+  Then close tagged_inv via B1 (surviving branch → singleton ROOT carrier) / B2 (collapsed-star escape → singleton ACC
+  credit). STOP adding isolated row helpers — fold-lift the existing ones.
 ```
 
 ## O2  S1_boundary  (lane: BND `card/route1-bnd`)
@@ -64,6 +69,11 @@ ALL degenerate regimes) but BOTH are **GAP** — their proofs reduce to ONE shar
   CHAIN (size ≤2) ⇒ f inj_on. Then ⇒ card_inj_on_le ⇒ card(X−Y)≤card(Y−X) ⇒ card_le_of_card_diff_le (GREEN) ⇒ card X ≤ card Y.
   (NB the literal S1 with Y=root_excess is TRUE — the "rsize-4 CE" was a model-faithfulness error: SAA(t,k) with atf,
   not SAA(RONE, s4 t k) which has atf RONE = ∅.)
+  ➤ RESOLUTION (Pro 2026-06-25, see PRUNE_SCANLIFT_PLAN.md): do NOT prove the brittle syntactic E1/E2 (it breaks on
+  []/singleton/inner-RSEQ(RALTS) exposure). Use the COVER scan-lift theorem. BND order: prove
+  `bnd_lift_compatible_rsimp7_same_head` (+ `one_pos_le`) → `boundary_missing_has_root_lift_from_prune_scan` (D_nonempty,
+  a scan-lift corollary, EXISTENCE before inj_on) → `bnd_candidates_same_key_chain` (D_chain = COMPARABILITY) →
+  least-candidate injection ⇒ card(X−Y)≤card(Y−X) ⇒ card_le_of_card_diff_le ⇒ S1. Pair-level is DONE; the fold-lift is the nut.
 ```
 
 ## O3  seq / D1     (lane: SEQ `card/route1-seq`)
