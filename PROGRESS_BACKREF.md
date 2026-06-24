@@ -11754,3 +11754,38 @@ Added the explicit spine hook `RALTS_diff_from_L1_D1_spine`, which derives the g
 FORMALIZE LANE STATUS:
 complete modulo upstream `L1_cover` and `singleton_bound`; no attempt should be made here to grind L1/S1/seq or to
 prove `RALTS_diff` directly.
+
+## 2026-06-24 ROUTE-1 CARD integration lane (Codex): clean singleton assembler GREEN; exact nf-only interface blocked
+
+BRANCH: `card/route1-formalize`.
+
+BUILD:
+private `USER_HOME`/`HOME` build of `Posix_Card_Route1` EXIT 0.
+
+CHECKED, GREEN, no sorry:
+- Added the clean-regime assembler hook
+  `singleton_bound_clean_from_L1_BND_SEQ_spine`:
+  assuming the nested L1-shaped cover
+  `!!rs k. strong_apder_acc (RALTS [RALTS rs]) k <=
+     (UN q:set rs. strong_apder_acc (RALTS [q]) k)`,
+  plus BND `boundary_term_absorb` and SEQ `seq_head_core_le_rsize`,
+  proves
+  `legacy_rrexp q ==> rntimes_free q ==> apder_nf q ==> apder_nf k ==> D1 q k <= rsize q`.
+- The RSEQ case uses `D1_RSEQ_step_spine`; the RSTAR case uses `D1_RSTAR_step_spine`; the RALTS case uses
+  branch IH plus the list union budget.
+
+FAIL-STOP NOTE for the screenshot's nf-only shape:
+the exact statement
+`apder_nf q ==> apder_nf k ==> D1 q k <= rsize q`
+is not currently safe as an Isabelle theorem over this datatype, because `apder_nf` alone admits `RNTIMES`.
+The first failed goal for the nf-only attempt was the `q = RNTIMES r n` constructor:
+`apder_nf r; apder_nf k ==> D1 (RNTIMES r n) k <= Suc (rsize r + n)`.
+This is outside the clean Route-1 constructor list and needs either the clean guards in the assembler interface or
+a separately validated/proved RNTIMES budget.
+
+SECOND INTERFACE NOTE:
+the RALTS branch of singleton assembly needs the nested cover
+`strong_apder_acc (RALTS [RALTS rs]) k <= (UN q:set rs. strong_apder_acc (RALTS [q]) k)`.
+This is stronger/differently shaped than the existing top-level L1 cover used by `RALTS_diff_from_L1_D1_spine`.
+If Secretary wants the exact mechanical final chain, either COVER should deliver this nested L1 variant, or formalize
+needs a validated rflts-flatten bridge from the top-level L1 to the nested variant.
