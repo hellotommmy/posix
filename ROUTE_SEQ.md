@@ -9,7 +9,21 @@ and merges your green proof. **Prove ONE lemma; build green; no `sorry`; fail-st
   lemma is its §2.2 helper; it leaves the RSEQ-head and RALTS-head cases `sorry` — that is YOUR work).
   Green base `cubic/DirectUniverseCubic.thy` (do NOT modify).
 
-## YOUR TARGET
+## ⚠ 2026-06-23 — THE TARGET HAS CHANGED (the old bare statement is Isabelle-FALSE)
+The "YOUR TARGET" + "proof-level steer (validated by the Secretary)" below are **SUPERSEDED**. The bare statement
+`apder_nf h ⟹ apder_nf t ⟹ apder_nf k ⟹ head_core ≤ rsize h` is **FALSE** — THIS lane itself committed the
+counterexamples `seq_head_core_le_rsize_unrestricted_false` (h=`RONE`: rsize h < card) and
+`seq_head_core_le_rsize_nf_seq_false` (h=`RALTS[RONE]`, apder_nf(RSEQ h t) holds, card 3 > rsize h 2). The
+"validated" tag was only on the NON-degenerate regime; degenerate unit / singleton-ALT heads break it.
+
+**NEW LIVE TARGET — the COMBINED RSEQ budget on the clean domain** (already the right shape in your file):
+`D1_singleton_le_rsize_from_combined_RSEQ_L1_clean` — charge the WHOLE RSEQ,
+`head_core(r1,r2,k) + boundary(r2,k) ≤ rsize(RSEQ r1 r2)`, under `legacy_rrexp ∧ rntimes_free ∧ apder_nf`, NOT the
+per-row head_core. Keep `boundary` (= S1) and `ralts_root_cover` (= L1) as `assumes`. **Report against
+`OPEN_OBLIGATIONS.md` O3 only** — the exact missing assumption — no "progress note"/"validated"/"green helper".
+The block below is kept ONLY as the historical (refuted) bare target.
+
+## YOUR TARGET (HISTORICAL / REFUTED — see the 2026-06-23 block above)
 ```isabelle
 lemma seq_head_core_le_rsize:
   assumes "apder_nf h" "apder_nf t" "apder_nf k"
