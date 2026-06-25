@@ -19,7 +19,10 @@ Short version of the rules:
 - One small checked step at a time. Build after every meaningful change with
   the repo wrappers (`scripts\codex-isabelle-build-posix.ps1`; one build at a
   time — `scripts\codex-proof-workers.ps1 -Action Check` first). Update the
-  tail of `PROGRESS_BACKREF.md`, commit, push promptly.
+  tail of `PROGRESS_BACKREF.md`, commit, and PUSH EACH GREEN COMMIT IMMEDIATELY
+  (`git push origin HEAD:<your-lane-branch>`, explicit refspec) — never batch or
+  defer the push; an unpushed green commit is invisible to the integrator and the
+  other lanes.
 - A red background shell on a build is an Isabelle proof failure: read the
   first `*** Failed to finish proof` block, change ONE small named lemma, and
   never relaunch a build while the first failing goal is unchanged.

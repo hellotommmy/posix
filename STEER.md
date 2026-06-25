@@ -10,8 +10,13 @@ Self-sync protocol (every agent, every turn):
 1. `git pull --rebase --autostash` in `posix-codex`.
 2. Re-read THIS file (and the PROGRESS tail if you need context).
 3. Obey the order for your lane below. Claim the lemma you take in PROGRESS
-   before editing so lanes don't collide. Stage ONLY your own hunks; commit small,
-   push immediately. No `sorry`/`oops`/`admit`.
+   before editing so lanes don't collide. Stage ONLY your own hunks; commit small.
+   **PUSH EACH GREEN COMMIT IMMEDIATELY** — the instant your build is green and you
+   have committed, run `git push origin HEAD:<your-lane-branch>` BEFORE anything else
+   (cover→`card/route1-cover`, bnd→`card/route1-bnd`, seq→`card/route1-seq`,
+   formalize→`card/route1-formalize`). Use the explicit `HEAD:<branch>` refspec, NOT
+   a bare `git push` (cover/bnd/seq have no upstream configured). An unpushed green
+   commit does not exist for the Secretary or the other lanes. No `sorry`/`oops`/`admit`.
 
 ---
 
