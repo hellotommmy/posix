@@ -129,13 +129,27 @@ current O4 plug status after FORMALIZE/Codex clean-wrapper edit (`Posix_Card_Rou
       L1_cover ⟹ singleton_bound ⟹ apder_clean r ⟹
       rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) ≤ 2 * (rsize r + 3)^3.
 
-  EXACT OPEN POINT: supply the two assumptions to the new clean wrappers:
+  DONE: confirmed top-level `L1_final` does NOT mechanically imply the nested singleton-assembler cover:
+      strong_apder_acc (RALTS [RALTS rs]) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k).
+    Instantiating `L1_final` with `[RALTS rs]` only covers `RALTS [RALTS rs]` by its own singleton carrier, so COVER
+    must either deliver the nested shape directly or expose this bridge as `L1_nested_flatten`.
+
+  DONE: added the all-input convenience gate wrapper
+    cubic_gate_unconditional_from_L1_BND_combined_RSEQ_clean_spine :
+      L1_final ⟹ L1_nested_flatten ⟹ boundary_term_absorb ⟹ combined_RSEQ_clean ⟹ apder_clean r ⟹
+      rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) ≤ 2 * (rsize r + 3)^3.
+    It only composes existing green spine lemmas and assumptions; no L1/S1/SEQ proof is re-proved here.
+
+  EXACT OPEN POINT: supply the assumptions to the new clean wrappers:
     - top-level `L1_cover`
         strong_apder_acc (RALTS rs) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k)
-    - clean-regime singleton/D1 bound
+    - nested `L1_nested_flatten`
+        strong_apder_acc (RALTS [RALTS rs]) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k)
+    - BND `boundary_term_absorb`
+    - SEQ `combined_RSEQ_clean`
+    These assemble the clean-regime singleton/D1 bound
         legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q,
-      produced by `singleton_bound_from_L1_BND_combined_RSEQ_clean_spine` from nested L1 + BND
-      `boundary_term_absorb` + SEQ `combined_RSEQ_clean`.
+      via `singleton_bound_from_L1_BND_combined_RSEQ_clean_spine`.
   No old/refuted `seq_head_core_le_rsize` interface is used by the new clean final wrappers, and no L1/S1/seq
   proof was re-proved here.
 ```
