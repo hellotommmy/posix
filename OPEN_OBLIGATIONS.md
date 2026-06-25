@@ -13,6 +13,9 @@ The Gate and the conditional spine are DONE — `cubic_gate_unconditional_from_L
   were then Isabelle-REFUTED (S1 `X⊆S(Y)`, S1 `X−Y⊆S(Y−X)`, seq `head_core≤rsize h`). Hand-prove the structural
   invariant FIRST; only then formalize.
 - **No Isabelle theory proof beyond a generic finite-set/order combinator may be landed unless it builds GREEN.**
+- **PUSH EACH GREEN COMMIT IMMEDIATELY** — after any build-green commit, `git push origin HEAD:<lane-branch>` at once.
+  Local-only green work is invisible to the Secretary/Pro and stalls the audit. (2026-06-25: COVER's `df74132`
+  scan-lift sat unpushed for 2 days and made Pro's audit read "COVER stopped Jun 23".) Pull-rebase before push.
 
 ---
 
