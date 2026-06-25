@@ -91,6 +91,10 @@ ALL degenerate regimes) but BOTH are **GAP** — their proofs reduce to ONE shar
   is `apder_nf`-conditioned (the unconditional "S removes all internal equal-star runs" is FALSE, CE tl=(b·b*)·b*);
   (2) DELETE STEP 3 `kX=S kY` (FALSE, CE tl=RALTS[a**·b**] k=b*; unused). Pin `kY = σ4 (S tl) (S k)` (raw k ⇒ FALSE).
   Remaining = FORMALIZATION, not discovery.
+  📍 BND PROGRESS (dda06fb, pushed): the LOCAL seam lift lemmas are LANDED in Isabelle — `bnd_seam_lift_rsimp4_same_head`,
+  `bnd_seam_lift_rsimp7_same_head`, `bnd_lift_compatible_rsimp7_same_head`, `bnd_counts_one_pos_le_rsimp7_same_head` (the E3
+  localization, +526 lines). NEXT (do NOT redo the seam lemmas): Claim A `S_apder_nf_no_internal_equal_star_run` →
+  `E3a_continuation_seam` (pin kY normalized) → D_nonempty → D_chain/comparability → least-candidate injection → card(X−Y)≤card(Y−X).
 ```
 
 ## O3  seq / D1     (lane: SEQ `card/route1-seq`)
@@ -125,10 +129,14 @@ exact theorem consumed by formalize:
   consumed by card_apder_strong_dlfrontier_le_from_L1_D1_spine ⇒ cubic_gate_unconditional_from_L1_D1_spine
   (both present & GREEN, modulo L1_cover + singleton_bound).
 
-current plug status:  ⚠ INTERFACE MISMATCH.
-  D1_RSEQ_step_spine still consumes the IDEAL `seq_head_core_le_rsize` shape, which O3 has proven FALSE.
-  TO FIX (theory work — FORMALIZE/Codex, build-green only): re-state singleton_bound to consume the seq lane's
-  COMBINED/clean theorem (O3 new target), and bridge the domain by proving
-  `apder_clean q ⟹ legacy_rrexp q ∧ rntimes_free q ∧ apder_nf q`. Until the domain predicates are unified, the
-  inputs will not plug in.
+current plug status (Jun 24-25): ✅ the clean singleton assembler `singleton_bound_from_L1_BND_combined_RSEQ_clean_spine`
+  is LANDED (consumes L1_cover + boundary_term_absorb + combined_RSEQ_clean ⇒ legacy_rrexp q ∧ rntimes_free q ∧ apder_nf q
+  ∧ apder_nf k ⟹ D1 q k ≤ rsize q), AND the domain bridge `apder_clean_domain_spine` (apder_clean q ⟹ legacy_rrexp q ∧
+  rntimes_free q ∧ apder_nf q) is GREEN. formalize is now OFF the false seq theorem.
+  ⚠ REMAINING (precise next FORMALIZE task, Pro 2026-06-25): the final GREEN gate wrapper still consumes the OLD broad
+  input `∀q k. apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q`, but the new assembler gives only the CLEAN-domain input. Build
+  the CLEAN-DOMAIN versions, threading `apder_clean r` through the structural induction + RALTS-branch singleton calls (use
+  the green `apder_clean_domain_spine`): `card_strong_apder_acc_diff_base_le_rsize_from_L1_D1_clean_spine` →
+  `card_apder_strong_dlfrontier_le_from_L1_D1_clean_spine` → `cubic_gate_unconditional_from_L1_D1_clean_spine`. Do NOT
+  re-prove L1/S1/seq. build-green only.
 ```
