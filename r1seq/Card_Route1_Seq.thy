@@ -4595,6 +4595,86 @@ next
   then show ?case by simp
 qed
 
+lemma D1_singleton_le_rsize_from_combined_RSEQ_L1_apder_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and rseq_combined:
+    "\<And>r1 r2 k. apder_clean (RSEQ r1 r2) \<Longrightarrow> apder_clean k \<Longrightarrow>
+      card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+        card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+          (single_term r2 k - B k))
+        \<le> rsize (RSEQ r1 r2)"
+    and clean: "apder_clean q" "apder_clean k"
+  shows "D1 q k \<le> rsize q"
+  using clean
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    using D1_RZERO_le_rsize[of k] by (simp add: apder_clean_def)
+next
+  case RONE
+  then show ?case
+    using D1_RONE_le_rsize[of k] by (simp add: apder_clean_def)
+next
+  case (RCHAR c)
+  then show ?case
+    using D1_RCHAR_le_rsize[of k c] by (simp add: apder_clean_def)
+next
+  case (RSEQ q1 q2)
+  have combined:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+        single_term q1 (rsimp4_SEQ_atom q2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom q2 k))) +
+      card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+        (single_term q2 k - B k))
+      \<le> rsize (RSEQ q1 q2)"
+    by (rule rseq_combined) (use RSEQ.prems in simp_all)
+  show ?case
+    by (rule D1_RSEQ_le_rsize_from_combined_head_boundary)
+      (use combined in simp)
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+  proof -
+    fix q
+    assume q: "q \<in> set rs"
+    have q_clean: "apder_clean q"
+      using RALTS.prems(1) q by (rule apder_clean_RALTS_member)
+    show "D1 q k \<le> rsize q"
+      using RALTS.IH[OF q q_clean RALTS.prems(2)] .
+  qed
+  show ?case
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches[OF L1 branch])
+next
+  case (RSTAR q)
+  let ?c = "rsimp4_SEQ_atom (RSTAR q) k"
+  have q_clean: "apder_clean q"
+    using RSTAR.prems(1) by (rule apder_clean_RSTAR_body)
+  have c_clean: "apder_clean ?c"
+    by (rule sigma_clean[OF RSTAR.prems])
+  have child: "D1 q ?c \<le> rsize q"
+    using RSTAR.IH[OF q_clean c_clean] .
+  have nf_q: "apder_nf q" and nf_k: "apder_nf k"
+    using q_clean RSTAR.prems(2) by (simp_all add: apder_clean_def)
+  show ?case
+    using D1_RSTAR_le_rsize_from_child[of q k] nf_q nf_k child by auto
+next
+  case (RNTIMES q n)
+  then show ?case by (simp add: apder_clean_def)
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?case by (simp add: apder_clean_def)
+next
+  case (RHALF q cs rep)
+  then show ?case by (simp add: apder_clean_def)
+next
+  case (RRESIDUE cs rep)
+  then show ?case by (simp add: apder_clean_def)
+qed
+
 lemma D1_singleton_le_rsize_from_combined_RSEQ_boundary_L1_root_apder_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
