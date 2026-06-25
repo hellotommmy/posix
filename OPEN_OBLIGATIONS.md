@@ -106,14 +106,36 @@ current plug status after FORMALIZE/Codex build-green edit (`Posix_Card_Route1`,
     apder_clean_domain_spine :
       apder_clean q ⟹ legacy_rrexp q ∧ rntimes_free q ∧ apder_nf q.
 
-  STILL NOT PLUGGED: the already-green gate wrapper
-    cubic_gate_unconditional_from_L1_D1_spine
-  still consumes the old broad singleton input
-    ∀ q k. apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q,
-  while the seq combined theorem supplies only the clean-domain input
-    legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ ...
-  (or, via the new bridge, apder_clean q ⟹ ...).  The remaining FORMALIZE shape mismatch is therefore
-  the RALTS/global assembly interface: it must carry the outer `apder_clean` domain into the branch singleton
-  calls, or expose a clean-domain replacement for the old `..._from_L1_D1_spine` wrappers.  No L1/S1/seq proof
-  was re-proved here.
+current O4 plug status after FORMALIZE/Codex clean-wrapper edit (`Posix_Card_Route1`, private heap, EXIT 0):
+  DONE: added the clean-domain RALTS budget hook
+    card_strong_apder_acc_RALTS_diff_base_le_size_budget_from_D1_clean_spine
+  carrying outer `apder_clean (RALTS rs)` into each branch singleton call via
+    apder_clean_domain_spine :
+      apder_clean q ⟹ legacy_rrexp q ∧ rntimes_free q ∧ apder_nf q.
+
+  DONE: added the clean global count wrapper
+    card_strong_apder_acc_diff_base_le_rsize_from_L1_D1_clean_spine :
+      L1_cover ⟹
+      (∀ q k. legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q) ⟹
+      apder_clean r ⟹ apder_nf k ⟹ D r k ≤ rsize r.
+
+  DONE: added the clean final target wrapper
+    card_apder_strong_dlfrontier_le_from_L1_D1_clean_spine :
+      L1_cover ⟹ singleton_bound ⟹ apder_clean r ⟹
+      card (apder_strong_dlfrontier r) ≤ Suc (rsize r).
+
+  DONE: added the clean cubic wrapper
+    cubic_gate_unconditional_from_L1_D1_clean_spine :
+      L1_cover ⟹ singleton_bound ⟹ apder_clean r ⟹
+      rsize_set (row_dlformss (rpder_strong_rows_raw c (afactored1 r s))) ≤ 2 * (rsize r + 3)^3.
+
+  EXACT OPEN POINT: supply the two assumptions to the new clean wrappers:
+    - top-level `L1_cover`
+        strong_apder_acc (RALTS rs) k ⊆ (⋃q∈set rs. strong_apder_acc (RALTS [q]) k)
+    - clean-regime singleton/D1 bound
+        legacy_rrexp q ⟹ rntimes_free q ⟹ apder_nf q ⟹ apder_nf k ⟹ D1 q k ≤ rsize q,
+      produced by `singleton_bound_from_L1_BND_combined_RSEQ_clean_spine` from nested L1 + BND
+      `boundary_term_absorb` + SEQ `combined_RSEQ_clean`.
+  No old/refuted `seq_head_core_le_rsize` interface is used by the new clean final wrappers, and no L1/S1/seq
+  proof was re-proved here.
 ```
