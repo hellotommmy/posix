@@ -4190,6 +4190,81 @@ next
   then show ?case by simp
 qed
 
+lemma D1_singleton_le_rsize_from_required_head_suc_boundary_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> rnonseq h \<Longrightarrow> h \<noteq> RZERO \<Longrightarrow> h \<noteq> RONE \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean: "legacy_rrexp q" "rntimes_free q" "apder_nf q" "apder_nf k"
+  shows "D1 q k \<le> rsize q"
+  using clean
+proof (induction q arbitrary: k)
+  case RZERO
+  then show ?case
+    using D1_RZERO_le_rsize[of k] by simp
+next
+  case RONE
+  then show ?case
+    using D1_RONE_le_rsize[of k] by simp
+next
+  case (RCHAR c)
+  then show ?case
+    using D1_RCHAR_le_rsize[of k c] by simp
+next
+  case (RSEQ q1 q2)
+  have sh:
+    "card ((single_root (RSEQ q1 q2) k \<union>
+      single_term q1 (rsimp4_SEQ_atom q2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom q2 k))) \<le> Suc (rsize q1)"
+    using RSEQ.prems by (intro seq_head) auto
+  have bnd:
+    "card ((B (rsimp4_SEQ_atom q2 k) - B k) \<union>
+      (single_term q2 k - B k)) \<le> D1 q2 k"
+    using RSEQ.prems by (intro boundary) auto
+  have child: "D1 q2 k \<le> rsize q2"
+    using RSEQ.IH(2) RSEQ.prems by auto
+  show ?case
+    by (rule D1_RSEQ_le_rsize_from_head_suc_boundary_child[OF sh bnd child])
+next
+  case (RALTS rs)
+  have branch: "\<And>q. q \<in> set rs \<Longrightarrow> D1 q k \<le> rsize q"
+    using RALTS.IH RALTS.prems by auto
+  show ?case
+    by (rule D1_RALTS_le_rsize_from_L1_and_branches[OF L1 branch])
+next
+  case (RSTAR q)
+  let ?c = "rsimp4_SEQ_atom (RSTAR q) k"
+  have nf_c: "apder_nf ?c"
+    using RSTAR.prems by (intro apder_nf_s4) auto
+  have child: "D1 q ?c \<le> rsize q"
+    using RSTAR.IH[OF _ _ _ nf_c] RSTAR.prems by auto
+  show ?case
+    using D1_RSTAR_le_rsize_from_child[of q k] RSTAR.prems child by auto
+next
+  case (RNTIMES q n)
+  then show ?case by simp
+next
+  case (RBACKREF4 q1 q2 q3 q4 cs)
+  then show ?case by simp
+next
+  case (RHALF q cs rep)
+  then show ?case by simp
+next
+  case (RRESIDUE cs rep)
+  then show ?case by simp
+qed
+
 lemma D1_singleton_le_rsize_from_seq_head_suc_boundary_rsize_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
@@ -4524,6 +4599,108 @@ proof -
     by (rule combined_RSEQ_le_rsize_from_head_suc_boundary_rsize[OF sh_suc bnd])
 qed
 
+lemma combined_RSEQ_le_rsize_from_required_head_suc_boundary_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> rnonseq h \<Longrightarrow> h \<noteq> RZERO \<Longrightarrow> h \<noteq> RONE \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean:
+    "legacy_rrexp (RSEQ r1 r2)"
+    "rntimes_free (RSEQ r1 r2)"
+    "apder_nf (RSEQ r1 r2)"
+    "apder_nf k"
+  shows
+    "card ((single_root (RSEQ r1 r2) k \<union>
+        single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+      card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+        (single_term r2 k - B k))
+      \<le> rsize (RSEQ r1 r2)"
+proof -
+  have r2_clean: "legacy_rrexp r2" "rntimes_free r2" "apder_nf r2"
+    using clean by auto
+  have sh:
+    "card ((single_root (RSEQ r1 r2) k \<union>
+      single_term r1 (rsimp4_SEQ_atom r2 k)) -
+      (B k \<union> B (rsimp4_SEQ_atom r2 k))) \<le> Suc (rsize r1)"
+    using clean by (intro seq_head) auto
+  have bnd_d1:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> D1 r2 k"
+    using r2_clean clean(4) by (intro boundary) auto
+  have child: "D1 r2 k \<le> rsize r2"
+    by (rule D1_singleton_le_rsize_from_required_head_suc_boundary_L1_clean
+        [OF L1 seq_head boundary])
+      (use r2_clean clean(4) in simp_all)
+  have bnd:
+    "card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+      (single_term r2 k - B k)) \<le> rsize r2"
+    by (rule le_trans[OF bnd_d1 child])
+  show ?thesis
+    by (rule combined_RSEQ_le_rsize_from_head_suc_boundary_rsize[OF sh bnd])
+qed
+
+lemma combined_RSEQ_le_rsize_from_RALTS_RSTAR_head_boundary_L1_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and ralts_head:
+    "\<And>rs t k. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RALTS rs) t) k \<union>
+        single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RALTS rs))"
+    and rstar_head:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RSTAR r))"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean:
+    "legacy_rrexp (RSEQ r1 r2)"
+    "rntimes_free (RSEQ r1 r2)"
+    "apder_nf (RSEQ r1 r2)"
+    "apder_nf k"
+  shows
+    "card ((single_root (RSEQ r1 r2) k \<union>
+        single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+      card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+        (single_term r2 k - B k))
+      \<le> rsize (RSEQ r1 r2)"
+proof -
+  have seq_head:
+    "\<And>h t k. legacy_rrexp h \<Longrightarrow> rntimes_free h \<Longrightarrow>
+      apder_nf h \<Longrightarrow> rnonseq h \<Longrightarrow> h \<noteq> RZERO \<Longrightarrow> h \<noteq> RONE \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ h t) k \<union>
+        single_term h (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize h)"
+    by (rule required_seq_head_suc_from_RALTS_RSTAR_cases_clean
+        [OF ralts_head rstar_head])
+  show ?thesis
+    by (rule combined_RSEQ_le_rsize_from_required_head_suc_boundary_L1_clean
+        [OF L1 seq_head boundary clean])
+qed
+
 lemma D1_singleton_le_rsize_from_combined_RSEQ_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
@@ -4727,6 +4904,48 @@ proof -
     by (rule D1_singleton_le_rsize_from_combined_RSEQ_L1_clean
         [OF L1 rseq_combined])
       (use clean in \<open>simp_all add: apder_clean_def\<close>)
+qed
+
+lemma D1_singleton_le_rsize_from_RALTS_RSTAR_head_boundary_L1_apder_clean:
+  assumes L1:
+    "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. A (RALTS [q]) k)"
+    and ralts_head:
+    "\<And>rs t k. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RALTS rs) t) k \<union>
+        single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RALTS rs))"
+    and rstar_head:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (B k \<union> B (rsimp4_SEQ_atom t k))) \<le> Suc (rsize (RSTAR r))"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((B (rsimp4_SEQ_atom t k) - B k) \<union>
+        (single_term t k - B k)) \<le> D1 t k"
+    and clean: "apder_clean q" "apder_clean k"
+  shows "D1 q k \<le> rsize q"
+proof -
+  have rseq_combined:
+    "\<And>r1 r2 k. apder_clean (RSEQ r1 r2) \<Longrightarrow> apder_clean k \<Longrightarrow>
+      card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (B k \<union> B (rsimp4_SEQ_atom r2 k))) +
+        card ((B (rsimp4_SEQ_atom r2 k) - B k) \<union>
+          (single_term r2 k - B k))
+        \<le> rsize (RSEQ r1 r2)"
+    by (rule combined_RSEQ_le_rsize_from_RALTS_RSTAR_head_boundary_L1_clean
+        [OF L1 ralts_head rstar_head boundary])
+      (simp_all add: apder_clean_def)
+  show ?thesis
+    by (rule D1_singleton_le_rsize_from_combined_RSEQ_L1_apder_clean
+        [OF L1 rseq_combined clean])
 qed
 
 (* TARGET (prove below; statement + steer in ROUTE_SEQ.md):
