@@ -1369,4 +1369,47 @@ proof -
         [OF L1_final singleton_bound clean])
 qed
 
+text \<open>
+Expected lane outputs for the final Route-1 adapter:
+COVER: strong_apder_acc_RALTS_singleton_cover,
+  strong_apder_acc_RALTS_nested_flatten.
+BND: boundary_term_absorb.
+SEQ: combined_RSEQ_clean_for_formalize.
+This theory only consumes these interfaces; it does not prove the lane cruxes.
+\<close>
+
+theorem route1_cubic_final_from_lane_outputs:
+  assumes L1_final:
+    "\<And>rs k. strong_apder_acc (RALTS rs) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and L1_nested_flatten:
+    "\<And>rs k. strong_apder_acc (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and boundary_term_absorb:
+    "\<And>t k. apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term t k - strong_apder_acc RONE k)) \<le>
+      D1 t k"
+    and combined_RSEQ_clean:
+    "\<And>r1 r2 k. legacy_rrexp (RSEQ r1 r2) \<Longrightarrow>
+      rntimes_free (RSEQ r1 r2) \<Longrightarrow> apder_nf (RSEQ r1 r2) \<Longrightarrow>
+      apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ r1 r2) k \<union>
+          single_term r1 (rsimp4_SEQ_atom r2 k)) -
+          (strong_apder_acc RONE k \<union>
+            strong_apder_acc RONE (rsimp4_SEQ_atom r2 k))) +
+        card ((strong_apder_acc RONE (rsimp4_SEQ_atom r2 k) -
+            strong_apder_acc RONE k) \<union>
+          (single_term r2 k - strong_apder_acc RONE k))
+        \<le> rsize (RSEQ r1 r2)"
+    and clean: "apder_clean r"
+  shows "rsize_set
+       (row_dlformss
+         (rpder_strong_rows_raw c (afactored1 r s)))
+     \<le> 2 * (rsize r + 3) ^ 3"
+  by (rule cubic_gate_unconditional_from_L1_BND_combined_RSEQ_clean_spine
+      [OF L1_final L1_nested_flatten boundary_term_absorb
+        combined_RSEQ_clean clean])
+
 end
