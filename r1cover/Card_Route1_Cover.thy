@@ -1928,6 +1928,93 @@ next
     by (rule row_dlforms_singleton_acc_member_subset_strong_apder_acc[OF acc])
 qed
 
+lemma cover_RSTAR_escape_preimage_to_terms:
+  assumes star_term: "RSTAR p \<in> apder_terms r"
+    and star_raw: "rsimpStrong_raw (RSTAR p) = RSTAR s"
+    and K: "K = rsimpStrong_raw k"
+  shows "row_dlforms (rsimp7_SEQ_atom (RSTAR s) K) \<subseteq>
+    rsimpStrong_dlform_closure (apder_term_frontier_acc r k)"
+proof -
+  have raw_eq:
+      "rsimpStrong_raw (rsimp4_SEQ_atom (RSTAR p) k) =
+       rsimp7_SEQ_atom (RSTAR s) K"
+    using star_raw K
+    by (cases k) (simp_all add: rsimp7_SEQ_atom_def)
+  show ?thesis
+  proof (cases "rsimp4_SEQ_atom (RSTAR p) k = RZERO")
+    case True
+    then show ?thesis
+      using raw_eq by simp
+  next
+    case nonzero: False
+    have front:
+        "rsimp4_SEQ_atom (RSTAR p) k \<in>
+         rfrontier (rsimp4_SEQ_atom (RSTAR p) k)"
+      by (rule rfrontier_rsimp4_SEQ_atom_RSTAR_selfI[OF nonzero])
+    have acc:
+        "rsimp4_SEQ_atom (RSTAR p) k \<in>
+         apder_term_frontier_acc r k"
+      by (rule apder_term_frontier_accI_local[OF star_term front])
+    show ?thesis
+      using raw_eq acc
+      by (auto simp add: rsimpStrong_dlform_closure_def)
+  qed
+qed
+
+lemma cover_one_credit_to_terms:
+  assumes K: "K = rsimpStrong_raw k"
+    and collapse:
+      "rsimp_ALTs (rprune_eq_against lrs rows) = RONE"
+    and star_term: "RSTAR p \<in> apder_terms (RALTS rs)"
+    and star_raw: "rsimpStrong_raw (RSTAR p) = RSTAR s"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s))
+        K) \<subseteq>
+    rsimpStrong_dlform_closure
+      (apder_term_frontier_acc (RALTS rs) k)"
+proof -
+  have step:
+      "rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s))
+        K =
+       rsimp7_SEQ_atom (RSTAR s) K"
+    using collapse by simp
+  show ?thesis
+    unfolding step
+    by (rule cover_RSTAR_escape_preimage_to_terms
+        [OF star_term star_raw K])
+qed
+
+lemma cover_star_credit_to_terms:
+  assumes K: "K = rsimpStrong_raw k"
+    and collapse:
+      "rsimp_ALTs (rprune_eq_against lrs rows) = RSTAR s"
+    and star_term: "RSTAR p \<in> apder_terms (RALTS rs)"
+    and star_raw: "rsimpStrong_raw (RSTAR p) = RSTAR s"
+  shows "row_dlforms
+      (rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s))
+        K) \<subseteq>
+    rsimpStrong_dlform_closure
+      (apder_term_frontier_acc (RALTS rs) k)"
+proof -
+  have step:
+      "rsimp7_SEQ_atom
+        (rsimp7_SEQ_atom
+          (rsimp_ALTs (rprune_eq_against lrs rows)) (RSTAR s))
+        K =
+       rsimp7_SEQ_atom (RSTAR s) K"
+    using collapse by (simp add: rsimp7_SEQ_atom_def)
+  show ?thesis
+    unfolding step
+    by (rule cover_RSTAR_escape_preimage_to_terms
+        [OF star_term star_raw K])
+qed
+
 lemma row_dlforms_RALTS_singleton_roots_subset_cover:
   "row_dlforms
       (rsimpStrong_raw
