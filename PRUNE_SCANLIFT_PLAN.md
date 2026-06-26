@@ -6,6 +6,24 @@ keep adding helpers AROUND the `rsimpStrong_prune_rows_raw` wall without abstrac
 theorem. **Pair-level prune facts are essentially DONE (in `card/route1-cover`); the missing piece is the FOLD/SCAN
 LIFT** over `rsimpStrong_prune_against_rows_raw`. Stop adding isolated row helpers; concentrate on the scan-lift.
 
+## 🔴 STATUS UPDATE (Secretary, 2026-06-26) — the scan-lift is PROVED but ORPHANED; O1 stalls on the GLUE, not the lift
+The scan-lift this plan asks for is DONE and GREEN: `row_dlforms_prune_against_rows_shared_tail_subset_later_or_credit`
+(`card/route1-cover` @ df74132, `r1cover/Card_Route1_Cover.thy:1159`, 0 sorry). **But it is referenced NOWHERE downstream
+(orphaned), and it is CREDIT-PARAMETRIC**: its collapsed-star branch is carried as two undischarged hypotheses
+`one_credit` (:1168) / `star_credit` (:1176) — when `rsimp_ALTs (rprune_eq_against lrs rows)` collapses to `RONE` / `RSTAR s`
+(the a*·a* residual), that residual's opening must land in the credit set `C`. So the wall is RELOCATED into these premises.
+Both halves of the proof exist but were NEVER connected:
+ - (A) the scan-lift (:1159) + a full credit machine: `singleton_saa_key_credit` (:2499); bases RZERO/RONE/RCHAR/… (:3233-3255);
+   `tagged_rdistinct_preserves_…`/`tagged_rflts_preserves_…` (:3536/:3626); per-pair shared-RSTAR credits (:2513-2640).
+ - (B) the GREEN conditional bridges `cover_root_from_tagged_invariant` (:3764), `…_if_tagged_inv` (:3843), `…_if_root_split` (:3883);
+   the final `strong_apder_acc_RALTS_singleton_cover` is STILL only a TARGET comment (:3934).
+**THE ONE MISSING LEMMA = the glue** (e.g. `cover_root_split_from_scan_lift`): instantiate :1159 with
+`C := rsimpStrong_dlform_closure (apder_term_frontier_acc …)` (the per-branch term/ACC carrier), discharge `one_credit`/`star_credit`
+from the credit bases above, and so prove the premise of `…_if_root_split` (or `tagged_inv`) → chain the green bridge → `singleton_cover`.
+The alignment to pin is `tagged_Strong_ALTs_rows rs` ↔ the `(seen, later)` accumulator of `rsimpStrong_prune_against_rows_raw`; the lift's
+two disjuncts map onto root_split's two targets ("subset-later" → branch ROOT, "credit C" → branch TERM/ACC). **This is finishable
+formalization — the discovery is done, the cover worker just stopped after landing the lift. Pro: please target this single glue lemma.**
+
 ## Why the brittle syntactic equality is the wrong target
 Do NOT chase `S(s4 t k) = RSEQ(RALTS ps') kX` / `S(s4(RALTS[t])k) = RSEQ(RALTS ps') kY` directly. It is too
 syntactic and breaks on `[]`, singleton, `a*·a*` collapse, and inner `RSEQ(RALTS ...)` exposure: after a prune leaves

@@ -45,6 +45,27 @@ missing subgoal:
   H:=S(RALTS bs), computed identically in X and Y — firing-level identical). So for genuine ALTS-headed H, `ps_X=ps_Y`
   via `head_prune_continuation_free` (Layer A) + `σ7_RALTS_head` (Layer B); singleton/OTHER shape uses the whole-row
   chain lift. This is an ALTERNATIVE to the scan-lift (use whichever formalizes cleaner). ONE gap: the E3 interior-depth seam lemma.
+  ────────────────────────────────────────────────────────────────────────────────────────────────────
+  📍 WHY O1 HAS STALLED (Secretary read of card/route1-cover @ df74132, 2026-06-26) — NOT A WALL, an UNCONNECTED GLUE STEP.
+  The scan-lift IS proved (df74132: `row_dlforms_prune_against_rows_shared_tail_subset_later_or_credit`, Card_Route1_Cover.thy:1159,
+  GREEN, 0 sorry) — BUT it is CREDIT-PARAMETRIC and currently ORPHANED (grep: referenced NOWHERE downstream). Its conclusion is
+  `row_dlforms (rsimp7_SEQ_atom (rsimpStrong_prune_against_rows_raw seen later) K) ⊆ row_dlforms (rsimp7_SEQ_atom later K) ∪ C`,
+  and the collapsed-star branch is carried as TWO UNDISCHARGED HYPOTHESES `one_credit` / `star_credit` (:1168/:1176): when
+  `rsimp_ALTs (rprune_eq_against lrs rows)` collapses to `RONE` or `RSTAR s` (the a*·a* residual), that residual's opening must
+  land in `C`. So the recurring cross-prune wall is RELOCATED into these two credit premises, not removed.
+  BOTH HALVES EXIST, NEVER WIRED:
+   (A) scan-lift (:1159) + a full CREDIT-machine — `singleton_saa_key_credit` fun (:2499); base cases RZERO/RONE/RCHAR/… (:3233-3255);
+       preservation `tagged_rdistinct_preserves_…` (:3536) / `tagged_rflts_preserves_…` (:3626); per-pair shared-RSTAR credits (:2513-2640).
+   (B) the conditional bridges, all GREEN — `cover_root_from_tagged_invariant` (:3764), `…_singleton_cover_if_tagged_inv` (:3843),
+       `…_if_root_split` (:3883). The final unconditional `strong_apder_acc_RALTS_singleton_cover` is STILL a TARGET comment (:3934).
+  THE ONE MISSING LEMMA (the glue): discharge `root_split` (or `tagged_inv`) by INSTANTIATING the scan-lift with
+  `C := rsimpStrong_dlform_closure (apder_term_frontier_acc …)` (the per-branch term/ACC carrier) and PROVING `one_credit`/`star_credit`
+  from the existing credit base+preservation lemmas — the alignment to nail is `tagged_Strong_ALTs_rows rs`  ↔
+  `rsimpStrong_prune_against_rows_raw seen later`'s (seen, later) accumulator. The scan-lift's two disjuncts map EXACTLY onto
+  root_split's two targets: "subset-later" → branch ROOT row; "credit C" → branch TERM/ACC closure (= the validated ACC-part rescue,
+  [[l1-singleton-cover-acc-part-rescue]]). ⇒ O1's remaining work = write THIS glue lemma; the discovery is done, the agent stopped
+  after landing the scan-lift and never connected it. NEXT CONCRETE STEP: prove `…_if_root_split`'s premise (a lemma named e.g.
+  `cover_root_split_from_scan_lift`) using :1159 with C = term closure + the credit lemmas, then chain `…_if_root_split` → singleton_cover.
 ```
 
 ## O2  S1_boundary  (lane: BND `card/route1-bnd`)
