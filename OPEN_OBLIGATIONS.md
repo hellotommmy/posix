@@ -17,6 +17,51 @@ The Gate and the conditional spine are DONE — `cubic_gate_unconditional_from_L
   Local-only green work is invisible to the Secretary/Pro and stalls the audit. (2026-06-25: COVER's `df74132`
   scan-lift sat unpushed for 2 days and made Pro's audit read "COVER stopped Jun 23".) Pull-rebase before push.
 
+### FIXED REPORT TEMPLATE (a report in any other shape is INVALID and will be rejected)
+```
+## O? update
+
+Branch:
+Commit:
+Build command:
+Build status:
+
+Target theorem:
+Current strongest theorem:
+Exact remaining subgoal:
+
+If failed:
+  constructor/case:
+  exact subgoal:
+  attempted lemma:
+  why it fails:
+```
+
+### FORBIDDEN PHRASES — these alone are an INVALID REPORT
+`继续推进` · `新增若干 helper` · `基本完成` · `validated` · `等待装配`
+— a report using any of them is rejected UNLESS it is immediately followed by an **exact theorem name** AND the
+**exact missing subgoal**. "I added green helpers / it's validated / nearly done / waiting on assembly" with no named
+theorem + named open subgoal closes NOTHING and does not advance an obligation.
+
+### PER-LANE ACCEPTANCE GATE (the Secretary accepts ONLY these as the next valid step per lane)
+- **O1 COVER** — `df74132` scan-lift is PROVED but ORPHANED (see O1 §WHY STALLED). Accept ONLY:
+  `cover_root_split_from_scan_lift` (the glue: instantiate the scan-lift, C := term/ACC closure, discharge
+  `one_credit`/`star_credit`) **or** the final `strong_apder_acc_RALTS_singleton_cover`. Nothing else counts as O1 progress.
+- **O2 BND** — accept ONLY: `D_nonempty` · `D_chain` · the least-candidate `injection` (`inj_on`) · `boundary_term_absorb` (= S1).
+- **O3 SEQ** — accept ONLY: `combined_RSEQ_clean` (the FORMALIZE-consumed assumption, in-file
+  `combined_RSEQ_le_rsize_from_RALTS_RSTAR_head_boundary_L1_clean` family) **or** removal of a case assumption
+  (rone_diff / rseq_case / rstar_case / ralts_head / rstar_head).
+- **O4 FORMALIZE** — the unconditional clean gate corollary is ASSEMBLED (`cubic_gate_unconditional_from_L1_BND_combined_RSEQ_clean_spine`,
+  ce2f5c0). Accept ONLY: the final adapter alias that matches the `formalize` interface (and discharging `L1_nested_flatten`).
+
+### SECRETARY CONTRACT (Agent 5 — the only one who edits THIS file)
+- I maintain ONLY `OPEN_OBLIGATIONS.md`. Every update I make MUST carry: **exact theorem name**, **current strongest
+  theorem**, **exact missing subgoal**, and the **commit hash + build status** it is based on.
+- If a worker reports only a "green helper" without naming which obligation's missing subgoal it closes, OR uses a
+  forbidden phrase without an exact theorem+subgoal, OR reports off-template: I mark it **INVALID REPORT** in that
+  obligation's block (with the date + what was missing) and do NOT advance the obligation.
+- One worker report ⇒ at most one obligation block changes.
+
 ---
 
 ## O1  L1_cover     (lane: COVER `card/route1-cover`)
