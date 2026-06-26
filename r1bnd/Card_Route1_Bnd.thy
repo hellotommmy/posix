@@ -652,6 +652,20 @@ proof -
     using assms(3) X Y by simp
 qed
 
+lemma card_diff_le_from_inj_on:
+  fixes X Y :: "'a set"
+  assumes finY: "finite (Y - X)"
+    and maps: "\<And>x. x \<in> X - Y \<Longrightarrow> f x \<in> Y - X"
+    and inj: "inj_on f (X - Y)"
+  shows "card (X - Y) \<le> card (Y - X)"
+proof -
+  have "card (X - Y) = card (f ` (X - Y))"
+    using inj by (rule card_image[symmetric])
+  also have "... \<le> card (Y - X)"
+    by (rule card_mono[OF finY]) (use maps in auto)
+  finally show ?thesis .
+qed
+
 lemma finite_single_root [simp]:
   "finite (single_root q k)"
   by (simp add: single_root_def)
