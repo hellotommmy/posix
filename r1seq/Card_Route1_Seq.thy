@@ -4701,6 +4701,51 @@ proof -
         [OF L1 seq_head boundary clean])
 qed
 
+theorem combined_RSEQ_clean_for_formalize:
+  assumes ralts_root_cover:
+    "\<And>rs k. strong_apder_acc (RALTS [RALTS rs]) k \<subseteq>
+      (\<Union>q \<in> set rs. strong_apder_acc (RALTS [q]) k)"
+    and ralts_head:
+    "\<And>rs t k. legacy_rrexp (RALTS rs) \<Longrightarrow>
+      rntimes_free (RALTS rs) \<Longrightarrow> apder_nf (RALTS rs) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RALTS rs) t) k \<union>
+        single_term (RALTS rs) (rsimp4_SEQ_atom t k)) -
+        (strong_apder_acc RONE k \<union>
+          strong_apder_acc RONE (rsimp4_SEQ_atom t k))) \<le>
+        Suc (rsize (RALTS rs))"
+    and rstar_head:
+    "\<And>r t k. legacy_rrexp (RSTAR r) \<Longrightarrow>
+      rntimes_free (RSTAR r) \<Longrightarrow> apder_nf (RSTAR r) \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((single_root (RSEQ (RSTAR r) t) k \<union>
+        single_term (RSTAR r) (rsimp4_SEQ_atom t k)) -
+        (strong_apder_acc RONE k \<union>
+          strong_apder_acc RONE (rsimp4_SEQ_atom t k))) \<le>
+        Suc (rsize (RSTAR r))"
+    and boundary:
+    "\<And>t k. legacy_rrexp t \<Longrightarrow> rntimes_free t \<Longrightarrow>
+      apder_nf t \<Longrightarrow> apder_nf k \<Longrightarrow>
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom t k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term t k - strong_apder_acc RONE k)) \<le>
+      D1 t k"
+    and legacy: "legacy_rrexp (RSEQ r1 r2)"
+    and free: "rntimes_free (RSEQ r1 r2)"
+    and nf: "apder_nf (RSEQ r1 r2)"
+    and nfk: "apder_nf k"
+  shows
+    "card ((single_root (RSEQ r1 r2) k \<union>
+        single_term r1 (rsimp4_SEQ_atom r2 k)) -
+        (strong_apder_acc RONE k \<union>
+          strong_apder_acc RONE (rsimp4_SEQ_atom r2 k))) +
+      card ((strong_apder_acc RONE (rsimp4_SEQ_atom r2 k) -
+          strong_apder_acc RONE k) \<union>
+        (single_term r2 k - strong_apder_acc RONE k))
+      \<le> rsize (RSEQ r1 r2)"
+  by (rule combined_RSEQ_le_rsize_from_RALTS_RSTAR_head_boundary_L1_clean
+      [OF ralts_root_cover ralts_head rstar_head boundary legacy free nf nfk])
+
 lemma D1_singleton_le_rsize_from_combined_RSEQ_L1_clean:
   assumes L1:
     "\<And>rs k. A (RALTS [RALTS rs]) k \<subseteq>
